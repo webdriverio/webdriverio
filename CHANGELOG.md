@@ -19,6 +19,44 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.31.1 (2023-04-17)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#10187](https://github.com/webdriverio/webdriverio/pull/10187) OBS 807 Fix Filepath V7 ([@amaanbs](https://github.com/amaanbs))
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#10179](https://github.com/webdriverio/webdriverio/pull/10179) Fix glob types missing in production env (v7) ([@sriteja777](https://github.com/sriteja777))
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`
+  * [#10115](https://github.com/webdriverio/webdriverio/pull/10115) Fixed build issues in v7 ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10038](https://github.com/webdriverio/webdriverio/pull/10038) added observability and session check in browserstack service (v7) ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
+## v7.31.0 (2023-04-17)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#10187](https://github.com/webdriverio/webdriverio/pull/10187) OBS 807 Fix Filepath V7 ([@amaanbs](https://github.com/amaanbs))
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#10179](https://github.com/webdriverio/webdriverio/pull/10179) Fix glob types missing in production env (v7) ([@sriteja777](https://github.com/sriteja777))
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`
+  * [#10115](https://github.com/webdriverio/webdriverio/pull/10115) Fixed build issues in v7 ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10038](https://github.com/webdriverio/webdriverio/pull/10038) added observability and session check in browserstack service (v7) ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.30.3 (2023-03-09)
 
 #### :bug: Bug Fix
