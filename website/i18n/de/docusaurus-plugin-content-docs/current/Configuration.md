@@ -400,218 +400,218 @@ Parameter:
 - `caps` (`Objekt`): Enthält Capabilities für Sitzungen, die im Worker Prozess erstellt werden
 - `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
 - `args` (`object`): Objekt, das mit der Hauptkonfiguration zusammengeführt wird, sobald der Worker initialisiert ist
-- `execArgv` (`string[]`): list of string arguments passed to the worker process
+- `execArgv` (`string[]`): Liste von String-Argumenten, die an den Arbeitsprozess übergeben werden
 
 ### onWorkerEnd
 
-Gets executed just after a worker process has exited.
+Wird unmittelbar nach dem Beenden eines Worker-Prozesses ausgeführt.
 
-Parameters:
+Parameter:
 
-- `cid` (`string`): capability id (e.g 0-0)
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of retries used
+- `cid` (`string`): Capability-ID (z. B. 0-0)
+- `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
+- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
+- `retries` (`Nummer`): Anzahl der verwendeten Wiederholungen
 
 ### beforeSession
 
-Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+Wird unmittelbar vor der Initialisierung der Webdriver-Sitzung und des Testframeworks ausgeführt. Es ermöglicht Ihnen, Konfigurationen je nach Capability oder Test zu manipulieren.
 
-Parameters:
+Parameter:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): WebdriverIO-Konfigurationsobjekt
+- `caps` (`Objekt`): Enthält die Capability für die Sitzung benutzt wird
+- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
 
 ### before
 
-Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
+Wird ausgeführt, bevor die Testausführung beginnt. An dieser Stelle können Sie auf alle globalen Variablen wie `browser`zugreifen. Es ist der perfekte Ort, um benutzerdefinierte Befehle zu definieren.
 
-Parameters:
+Parameter:
 
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
-- `browser` (`object`): instance of created browser/device session
+- `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wird
+- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
+- `browser` (`Objekt`): Instanz der erstellten Browser-/Gerätesitzung
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook, die ausgeführt wird, bevor die Suite gestartet wird
 
-Parameters:
+Parameter:
 
-- `suite` (`object`): suite details
+- `suite` (`Objekt`): Suite-Details
 
 ### beforeHook
 
-Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
+Hook, die ausgeführt wird, *bevor* eine Hook innerhalb der Suite beginnt (z. B. läuft vor dem Aufruf von beforeEach in Mocha)
 
-Parameters:
+Parameter:
 
-- `test` (`object`): test details
-- `context` (`object`): test context (represents World object in Cucumber)
+- `test` (`Objekt`): Testdetails
+- `context` (`Objekt`): Testkontext (repräsentiert World-Objekt in Cucumber)
 
 ### afterHook
 
-Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
+Hook, die ausgeführt wird, *nachdem* ein Hook innerhalb der Suite endet (z. B.: läuft nach dem Aufruf von afterEach in Mocha)
 
-Parameters:
+Parameter:
 
-- `test` (`object`): test details
-- `context` (`object`): test context (represents World object in Cucumber)
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `test` (`Objekt`): Testdetails
+- `context` (`Objekt`): Testkontext (repräsentiert World-Objekt in Cucumber)
+- `result` (`Objekt`): Hook-Ergebnis (enthält `error`, `result`, `duration`, `passed`, `retries` Eigenschaften)
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine only).
+Funktion, die vor einem Test ausgeführt werden soll (nur in Mocha/Jasmine).
 
-Parameters:
+Parameter:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
+- `test` (`Objekt`): Testdetails
+- `context` (`Objekt`): Scope-Objekt, mit dem der Test ausgeführt wurde
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+Wird ausgeführt, bevor ein WebdriverIO-Befehl ausgeführt wird.
 
-Parameters:
+Parameter:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
+- `commandName` (`string`): Befehlsname
+- `args` (`*`): Argumente, die der Befehl erhalten würde
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+Wird ausgeführt, nachdem ein WebdriverIO-Befehl ausgeführt wurde.
 
-Parameters:
+Parameter:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
-- `error` (`Error`): error object if any
+- `commandName` (`string`): Befehlsname
+- `args` (`*`): Argumente, die der Befehl erhalten würde
+- `result` (`Zahl`): 0 - wenn Befehl erfolgreich wurde, 1 - beim Fehler
+- `error` (`Fehler`): Fehlerobjekt, falls vorhanden
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Funktion, die nach dem Ende eines Tests (in Mocha/Jasmine) ausgeführt werden soll.
 
-Parameters:
+Parameter:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
-- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
-- `result.result` (`Any`): return object of test function
-- `result.duration` (`Number`): duration of test
-- `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `test` (`Objekt`): Testdetails
+- `context` (`Objekt`): Scope-Objekt, mit dem der Test ausgeführt wurde
+- `result.error` (`Error`): Fehlerobjekt falls der Test fehlschlägt, ansonsten `undefiniert`
+- `result.result` (`Any`): Ergebniss der Testfunktion
+- `result.duration` (`Ziffer`): Testdauer
+- `result.passed` (`Boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
+- `result.retries` (`Object`): Informationen zur ausgeführten Wiederholungen, z. B. `{ attempts: 0, limit: 0 }`
+- `result` (`Objekt`): Hook-Ergebnis (enthält `error`, `result`, `duration`, `passed`, `retries` Eigenschaften)
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook, der ausgeführt wird, nachdem die Suite beendet wurde
 
-Parameters:
+Parameter:
 
-- `suite` (`object`): suite details
+- `suite` (`Objekt`): Suite-Details
 
 ### after
 
-Gets executed after all tests are done. You still have access to all global variables from the test.
+Wird ausgeführt, nachdem alle Tests abgeschlossen sind. Sie haben weiterhin Zugriff auf alle globalen Variablen aus dem Test.
 
-Parameters:
+Parameter:
 
-- `result` (`number`): 0 - test pass, 1 - test fail
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
+- `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wurde
+- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt wurden
 
 ### afterSession
 
-Gets executed right after terminating the webdriver session.
+Wird direkt nach dem Beenden der Webdriver-Sitzung ausgeführt.
 
-Parameters:
+Parameter:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): WebdriverIO-Konfigurationsobjekt
+- `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wurde
+- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt wurden
 
 ### onComplete
 
-Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+Wird ausgeführt, nachdem alle Worker heruntergefahren wurden und der Testrunner Prozess dabei ist geschlossen zu werden. Ein Fehler, der in den onComplete-Hook geworfen wird, führt dazu, dass der Testlauf fehlschlägt.
 
-Parameters:
+Parameter:
 
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `result` (`object`): results object containing test results
+- `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
+- `config` (`object`): WebdriverIO-Konfigurationsobjekt
+- `caps` (`Objekt`): Enthält Capabilities für Sitzungen, die im Worker Prozess genutzt wurden
+- `Ergebnis` (`Objekt`): Ergebnisobjekt, das Testergebnisse enthält
 
 ### onReload
 
-Gets executed when a refresh happens.
+Wird ausgeführt, wenn eine Session-Aktualisierung erfolgt.
 
-Parameters:
+Parameter:
 
-- `oldSessionId` (`string`): session ID of the old session
-- `newSessionId` (`string`): session ID of the new session
+- `oldSessionId` (`string`): Sitzungs-ID der alten Sitzung
+- `newSessionId` (`string`): Sitzungs-ID der neuen Sitzung
 
 ### beforeFeature
 
-Runs before a Cucumber Feature.
+Läuft vor einem Cucumber-Feature.
 
-Parameters:
+Parameter:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): Pfad zur Feature-Datei
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber-Feature-Objekt
 
 ### afterFeature
 
-Runs after a Cucumber Feature.
+Läuft nach einem Cucumber-Feature.
 
-Parameters:
+Parameter:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): Pfad zur Feature-Datei
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber-Feature-Objekt
 
 ### beforeScenario
 
-Runs before a Cucumber Scenario.
+Läuft vor einem Cucumber-Szenario.
 
-Parameters:
+Parameter:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): Weltobjekt, das Informationen zu Pickle und Testschritt enthält
+- `context` (`Objekt`): Cucumber World-Objekt
 
 ### afterScenario
 
-Runs after a Cucumber Scenario.
+Läuft nach einem Cucumber-Szenario.
 
-Parameters:
+Parameter:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `result` (`object`): results object containing scenario results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): Weltobjekt, das Informationen zu Pickle und Testschritt enthält
+- `result` (`Objekt`): Ergebnisobjekt, das das Szenarioergebnisse enthält
+- `result.passed` (`boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
+- `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
+- `result.duration` (`ziffer`): Testdauer
+- `context` (`Objekt`): Cucumber World-Objekt
 
 ### beforeStep
 
-Runs before a Cucumber Step.
+Läuft vor einem Cucumber-Schritt.
 
-Parameters:
+Parameter:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber Objekt
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber-Szenario Objekt
+- `context` (`Objekt`): Cucumber World-Objekt
 
 ### afterStep
 
-Runs after a Cucumber Step.
+Läuft nach einem Cucumber Schritt.
 
-Parameters:
+Parameter:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `result`: (`object`): results object containing step results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber Objekt
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber-Szenario Objekt
+- `result` (`Objekt`): Ergebnisobjekt, das das Szenarioergebnisse enthält
+- `result.passed` (`boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
+- `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
+- `result.duration` (`ziffer`): Testdauer
+- `context` (`Objekt`): Cucumber World-Objekt
