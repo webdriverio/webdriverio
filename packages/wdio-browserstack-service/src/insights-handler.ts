@@ -32,7 +32,6 @@ export default class InsightsHandler {
     private _platformMeta?: PlatformMeta
     private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
-    private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
 
     constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
@@ -46,10 +45,6 @@ export default class InsightsHandler {
             sessionId: sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
-    }
-
-    setSuiteFile(filename: string) {
-        this._suiteFile = filename
     }
 
     async before () {
@@ -319,12 +314,10 @@ export default class InsightsHandler {
         const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
 
-        const filename = test.file || this._suiteFile
-
         const testData: TestData = {
             uuid: testMetaData.uuid,
-            type: test.type || 'test',
-            name: test.title || test.description,
+            type: test.type,
+            name: test.title,
             body: {
                 lang: 'webdriverio',
                 code: test.body
@@ -332,9 +325,9 @@ export default class InsightsHandler {
             scope: fullTitle,
             scopes: this.getHierarchy(test),
             identifier: fullTitle,
-            file_name: filename,
-            location: filename,
-            vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
+            file_name: test.file ? path.relative(process.cwd(), test.file) : undefined,
+            location: test.file ? path.relative(process.cwd(), test.file) : undefined,
+            vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
             result: 'pending',
@@ -412,9 +405,9 @@ export default class InsightsHandler {
             scope: fullNameWithExamples,
             scopes: [feature?.name || ''],
             identifier: scenario?.name,
-            file_name: feature?.path,
+            file_name: feature && feature.path ? path.relative(process.cwd(), feature.path) : undefined,
+            location: feature && feature.path ? path.relative(process.cwd(), feature.path) : undefined,
             vc_filepath: (this._gitConfigPath && feature?.path) ? path.relative(this._gitConfigPath, feature?.path) : undefined,
-            location: feature?.path,
             framework: this._framework,
             result: 'pending',
             meta: {

@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -79,8 +81,8 @@ export default class TestReporter extends WDIOReporter {
             scope: testStats.fullTitle,
             scopes: this._suites.map(s => s.title),
             identifier: testStats.fullTitle,
-            file_name: this._suites.at(-1)?.file,
-            location: this._suites.at(-1)?.file,
+            file_name: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
+            location: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
             started_at: testStats.start && testStats.start.toISOString(),
             finished_at: testStats.end && testStats.end.toISOString(),
             framework: framework,
