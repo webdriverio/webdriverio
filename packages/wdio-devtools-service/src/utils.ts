@@ -49,7 +49,7 @@ export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
 
 /**
  * check if url is supported for tracing
- * @param  {String}  url to check for
+ * @param  {string}  url to check for
  * @return {Boolean}     true if url was opened by user
  */
 export function isSupportedUrl (url: string) {

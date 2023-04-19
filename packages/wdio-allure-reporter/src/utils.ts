@@ -71,7 +71,7 @@ export const isMochaAllHooks = (title: string) =>
 
 /**
  * Properly format error from different test runners
- * @param {Object} test - TestStat object
+ * @param {object} test - TestStat object
  * @returns {Object} - error object
  * @private
  */

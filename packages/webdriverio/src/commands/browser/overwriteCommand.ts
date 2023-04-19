@@ -23,7 +23,7 @@
     })
  * </example>
  * @alias browser.overwriteCommand
- * @param {String} name name of the original command
+ * @param {string} name name of the original command
  * @param {Function} callback  pass original function
  * @param {Boolean=} elementScope extend the Element object instead of the Browser object
  * @type utility

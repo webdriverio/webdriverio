@@ -21,6 +21,44 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.5 (2023-04-18)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#10221](https://github.com/webdriverio/webdriverio/pull/10221) browser-runner: support global fixture through set up scripts ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.8.4 (2023-04-17)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-spec-reporter`
+  * [#10216](https://github.com/webdriverio/webdriverio/pull/10216) browser-runner: support nesting suites ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`
+  * [#10215](https://github.com/webdriverio/webdriverio/pull/10215) browser-runner: allow tdd UI ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#10199](https://github.com/webdriverio/webdriverio/pull/10199) Update to correct exports for CJS ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dirko Odendaal ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+
+
+## v8.8.3 (2023-04-14)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10188](https://github.com/webdriverio/webdriverio/pull/10188) feat: export cjs interface for wdio-cli ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+* `wdio-browserstack-service`
+  * [#10186](https://github.com/webdriverio/webdriverio/pull/10186) OBS 807 Fix Filepath V8 ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Dirko Odendaal ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+
+
 ## v8.8.2 (2023-04-12)
 
 #### :bug: Bug Fix

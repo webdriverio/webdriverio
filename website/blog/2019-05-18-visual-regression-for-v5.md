@@ -186,7 +186,7 @@ const checkResult = {
 See the [Check output on failure](https://github.com/wswebcreation/wdio-image-comparison-service/blob/master/docs/OUTPUT.md#check-output-on-failure) section in the [output](https://github.com/wswebcreation/wdio-image-comparison-service/blob/master/docs/OUTPUT.md) docs for the images.
 
 # Support
-If you need support you can help in the community [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) channel.
+If you need support you can help in the community [Discord](https://discord.webdriver.io) server.
 
 Happy testing!
 

@@ -23,8 +23,8 @@ import type { ElementArray, CustomStrategyFunction } from '../../types.js'
  * </example>
  *
  * @alias custom$$
- * @param {String} strategyName
- * @param {Any} strategyArguments
+ * @param {string} strategyName
+ * @param {*} strategyArguments
  * @return {ElementArray}
  */
 export async function custom$$ (

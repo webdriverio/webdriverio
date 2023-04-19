@@ -1,53 +1,76 @@
 import React from 'react'
+import Link from '@docusaurus/Link'
+import Translate from '@docusaurus/Translate'
 
 export const features = [{
     icon: '🌎',
     title: 'Test in Real Environments',
     description: (
-        <>
+        <Translate>
             WebdriverIO allows you to test in actual browser or mobile devices used by your users.
-        </>
+        </Translate>
     ),
 },
 {
     icon: '🔩',
     title: 'Versatile and Feature Rich',
     description: (
-        <>
+        <Translate>
             Use WebdriverIO for full e2e or unit and component testing in the browser.
-        </>
+        </Translate>
     ),
 }, {
     icon: '💤',
     title: 'Auto Wait',
     description: (
-        <>
+        <Translate>
             WebdriverIO automatically waits for elements to appear before interacting with them.
-        </>
+        </Translate>
     ),
 }, {
     icon: '📒',
     title: 'Based on Web Standards',
     description: (
-        <>
-            Cross browser support via automation through <a href="https://w3c.github.io/webdriver/">WebDriver</a> and <a href="https://w3c.github.io/webdriver-bidi/">WebDriver Bidi</a>.
-        </>
+        <Translate
+            id="homepage.features.crossBrowser"
+            values={{
+                webdriverLink: (
+                    <Link to="https://w3c.github.io/webdriver/">WebDriver</Link>
+                ),
+                bidiLink: (
+                    <Link to="https://w3c.github.io/webdriver-bidi/">WebDriver Bidi</Link>
+                )
+            }}>
+            {'Cross browser support via automation through {webdriverLink} and {bidiLink}.'}
+        </Translate>
     ),
 }, {
     icon: '📱',
     title: 'Native Mobile Support',
     description: (
-        <>
-            Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through <a href="https://appium.io/">Appium</a>.
-        </>
+        <Translate
+            id="homepage.features.mobile"
+            values={{
+                appiumLink: (
+                    <Link to="https://appium.io/">Appium</Link>
+                )
+            }}>
+            {'Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}.'}
+        </Translate>
     ),
 }, {
     icon: '🫂',
     title: 'Committed Community',
     description: (
-        <>
-            Running a <a href="https://matrix.to/#/#webdriver.io:gitter.im">support channel</a> with over 8k members and a rich ecosystem of community maintained plugins.
-        </>
+        <Translate
+            id="homepage.features.support"
+            values={{
+                supportChannelLink: (
+                    <Link to="https://discord.webdriver.io">support channel</Link>
+                )
+            }}>
+            {'Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins.'}
+        </Translate>
     ),
 }]
 

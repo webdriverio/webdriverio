@@ -4,6 +4,7 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs as yargsMock } from 'yargs'
 
 import { run } from '../src/index.js'
+import { run as cjsRun } from '../src/cjs/index.js'
 import { handler } from '../src/commands/run.js'
 
 vi.mock('yargs')
@@ -24,6 +25,14 @@ describe('index', () => {
 
     it('should call config if no known command is used', async () => {
         await run()
+        expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
+            _: ['wdio.conf.js']
+        })
+    })
+
+    it('should call esm run method from cjs index', async () => {
+        await cjsRun()
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
             _: ['wdio.conf.js']

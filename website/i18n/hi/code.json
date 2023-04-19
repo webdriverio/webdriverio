@@ -1,0 +1,547 @@
+{
+  "theme.ErrorPageContent.title": {
+    "message": "यह पेज क्रैश हो गया।",
+    "description": "The title of the fallback page when the page crashed"
+  },
+  "theme.ErrorPageContent.tryAgain": {
+    "message": "पुनः प्रयास करें",
+    "description": "The label of the button to try again when the page crashed"
+  },
+  "theme.NotFound.title": {
+    "message": "पेज नहीं मिला",
+    "description": "The title of the 404 page"
+  },
+  "theme.NotFound.p1": {
+    "message": "हमको वह पेज नहीं मिला, जिसकी आप तलाश कर रहे थे।",
+    "description": "The first paragraph of the 404 page"
+  },
+  "theme.NotFound.p2": {
+    "message": "कृपया उस साइट के मालिक से संपर्क करें जिसने आपको मूल यूआरएल से लिंक किया है और उन्हें बताएं कि उनका लिंक ब्रेक हो गया है।",
+    "description": "The 2nd paragraph of the 404 page"
+  },
+  "theme.admonition.note": {
+    "message": "ध्यान दें",
+    "description": "The default label used for the Note admonition (:::note)"
+  },
+  "theme.admonition.tip": {
+    "message": "बख्शीश",
+    "description": "The default label used for the Tip admonition (:::tip)"
+  },
+  "theme.admonition.danger": {
+    "message": "खतरा",
+    "description": "The default label used for the Danger admonition (:::danger)"
+  },
+  "theme.admonition.info": {
+    "message": "जानकारी",
+    "description": "The default label used for the Info admonition (:::info)"
+  },
+  "theme.admonition.caution": {
+    "message": "सावधानी",
+    "description": "The default label used for the Caution admonition (:::caution)"
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+    "message": "शीर्ष पर वापस स्क्रॉल करें",
+    "description": "The ARIA label for the back to top button"
+  },
+  "theme.blog.archive.title": {
+    "message": "आर्काइव",
+    "description": "The page & hero title of the blog archive page"
+  },
+  "theme.blog.archive.description": {
+    "message": "आर्काइव",
+    "description": "The page & hero description of the blog archive page"
+  },
+  "theme.blog.paginator.navAriaLabel": {
+    "message": "ब्लॉग सूची पेज नेविगेशन",
+    "description": "The ARIA label for the blog pagination"
+  },
+  "theme.blog.paginator.newerEntries": {
+    "message": "नवीनतम एंट्री",
+    "description": "The label used to navigate to the newer blog posts page (previous page)"
+  },
+  "theme.blog.paginator.olderEntries": {
+    "message": "पुरानी एंट्री",
+    "description": "The label used to navigate to the older blog posts page (next page)"
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+    "message": "ब्लॉग पोस्ट पेज नेविगेशन",
+    "description": "The ARIA label for the blog posts pagination"
+  },
+  "theme.blog.post.paginator.newerPost": {
+    "message": "नई पोस्ट",
+    "description": "The blog post button label to navigate to the newer/previous post"
+  },
+  "theme.blog.post.paginator.olderPost": {
+    "message": "पुरानी पोस्ट",
+    "description": "The blog post button label to navigate to the older/next post"
+  },
+  "theme.blog.post.plurals": {
+    "message": "एक पोस्ट|{count} पोस्ट्स",
+    "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.blog.tagTitle": {
+    "message": "{nPosts} को \"{tagName}\" के साथ टैग किया गया है",
+    "description": "The title of the page for a blog tag"
+  },
+  "theme.tags.tagsPageLink": {
+    "message": "सभी टैग देखें",
+    "description": "The label of the link targeting the tag list page"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "होम पेज",
+    "description": "The ARIA label for the home page in the breadcrumbs"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "ब्रेडक्रम्ब्स",
+    "description": "The ARIA label for the breadcrumbs"
+  },
+  "theme.docs.DocCard.categoryDescription": {
+    "message": "{count} आइटम",
+    "description": "The default description for a category card in the generated index about how many items this category includes"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "डार्क और लाइट मोड के बीच स्विच करें (वर्तमान में {mode})",
+    "description": "The ARIA label for the navbar color mode toggle"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "डार्क मोड",
+    "description": "The name for the dark color mode"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "लाइट मोड",
+    "description": "The name for the light color mode"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "डॉक्स पेज नेविगेशन",
+    "description": "The ARIA label for the docs pagination"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "पिछला",
+    "description": "The label used to navigate to the previous doc"
+  },
+  "theme.docs.paginator.next": {
+    "message": "अगला",
+    "description": "The label used to navigate to the next doc"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "एक डॉक् टैग किया गया|{count} डॉक्स टैग किए गए",
+    "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged} को \"{tagName}\" के साथ टैग किया गया है",
+    "description": "The title of the page for a docs tag"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "संस्करण: {versionLabel}"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+    "message": "यह {siteTitle} {versionLabel} संस्करण के लिए बिना रिलीज़ का दस्तावेज़ है।",
+    "description": "The label used to tell the user that he's browsing an unreleased doc version"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+    "message": "यह {siteTitle} {versionLabel} के लिए दस्तावेजीकरण है, जो अब सक्रिय रूप से मेन्टेन नहीं किया जाता है।",
+    "description": "The label used to tell the user that he's browsing an unmaintained doc version"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+    "message": "अप-टू-डेट दस्तावेज़ीकरण के लिए, {latestVersionLink} ({versionLabel}) देखें।",
+    "description": "The label used to tell the user to check the latest version"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+    "message": "नवीनतम संस्करण",
+    "description": "The label used for the latest version suggestion link label"
+  },
+  "theme.common.editThisPage": {
+    "message": "पेज संपादित करें",
+    "description": "The link label to edit the current page"
+  },
+  "theme.common.headingLinkTitle": {
+    "message": "हेडिंग के लिए सीधा लिंक",
+    "description": "Title for link to heading"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": " {date} पर",
+    "description": "The words used to describe on which date a page has been last updated"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": " {user} द्वारा",
+    "description": "The words used to describe by who the page has been last updated"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "अंतिम अपडेट{atDate}{byUser}",
+    "description": "The sentence used to display when a page has been last updated, and by who"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+    "message": "संस्करण",
+    "description": "The label for the navbar versions dropdown on mobile view"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+    "message": "बंद करे",
+    "description": "The ARIA label for close button of announcement bar"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "टैग",
+    "description": "The label alongside a tag list"
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+    "message": "हाल के ब्लॉग पोस्ट नेविगेशन",
+    "description": "The ARIA label for recent posts in the blog sidebar"
+  },
+  "theme.CodeBlock.copied": {
+    "message": "कॉपी किया गया!",
+    "description": "The copied button label on code blocks"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+    "message": "क्लिपबोर्ड पर कॉपी किया गया",
+    "description": "The ARIA label for copy code blocks button"
+  },
+  "theme.CodeBlock.copy": {
+    "message": "कॉपी",
+    "description": "The copy button label on code blocks"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "शब्द लपेटना टॉगल करें",
+    "description": "The title attribute for toggle word wrapping button of code block lines"
+  },
+  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
+    "message": "सिमटने वाली साइडबार श्रेणी '{label}' को टॉगल करें",
+    "description": "The ARIA label to toggle the collapsible sidebar category"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "इस पृष्ठ पर",
+    "description": "The label used by the button on the collapsible TOC component"
+  },
+  "theme.blog.post.readMore": {
+    "message": "और पढ़ें",
+    "description": "The label used in blog post item excerpts to link to full blog posts"
+  },
+  "theme.blog.post.readMoreLabel": {
+    "message": "{title} के बारे में और पढ़ें",
+    "description": "The ARIA label for the link to full blog posts from excerpts"
+  },
+  "theme.blog.post.readingTime.plurals": {
+    "message": "एक मिनट में पढ़ें|{readingTime} मिनट पढ़ें",
+    "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+    "message": "भाषाएँ",
+    "description": "The label for the mobile language switcher dropdown"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "साइडबार हटायें",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+    "message": "साइडबार हटायें",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "नेविगेशन बार बंद करें",
+    "description": "The ARIA label for close button of mobile sidebar"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← मुख्य मेनू पर वापस जाएँ",
+    "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "नेविगेशन बार टॉगल करें",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "साइडबार खोलें",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+    "message": "साइडबार खोलें",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.SearchBar.seeAll": {
+    "message": "सभी {count} परिणाम देखें"
+  },
+  "theme.SearchPage.documentsFound.plurals": {
+    "message": "एक दस्तावेज़ मिला|{count} दस्तावेज़ मिले",
+    "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.SearchPage.existingResultsTitle": {
+    "message": "\"{query}\" के लिए खोज परिणाम",
+    "description": "The search page title for non-empty query"
+  },
+  "theme.SearchPage.emptyResultsTitle": {
+    "message": "दस्तावेज़ खोजें",
+    "description": "The search page title for empty query"
+  },
+  "theme.SearchPage.inputPlaceholder": {
+    "message": "अपनी खोज यहां टाइप करें",
+    "description": "The placeholder for search page input"
+  },
+  "theme.SearchPage.inputLabel": {
+    "message": "खोजें",
+    "description": "The ARIA label for search page input"
+  },
+  "theme.SearchPage.algoliaLabel": {
+    "message": "अल्गोलिया द्वारा खोजें",
+    "description": "The ARIA label for Algolia mention"
+  },
+  "theme.SearchPage.noResultsText": {
+    "message": "कोई परिणाम नहीं मिला",
+    "description": "The paragraph for empty search result"
+  },
+  "theme.SearchPage.fetchingNewResults": {
+    "message": "नए परिणाम लाए जा रहे हैं...",
+    "description": "The paragraph for fetching new search results"
+  },
+  "theme.SearchBar.label": {
+    "message": "खोजें",
+    "description": "The ARIA label and placeholder for search button"
+  },
+  "theme.SearchModal.searchBox.resetButtonTitle": {
+    "message": "खोज हटायें",
+    "description": "The label and ARIA label for search box reset button"
+  },
+  "theme.SearchModal.searchBox.cancelButtonText": {
+    "message": "रद्द करें",
+    "description": "The label and ARIA label for search box cancel button"
+  },
+  "theme.SearchModal.startScreen.recentSearchesTitle": {
+    "message": "हाल ही में",
+    "description": "The title for recent searches"
+  },
+  "theme.SearchModal.startScreen.noRecentSearchesText": {
+    "message": "हाल की कोई खोज नहीं",
+    "description": "The text when no recent searches"
+  },
+  "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
+    "message": "इस खोज को सहेजें",
+    "description": "The label for save recent search button"
+  },
+  "theme.SearchModal.startScreen.removeRecentSearchButtonTitle": {
+    "message": "इस खोज को इतिहास से हटा दें",
+    "description": "The label for remove recent search button"
+  },
+  "theme.SearchModal.startScreen.favoriteSearchesTitle": {
+    "message": "पसंदीदा",
+    "description": "The title for favorite searches"
+  },
+  "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
+    "message": "इस खोज को इतिहास से हटा दें",
+    "description": "The label for remove favorite search button"
+  },
+  "theme.SearchModal.errorScreen.titleText": {
+    "message": "परिणाम प्राप्त करने में असमर्थ",
+    "description": "The title for error screen of search modal"
+  },
+  "theme.SearchModal.errorScreen.helpText": {
+    "message": "आप अपने नेटवर्क कनेक्शन की जांच करना चाह सकते हैं।",
+    "description": "The help text for error screen of search modal"
+  },
+  "theme.SearchModal.footer.selectText": {
+    "message": "चयन करना",
+    "description": "The explanatory text of the action for the enter key"
+  },
+  "theme.SearchModal.footer.selectKeyAriaLabel": {
+    "message": "कुंजी दर्ज करें",
+    "description": "The ARIA label for the Enter key button that makes the selection"
+  },
+  "theme.SearchModal.footer.navigateText": {
+    "message": "नेविगेट करने के लिए",
+    "description": "The explanatory text of the action for the Arrow up and Arrow down key"
+  },
+  "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
+    "message": "ऊपरी तीर",
+    "description": "The ARIA label for the Arrow up key button that makes the navigation"
+  },
+  "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
+    "message": "नीचे तीर",
+    "description": "The ARIA label for the Arrow down key button that makes the navigation"
+  },
+  "theme.SearchModal.footer.closeText": {
+    "message": "बंद कर देना",
+    "description": "The explanatory text of the action for Escape key"
+  },
+  "theme.SearchModal.footer.closeKeyAriaLabel": {
+    "message": "एस्केप कुंजी",
+    "description": "The ARIA label for the Escape key button that close the modal"
+  },
+  "theme.SearchModal.footer.searchByText": {
+    "message": "के द्वारा खोजें",
+    "description": "The text explain that the search is making by Algolia"
+  },
+  "theme.SearchModal.noResultsScreen.noResultsText": {
+    "message": "के लिए कोई परिणाम नहीं:",
+    "description": "The text explains that there are no results for the following search"
+  },
+  "theme.SearchModal.noResultsScreen.suggestedQueryText": {
+    "message": "के लिए खोजने की कोशिश करें",
+    "description": "The text for the suggested query when no results are found for the following search"
+  },
+  "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
+    "message": "विश्वास है कि इस क्वेरी को परिणाम आना चाहिए?",
+    "description": "The text for the question where the user thinks there are missing results"
+  },
+  "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
+    "message": "हमें बताइए।",
+    "description": "The text for the link to report missing results"
+  },
+  "theme.SearchModal.placeholder": {
+    "message": "डॉक्स खोजें",
+    "description": "The placeholder of the input of the DocSearch pop-up modal"
+  },
+  "theme.IdealImageMessage.loading": {
+    "message": "लोड हो रहा है...",
+    "description": "When the full-scale image is loading"
+  },
+  "theme.IdealImageMessage.load": {
+    "message": "लोड करने के लिए क्लिक करें{sizeMessage}",
+    "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
+  },
+  "theme.IdealImageMessage.offline": {
+    "message": "आपका ब्राउज़र ऑफ़लाइन है। इमेज लोड नहीं हुई",
+    "description": "When the user is viewing an offline document"
+  },
+  "theme.IdealImageMessage.404error": {
+    "message": "404: इमेज नहीं मिली",
+    "description": "When the image is not found"
+  },
+  "theme.IdealImageMessage.error": {
+    "message": "गलती। पुनः लोड करने के लिए क्लिक करें",
+    "description": "When the image fails to load for unknown error"
+  },
+  "theme.PwaReloadPopup.info": {
+    "message": "एक नया संस्करण उपलब्ध है!",
+    "description": "The text for PWA reload popup"
+  },
+  "theme.PwaReloadPopup.refreshButtonText": {
+    "message": "रीफ़्रेश करें",
+    "description": "The text for PWA reload button"
+  },
+  "theme.PwaReloadPopup.closeButtonAriaLabel": {
+    "message": "बंद करें",
+    "description": "The ARIA label for close button of PWA reload popup"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "मुख्य कॉन्टेंट में जाएँ",
+    "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
+  },
+  "theme.tags.tagsPageTitle": {
+    "message": "टैग्स",
+    "description": "The title of the tag list page"
+  },
+  "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
+    "message": "WebdriverIO आपको अपने उपयोगकर्ताओं द्वारा उपयोग किए जाने वाले वास्तविक ब्राउज़र या मोबाइल उपकरणों में परीक्षण करने की अनुमति देता है।"
+  },
+  "Use WebdriverIO for full e2e or unit and component testing in the browser.": {
+    "message": "ब्राउज़र में पूर्ण e2e या इकाई और कॉम्पोनेन्ट परीक्षण के लिए WebdriverIO का उपयोग करें।"
+  },
+  "WebdriverIO automatically waits for elements to appear before interacting with them.": {
+    "message": "WebdriverIO स्वचालित रूप से एलिमेंट के साथ जुड़ने से पहले उनके प्रकट होने की प्रतीक्षा करता है।"
+  },
+  "Get Started": {
+    "message": "प्रारंभ करें"
+  },
+  "Why WebdriverIO?": {
+    "message": "WebdriverIO क्यों?"
+  },
+  "View on GitHub": {
+    "message": "गिटहब पर देखें"
+  },
+  "Watch on YouTube": {
+    "message": "यूट्यूब पर देखें"
+  },
+  "Easy setup for web component testing with:": {
+    "message": "वेब कॉम्पोनेन्ट परीक्षण के लिए आसान सेटअप:"
+  },
+  "homepage.hightlight.createProject": {
+    "message": "सेकंड के भीतर WebdriverIO के साथ आरंभ करें"
+  },
+  "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!": {
+    "message": "WebdriverIO testrunner एक कमांड लाइन इंटरफ़ेस के साथ आता है जो एक शक्तिशाली कॉन्फ़िगरेशन उपयोगिता प्रदान करता है और आपको एक मिनट से भी कम समय में अपना परीक्षण सेटअप बनाने में मदद करता है। यह आपको उपलब्ध टेस्ट फ्रेमवर्क इंटीग्रेशन से चुनने देता है और आसानी से सभी समर्थित रिपोर्टर और सर्विस प्लगइन्स को जोड़ने की अनुमति देता है!"
+  },
+  "With just one simple command you can set up a complete test suite:": {
+    "message": "केवल एक साधारण कमांड के साथ आप एक पूर्ण परीक्षण सूट सेट अप कर सकते हैं:"
+  },
+  "homepage.hightlight.watch": {
+    "message": "WebdriverIO के बारे में बातचीत देखें"
+  },
+  "homepage.hightlight.lighthouse": {
+    "message": "गूगल प्रकाशस्तंभ एकीकरण"
+  },
+  "Integration to developer tools such as:": {
+    "message": "डेवलपर टूल में एकीकरण जैसे:"
+  },
+  "until October 2023": {
+    "message": "अक्टूबर 2023 तक"
+  },
+  "since February 2022": {
+    "message": "फरवरी 2022 से"
+  },
+  "since January 2021": {
+    "message": "फरवरी 2021 से"
+  },
+  "since December 2019": {
+    "message": "दिसंबर 2019 से"
+  },
+  "versions.description": {
+    "message": "Docusaurus 2 संस्करण पेज सभी प्रलेखित साइट संस्करणों को सूचीबद्ध करता है"
+  },
+  "WebdriverIO documentation versions": {
+    "message": "WebdriverIO प्रलेखन संस्करण"
+  },
+  "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made.": {
+    "message": "प्रोजेक्ट टीम मोटे तौर पर वार्षिक ताल पर नए प्रमुख संस्करण जारी करती है। एलटीएस रिलीज की स्थिति \"दीर्घकालिक समर्थन\" है, जो आम तौर पर गारंटी देती है कि महत्वपूर्ण बग कुल 12 महीनों के लिए तय किए जाएंगे जब तक कि एक नई बड़ी रिलीज नहीं हो जाती।"
+  },
+  "Current version (Stable)": {
+    "message": "वर्तमान संस्करण (स्थिर)"
+  },
+  "Here you can find the documentation for current released version.": {
+    "message": "यहां आप वर्तमान रिलीज़ किए गए संस्करण के लिए दस्तावेज़ पा सकते हैं।"
+  },
+  "Documentation": {
+    "message": "दस्तावेज़ीकरण"
+  },
+  "Release Notes": {
+    "message": "रिलीज नोट्स"
+  },
+  "Past versions": {
+    "message": "पिछले संस्करण"
+  },
+  "Here you can find documentation for previous versions of Docusaurus.": {
+    "message": "यहां आप डॉक्यूसॉरस के पिछले संस्करणों के लिए दस्तावेज़ीकरण प्राप्त कर सकते हैं।"
+  },
+  "homepage.createBrowserAnimation": {
+    "message": "WebdriverIO डेमो बनाएं"
+  },
+  "homepage.highlight.getStartedOnYouTube": {
+    "message": "WebdriverIO और आरंभ करने के तरीके के बारे में अधिक सीखना प्रारंभ करें {youtubeLink}।"
+  },
+  "homepage.highlight.getStartedOnYouTube.label;": {
+    "message": "यूट्यूब पर",
+    "description": "The label for the link to my YouTube"
+  },
+  "homepage.highlight.conferenceTalk": {
+    "message": "WebdriverIO के आसपास का समुदाय सक्रिय रूप से विभिन्न उपयोगकर्ता समूहों या सम्मेलनों में WebdriverIO के साथ स्वचालित परीक्षण के आसपास के विशिष्ट विषयों पर बोल रहा है। इस वार्ता को {youtubeLink} पर {videoAuthor} द्वारा {conferenceLink} पर देखें।"
+  },
+  "homepage.highlight.conferenceTalk.label": {
+    "message": "WebdriverIO की मेरी पसंदीदा विशेषताएं",
+    "description": "The conference talk title"
+  },
+  "homepage.highlight.youtubeChannels": {
+    "message": "समुदाय के सदस्यों द्वारा उपयोगी ट्यूटोरियल जैसे {channelOne}, {channelTwo} या {channelThree} के साथ कई यूट्यूब चैनल भी हैं।"
+  },
+  "homepage.highlight.devtools": {
+    "message": "WebdriverIO न केवल WebDriver प्रोटोकॉल के आधार पर स्वचालन रन करता है, बल्कि यह {devtoolsLink} या {lighthouseLink} जैसे लोकप्रिय डेवलपर टूल में एकीकरण को सक्षम करने के लिए मूल ब्राउज़र एपीआई का भी लाभ उठाता है। {devtoolsServiceLink} प्लगइन के साथ आपके पास यह सत्यापित करने के लिए कमांड तक पहुंच है कि क्या आपका ऐप एक वैध PWA एप्लिकेशन है और साथ ही `स्पीडइंडेक्स` और अन्य जैसे फ्रंटएंड परफॉर्मेंस मेट्रिक्स को कैप्चर करने के लिए कमांड है।"
+  },
+  "homepage.features.crossBrowser": {
+    "message": "{webdriverLink} और {bidiLink} के माध्यम से स्वचालन के माध्यम से क्रॉस ब्राउज़र समर्थन।"
+  },
+  "homepage.features.mobile": {
+    "message": "{appiumLink} के माध्यम से वास्तविक मोबाइल उपकरणों, स्मार्ट टीवी या अन्य IoT उपकरणों पर WebdriverIO चलाएं।"
+  },
+  "homepage.features.support": {
+    "message": "8k से अधिक सदस्यों के साथ {supportChannelLink} चला रहा है और समुदाय के एक समृद्ध इकोसिस्टम ने प्लगइन्स को बनाए रखा है।"
+  },
+  "homepage.tagline": {
+    "message": "Node.js के लिए नेक्स्ट-जेन ब्राउज़र और मोबाइल ऑटोमेशन टेस्ट फ्रेमवर्क"
+  },
+  "homepage.componentTesting.para1": {
+    "message": "यह स्मार्ट चयनकर्ता रणनीतियों के साथ आता है जो इंटरेक्शन को आसान बनाता है जैसे {reactComponents} के साथ या नेस्टेड शैडो डोम ट्री के साथ डीप सेलेक्टर क्वेरी चलाना। जैसा कि एक मानकीकृत स्वचालन प्रोटोकॉल के माध्यम से बातचीत होती है, यह गारंटी है कि वे मूल रूप से व्यवहार करते हैं और केवल जावास्क्रिप्ट अनुकरण नहीं करते हैं।"
+  }
+}

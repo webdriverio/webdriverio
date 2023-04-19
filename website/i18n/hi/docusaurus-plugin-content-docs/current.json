@@ -1,0 +1,74 @@
+{
+  "version.label": {
+    "message": "अगला",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "शुरू करें",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Core Concepts": {
+    "message": "मूल अवधारणा",
+    "description": "The label for category Core Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Configuration": {
+    "message": "कॉन्फ़िगरेशन",
+    "description": "The label for category Configuration in sidebar docs"
+  },
+  "sidebar.docs.category.Guides": {
+    "message": "गाइड",
+    "description": "The label for category Guides in sidebar docs"
+  },
+  "sidebar.docs.category.Testrunner": {
+    "message": "टेस्टरनर",
+    "description": "The label for category Testrunner in sidebar docs"
+  },
+  "sidebar.docs.category.Component Testing": {
+    "message": "कॉम्पोनेन्ट टेस्टिंग",
+    "description": "The label for category Component Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Framework Setup": {
+    "message": "फ्रेमवर्क सेटअप",
+    "description": "The label for category Framework Setup in sidebar docs"
+  },
+  "sidebar.docs.category.Migrate": {
+    "message": "माइग्रेट",
+    "description": "The label for category Migrate in sidebar docs"
+  },
+  "sidebar.docs.category.Integration": {
+    "message": "एकीकरण",
+    "description": "The label for category Integration in sidebar docs"
+  },
+  "sidebar.docs.category.Reporter": {
+    "message": "रिपोर्ट करने वाला",
+    "description": "The label for category Reporter in sidebar docs"
+  },
+  "sidebar.docs.category.Services": {
+    "message": "सेवाएं:",
+    "description": "The label for category Services in sidebar docs"
+  },
+  "sidebar.api.category.Protocols": {
+    "message": "प्रोटोकॉल",
+    "description": "The label for category Protocols in sidebar api"
+  },
+  "sidebar.api.category.browser": {
+    "message": "ब्राउज़र",
+    "description": "The label for category browser in sidebar api"
+  },
+  "sidebar.api.category.element": {
+    "message": "एलिमेंट",
+    "description": "The label for category element in sidebar api"
+  },
+  "sidebar.api.category.mock": {
+    "message": "दिखावटी",
+    "description": "The label for category mock in sidebar api"
+  },
+  "sidebar.flowcharts.category.Flowcharts": {
+    "message": "फ़्लोचार्ट",
+    "description": "The label for category Flowcharts in sidebar flowcharts"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "वेब विस्तार टेस्टिंग",
+    "description": "The label for category Web Extension Testing in sidebar docs"
+  }
+}

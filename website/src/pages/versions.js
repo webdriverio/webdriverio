@@ -8,6 +8,7 @@
 import React from 'react'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import Link from '@docusaurus/Link'
+import Translate, { translate } from '@docusaurus/Translate'
 import Layout from '@theme/Layout'
 
 function Version() {
@@ -24,7 +25,7 @@ function Version() {
         path: 'https://v7.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (until October 2023)
+                <b>LTS</b> (<Translate>until October 2023</Translate>)
             </div>
         ),
         repoUrl
@@ -34,7 +35,7 @@ function Version() {
         path: 'https://v6.webdriver.io',
         comment: (
             <div>
-                <b>Deprecated</b> (since February 2022)
+                <b>Deprecated</b> (<Translate>since February 2022</Translate>)
             </div>
         ),
         repoUrl
@@ -44,7 +45,7 @@ function Version() {
         path: 'https://v5.webdriver.io',
         comment: (
             <div>
-                <b>Deprecated</b> (since January 2021)
+                <b>Deprecated</b> (<Translate>since January 2021</Translate>)
             </div>
         ),
         repoUrl
@@ -54,7 +55,7 @@ function Version() {
         path: 'http://v4.webdriver.io',
         comment: (
             <div>
-                <b>Deprecated</b> (since December 2019)
+                <b>Deprecated</b> (<Translate>since December 2019</Translate>)
             </div>
         ),
         branch: 'master',
@@ -67,33 +68,42 @@ function Version() {
         <Layout
             title="Versions"
             permalink="/versions"
-            description="Docusaurus 2 Versions page listing all documented site versions">
+            description={translate({
+                id: 'versions.description',
+                message: 'Docusaurus 2 Versions page listing all documented site versions'
+            })}>
             <main className="container margin-vert--lg">
-                <h1>WebdriverIO documentation versions</h1>
+                <h1>
+                    <Translate>WebdriverIO documentation versions</Translate>
+                </h1>
 
                 <p>
-                The project team releases new major versions roughly on a
-                yearly cadence. LTS release status is "long-term support",
-                which typically guarantees that critical bugs will be fixed
-                for a total of 12 months until a new major release is made.
+                    <Translate>
+                        The project team releases new major versions roughly on a
+                        yearly cadence. LTS release status is "long-term support",
+                        which typically guarantees that critical bugs will be fixed
+                        for a total of 12 months until a new major release is made.
+                    </Translate>
                 </p>
 
                 {stableVersion && (
                     <div className="margin-bottom--lg">
-                        <h2 id="next">Current version (Stable)</h2>
+                        <h2 id="next">
+                            <Translate>Current version (Stable)</Translate>
+                        </h2>
                         <p>
-                        Here you can find the documentation for current released version.
+                            <Translate>Here you can find the documentation for current released version.</Translate>
                         </p>
                         <table>
                             <tbody>
                                 <tr>
                                     <th>{stableVersion.name}</th>
                                     <td>
-                                        <Link to={stableVersion.path}>Documentation</Link>
+                                        <Link to={stableVersion.path}><Translate>Documentation</Translate></Link>
                                     </td>
                                     <td>
                                         <a href={`${stableVersion.repoUrl}/blob/main/CHANGELOG.md`}>
-                                        Release Notes
+                                            <Translate>Release Notes</Translate>
                                         </a>
                                     </td>
                                     <td>
@@ -107,10 +117,13 @@ function Version() {
 
                 {pastVersions.length > 0 && (
                     <div className="margin-bottom--lg">
-                        <h2 id="archive">Past versions</h2>
+                        <h2 id="archive">
+                            <Translate>Past versions</Translate>
+                        </h2>
                         <p>
-                        Here you can find documentation for previous versions of
-                        Docusaurus.
+                            <Translate>
+                                Here you can find documentation for previous versions of Docusaurus.
+                            </Translate>
                         </p>
                         <table>
                             <tbody>
@@ -122,7 +135,7 @@ function Version() {
                                         </td>
                                         <td>
                                             <a href={`${version.repoUrl}/blob/${version.branch || version.name}/CHANGELOG.md`}>
-                                                Release Notes
+                                                <Translate>Release Notes</Translate>
                                             </a>
                                         </td>
                                         <td>

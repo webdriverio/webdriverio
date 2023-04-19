@@ -207,12 +207,6 @@ exports.config = {
             project: './path/to/tsconfig.json'
         },
 
-        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
-        // option, it will be automatically registered during bootstrap.
-        tsConfigPathsOpts: {
-            baseUrl: './'
-        },
-
         // Configure how @babel/register is automatically included when present (and ts-node isn't)
         babelOpts: {}
     },
@@ -227,7 +221,7 @@ exports.config = {
     //
     /**
      * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     onPrepare: function (config, capabilities) {
@@ -235,30 +229,30 @@ exports.config = {
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
-     * @param  {String}   cid      capability id (e.g 0-0)
-     * @param  {[type]}   caps     object containing capabilities for session that will be spawn in the worker
-     * @param  {String[]} specs    specs to be run in the worker process
-     * @param  {[type]}   args     object that will be merged with the main configuration once worker is initialised
-     * @param  {[type]}   execArgv list of string arguments passed to the worker process
+     * @param  {string}   cid      capability id (e.g 0-0)
+     * @param  {object}   caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {string[]} specs    specs to be run in the worker process
+     * @param  {object}   args     object that will be merged with the main configuration once worker is initialised
+     * @param  {object}   execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
     },
     /**
      * Gets executed just after a worker process has exited.
-     * @param  {String}   cid      capability id (e.g 0-0)
-     * @param  {Number}   exitCode exit code returned from worker process
-     * @param  {String[]} specs    specs to be run in the worker process
-     * @param  {Number}   retries  number of retries used
+     * @param  {string}   cid      capability id (e.g 0-0)
+     * @param  {number}   exitCode exit code returned from worker process
+     * @param  {string[]} specs    specs to be run in the worker process
+     * @param  {number}   retries  number of retries used
      */
     onWorkerEnd: function (cid, exitCode, specs, retries) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
-     * @param {String} cid worker id (e.g. 0-0)
+     * @param {string} cid worker id (e.g. 0-0)
      */
     beforeSession: function (config, capabilities, specs, cid) {
     },
@@ -267,13 +261,13 @@ exports.config = {
      * variables like `browser`. It is the perfect place to define custom commands.
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs        List of spec file paths that are to be run
-     * @param {Object}         browser      instance of created browser/device session
+     * @param {object}         browser      instance of created browser/device session
      */
     before: function (capabilities, specs, browser) {
     },
     /**
      * Hook that gets executed before the suite starts
-     * @param {Object} suite suite details
+     * @param {object} suite suite details
      */
     beforeSuite: function (suite) {
     },
@@ -291,50 +285,50 @@ exports.config = {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)
-     * @param {Object} test    test object
-     * @param {Object} context scope object the test was executed with
+     * @param {object} test    test object
+     * @param {object} context scope object the test was executed with
      */
     beforeTest: function (test, context) {
     },
     //
     /**
      * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName command name
+     * @param {string} commandName command name
      * @param {Array} args arguments that command would receive
      */
     beforeCommand: function (commandName, args) {
     },
     /**
      * Runs after a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
+     * @param {string} commandName hook command name
      * @param {Array} args arguments that command would receive
-     * @param {Number} result 0 - command success, 1 - command error
-     * @param {Object} error error object if any
+     * @param {number} result 0 - command success, 1 - command error
+     * @param {object} error error object if any
      */
     afterCommand: function (commandName, args, result, error) {
     },
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
-     * @param {Object}  test             test object
-     * @param {Object}  context          scope object the test was executed with
+     * @param {object}  test             test object
+     * @param {object}  context          scope object the test was executed with
      * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
-     * @param {Any}     result.result    return object of test function
-     * @param {Number}  result.duration  duration of test
-     * @param {Boolean} result.passed    true if test has passed, otherwise false
-     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     * @param {*}       result.result    return object of test function
+     * @param {number}  result.duration  duration of test
+     * @param {boolean} result.passed    true if test has passed, otherwise false
+     * @param {object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended
-     * @param {Object} suite suite details
+     * @param {object} suite suite details
      */
     afterSuite: function (suite) {
     },
     /**
      * Gets executed after all tests are done. You still have access to all global variables from
      * the test.
-     * @param {Number} result 0 - test pass, 1 - test fail
+     * @param {number} result 0 - test pass, 1 - test fail
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
@@ -342,7 +336,7 @@ exports.config = {
     },
     /**
      * Gets executed right after terminating the webdriver session.
-     * @param {Object} config wdio configuration object
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
@@ -351,8 +345,8 @@ exports.config = {
     /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
      * thrown in the onComplete hook will result in the test run failing.
-     * @param {Object} exitCode 0 - success, 1 - fail
-     * @param {Object} config wdio configuration object
+     * @param {object} exitCode 0 - success, 1 - fail
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
@@ -360,8 +354,8 @@ exports.config = {
     },
     /**
     * Gets executed when a refresh happens.
-    * @param {String} oldSessionId session ID of the old session
-    * @param {String} newSessionId session ID of the new session
+    * @param {string} oldSessionId session ID of the old session
+    * @param {string} newSessionId session ID of the new session
     */
     onReload: function(oldSessionId, newSessionId) {
     },
@@ -369,7 +363,7 @@ exports.config = {
      * Cucumber Hooks
      *
      * Runs before a Cucumber Feature.
-     * @param {String}                   uri      path to feature file
+     * @param {string}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     beforeFeature: function (uri, feature) {
@@ -378,7 +372,7 @@ exports.config = {
      *
      * Runs before a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
-     * @param {Object}                 context  Cucumber World object
+     * @param {object}                 context  Cucumber World object
      */
     beforeScenario: function (world, context) {
     },
@@ -387,7 +381,7 @@ exports.config = {
      * Runs before a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
-     * @param {Object}             context  Cucumber World object
+     * @param {object}             context  Cucumber World object
      */
     beforeStep: function (step, scenario, context) {
     },
@@ -396,11 +390,11 @@ exports.config = {
      * Runs after a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
-     * @param {Object}             result   results object containing scenario results
+     * @param {object}             result   results object containing scenario results
      * @param {boolean}            result.passed   true if scenario has passed
      * @param {string}             result.error    error stack if scenario failed
      * @param {number}             result.duration duration of scenario in milliseconds
-     * @param {Object}             context Cucumber World object
+     * @param {object}             context Cucumber World object
      */
     afterStep: function (step, scenario, result, context) {
     },
@@ -408,18 +402,18 @@ exports.config = {
      *
      * Runs after a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
-     * @param {Object}                 result results object containing scenario results
+     * @param {object}                 result results object containing scenario results
      * @param {boolean}                result.passed   true if scenario has passed
      * @param {string}                 result.error    error stack if scenario failed
      * @param {number}                 result.duration duration of scenario in milliseconds
-     * @param {Object}                 context Cucumber World object
+     * @param {object}                 context Cucumber World object
      */
     afterScenario: function (world, result, context) {
     },
     /**
      *
      * Runs after a Cucumber Feature.
-     * @param {String}                   uri      path to feature file
+     * @param {string}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
