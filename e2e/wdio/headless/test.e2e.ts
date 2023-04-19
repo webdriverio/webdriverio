@@ -102,24 +102,20 @@ describe('main suite 1', () => {
         await browser.setWindowSize(500, 500)
         let searchInput = await $('.searchinput')
 
-        await browser.newWindow('http://guinea-pig.webdriver.io')
-        await browser.setWindowSize(500, 500)
-        const handles = await browser.getWindowHandles()
         const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
 
-            await browser.switchToWindow(handles[0])
-            await browser.pause(500)
+            await browser.refresh()
             searchInput = await $('.searchinput')
+            await browser.pause(500)
             await searchInput.scrollIntoView(params)
             await browser.pause(500)
             const [wdioX, wdioY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
 
-            await browser.switchToWindow(handles[1])
-            await browser.pause(500)
+            await browser.refresh()
             searchInput = await $('.searchinput')
-
+            await browser.pause(500)
             await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
             await browser.pause(500)
             const [windowX, windowY] = await browser.execute(() => [
