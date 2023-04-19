@@ -122,7 +122,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
-        this._insightsHandler?.setSuiteFile(suite.file)
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
         }
