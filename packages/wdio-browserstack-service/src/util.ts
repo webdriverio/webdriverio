@@ -549,10 +549,6 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
         return true
     }
 
-    if (framework === 'jasmine' && (hook === 'beforeEach' || hook === 'afterEach')) {
-        return true
-    }
-
     return false
 }
 
