@@ -97,7 +97,7 @@ export default class InsightsHandler {
     }
 
     async beforeTest (test: Frameworks.Test) {
-        if (this._framework !== "mocha") return
+        if (this._framework !== 'mocha') return
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
@@ -107,7 +107,7 @@ export default class InsightsHandler {
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
-        if (this._framework !== "mocha") return
+        if (this._framework !== 'mocha') return
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             ...(this._tests[fullTitle] || {}),

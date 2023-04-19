@@ -1,11 +1,11 @@
-import WDIOReporter, {SuiteStats, TestStats, RunnerStats} from '@wdio/reporter'
+import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import {BrowserstackConfig, TestData, TestMeta} from './types'
-import {getCloudProvider, uploadEventData} from './util'
+import { BrowserstackConfig, TestData, TestMeta } from './types'
+import { getCloudProvider, uploadEventData } from './util'
 import RequestQueueHandler from './request-handler'
 
 export default class TestReporter extends WDIOReporter {
@@ -30,7 +30,7 @@ export default class TestReporter extends WDIOReporter {
         this._suites.push(suiteStats)
     }
 
-    onSuiteEnd(suiteStats: SuiteStats) {
+    onSuiteEnd() {
         this._suites.pop()
     }
 
@@ -38,31 +38,31 @@ export default class TestReporter extends WDIOReporter {
         if (!this._observability) return false
 
         switch (this._config?.framework) {
-            case 'mocha':
-                return event === "skip";
-            case 'cucumber':
-                return false
-            case 'jasmine':
-                return testType === "test"
-            default:
-                return false
+        case 'mocha':
+            return event === 'skip'
+        case 'cucumber':
+            return false
+        case 'jasmine':
+            return testType === 'test'
+        default:
+            return false
         }
     }
 
     async onTestEnd(testStats: TestStats) {
-        if (!this.needToSendData("test", "end")) return
+        if (!this.needToSendData('test', 'end')) return
 
         testStats.end ||= new Date()
         await this.sendTestRunEvent(testStats, 'TestRunFinished')
     }
 
     async onTestStart(testStats: TestStats) {
-        if (!this.needToSendData("test", "start")) return
+        if (!this.needToSendData('test', 'start')) return
 
         this._tests[testStats.fullTitle] = {
             uuid: uuidv4(),
         }
-        await this.sendTestRunEvent(testStats, "TestRunStarted")
+        await this.sendTestRunEvent(testStats, 'TestRunStarted')
     }
 
     async sendTestRunEvent(testStats: TestStats, eventType: string) {
@@ -86,10 +86,10 @@ export default class TestReporter extends WDIOReporter {
             framework: framework,
             duration_in_ms: testStats._duration,
             result: testStats.state,
-            retries: { limit: testStats.retries || 0, attempts: testStats.retries || 0}
+            retries: { limit: testStats.retries || 0, attempts: testStats.retries || 0 }
         }
 
-        if (eventType == 'TestRunStarted' || eventType == "TestRunSkipped") {
+        if (eventType == 'TestRunStarted' || eventType == 'TestRunSkipped') {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
             testData.integrations = {}
@@ -104,8 +104,8 @@ export default class TestReporter extends WDIOReporter {
             }
         }
 
-        if (eventType == "TestRunSkipped") {
-            eventType = "TestRunFinished"
+        if (eventType == 'TestRunSkipped') {
+            eventType = 'TestRunFinished'
         }
 
         const uploadData = {
@@ -122,10 +122,10 @@ export default class TestReporter extends WDIOReporter {
 
     async onTestSkip (testStats: TestStats) {
         // cucumber steps call this method. We don't want step skipped state so skip for cucumber
-        if (!this.needToSendData("test", "skip")) return
+        if (!this.needToSendData('test', 'skip')) return
 
         testStats.start ||= new Date()
         testStats.end ||= new Date()
-        await this.sendTestRunEvent(testStats, "TestRunSkipped")
+        await this.sendTestRunEvent(testStats, 'TestRunSkipped')
     }
 }
