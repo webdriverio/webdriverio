@@ -28,7 +28,7 @@ Sie können auch jede optionale [Testkonfiguration](https://docs.saucelabs.com/d
 
 Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)verwenden.
 
-It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
+Es liegt außerhalb des Umfangs von WebdriverIO, dies zu unterstützen, daher müssen Sie es selbst starten.
 
 If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
 
