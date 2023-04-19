@@ -7,13 +7,13 @@ WebdriverIO viene con soporte incorporado para modificar las respuestas de la re
 
 :::info
 
-This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
+Actualmente, esta función solo se admite cuando se ejecutan pruebas locales en Chrome. Está previsto que sea compatible con [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) y [Sauce Labs](https://saucelabs.com/) pronto. Si encuentras problemas al usarlo, por favor registra [un problema](https://github.com/webdriverio/webdriverio/issues/new/choose) y háznoslo saber!
 
 :::
 
-## Creating a mock
+## Crear una simulación
 
-Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+Antes de poder modificar cualquier respuesta que haya definido primero una simulación. Esta simulación es descrita por la url del recurso y puede ser filtrada por el [método de solicitud](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) o [encabezados](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
 
 ```js
 // mock all resources ending with "/users/list"
