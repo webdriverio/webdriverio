@@ -100,14 +100,25 @@ describe('main suite 1', () => {
     it('should be able to handle successive scrollIntoView', async () => {
         await browser.url('http://guinea-pig.webdriver.io')
         await browser.setWindowSize(500, 500)
-        const searchInput = await $('.searchinput')
+        let searchInput = await $('.searchinput')
 
+        await browser.newWindow('http://guinea-pig.webdriver.io')
+        await browser.setWindowSize(500, 500)
+        const handles = await browser.getWindowHandles()
         const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
+
+            await browser.switchToWindow(handles[0])
+            await browser.pause(500)
+            searchInput = await $('.searchinput')
             await searchInput.scrollIntoView(params)
             await browser.pause(500)
             const [wdioX, wdioY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
+
+            await browser.switchToWindow(handles[1])
+            await browser.pause(500)
+            searchInput = await $('.searchinput')
 
             await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
             await browser.pause(500)
@@ -123,6 +134,7 @@ describe('main suite 1', () => {
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
         await scrollAndCheck()
         await scrollAndCheck({ block: 'center', inline: 'center' })
+        await scrollAndCheck({ block: 'start', inline: 'start' })
         await scrollAndCheck({ block: 'end', inline: 'end' })
         await scrollAndCheck(true)
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })

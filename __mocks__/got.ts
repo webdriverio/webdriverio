@@ -241,6 +241,8 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             result = params.json.args[0][ELEMENT_KEY] === genericElementId
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
                 : {}
+        } else if (params.json.script.includes('scrollX')) {
+            result = [0, 0]
         } else if (params.json.script.includes('function isFocused')) {
             result = true
         } else {
