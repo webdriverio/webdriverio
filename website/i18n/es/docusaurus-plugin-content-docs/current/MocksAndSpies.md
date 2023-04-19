@@ -1,9 +1,9 @@
 ---
 id: mocksandspies
-title: Request Mocks and Spies
+title: Solicitar Mocks y Espías
 ---
 
-WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
+WebdriverIO viene con soporte incorporado para modificar las respuestas de la red que le permite concentrarse en probar su aplicación frontend sin tener que configurar su backend o un servidor simulado. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
 
 :::info
 
