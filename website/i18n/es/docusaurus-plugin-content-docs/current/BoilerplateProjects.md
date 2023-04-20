@@ -230,7 +230,7 @@ Este es un proyecto de plantilla para ayudarlo a mostrar cómo puede ejecutar pr
 El proyecto incluye:
 
 - Ejemplo de aplicación electronjs
-- Ejemplos de guiones de prueba de Cucumber
+- Sample cucumber test scripts
 
 Leer más en: [Blog medio](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
 
