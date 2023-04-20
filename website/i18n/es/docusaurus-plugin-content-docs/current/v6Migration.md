@@ -21,7 +21,7 @@ Este tutorial es para personas que todavía están usando `v5` de WebdriverIO y 
     })
     ```
 
-- configuraciones para servicios movidos a la lista de servicios, p. ej.
+- configuraciones para servicios movidos a la lista de servicios, p.
 
     ```js
     // v5
