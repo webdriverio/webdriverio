@@ -50,11 +50,7 @@ describe("My WebdriverIO Test", function () {
 });
 ```
 
-Asegúrese de revisar algunos de los localizadores y reemplácelos por</a>
-
-resistente si es necesario. También puede exportar el flujo como archivo JSON y usar el paquete [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) para convertirlo en un script de prueba real.</p> 
-
-
+resistente si es necesario. También puede exportar el flujo como archivo JSON y usar el paquete [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) para convertirlo en un script de prueba real.
 
 ## Siguientes Pasos
 
