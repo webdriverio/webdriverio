@@ -475,18 +475,18 @@ export const config = {
     /**
      *
      * Runs after a Cucumber Scenario.
-     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
-     * @param {object}                 result           results object containing scenario results `{passed: boolean, error: string, duration: number}`
-     * @param {boolean}                result.passed    true if scenario has passed
-     * @param {string}                 result.error     error stack if scenario failed
-     * @param {number}                 result.duration  duration of scenario in milliseconds
-     * @param {object}                 context          Cucumber World object
+     * @param {ITestCaseHookParameter} world world object que contiene información sobre pickle y el paso de prueba
+     * @param {object}                 result object que contiene los resultados del escenario `{passed: boolean, error: string, duration: number}`
+     * @param {boolean}                result.passed true si el escenario ha pasado
+     * @param {string}                 result.error error pila si el escenario falló
+     * @param {number}                 result.duration duración del escenario en milisegundos
+     * @param {object}                 context Cucumber World object
      */
     afterScenario: function (world, result, context) {
     },
     /**
      *
-     * Runs after a Cucumber Feature.
+     * Corre tras una característica de pepino.
      * @param {string}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
