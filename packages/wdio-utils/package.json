@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "8.8.4",
+  "version": "8.8.6",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@wdio/logger": "8.6.6",
-    "@wdio/types": "8.8.4",
+    "@wdio/types": "8.8.6",
     "import-meta-resolve": "^2.2.0",
     "p-iteration": "^1.1.8"
   },
