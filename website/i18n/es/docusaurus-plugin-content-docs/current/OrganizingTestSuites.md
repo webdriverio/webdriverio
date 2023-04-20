@@ -5,7 +5,7 @@ title: Organización de la suite de pruebas
 
 A medida que crecen los proyectos, inevitablemente se agregan más y más pruebas de integración. Esto aumenta el tiempo de construcción y reduce la productividad.
 
-Para evitar esto, debe ejecutar sus pruebas en paralelo. WebdriverIO ya prueba cada especificación (o _archivo de características_ en Cucumber) en paralelo dentro de una sola sesión. En general, intente probar solo una función por archivo de especificaciones. Intente no tener demasiadas o muy pocas pruebas en un solo archivo. (However, there is no golden rule here.)
+Para evitar esto, debe ejecutar sus pruebas en paralelo. WebdriverIO ya prueba cada especificación (o _archivo de características_ en Cucumber) en paralelo dentro de una sola sesión. En general, intente probar solo una función por archivo de especificaciones. Intente no tener demasiadas o muy pocas pruebas en un solo archivo. (Sin embargo, no existe una regla de oro.)
 
 Una vez que sus pruebas tengan varios archivos de especificaciones, debe comenzar a ejecutar sus pruebas al mismo tiempo. Para ello, ajuste la propiedad `maxInstances` en su archivo de configuración. WebdriverIO le permite ejecutar sus pruebas con la máxima concurrencia, lo que significa que no importa cuántos archivos y pruebas tenga, todos pueden ejecutarse en paralelo.  (Esto todavía está sujeto a ciertos límites, como la CPU de su computadora, restricciones de concurrencia, etc.)
 
