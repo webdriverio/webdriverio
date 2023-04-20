@@ -88,7 +88,7 @@ export const config = {
 }
 ```
 
-In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](https://www.npmjs.com/package/web-ext) NPM package. You can bundle your extension using the following example command:
+Para generar un archivo `.xpi`, se recomienda utilizar el paquete [`web-ext`](https://www.npmjs.com/package/web-ext) NPM. Puede recopilar su extensión usando el siguiente comando de ejemplo:
 
 ```sh
 npx web-ext build -s dist/ -a . -n web-extension-firefox.xpi
