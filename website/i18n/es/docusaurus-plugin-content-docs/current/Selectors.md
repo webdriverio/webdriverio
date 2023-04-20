@@ -1,11 +1,11 @@
 ---
 id: selectors
-title: Selectors
+title: Selectores
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+El [Protocolo WebDriver](https://w3c.github.io/webdriver/) proporciona varias estrategias de selección para consultar un elemento. WebdriverIO los simplifica para seguir seleccionando elementos simples. Tenga en cuenta que aunque el comando para consultar elementos se llama `$` y `$$`, no tienen nada que ver con jQuery o el [Sizzle Selector Engine](https://github.com/jquery/sizzle).
 
-While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+Si bien hay tantos selectores diferentes disponibles, solo algunos de ellos brindan una forma resistente de encontrar el elemento correcto. Por ejemplo, el siguiente botón:
 
 ```html
 <button
@@ -19,31 +19,31 @@ While there are so many different selectors available, only a few of them provid
 </button>
 ```
 
-We __do__ and __do not__ recommend the following selectors:
+Nosotros __hacemos__ y __no__ recomendamos los siguientes selectores:
 
-| Selector                                      | Recommended  | Notes                                                       |
-| --------------------------------------------- | ------------ | ----------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Never      | Worst - too generic, no context.                            |
-| `$('.btn.btn-large')`                         | 🚨 Never      | Bad. Coupled to styling. Highly subject to change.          |
-| `$('#main')`                                  | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write.                       |
-| `$('button[name="submission"]')`              | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics.   |
-| `$('button[data-testid="submit"]')`           | ✅ Good       | Requires additional attribute, not connected to a11y.       |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Always     | Best. Resembles how the user interacts with the page.       |
+| Selector                                      | Recomendado     | Observaciones                                                              |
+| --------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Nunca         | El peor - demasiado genérico, sin contexto.                                |
+| `$('.btn.btn-large')`                         | 🚨 Nunca         | Malo. Unido al estilismo. Muy sujeto a cambios.                            |
+| `$('#main')`                                  | ⚠️ Parcialmente | Media-baja. Pero todavía se unieron a los oyentes de estilos o eventos JS. |
+| `$(() => document.queryElement('button'))` | ⚠️ Parcialmente | Consulta efectiva, compleja de escribir.                                   |
+| `$('button[name="submission"]')`              | ⚠️ Parcialmente | Acoplado al atributo `nombre` que tiene semántica HTML.                    |
+| `$('button[data-testid="submit"]')`           | ✅ Bueno         | Requiere atributo adicional, no conectado al a11y.                         |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ El mejor      | Óptimo. Se asemeja a cómo el usuario interactúa con la página.             |
 
-## CSS Query Selector
+## Selector de consultas CSS
 
-If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
+Si no se indica lo contrario, WebdriverIO consultará elementos usando el patrón de [selector CSS](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors), por ejemplo.:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L7-L8
 ```
 
-## Link Text
+## Texto del enlace
 
-To get an anchor element with a specific text in it, query the text starting with an equals (`=`) sign.
+Para obtener un elemento de anclaje con un texto específico en él, consulta el texto que comienza con un signo igual (`=`).
 
-For example:
+Por ejemplo:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L3
