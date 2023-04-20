@@ -9,7 +9,7 @@ Puede volver a ejecutar ciertas pruebas con el testrunner WebdriverIO que result
 
 ## Volver a ejecutar suites en Mocha
 
-Desde la versión 3 de Mocha, puedes volver a ejecutar suites de prueba completas (todo dentro de un bloque `describir`). Si usa Mocha, debe favorecer este mecanismo de reintento en lugar de la implementación de WebdriverIO que solo le permite volver a ejecutar ciertos bloques de prueba (todo dentro de un bloque `it`). Para utilizar el `esto. metodo etries()`, el bloque suite `describe` debe usar una función unbound `function(){}` en lugar de una función flecha gorda `() => {}`, según se describe en [Mocha docs](https://mochajs.org/#arrow-functions). Utilizando Mocha también puede establecer un recuento de reintentos para todas las especificaciones usando `mochaOpts.retries` en su `wdio.conf.js`.
+Desde la versión 3 de Mocha, puedes volver a ejecutar suites de prueba completas (todo dentro de un bloque `describir`). Si usa Mocha, debe favorecer este mecanismo de reintento en lugar de la implementación de WebdriverIO que solo le permite volver a ejecutar ciertos bloques de prueba (todo dentro de un bloque `it`). metodo etries()</code>, el bloque suite `describe` debe usar una función unbound `function(){}` en lugar de una función flecha gorda `() => {}`, según se describe en [Mocha docs](https://mochajs.org/#arrow-functions). Utilizando Mocha también puede establecer un recuento de reintentos para todas las especificaciones usando `mochaOpts.retries` en su `wdio.conf.js`.
 
 Aquí hay un ejemplo:
 
