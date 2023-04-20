@@ -13,7 +13,7 @@ Actualmente, esta función solo se admite cuando se ejecutan pruebas locales en 
 
 ## Crear una simulación
 
-Antes de poder modificar cualquier respuesta que haya definido primero una simulación. Esta simulación es descrita por la url del recurso y puede ser filtrada por el [método de solicitud](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) o [encabezados](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+Antes de poder modificar cualquier respuesta que haya definido primero una simulación. Esta simulación es descrita por la url del recurso y puede ser filtrada por el [método de solicitud](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) o [encabezados](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). El recurso soporta expresiones glob por [minimatch](https://www.npmjs.com/package/minimatch):
 
 ```js
 // mock all resources ending with "/users/list"
@@ -35,7 +35,7 @@ Una vez que haya definido una simulación, puede definir respuestas personalizad
 
 ### Solicitudes API de Mocking
 
-In order to mock API requests where you expect a JSON response all you need to do is to call `respond` on the mock object with an arbitrary object you want to return, e.g.:
+Para simular las solicitudes de API donde se espera una respuesta JSON todo lo que se necesita hacer es llamar a `responder` en el objeto simulado con un objeto arbitrario que se desea devolver, ej.:
 
 ```js
 const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
