@@ -1,18 +1,17 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: Reintentar pruebas Flaky
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+importar pestañas desde '@theme/Tabs'; importar TabItem desde '@theme/TabItem';
 
-You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to things like a flaky network or race conditions. (However, it is not recommended to simply increase the rerun rate if tests become unstable!)
+Puede volver a ejecutar ciertas pruebas con el testrunner WebdriverIO que resultan ser inestables debido a cosas como una red defectuosa o condiciones de carrera. (Sin embargo, no se recomienda simplemente aumentar la tasa de reejecución si las pruebas se vuelven inestables!)
 
-## Rerun suites in Mocha
+## Volver a ejecutar suites en Mocha
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `() => {}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions). Using Mocha you can also set a retry count for all specs using `mochaOpts.retries` in your `wdio.conf.js`.
+Desde la versión 3 de Mocha, puedes volver a ejecutar suites de prueba completas (todo dentro de un bloque `describir`). Si usa Mocha, debe favorecer este mecanismo de reintento en lugar de la implementación de WebdriverIO que solo le permite volver a ejecutar ciertos bloques de prueba (todo dentro de un bloque `it`). Para utilizar el `esto. metodo etries()`, el bloque suite `describe` debe usar una función unbound `function(){}` en lugar de una función flecha gorda `() => {}`, según se describe en [Mocha docs](https://mochajs.org/#arrow-functions). Utilizando Mocha también puede establecer un recuento de reintentos para todas las especificaciones usando `mochaOpts.retries` en su `wdio.conf.js`.
 
-Here is an example:
+Aquí hay un ejemplo:
 
 ```js
 describe('retries', function () {
@@ -32,9 +31,9 @@ describe('retries', function () {
 })
 ```
 
-## Rerun single tests in Jasmine or Mocha
+## Reiniciar pruebas individuales en Jasmine o Mocha
 
-To rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
+Para volver a ejecutar un determinado bloque de prueba sólo puedes aplicar el número de reinicios como último parámetro después de la función de bloque de prueba:
 
 <Tabs
   defaultValue="mocha"
@@ -102,14 +101,14 @@ describe('my flaky app', () => {
 })
 ```
 
-If you are using Jasmine, the second parameter is reserved for timeout. To apply a retry parameter you need to set the timeout to its default value `jasmine.DEFAULT_TIMEOUT_INTERVAL` and then apply your retry count.
+Si está usando Jasmine, el segundo parámetro está reservado para el tiempo de espera. Para aplicar un parámetro de reintento, necesita establecer el tiempo de espera a su valor predeterminado `jasmine.DEFAULT_TIMEOUT_INTERVAL` y luego aplicar su contador de reintento.
 
 </TabItem>
 </Tabs>
 
-This retry mechanism only allows to retry single hooks or test blocks. If your test is accompanied with a hook to set up your application, this hook is not being run. [Mocha offers](https://mochajs.org/#retry-tests) native test retries that provide this behavior while Jasmine doesn't. You can access the number of executed retries in the `afterTest` hook.
+Este mecanismo de reintento sólo permite reintentar ganchos individuales o bloques de prueba. Si su prueba va acompañada de un gancho para configurar su aplicación, este gancho no se está ejecutando. [Mocha ofrece](https://mochajs.org/#retry-tests) reintentos de prueba nativos que proporcionan este comportamiento mientras Jazmín no lo hace. Puede acceder al número de reintentos ejecutados en el gancho `afterTest`.
 
-## Rerunning in Cucumber
+## Volver a utilizar Cucumber
 
 ### Rerun full suites in Cucumber
 
