@@ -68,7 +68,7 @@ export const config = {
 }
 ```
 
-For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+Por ejemplo, si desea simular todas las llamadas [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) en su prueba con el siguiente script de configuración:
 
 ```js ./fixtures/setup.js
 import { fn } from '@wdio/browser-runner'
