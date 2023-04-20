@@ -60,6 +60,7 @@ Esto le guiará a través de un par de preguntas. Para este escenario de migraci
 :::info ¿Por qué Moka?
 Aunque es posible que haya estado usando Protractor con Jasmine antes, Mocha proporciona mejores mecanismos de reintento. ¡La elección es suya!
 :::
+:::
 
 Después del pequeño cuestionario, el asistente instalará todos los paquetes necesarios y los almacenará en su `package.json`.
 
