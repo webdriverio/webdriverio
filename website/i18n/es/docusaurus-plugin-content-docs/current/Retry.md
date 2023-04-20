@@ -110,13 +110,13 @@ Este mecanismo de reintento sólo permite reintentar ganchos individuales o bloq
 
 ## Volver a utilizar Cucumber
 
-### Rerun full suites in Cucumber
+### Vuelva a ejecutar suites completas en Cucumber
 
-For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded. For this feature to work you need to set the `scenarioLevelReporter` to `true`.
+Para Cucumber >=6 puede proporcionar la opción [`reintentar`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuración junto con un parámetro opcional `retryTagFilter` para que todos o algunos de sus escenarios fallidos obtengan reintentos adicionales hasta que tengan éxito. Para que esta función funcione es necesario establecer el `escenarioLevelReporter` en `verdadero`.
 
-### Rerun Step Definitions in Cucumber
+### Ejecutar definiciones de paso en Cucumber
 
-To define a rerun rate for a certain step definitions just apply a retry option to it, like:
+Para definir una tasa de repetición para ciertas definiciones de pasos simplemente aplique una opción de reintento, como:
 
 ```js
 module.exports = function () {
@@ -130,15 +130,15 @@ module.exports = function () {
 })
 ```
 
-Reruns can only be defined in your step definitions file, never in your feature file.
+Las ejecuciones sólo se pueden definir en el archivo de definiciones de pasos, nunca en el archivo de características.
 
-## Add retries on a per-specfile basis
+## Añadir reintentos sobre una base por especímenes
 
-Previously, only test- and suite-level retries were available, which are fine in most cases.
+Anteriormente, sólo se disponían de reintentos de prueba y de nivel suite, que en la mayoría de los casos son correctos.
 
-But in any tests which involve state (such as on a server or in a database) the state may be left invalid after the first test failure. Any subsequent retries may have no chance of passing, due to the invalid state they would start with.
+Pero en cualquier prueba que involucre estado (como en un servidor o en una base de datos) el estado puede ser inválido después del primer fallo de prueba. Cualquier retención posterior puede no tener posibilidad de pasar, debido al estado no válido con el que comenzarían.
 
-A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
+Se crea una nueva instancia de `navegador` para cada específico, lo que hace que este sea un lugar ideal para enganchar y configurar cualquier otro estado (servidor, bases de datos). Las reintentos en este nivel significan que todo el proceso de configuración será simplemente repetido, como si fuera para un nuevo specfile.
 
 ```js
 module.exports = function () {
@@ -157,13 +157,13 @@ module.exports = function () {
 }
 ```
 
-## Run a specific test multiple times
+## Ejecutar una prueba específica varias veces
 
-This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified test(s) or suite(s) x number of times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
+Se trata de ayudar a evitar que se introduzcan pruebas falsas en una base de código. Añadiendo la opción de cli `--multi-run` ejecutará la(s) prueba(s) especificada(s) o suite(s) x número de veces. Al usar esta bandera cli la bandera `--spec` o `--suite` también debe ser especificada.
 
-When adding new tests to a codebase, espically through a CI/CD process the tests could pass and get merged but become flakly later on. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
+Cuando se añaden nuevas pruebas a una base de código, espáticamente a través de un proceso de CI/CD las pruebas podrían pasar y ser fusionadas pero se vuelven flakly más adelante. Este error podría provenir de una serie de asuntos como problemas de red, carga del servidor, tamaño de la base de datos, etc. Utilizando la bandera `--multi-run` en su proceso de CD/CD puede ayudar a capturar estas pruebas defectuosas antes de que se fusionen en una base de código principal.
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specifed in `--spec` along with `--multi-run` so it runs the new test x number of times. If the test fails any of those times then the test will not get merged and will need to be looked at why it failed.
+Una estrategia a utilizar es ejecutar sus pruebas como de costumbre en su proceso de CI/CD, pero si está introduciendo una nueva prueba, puede ejecutar otro conjunto de pruebas con la nueva especificación especificada en `--spec` junto con `--multi -ejecutar` para que ejecute la nueva prueba x número de veces. Si la prueba falla cualquiera de esas veces, la prueba no se fusionará y tendrá que ser examinada por qué falló.
 
 ```sh
 # This will run the example.e2e.js spec 5 times
