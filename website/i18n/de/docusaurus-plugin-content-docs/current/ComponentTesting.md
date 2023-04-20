@@ -99,7 +99,7 @@ Es gibt mehrere Möglichkeiten, wie Sie Ihre Browsertests debuggen können. Am e
 $ npx wdio run ./wdio.conf.js --watch
 ```
 
-Dadurch werden zunächst alle Tests durchlaufen. Der Prozess wird dann angehalten, sobald alle ausgeführt Tests wurden ohne dabei den Browser zu schließen. Sie können dann Änderungen an einzelnen Dateien vornehmen, die dann Tests einzeln erneut ausführen. Wenn Sie die [`filesToWatch`](/docs/configuration#filestowatch) Option festlegen, die mit ihrem Wert auf Ihre Anwendungsdateien verweist, werden alle Tests erneut ausgeführt, wenn Änderungen an Ihrer App vorgenommen werden.
+Dadurch werden zunächst alle Tests durchlaufen. Sie können dann Änderungen an einzelnen Dateien vornehmen, die dann Tests einzeln erneut ausführen. Wenn Sie die [`filesToWatch`](/docs/configuration#filestowatch) Option festlegen, die mit ihrem Wert auf Ihre Anwendungsdateien verweist, werden alle Tests erneut ausgeführt, wenn Änderungen an Ihrer App vorgenommen werden.
 
 ## Debuggen
 
