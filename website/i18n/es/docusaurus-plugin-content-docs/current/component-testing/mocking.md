@@ -265,7 +265,7 @@ Los módulos con alcance (también conocidos como paquetes con ámbito de aplica
 └── views
 ```
 
-Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
+Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`. Para no participar en este comportamiento, necesitará llamar explícitamente a `unmock('nombremódulo')` en pruebas que deben usar la implementación real del módulo, por ejemplo:
 
 ```js
 import { unmock } from '@wdio/browser-runner'
