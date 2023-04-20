@@ -89,7 +89,7 @@ mock.respond(responseFixture)
 
 ### Modificando recursos de texto
 
-If you like to modify text resources like JavaScript, CSS files or other text based resources you can just pass in a file path and WebdriverIO will replaces the original resource with it, e.g.:
+Si desea modificar recursos de texto como JavaScript, archivos CSS u otros recursos basados en texto, simplemente puede pasar una ruta de archivo y WebdriverIO reemplazará el recurso original con él, por ejemplo.:
 
 ```js
 const scriptMock = await browser.mock('**/script.min.js')
@@ -99,9 +99,9 @@ scriptMock.respond('./tests/fixtures/script.js')
 scriptMock.respond('alert("I am a mocked resource")')
 ```
 
-### Redirect web resources
+### Redirigir los recursos web
 
-You can also just replace a web resource with another web resource if your desired response is already hosted on the web. This works with individual page resources as well as with a webpage itself, e.g.:
+También puede reemplazar un recurso web con otro recurso web si su respuesta deseada ya se encuentra alojada en la web. Esto funciona con recursos de página individuales así como con una página web misma, por ejemplo:
 
 ```js
 const pageMock = await browser.mock('https://google.com/')
@@ -110,9 +110,9 @@ await browser.url('https://google.com')
 console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 ```
 
-### Dynamic responses
+### Respuestas dinámicas
 
-If your mock response depends on the original resource response you can also dynamically modify the resource by passing in a function receives the original response as parameter and sets the mock based on the return value, e.g.:
+Si su respuesta simulada depende de la respuesta del recurso original, también puede modificar dinámicamente el recurso pasando una función que recibe la respuesta original como parámetro y establece el simulacro en función del valor de retorno, por ejemplo.:
 
 ```js
 const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
@@ -138,9 +138,9 @@ console.log(await $$('#todo-list li label').map((el) => el.getText()))
 // ]
 ```
 
-## Aborting mocks
+## Anular simulaciones
 
-Instead of returning a custom response you can also just abort the request with one of the following HTTP errors:
+En lugar de devolver una respuesta personalizada, también puede abortar la petición con uno de los siguientes errores HTTP:
 
 - Failed
 - Aborted
@@ -157,16 +157,16 @@ Instead of returning a custom response you can also just abort the request with 
 - BlockedByClient
 - BlockedByResponse
 
-This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
+Esto es muy útil si desea bloquear secuencias de comandos de terceros de su página que tengan una influencia negativa en su prueba funcional. Puede abortar un simulacro simplemente llamando `abort` o `abortOnce`, por ejemplo:
 
 ```js
 const mock = await browser.mock('https://www.google-analytics.com/**')
 mock.abort('Failed')
 ```
 
-## Spies
+## Espías
 
-Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
+Cada simulacro es automáticamente un espía que cuenta la cantidad de peticiones que el navegador hizo a ese recurso. Si no aplica una respuesta personalizada o aborta la razón de la simulación, continúa con la respuesta por defecto que normalmente recibiría. Esto le permite comprobar cuántas veces ha hecho la petición el navegador, por ejemplo, a un determinado punto final de la API.
 
 ```js
 const mock = await browser.mock('**/user', { method: 'post' })
