@@ -20,8 +20,12 @@
     <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
         <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
     </a>
+    <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
+        <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
+    </a>
+    <br />
     <a href="https://discord.webdriver.io">
-        <img alt="Support Channel" src="https://img.shields.io/badge/Join-on%20Matrix-4FB898">
+        <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
     </a>
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
         <img alt="Issue Resolution time" src="http://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">

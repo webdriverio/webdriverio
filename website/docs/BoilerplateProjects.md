@@ -233,7 +233,7 @@ This a template project to help you show how you can run electronJS tests using 
 This project include:
 
 - Sample electronjs app
-- Sample cucumber testscripts
+- Sample cucumber test scripts
 
 Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
 
