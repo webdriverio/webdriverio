@@ -476,76 +476,76 @@ Ejecuta antes de que un comando WebdriverIO sea ejecutado.
 Parámetros:
 
 - `commandName` (`string`): nombre de comando
-- `args` (`*`): arguments that command would receive
+- `args` (`*`): argumentos que recibiría el comando
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+Ejecuta después de que un comando WebdriverIO sea ejecutado.
 
 Parámetros:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
-- `error` (`Error`): error object if any
+- `commandName` (`string`): nombre de comando
+- `args` (`*`): argumentos que recibiría el comando
+- `resultado` (`número`): 0 - comando exitoso, 1 - error de comando
+- `error` (`Error`): objeto de error si existe
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Función que se ejecuta después de que finalice una prueba (en Mocha/Jasmine).
 
 Parámetros:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
-- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
-- `result.result` (`Any`): return object of test function
-- `result.duration` (`Number`): duration of test
-- `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `test` (`object`): detalles de prueba
+- `contexto` (`objeto`): objeto de ámbito con el que se ejecutó la prueba
+- `result.error` (`Error`): objeto de error en caso de que la prueba falle, de lo contrario `indefinido`
+- `result.result` (`Any`): devuelve el objeto de la función de prueba
+- `resultado.duración` (`Número`): duración de la prueba
+- `result.passed` (`Boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
+- `result.retries` (`Objeto`): información de las especificaciones relacionadas con las recuperaciones, por ejemplo, `{ attempts: 0, limit: 0 }`
+- `resultado` (`objeto`): resultado de gancho (contiene `error`, `resultado`, `duración`, `pasado`, `reintentos` propiedades)
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Gancho que es ejecutado después de que la suite haya terminado
 
 Parámetros:
 
-- `suite` (`object`): suite details
+- `suite` (`objeto`): detalles de suite
 
 ### after
 
-Gets executed after all tests are done. You still have access to all global variables from the test.
+Se ejecuta después de que todas las pruebas hayan terminado. Todavía tiene acceso a todas las variables globales de la prueba.
 
 Parámetros:
 
-- `result` (`number`): 0 - test pass, 1 - test fail
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `exitCode` (`número`): 0 - éxito, 1 - error
+- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
+- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
 
 ### afterSession
 
-Gets executed right after terminating the webdriver session.
+Se ejecuta justo después de terminar la sesión del controlador web.
 
 Parámetros:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`objeto`): objeto de configuración WebdriverIO
+- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
+- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
 
 ### onComplete
 
-Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+Se ejecutó después de que todos los trabajadores se cerraron y el proceso está a punto de salir. Un error arrojado en el gancho onComplete resultará en que la prueba falle.
 
 Parámetros:
 
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `result` (`object`): results object containing test results
+- `exitCode` (`número`): 0 - éxito, 1 - error
+- `config` (`objeto`): objeto de configuración WebdriverIO
+- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
+- `resultado` (`objeto`): objeto de resultados que contiene resultados de prueba
 
 ### onReload
 
-Gets executed when a refresh happens.
+Se ejecuta cuando ocurre una actualización.
 
 Parámetros:
 
@@ -558,39 +558,39 @@ Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): ruta al archivo de características
+- `función` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): objeto función pepino
 
 ### afterFeature
 
-Runs after a Cucumber Feature.
+Se ejecuta antes de una Característica de Cucumber.
 
 Parámetros:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): ruta al archivo de características
+- `función` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): objeto función pepino
 
 ### beforeScenario
 
-Runs before a Cucumber Scenario.
+Se ejecuta antes de una Característica de Cucumber.
 
 Parámetros:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `context` (`object`): Cucumber World object
+- `mundo` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): objeto del mundo que contiene información sobre el ickle y paso de prueba
+- `contexto` (`objeto`): objeto Cucumber World
 
 ### afterScenario
 
-Runs after a Cucumber Scenario.
+Se ejecuta antes de una Característica de Cucumber.
 
 Parámetros:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `result` (`object`): results object containing scenario results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `mundo` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): objeto del mundo que contiene información sobre el ickle y paso de prueba
+- `resultado` (`objeto`): objeto de resultados que contiene resultados de prueba
+- `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
+- `result.error` (`string`): pila de errores si el escenario falló
+- `result.duration` (`number`): duración del escenario en milisegundos
+- `contexto` (`objeto`): objeto Cucumber World
 
 ### beforeStep
 
@@ -598,9 +598,9 @@ Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `context` (`object`): Cucumber World object
+- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
+- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
+- `contexto` (`objeto`): objeto Cucumber World
 
 ### afterStep
 
@@ -608,10 +608,10 @@ Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `result`: (`object`): results object containing step results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
+- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
+- `resultado` (`objeto`): objeto de resultados que contiene resultados de prueba
+- `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
+- `result.error` (`string`): pila de errores si el escenario falló
+- `result.duration` (`number`): duración del escenario en milisegundos
+- `contexto` (`objeto`): objeto Cucumber World
