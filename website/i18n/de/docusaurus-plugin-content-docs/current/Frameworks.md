@@ -183,70 +183,70 @@ Liste von Dateipfaden (und Globs) relativ zu `spec_dir`, die vor den Jasmin-Spez
 Type: `string[]`<br /> Default: `[]`
 
 #### requires
-The `requires` option is useful when you want to add or extend some basic functionality.
+Die Option `requires` ist nützlich, wenn Sie grundlegende Funktionen hinzufügen oder erweitern möchten (WebdriverIO-Framework-Option.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### random
-Whether to randomize spec execution order.
+Ob die Ausführungsreihenfolge der Spezifikation randomisiert werden soll.
 
 Type: `boolean`<br /> Default: `true`
 
 #### seed
-Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+Seed als Basis für die Randomisierung zu verwenden. Null bewirkt, dass der Seed zu Beginn der Ausführung zufällig bestimmt wird.
 
 Type: `Function`<br /> Default: `null`
 
 #### failSpecWithNoExpectations
-Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+Definiert, ob der Test als fehlgeschlagen markiert werden soll, wenn keine Assertion gemacht wurde. Standardmäßig wird eine Spezifikation, die keine Assertion enthält, als bestanden gemeldet. Wenn Sie dies auf „true“ setzen, wird eine solcher Test als Fehler gemeldet.
 
 Type: `boolean`<br /> Default: `false`
 
 #### oneFailurePerSpec
-Whether to cause specs to only have one expectation failure.
+Ob bewirkt werden soll, dass Tests nur einen Erwartungsfehler aufweisen.
 
 Type: `boolean`<br /> Default: `false`
 
 #### specFilter
-Function to use to filter specs.
+Funktion zum Filtern von Spezifikationen.
 
 Type: `Function`<br /> Default: `(spec) => true`
 
 #### grep
-Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+Führen Sie nur Tests aus, die mit dieser Zeichenfolge oder diesem regulären Ausdruck übereinstimmen. (Nur zutreffend, wenn keine benutzerdefinierte `specFilter` Funktion eingestellt ist)
 
 Type: `string|Regexp`<br /> Default: `null`
 
 #### invertGrep
-If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+Wenn gesetzt, werden die übereinstimmenden Tests invertiert und nur Tests ausgeführt, die nicht mit dem in `grep`verwendeten Ausdruck übereinstimmen. (Nur zutreffend, wenn keine benutzerdefinierte `specFilter` Funktion eingestellt ist)
 
 Type: `boolean`<br /> Default: `false`
 
-## Using Cucumber
+## Cucumber verwenden
 
-First, install the adapter package from NPM:
+Installieren Sie zuerst das Adapterpaket von NPM:
 
 ```bash npm2yarn
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
+Wenn Sie Cucumber verwenden möchten, setzen Sie die Eigenschaft `framework` auf `cucumber` , indem Sie `framework: 'cucumber'` zur Konfigurationsdatei [](ConfigurationFile.md)hinzufügen.
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Optionen für Cucumber können in der Konfigurationsdatei mit `cucumberOpts`angegeben werden. Schauen Sie sich die gesamte Liste der Optionen [hier an](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 
-To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
+Um Cucumber schnell zum Laufen zu bringen, werfen Sie einen Blick auf unser [`Cucumber-Boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) Projekt, welches viele Step-Definitionen enthält, die Sie für den Einstieg benötigen, um sofort mit dem Schreiben von Feature-Dateien zu starten.
 
-### Cucumber Options
+### Cucumber Optionen
 
-The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
+Die folgenden Optionen können in Ihrer `wdio.conf.js` angewendet werden, um Ihre Cucumber-Umgebung mit der Eigenschaft `cucumberOpts` zu konfigurieren:
 
 #### backtrace
-Show full backtrace for errors.
+Vollständige Rückverfolgung für Fehler anzeigen.
 
 Type: `Boolean`<br /> Default: `true`
 
 #### requireModule
-Require modules prior to requiring any support files.
+Laden von Modulen, die vor den Support Dateien geladen werden sollen.
 
 Type: `string[]`<br /> Default: `[]`<br /> Example:
 
@@ -267,32 +267,32 @@ cucumberOpts: {
  ```
 
 #### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+Uneindeutige Definitionen als Fehler markieren. Bitte beachten Sie, dass dies eine `@wdio/cucumber-framework` spezifische Option ist und von Cucumber selbst nicht erkannt wird.
 
 Type: `boolean`<br /> Default: `false`
 
 #### failFast
-Abort the run on first failure.
+Brechen Sie den Test-Lauf beim ersten Fehler ab.
 
 Type: `boolean`<br /> Default: `false`
 
 #### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+Behandeln Sie undefinierte Definitionen als Warnungen. Bitte beachten Sie, dass dies eine @wdio/cucumber-framework spezifische Option ist und von Cucumber selbst nicht erkannt wird.
 
 Type: `boolean`<br /> Default: `false`
 
 #### names
-Only execute the scenarios with name matching the expression (repeatable).
+Führen Sie nur die Szenarien aus, deren Name dem Ausdruck entspricht (wiederholbar).
 
 Type: `RegExp[]`<br /> Default: `[]`
 
 #### profile
-Specify the profile to use.
+Geben Sie das zu verwendende Cucumber-Profil an.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
 
 Type: `string[]`<br /> Default: `[]` Example:
 
@@ -303,69 +303,69 @@ cucumberOpts: {
 ```
 
 #### snippetSyntax
-Specify a custom snippet syntax.
+Geben Sie eine benutzerdefinierte Snippet-Syntax an.
 
 Type: `string`<br /> Default: `null`
 
 #### snippets
-Hide step definition snippets for pending steps.
+Step Definitionen für ausstehende Schritte ausblenden.
 
 Type: `boolean`<br /> Default: `true`
 
 #### source
-Hide source uris.
+Quell-URIS ausblenden.
 
 Type: `boolean`<br /> Default: `true`
 
 #### strict
-Fail if there are any undefined or pending steps.
+Fehlgeschlagen, wenn undefinierte oder ausstehende Schritte vorhanden sind.
 
 Type: `boolean`<br /> Default: `false`
 
 #### tagExpression
-Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+Führen Sie nur die Funktionen oder Szenarien mit Tags aus, die dem Ausdruck entsprechen. Weitere Einzelheiten finden Sie in der [Cucumber-Dokumentation](https://docs.cucumber.io/cucumber/api/#tag-expressions).
 
 Type: `string`<br /> Default: `null`
 
 #### tagsInTitle
-Add cucumber tags to feature or scenario name.
+Cucumber-Tags zum Funktions- oder Szenarionamen hinzufügen.
 
 Type: `boolean`<br /> Default: `false`
 
 #### timeout
-Timeout in milliseconds for step definitions.
+Timeout in Millisekunden für Schrittdefinitionen.
 
 Type: `number`<br /> Default: `30000`
 
-### Skipping tests in cucumber
+### Überspringen von Tests in Cucumber
 
-Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber:
+Beachten Sie, dass Sie, wenn Sie einen Test mit den in `cucumberOpts` verfügbaren Filterfunktionen für Cucumber Tests überspringen möchten, dies für alle Browser und Geräte tun werden, die in den Funktionen konfiguriert sind. Um Szenarien nur für bestimmte Browser-Kombinationen überspringen zu können, ohne dass eine Sitzung gestartet wird, falls dies nicht erforderlich ist, stellt WebdriverIO die folgende spezifische Tag-Syntax für Gurke bereit:
 
 `@skip([condition])`
 
-were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
+ist eine optionale Kombination von Capability-Eigenschaften mit ihren Werten, die, wenn **alle** übereinstimmen, dazu führen, dass das markierte Szenario oder Feature übersprungen wird. Natürlich können Sie Szenarien und Funktionen mehrere Tags hinzufügen, um Tests unter verschiedenen Bedingungen zu überspringen.
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+Sie können auch die Annotation '@skip' verwenden, um Tests zu überspringen, ohne 'tagExpression' zu ändern. In diesem Fall werden die übersprungenen Tests im Testbericht angezeigt.
 
-Here you have some examples of this syntax:
-- `@skip` or `@skip()`: will always skip the tagged item
-- `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
-- `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
-- `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
-- `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+Hier haben Sie einige Beispiele für diese Syntax:
+- `@skip` oder `@skip()`: Überspringt immer das markierte Element
+- `@skip(browserName="chrome")`: Der Test wird nicht für Chrome-Browser ausgeführt.
+- `@skip(browserName="firefox";platformName="linux")`: überspringt den Test in Firefox in Linux.
+- `@skip(browserName=["chrome","firefox"])`: Markierte Steps werden sowohl mit Chrome- als auch mit dem Firefox-Browser übersprungen.
+- `@skip(browserName=/i.*explorer/`: Funktionen mit Browsern, die mit dem regulären Ausdruck übereinstimmen, werden übersprungen (z.B.: `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
-### Import Step Definition Helper
+### Hilfe zum Importieren von Schrittdefinitionen
 
-In order to use step definition helper like `Given`, `When` or `Then` or hooks, you are suppose to import then from `@cucumber/cucumber`, e.g. like this:
+Um Schrittdefinitionshelfer wie `Given`, `When` or `Then` oder Hooks zu verwenden, sollten Sie then from `@cucumber/cucumber`importieren, z. B. so:
 
 ```js
 import { Given, When, Then } from '@cucumber/cucumber'
 ```
 
-Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
+Wenn Sie Cucumber jetzt bereits für andere Arten von Tests verwenden, die nichts mit WebdriverIO zu tun haben und für die Sie eine bestimmte Version verwenden, müssen Sie diese Helfer in Ihre e2e-Tests aus dem WebdriverIO Cucumber-Paket importieren, z.B.:
 
 ```js
 import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
-This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independant Cucumber version for other types of testing.
+Dadurch wird sichergestellt, dass Sie die richtigen Helfer innerhalb des WebdriverIO-Frameworks verwenden, und Sie können eine unabhängige Cucumber-Version für andere Arten von Tests verwenden.
