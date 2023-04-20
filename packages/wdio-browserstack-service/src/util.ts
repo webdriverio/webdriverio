@@ -15,7 +15,7 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, UserConfigforReporting, CredentialsForCrashReportUpload } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
@@ -27,8 +27,9 @@ const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
 /* User test config for build run minus PII */
-let userConfigForReporting: any = null
-let credentialsForCrashReportUpload: any = {}
+let userConfigForReporting: UserConfigforReporting = {}
+/* User credentials used for reporting crashes in browserstack service */
+let credentialsForCrashReportUpload: CredentialsForCrashReportUpload = {}
 
 const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -106,12 +107,18 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
+/*
+    This method filters out PII (such as username, accessKey etc.) & non browsersack service related data
+    present inside the config of a user before using the parsed config for reporting crashes.
+*/
 function filterPII(userConfig: Options.Testrunner) {
     const configWithoutPII = JSON.parse(JSON.stringify(userConfig));
     ['user', 'username', 'key', 'accessKey'].forEach(key => delete configWithoutPII[key])
     const finalServices = []
+    const initialServices = configWithoutPII.services
+    delete configWithoutPII.services
     try {
-        for (const serviceArray of configWithoutPII.services) {
+        for (const serviceArray of initialServices) {
             if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
                 for (let idx=1; idx<serviceArray.length; idx++) {
                     ['user', 'username', 'key', 'accessKey'].forEach(key => delete serviceArray[idx][key])
@@ -120,8 +127,10 @@ function filterPII(userConfig: Options.Testrunner) {
                 break
             }
         }
-    } catch (err) {
+    } catch (err: any) {
         /* Wrong configuration like strings instead of json objects could break this method, needs no action */
+        log.error(`Error in parsing user config PII with error ${err ? (err.stack || err) : err}`)
+        return configWithoutPII
     }
     configWithoutPII.services = finalServices
     return configWithoutPII
@@ -228,8 +237,8 @@ export async function uploadCrashReport(exception: any, stackTrace: string) {
     }
 
     try {
-        if (!userConfigForReporting) {
-            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
+        if (Object.keys(userConfigForReporting).length === 0) {
+            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
         }
     } catch (error) {
         log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
@@ -239,7 +248,7 @@ export async function uploadCrashReport(exception: any, stackTrace: string) {
         const data = {
             hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
             observability_version: {
-                frameworkName: 'WebdriverIO-' + userConfigForReporting ? userConfigForReporting.framework : 'null',
+                frameworkName: 'WebdriverIO-' + (userConfigForReporting.framework || 'null'),
                 sdkVersion: bstackServiceVersion
             },
             exception: {
@@ -283,12 +292,12 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         },
-        config: null
+        config: {}
     }
 
     try {
-        if (!userConfigForReporting) {
-            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
+        if (Object.keys(userConfigForReporting).length === 0) {
+            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
         }
     } catch (error) {
         return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
