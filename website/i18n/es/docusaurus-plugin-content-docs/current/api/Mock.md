@@ -17,16 +17,16 @@ Puede leer más acerca de las solicitudes de simulación y respuestas en Webdriv
 
 Un objeto simulado contiene las siguientes propiedades:
 
-| Nombre          | Tipo       | Información                                                                                                                                                                           |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
-| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
-| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
-| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| Nombre          | Tipo       | Información                                                                                                                                                                                          |
+| --------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`           | `String`   | La URL pasó al comando simulado                                                                                                                                                                      |
+| `filterOptions` | `Object`   | Las opciones de filtro de recursos pasadas en el comando mock                                                                                                                                        |
+| `browser`       | `Object`   | El [Objeto de navegador](/docs/api/browser) utilizado para obtener el objeto simulado.                                                                                                               |
+| `calls`         | `Object[]` | Información sobre solicitudes coincidentes del navegador, que contiene propiedades como `url`, `método`, `encabezados`, `inicialPriority`, `referrerPolic`, `statusCode`, `ResponseHeaders` y `body` |
 
 ## Métodos
 
-Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
+Los objetos simulados proporcionan varios comandos, enumerados en la sección `simulacro` , que permiten a los usuarios modificar el comportamiento de la solicitud o respuesta.
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -35,17 +35,17 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respondOne`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
 
-## Events
+## Eventos
 
-The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+El objeto del navegador es un EventEmitter y se emiten un par de eventos para sus casos de uso.
 
-Here is a list of events.
+He aquí una lista de eventos.
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
+Este evento está siendo emitido cuando se lanza una solicitud de red que coincide con los patrones simulados. La solicitud se pasa en el callback del evento.
 
-Request interface:
+Solicitud de interfaz:
 ```ts
 interface RequestEvent {
     requestId: number
@@ -57,9 +57,9 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
+Este evento se emite cuando la respuesta de la red se sobrescribe con [`respond`](/docs/api/mock/respond) o [`respondOnce`](/docs/api/mock/respondOnce). La solicitud se pasa en el callback del evento.
 
-Response interface:
+Interfaz de respuesta:
 ```ts
 interface OverwriteEvent {
     requestId: number
@@ -71,9 +71,9 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
+Este evento se emite cuando la respuesta de la red se sobrescribe con [`respond`](/docs/api/mock/abort) o [`respondOnce`](/docs/api/mock/abortOnce). La solicitud se pasa en el callback del evento.
 
-Fail interface:
+Interfaz de falla:
 ```ts
 interface FailEvent {
     requestId: number
@@ -83,9 +83,9 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
+Este evento se está emitiendo cuando se añade una nueva coincidencia, antes de `continuar` o `sobrescribir`. La solicitud se pasa en el callback del evento.
 
-Match interface:
+Interfaz de coincidencia:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+Este evento se está emitiendo cuando la respuesta de red no ha sido sobrescrita ni interrumpida, o si la respuesta ya fue enviada por otro simulador. Se pasa `requestId` en la devolución de llamada del evento.
 
-## Examples
+## Ejemplos
 
-Getting a number of pending requests:
+Obtener un número de solicitudes pendientes:
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+Fallo lanzando un error en la red 404:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+Determinar si se usó un valor de respuesta simulado:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+En este ejemplo, `firstMock` se definió primero y tiene una llamada `respondOnce` , por lo que el valor de respuesta `secondMock` no se usará para la primera solicitud, pero se usará para el resto de ellas.

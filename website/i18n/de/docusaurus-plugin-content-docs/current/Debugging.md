@@ -1,15 +1,15 @@
 ---
 id: debugging
-title: Debugging
+title: Debuggen
 ---
 
-Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
+Das Debuggen ist erheblich schwieriger, wenn mehrere Prozesse Dutzende von Tests in mehreren Browsern ausführen.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/_bw_VWn5IzU" frameborder="0" allowFullScreen></iframe>
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
+Zu Beginn sollten wir erst einmal die Parallelität einzuschränken, indem Sie `maxInstances` auf `1`setzen und nur auf die Tests und Browser abzielen, die debuggt werden müssen.
 
-In `wdio.conf`:
+In `wdio.conf.js`:
 
 ```js
 export const config = {
@@ -25,13 +25,13 @@ export const config = {
 }
 ```
 
-## The Debug Command
+## Der Debug-Befehl
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
+In vielen Fällen können Sie [`browser.debug()`](/docs/api/browser/debug) verwenden, um Ihren Test anzuhalten und den Browser zu untersuchen.
 
-Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;like you can in your tests.
+Ihre Befehlszeilenschnittstelle wechselt ebenfalls in den REPL-Modus. In diesem Modus können Sie mit Befehlen und Elementen auf der Seite herumspielen. Im REPL-Modus können Sie wie in Ihren Tests auf das `browser` Objekt, oder `$` und `$$` Funktionen zugreifen.
 
-When using `browser.debug()`, you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
+Wenn Sie `browser.debug()`verwenden, müssen Sie das Timeout des Test-Runners erhöhen, um zu verhindern, dass der Test-Runner den Test nicht abbricht, weil er zu lange dauert.  Zum Beispiel:
 
 In `wdio.conf`:
 
@@ -41,14 +41,14 @@ jasmineOpts: {
 }
 ```
 
-See [timeouts](Timeouts.md) for more information on how to do that using other frameworks.
+Siehe [timeouts](Timeouts.md) für weitere Informationen darüber, wie man das mit anderen Frameworks macht.
 
-To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
-## Dynamic configuration
+Um nach dem Debuggen mit den Tests fortzufahren, verwenden Sie in der Shell die Tastenkombination `^C` oder den Befehl `.exit`.
+## Dynamische Konfiguration
 
-Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.
+Beachten Sie, dass `wdio.conf.js` JavaScript enthalten kann. Da Sie Ihren Timeout-Wert wahrscheinlich nicht dauerhaft auf einen großen Betrag ändern möchten, kann es oft hilfreich sein, diese Einstellungen über eine Umgebungsvariable von der Befehlszeile aus zu ändern.
 
-Using this technique, you can dynamically change the configuration:
+Mit dieser Technik können Sie die Konfiguration dynamisch ändern:
 
 ```js
 const debug = process.env.DEBUG
@@ -68,23 +68,23 @@ export const config = {
 }
 ```
 
-You can then prefix the `wdio` command with the `debug` flag:
+Sie können dann dem Befehl `wdio` die Umgebungsvariable `debug` voranstellen:
 
 ```
 $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 ```
 
-...and debug your spec file with the DevTools!
+... und dann Ihre Test-Datei mit den DevTools Fenster debuggen!
 
-## Debugging with Visual Studio Code (VSCode)
+## Debuggen mit Visual Studio Code (VSCode)
 
-If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).
+Wenn Sie Ihre Tests mit Breakpoints im neuesten VS Code debuggen möchten, müssen Sie die [Nightly Version des JavaScript-Debuggers](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly)installieren und aktivieren.
 
-> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.
+> laut https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 wird dies nur für Windows und Linux benötigt. In MacOS dies funktioniert auch ohne die Nightly-Version.
 
-Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+Zusätzliche Informationen: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
-It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
+Es ist möglich, alle oder ausgewählte Test-Dateien auszuführen. Debug-Konfiguration(en) müssen zu `.vscode/launch.json`hinzugefügt werden, um die ausgewählten Tests zu debuggen, fügen Sie die folgende Konfiguration hinzu:
 ```
 {
     "name": "run select spec",
@@ -103,13 +103,13 @@ It's possible to run all or selected spec file(s). Debug configuration(s) have t
 },
 ```
 
-To run all spec files remove `"--spec", "${file}"` from `"args"`
+Um alle Test-Dateien auszuführen, entfernen Sie `"--spec", "${file}"` von `"args"`
 
-Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
+Hier ist eine Beispiel: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json) Datei.
 
-## Dynamic Repl with Atom
+## Dynamische Repl mit Atom
 
-If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.
+Wenn Sie ein [Atom](https://atom.io/) Nutzer sind, können Sie [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) von [@kurtharriger](https://github.com/kurtharriger) ausprobieren, die eine dynamische Repl, mit der Sie einzelne Codezeilen in Atom ausführen können. Sehen Sie sich [dieses](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube-Video an, um eine Demo zu sehen.
 
-## Debugging with WebStorm / Intellij
-You can create a node.js debug configuration like this: ![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png) Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.
+## Debuggen mit WebStorm / Intellij
+Sie können WebStorm und IntelliJ wie folgt konfigurieren, um Debugging zu verinfachen: ![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png) Schauen Sie sich dieses [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) an, um mehr Informationen zu bekommen.

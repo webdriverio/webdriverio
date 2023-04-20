@@ -44,26 +44,16 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
-```
-
-or if you want to create a new project:
-
 ```sh
-yarn create wdio ./path/to/new/project
-```
+yarn create wdio .
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
 pnpm create wdio .
-```
-
-or if you want to create a new project:
-
 ```sh
-pnpm create wdio ./path/to/new/project
-```
+pnpm create wdio .
 
 </TabItem>
 </Tabs>

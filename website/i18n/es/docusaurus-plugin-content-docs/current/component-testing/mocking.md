@@ -61,7 +61,7 @@ describe('LoginForm', () => {
 </TabItem>
 <TabItem value="spies">
 
-The full example can be found in the [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) directory.
+El ejemplo completo se puede encontrar en el directorio [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js).
 
 ```js
 import { expect, $ } from '@wdio/globals'
@@ -173,7 +173,7 @@ class Users {
 export default Users
 ```
 
-Now, in order to test this method without actually hitting the API (and thus creating slow and fragile tests), we can use the `mock(...)` function to automatically mock the axios module.
+Ahora, para probar este método sin tocar la API (y, por lo tanto, crear pruebas lentas y frágiles), podemos usar la función `simulacro (...)` para simular automáticamente el módulo axios.
 
 Una vez que simulamos el módulo, podemos proporcionar un [`mockResolvedValue`](https://vitest.dev/api/mock.html#mockresolvedvalue) para `. y` que retorna los datos que queremos que nuestra prueba verifique en contra. En efecto, estamos diciendo que queremos que `axios.get('/users.json')` devuelva una respuesta falsa.
 
@@ -265,7 +265,7 @@ Los módulos con alcance (también conocidos como paquetes con ámbito de aplica
 └── views
 ```
 
-Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
+Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`. Para no participar en este comportamiento, necesitará llamar explícitamente a `unmock('nombremódulo')` en pruebas que deben usar la implementación real del módulo, por ejemplo:
 
 ```js
 import { unmock } from '@wdio/browser-runner'
@@ -275,7 +275,7 @@ unmock('lodash')
 
 ## Hoisting
 
-Con el fin de hacer que la simulación funcione en el navegador, WebdriverIO reescribe los archivos de prueba y aumenta las llamadas simuladas por encima de todo (ver también [esta entrada de blog](https://www.coolcomputerclub.com/posts/jest-hoist-await/) en el problema de elevación en Jest). This limits the way you can pass in variables into the mock resolver, e.g.:
+Con el fin de hacer que la simulación funcione en el navegador, WebdriverIO reescribe los archivos de prueba y aumenta las llamadas simuladas por encima de todo (ver también [esta entrada de blog](https://www.coolcomputerclub.com/posts/jest-hoist-await/) en el problema de elevación en Jest). Esto limita la forma en que se pueden pasar variables a la resolución de simulaciones, por ejemplo:
 
 ```js title=component.test.js
 import dep from 'dependency'

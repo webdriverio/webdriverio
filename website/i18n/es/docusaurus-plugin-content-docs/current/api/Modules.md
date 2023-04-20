@@ -105,7 +105,7 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 ##### Parámetros
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `attachInstance`: instancia para adjuntar una sesión a, o al menos un objeto con una propiedad `sessionId` (e. . `{ sessionId: 'xxx' }`)
 
 ##### Retornos
 
@@ -154,7 +154,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. Para eso, necesitará el paquete `@wdio/cli` como módulo, de la siguiente manera:
+En lugar de llamar al comando `wdio` , también puede incluir el corredor de prueba como módulo y ejecutarlo en un entorno arbitrario. Para eso, necesitará el paquete `@wdio/cli` como módulo, de la siguiente manera:
 
 <Tabs
   defaultValue="esm"
@@ -187,8 +187,8 @@ El constructor de clase `Launcher` espera la URL al archivo de configuración, y
 
 ##### Parámetros
 
-- `configPath`: path to the `wdio.conf.js` to run
-- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
+- `configPath`: ruta al `wdio.conf.js` para ejecutar
+- `opta`: argumentos ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) para sobrescribir valores del archivo de configuración
 
 ##### Ejemplo
 
@@ -210,7 +210,7 @@ El comando `run` devuelve una [Promise](https://developer.mozilla.org/en-US/docs
 
 ## `@wdio/browser-runner`
 
-When running unit or component tests using WebdriverIO's [browser runner](/docs/runner#browser-runner) you can import mocking utilities for your tests, e.g.:
+Al ejecutar pruebas unitarias o de componentes utilizando WebdriverIO's [browser runner](/docs/runner#browser-runner) , puede importar utilidades de simulación para sus pruebas, por ejemplo:
 
 ```ts
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'

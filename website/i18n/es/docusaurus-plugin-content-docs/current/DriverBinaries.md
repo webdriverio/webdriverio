@@ -1,6 +1,6 @@
 ---
 id: driverbinaries
-title: Driver Binaries
+title: Controladores binarios
 ---
 
 Para ejecutar la automatización basada en el protocolo WebDriver usted necesita tener los controladores del navegador configurados que traduzcan los comandos de automatización y son capaces de ejecutarlos en el navegador. A continuación se describe cómo puede configurar cada controlador de forma individual. Puedes encontrar una lista con todos los conductores en [`asombro-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.

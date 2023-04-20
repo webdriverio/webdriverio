@@ -1,11 +1,11 @@
 ---
 id: configurationfile
-title: Configuration File
+title: Konfigurationsdatei
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
+Die Konfigurationsdatei enthält alle erforderlichen Informationen zum Ausführen Ihrer Testsuite. Es ist ein NodeJS-Modul, das ein Konfigurations-Objekt exportiert.
 
-Here is an example configuration with all supported properties and additional information:
+Hier ist eine Beispielkonfiguration mit allen unterstützten Eigenschaften und zusätzlichen Informationen:
 
 ```js
 export const config = {
@@ -489,4 +489,4 @@ export const config = {
 }
 ```
 
-You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
+Eine Datei mit allen möglichen Optionen und Variationen finden Sie auch im [Beispiel Ordner](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).

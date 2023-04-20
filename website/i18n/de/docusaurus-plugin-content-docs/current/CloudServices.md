@@ -28,21 +28,21 @@ Sie können auch jede optionale [Testkonfiguration](https://docs.saucelabs.com/d
 
 Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)verwenden.
 
-It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
+Es liegt außerhalb des Umfangs von WebdriverIO, dies zu unterstützen, daher müssen Sie es selbst starten.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+Wenn Sie den WDIO-Testrunner verwenden, nutzen Sie den [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) um die Konfiguration zu vereinfachen. Der Service hilft dabei Sauce Connect automatisch zu starten und zu beenden.
 
-### With Travis CI
+### Mit Travis CI
 
-Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so following their directions for that is an option.
+Travis CI hat [Unterstützung](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) zum Starten von Sauce Connect vor jedem Test.
 
-If you do so, you must set the `tunnel-identifier` test configuration option in each browser's `capabilities`. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
+Wenn Sie dies tun, müssen Sie die Testkonfigurationsoption `tunnel-identifier` in den `Capabilities` eines jeden Browsers festlegen. Travis setzt dies standardmäßig auf die Umgebungsvariable `TRAVIS_JOB_NUMBER`.
 
-Also, if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
+Wenn Sie möchten, dass Sauce Labs Ihre Tests nach Build-Nummer gruppiert, können Sie `build` auf `TRAVIS_BUILD_NUMBER`setzen.
 
-Lastly, if you set `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service), WebdriverIO automatically sets a proper name for the test.
+Wenn Sie schließlich `name` festlegen, ändert dies den Namen dieses Tests in Sauce Labs für diesen Build. Wenn Sie den WDIO-Testrunner verwenden, nutzen Sie den [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) um diese Konfiguration zu vereinfachen.
 
-Example `capabilities`:
+Beispiel `capabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -55,33 +55,33 @@ build: process.env.TRAVIS_BUILD_NUMBER
 
 ### Timeouts
 
-Since you are running your tests remotely, it might be necessary to increase some timeouts.
+Da Sie Ihre Tests remote ausführen, kann es erforderlich sein, einige Timeouts zu erhöhen.
 
-You can change the [idle timeout](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+Sie können das [Idle-Timeout](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) ändern, indem Sie `idle-timeout` als Testkonfigurationsoption übergeben. Dies steuert, wie lange Sauce zwischen Befehlen wartet, bevor es die Verbindung schließt.
 
 ## BrowserStack
 
-WebdriverIO also has a [Browserstack](https://www.browserstack.com) integration built-in.
+WebdriverIO hat auch eine [Browserstack](https://www.browserstack.com) Integration.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
+Die einzige Anforderung besteht darin, die `Benutzer` und `Schlüssel` in Ihrer Konfiguration (entweder exportiert durch `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf Ihren automatisierten Browserstack-Benutzernamen und Zugriffsschlüssel festzulegen .
 
-You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
+Sie können auch jede optionale [Testkonfiguration](https://www.browserstack.com/automate/capabilities) als key/value für jeden Browser übergeben. Wenn Sie `browserstack.debug` auf `true` setzen, wird ein Screencast der Sitzung aufgezeichnet, was hilfreich sein könnte.
 
-### Local Testing
+### Lokale Tests
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.browserstack.com/local-testing#command-line).
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://www.browserstack.com/local-testing#command-line)verwenden.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Es liegt außerhalb des Umfangs von WebdriverIO, dies nativ zu unterstützen, daher müssen Sie dies selbst konfigurieren.
 
-If you do use local, you should set `browserstack.local` to `true` in your capabilities.
+Wenn Sie Tests auf Ihrem Rechner ausführen, sollten Sie in die Capability  `browserstack.local` auf `true` setzen.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
+Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, BrowserStack zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den BrowserStack-Dienst integrieren.
 
-### With Travis CI
+### Mit Travis CI
 
-If you want to add Local Testing in Travis, you have to start it by yourself.
+Wenn Sie BrowserStacks Tunnel in Travis nutzen möchten, müssen Sie diesen selbst starten.
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+Das folgende Skript hilft Ihnen, den Server heruntergeladen und ihn im Hintergrund zu starten. Sie sollten dies in Travis ausführen, bevor Sie mit den Tests beginnen.
 
 ```sh
 wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
@@ -90,9 +90,9 @@ unzip BrowserStackLocal-linux-x64.zip
 sleep 3
 ```
 
-Also, you might wish set the `build` to the Travis build number.
+Außerdem möchten Sie vielleicht `Build` auf die Travis-Build-Nummer setzen.
 
-Example `capabilities`:
+Beispiel `capabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -105,52 +105,52 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 ## TestingBot
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [TestingBot](https://testingbot.com) username and secret key.
+Die einzige Anforderung besteht darin, die `Benutzer` und `Schlüssel` in Ihrer Konfiguration (entweder exportiert durch `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf Ihren [TestingBot](https://testingbot.com) Benutzernamen und Ihr Geheimnis festzulegen Taste.
 
-You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
+Sie können auch beliebige optionale [unterstützte Fähigkeiten](https://testingbot.com/support/other/test-options) als Schlüssel/Wert in den Fähigkeiten für jeden Browser übergeben.
 
-### Local Testing
+### Lokale Tests
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://testingbot.com/support/other/tunnel). TestingBot provides a Java-based tunnel to allow you to test websites not accessible from the internet.
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://testingbot.com/support/other/tunnel)verwenden. TestingBot bietet einen Java-basierten Tunnel, mit dem Sie Websites testen können, auf die nicht über das Internet zugegriffen werden kann.
 
-Their tunnel support page contains the information necessary to get this up and running.
+Testingbots Tunnel-Support-Seite enthält die Informationen, die erforderlich sind, um dies zum Laufen zu bringen.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
+Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, TestingBot zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den TestingBot-Dienst integrieren.
 
 ## CrossBrowserTesting
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [CrossBrowserTesting](https://crossbrowsertesting.com/) username and authkey.
+Die einzige Anforderung besteht darin, die `Benutzer`und `Schlüssel` in Ihrer Konfiguration (entweder exportiert von `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf Ihren [CrossBrowserTesting](https://crossbrowsertesting.com/) Benutzernamen und Authkey zu setzen .
 
-You can also pass in any optional [supported capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) as a key/value in the capabilities for any browser.
+Sie können auch beliebige optionale [Capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) als Schlüssel/Wert in den Fähigkeiten für jeden Browser übergeben.
 
-### Local Testing
+### Lokale Tests
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)verwenden. CrossBrowserTesting bietet einen Tunnel, mit dem Sie Websites testen können, auf die nicht über das Internet zugegriffen werden kann.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, CrossBrowserTesting zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den CrossBrowserTesting-Dienst integrieren.
 
 ## LambdaTest
 
-[LambdaTest](https://www.lambdatest.com) integration is also built-in.
+[LambdaTest](https://www.lambdatest.com) Integration ist ebenfalls integriert.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
+Die einzige Anforderung besteht darin, die `Benutzer` und `Schlüssel` in Ihrer Konfiguration (entweder exportiert durch `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf den Benutzernamen und Zugriffsschlüssel Ihres LambdaTest-Kontos festzulegen .
 
-You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
+Sie können auch beliebige optionale [Capabilities](https://www.lambdatest.com/capabilities-generator/) als Schlüssel/Wert in den Fähigkeiten für jeden Browser übergeben. Wenn Sie `visual` auf `true` setzen, wird ein Screencast der Sitzung aufgezeichnet, was hilfreich sein könnte.
 
-### Tunnel for local testing
+### Tunnel für lokale Tests
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/)verwenden.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Es liegt außerhalb des Umfangs von WebdriverIO, dies nativ zu unterstützen, daher müssen Sie diesen selbst konfigurieren.
 
-If you do use local, you should set `tunnel` to `true` in your capabilities.
+Wenn Sie local Anwendungen testen, sollten Sie die Capability `tunnel` auf `true` setzen.
 
-If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-### With Travis CI
+Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, LambdaTest zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den LambdaTest-Dienst integrieren.
+### Mit Travis CI
 
-If you want to add Local Testing in Travis, you have to start it by yourself.
+Wenn Sie Tests auf einem lokalen Server ausführen möchten, müssen Sie einen Tunnel selber starten.
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+Das folgende Skript hilft Ihnen, den Server herunterzuladen und ihn im Hintergrund zu starten. Sie sollten dies in Travis ausführen, bevor Sie mit den Tests beginnen.
 
 ```sh
 wget http://downloads.lambdatest.com/tunnel/linux/64bit/LT_Linux.zip
@@ -159,9 +159,9 @@ unzip LT_Linux.zip
 sleep 3
 ```
 
-Also, you might wish set the `build` to the Travis build number.
+Außerdem möchten Sie vielleicht `build` auf die Travis-Build-Nummer setzen.
 
-Example `capabilities`:
+Beispiel `capabilities`:
 
 ```javascript
 platform: 'Windows 10',
@@ -174,7 +174,7 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 ## Perfecto
 
-When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+Wenn Sie wdio mit [`Perfecto`](https://www.perfecto.io)verwenden, müssen Sie für jeden Benutzer ein Sicherheitstoken erstellen und dieses (zusätzlich zu anderen Capabilities) wie folgt in die Funktionsstruktur einfügen:
 
 ```js
 export const config = {
@@ -184,7 +184,7 @@ export const config = {
   }],
 ```
 
-In addition, you need to add cloud configuration, as follows:
+Darüber hinaus müssen Sie die Cloud-Konfiguration wie folgt hinzufügen:
 
 ```js
   hostname: "your_cloud_name.perfectomobile.com",

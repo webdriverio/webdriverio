@@ -11,7 +11,7 @@ Establezca el valor `'test'` si no se ha establecido ya a otra cosa.
 
 ## `WDIO_LOG_LEVEL`
 
-Can be set to values `trace`, `debug`, `info`, `warn`, `error`, `silent` to write logs with corresponding details. Has priority over the passed `logLevel` value.
+Se puede establecer en los valores `trace`, `debug`, `info`, `warn`, `error`, `silent` para escribir registros con los detalles correspondientes. Tiene prioridad sobre el valor pasado `logLevel`.
 
 ## `WDIO_WORKER_ID`
 
