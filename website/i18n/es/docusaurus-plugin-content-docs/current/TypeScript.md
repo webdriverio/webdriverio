@@ -1,21 +1,21 @@
 ---
 id: typescript
-title: TypeScript Setup
+title: Configuración de TypeScript
 ---
 
-You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
+Puede escribir pruebas usando [TypeScript](http://www.typescriptlang.org) para completar automáticamente y escribir seguridad.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
+Necesitará [`typescript`](https://github.com/microsoft/TypeScript) y [`ts-node`](https://github.com/TypeStrong/ts-node) instalado como `devDependencies`, via:
 
 ```bash npm2yarn
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](ConfigurationFile.md).
+WebdriverIO detectará automáticamente si estas dependencias están instaladas y compilará su configuración y pruebas para usted. Asegúrese de tener un `tsconfig.json` en el mismo directorio que la configuración WDIO. Si necesita configurar cómo se ejecuta ts-node, utilice las variables de entorno para [ts-node](https://www.npmjs.com/package/ts-node#options) o utilice la sección [autoCompileOpts de la configuración de wdio](ConfigurationFile.md).
 
-## Configuration
+## Configuración
 
-You can provide custom `ts-node` options through your `wdio.conf.ts`, e.g.:
+Puede proporcionar opciones personalizadas `ts-node` a través de su `wdio.conf.ts`, por ejemplo.:
 
 ```ts title="wdio.conf.ts"
 export const config = {
@@ -32,18 +32,18 @@ export const config = {
 }
 ```
 
-Or apply them through the environment:
+O aplicarlos a través del entorno:
 
 ```sh
 # run wdio testrunner with custom tsconfig.json location
 TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
 ```
 
-The minimum TypeScript version is `v4.0.5`.
+La versión mínima de TypeScript es `v4.0.5`.
 
-## Framework Setup
+## Configuración del marco
 
-And your `tsconfig.json` needs the following:
+Y su `tsconfig.json` necesita lo siguiente:
 
 ```json title="tsconfig.json"
 {
@@ -53,13 +53,13 @@ And your `tsconfig.json` needs the following:
 }
 ```
 
-Please avoid importing `webdriverio` or `@wdio/sync` explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
+Por favor, evite importar `webdriverio` o `@wdio/sync` explícitamente. `WebdriverIO` y `WebDriver` son accesibles desde cualquier lugar una vez añadidos a `tipos` en `tsconfig.json`. Si utiliza servicios adicionales de WebdriverIO, plugins o el paquete de automatización de `devtool`, por favor añádelos también a los `tipos` lista ya que muchos proporcionan tipos adicionales.
 
-## Framework Types
+## Tipos de Framework
 
-Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
+Dependiendo del framework que utilices, necesitarás añadir los tipos para ese framework a tu `tsconfig. son` tipos de propiedad, así como instalar sus definiciones de tipo. Esto es especialmente importante si desea tener soporte de tipo para la biblioteca de aserción integrada [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
-For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
+Por ejemplo, si decide utilizar el framework Mocha, necesitas instalar `@types/mocha` y añadirlo así para tener todos los tipos disponibles globalmente:
 
 <Tabs
   defaultValue="mocha"
@@ -104,9 +104,9 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 </TabItem>
 </Tabs>
 
-## Services
+## Servicios
 
-If you use services that add commands to the browser scope you also need to include these into your `tsconfig.json`. For example if you use the `@wdio/devtools-service` ensure that you add it to the `types` as well, e.g.:
+Si utiliza servicios que añaden comandos al ámbito del navegador, también necesita incluirlos en su `tsconfig.json`. Por ejemplo, si utiliza `@wdio/devtools-service` asegúrese de añadirlo a los `tipos` también, por ejemplo.:
 
 ```json title="tsconfig.json"
 {
@@ -121,11 +121,11 @@ If you use services that add commands to the browser scope you also need to incl
 }
 ```
 
-Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
+Añadir servicios y reporteros a su configuración TypeScript también fortalece la seguridad del tipo de su archivo de configuración WebdriverIO.
 
-## Type Definitions
+## Definiciones de tipo
 
-When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
+Al ejecutar comandos WebdriverIO todas las propiedades se escriben para que no tenga que tratar de importar tipos adicionales. Sin embargo, hay casos en los que se desea definir variables de antemano. Para asegurarse de que estos son seguros, puede utilizar todos los tipos definidos en el paquete [`@wdio/types`](https://www.npmjs.com/package/@wdio/types). Por ejemplo, si desea definir la opción remota para `webdriverio` puede hacer:
 
 ```ts
 import type { Options } from '@wdio/types'
@@ -139,8 +139,8 @@ const config: Options.WebdriverIO = {
 }
 ```
 
-## Tips and Hints
+## Consejos y sugerencias
 
-### Compile & Lint
+### Compilar & Lint
 
-To be entirely safe, you may consider following the best practices: compile your code with TypeScript compiler (run `tsc` or `npx tsc`) and have [eslint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin) running on [pre-commit hook](https://github.com/typicode/husky).
+Estar totalmente seguro puede considerar seguir las mejores prácticas: compile su código con el compilador TypeScript (ejecute `tsc` o `npx tsc`) y tenga [eslint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin) ejecutándose en [gancho pre-commit](https://github.com/typicode/husky).
