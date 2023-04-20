@@ -29,19 +29,19 @@ Type: `Number`<br /> Default: `100` (ms)
 
 ### path
 
-Path to driver server endpoint.
+Ruta al punto final del servidor del controlador.
 
 Type: `String`<br /> Default: `/`
 
 ### queryParams
 
-Query parameters that are propagated to the driver server.
+Parámetros de consulta que se propagan al servidor de controladores.
 
 Type: `Object`<br /> Default: `null`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) o [cuentas LambdaTest](https://www.lambdatest.com)). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br /> Default: `null`
 
@@ -549,12 +549,12 @@ Gets executed when a refresh happens.
 
 Parámetros:
 
-- `oldSessionId` (`string`): session ID of the old session
-- `newSessionId` (`string`): session ID of the new session
+- `oldSessionId` (`string`): ID de sesión de la sesión anterior
+- `newSessionId` (`string`): ID de sesión de la nueva sesión
 
 ### beforeFeature
 
-Runs before a Cucumber Feature.
+Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
@@ -594,7 +594,7 @@ Parámetros:
 
 ### beforeStep
 
-Runs before a Cucumber Step.
+Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
@@ -604,7 +604,7 @@ Parámetros:
 
 ### afterStep
 
-Runs after a Cucumber Step.
+Se ejecuta antes de una Característica de Cucumber
 
 Parámetros:
 
