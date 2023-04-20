@@ -1,15 +1,15 @@
 ---
 id: customservices
-title: Custom Services
+title: Benutzerdefinierte Plugins
 ---
 
-You can write your own custom service for the WDIO test runner to custom-fit your needs.
+Sie können ihr eigenes benutzerdefiniertes Plugin für den WDIO-Testrunner schreiben, der auf Ihre Bedürfnisse zugeschnitten ist.
 
-Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
+Services sind Add-Ons, die wiederverwendbare Logik erhalten, um Tests zu vereinfachen, Ihre Testsuite zu verwalten und mit Dritt-Anbieter zu integrieren. Dienste haben Zugriff auf dieselben [Hooks](/docs/configurationfile) die in `wdio.conf.js`verfügbar sind.
 
-There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
+Es gibt zwei Arten von Services: ein Launcher-Service, der nur Zugriff auf die Hooks `onPrepare`, `onWorkerStart`, `onWorkerEnd` und `onComplete` hat, die nur einmal pro Testlauf ausgeführt werden, und ein Worker-Service, der Zugriff auf alle anderen Hooks hat und von jedem Worker ausgeführt wird. Beachten Sie, dass Sie (globale) Variablen nicht zwischen beiden Arten von Services gemeinsam nutzen können, da Worker-Dienste in einem anderen (Worker-)Prozess ausgeführt werden.
 
-A launcher service can be defined as follows:
+Ein Launcher-Dienst kann wie folgt definiert werden:
 
 ```js
 export default class CustomLauncherService {
@@ -26,7 +26,7 @@ export default class CustomLauncherService {
 }
 ```
 
-Whereas a worker service should look like this:
+Wohingegen ein Worker-Service wie folgt aussehen sollte:
 
 ```js
 export default class CustomWorkerService {
@@ -70,7 +70,7 @@ export default class CustomWorkerService {
 }
 ```
 
-It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following:
+Es wird empfohlen, das Browser-Objekt über den übergebenen Parameter im Konstruktor zu speichern. Lastly expose both types of workers as following:
 
 ```js
 import CustomLauncherService from './launcher'
