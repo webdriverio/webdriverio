@@ -29,11 +29,11 @@ const strictMock = await browser.mock('**', {
 })
 ```
 
-## Specifying custom responses
+## Especificar respuestas personalizadas
 
-Once you have defined a mock you can define custom responses for it. Those custom responses can be either an object to respond a JSON, a local file to respond with a custom fixture or a web resource to replace the response with a resource from the internet.
+Una vez que haya definido una simulación, puede definir respuestas personalizadas para ella. Estas respuestas personalizadas pueden ser un objeto para responder un JSON, un archivo local para responder con un dispositivo personalizado o un recurso web para reemplazar la respuesta con un recurso de Internet.
 
-### Mocking API Requests
+### Solicitudes API de Mocking
 
 In order to mock API requests where you expect a JSON response all you need to do is to call `respond` on the mock object with an arbitrary object you want to return, e.g.:
 
@@ -59,7 +59,7 @@ console.log(await $$('#todo-list li').map(el => el.getText()))
 // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
 ```
 
-You can also modify the response headers as well as the status code by passing in some mock response params as follows:
+También puede modificar los encabezados de respuesta, así como el código de estado, pasando algunos parámetros de respuesta simulados de la siguiente manera:
 
 ```js
 mock.respond({ ... }, {
@@ -70,7 +70,7 @@ mock.respond({ ... }, {
 })
 ```
 
-If you want the mock not to call the backend at all, you can pass `false` for the `fetchResponse` flag.
+Si desea que el simulacro no llame al backend en absoluto, puede pasar `falso` para el indicador `fetchResponse`.
 
 ```js
 mock.respond({ ... }, {
@@ -79,7 +79,7 @@ mock.respond({ ... }, {
 })
 ```
 
-It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
+Se recomienda almacenar respuestas personalizadas en archivos de dispositivos para que pueda solicitarlos en su prueba de la siguiente manera:
 
 ```js
 // requires Node.js v16.14.0 or higher to support JSON import assertions
@@ -87,7 +87,7 @@ import responseFixture from './__fixtures__/apiResponse.json' assert { type: 'js
 mock.respond(responseFixture)
 ```
 
-### Mocking text resources
+### Modificando recursos de texto
 
 If you like to modify text resources like JavaScript, CSS files or other text based resources you can just pass in a file path and WebdriverIO will replaces the original resource with it, e.g.:
 
