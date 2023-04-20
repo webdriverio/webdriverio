@@ -46,7 +46,7 @@ console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
 
-With deep nested structures assigning any nested element to an array to then use it can be quite verbose. Therefor WebdriverIO has the concept of chained element queries that allow to fetch nested elements like this:
+Avec des structures imbriquées profondes, assigner n'importe quel élément imbriqué à un tableau pour ensuite l'utiliser peut être assez verbeux. À cet effet, WebdriverIO a le concept de requêtes d'éléments chaînés qui permettent de récupérer des éléments imbriqués comme ceci :
 
 
 
@@ -55,7 +55,7 @@ console.log(await $('#header').$('#headline').getText())
 ```
 
 
-This also works when fetching a set of elements, e.g.:
+Cela fonctionne également lors de la récupération d'un ensemble d'éléments, par exemple :
 
 
 
@@ -65,7 +65,7 @@ console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
 
-When working with a set of elements this can especially useful when trying to interact with them, so instead of doing:
+Lorsque vous travaillez avec un ensemble d'éléments, cela peut être particulièrement utile lorsque vous essayez d'interagir avec eux, donc au lieu de faire :
 
 
 
@@ -77,7 +77,7 @@ const locations = await Promise.all(
 ```
 
 
-You can directly call Array methods on the element chain, e.g.:
+Vous pouvez appeler directement les méthodes Array sur la chaîne d'éléments, par exemple :
 
 
 
@@ -86,10 +86,10 @@ const location = await $$('div').map((el) => el.getLocation())
 ```
 
 
-WebdriverIO uses [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) under the hood so all commands from their API are also supported for these use cases.
+WebdriverIO utilise [`p-itération`](https://www.npmjs.com/package/p-iteration#api) afin que toutes les commandes de leur API soient également prises en charge pour ces cas d'utilisation.
 
 
 
-### Custom Commands
+### Commandes personnalisées
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Vous pouvez définir des commandes personnalisées sur la portée du navigateur pour abstraire les workflows qui sont couramment utilisés. Consultez notre guide sur [Commandes personnalisées](/docs/customcommands#adding-custom-commands) pour plus d'informations.
