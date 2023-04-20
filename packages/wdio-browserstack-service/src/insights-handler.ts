@@ -124,7 +124,7 @@ export default class InsightsHandler {
                 }
             }
 
-            await sendSuiteSkipped(test.ctx.currentTest.parent)
+            await sendSuiteSkipped(test.ctx.test.parent)
         }
     }
 
