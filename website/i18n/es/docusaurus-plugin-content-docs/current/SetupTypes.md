@@ -1,16 +1,16 @@
 ---
 id: setuptypes
-title: Setup Types
+title: Tipos de configuración
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO puede ser utilizado para varios propósitos. Implementa la API del protocolo WebDriver y puede ejecutar un navegador de forma automática. El framework está diseñado para trabajar en cualquier entorno arbitrario y para cualquier tipo de tarea. Es independiente de cualquier marco de trabajo de terceros y solo requiere Node.js para ejecutarse.
 
-## Protocol Bindings
+## Enlaces de protocolo
 
-For basic interactions with the WebDriver and other automation protocols WebdriverIO uses its own protocol bindings based on the [`webdriver`](https://www.npmjs.com/package/webdriver) NPM package:
+Para interacciones básicas con el WebDriver y otros protocolos de automatización, WebdriverIO utiliza sus propios enlaces de protocolo basados en el [`webdriver`](https://www.npmjs.com/package/webdriver) paquete NPM:
 
 <Tabs
   defaultValue="webdriver"
@@ -35,40 +35,40 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-All [protocol commands](webdriver) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+Todos los comandos de protocolo [](./api/_webdriver.md) devuelven la respuesta cruda del controlador de automatización. El paquete es muy ligero y no hay __ninguna__ lógica inteligente como auto-espera para simplificar la interacción con el uso del protocolo.
 
-The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
+Los comandos de protocolo aplicados a la instancia dependen de la respuesta inicial de sesión del controlador. Por ejemplo, si la respuesta indica que una sesión móvil fue iniciada, el paquete aplica todos los comandos de protocolo Appium y Mobile JSON Wire al prototipo de la instancia.
 
-You can run the same set of commands (except mobile ones) using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
+Puede ejecutar el mismo conjunto de comandos (excepto los móviles) utilizando el protocolo de Chrome DevTools al importar el paquete [`devtools`](https://www.npmjs.com/package/devtools) NPM. Tiene la misma interfaz que el paquete `webdriver` pero ejecuta su automatización basado en [Puppeteer](https://pptr.dev/).
 
-For more information on these package interfaces, see [Modules API](/docs/api/modules).
+Para obtener más información sobre estas interfaces de paquete, consulte [Modules API](/docs/api/modules).
 
-## Standalone Mode
+## Modo independiente
 
-To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](dragAndDrop) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
+Para simplificar la interacción con el protocolo WebDriver el paquete `webdriverio` implementa una variedad de comandos además del protocolo (e.g. el comando [`dragAndDrop`](./api/element/_dragAndDrop.md) y conceptos básicos como [selectores inteligentes](./Selectors.md) o [auto-espera](./AutoWait.md). El ejemplo de arriba puede ser simplificado de la siguiente forma:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
-Using WebdriverIO in standalone mode still gives you access to all protocol commands but provides a super set of additional commands that provide a higher level interaction with the browser. It allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Spectron](https://www.electronjs.org/spectron) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).
+El uso de WebdriverIO en modo independiente todavía le da acceso a todos los comandos de protocolo, pero proporciona un súper conjunto de comandos adicionales que proporcionan una interacción de mayor nivel con el navegador. Le permite integrar esta herramienta de automatización en su propio proyecto (prueba) para crear una nueva biblioteca de automatización. Ejemplos populares incluyen [Espectron](https://www.electronjs.org/spectron) o [CodeceptJS](http://codecept.io). También puede escribir scripts simples de Node para eliminar la web por contenido (o cualquier otra cosa que requiera un navegador en ejecución).
 
-If no specific options are set WebdriverIO will try to find a browser driver on `http://localhost:4444/` and automatically switches to the Chrome DevTools protocol and Puppeteer as automation engine if such a driver can't be found. If you like to run based on WebDriver you need to either start that driver manually or through a script or [NPM package](https://www.npmjs.com/package/chromedriver).
+Si no se establecen opciones específicas, WebdriverIO tratará de encontrar un controlador de navegador en `http://localhost:4444/` y cambia automáticamente al protocolo Chrome DevTools y al Puppeteer como motor de automatización si no se puede encontrar dicho controlador. Si te gusta ejecutar basado en WebDriver necesitas iniciar ese controlador manualmente o a través de un script o [paquete NPM](https://www.npmjs.com/package/chromedriver).
 
-For more information on the `webdriverio` package interfaces, see [Modules API](/docs/api/modules).
+Para obtener más información sobre estas interfaces de paquete, consulte [Modules API](/docs/api/modules).
 
-## The WDIO Testrunner
+## El Testrunner WDIO
 
-The main purpose of WebdriverIO, though, is end-to-end testing on a big scale. We therefore implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain.
+El objetivo principal de WebdriverIO, sin embargo, es la prueba de extremo a extremo a gran escala. Por lo tanto, implementamos un corredor de pruebas que le ayude a construir una suite de pruebas fiable que sea fácil de leer y mantener.
 
-The test runner takes care of many problems that are common when working with plain automation libraries. For one, it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides lots of features to help you to debug problems and find errors in your tests.
+El corredor de pruebas se encarga de muchos problemas que son comunes cuando trabaja con bibliotecas de automatización simple. Por un lado, organiza la ejecución de la prueba y divide las especificaciones de la prueba para que las pruebas se puedan ejecutar con la máxima concurrencia. También maneja la gestión de sesiones y proporciona un montón de características para ayudarle a depurar problemas y encontrar errores en sus pruebas.
 
-Here is the same example from above, written as a test spec and executed by WDIO:
+Este es el mismo ejemplo de arriba, escrito como una especificación de prueba y ejecutado por WDIO:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.
+El corredor de pruebas es una abstracción de marcos de prueba populares como Mocha, Jasmine, o Cucumber. Para ejecutar tus pruebas usando el corredor de pruebas WDIO, revisa la sección [Iniciando](GettingStarted.md) para más información.
 
-For more information on the `@wdio/cli` testrunner package interface, see [Modules API](/docs/api/modules).
+Para obtener más información sobre estas interfaces de paquete, consulte [Modules API](/docs/api/modules).
