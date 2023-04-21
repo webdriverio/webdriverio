@@ -98,7 +98,7 @@ This boilerplate includes the following:
 - Framework: Mocha
 - Features:
     - Configs for:
-        - iOS and Android app
+        - Приложение для iOS и Android
         - iOS and Android browsers
     - Helpers for:
         - WebView
@@ -163,13 +163,13 @@ Boiler plate project for:
 
 Boilerplate project to run appium tests for native and mobile browser using cucumber v7 and wdio v7 with page object pattern.
 
-- Frameworks
+- Фреймворки
     - WebdriverIO v7
     - Cucumber v7
     - Appium
 
-- Features
-    - Native Android and iOS apps
+- Возможности
+    - Нативные приложения для Android и iOS
     - Android Chrome browser
     - iOS Safari browser
     - Page Object Model
@@ -180,13 +180,13 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 
 [Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Mocha, and Serenity/JS
 
-- Frameworks
+- Фреймворки
     - WebdriverIO
     - Mocha
     - Serenity/JS
     - Serenity BDD reporting
 
-- Features
+- Возможности
   - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
   - Automatic screenshots on test failure, embedded in reports
   - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
@@ -198,13 +198,13 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 
 [Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Cucumber, and Serenity/JS
 
-- Frameworks
+- Фреймворки
     - WebdriverIO
     - Cucumber
     - Serenity/JS
     - Serenity BDD reporting
 
-- Features
+- Возможности
     - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
     - Automatic screenshots on test failure, embedded in reports
     - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
@@ -216,10 +216,10 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 
 This a template project to help you show how you can run webdriverio test from Web applications using the latest WebdriverIO, and Cucumber framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
 
-This project includes:
+Этот проект включает в себя:
 
-- DockerFile
-- cucumber Project
+- ФайлDocker
+- cucumber Проект
 
 Read more at: [Medium Blog](https://praveendavidmathew.medium.com/running-webdriverio-in-wsl2-windows-91d3a0dc7746)
 
@@ -227,7 +227,7 @@ Read more at: [Medium Blog](https://praveendavidmathew.medium.com/running-webdri
 
 This a template project to help you show how you can run electronJS tests using WebdriverIO. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO electronJS tests.
 
-This project include:
+Этот проект включает в себя:
 
 - Sample electronjs app
 - Sample cucumber test scripts
