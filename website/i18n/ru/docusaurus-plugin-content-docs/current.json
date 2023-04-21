@@ -44,11 +44,11 @@
     "description": "The label for category Reporter in sidebar docs"
   },
   "sidebar.docs.category.Services": {
-    "message": "Services",
+    "message": "Сервисы",
     "description": "The label for category Services in sidebar docs"
   },
   "sidebar.api.category.Protocols": {
-    "message": "Protocols",
+    "message": "Протоколы",
     "description": "The label for category Protocols in sidebar api"
   },
   "sidebar.api.category.browser": {
