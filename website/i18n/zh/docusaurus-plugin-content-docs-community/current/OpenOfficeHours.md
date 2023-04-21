@@ -1,6 +1,6 @@
 ---
 id: openofficehours
-title: Office Hours
+title: 实战交流
 ---
 
 Contributing to a big Open Source project can be hard. Especially if the codebase is large and requires a lot of context to understand what certain changes do. Then there is the possibility that tools or infrastructure is being used that are unknown. Nevertheless the project depends on your contributions and help to identify bugs and fix them. How can we overcome this hurdle?
