@@ -174,7 +174,6 @@ function processError(error: any, fn: Function, args: any[]) {
 function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
-            // @ts-ignore
             const result = fn(...args)
             if (result instanceof Promise) {
                 return result.catch(error => processError(error, fn, args))
@@ -244,29 +243,28 @@ export async function uploadCrashReport(exception: any, stackTrace: string) {
         log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
     }
 
-    try {
-        const data = {
-            hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
-            observability_version: {
-                frameworkName: 'WebdriverIO-' + (userConfigForReporting.framework || 'null'),
-                sdkVersion: bstackServiceVersion
-            },
-            exception: {
-                error: exception.toString(),
-                stackTrace: stackTrace
-            },
-            config: userConfigForReporting
-        }
-        const url = `${DATA_ENDPOINT}/api/v1/analytics`
-        const response: string = await got.post(url, {
-            ...DEFAULT_REQUEST_CONFIG,
-            ...credentialsForCrashReportUpload,
-            json: data
-        }).text()
-        log.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
-    } catch (error) {
-        log.error(`[Crash_Report_Upload] Failed due to ${error}`)
+    const data = {
+        hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
+        observability_version: {
+            frameworkName: 'WebdriverIO-' + (userConfigForReporting.framework || 'null'),
+            sdkVersion: bstackServiceVersion
+        },
+        exception: {
+            error: exception.toString(),
+            stackTrace: stackTrace
+        },
+        config: userConfigForReporting
     }
+    const url = `${DATA_ENDPOINT}/api/v1/analytics`
+    got.post(url, {
+        ...DEFAULT_REQUEST_CONFIG,
+        ...credentialsForCrashReportUpload,
+        json: data
+    }).text().then(response => {
+        log.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
+    }).catch((error) => {
+        log.error(`[Crash_Report_Upload] Failed due to ${error}`)
+    })
 }
 
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
