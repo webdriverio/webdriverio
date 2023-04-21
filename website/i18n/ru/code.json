@@ -84,7 +84,7 @@
     "description": "The title of the page for a blog tag"
   },
   "theme.tags.tagsPageLink": {
-    "message": "View All Tags",
+    "message": "Посмотреть Все Теги",
     "description": "The label of the link targeting the tag list page"
   },
   "theme.docs.breadcrumbs.home": {
@@ -104,11 +104,11 @@
     "description": "The ARIA label for the navbar color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "dark mode",
+    "message": "тёмная тема",
     "description": "The name for the dark color mode"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "light mode",
+    "message": "светлая тема",
     "description": "The name for the light color mode"
   },
   "theme.docs.paginator.navAriaLabel": {
@@ -274,7 +274,7 @@
     "description": "The placeholder for search page input"
   },
   "theme.SearchPage.inputLabel": {
-    "message": "Search",
+    "message": "Поиск",
     "description": "The ARIA label for search page input"
   },
   "theme.SearchPage.algoliaLabel": {
@@ -282,11 +282,11 @@
     "description": "The ARIA label for Algolia mention"
   },
   "theme.SearchPage.noResultsText": {
-    "message": "No results were found",
+    "message": "Ничего не найдено",
     "description": "The paragraph for empty search result"
   },
   "theme.SearchPage.fetchingNewResults": {
-    "message": "Fetching new results...",
+    "message": "Получение новых результатов...",
     "description": "The paragraph for fetching new search results"
   },
   "theme.SearchBar.label": {
@@ -318,7 +318,7 @@
     "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
-    "message": "Favorite",
+    "message": "Избранное",
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
@@ -382,7 +382,7 @@
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "Search docs",
+    "message": "Поиск документов",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.IdealImageMessage.loading": {
@@ -402,11 +402,11 @@
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
-    "message": "Error. Click to reload",
+    "message": "Ошибка. Нажмите, чтобы перезагрузить",
     "description": "When the image fails to load for unknown error"
   },
   "theme.PwaReloadPopup.info": {
-    "message": "New version available",
+    "message": "Доступна новая версия",
     "description": "The text for PWA reload popup"
   },
   "theme.PwaReloadPopup.refreshButtonText": {
@@ -422,7 +422,7 @@
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "Tags",
+    "message": "Теги",
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
@@ -438,13 +438,13 @@
     "message": "Get Started"
   },
   "Why WebdriverIO?": {
-    "message": "Why WebdriverIO?"
+    "message": "Почему WebdriverIO?"
   },
   "View on GitHub": {
-    "message": "View on GitHub"
+    "message": "Смотреть на GitHub"
   },
   "Watch on YouTube": {
-    "message": "Watch on YouTube"
+    "message": "Смотреть на YouTube"
   },
   "Easy setup for web component testing with:": {
     "message": "Easy setup for web component testing with:"
@@ -468,16 +468,16 @@
     "message": "Integration to developer tools such as:"
   },
   "until October 2023": {
-    "message": "until October 2023"
+    "message": "до Октября 2023"
   },
   "since February 2022": {
-    "message": "since February 2022"
+    "message": "с Февраля 2022"
   },
   "since January 2021": {
-    "message": "since January 2021"
+    "message": "с Января 2021"
   },
   "since December 2019": {
-    "message": "since December 2019"
+    "message": "с Декабря 2019"
   },
   "versions.description": {
     "message": "Docusaurus 2 Versions page listing all documented site versions"
@@ -495,7 +495,7 @@
     "message": "Here you can find the documentation for current released version."
   },
   "Documentation": {
-    "message": "Documentation"
+    "message": "Документация"
   },
   "Release Notes": {
     "message": "Release Notes"
@@ -504,16 +504,16 @@
     "message": "Past versions"
   },
   "Here you can find documentation for previous versions of Docusaurus.": {
-    "message": "Here you can find documentation for previous versions of Docusaurus."
+    "message": "Здесь вы можете найти документацию для предыдущих версий Docusaurus."
   },
   "homepage.createBrowserAnimation": {
-    "message": "Create WebdriverIO Demo"
+    "message": "Создать WebdriverIO Демо"
   },
   "homepage.highlight.getStartedOnYouTube": {
-    "message": "Start learning more about WebdriverIO and how to get started {youtubeLink}."
+    "message": "Узнайте больше о WebdriverIO и о том, как начать пользоваться {youtubeLink}."
   },
   "homepage.highlight.getStartedOnYouTube.label;": {
-    "message": "on YouTube",
+    "message": "на YouTube",
     "description": "The label for the link to my YouTube"
   },
   "homepage.highlight.conferenceTalk": {
