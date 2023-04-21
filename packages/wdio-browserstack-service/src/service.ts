@@ -8,13 +8,13 @@ import {
     isBrowserstackCapability,
     getParentSuiteName,
     isBrowserstackSession,
-    uploadCrashReport
 } from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
+import CrashReporter from './crash-reporter.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -119,7 +119,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 ))
             } catch (err) {
                 log.error(`Error in service class before function: ${err}`)
-                uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
             }
         }
 

@@ -21,8 +21,8 @@ import {
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
-    setConfigDetails
 } from './util.js'
+import CrashReporter from './crash-reporter.js'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -107,7 +107,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         try {
-            setConfigDetails(this._config, capabilities, this._options)
+            CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
             log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
