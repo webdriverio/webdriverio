@@ -3,7 +3,7 @@ id: lit
 title: Lit
 ---
 
-Lit is a simple library for building fast, lightweight web components. Testing Lit web components with WebdriverIO is very easy thanks to WebdriverIOs [shadow DOM selectors](/docs/selectors#deep-selectors) you can query in shadow roots nested elements with just one single command.
+Lit 是一款用于构建快速、轻量 Web 组件的库。 得益于 WebdriverIO 的 [影子 DOM 选择器](/docs/selectors#deep-selectors)，您可以一键快速查询 Shadow Root 中的嵌套元素来进行测试。
 
 ## Setup
 
@@ -15,9 +15,9 @@ Once set-up, you can start the tests by running:
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## 编写测试
 
-Given you have the following Lit component:
+假设您有如下 Lit 组件：
 
 ```ts title="./components/Component.ts"
 import { LitElement, css, html } from 'lit'
@@ -35,7 +35,7 @@ export class SimpleGreeting extends LitElement {
 }
 ```
 
-In order test the component you have to render it into the test page before the test starts and ensure it gets cleaned up afterwards:
+为了测试组件，您必须要在测试开始前将其渲染到测试页面中，并确保在测试完毕后被自动清理：
 
 ```ts title="lit.test.js"
 import expect from 'expect'
@@ -66,4 +66,4 @@ describe('Lit Component testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for Lit in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/lit-typescript-vite).
+您可以在我们的[示例仓库](https://github.com/webdriverio/component-testing-examples/tree/main/lit-typescript-vite)中找到 Lit 的 WebdriverIO 测试套件的完整示例。
