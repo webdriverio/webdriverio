@@ -12,7 +12,7 @@ Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdri
 
 Both have advantages and disadvantages, depending on your use case and environment.
 
-## WebDriver Protocol
+## Протокол WebDriver
 
 > [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
 
