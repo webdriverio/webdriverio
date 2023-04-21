@@ -7,7 +7,7 @@
     "version": "runme generateChangelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:runme": "echo \"RUNME_PROJECT=.\" &> .env",
-    "postinstall:husky": "runme husky --chdir=docs --filename=Setup.md",
+    "postinstall:husky": "runme run husky",
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },
   "devDependencies": {

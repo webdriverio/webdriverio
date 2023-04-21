@@ -61,7 +61,7 @@ This will:
   Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
   ```sh { name=bootstrap }
-  npx lerna bootstrap --force-local
+  npx lerna bootstrap --no-ci
   ```
 
 - *Link Packages for Local Development*

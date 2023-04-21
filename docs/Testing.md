@@ -45,21 +45,6 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   $ npm run test-e2e
   ```
 
-
-```sh { name=runme }
-runme --project . run taskA taskB taskC
-```
-
-```sh { name=taskA }
-sleep 2
-```
-```sh { name=taskB }
-sleep 4
-```
-```sh { name=taskC }
-sleep 6
-```
-
 ### Dependency Checks
 
 We automatically check if every sub-package has all the dependencies from its `package.json` installed. This ensures that we don't forget to add any dependency to the package.
@@ -149,7 +134,7 @@ This will:
 
 - *Clean Compiled Files*
   ```sh { name=test-typings-clean }
-  npx rimraf "tests/typings/**/node_modules" "tests/typings/**/dist"
+  npx rimraf "../tests/typings/**/node_modules" "../tests/typings/**/dist"
   ```
 
 For example, to test the `touchActions` properties, we have it tested in `/tests/typings/webdriverio/async.ts`:
@@ -222,8 +207,13 @@ npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 
 To clean up the coverage reports, run:
 
+<<<<<<< HEAD
 ```sh { name=test-unit:clean }
 npx rimraf ../coverage
+=======
+```sh { name=test:unit:clean }
+npx rimraf './coverage'
+>>>>>>> 4fca302cc (update based on runme improvements)
 ```
 
 ### Smoke Tests
@@ -283,25 +273,25 @@ This will:
 - *Validate `devtools` package*
   These tests verify that the WebDriver command implementations with Puppeteer behave as expected according to the WebDriver specification.
   ```sh { name=test-e2e-devtools }
-  npx vitest --config e2e/vitest.config.ts
+  npx vitest --config ../e2e/vitest.config.ts
   ```
 
 - *Validate Starting Edge Browser*
   This test validates if the `devtools` package can find and start the Microsoft Edge browser.
   ```sh { name=test-e2e-edge }
-  npx vitest --config e2e/standalone/vitest.config.ts edge.e2e.ts
+  npx vitest --config ../e2e/standalone/vitest.config.ts edge.e2e.ts
   ```
 
 - *Validate Starting Firefox Browser*
   This test validates if the `devtools` package can find and start the Firefox browser.
   ```sh { name=test-e2e-firefox }
-  npx vitest --config e2e/standalone/vitest.config.ts firefox.e2e.ts
+  npx vitest --config ../e2e/standalone/vitest.config.ts firefox.e2e.ts
   ```
 
 - *Validate Cloud Connection*
   This test validates WebdriverIO can connect seamlessly with cloud vendors such as Sauce Labs.
   ```sh { name=test-e2e-cloud }
-  node --loader ts-node/esm ./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.ts
+  node --loader ts-node/esm ../packages/wdio-cli/bin/wdio.js ../e2e/wdio/wdio.sauce.conf.ts
   ```
 
 - *Validate CJS Support*
