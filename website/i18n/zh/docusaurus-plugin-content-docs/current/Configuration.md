@@ -1,35 +1,35 @@
 ---
 id: configuration
-title: Configuration
+title: 配置
 ---
 
 Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
-## WebDriver Options
+## WebDriver 选项
 
-The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
+[`webdriver`](https://www.npmjs.com/package/webdriver) 协议包提供以下选项：
 
 ### protocol
 
-Protocol to use when communicating with the driver server.
+与驱动服务器交流时使用的协议。
 
 Type: `String`<br /> Default: `http`
 
 ### hostname
 
-Host of your driver server.
+驱动服务器主机。
 
 Type: `String`<br /> Default: `localhost`
 
 ### port
 
-Port your driver server is on.
+驱动服务器监听端口。
 
 Type: `Number`<br /> Default: `4444`
 
 ### path
 
-Path to driver server endpoint.
+驱动服务器端点路径。
 
 Type: `String`<br /> Default: `/`
 
