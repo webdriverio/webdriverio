@@ -6,6 +6,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-reporter"
   },
   {
+    "packageName": "wdio-browserstack-test-observability",
+    "title": "BrowserStack Test Observability",
+    "githubUrl": "https://github.com/browserstack/wdio-browserstack-test-observability",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/browserstack-service"
+  },
+  {
     "packageName": "wdio-video-reporter",
     "title": "Video",
     "githubUrl": "https://github.com/presidenten/wdio-video-reporter",
