@@ -1,19 +1,19 @@
 ---
 id: organizingsuites
-title: Organizing Test Suite
+title: Organización de la suite de pruebas
 ---
 
-As projects grow, inevitably more and more integration tests are added. This increases build time and slows productivity.
+A medida que crecen los proyectos, inevitablemente se agregan más y más pruebas de integración. Esto aumenta el tiempo de construcción y reduce la productividad.
 
-To prevent this, you should run your tests in parallel. WebdriverIO already tests each spec (or _feature file_ in Cucumber) in parallel within a single session. In general, try to test only a single feature per spec file. Try to not have too many or too few tests in one file. (However, there is no golden rule here.)
+Para evitar esto, debe ejecutar sus pruebas en paralelo. WebdriverIO ya prueba cada especificación (o _archivo de características_ en Cucumber) en paralelo dentro de una sola sesión. En general, intente probar solo una función por archivo de especificaciones. Intente no tener demasiadas o muy pocas pruebas en un solo archivo. (Sin embargo, no existe una regla de oro.)
 
-Once your tests have several spec files, you should start running your tests concurrently. To do so, adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency—meaning that no matter how many files and tests you have, they can all run in parallel.  (This is still subject to certain limits, like your computer’s CPU, concurrency restrictions, etc.)
+Una vez que sus pruebas tengan varios archivos de especificaciones, debe comenzar a ejecutar sus pruebas al mismo tiempo. Para ello, ajuste la propiedad `maxInstances` en su archivo de configuración. WebdriverIO le permite ejecutar sus pruebas con la máxima concurrencia, lo que significa que no importa cuántos archivos y pruebas tenga, todos pueden ejecutarse en paralelo.  (Esto todavía está sujeto a ciertos límites, como la CPU de su computadora, restricciones de concurrencia, etc.)
 
-> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set `maxInstances` to `1`. The WDIO test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set `maxInstances` to `10`, _all_ spec files will be tested simultaneously, and 30 processes will be spawned.
+> Supongamos que tiene 3 capacidades diferentes (Chrome, Firefox y Safari) y ha configurado `maxInstances` a `1`. El corredor de prueba WDIO generará 3 procesos. Por lo tanto, si tiene 10 archivos de especificaciones y configura `maxInstances` a `10`, _los_ archivos de especificaciones se probarán simultáneamente y se generarán 30 procesos.
 
-You can define the `maxInstances` property globally to set the attribute for all browsers.
+Puede definir globalmente la propiedad `maxInstances` para establecer el atributo para todos los navegadores.
 
-If you run your own WebDriver grid, you may (for example) have more capacity for one browser than another. In that case, you can _limit_ the `maxInstances` in your capability object:
+Si ejecuta su propia cuadrícula de WebDriver, puede (por ejemplo) tener más capacidad para un navegador que para otro. En ese caso, puedes _limitar_ el `maxInstances` en tu objeto de capacidad:
 
 ```js
 // wdio.conf.js
@@ -34,13 +34,13 @@ export const config = {
 }
 ```
 
-## Inherit From Main Config File
+## Heredar del archivo de configuración principal
 
-If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.
+Si ejecuta su conjunto de pruebas en varios entornos (p. ej., desarrollo e integración), puede ser útil usar varios archivos de configuración para mantener las cosas manejables.
 
-Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
+Similar al concepto de objeto de página [](PageObjects.md), lo primero que necesitará es un archivo de configuración principal. Contiene todas las configuraciones que comparte a través de entornos.
 
-Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
+A continuación, cree otro archivo de configuración para cada entorno, y complemente la configuración principal con la específica del entorno:
 
 ```js
 // wdio.dev.config.js
@@ -64,11 +64,11 @@ export const config = deepmerge(wdioConf.config, {
 config.reporters.push('allure')
 ```
 
-## Grouping Test Specs In Suites
+## Grupación de pruebas en las suites
 
-You can group test specs in suites and run single specific suites instead of all of them.
+Puede agrupar especificaciones de prueba en suites y ejecutar suites individuales específicas en lugar de todas.
 
-First, define your suites in your WDIO config:
+Primero, defina sus suites en su configuración WDIO:
 
 ```js
 // wdio.conf.js
@@ -90,23 +90,23 @@ export const config = {
 }
 ```
 
-Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
+Ahora, si sólo quiere ejecutar una sola suite, puede pasar el nombre de la suite como un argumento CLI:
 
 ```sh
 wdio wdio.conf.js --suite login
 ```
 
-Or, run multiple suites at once:
+O, ejecutar múltiples suites a la vez:
 
 ```sh
 wdio wdio.conf.js --suite login --suite otherFeature
 ```
 
-## Grouping Test Specs To Run Sequentially
+## Agrupación de especificaciones de prueba para ejecutar secuencialmente
 
-As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
+Como se describió anteriormente, existen beneficios al ejecutar las pruebas simultáneamente.  Sin embargo, hay casos en los que sería beneficioso agrupar las pruebas de forma secuencial en un solo caso.  Ejemplos de esto son principalmente donde hay un gran costo de configuración p.ej. transcompilar código o proporcionar instancias en la nube, pero también hay modelos de uso avanzados que se benefician de esta capacidad.
 
-To group tests to run in a single instance, define them as an array within the specs definition.
+Para agrupar pruebas a ejecutar en una sola instancia, definirlas como una matriz dentro de la definición de especificaciones.
 
 ```json
     "specs": [
@@ -118,9 +118,9 @@ To group tests to run in a single instance, define them as an array within the s
         "./test/specs/test_b*.js",
     ],
 ```
-In the example above, the tests 'test_login.js', 'test_product_order.js' and 'test_checkout.js' will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
+En el ejemplo anterior, las pruebas 'test_login.js', 'test_product_order.js' y 'test_checkout. s' se ejecutará secuencialmente en una sola instancia y cada una de las pruebas "test_b*" se ejecutarán simultáneamente en instancias individuales.
 
-It is also possible to group specs defined in suites, so you can now also define suites like this:
+También es posible agrupar especificaciones definidas en conjuntos, por lo que ahora también puede definir conjuntos como este:
 ```json
     "suites": {
         end2end: [
@@ -133,9 +133,9 @@ It is also possible to group specs defined in suites, so you can now also define
         allb: ["./test/specs/test_b*.js"]
 },
 ```
-and in this case all of the tests of the "end2end" suite would be run in a single instance.
+y en este caso todas las pruebas de la suite "end2end" se ejecutarían en una sola instancia.
 
-When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
+Al ejecutar pruebas secuencialmente usando un patrón, ejecutará los archivos de especificaciones en orden alfabético
 
 ```json
   "suites": {
@@ -143,7 +143,7 @@ When running tests sequentially using a pattern, it will run the spec files in a
   },
 ```
 
-This will run the files matching the pattern above in the following order:
+Esto ejecutará los archivos que coincidan con el patrón anterior en el siguiente orden:
 
 ```
   [
@@ -153,117 +153,125 @@ This will run the files matching the pattern above in the following order:
   ]
 ```
 
-## Run Selected Tests
+## Ejecutar las pruebas seleccionadas
 
-In some cases, you may wish to only execute a single test (or subset of tests) of your suites.
+En algunos casos, es posible que desee ejecutar solo una prueba (o un subconjunto de pruebas) de sus suites.
 
-With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run. The path is resolved relative from your current working directory.
+Con el parámetro `--spec` , puede especificar qué _suite_ (Mocha, Jasmine) o _feature_ (Cucumber) deben ejecutarse. La ruta se resuelve relativa desde su directorio de trabajo actual.
 
-For example, to run only your login test:
+Por ejemplo, para ejecutar sólo su prueba de login:
 
 ```sh
 wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
-Or run multiple specs at once:
+Para imprimir varios pedidos a la vez:
 
 ```sh
 wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
-If the `--spec` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+Si el valor `--spec` no apunta a un archivo específico en particular, se utiliza para filtrar los nombres de archivo especificados en la configuración.
 
-To run all specs with the word “dialog” in the spec file names, you could use:
+Para ejecutar todas las especificaciones con la palabra “diálogo” en los nombres de los archivos especificados, puede usar:
 
 ```sh
 wdio wdio.conf.js --spec dialog
 ```
 
-Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`), you _can't_ use (for example) `describe.only` at the top of your spec file to instruct Mocha to run only that suite.
+Tenga en cuenta que cada archivo de prueba se está ejecutando en un único proceso de ejecución de pruebas. Puesto que no escaneamos los archivos de antemano (ver la siguiente sección para obtener información sobre los nombres de archivo de la tubería a `wdio`), usted _no puede_ usar (por ejemplo) `describe. nly` en la parte superior de tu archivo de especialización para indicar a Mocha que ejecute sólo esa suite.
 
-This feature will help you to accomplish the same goal.
+Esta característica le ayudará a lograr el mismo objetivo.
 
-When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
+Cuando se proporciona la opción `--spec` , sobreescribirá cualquier patrón definido por el parámetro `especificaciones` del nivel de configuración o capacidad.
 
-## Exclude Selected Tests
+## Excluir las pruebas seleccionadas
 
-When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber).
+Cuando sea necesario, si necesita excluir archivo(s) específicos de una ejecución, puedes usar el parámetro `--exclude` (Mocha, Jasmine) o función (Cupeber).
 
-For example, to exclude your login test from the test run:
+Por ejemplo, para excluir su prueba de inicio de sesión de la ejecución de la prueba:
 
 ```sh
 wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
 
-Or, exclude multiple spec files:
+O, excluir múltiples especificaciones:
 
  ```sh
 wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
 
-Or, exclude a spec file when filtering using a suite:
+O, excluir un archivo de especificaciones al filtrar usando una suite:
 
 ```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
+Cuando se proporciona la opción `--spec` , sobreescribirá cualquier patrón definido por el parámetro `especificaciones` del nivel de configuración o capacidad.
 
-## Run Suites and Test Specs
+## Ejecutar suites y pruebas
 
-Run an entire suite along with individual specs.
+Ejecute una suite completa junto con especificaciones individuales.
 
 ```sh
 wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
-## Run Multiple, Specific Test Specs
+## Ejecutar Múltiples Especificaciones de Prueba
 
-It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to run. WebdriverIO's `wdio` command line utility accepts piped-in filenames (from `find`, `grep`, or others).
+A veces es necesario&mdash;en el contexto de la integración continua y, de lo contrario&mdash;para especificar múltiples conjuntos de especificaciones para ejecutar. La utilidad de línea de comandos `wdio` de WebdriverIO acepta nombres de archivos canalizados (de `find`, `grep`u otros).
 
-Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
+Los nombres de archivo canalizados anulan la lista de globs o nombres de archivo especificados en la lista `spec` de la configuración.
 
 ```sh
 grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
-_**Note:** This will_ not _override the `--spec` flag for running a single spec._
+_**Nota:** Esto_ no _anulará el indicador `--spec` para ejecutar una única especificación._
 
-## Running Specific Tests with MochaOpts
+## Ejecutando Pruebas Específicas con MochaOpts
 
-You can also filter which specific `suite|describe` and/or `it|test` you want to run by passing a mocha specific argument: `--mochaOpts.grep` to the wdio CLI.
+También puede filtrar qué `suite|describe` y/o `it|test` específico desea ejecutar pasando un argumento específico de mocha: `--mochaOpts.grep` a la CLI de wdio.
 
 ```sh
 wdio wdio.conf.js --mochaOpts.grep myText
 wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 ```
 
-_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+_**Nota:** Mocha filtrará las pruebas después de que el ejecutor de pruebas WDIO cree las instancias, por lo que es posible que vea varias instancias generadas pero que no se ejecutan realmente._
 
-## Stop testing after failure
+## Detener la prueba después de un error
 
-With the `bail` option, you can tell WebdriverIO to stop testing after any test fails.
+Con la opción `bail` , puede decirle a WebdriverIO que detenga la prueba después de que falle cualquier prueba.
 
-This is helpful with large test suites when you already know that your build will break, but you want to avoid the lengthy wait of a full testing run.
+Esto es útil con conjuntos de pruebas grandes cuando ya sabe que su compilación fallará, pero desea evitar la larga espera de una ejecución de prueba completa.
 
-The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
+La opción `bail` espera un número, que especifica cuántas fallas de prueba pueden ocurrir antes de que WebDriver detenga la ejecución de prueba completa. El valor predeterminado es `0`, lo que significa que siempre ejecuta todas las especificaciones de prueba que puede encontrar.
 
-Please see [Options Page](Configuration.md) for additional information on the bail configuration.
-## Run options hierarchy
+Consulte la página</a> de Opcionespara obtener información adicional sobre la configuración de la fianza.</p> 
 
-When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
+
+## Ejecutar jerarquía de opciones
+
+Al declarar qué especificaciones ejecutar, hay una cierta jerarquía que define qué patrón tendrá prioridad. Actualmente, así es como funciona, de mayor a menor prioridad:
+
+
 
 > CLI `--spec` argument > capability `specs` pattern > config `specs` pattern CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
 
-If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+Si solo se proporciona el parámetro de configuración, se utilizará para todas las funciones. Sin embargo, si define el patrón en el nivel de capacidad, se utilizará en lugar del patrón de configuración. Finalmente, cualquier patrón de especificación definido en la línea de comandos anulará todos los demás patrones dados.
 
-### Using capability-defined spec patterns
 
-When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
 
-For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
+### Uso de patrones de especificación definidos por capacidad
 
-Your config file may define the pattern as such, for non-specific device tests:
+Cuando define un patrón de especificación en el nivel de capacidad, anulará cualquier patrón definido en el nivel de configuración. Esto es útil cuando es necesario separar las pruebas en función de la diferenciación de las capacidades del dispositivo. En casos como este, es más útil usar un patrón de especificación genérico en el nivel de configuración y patrones más específicos en el nivel de capacidad.
+
+Por ejemplo, digamos que tenías dos directorios, uno para pruebas de Android, y otro para pruebas de iOS.
+
+Su archivo de configuración puede definir el patrón como tal, para pruebas de dispositivos no específicos:
+
+
 
 ```js
 {
@@ -271,7 +279,10 @@ Your config file may define the pattern as such, for non-specific device tests:
 }
 ```
 
-but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
+
+pero luego, tendrá diferentes capacidades para sus dispositivos Android e iOS, donde los patrones podrían verse así:
+
+
 
 ```json
 {
@@ -282,6 +293,9 @@ but then, you will have different capabilities for your Android and iOS devices,
 }
 ```
 
+
+
+
 ```json
 {
   "platformName": "iOS",
@@ -291,7 +305,10 @@ but then, you will have different capabilities for your Android and iOS devices,
 }
 ```
 
-If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
+
+Si necesita ambas capacidades en su archivo de configuración, entonces el dispositivo Android solo ejecutará las pruebas bajo el espacio de nombres "android", y las pruebas de iOS solo ejecutarán las pruebas bajo el espacio de nombres "ios".
+
+
 
 ```js
 //wdio.conf.js

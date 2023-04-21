@@ -49,9 +49,9 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 __Nota:__ Utilizar métodos de renderizado de la Biblioteca de Pruebas ayuda a eliminar componentes creados entre las pruebas. Si no usa Testing Library, asegúrese de conectar sus componentes de prueba a un contenedor que se limpia entre pruebas.
 
-## Setup Scripts
+## Guiones de configuración
 
-You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
+Puede configurar sus pruebas ejecutando scripts arbitrarios en Node.js o en el navegador, por ejemplo, inyectando estilos, burlándose de las API del navegador o conectándose a un servicio de terceros. WebdriverIO [hooks](/docs/configuration#hooks) se puede usar para ejecutar código en Node.js, mientras que [`mochaOpts.require`](/docs/frameworks#require) le permite importar scripts al navegador antes de que se carguen las pruebas, por ejemplo:
 
 ```js wdio.conf.js
 export const config = {
@@ -68,7 +68,7 @@ export const config = {
 }
 ```
 
-For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+Por ejemplo, si desea simular todas las llamadas [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) en su prueba con el siguiente script de configuración:
 
 ```js ./fixtures/setup.js
 import { fn } from '@wdio/browser-runner'
@@ -86,7 +86,7 @@ export const mochaGlobalTeardown = () => {
 
 ```
 
-Now in your tests you can provide custom response values for all browser requests. Read more on global fixtures in the [Mocha docs](https://mochajs.org/#global-fixtures).
+Ahora en sus pruebas puede proporcionar valores de respuesta personalizados para todas las solicitudes del navegador. Lea más sobre accesorios globales en los documentos de [Mocha](https://mochajs.org/#global-fixtures).
 
 ## Ver los archivos de prueba y aplicación
 

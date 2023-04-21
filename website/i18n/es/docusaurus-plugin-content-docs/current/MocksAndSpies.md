@@ -1,19 +1,19 @@
 ---
 id: mocksandspies
-title: Request Mocks and Spies
+title: Solicitar Mocks y Espías
 ---
 
-WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
+WebdriverIO viene con soporte incorporado para modificar las respuestas de la red que le permite concentrarse en probar su aplicación frontend sin tener que configurar su backend o un servidor simulado. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
 
 :::info
 
-This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
+Actualmente, esta función solo se admite cuando se ejecutan pruebas locales en Chrome. Está previsto que sea compatible con [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) y [Sauce Labs](https://saucelabs.com/) pronto. Si encuentras problemas al usarlo, por favor registra [un problema](https://github.com/webdriverio/webdriverio/issues/new/choose) y háznoslo saber!
 
 :::
 
-## Creating a mock
+## Crear una simulación
 
-Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+Antes de poder modificar cualquier respuesta que haya definido primero una simulación. Esta simulación es descrita por la url del recurso y puede ser filtrada por el [método de solicitud](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) o [encabezados](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). El recurso soporta expresiones glob por [minimatch](https://www.npmjs.com/package/minimatch):
 
 ```js
 // mock all resources ending with "/users/list"
@@ -29,13 +29,13 @@ const strictMock = await browser.mock('**', {
 })
 ```
 
-## Specifying custom responses
+## Especificar respuestas personalizadas
 
-Once you have defined a mock you can define custom responses for it. Those custom responses can be either an object to respond a JSON, a local file to respond with a custom fixture or a web resource to replace the response with a resource from the internet.
+Una vez que haya definido una simulación, puede definir respuestas personalizadas para ella. Estas respuestas personalizadas pueden ser un objeto para responder un JSON, un archivo local para responder con un dispositivo personalizado o un recurso web para reemplazar la respuesta con un recurso de Internet.
 
-### Mocking API Requests
+### Solicitudes API de Mocking
 
-In order to mock API requests where you expect a JSON response all you need to do is to call `respond` on the mock object with an arbitrary object you want to return, e.g.:
+Para simular las solicitudes de API donde se espera una respuesta JSON todo lo que se necesita hacer es llamar a `responder` en el objeto simulado con un objeto arbitrario que se desea devolver, ej.:
 
 ```js
 const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
@@ -59,7 +59,7 @@ console.log(await $$('#todo-list li').map(el => el.getText()))
 // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
 ```
 
-You can also modify the response headers as well as the status code by passing in some mock response params as follows:
+También puede modificar los encabezados de respuesta, así como el código de estado, pasando algunos parámetros de respuesta simulados de la siguiente manera:
 
 ```js
 mock.respond({ ... }, {
@@ -70,7 +70,7 @@ mock.respond({ ... }, {
 })
 ```
 
-If you want the mock not to call the backend at all, you can pass `false` for the `fetchResponse` flag.
+Si desea que el simulacro no llame al backend en absoluto, puede pasar `falso` para el indicador `fetchResponse`.
 
 ```js
 mock.respond({ ... }, {
@@ -79,7 +79,7 @@ mock.respond({ ... }, {
 })
 ```
 
-It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
+Se recomienda almacenar respuestas personalizadas en archivos de dispositivos para que pueda solicitarlos en su prueba de la siguiente manera:
 
 ```js
 // requires Node.js v16.14.0 or higher to support JSON import assertions
@@ -87,9 +87,9 @@ import responseFixture from './__fixtures__/apiResponse.json' assert { type: 'js
 mock.respond(responseFixture)
 ```
 
-### Mocking text resources
+### Modificando recursos de texto
 
-If you like to modify text resources like JavaScript, CSS files or other text based resources you can just pass in a file path and WebdriverIO will replaces the original resource with it, e.g.:
+Si desea modificar recursos de texto como JavaScript, archivos CSS u otros recursos basados en texto, simplemente puede pasar una ruta de archivo y WebdriverIO reemplazará el recurso original con él, por ejemplo.:
 
 ```js
 const scriptMock = await browser.mock('**/script.min.js')
@@ -99,9 +99,9 @@ scriptMock.respond('./tests/fixtures/script.js')
 scriptMock.respond('alert("I am a mocked resource")')
 ```
 
-### Redirect web resources
+### Redirigir los recursos web
 
-You can also just replace a web resource with another web resource if your desired response is already hosted on the web. This works with individual page resources as well as with a webpage itself, e.g.:
+También puede reemplazar un recurso web con otro recurso web si su respuesta deseada ya se encuentra alojada en la web. Esto funciona con recursos de página individuales así como con una página web misma, por ejemplo:
 
 ```js
 const pageMock = await browser.mock('https://google.com/')
@@ -110,9 +110,9 @@ await browser.url('https://google.com')
 console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 ```
 
-### Dynamic responses
+### Respuestas dinámicas
 
-If your mock response depends on the original resource response you can also dynamically modify the resource by passing in a function receives the original response as parameter and sets the mock based on the return value, e.g.:
+Si su respuesta simulada depende de la respuesta del recurso original, también puede modificar dinámicamente el recurso pasando una función que recibe la respuesta original como parámetro y establece el simulacro en función del valor de retorno, por ejemplo.:
 
 ```js
 const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
@@ -138,9 +138,9 @@ console.log(await $$('#todo-list li label').map((el) => el.getText()))
 // ]
 ```
 
-## Aborting mocks
+## Anular simulaciones
 
-Instead of returning a custom response you can also just abort the request with one of the following HTTP errors:
+En lugar de devolver una respuesta personalizada, también puede abortar la petición con uno de los siguientes errores HTTP:
 
 - Failed
 - Aborted
@@ -157,16 +157,16 @@ Instead of returning a custom response you can also just abort the request with 
 - BlockedByClient
 - BlockedByResponse
 
-This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
+Esto es muy útil si desea bloquear secuencias de comandos de terceros de su página que tengan una influencia negativa en su prueba funcional. Puede abortar un simulacro simplemente llamando `abort` o `abortOnce`, por ejemplo:
 
 ```js
 const mock = await browser.mock('https://www.google-analytics.com/**')
 mock.abort('Failed')
 ```
 
-## Spies
+## Espías
 
-Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
+Cada simulacro es automáticamente un espía que cuenta la cantidad de peticiones que el navegador hizo a ese recurso. Si no aplica una respuesta personalizada o aborta la razón de la simulación, continúa con la respuesta por defecto que normalmente recibiría. Esto le permite comprobar cuántas veces ha hecho la petición el navegador, por ejemplo, a un determinado punto final de la API.
 
 ```js
 const mock = await browser.mock('**/user', { method: 'post' })

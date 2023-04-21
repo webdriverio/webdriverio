@@ -3,17 +3,17 @@ id: testrunner
 title: Testrunner
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
+WebdriverIO viene con su propio corredor de pruebas para ayudarle a empezar a probar tan pronto como sea posible. Se supone que hacer todo el trabajo por usted, permite integrarse a servicios de terceros, y le ayuda a ejecutar sus pruebas de la manera más eficiente posible.
 
-WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
+El testrunner de WebdriverIO está recopilado por separado en el paquete NPM `@wdio/cli`.
 
-Install it like this:
+Instalar de esta manera:
 
 ```sh npm2yarn
 npm install @wdio/cli
 ```
 
-To see the command line interface help, type the following command in your terminal:
+Para ver la ayuda de la interfaz de línea de comandos, escriba el siguiente comando en su terminal:
 
 ```sh
 $ npx wdio --help
@@ -34,47 +34,47 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like.
+¡Excelente! Ahora necesita definir un archivo de configuración donde se establezca toda la información sobre sus pruebas, capacidades y configuraciones. Cambie a la sección [Archivo de configuración](ConfigurationFile.md) para ver cómo debería ser ese archivo.
 
-With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
+Con el helper de configuración de `wdio`, es muy fácil de generar el archivo de configuración. Sólo ejecutar:
 
 ```sh
 $ npx wdio config
 ```
 
-...and it launches the helper utility.
+...y lanza la utilidad auxiliar.
 
-It will ask you questions and generate a config file for you in less than a minute.
+Le hará preguntas y generará un archivo de configuración en menos de un minuto.
 
-![WDIO configuration utility](/img/config-utility.gif)
+![Herramienta de configuración WDIO](/img/config-utility.gif)
 
-Once you have your configuration file set up, you can start your tests by running:
+Una vez que tenga el archivo de configuración configurado, puede iniciar sus pruebas ejecutando:
 
 ```sh
 npx wdio run wdio.conf.js
 ```
 
-You can also initialize your test run without the `run` command:
+También puede inicializar su ejecución de prueba sin el comando `run`:
 
 ```sh
 npx wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
+¡Eso es todo! Ahora, puede acceder a la instancia de selenium a través de la variable global `browser`.
 
-## Commands
+## Comandos
 
 ### `wdio config`
 
-The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
+El comando `config` ejecuta el helper de configuración de WebdriverIO. Este ayudante le hará algunas preguntas sobre su proyecto WebdriverIO y creará un archivo `wdio.conf.js` basado en sus respuestas.
 
-Example:
+Ejemplo:
 
 ```sh
 wdio config
 ```
 
-Options:
+Opciones:
 
 ```
 --help            prints WebdriverIO help menu                                [boolean]
@@ -83,17 +83,17 @@ Options:
 
 ### `wdio run`
 
-> This is the default command to run your configuration.
+> Este es el comando por defecto para ejecutar su configuración.
 
-The `run` command initializes your WebdriverIO configuration file and runs your tests.
+El comando `run` inicializa su archivo de configuración WebdriverIO y ejecuta sus pruebas.
 
-Example:
+Ejemplo:
 
 ```sh
 wdio run ./wdio.conf.js --watch
 ```
 
-Options:
+Opciones:
 
 ```
 --help                prints WebdriverIO help menu                   [boolean]
@@ -125,12 +125,12 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](TypeScript.md) and [Babel (@babel/register)](Babel.md) pages.
+> Nota: La autocompilación puede ser fácilmente controlada con las Varias ENV de la biblioteca apropiada. Vea también la funcionalidad de Compilación Automática de Test Runner documentada en las páginas [TypeScript (ts-node)](TypeScript.md) y [Babel (@babel/register)](Babel.md).
 
 ### `wdio install`
-The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
+El comando `instalar` le permite añadir reporteros y servicios a sus proyectos WebdriverIO a través de la CLI.
 
-Example:
+Ejemplo:
 
 ```sh
 wdio install service sauce # installs @wdio/sauce-service
@@ -138,19 +138,19 @@ wdio install reporter dot # installs @wdio/dot-reporter
 wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
-If you want to install the packages using `yarn` instead, you can pass the `--yarn` flag to the command:
+Si desea instalar los paquetes usando `yarn` en su lugar, puede pasar la bandera `--yarn` al comando:
 
 ```sh
 wdio install service sauce --yarn
 ```
 
-You could also pass a custom configuration path if your WDIO config file is not in the same folder you're working on:
+También puede pasar una ruta de configuración personalizada si su archivo de configuración WDIO no está en la misma carpeta en la que está trabajando:
 
 ```sh
 wdio install service sauce --config="./path/to/wdio.conf.js"
 ```
 
-#### List of supported services
+#### Lista de servicios compatibles
 
 ```
 sauce
@@ -169,7 +169,7 @@ wiremock
 lambdatest
 ```
 
-#### List of supported reporters
+#### Lista de reporteros compatibles
 
 ```
 dot
@@ -186,7 +186,7 @@ mochawesome
 timeline
 ```
 
-#### List of supported frameworks
+#### Lista de frameworks compatibles
 
 ```
 mocha
@@ -196,18 +196,18 @@ cucumber
 
 ### `wdio repl`
 
-The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
+El comando repl permite iniciar una interfaz de línea de comandos interactiva para ejecutar comandos WebdriverIO. Se puede utilizar para pruebas o simplemente para girar rápidamente la sesión WebdriverIO.
 
-Run tests in local chrome:
+Ejecutar pruebas en chrome:
 
 ```sh
 wdio repl chrome
 ```
 
-or run tests on Sauce Labs:
+o ejecute pruebas en Sauce Labs:
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-You can apply the same arguments as you can in the [run command](#wdio-run).
+Puede aplicar los mismos argumentos que puede en el comando [ejecutar](#wdio-run).

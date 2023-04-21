@@ -21,7 +21,7 @@ Stack Overflow es un foro popular para hacer preguntas a nivel de código o si e
 Hay muchos foros en línea que son un gran lugar para la discusión sobre las características, problemas y errores de WebdriverIO, por ejemplo
 
 - [Discusiones GitHub](https://github.com/webdriverio/webdriverio/discussions)
-- [Canal de la comunidad](https://discord.webdriver.io)
+- [Directivas de la comunidad de Discord](https://discord.webdriver.io)
 - [Canal #webdriverio en SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
 ## Noticias

@@ -3,7 +3,7 @@ id: pageobjects
 title: Page Object Pattern
 ---
 
-Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
+Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern. Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
 
 There are no additional packages required to create page objects. It turns out that clean, modern classes provide all necessary features we need:
 

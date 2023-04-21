@@ -1,23 +1,23 @@
 ---
 id: v7-migration
-title: From v6 to v7
+title: De v5 a v6
 ---
 
-This tutorial is for people who are still using `v6` of WebdriverIO and want to migrate to `v7`. As mentioned in our [release blog post](https://webdriver.io/blog/2021/02/09/webdriverio-v7-released) the changes are mostly under the hood and upgrading should be a straight forward process.
+Este tutorial es para personas que todavía están usando `v6` de WebdriverIO y quieren migrar a `v7`. Como se mencionó en nuestra publicación del blog [](https://webdriver.io/blog/2021/02/09/webdriverio-v7-released) los cambios están principalmente bajo la capa y la actualización debe ser un proceso de avance simple.
 
 :::info
 
-If you are using WebdriverIO `v5` or below, please upgrade to `v6` first. Please checkout our [v6 migration guide](v6-migration).
+Si está utilizando WebdriverIO `v4` o menos, por favor actualice a `v5` primero. Consulte nuestra guía de migración [v6](v6-migration).
 
 :::
 
-While we would love to have a fully automated process for this the reality looks different. Everyone has a different setup. Every step should be seen as guidance and less like a step by step instruction. If you have issues with the migration, don't hesitate to [contact us](https://github.com/webdriverio/codemod/discussions/new).
+Si bien nos encantaría tener un proceso completamente automatizado para esto, la realidad es diferente. Todos tienen una configuración diferente. Cada paso debe ser visto como guía y menos como una instrucción paso a paso. Si tienes problemas con la migración, no dudes en [contactarnos](https://github.com/webdriverio/codemod/discussions/new).
 
 ## Setup
 
-Similar to other migrations we can use the WebdriverIO [codemod](https://github.com/webdriverio/codemod). For this tutorial we use a [boilerplate project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber) submitted by a community member and fully migrate it from `v6` to `v7`.
+Similar a otras migraciones que podemos usar el código [WebdriverIO](https://github.com/webdriverio/codemod). Para este tutorial utilizamos un [proyecto de boilerplate](https://github.com/WarleyGabriel/demo-webdriverio-cucumber) enviado por un miembro de la comunidad y completamente migrado de `v6` a `v7`.
 
-To install the codemod, run:
+Para instalar el códemod, ejecute:
 
 ```sh
 npm install jscodeshift @wdio/codemod
@@ -27,23 +27,23 @@ npm install jscodeshift @wdio/codemod
 
 - _install codemod deps_ [[6ec9e52]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/6ec9e52038f7e8cb1221753b67040b0f23a8f61a)
 
-## Upgrade WebdriverIO Dependencies
+## Actualizar dependencias de WebdriverIO
 
-Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `latest`. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
+Dado que todas las versiones WebdriverIO están ajustadas entre sí, es lo mejor para siempre actualizar a una etiqueta específica, e.. `6.12.0`. Para ello, copiamos todas las dependencias relacionadas con WebdriverIO de nuestro `package.json` y las reinstalamos a través de:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter@7 @wdio/cli@7 @wdio/cucumber-framework@7 @wdio/local-runner@7 @wdio/spec-reporter@7 @wdio/sync@7 wdio-chromedriver-service@7 wdio-timeline-reporter@7 webdriverio@7
 ```
 
-Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are the dependencies used by the [example project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), yours may differ.
+Por lo general, las dependencias WebdriverIO son parte de las dependencias de desarrollo, dependiendo de su proyecto, esto puede variar de todas maneras. Después de esto, su `package.json` y `package-lock.json` deberían ser actualizados. __Nota:__ estas son las dependencias utilizadas por el [proyecto de ejemplo](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), el suyo puede diferir.
 
 #### Commits:
 
-- _updated dependencies_ [[7097ab6]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/7097ab6297ef9f37ead0a9c2ce9fce8d0765458d)
+- _dependencias actualizadas_ [[7097ab6]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/7097ab6297ef9f37ead0a9c2ce9fce8d0765458d)
 
-## Transform Config File
+## Transformar Archivo de Configuración
 
-A good first step is to start with the config file. In WebdriverIO `v7` we don't require to manually register any of the compilers anymore. In fact they need to be removed. This can be done with the codemod full automatically:
+Un buen primer paso es iniciar con el archivo de configuración. En WebdriverIO `v7` ya no necesitamos registrar manualmente ninguno de los compiladores. De hecho, es necesario eliminarlos. Esto se puede hacer con el código completo automáticamente:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
@@ -51,28 +51,28 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
 
 :::caution
 
-The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). We are working to implement support for it soon. If you are using TypeScript please get involved!
+El código todavía no soporta proyectos de TypeScript. Ver [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). Estamos trabajando para poner en práctica pronto el apoyo para ello. Si está utilizando TypeScript ¡aproveche la oportunidad!
 
 :::
 
 #### Commits:
 
-- _transpile config file_ [[6015534]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/60155346a386380d8a77ae6d1107483043a43994)
+- _archivo de configuración de transpile_ [[6015534]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/60155346a386380d8a77ae6d1107483043a43994)
 
-## Update Step Definitions
+## Actualizar definiciones de pasos
 
-If you are using Jasmine or Mocha, you are done here. The last step is to update the Cucumber.js imports from `cucumber` to `@cucumber/cucumber`. This can also be done via the codemod automatically:
+Si está usando Jasmine o Mocha, aquí está listo. El último paso es actualizar las importaciones de Cucumber.js de `pepino` a `@cumber/pepino`. Esto se puede hacer con el código completo automáticamente:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./src/e2e/*
 ```
 
-That's it! No more changes necessary 🎉
+¡Eso es todo! No hay más cambios necesarios 🎉
 
 #### Commits:
 
-- _transpile step definitions_ [[8c97b90]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/8c97b90a8b9197c62dffe4e2954f7dad814753cc)
+- _transpila definiciones de pasos_ [[8c97b90]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/8c97b90a8b9197c62dffe4e2954f7dad814753cc)
 
-## Conclusion
+## Conclusión
 
-We hope this tutorial guides you a little bit through the migration process to WebdriverIO `v7`. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
+Esperamos que este tutorial le guíe un poco a través del proceso de migración a WebdriverIO `v6`. La comunidad continúa mejorando el canon mientras lo prueba con varios equipos en diversas organizaciones. No dudes en [plantear un problema](https://github.com/webdriverio/codemod/issues/new) si tienes comentarios o [empieza una discusión](https://github.com/webdriverio/codemod/discussions/new) si luchas durante el proceso de migración.

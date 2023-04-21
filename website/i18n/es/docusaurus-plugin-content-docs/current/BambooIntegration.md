@@ -57,7 +57,7 @@ Para este momento, creemos que tiene las pruebas escritas y los resultados se ge
     ![Etapa por defecto](/img/bamboo/defaultstage.png "Etapa por defecto")
 2. Abra su trabajo de pruebas y cree tareas para ejecutar sus pruebas en Bamboo
 > **Tarea 1:** Código fuente de compra
-> **Tarea 1:** Código fuente de compra **Tarea 1:** Código fuente de compra **Tarea 2:** Ejecute sus pruebas `npm i && npm run test`. Puede utilizar la tarea *Script* y *Shell Interpreter* para ejecutar los comandos anteriores (esto generará los resultados de la prueba y los guardará en `. carpetas testresults/`)
+> **Tarea 1:** Código fuente de compra **Tarea 1:** Código fuente de compra **Tarea 1:** Código fuente de compra **Tarea 2:** Ejecute sus pruebas `npm i && npm run test`. Puede utilizar la tarea *Script* y *Shell Interpreter* para ejecutar los comandos anteriores (esto generará los resultados de la prueba y los guardará en `. carpetas testresults/`)
 
     ![Prueba de ejecución](/img/bamboo/testrun.png "Prueba de ejecución")
 > **Tarea: 3** Añada tarea *analizador jUnit* para analizar los resultados guardados de la prueba. Por favor especifique el directorio de resultados de prueba aquí (también puede usar patrones de estilo Ant)
