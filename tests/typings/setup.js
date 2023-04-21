@@ -5,10 +5,6 @@ import { spawnSync } from 'node:child_process'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..', '..')
-const TS_PARAMETER = '--ts='
-const tsArg = process.argv.find((v) => v.startsWith(TS_PARAMETER))
-const tsVersion = tsArg ? tsArg.slice(TS_PARAMETER.length) : undefined
-const tsDir = tsVersion ? path.join(__dirname, '@typescript', `ts${tsVersion}`) : ''
 
 // TypeScript project root for testing particular typings
 const outDirs = [
@@ -45,9 +41,6 @@ const packages = {
  * copy package.json and typings from package to type-generation/test/.../node_modules
  */
 async function copy() {
-    if (tsVersion) {
-        spawnSync('npm', ['ci'], { cwd: tsDir })
-    }
     await Promise.all(
         outDirs.map(async (outDir) => {
             await Promise.all(Object.keys(packages).map(async (packageName) => {
@@ -58,16 +51,6 @@ async function copy() {
                 await mkdir(destDir, { recursive: true })
                 return symlink(target, destination, 'dir')
             }))
-            if (tsVersion) {
-                const typescriptDirs = ['typescript', '.bin']
-                await Promise.all(typescriptDirs.map((d) =>
-                    symlink(
-                        path.join(tsDir, 'node_modules', d),
-                        path.join(__dirname, outDir, 'node_modules', d),
-                        'dir'
-                    )
-                ))
-            }
         })
     )
 }

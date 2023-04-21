@@ -61,7 +61,7 @@ const packages = getSubPackages()
      */
     .filter((pkg) => {
         try {
-            accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
+            accessSync(path.resolve(__dirname, '..', 'packages', pkg, TSCONFIG_FILE))
             return true
         } catch (err) {
             return false

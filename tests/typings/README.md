@@ -27,7 +27,7 @@ TypeScript compilation is used to do this kind of static analysis.
 
 ## Flow
 
-1. `npm run generate:typings`
+1. `npx runme --project . generateTypings --chdir docs --filename=Setup.md`
 2. copy static and generated to sync and webdriverio (see **Copying process** below)
 3. complile ts files inside sync and webdriverio
 4. delete compiled JavaScript files
