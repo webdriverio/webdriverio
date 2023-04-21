@@ -1,6 +1,6 @@
 ---
 id: browser
-title: The Browser Object
+title: Browser 对象
 ---
 
 __Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
