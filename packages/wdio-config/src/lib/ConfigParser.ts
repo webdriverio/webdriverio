@@ -65,7 +65,6 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
-        this.merge(_initialConfig)
     }
 
     /**
