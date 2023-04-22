@@ -1,6 +1,6 @@
 ---
 id: configuration
-title: Configuration
+title: Конфигурация
 ---
 
 Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
@@ -68,7 +68,7 @@ Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](h
 
 Type: `Object`<br /> Default: `null`
 
-**Example:**
+**Пример:**
 
 ```js
 {
@@ -314,7 +314,7 @@ List of reporters to use. A reporter can be either a string, or an array of `['r
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Example:
+Пример:
 
 ```js
 reporters: [
@@ -385,7 +385,7 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 Gets executed once before all workers get launched.
 
-Parameters:
+Параметры:
 
 - `config` (`object`): WebdriverIO configuration object
 - `param` (`object[]`): list of capabilities details
@@ -394,7 +394,7 @@ Parameters:
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
-Parameters:
+Параметры:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -406,7 +406,7 @@ Parameters:
 
 Gets executed just after a worker process has exited.
 
-Parameters:
+Параметры:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
@@ -417,7 +417,7 @@ Parameters:
 
 Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
-Parameters:
+Параметры:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -427,7 +427,7 @@ Parameters:
 
 Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
 
-Parameters:
+Параметры:
 
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
@@ -437,7 +437,7 @@ Parameters:
 
 Hook that gets executed before the suite starts
 
-Parameters:
+Параметры:
 
 - `suite` (`object`): suite details
 
@@ -445,7 +445,7 @@ Parameters:
 
 Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
