@@ -454,7 +454,7 @@ Hook that gets executed *before* a hook within the suite starts (e.g. runs befor
 
 Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -482,7 +482,7 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Parameters:
+Параметры:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -493,7 +493,7 @@ Parameters:
 
 Function to be executed after a test (in Mocha/Jasmine) ends.
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -508,7 +508,7 @@ Parameters:
 
 Hook that gets executed after the suite has ended
 
-Parameters:
+Параметры:
 
 - `suite` (`object`): suite details
 
@@ -516,7 +516,7 @@ Parameters:
 
 Gets executed after all tests are done. You still have access to all global variables from the test.
 
-Parameters:
+Параметры:
 
 - `result` (`number`): 0 - test pass, 1 - test fail
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -536,7 +536,7 @@ Parameters:
 
 Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
 
-Parameters:
+Параметры:
 
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
@@ -545,9 +545,9 @@ Parameters:
 
 ### onReload
 
-Gets executed when a refresh happens.
+Выполняется, когда происходит обновление.
 
-Parameters:
+Параметры:
 
 - `oldSessionId` (`string`): session ID of the old session
 - `newSessionId` (`string`): session ID of the new session
@@ -556,7 +556,7 @@ Parameters:
 
 Runs before a Cucumber Feature.
 
-Parameters:
+Параметры:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -565,7 +565,7 @@ Parameters:
 
 Runs after a Cucumber Feature.
 
-Parameters:
+Параметры:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
