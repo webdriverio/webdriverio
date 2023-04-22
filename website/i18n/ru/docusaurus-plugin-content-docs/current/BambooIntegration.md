@@ -81,4 +81,4 @@ Once the above *rocket science* is done, please enable the plan and run it. Your
 
 ![Failed and Fixed](/img/bamboo/failedandfixed.png "Failed and Fixed")
 
-Yay!! That's all. You have successfully integrated your WebdriverIO tests in Bamboo.
+Yay!! Это все. Вы успешно интегрировали свои WebdriverIO тесты в Bamboo.
