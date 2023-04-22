@@ -46,6 +46,6 @@ According to the config file, the XUnit reports will be saved in the project’s
 
 ![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
 
-That's it! You’ve now set up Jenkins to run your WebdriverIO jobs. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs, and a list of commands with payload that got used in each test.
+Вот и все! Теперь вы настроили Jenkins для запуска заданий WebdriverIO. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs, and a list of commands with payload that got used in each test.
 
 ![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")
