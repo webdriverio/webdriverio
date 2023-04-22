@@ -1,11 +1,11 @@
 ---
 id: frameworks
-title: Frameworks
+title: Фреймворки
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+На текущий момент WDIO поддерживает [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), и [Cucumber](https://cucumber.io/).
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+Чтобы интегрировать фреймворк с WebdriverIO, в NPM должны быть установлены пакеты адаптеров. Вы не можете установить адаптеры в любое место; эти пакеты должны быть установлены там же, где и WebdriverIO. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 
 Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
 
