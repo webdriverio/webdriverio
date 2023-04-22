@@ -99,7 +99,7 @@ This boilerplate includes the following:
 - Features:
     - Configs for:
         - Приложение для iOS и Android
-        - iOS and Android browsers
+        - Браузеры iOS и Android
     - Helpers for:
         - WebView
         - Gestures
@@ -110,7 +110,7 @@ This boilerplate includes the following:
         - Login
         - Forms
         - Swipe
-        - Browsers
+        - Браузеры
 
 ## [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
@@ -118,7 +118,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 - Frameworks
   - WebdriverIO (v7)
   - Mocha
-- Features
+- Возможности
   - [Page Object](PageObjects.md) Model
   - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
   - Allure Report
@@ -170,8 +170,8 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 
 - Возможности
     - Нативные приложения для Android и iOS
-    - Android Chrome browser
-    - iOS Safari browser
+    - Браузер Chrome для Android
+    - Браузер Safari для iOS
     - Page Object Model
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
@@ -255,13 +255,13 @@ This project uses:
 
 Template project to run appium tests on real Roku devices using mocha with page object pattern.
 
-- Frameworks
+- Фреймворки
     - WebdriverIO Async v7
     - Appium 2.0
     - Mocha v7
-    - Allure Reporting
+    - Отчеты Allure
 
-- Features
+- Возможности
     - Page Object Model
     - Typescript
     - Screenshot on failure
