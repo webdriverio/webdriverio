@@ -41,10 +41,10 @@ There are also plenty of services that allow you to run your automation test in 
 - Support for mobile automation (and even native desktop apps)
 - Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
 
-### Disadvantages
+### Недостатки
 
-- Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
-- Limited set of automation capabilities (e.g., no support to throttle CPU or network)
+- Не предназначен для углубленного анализа браузера (например, отслеживания или перехвата сетевых событий)
+- Набор возможностей автоматизации ограничен (например, отсутствие поддержки для тротллинга ЦП или сети)
 - Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
 
 ## DevTools Protocol
@@ -194,12 +194,12 @@ import { remote } from 'webdriverio'
 })()
 ```
 
-### Advantages
+### Преимущества
 
-- Access to more automation capabilities (e.g. network interception, tracing etc.)
-- No need to manage browser drivers
+- Доступ к дополнительным возможностям автоматизации (например, перехват передачи данных, отслеживание и т. д.)
+- Нет необходимости настраивать драйверы браузеров
 
-### Disadvantages
+### Недостатки
 
-- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
-- Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.
+- Поддерживает только браузеры на основе Chromium (например, Chrome, Chromium Edge) и (частично) Firefox
+- __Не__ поддерживается выполнение тестов в облачных сервисах, например, таких как Sauce Labs, BrowserStack и т. д.
