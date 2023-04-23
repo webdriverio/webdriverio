@@ -26,26 +26,26 @@ Welches Framework Sie wählen, bleibt Ihnen überlassen. Die JUnit-Reports werde
 
 Nachdem Sie einige Tests geschrieben haben, können Sie einen neuen Jenkins-Job einrichten. Geben Sie ihm einen Namen und eine Beschreibung:
 
-![Name And Description](/img/jenkins/jobname.png "Name And Description")
+![Name und Beschreibung](/img/jenkins/jobname.png "Name und Beschreibung")
 
 Stellen Sie dann sicher, dass immer die neueste Version Ihres Repositorys abgerufen wird:
 
-![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
+![Jenkins Git-Setup](/img/jenkins/gitsetup.png "Jenkins Git-Setup")
 
-**Now the important part:** Create a `build` step to execute shell commands. The `build` step needs to build your project. Since this demo project only tests an external app, you don't need to build anything. Just install the node dependencies and run the command `npm test` (which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`).
+**Jetzt der wichtige Teil:** Erstellen Sie einen `build` Schritt, um Shell-Befehle auszuführen. Der Schritt `build` muss Ihr Projekt erstellen. Da dieses Demoprojekt nur eine externe App testet, müssen Sie nichts bauen. Installieren Sie einfach die NodeJS Abhängikeiten und führen Sie den Befehl `npm test` aus (das ist ein Alias für `node_modules/.bin/wdio test/wdio.conf.js`).
 
-If you have installed a plugin like AnsiColor, but logs are still not colored, run tests with environment variable `FORCE_COLOR=1` (e.g., `FORCE_COLOR=1 npm test`).
+Wenn Sie ein Plugin wie AnsiColor installiert haben, aber Logs immer noch nicht gefärbt sind, führen Sie Tests mit der Umgebungsvariable `FORCE_COLOR=1` durch (z. B. `FORCE_COLOR=1 npm test`).
 
-![Build Step](/img/jenkins/runjob.png "Build Step")
+![Bauschritt](/img/jenkins/runjob.png "Bauschritt")
 
-After your test, you’ll want Jenkins to track your XUnit report. To do so, you have to add a post-build action called _"Publish JUnit test result report"_.
+Nach Ihrem Test möchten Sie, dass Jenkins Ihren JUnit-Bericht speichert. Dazu müssen Sie eine Post-Build-Aktion mit dem Namen _„Publish JUnit test result report“_hinzufügen.
 
-You could also install an external XUnit plugin to track your reports. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
+Sie können auch ein externes JUnit-Plugin installieren, um Ihre Berichte zu speichern. Die JUnit-Version wird mit der grundlegenden Jenkins-Installation geliefert und reicht vorerst aus.
 
-According to the config file, the XUnit reports will be saved in the project’s root directory. These reports are XML files. So, all you need to do in order to track the reports is to point Jenkins to all XML files in your root directory:
+Gemäß der Konfigurationsdatei werden die JUnit-Berichte im Stammverzeichnis des Projekts gespeichert. Diese Berichte sind XML-Dateien. Alles, was Sie tun müssen, um die Berichte zu speichern, ist, Jenkins auf alle XML-Dateien in Ihrem Stammverzeichnis zu verweisen:
 
-![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
+![Post-Build-Aktion](/img/jenkins/postjob.png "Post-Build-Aktion")
 
-That's it! You’ve now set up Jenkins to run your WebdriverIO jobs. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs, and a list of commands with payload that got used in each test.
+Geschafft! Sie haben jetzt Jenkins eingerichtet, um Ihre WebdriverIO-Jobs auszuführen. Ihr Job liefert nun detaillierte Testergebnisse mit Verlaufsdiagrammen, Stacktrace-Informationen zu fehlgeschlagenen Jobs und eine Liste von Befehlen mit Payload, die in jedem Test verwendet wurden.
 
-![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")
+![Endgültige Jenkins-Integration](/img/jenkins/final.png "Endgültige Jenkins-Integration")
