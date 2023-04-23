@@ -3,17 +3,17 @@ id: donate
 title: Поддержать проект
 ---
 
-Если ваша компания использует WebdriverIO и получает от этого выгоду, пожалуйста, попросите вашего менеджера или отдел маркетинга поддержать наш проект. Ваша поддержка позволит уделять больше времени техническому обслуживанию, а также созданию нового функционала для всех пользователей.
+Если ваша компания использует WebdriverIO и получает от этого выгоду, пожалуйста, попросите вашего менеджера или отдел маркетинга поддержать наш проект. Ваша поддержка позволит нам уделять больше внимания техническому обслуживанию, а также созданию нового функционала для всех пользователей.
 
 Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+Спасибо всем, кто пожертвует или уже внёс свой вклад и, следовательно, поддержал проект и всех, кто связан с ним. Это действительно много значит для нас ❤️
 
-## Expense Policies
+## Политика Расходов
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+Мы хотим быть прозрачными в том аспекте, на какие нужны расходуются общие вложения. Каждый должен иметь право участвовать в формировании расходов для разработки тех или иных функций. Мы также хотим отплатить сообществу, разрешив нам оплачивать расходы на различные мероприятия. Следующие расходы могут быть возмещены со стороны коллектива:
 
-### Event Expenses
+### Расходы на Мероприятия
 
 If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
 
