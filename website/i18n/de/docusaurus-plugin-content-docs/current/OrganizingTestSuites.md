@@ -116,9 +116,9 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Gruppieren von Tests zur sequenziellen Ausführung
 
-Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden.  Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
+Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden.  Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen.  Beispiele hierfür sind hauptsächlich dort, wo hohe Einrichtungskosten anfallen, z.B. das Transpilieren von Code oder das Bereitstellen von Cloud-Instanzen für die Umgebung unter Test. Aber es gibt auch erweiterte Nutzerszenarien, die von dieser Fähigkeit profitieren.
 
-To group tests to run in a single instance, define them as an array within the specs definition.
+Um Tests zur Ausführung in einer einzigen Browser-Sitzung zu gruppieren, definieren Sie sie als Array innerhalb der Specs Definition.
 
 ```json
     "specs": [
@@ -130,9 +130,9 @@ To group tests to run in a single instance, define them as an array within the s
         "./test/specs/test_b*.js",
     ],
 ```
-In the example above, the tests 'test_login.js', 'test_product_order.js' and 'test_checkout.js' will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
+Im obigen Beispiel werden die Tests „test_login.js“, „test_product_order.js“ und „test_checkout.js“ nacheinander in einer einzelnen Browser Sitzung ausgeführt, und jeder der „test_b*“-Tests wird gleichzeitig in einzelnen Browser Sitzungen ausgeführt.
 
-It is also possible to group specs defined in suites, so you can now also define suites like this:
+Es ist auch möglich, in Suiten definierte Spezifikationen zu gruppieren, sodass Sie jetzt auch Suiten wie folgt definieren können:
 ```json
     "suites": {
         end2end: [
@@ -145,9 +145,9 @@ It is also possible to group specs defined in suites, so you can now also define
         allb: ["./test/specs/test_b*.js"]
 },
 ```
-and in this case all of the tests of the "end2end" suite would be run in a single instance.
+und in diesem Fall würden alle Tests der "end2end"-Suite in einer einzigen Browser Sitzung ausgeführt.
 
-When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
+Wenn Tests, die einem Glob Muster folgen ausgeführt werden, werden die Spezifikationsdateien in alphabetischer Reihenfolge ausgeführt
 
 ```json
   "suites": {
@@ -155,7 +155,7 @@ When running tests sequentially using a pattern, it will run the spec files in a
   },
 ```
 
-This will run the files matching the pattern above in the following order:
+Dadurch werden die Dateien, die dem obigen Muster entsprechen, in der folgenden Reihenfolge ausgeführt:
 
 ```
   [
@@ -165,111 +165,111 @@ This will run the files matching the pattern above in the following order:
   ]
 ```
 
-## Run Selected Tests
+## Ausgewählte Tests Ausführen
 
-In some cases, you may wish to only execute a single test (or subset of tests) of your suites.
+In einigen Fällen möchten Sie vielleicht nur einen einzelnen Test (oder eine Teilmenge von Tests) Ihrer Suiten ausführen.
 
-With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run. The path is resolved relative from your current working directory.
+Mit dem Parameter `--spec` können Sie angeben, welche _Suite_ (Mocha, Jasmine) oder _Feature_ (Cucumber) ausgeführt werden soll. Der Pfad wird relativ zu Ihrem aktuellen Arbeitsverzeichnis aufgelöst.
 
-For example, to run only your login test:
+Zum Beispiel, um nur den Login-Test auszuführen:
 
 ```sh
 wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
-Or run multiple specs at once:
+Oder führen Sie mehrere Tests gleichzeitig aus:
 
 ```sh
 wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
-If the `--spec` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+Wenn der Wert `--spec` nicht auf eine bestimmte Test-Datei verweist, wird er stattdessen verwendet, um die in Ihrer Konfiguration definierten Spezifikationsdateinamen zu filtern.
 
-To run all specs with the word “dialog” in the spec file names, you could use:
+Um alle Spezifikationen mit dem Wort „dialog“ in den Namen der Spezifikationsdateien auszuführen, könnten Sie Folgendes verwenden:
 
 ```sh
 wdio wdio.conf.js --spec dialog
 ```
 
-Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`), you _can't_ use (for example) `describe.only` at the top of your spec file to instruct Mocha to run only that suite.
+Beachten Sie, dass jede Testdatei in einem einzelnen Test-Runner-Prozess ausgeführt wird. Da WebdriverIO Dateien nicht im Voraus scant (Informationen zum Weiterleiten von Dateinamen an `wdio`finden Sie im nächsten Abschnitt), können Sie __ (zum Beispiel) `description.only` am Anfang Ihrer Spezifikationsdatei verwenden, um mit Mocha oder Jasmine nur diese Suite auszuführen.
 
-This feature will help you to accomplish the same goal.
+Diese Funktion wird Ihnen helfen, dasselbe Ziel zu erreichen.
 
-When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
+Wenn die Option `--spec` angegeben wird, überschreibt sie alle Muster, die durch den Parameter `specs` der Konfigurations- oder auf Capability-Ebene definiert sind.
 
-## Exclude Selected Tests
+## Ausgewählte Tests Ausschließen
 
-When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber).
+Wenn Sie bei Bedarf bestimmte Test-Dateien von einer Ausführung ausschließen müssen, können Sie den Parameter `--exclude` verwenden.
 
-For example, to exclude your login test from the test run:
+Um beispielsweise Ihren Login-Test vom Testlauf auszuschließen:
 
 ```sh
 wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
 
-Or, exclude multiple spec files:
+Oder schließen Sie mehrere Test-Dateien gleichzeitig aus:
 
  ```sh
 wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
 
-Or, exclude a spec file when filtering using a suite:
+Oder schließen Sie eine Test-Datei aus, wenn Sie mit einer Suite filtern:
 
 ```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
+Wenn die Option `--exclude` angegeben wird, überschreibt sie alle Muster, die durch den Parameter `Exclude` der Konfigurations- oder auf Capability-Ebene definiert sind.
 
-## Run Suites and Test Specs
+## Ausführen von Suites und Test Datein
 
-Run an entire suite along with individual specs.
+Führen Sie eine ganze Suite zusammen mit individuellen Tests aus:
 
 ```sh
 wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
-## Run Multiple, Specific Test Specs
+## Ausführen von mehrere spezifische Tests
 
-It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to run. WebdriverIO's `wdio` command line utility accepts piped-in filenames (from `find`, `grep`, or others).
+Manchmal ist es notwendig mehrere verschiedene Tests dynamisch anzugeben. Der `wdio` CLI Befehl von WebdriverIO akzeptiert das Angeben von Dateinamen via Pipe Befehl (von `find`, `grep`oder anderen).
 
-Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
+Diese Dateinamen überschreiben die Liste der Globs oder Dateinamen, die in der `spec` -Liste der Konfiguration angegeben sind.
 
 ```sh
 grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
-_**Note:** This will_ not _override the `--spec` flag for running a single spec._
+_**Hinweis:** Dies überschreibt_ nicht _den `--spec` Parameter zum Ausführen eines einzelnen Tests._
 
-## Running Specific Tests with MochaOpts
+## Ausführen spezifischer Tests mit MochaOpts
 
-You can also filter which specific `suite|describe` and/or `it|test` you want to run by passing a mocha specific argument: `--mochaOpts.grep` to the wdio CLI.
+Sie können auch angeben, welche spezifische `suite | describe` und/oder `it | test` Sie ausführen möchten, indem Sie ein Mocha-spezifisches Argument übergeben: `--mochaOpts.grep` als CLI Parameter.
 
 ```sh
 wdio wdio.conf.js --mochaOpts.grep myText
 wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 ```
 
-_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+_**Hinweis:** Mocha filtert die Tests, nachdem der WDIO-Test-Runner die Browser Sessions erstellt hat, sodass möglicherweise mehrere Browser erzeugt, aber nicht tatsächlich ausgeführt werden._
 
-## Stop testing after failure
+## Stoppen Sie den Testlauf nach einem Fehler
 
-With the `bail` option, you can tell WebdriverIO to stop testing after any test fails.
+Mit der Option `bail` können Sie WebdriverIO anweisen, den Testlauf zu beenden, nachdem der erste Test fehlgeschlagen ist.
 
-This is helpful with large test suites when you already know that your build will break, but you want to avoid the lengthy wait of a full testing run.
+Dies ist bei großen Testsuiten hilfreich, wenn Sie bereits wissen, dass Ihr Build fehlschlägt, Sie aber das lange Warten auf einen vollständigen Testlauf vermeiden möchten.
 
-The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
+Die Option `bail` erwartet eine Zahl, die angibt, wie viele Testfehler auftreten können, bevor WebdriverIO den gesamten Testlauf stoppt. Der Standardwert ist `0`, was bedeutet, dass immer alle Tests ausführt werden, auch wenn einer fehlschlägt.
 
-Please see [Options Page](Configuration.md) for additional information on the bail configuration.
-## Run options hierarchy
+Weitere Informationen zur bail Option finden Sie auf der [Options](Configuration.md) Seite.
+## Hierarchie der Ausführungsoptionen
 
-When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
+Bei der Deklaration, welche Tests ausgeführt werden sollen, gibt es eine bestimmte Hierarchie, die definiert, welcher Parameter Typ Vorrang hat. Derzeit ist es wie folgt definiert, von der höchsten Priorität zur niedrigsten:
 
-> CLI `--spec` argument > capability `specs` pattern > config `specs` pattern CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
+> CLI `--spec` Argument > Capability `specs` pattern > config `specs` pattern CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
 
-If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+Wenn nur der Konfigurationsparameter angegeben wird, wird er auf alle Capabilities angewendet. Wenn Sie das Muster jedoch auf der Capability-Ebene definieren, wird es anstelle des Konfigurationsmusters verwendet. Am Ende überschreibt jedes auf der Befehlszeile definierte Spec-Muster alle anderen angegebenen Muster.
 
-### Using capability-defined spec patterns
+### Verwenden von funktionsdefinierten Spezifikationsmustern
 
 When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
 
