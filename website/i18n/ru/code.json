@@ -398,7 +398,7 @@
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
-    "message": "404. Image not found",
+    "message": "404. Изображение не найдено",
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
@@ -530,18 +530,18 @@
     "message": "WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages native browser APIs to enable integrations to popular developer tools such as {devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to commands for validating if you app is a valid PWA application as well as to commands for capturing frontend performance metrics such as `speedIndex` and others."
   },
   "homepage.features.crossBrowser": {
-    "message": "Cross browser support via automation through {webdriverLink} and {bidiLink}."
+    "message": "Кросс-браузерная поддержка автоматизации по средствам {webdriverLink} и {bidiLink}."
   },
   "homepage.features.mobile": {
-    "message": "Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}."
+    "message": "Запускайте WebdriverIO на реальных мобильных устройствах, смарт-телевизорах или других IoT-устройствах с помощью {appiumLink}."
   },
   "homepage.features.support": {
-    "message": "Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins."
+    "message": "Работает {supportChannelLink} с более чем 8 тысячами участниками и богатой экосистемой плагинов, поддерживаемых сообществом."
   },
   "homepage.tagline": {
-    "message": "Next-gen browser and mobile automation test framework for Node.js"
+    "message": "Фреймворк нового уровня для автоматизации тестирования в браузерах и на мобильных устройствах для Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "Оснащается смарт-селекторные стратегиями, которые упрощающают взаимодействие, например, с {reactComponents} или с глубокими селекторными запросами с вложенными деревьями теневого DOM. Так как взаимодействие происходит с помощью стандартизированного протокола автоматизации, что гарантирует нативное поведение, а не просто эмуляцию JavaScript."
   }
 }
