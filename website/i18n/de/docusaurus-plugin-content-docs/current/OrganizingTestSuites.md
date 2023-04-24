@@ -271,11 +271,11 @@ Wenn nur der Konfigurationsparameter angegeben wird, wird er auf alle Capabiliti
 
 ### Verwenden von funktionsdefinierten Spezifikationsmustern
 
-When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+Wenn Sie ein Spezifikationsmuster auf der Capability Ebende definieren, überschreibt es alle auf der Konfigurationsebene definierten Muster. Dies ist nützlich, wenn Tests basierend auf unterschiedlichen Gerätefunktionen getrennt werden müssen. In solchen Fällen ist es sinnvoller, ein generisches Spezifikationsmuster auf der Konfigurationsebene und spezifischere Muster auf der Capability-Ebene zu verwenden.
 
-For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
+Angenommen, Sie haben zwei Verzeichnisse, eines für Android-Tests und eines für iOS-Tests.
 
-Your config file may define the pattern as such, for non-specific device tests:
+Ihre Konfigurationsdatei kann das Muster für unspezifische Gerätetests als solches definieren:
 
 ```js
 {
@@ -283,7 +283,7 @@ Your config file may define the pattern as such, for non-specific device tests:
 }
 ```
 
-but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
+und dann per Capability specizifische Geräte-gebundene Testspezifikationen verwenden:
 
 ```json
 {
@@ -303,7 +303,7 @@ but then, you will have different capabilities for your Android and iOS devices,
 }
 ```
 
-If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
+Wenn Sie beide Capabilities in Ihrer Konfigurationsdatei verwenden, führt das Android-Gerät nur die Tests unter dem Namensraum „android“ aus, und die iOS-Tests führen nur Tests unter dem Namensraum „ios“ aus!
 
 ```js
 //wdio.conf.js
