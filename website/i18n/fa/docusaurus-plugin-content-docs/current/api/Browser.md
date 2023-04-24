@@ -1,28 +1,28 @@
 ---
 id: browser
-title: The Browser Object
+title: آبجکت Browser
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__گسترشی برای:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+آبجکت Browser نمونه شیئی است که برای کنترل مرورگر یا تلفن همراه از آن استفاده می‌کنید. اگر از اجرا کننده WDIO استفاده می‌کنید، می‌توانید به نمونه WebDriver از طریق شیء جهانی `browser` یا `driver` دسترسی داشته باشید یا آن را با استفاده از [`@wdio/globals`](/docs/api/globals)ایمپورت کنید. اگر از WebdriverIO در حالت مستقل استفاده می کنید، شی browser از طریق تابع [`remote`](/docs/api/modules#remoteoptions-modifier) برگردانده می شود.
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+یک session توسط اجرا کننده تست مقداردهی اولیه می شود. در مورد پایان دادن به session نیز همین امر برقرار است. این امر نیز توسط اجرا کننده تست انجام می‌پذیرد.
 
-## Properties
+## ویژگی ها
 
-A browser object has the following properties:
+یک شی browser دارای ویژگی های زیر است:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                               |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                           |
+| نام                       | نوع        | جزئیات                                                                                                                                           |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `قابلیت ها(capabilities)` | `شیء`      | قابلیت (capabilitie) اختصاص داده شده از سرور remote.<br /><b>مثال:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                               |
+| `requestedCapabilities`   | `شیء`      | قابلیت (capabilitie) درخواست شده از طرف سرور remote.<br /><b>مثال:</b><pre>{ browserName: 'chrome' }</pre>                               |
+| `sessionId`               | `String`   | Session id که از سرور remote اختصاص داده شده است.                                                                                                |
+| `options`                 | `Object`   | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. See more [setup types](/docs/setuptypes). |
+| `commandList`             | `String[]` | لیستی از دستورات ثبت شده در نمونه ی browser                                                                                                      |
+| `isMobile`                | `Boolean`  | یک session برای تلفن همراه را نشان می دهد. در [پرچم های موبایل](#mobile-flags)بیشتر بخوانید.                                                     |
+| `isIOS`                   | `Boolean`  | یک session برای ios را نشان می دهد. در [پرچم های موبایل](#mobile-flags)بیشتر بخوانید.                                                            |
+| `isAndroid`               | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                      |
 
 ## Methods
 
