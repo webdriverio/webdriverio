@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "7.30.2",
+  "version": "7.31.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@types/node": "^18.0.0",
-    "@wdio/config": "7.30.2",
+    "@wdio/config": "7.31.1",
     "@wdio/logger": "7.26.0",
     "@wdio/protocols": "7.27.0",
     "@wdio/types": "7.30.2",
