@@ -1,11 +1,11 @@
 ---
 id: selectors
-title: Selectors
+title: Selektoren
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+Das [WebDriver Protocol](https://w3c.github.io/webdriver/) bietet mehrere Auswahlstrategien zum Abfragen eines Elements an. WebdriverIO vereinfacht sie, um die Auswahl von Elementen einfach zu halten. Bitte beachten Sie, dass die Befehle zum Abfragen von Elementen zwar `$` und `$$` heißen, aber nichts mit jQuery oder der [Sizzle Selector Engine](https://github.com/jquery/sizzle) zu tun haben.
 
-While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+Obwohl so viele verschiedene Selektoren verfügbar sind, bieten nur wenige von ihnen eine verlässliche Möglichkeit, das richtige Element zu finden. Zum Beispiel mit der folgenden Schaltfläche:
 
 ```html
 <button
@@ -19,53 +19,53 @@ While there are so many different selectors available, only a few of them provid
 </button>
 ```
 
-We __do__ and __do not__ recommend the following selectors:
+Empfehlen wir (oder nicht) die folgenden Selektoren:
 
-| Selector                                      | Recommended  | Notes                                                       |
-| --------------------------------------------- | ------------ | ----------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Never      | Worst - too generic, no context.                            |
-| `$('.btn.btn-large')`                         | 🚨 Never      | Bad. Coupled to styling. Highly subject to change.          |
-| `$('#main')`                                  | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write.                       |
-| `$('button[name="submission"]')`              | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics.   |
-| `$('button[data-testid="submit"]')`           | ✅ Good       | Requires additional attribute, not connected to a11y.       |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Always     | Best. Resembles how the user interacts with the page.       |
+| Selektor                                      | Empfehlung | Anmerkungen                                                                |
+| --------------------------------------------- | ---------- | -------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Niemals  | Am schlimmsten - zu allgemein, kein Kontext.                               |
+| `$('.btn.btn-large')`                         | 🚨 Niemals  | Weniger Gut. Verbunden mit Styling. Fehler durch Style-Änderungen möglich. |
+| `$('#main')`                                  | ⚠️ Sparsam | Besser. Aber immer noch an Styling oder JS-Event-Listener gekoppelt.       |
+| `$(() => document.queryElement('button'))` | ⚠️ Sparsam | Ermöglicht effektive Abfragen, allerdings komplex zu schreiben.            |
+| `$('button[name="submission"]')`              | ⚠️ Sparsam | Gekoppelt an das Attribut `name`, das HTML-Semantik hat.                   |
+| `$('button[data-testid="submit"]')`           | ✅ Gut      | Erfordert zusätzliches Attribut, das keine weitere Funktion hat.           |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Immer    | Am besten geeignet. Ähnelt, wie der Benutzer mit der Seite interagiert.    |
 
-## CSS Query Selector
+## CSS-Selektoren
 
-If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
+Wenn nicht anders angegeben, fragt WebdriverIO Elemente mit dem [CSS Selektor](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) ab, z. B.:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L7-L8
 ```
 
-## Link Text
+## Link-Text
 
-To get an anchor element with a specific text in it, query the text starting with an equals (`=`) sign.
+Um ein Link-Element mit einem bestimmtem Text zu bekommen, fragen Sie den Text beginnend mit einem Gleichheitszeichen (`=`) ab.
 
-For example:
+Zum Beispiel:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L3
 ```
 
-You can query this element by calling:
+Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L16-L18
 ```
 
-## Partial Link Text
+## Teillinktext
 
-To find a anchor element whose visible text partially matches your search value, query it by using `*=` in front of the query string (e.g. `*=driver`).
+Um ein Link-Element zu finden, dessen sichtbarer Text teilweise mit Ihrem Suchwert übereinstimmt, fragen Sie es ab, indem Sie `*=` vor die Abfragezeichenfolge setzen (z. B. `*=driver`).
 
-You can query the element from the example above by also calling:
+Sie können das Element aus dem obigen Beispiel abfragen, indem Sie auch Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L24-L26
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Hinweis:__ Sie können nicht mehrere Selektorstrategien in einem Selektor mischen. Verwenden Sie mehrere verkettete Elementabfragen, um dasselbe Ziel zu erreichen, z. B.:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
@@ -73,41 +73,41 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('*=driver')
 ```
 
-## Element with certain text
+## Element mit bestimmtem Text
 
-The same technique can be applied to elements as well.
+Die gleiche Technik kann auch auf Elemente angewendet werden.
 
-For example, here's a query for a level 1 heading with the text "Welcome to my Page":
+Hier ist zum Beispiel eine Abfrage für eine Überschrift der Ebene 1 mit dem Text „Welcome to my page“:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L2
 ```
 
-You can query this element by calling:
+Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
 ```
 
-Or using query partial text:
+Oder verwenden Sie die Teiltext-Abfrage:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
 ```
 
-The same works for `id` and `class` names:
+Das gleiche funktioniert für `id` und `class` Namen:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L4
 ```
 
-You can query this element by calling:
+Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Hinweis:__ Sie können nicht mehrere Selektorstrategien in einem Selektor mischen. Verwenden Sie mehrere verkettete Elementabfragen, um dasselbe Ziel zu erreichen, z. B.:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
