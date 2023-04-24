@@ -115,23 +115,23 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('h1*=Welcome')
 ```
 
-## Tag Name
+## Tag-Name
 
-To query an element with a specific tag name, use `<tag>` or `<tag />`.
+Um ein Element mit einem bestimmten Tag-Namen abzufragen, verwenden Sie `<tag>` oder `<tag />`.
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L5
 ```
 
-You can query this element by calling:
+Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L61-L62
 ```
 
-## Name Attribute
+## Namensattribut
 
-For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
+Zum Abfragen von Elementen mit einem bestimmten Namensattribut können Sie entweder einen normalen CSS3-Selektor verwenden oder die bereitgestellte Namensstrategie aus dem [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) verwenden, indem Sie etwas wie [name="some-name"] als Selektorparameter übergeben:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L6
@@ -141,41 +141,43 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L68-L69
 ```
 
-__Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+__Hinweis:__ Diese Auswahlstrategie ist veraltet und funktioniert nur in alten Browsern, die vom JSONWireProtocol-Protokoll oder von Appium ausgeführt werden.
 
 ## xPath
 
-It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
+Es ist auch möglich, Elemente über einen bestimmten [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath)abzufragen.
 
-An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
+Ein xPath-Selektor hat ein Format wie `//body/div[6]/div[1]/span[1]`.
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/xpath.html
 ```
 
-You can query the second paragraph by calling:
+Sie können den zweiten `
+
+` Tag abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L75-L76
 ```
 
-You can use xPath to also traverse up and down the DOM tree:
+Sie können xPath auch verwenden, um den DOM-Baum nach oben und unten zu durchlaufen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L78-L79
 ```
 
-## Accessibility Name Selector
+## Accessibility Name Selektor
 
-Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+Fragen Sie Elemente nach ihrem Accessibility Namen ab. Der Accessibility Name wird von einem Screenreader angesagt, wenn dieses Element den Fokus erhält. Der Accessibility Name kann sowohl visueller Inhalt als auch versteckte Textalternativen darstellen.
 
 :::info
 
-You can read more about this selector in our [release blog post](/blog/2022/09/05/accessibility-selector)
+Weitere Informationen zu diesem Selektor finden Sie in unserem [Release-Blogbeitrag](/blog/2022/09/05/accessibility-selector)
 
 :::
 
-### Fetch by `aria-label`
+### Finden von Elementen via `Aria-Label`
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L1
@@ -185,7 +187,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L86-L87
 ```
 
-### Fetch by `aria-labelledby`
+### Finden von Elementen via `aria-labelledby`
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L2-L3
@@ -195,7 +197,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L93-L94
 ```
 
-### Fetch by content
+### Finden von Elementen via dessen Inhalt
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L4
@@ -205,7 +207,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L100-L101
 ```
 
-### Fetch by title
+### Finden von Elementen durch ein "titel" Attribut
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L5
@@ -215,7 +217,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L107-L108
 ```
 
-### Fetch by `alt` property
+### Finden von Elementen durch ein `alt` Attribut
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L6
@@ -225,7 +227,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L114-L115
 ```
 
-## ARIA - Role Attribute
+## ARIA - Rollen-Attribut
 
 For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
 
