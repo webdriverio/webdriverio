@@ -90,13 +90,13 @@ export const {
 }
 ```
 
-### Runner Options
+### Runner-Optionen
 
-The Browser runner allows following configurations:
+Der Browser-Runner erlaubt folgende Konfigurationen:
 
 #### `preset`
 
-If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`.
+Wenn Sie Komponenten mit einem der oben genannten Frameworks testen, können Sie eine Voreinstellung definieren, die sicherstellt, dass alles sofort konfiguriert ist.
 
 __Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
 
@@ -117,7 +117,7 @@ export const {
 
 #### `viteConfig`
 
-Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
+Definieren Sie Ihre eigene [Vite-Konfiguration](https://vitejs.dev/config/). Sie können entweder ein benutzerdefiniertes Objekt übergeben oder eine vorhandene Datei `vite.conf.ts` importieren, wenn Sie Vite.js für Ihre Entwicklungsumgebung verwenden. Beachten Sie, dass WebdriverIO benutzerdefinierte Vite-Konfigurationen beibehält, um die Testumgebung einzurichten.
 
 __Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272) or `(env: ConfigEnv) => UserConfig | Promise<UserConfig>`<br /> __Example:__
 
@@ -142,41 +142,41 @@ export const {
 
 #### `headless`
 
-If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`.
+Wenn auf `true` gesetzt, aktualisiert der Runner die Fähigkeiten, um Tests Headless auszuführen. Standardmäßig ist dies in CI-Umgebungen aktiviert, in denen eine Umgebungsvariable wie `CI` auf `'1'` oder `'true'`gesetzt ist.
 
 __Type:__ `boolean`<br /> __Default:__ `false`, set to `true` if `CI` environment variable is set
 
 #### `rootDir`
 
-Project root directory.
+Hauptverzeichnis des Projekts.
 
 __Type:__ `string`<br /> __Default:__ `process.cwd()`
 
 #### `coverage`
 
-WebdriverIO supports test coverage reporting through [`istanbul`](https://istanbul.js.org/). See [Coverage Options](#coverage-options) for more details.
+WebdriverIO unterstützt Testabdeckungsberichte über [`istanbul`](https://istanbul.js.org/). Weitere Einzelheiten finden Sie unter [Coverage Optionen](#coverage-options).
 
 __Type:__ `object`<br /> __Default:__ `undefined`
 
-### Coverage Options
+### Coverage Optionen
 
-The following options allow to configure coverage reporting.
+Mit den folgenden Optionen können Sie die Coverage-Reports konfigurieren.
 
 #### `enabled`
 
-Enables coverage collection.
+Aktiviert das Erstellen von Coverage-Reports.
 
 __Type:__ `boolean`<br /> __Default:__ `false`
 
 #### `include`
 
-List of files included in coverage as glob patterns.
+Liste der Dateien als Glob-Muster definiert, die in der Abdeckung enthalten sind.
 
 __Type:__ `string[]`<br /> __Default:__ `[**]`
 
 #### `exclude`
 
-List of files excluded in coverage as glob patterns.
+Liste der Dateien als Glob-Muster definiert, die in der Abdeckung ausgeschlossen sind.
 
 __Type:__ `string[]`<br /> __Default:__
 
@@ -199,65 +199,65 @@ __Type:__ `string[]`<br /> __Default:__
 
 #### `extension`
 
-List of file extensions the report should include.
+Liste der Dateierweiterungen, die der Bericht einbeziehen sollte.
 
 __Type:__ `string | string[]`<br /> __Default:__ `['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']`
 
 #### `reportsDirectory`
 
-Directory to write coverage report to.
+Verzeichnis, in das der Abdeckungsbericht geschrieben werden soll.
 
 __Type:__ `string`<br /> __Default:__ `./coverage`
 
 #### `reporter`
 
-Coverage reporters to use. See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
+Liste der zu erstellenden Reports. Siehe [istanbul Dokumentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) für eine detaillierte Liste aller Reporter.
 
 __Type:__ `string[]`<br /> __Default:__ `['text', 'html', 'clover', 'json-summary']`
 
 #### `perFile`
 
-Check thresholds per file. See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+Überprüfen Sie die Schwellenwerte pro Datei. Siehe `lines`, `functions`, `branches` und `statements` für die tatsächlichen Schwellenwerte.
 
 __Type:__ `boolean`<br /> __Default:__ `false`
 
 #### `clean`
 
-Clean coverage results before running tests.
+Bereinigen Sie die Abdeckungsergebnisse, bevor Sie Tests durchführen.
 
 __Type:__ `boolean`<br /> __Default:__ `true`
 
 #### `lines`
 
-Threshold for lines.
+Schwelle für Linien.
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `functions`
 
-Threshold for functions.
+Schwellenwert für Funktionen.
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `branches`
 
-Threshold for branches.
+Schwellenwert für Zweige.
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `statements`
 
-Threshold for statements.
+Schwellenwert für Anweisungen.
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
-### Limitations
+### Einschränkungen
 
-When using the WebdriverIO browser runner, it's important to note that thread blocking dialogs like `alert` or `confirm` cannot be used natively. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang.
+Bei Verwendung des Browser-Runners ist zu beachten, dass Dialoge zum Blockieren von Threads wie `alert` oder `confirm` nicht nativ verwendet werden können. Dies liegt daran, dass sie die Webseite blockieren, was bedeutet, dass WebdriverIO nicht weiter mit der Seite kommunizieren kann, wodurch die Ausführung hängen bleibt.
 
-In such situations, WebdriverIO provides default mocks with default returned values for these APIs. This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking).
+In solchen Situationen stellt WebdriverIO Standard-Mocks mit standardmäßig zurückgegebenen Werten für diese APIs bereit. Dadurch wird sichergestellt, dass die Ausführung nicht hängen bleibt, wenn der Benutzer versehentlich synchrone Popup-Web-APIs verwendet. Es wird dem Benutzer jedoch dennoch empfohlen, diese Web-APIs für eine bessere Erfahrung zu simulieren. Lesen Sie mehr in [Mocking](/docs/component-testing/mocking).
 
-### Examples
+### Beispiele
 
-Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.
+Schauen Sie sich unbedingt die Dokumentation zu [Komponententests](https://webdriver.io/docs/component-testing) an und werfen Sie einen Blick in das [Beispiel-Repository](https://github.com/webdriverio/component-testing-examples), die diese und verschiedene andere Frameworks verwenden.
 
