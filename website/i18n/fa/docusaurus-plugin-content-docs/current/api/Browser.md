@@ -20,31 +20,31 @@ __گسترشی برای:__ [EventEmitter](https://nodejs.org/api/events.html#cla
 | `sessionId`               | `String`   | Session id که از سرور remote اختصاص داده شده است.                                                                                                |
 | `options`                 | `Object`   | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. See more [setup types](/docs/setuptypes). |
 | `commandList`             | `String[]` | لیستی از دستورات ثبت شده در نمونه ی browser                                                                                                      |
-| `isMobile`                | `Boolean`  | یک session برای تلفن همراه را نشان می دهد. در [پرچم های موبایل](#mobile-flags)بیشتر بخوانید.                                                     |
-| `isIOS`                   | `Boolean`  | یک session برای ios را نشان می دهد. در [پرچم های موبایل](#mobile-flags)بیشتر بخوانید.                                                            |
-| `isAndroid`               | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                      |
+| `isMobile`                | `Boolean`  | یک session برای تلفن همراه را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                    |
+| `isIOS`                   | `Boolean`  | یک session برای ios را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                           |
+| `isAndroid`               | `Boolean`  | یک session برای Android را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                       |
 
-## Methods
+## متود ها(توابع)
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+بر اساس پشتیبان اتوماسیون مورد استفاده برای session شما، WebdriverIO مشخص می کند که کدام [دستور های پروتکل](/docs/api/protocols) به شی [browser](/docs/api/browser) متصل می شود. برای مثال، اگر یک session خودکار را در Chrome اجرا کنید، به دستورات خاص Chromium مانند [`elementHover`](/docs/api/chromium#elementhover) دسترسی خواهید داشت اما به هیچ یک از [فرمان های Appium](/docs/api/appium) دسترسی ندارید.
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+علاوه بر این WebdriverIO مجموعه ای از روش های راحت را ارائه می دهد که برای تعامل با مرورگر [](/docs/api/browser) یا [عناصر](/docs/api/element) در صفحه توصیه می شود از آنها استفاده کنید.
 
-In addition to that the following commands are available:
+علاوه بر آن دستورات زیر نیز موجود است:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                          |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                   |
+| نام                  | پارامترها                                                                                                              | جزئیات                                                                                                                                                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | اجازه می دهد تا دستورات سفارشی را تعریف کرد که می توان از شی browser برای ترکیب های مختلف فراخوانی شود. در راهنمای [Custom Command](/docs/customcommands) بیشتر بخوانید.                                                     |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | اجازه می دهد تا هر دستور مرورگر را با عملکرد سفارشی بازنویسی کنید. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | اجازه می‌دهد تا استراتژی سفارشی خاصی برای انتخابگر ایجاد کنید. در راهنمای [انتخاب گر ها](/docs/selectors#custom-selector-strategies) بیشتر بخوانید.                                                                          |
 
-## Remarks
+## ملاحظات
 
-### Mobile Flags
+### پرچم های موبایل
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+اگر نیاز دارید تست خود را بر اساس اینکه آیا session شما در دستگاه تلفن همراه اجرا می شود یا نه تغییر دهید، می توانید برای بررسی پرچم های تلفن همراه را چک کنید.
 
-For example, given this config:
+به عنوان مثال، با توجه به این پیکربندی:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+شما می توانید در تست خود به این پرچم ها دسترسی داشته باشید:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+این موضوع می تواند مفید باشد اگر برای مثال بخواهید انتخابگر خودتان را در [ اشیاء صفحه](PageObjects.md) بر اساس نوع دستگاه تعریف کنید. برای مثال:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+همچنین می‌توانید از این پرچم‌ها برای اجرای تست‌های خاص برای انواع دستگاه‌های خاص استفاده کنید:
 
 ```js
 // mytest.e2e.js
@@ -106,21 +106,21 @@ describe('my test', () => {
 })
 ```
 
-### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+### رویدادها
+شی browser یک EventEmitter است و چند رویداد برای استفاده های مختلف شما ارسال می شود.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+در اینجا لیستی از رویدادها وجود دارد. به خاطر داشته باشید که این هنوز لیست کامل رویدادهای موجود نیست. شما می توانید سند را با افزودن توضیحات بیشتر به روز رسانی کنید.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+این رویدادی برای اندازه گیری عملیات ها در سطح WebDriver است. هر زمان که WebdriverIO درخواستی را به Backend WebDriver ارسال می کند، این رویداد با اطلاعات مفیدی منتشر می شود:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: مدت زمان درخواست بر حسب میلی ثانیه.
+- `error`: در صورت عدم موفقیت درخواست، شیء خطا.
+- `request`: شی درخواست. شما می توانید آدرس صفحه، روش ارسال، هدر و غیره را پیدا کنید.
+- `retryCount`: اگر `0`باشد، درخواست اولین تلاش بوده است. زمانی که WebDriverIO دوباره در لایه های زیرین تلاش می کند، افزایش می یابد.
+- `success`: مقدار بولین برای نشان دادن موفقیت درخواست. اگر `false`باشد، ویژگی `error` نیز ارائه خواهد شد.
 
-An example event:
+یک رویداد نمونه:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -133,4 +133,4 @@ Object {
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+می‌توانید دستورات سفارشی را در محدوده browser تنظیم کنید تا کار هایی که به طور مرتب استفاده می‌شود را در جایی دور انتزاعی کنید. برای اطلاعات بیشتر راهنمای ما در مورد [دستورات سفارشی](/docs/customcommands#adding-custom-commands) را بررسی کنید.
