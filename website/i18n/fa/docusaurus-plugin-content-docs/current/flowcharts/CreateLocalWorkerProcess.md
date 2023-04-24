@@ -3,4 +3,4 @@ id: createlocalworkerprocess
 title: Create worker process
 ---
 
-This flowchart explains how a worker process is created.
+این فلوچارت چگونگی ایجاد یک worker process را توضیح می دهد.
