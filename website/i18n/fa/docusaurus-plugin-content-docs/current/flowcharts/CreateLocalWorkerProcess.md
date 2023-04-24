@@ -1,6 +1,6 @@
 ---
 id: createlocalworkerprocess
-title: Create worker process
+title: ایجاد worker process ها
 ---
 
 این فلوچارت چگونگی ایجاد یک worker process را توضیح می دهد.
