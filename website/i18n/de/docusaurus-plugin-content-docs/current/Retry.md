@@ -1,6 +1,6 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: Fehlerhafte Tests Wiederholen
 ---
 
 import Tabs from '@theme/Tabs';
