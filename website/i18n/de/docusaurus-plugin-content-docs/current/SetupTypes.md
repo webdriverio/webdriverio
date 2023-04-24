@@ -1,16 +1,16 @@
 ---
 id: setuptypes
-title: Setup Types
+title: Setup-Typen
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO kann für verschiedene Zwecke verwendet werden. Es implementiert die WebDriver-Protokoll-API und kann einen Browser automatisiert ausführen. Das Framework ist so konzipiert, dass es in jeder beliebigen Umgebung und für jede Art von Aufgabe gewappnet ist. Es ist unabhängig von Frameworks von Drittanbietern und benötigt nur Node.js, um ausgeführt zu werden.
 
-## Protocol Bindings
+## Protokollbindungen
 
-For basic interactions with the WebDriver and other automation protocols WebdriverIO uses its own protocol bindings based on the [`webdriver`](https://www.npmjs.com/package/webdriver) NPM package:
+Für grundlegende Interaktionen mit dem WebDriver und anderen Automatisierungsprotokollen verwendet WebdriverIO seine eigenen Protokollbindungen basierend auf dem [`webdriver`](https://www.npmjs.com/package/webdriver) NPM-Paket:
 
 <Tabs
   defaultValue="webdriver"
@@ -35,7 +35,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-All [protocol commands](./api/_webdriver.md) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+Alle [Protokollbefehle](./api/_webdriver.md) geben die rohe Antwort vom Automatisierungstreiber zurück. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
 
 The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
 
