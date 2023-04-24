@@ -30,7 +30,7 @@ By default, ChromeDriver, Geckodriver and some other browser drivers based on th
 export const config = {
     // ...
     services: [
-        ['selenium-standalone', { drivers: { firefox: '0.29.1', chrome: true, chromiumedge: 'latest' } }]
+        ['selenium-standalone', { drivers: { firefox: '0.33.0', chrome: true, chromiumedge: 'latest' } }]
     ],
     // ...
 };
@@ -40,9 +40,9 @@ Control browser driver installation/running separately.
 ```js
 // wdio.conf.js
 const drivers = {
-    chrome: { version: '91.0.4472.101' }, // https://chromedriver.chromium.org/
-    firefox: { version: '0.29.1' }, // https://github.com/mozilla/geckodriver/releases
-    chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+    chrome: { version: '112.0.5615.49.101' }, // https://chromedriver.chromium.org/
+    firefox: { version: '0.33.0' }, // https://github.com/mozilla/geckodriver/releases
+    chromiumedge: { version: '114.0.1791.0' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
 export const config = {
@@ -70,7 +70,7 @@ export const config = {
         ['selenium-standalone', {
             logPath: './temp',
             args: {
-                version: "3.141.59",
+                version: "4.4.0",
                 seleniumArgs: ['--host', '127.0.0.1','--port', '5555']
             },
         }]
@@ -116,10 +116,10 @@ Default: `{}`
 Example:
 ```js
 args: {
-    version : "3.141.59",
+    version : "4.4.0",
     drivers : {
         chrome : {
-            version : "91.0.4472.101",
+            version : "112.0.5615.49.101",
             arch    : process.arch
         }
     }
@@ -138,11 +138,11 @@ Default: `{}`
 Example:
 ```js
 installArgs: {
-    version : "3.141.59",
+    version : "4.4.0",
     baseURL : "https://github.com/SeleniumHQ/selenium/releases/download",
     drivers : {
         chrome : {
-            version : "91.0.4472.101",
+            version : "112.0.5615.49.101",
             arch    : process.arch,
             baseURL : "https://chromedriver.storage.googleapis.com"
         }
