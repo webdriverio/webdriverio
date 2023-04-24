@@ -5,7 +5,7 @@ import { events } from '../constants.js'
 /**
  * Call reporter
  * @param {string} event  - event name
- * @param {Object} msg - event payload
+ * @param {object} msg - event payload
  * @private
  */
 const tellReporter = (event: string, msg: any = {}) => {
@@ -200,7 +200,7 @@ export function endStep (status: Status = Status.PASSED) {
  * Create allure step
  * @name addStep
  * @param {string} title - step name in report
- * @param {Object} [attachmentObject={}] - attachment for step
+ * @param {object} [attachmentObject={}] - attachment for step
  * @param {string} attachmentObject.content - attachment content
  * @param {string} [attachmentObject.name='attachment'] - attachment name
  * @param {string} [attachmentObject.type='text/plain'] - attachment type

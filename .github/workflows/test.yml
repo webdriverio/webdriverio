@@ -7,9 +7,10 @@ on:
     branches:
       - main
       - v7
+      - '!l10n_main'
   pull_request:
     branches-ignore:
-      - l10n_main
+      - 'l10n_main'
 
 permissions:
   contents: read # to fetch code (actions/checkout)

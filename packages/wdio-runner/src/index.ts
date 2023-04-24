@@ -38,12 +38,12 @@ export default class Runner extends EventEmitter {
 
     /**
      * run test suite
-     * @param  {String}    cid            worker id (e.g. `0-0`)
+     * @param  {string}    cid            worker id (e.g. `0-0`)
      * @param  {Object}    args           config arguments passed into worker process
-     * @param  {String[]}  specs          list of spec files to run
+     * @param  {string[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilities to run session with
-     * @param  {String}    configFile      path to config file to get config from
-     * @param  {Number}    retries        number of retries remaining
+     * @param  {string}    configFile      path to config file to get config from
+     * @param  {number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {

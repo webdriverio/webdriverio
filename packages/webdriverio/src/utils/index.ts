@@ -171,7 +171,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
 
 /**
  * check for unicode character or split string into literals
- * @param  {String} value  text
+ * @param  {string} value  text
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value: string, isDevTools = false) {

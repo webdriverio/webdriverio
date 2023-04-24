@@ -123,6 +123,7 @@ describe('main suite 1', () => {
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
         await scrollAndCheck()
         await scrollAndCheck({ block: 'center', inline: 'center' })
+        await scrollAndCheck({ block: 'start', inline: 'start' })
         await scrollAndCheck({ block: 'end', inline: 'end' })
         await scrollAndCheck(true)
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })

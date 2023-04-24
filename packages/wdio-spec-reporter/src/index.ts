@@ -167,7 +167,7 @@ export default class SpecReporter extends WDIOReporter {
      */
     printReport(runner: RunnerStats) {
         // Don't print non failed tests
-        if (runner.failures === 0 && this._onlyFailures === true){
+        if (runner.failures === 0 && this._onlyFailures === true) {
             return
         }
 
@@ -389,7 +389,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get the display for passing, failing and skipped
-     * @param  {String} duration Duration string
+     * @param  {string} duration Duration string
      * @return {Array} Count display
      */
     getCountDisplay (duration: string) {
@@ -482,7 +482,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Indent a suite based on where how it's nested
-     * @param  {String} uid Unique suite key
+     * @param  {string} uid Unique suite key
      * @return {String}     Spaces for indentation
      */
     indent (uid: string) {
@@ -492,7 +492,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get a symbol based on state
-     * @param  {String} state State of a test
+     * @param  {string} state State of a test
      * @return {String}       Symbol to display
      */
     getSymbol (state?: keyof Symbols) {
@@ -501,7 +501,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get a color based on a given state
-     * @param  {String} state Test state
+     * @param  {string} state Test state
      * @return {String}       State color
      */
     getColor (state?: string) {

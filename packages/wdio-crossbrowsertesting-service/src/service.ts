@@ -33,7 +33,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     /**
      * Before suite
-     * @param {Object} suite Suite
+     * @param {object} suite Suite
     */
     beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
@@ -41,7 +41,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     /**
      * Before test
-     * @param {Object} test Test
+     * @param {object} test Test
     */
     beforeTest (test: Frameworks.Test) {
         if (!this._isServiceEnabled) {
@@ -67,7 +67,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     /**
      * After test
-     * @param {Object} test Test
+     * @param {object} test Test
      */
     afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
         if (!results.passed) {
@@ -80,7 +80,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
      *
      * Before feature
      * @param {string} uri
-     * @param {Object} feature
+     * @param {object} feature
      */
     beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled) {
@@ -93,7 +93,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
      *
      * Runs before a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
-     * @param {Object}                 result results object containing scenario results
+     * @param {object}                 result results object containing scenario results
      * @param {boolean}                result.passed   true if scenario has passed
      * @param {string}                 result.error    error stack if scenario failed
      * @param {number}                 result.duration duration of scenario in milliseconds
@@ -168,7 +168,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     /**
      *
-     * @param {String} sessionId Session id
+     * @param {string} sessionId Session id
      * @returns {String}
      */
     getRestUrl (sessionId: string) {

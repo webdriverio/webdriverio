@@ -37,7 +37,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
     /**
      * Before suite
-     * @param {Object} suite Suite
+     * @param {object} suite Suite
     */
     beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
@@ -45,7 +45,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
     /**
      * Before test
-     * @param {Object} test Test
+     * @param {object} test Test
     */
     beforeTest (test: Frameworks.Test) {
         if (!this._isServiceEnabled || !this._browser) {
@@ -84,7 +84,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
     /**
      * After test
-     * @param {Object} test Test
+     * @param {object} test Test
      */
     afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
         if (!results.passed) {
@@ -99,7 +99,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     /**
      * Before feature
      * @param {string} uri
-     * @param {Object} feature
+     * @param {object} feature
      */
     beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled || !this._browser) {
@@ -113,8 +113,8 @@ export default class TestingBotService implements Services.ServiceInstance {
     /**
      * Before scenario
      * @param {string} uri
-     * @param {Object} feature
-     * @param {Object} scenario
+     * @param {object} feature
+     * @param {object} scenario
      */
     beforeScenario (world: Frameworks.World) {
         if (!this._isServiceEnabled || !this._browser) {

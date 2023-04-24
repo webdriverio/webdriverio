@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "8.8.1",
+  "version": "8.8.6",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -28,21 +28,30 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/cjs/index.js",
   "type": "module",
+  "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^18.0.0",
-    "@wdio/config": "8.8.0",
-    "@wdio/globals": "8.8.1",
+    "@wdio/config": "8.8.6",
+    "@wdio/globals": "8.8.6",
     "@wdio/logger": "8.6.6",
     "@wdio/protocols": "8.8.1",
-    "@wdio/types": "8.8.0",
-    "@wdio/utils": "8.8.0",
+    "@wdio/types": "8.8.6",
+    "@wdio/utils": "8.8.6",
     "async-exit-hook": "^2.0.1",
     "chalk": "^5.0.1",
     "chokidar": "^3.5.3",
@@ -56,7 +65,7 @@
     "lodash.union": "^4.6.0",
     "read-pkg-up": "9.1.0",
     "recursive-readdir": "^2.2.2",
-    "webdriverio": "8.8.1",
+    "webdriverio": "8.8.6",
     "yargs": "^17.5.1",
     "yarn-install": "^1.0.0"
   },

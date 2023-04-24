@@ -36,6 +36,11 @@ unmock('is-url')
 mock('@namespace/module')
 
 describe('Lit Component testing', () => {
+    it('recognises require files', () => {
+        expect(window.globalSetupScriptExecuted).toBe(true)
+        expect(window.mochaGlobalSetupExecuted).toBe(true)
+    })
+
     it('should render component', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,

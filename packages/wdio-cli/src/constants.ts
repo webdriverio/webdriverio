@@ -24,8 +24,8 @@ export const CONFIG_HELPER_INTRO = `
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 🤖 Successfully setup project at %s 🎉
 
-Join our Matrix community and instantly find answers to your issues or queries. Or just join and say hi 👋!
-  🔗 https://matrix.to/#/#webdriver.io:gitter.im
+Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio

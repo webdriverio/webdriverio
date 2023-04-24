@@ -32,6 +32,7 @@ export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string
     #socket?: WebSocket
+    #require: string[]
     #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
     #runnerEvents: any[] = []
     #isMinified = false
@@ -40,6 +41,8 @@ export class MochaFramework extends HTMLElement {
         super()
         this.#root = this.attachShadow({ mode: 'open' })
         this.#spec = this.getAttribute('spec')!
+        this.#require = window.__wdioEnv__.args.require || []
+        delete window.__wdioEnv__.args.require
 
         if (!this.#spec) {
             throw new Error('"spec" attribute required but not set')
@@ -80,11 +83,30 @@ export class MochaFramework extends HTMLElement {
     }
 
     async run (socket: WebSocket) {
+        const globalTeardownScripts: Function[] = []
+        const globalSetupScripts: Function[] = []
+        for (const r of this.#require) {
+            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(r)) || {}
+            if (typeof mochaGlobalSetup === 'function') {
+                globalSetupScripts.push(mochaGlobalSetup)
+            }
+            if (typeof mochaGlobalTeardown === 'function') {
+                globalTeardownScripts.push(mochaGlobalTeardown)
+            }
+        }
+
         /**
          * import test case (order is important here)
          */
         const file = this.#spec
         await import(file)
+
+        /**
+         * run setup scripts
+         */
+        for (const setupScript of globalSetupScripts) {
+            await setupScript()
+        }
 
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
@@ -100,14 +122,16 @@ export class MochaFramework extends HTMLElement {
         setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         const self = this
-        before(function () {
+        const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
+        mochaBeforeHook(function () {
             self.#getHook('beforeSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
             })
         })
 
-        after(function () {
+        const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
+        mochaAfterHook(function () {
             self.#getHook('afterSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
@@ -115,7 +139,12 @@ export class MochaFramework extends HTMLElement {
             })
         })
 
-        const runner = mocha.run(this.#onFinish.bind(this))
+        const runner = mocha.run(async (failures) => {
+            await this.#onFinish(failures)
+            for (const teardownScript of globalTeardownScripts) {
+                await teardownScript()
+            }
+        })
         Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => runner.on(mochaEvent, (payload: any) => {
             this.#runnerEvents.push(formatMessage({ type: wdioEvent, payload, err: payload.err }))
         }))

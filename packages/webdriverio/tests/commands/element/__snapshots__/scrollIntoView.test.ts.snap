@@ -1,14 +1,71 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`scrollIntoView test > desktop > scrolls by default the element after a previous scr 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 0,
+          "deltaY": 800,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": {
+              "scrollIntoView": [MockFunction spy],
+            },
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action7",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
+exports[`scrollIntoView test > desktop > scrolls by default the element after a previous scroll 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 0,
+          "deltaY": 800,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": {
+              "scrollIntoView": [MockFunction spy],
+            },
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action7",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
 exports[`scrollIntoView test > desktop > scrolls by default the element to the top 1`] = `
 {
   "actions": [
     {
       "actions": [
         {
-          "deltaX": 15,
-          "deltaY": 20,
+          "deltaX": 0,
+          "deltaY": 800,
           "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -28,9 +85,12 @@ exports[`scrollIntoView test > desktop > scrolls element using scroll into view 
     {
       "actions": [
         {
-          "deltaX": -260,
-          "deltaY": -365,
+          "deltaX": -275,
+          "deltaY": 415,
           "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -50,9 +110,12 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
     {
       "actions": [
         {
-          "deltaX": 15,
-          "deltaY": 20,
+          "deltaX": 0,
+          "deltaY": 800,
           "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -72,9 +135,12 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
     {
       "actions": [
         {
-          "deltaX": 15,
-          "deltaY": 20,
+          "deltaX": 0,
+          "deltaY": 800,
           "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
           "type": "scroll",
           "x": 0,
           "y": 0,

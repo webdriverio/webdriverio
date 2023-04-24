@@ -24,7 +24,7 @@ import { getElementFromResponse } from '../../utils/index.js'
  * </example>
  *
  * @alias element.selectByIndexs
- * @param {Number} index      option index
+ * @param {number} index      option index
  * @uses protocol/findElementsFromElement, protocol/elementClick
  * @type action
  *

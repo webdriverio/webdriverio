@@ -32,7 +32,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
     });
  * </example>
  *
- * @param {String}  url      website URL to open
+ * @param {string}  url      website URL to open
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {String=}           options.windowName     name of the new window
  * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
