@@ -42,7 +42,7 @@ See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/S
 
 ## Development
 
-The project has [extensive development documentation](https://github.com/webdriverio/webdriverio/blob/main/docs/Readme.md). Head over there to find out more.
+The project has [extensive development documentation](https://github.com/webdriverio/webdriverio/blob/cb-update-contributing-guidelines/docs/Readme.md). Head over there to find out more.
 
 ## Proposing a Change
 
