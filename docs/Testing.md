@@ -207,13 +207,8 @@ npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 
 To clean up the coverage reports, run:
 
-<<<<<<< HEAD
-```sh { name=test-unit:clean }
+```sh { name=test-unit-clean }
 npx rimraf ../coverage
-=======
-```sh { name=test:unit:clean }
-npx rimraf './coverage'
->>>>>>> 4fca302cc (update based on runme improvements)
 ```
 
 ### Smoke Tests
