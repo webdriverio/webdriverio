@@ -80,7 +80,7 @@
     "@types/lodash.zip": "^4.2.7",
     "@types/node": "^18.15.5",
     "@types/shelljs": "^0.8.11",
-    "@types/split2": "^3.2.1",
+    "@types/split2": "^4.2.0",
     "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
