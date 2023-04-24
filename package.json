@@ -70,7 +70,7 @@
     "@octokit/rest": "^19.0.7",
     "@preact/preset-vite": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
-    "@tsconfig/node18": "^1.0.1",
+    "@tsconfig/node18": "^2.0.0",
     "@types/archiver": "^5.3.2",
     "@types/cheerio": "^0.22.31",
     "@types/ejs": "^3.1.2",
