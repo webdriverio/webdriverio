@@ -1,9 +1,9 @@
 ---
 id: why-webdriverio
-title: Why Webdriver.IO?
+title: چرا Webdriver.IO؟
 ---
 
-WebdriverIO is a progressive automation framework built to automate modern web and mobile applications. It simplifies the interaction with your app and provides a set of plugins that help you create a scalable, robust and stable test suite.
+WebdriverIO یک فریمورک اتوماسیون پیشرو است، برای ایجاد تست خودکار اپلیکیشن های مدرن تحت وب و موبایلی. WebdriverIO تعامل با برنامه شما را ساده می کند و همچنین مجموعه ای از افزونه ها را ارائه می دهد که به شما کمک می کند یک مجموعه تستی بسازید که به راحتی مقیاس پذیر، قدرتمند و پایدار است.
 
 It is designed to be:
 
