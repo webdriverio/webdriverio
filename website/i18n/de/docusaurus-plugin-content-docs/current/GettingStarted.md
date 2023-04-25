@@ -11,6 +11,7 @@ Willkommen auf der WebdriverIO Dokumentation-Seite. Diese wird Ihnen Helfen Ihre
 
 :::info
 Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!  
+:::  
 :::
 :::
 
