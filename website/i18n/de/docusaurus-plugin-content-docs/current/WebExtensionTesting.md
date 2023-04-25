@@ -1,17 +1,17 @@
 ---
 id: web-extension-testing
-title: Web Extension Testing
+title: Testen von Browser-Erweiterungen
 ---
 
-WebdriverIO is the ideal tool to automate a browser. Web Extensions are a part of the browser and can be automated in the same way. Whenever your web extension uses content scripts to run JavaScript on websites or offer a popup modal, you can run an e2e test for that using WebdriverIO.
+WebdriverIO ist das ideale Werkzeug, um einen Browser zu automatisieren. Web Extensions sind ein Teil des Browsers und können auf die gleiche Weise automatisiert werden. Wann immer Ihre Weberweiterung Content-Scripts verwendet, um JavaScript auf Websites auszuführen oder ein Popup-Modal anzubieten, können Sie mit WebdriverIO einen e2e-Test dafür ausführen.
 
-## Loading a Web Extension into the Browser
+## Laden einer Web-Erweiterung in den Browser
 
-As a first step we have to load the extension under test into the browser as part of our session. This works differently for Chrome and Firefox.
+Als ersten Schritt müssen wir die zu testende Erweiterung im Rahmen unserer Test-Session in den Browser laden. Dies funktioniert bei Chrome und Firefox unterschiedlich.
 
 :::info
 
-These docs leave out Safari web extensions as their support for it is way behind and user demand not high. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
+Diese Dokumentation lässt Safari-Weberweiterungen aus, da ihre Unterstützung weit hinterherhinkt und die Benutzernachfrage nicht hoch ist. Wenn Sie eine Weberweiterung für Safari erstellen, melden Sie bitte [ihren Anwendungsfall](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) und helfen Sie uns, die notwendige Dokumentation dafür zu Erstellen.
 
 :::
 
