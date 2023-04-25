@@ -103,7 +103,7 @@ Error transforming /test/testdata/failing_submit.js:2
 > login_form.submit()
   ^
 
-The command "submit" is not supported in WebdriverIO. We advise to use the click command to click on the submit button instead. For more information on this configuration, see https://webdriver.io/docs/api/element/click.
+The command "submit" is not supported in WebdriverIO. Wir empfehlen, stattdessen den Klick Befehl zu verwenden, um auf die Schaltfläche „Senden“ zu klicken. Weitere Informationen zu dieser Konfiguration finden Sie unter https://webdriver.io/docs/api/element/click.
   at /path/to/project/test/testdata/failing_submit.js:132:0
 ```
 
