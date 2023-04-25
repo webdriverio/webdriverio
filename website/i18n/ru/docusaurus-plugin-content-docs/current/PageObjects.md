@@ -11,7 +11,7 @@ title: Page Object Pattern
 - отложенная загрузка элементов
 - инкапсуляция для методов и действий
 
-The goal of using page objects is to abstract any page information away from the actual tests. Ideally, you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
+Цель использования Page Objects заключается в создании абстракции информации о странице, отделяя её от самих тестов. Ideally, you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
 
 ## Making A Page Object
 
