@@ -22,7 +22,7 @@ A browser object has the following properties:
 | `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                                                           |
 | `isMobile`              | `Boolean`  | Indicates a mobile session. Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                           |
 | `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). See more under [Mobile Flags](#mobile-flags).                                                           |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). See more under [Mobile Flags](#mobile-flags).                                                       |
+| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                           |
 
 ## Methods
 
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
 
 ```js
 // mypageobject.page.js
