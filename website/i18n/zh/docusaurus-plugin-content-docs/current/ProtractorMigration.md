@@ -23,7 +23,7 @@ There are many migration strategies. Depending on the size of your team, amount 
 
 ## First the Config File
 
-After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](Configuration.md). After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](Configuration.md). Config files can become very complex and it might make sense to only port the essential parts and see how the rest can be added once the corresponding tests that need certain options are being migrated.
+After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](configuration). After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](configuration). Config files can become very complex and it might make sense to only port the essential parts and see how the rest can be added once the corresponding tests that need certain options are being migrated.
 
 For the first migration we only transform the config file and run:
 
