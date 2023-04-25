@@ -1,6 +1,6 @@
 ---
 id: component-testing
-title: Component Testing
+title: Komponenten Testen
 ---
 
 Mit WebdriverIOs [Browser Runner](/docs/runner#browser-runner) können Sie Tests in einem echten Desktop- oder mobilen Browser ausführen, und dabei das WebDriver-Protokoll verwenden, um mit Elementen in der Komponente zu interagieren. Dieser Ansatz hat [viele Vorteile](/docs/runner#browser-runner) im Vergleich zu anderen Test-Frameworks, die nur Tests mit [JSDOM](https://www.npmjs.com/package/jsdom) zulassen.
