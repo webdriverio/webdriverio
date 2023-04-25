@@ -3,7 +3,7 @@ id: configuration
 title: Configuración
 ---
 
-Basado en el tipo de configuración [](./SetupTypes.md) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
+Basado en el tipo de configuración [](setuptypes) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
 
 ## Opciones de WebDriver
 
@@ -227,7 +227,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-Lo mismo que la sección `capacidades` descrita anteriormente excepto con la opción para especificar un objeto [`multiremoto`](Multiremote.md), o varias sesiones WebDriver en una matriz para ejecución paralela.
+Lo mismo que la sección `capacidades` descrita anteriormente excepto con la opción para especificar un objeto [`multiremoto`](multiremote), o varias sesiones WebDriver en una matriz para ejecución paralela.
 
 Puede aplicar las mismas capacidades específicas del proveedor y del navegador según lo definido [arriba](/docs/configuration#capabilities).
 
@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-Opciones específicas relacionadas con el framework. Vea la documentación del adaptador del framework sobre qué opciones están disponibles. Lea más sobre esto en [Frameworks](./Frameworks.md).
+Opciones específicas relacionadas con el framework. Vea la documentación del adaptador del framework sobre qué opciones están disponibles. Lea más sobre esto en [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
