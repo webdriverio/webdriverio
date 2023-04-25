@@ -3,7 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-Basierend auf dem [Setup-Typ](./SetupTypes.md) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
+Basierend auf dem [Setup-Typ](setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
 
 ## WebDriver-Optionen
 
@@ -227,7 +227,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-Ähnlich wie im oberen Abschnitt beschriebene `capabilities` Option, außer das mit dieser Option, entweder ein [`Multiremote`](Multiremote.md) Objekt oder mehrere Test Sessions in einem Array zur parallelen Ausführung angegeben werden können.
+Ähnlich wie im oberen Abschnitt beschriebene `capabilities` Option, außer das mit dieser Option, entweder ein [`Multiremote`](multiremote) Objekt oder mehrere Test Sessions in einem Array zur parallelen Ausführung angegeben werden können.
 
 Sie können die gleichen anbieter- und browserspezifischen Capabilities wie oben[anwenden](/docs/configuration#capabilities).
 
@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine` | `cucu
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-Spezifische Framework-bezogene Optionen. Informationen zu den verfügbaren Optionen finden Sie in der Dokumentation zum Framework-Adapter. Lesen Sie mehr dazu in [Frameworks](./Frameworks.md).
+Spezifische Framework-bezogene Optionen. Informationen zu den verfügbaren Optionen finden Sie in der Dokumentation zum Framework-Adapter. Lesen Sie mehr dazu in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
