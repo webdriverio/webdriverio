@@ -98,7 +98,7 @@ Tests, die mit `only` markiert sind, werden als Fehler angegeben.
 Type: `boolean`<br /> Default: `false`
 
 #### forbidPending
-Tests die als Pending markiert sind, werden als Fehler angegeben.
+Brechen Sie den Test-Lauf beim ersten Fehler ab.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -292,7 +292,7 @@ Geben Sie das zu verwendende Cucumber-Profil an.
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
+Liste der Dateien, die die Step-Definitionen implementieren Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
 
 Type: `string[]`<br /> Default: `[]` Example:
 

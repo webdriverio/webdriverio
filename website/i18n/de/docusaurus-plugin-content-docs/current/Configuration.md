@@ -179,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) Diese Zeitüberschreitung __nur__ wirkt sich auf Befehle aus, die mit `waitFor*` und ihrer Standardwartezeit beginnen.
+Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) Diese Zeitüberschreitung __nur__ wirkt sich auf Befehle aus, die mit `waitFor*` und ihrer Standardwartezeit beginnen.
 
 Informationen zum Erhöhen des Timeouts für einen _Test_finden Sie in der Framework-Dokumentation.
 
@@ -249,7 +249,7 @@ Type: `Number`<br /> Default: `100`
 
 ### injectGlobals
 
-Wenn gesetzt, werden die WebdriverIO Variablen (z. B. `browser`, `$` und `$$`) in die globale Umgebung eingefügt. Wenn Sie die Option allerdings auf `false` setzen, sollten Sie diese aus dem `@wdio/globals` Paket importieren, z.B.:
+`browser`, `$` und `$$`) in die globale Umgebung eingefügt. Wenn Sie die Option allerdings auf `false` setzen, sollten Sie diese aus dem `@wdio/globals` Paket importieren, z.B.:
 
 ```ts
 import { browser, $, $$, expect } from '@wdio/globals'
@@ -329,7 +329,7 @@ reporters: [
 
 ### reporterSyncInterval
 
-Legt fest, in welchem Intervall der Reporter prüfen soll, ob er synchronisiert ist, wenn er seine Logs asynchron verarbeitet werden (z. B. wenn Logs an einen Drittanbieter hochgeladen werden).
+Legt fest, in welchem Intervall der Reporter prüfen soll, ob er synchronisiert ist, wenn er seine Logs asynchron verarbeitet werden (z. B.
 
 Type: `Number`<br /> Default: `100` (ms)
 

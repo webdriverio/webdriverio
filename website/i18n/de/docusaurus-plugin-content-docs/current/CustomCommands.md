@@ -332,7 +332,7 @@ await browser.myNewCommand()
  */
 ```
 
-Der korrekte Aufruf des Befehls, z. B. `browser.myNewCommand('foo', 'bar')`, stellt eine korrekte WebDriver-Anfrage an z. B. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` mit dem Argument `{ foo: 'bar' }`.
+`browser.myNewCommand('foo', 'bar')`, stellt eine korrekte WebDriver-Anfrage an z. B. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` mit dem Argument `{ foo: 'bar' }`.
 
 :::note
 Der URL-Parameter `:sessionId` wird automatisch durch die Sitzungs-ID der WebDriver-Sitzung ersetzt. Andere URL-Parameter können angewendet werden, müssen aber innerhalb von `variables` definiert werden.

@@ -3,7 +3,7 @@ id: runner
 title: Nodo
 ---
 
-importar CodeBlock de '@theme/CodeBlock';
+import CodeBlock from '@theme/CodeBlock';
 
 Un corredor en WebdriverIO orchestrates cómo y dónde se están ejecutando las pruebas cuando se utiliza el testrunner. WebdriverIO soporta actualmente dos tipos diferentes de ejecutores: local y corredor del navegador.
 

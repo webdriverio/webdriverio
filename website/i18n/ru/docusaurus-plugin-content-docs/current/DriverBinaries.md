@@ -3,7 +3,7 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+Чтобы запустить автоматизацию на основе протокола WebDriver, необходимо иметь настроенные драйверы браузера, которые переведут команды автоматизации и смогут выполнять их в браузере. Ниже приведено описание, как можно настроить каждый драйвер по отдельности. Вы можете найти список со всеми драйверами [`здесь`](https://github.com/christian-bromann/awesome-selenium#driver) .
 
 ## Chromedriver
 
@@ -87,7 +87,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). После загрузки вы можете запустить драйвер, используя:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -95,7 +95,7 @@ cd $unzipped_file
 
 ## Edgedriver
 
-You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
+Вы можете скачать драйвер для Microsoft Edge на [сайте проекта](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). После загрузки вы можете запустить Edgedriver следующим образом:
 
 ```sh
 ./path/to/edgedriver --port=4444 --verbose
@@ -103,7 +103,7 @@ You can download the driver for Microsoft Edge on the [project website](https://
 
 ## Safaridriver
 
-Safaridriver comes pre-installed on your MacOS and can be started directly via:
+Драйвер Safari предустановлен на вашей MacOS и может быть запущен напрямую через:
 
 ```sh
 safaridriver -p 4444

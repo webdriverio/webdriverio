@@ -112,6 +112,6 @@ You can now go into the browser or use the command line as REPL
 
 Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
 
-## Examples
+## Примеры
 
-You can find various examples for testing components using popular component frameworks in our [example repository](https://github.com/webdriverio/component-testing-examples).
+Вы можете найти различные примеры для тестирования компонентов с использованием популярных фреймворков в нашем [репозитории](https://github.com/webdriverio/component-testing-examples).

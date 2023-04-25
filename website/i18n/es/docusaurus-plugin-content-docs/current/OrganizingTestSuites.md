@@ -248,20 +248,14 @@ Esto es útil con conjuntos de pruebas grandes cuando ya sabe que su compilació
 
 La opción `bail` espera un número, que especifica cuántas fallas de prueba pueden ocurrir antes de que WebDriver detenga la ejecución de prueba completa. El valor predeterminado es `0`, lo que significa que siempre ejecuta todas las especificaciones de prueba que puede encontrar.
 
-Consulte la página</a> de Opcionespara obtener información adicional sobre la configuración de la fianza.</p> 
-
-
+Consulte la página</a> de Opcionespara obtener información adicional sobre la configuración de la fianza.
 ## Ejecutar jerarquía de opciones
 
 Al declarar qué especificaciones ejecutar, hay una cierta jerarquía que define qué patrón tendrá prioridad. Actualmente, así es como funciona, de mayor a menor prioridad:
 
-
-
 > CLI `--spec` argument > capability `specs` pattern > config `specs` pattern CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
 
 Si solo se proporciona el parámetro de configuración, se utilizará para todas las funciones. Sin embargo, si define el patrón en el nivel de capacidad, se utilizará en lugar del patrón de configuración. Finalmente, cualquier patrón de especificación definido en la línea de comandos anulará todos los demás patrones dados.
-
-
 
 ### Uso de patrones de especificación definidos por capacidad
 
@@ -271,18 +265,13 @@ Por ejemplo, digamos que tenías dos directorios, uno para pruebas de Android, y
 
 Su archivo de configuración puede definir el patrón como tal, para pruebas de dispositivos no específicos:
 
-
-
 ```js
 {
     specs: ['tests/general/**/*.js']
 }
 ```
 
-
 pero luego, tendrá diferentes capacidades para sus dispositivos Android e iOS, donde los patrones podrían verse así:
-
-
 
 ```json
 {
@@ -293,9 +282,6 @@ pero luego, tendrá diferentes capacidades para sus dispositivos Android e iOS, 
 }
 ```
 
-
-
-
 ```json
 {
   "platformName": "iOS",
@@ -305,10 +291,7 @@ pero luego, tendrá diferentes capacidades para sus dispositivos Android e iOS, 
 }
 ```
 
-
 Si necesita ambas capacidades en su archivo de configuración, entonces el dispositivo Android solo ejecutará las pruebas bajo el espacio de nombres "android", y las pruebas de iOS solo ejecutarán las pruebas bajo el espacio de nombres "ios".
-
-
 
 ```js
 //wdio.conf.js

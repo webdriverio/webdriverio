@@ -179,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
+Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
 
 Para aumentar el tiempo de espera de una _prueba_, por favor vea la documentación del framework.
 
@@ -261,7 +261,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-Si quieres que tu ejecución de prueba se detenga después de un número específico de fallos de prueba, usa `bail`. (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) **Nota:** Tenga en cuenta que al usar un corredor de pruebas de terceros (como Mocha), podría requerirse una configuración adicional.
+Si quieres que tu ejecución de prueba se detenga después de un número específico de fallos de prueba, usa `bail`. (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) **Nota:** Tenga en cuenta que al usar un corredor de pruebas de terceros (como Mocha), podría requerirse una configuración adicional.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
