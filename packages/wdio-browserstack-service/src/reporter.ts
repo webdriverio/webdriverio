@@ -1,14 +1,17 @@
 import path from 'node:path'
-
+import url from 'node:url'
 import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
+import logger from '@wdio/logger'
 
 import { BrowserstackConfig, TestData, TestMeta } from './types'
-import { getCloudProvider, uploadEventData } from './util'
+import { getCloudProvider, getGitMetaData, uploadEventData } from './util'
 import RequestQueueHandler from './request-handler'
+
+const log = logger('@wdio/browserstack-service')
 
 export default class TestReporter extends WDIOReporter {
     private _capabilities: Capabilities.Capabilities = {}
@@ -19,16 +22,30 @@ export default class TestReporter extends WDIOReporter {
     private _requestQueueHandler = RequestQueueHandler.getInstance()
     private _suites: SuiteStats[] = []
     private _tests: Record<string, TestMeta> = {}
+    private _gitConfigPath?: string
 
-    onRunnerStart (runnerStats: RunnerStats) {
+    async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
+
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
-        this._suiteName = suiteStats.file
+        let filename = suiteStats.file
+        if (this._config?.framework == 'jasmine') {
+            try {
+                filename = url.fileURLToPath(suiteStats.file)
+            } catch (e) {
+                log.debug('Error in decoding file name of suite')
+            }
+        }
+        this._suiteName =  filename
         this._suites.push(suiteStats)
     }
 
@@ -83,6 +100,7 @@ export default class TestReporter extends WDIOReporter {
             identifier: testStats.fullTitle,
             file_name: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
             location: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
+            vc_filepath: (this._gitConfigPath && this._suiteName) ? path.relative(this._gitConfigPath, this._suiteName) : undefined,
             started_at: testStats.start && testStats.start.toISOString(),
             finished_at: testStats.end && testStats.end.toISOString(),
             framework: framework,
