@@ -38,7 +38,7 @@ await browser.setTimeout({ 'pageLoad': 10000 })
 
 ### Tiempo de espera de sesión implícita
 
-Una sesión tiene una sesión asociada de espera implícita. Esto especifica el tiempo para esperar a la estrategia de ubicación implícita del elemento al localizar elementos usando los comandos [`findElement`](/docs/api/webdriver#findelement) o [`findElements`](/docs/api/webdriver#findelements) </a> ([`$`](/docs/api/browser/$) o [`$$`](/docs/api/browser/$$), respectivamente, al ejecutar WebdriverIO con o sin el testrunner WDIO). A menos que se indique lo contrario, es de 0 segundos.
+Una sesión tiene una sesión asociada de espera implícita. Esto especifica el tiempo para esperar a la estrategia de ubicación implícita del elemento al localizar elementos usando los comandos [`findElement`](/docs/api/webdriver#findelement) o [`findElements`](/docs/api/webdriver#findelements) ([`$`](/docs/api/browser/$) o [`$$`](/docs/api/browser/$$), respectivamente, al ejecutar WebdriverIO con o sin el testrunner WDIO). A menos que se indique lo contrario, es de 0 segundos.
 
 Puede establecer este tiempo de espera así:
 
