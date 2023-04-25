@@ -1,6 +1,6 @@
 ---
 id: organizingsuites
-title: Organizing Test Suite
+title: Testsuites Organisieren
 ---
 
 Wenn Projekte wachsen, kommen zwangsläufig immer mehr Integrationstests hinzu. Dies erhöht die Bauzeit des Projektes und verlangsamt die Produktivität.
