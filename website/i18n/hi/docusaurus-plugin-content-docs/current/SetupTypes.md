@@ -35,7 +35,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-सभी [प्रोटोकॉल कमांड](./api/_webdriver.md) ऑटोमेशन ड्राइवर से अपरिष्कृत प्रतिक्रिया लौटाते हैं। पैकेज बहुत हल्का है और प्रोटोकॉल उपयोग के साथ बातचीत को आसान बनाने के लिए ऑटो-वेट जैसे __नंबर__ स्मार्ट लॉजिक है।
+All [protocol commands](api/webdriver) return the raw response from the automation driver. पैकेज बहुत हल्का है और प्रोटोकॉल उपयोग के साथ बातचीत को आसान बनाने के लिए ऑटो-वेट जैसे __नंबर__ स्मार्ट लॉजिक है।
 
 उदाहरण के लिए लागू प्रोटोकॉल आदेश ड्राइवर के प्रारंभिक सत्र की प्रतिक्रिया पर निर्भर करते हैं। उदाहरण के लिए यदि प्रतिक्रिया इंगित करती है कि एक मोबाइल सत्र शुरू किया गया था, तो पैकेज इंस्टेंस प्रोटोटाइप के लिए सभी एपियम और मोबाइल JSON वायर प्रोटोकॉल कमांड लागू करता है।
 
@@ -45,7 +45,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## स्टैंडअलोन मोड
 
-वेबड्राइवर प्रोटोकॉल के साथ बातचीत को सरल बनाने के लिए `webdriverio` पैकेज प्रोटोकॉल के शीर्ष पर विभिन्न प्रकार के कमांड लागू करता है (उदाहरण के लिए [`dragAndDrop`](./api/element/_dragAndDrop.md) कमांड) और कोर अवधारणाएं जैसे [स्मार्ट चयनकर्ता](./Selectors.md) या [ऑटो-वेट](./AutoWait.md)। ऊपर से उदाहरण इस तरह सरल किया जा सकता है:
+To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](api/element/dragAndDrop) command) and core concepts such as [smart selectors](selectors) or [auto-waits](autowait). ऊपर से उदाहरण इस तरह सरल किया जा सकता है:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
@@ -69,6 +69,6 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-टेस्ट रनर मोचा, जैस्मीन या खीरा जैसे लोकप्रिय टेस्ट फ्रेमवर्क का एक सार है। WDIO परीक्षण रनर का उपयोग करके अपने परीक्षण चलाने के लिए, अधिक जानकारी के लिए [प्रारंभ करना](GettingStarted.md) अनुभाग देखें।
+टेस्ट रनर मोचा, जैस्मीन या खीरा जैसे लोकप्रिय टेस्ट फ्रेमवर्क का एक सार है। To run your tests using the WDIO test runner, check out the [Getting Started](gettingstarted) section for more information.
 
 `@wdio/cli` टेस्टरनर पैकेज इंटरफ़ेस पर अधिक जानकारी के लिए, [मॉड्यूल API](/docs/api/modules)देखें।
