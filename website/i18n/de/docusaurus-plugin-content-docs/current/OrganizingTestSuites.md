@@ -38,7 +38,7 @@ export const config = {
 
 Wenn Sie Ihre Testsuite in mehreren Umgebungen ausführen (z.B. Entwicklungs- und Integration-Umgebung), kann es hilfreich sein, mehrere Konfigurationsdateien zu verwenden, um die Dinge überschaubar zu halten.
 
-Ähnlich wie beim [Page-Objekt-Konzept](PageObjects.md) brauchen Sie als Erstes eine Hauptkonfigurationsdatei. Es enthält alle Konfigurationen, die Sie umgebungsübergreifend gemeinsam nutzen.
+Ähnlich wie beim [Page-Objekt-Konzept](pageobjects) brauchen Sie als Erstes eine Hauptkonfigurationsdatei. Es enthält alle Konfigurationen, die Sie umgebungsübergreifend gemeinsam nutzen.
 
 Erstellen Sie dann für jede Umgebung eine weitere Konfigurationsdatei und ergänzen Sie die Hauptkonfiguration mit den, die für die Umgebung wichtig sind:
 
@@ -272,7 +272,7 @@ Dies ist bei großen Testsuiten hilfreich, wenn Sie bereits wissen, dass Ihr Bui
 
 Die Option `bail` erwartet eine Zahl, die angibt, wie viele Testfehler auftreten können, bevor WebdriverIO den gesamten Testlauf stoppt. Der Standardwert ist `0`, was bedeutet, dass immer alle Tests ausführt werden, auch wenn einer fehlschlägt.
 
-Weitere Informationen zur bail Option finden Sie auf der [Options](Configuration.md) Seite.
+Weitere Informationen zur bail Option finden Sie auf der [Options](configuration) Seite.
 ## Hierarchie der Ausführungsoptionen
 
 Bei der Deklaration, welche Tests ausgeführt werden sollen, gibt es eine bestimmte Hierarchie, die definiert, welcher Parameter Typ Vorrang hat. Derzeit ist es wie folgt definiert, von der höchsten Priorität zur niedrigsten:
