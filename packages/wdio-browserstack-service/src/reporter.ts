@@ -8,12 +8,12 @@ import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import logger from '@wdio/logger'
 
 import { BrowserstackConfig, TestData, TestMeta } from './types'
-import { getCloudProvider, getGitMetaData, uploadEventData } from './util'
+import { getCloudProvider, getGitMetaData, uploadEventData, o11yClassErrorHandler } from './util'
 import RequestQueueHandler from './request-handler'
 
 const log = logger('@wdio/browserstack-service')
 
-export default class TestReporter extends WDIOReporter {
+class _TestReporter extends WDIOReporter {
     private _capabilities: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability = true
@@ -149,3 +149,7 @@ export default class TestReporter extends WDIOReporter {
         await this.sendTestRunEvent(testStats, 'TestRunSkipped')
     }
 }
+// https://github.com/microsoft/TypeScript/issues/6543
+const TestReporter: typeof _TestReporter = o11yClassErrorHandler(_TestReporter)
+type TestReporter = _TestReporter
+export default TestReporter
