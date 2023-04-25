@@ -35,11 +35,11 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-Alle [Protokollbefehle](./api/_webdriver.md) geben die rohe Antwort vom Automatisierungstreiber zurück. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+Alle [Protokollbefehle](./api/_webdriver.md) geben die rohe Antwort vom Automatisierungstreiber zurück. Das Paket ist sehr leicht und es gibt __keine__ intelligente Logik wie automatische Wartezeiten um die Interaktion mit der Protokollnutzung zu vereinfachen.
 
-The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
+Die auf die Instanz angewendeten Protokollbefehle hängen von dem Sitzungstyp des Treibers ab. Wenn der Treiber beispielsweise eine mobile Sitzung startet, wendet das Paket alle Appium- und Mobile JSON Wire-Protokollbefehle auf den Instanzprototyp an.
 
-You can run the same set of commands (except mobile ones) using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
+Sie können denselben Befehlssatz (mit Ausnahme der mobilen) mithilfe des Chrome DevTools-Protokolls ausführen, wenn Sie das [`devtools`](https://www.npmjs.com/package/devtools) NPM-Paket importieren. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
 
 For more information on these package interfaces, see [Modules API](/docs/api/modules).
 
