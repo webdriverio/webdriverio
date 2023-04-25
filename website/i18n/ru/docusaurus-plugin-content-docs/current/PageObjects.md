@@ -3,13 +3,13 @@ id: pageobjects
 title: Page Object Pattern
 ---
 
-Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
+5 версия WebdriverIO разработана с учетом поддержки Page Object. Внедрив принцип «объект первого класса», можно создавать большие наборы тестов, используя этот шаблон проектирования.
 
-There are no additional packages required to create page objects. It turns out that clean, modern classes provide all necessary features we need:
+Для создания объектов страницы не требуются дополнительные пакеты. Оказывается, современные и чистые классы обеспечивают все функции, которые нам необходимы:
 
-- inheritance between page objects
-- lazy loading of elements
-- encapsulation of methods and actions
+- наследование между объектами страницы
+- отложенная загрузка элементов
+- инкапсуляция для методов и действий
 
 The goal of using page objects is to abstract any page information away from the actual tests. Ideally, you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
 
