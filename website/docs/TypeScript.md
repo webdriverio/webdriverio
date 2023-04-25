@@ -11,7 +11,7 @@ You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-n
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](ConfigurationFile.md).
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
 
 ## Configuration
 

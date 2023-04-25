@@ -24,7 +24,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en'/*, 'de', 'fr', 'es', 'hi'*/],
+        locales: ['en', 'de', 'es', 'hi'/*, 'fr', 'zh-CN', 'ru', 'fa' */],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
@@ -81,9 +81,9 @@ module.exports = {
                 position: 'right',
                 to: '/versions'
             }, {
-            //     type: 'localeDropdown',
-            //     position: 'right',
-            // }, {
+                type: 'localeDropdown',
+                position: 'right',
+            }, {
                 href: repoUrl,
                 position: 'right',
                 className: 'header-github-link',

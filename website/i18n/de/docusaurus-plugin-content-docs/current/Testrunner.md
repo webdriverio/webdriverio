@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Wechseln Sie zum Abschnitt [Konfigurationsdatei](ConfigurationFile.md), um zu sehen, wie diese Datei aussehen sollte.
+Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Wechseln Sie zum Abschnitt [Konfigurationsdatei](configurationfile) , um zu sehen, wie diese Datei aussehen sollte.
 
 Mit dem `wdio` Konfigurationshelfer ist es super einfach, Ihre Konfigurationsdatei zu generieren. Führen Sie einfach folgendes aus:
 
@@ -125,7 +125,7 @@ Optionen:
 --cucumberOpts        Cucumber options
 ```
 
-> Hinweis: Die Autokompilierung kann einfach mit den ENV-Variablen der entsprechenden Bibliothek gesteuert werden. Schauen Sie sich dazu die Dokumentation über die automatische Kompilierung von Tests, die auf den Seiten [TypeScript (ts-node)](TypeScript.md) und [Babel (@babel/register)](Babel.md) beschrieben ist.
+> Hinweis: Die Autokompilierung kann einfach mit den ENV-Variablen der entsprechenden Bibliothek gesteuert werden. Schauen Sie sich dazu die Dokumentation über die automatische Kompilierung von Tests, die auf den Seiten [TypeScript (ts-node)](typeScript) und [Babel (@babel/register)](babel) beschrieben ist.
 
 ### `wdio install`
 Mit dem Befehl `install` können Sie Reporter und Dienste über die CLI zu Ihren WebdriverIO-Projekten hinzufügen.

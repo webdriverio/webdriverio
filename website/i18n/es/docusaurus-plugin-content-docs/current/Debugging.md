@@ -41,7 +41,7 @@ jasmineOpts: {
 }
 ```
 
-Vea [tiempos de espera](Timeouts.md) para más información sobre cómo hacer eso utilizando otros frameworks.
+Vea [tiempos de espera](timeouts) para más información sobre cómo hacer eso utilizando otros frameworks.
 
 Para continuar con las pruebas después de la depuración, en el intérprete de comandos, utilice el acceso directo `^C` o el comando `.exit`.
 ## Configuración dinámica

@@ -97,7 +97,7 @@ await browser.user$('foo').user$('bar').click()
 
 Achten Sie darauf, die `browser` Variable nicht mit zu vielen benutzerdefinierten Befehlen zu überladen.
 
-Wir empfehlen, benutzerdefinierte Logik in [Seitenobjekten](PageObjects.md)zu definieren, damit sie an eine bestimmte Seite gebunden sind.
+Wir empfehlen, benutzerdefinierte Logik in [Seitenobjekten](pageobjects) zu definieren, damit sie an eine bestimmte Seite gebunden sind.
 
 ## Typdefinitionen Erweitern
 
@@ -106,7 +106,7 @@ Mit TypeScript ist es einfach, WebdriverIO-Schnittstellen zu erweitern. Fügen S
 1. Erstellen Sie eine Typdefinitionsdatei (z. B. `./src/types/wdio.d.ts`)
 2. a. Wenn Sie eine Typdefinitionsdatei im Modulstil verwenden (mit Import/Export und `deklarieren Sie im globalen WebdriverIO Namespace` in der Typdefinitionsdatei), und stellen Sie sicher, dass Sie den Dateipfad in die Eigenschaft `tsconfig.json` `include` aufnehmen.
 
-   b.  Wenn Sie Typdefinitionsdateien im Ambient-Stil verwenden (kein Import/Export in Typdefinitionsdateien und `deklarieren Sie den Namensraum WebdriverIO` für benutzerdefinierte Befehle),</code> Sie sicher, dass die `tsconfig.json` *nicht* einen Abschnitt `enthält, da dies der Fall ist dazu führen, dass alle Typdefinitionsdateien, die nicht im Abschnitt <code>include` aufgeführt sind, von Typoskript nicht erkannt werden.
+   b.  Wenn Sie Typdefinitionsdateien im Ambient-Stil verwenden (kein Import/Export in Typdefinitionsdateien und `deklarieren Sie den Namensraum WebdriverIO` für benutzerdefinierte Befehle), Sie sicher, dass die `tsconfig.json` *nicht* einen Abschnitt `include` enthält, da dies dazu führen, dass alle Typdefinitionsdateien, die nicht im Abschnitt `include` aufgeführt sind, von TypeScript nicht erkannt werden.
 
 <Tabs
   defaultValue="modules"

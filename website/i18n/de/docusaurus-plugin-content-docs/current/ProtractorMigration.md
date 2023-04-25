@@ -23,7 +23,7 @@ Es gibt viele Migrationsstrategien. Abhängig von der Größe Ihres Teams, der M
 
 ## Migration der Konfigurations-Datei
 
-Nachdem wir den Codemod installiert haben, können wir mit der Transformation der ersten Datei beginnen. Werfen Sie zunächst einen Blick auf die Konfigurationsoptionen von [WebdriverIOs](Configuration.md). Konfigurationsdateien können sehr komplex werden und es kann sinnvoll sein, nur die wesentlichen Teile zu portieren und zu sehen, wie der Rest hinzugefügt werden kann. Sobald entsprechende Tests bestimmte Optionen benötigen, können weiter Optionen migriert werden.
+Nachdem wir den Codemod installiert haben, können wir mit der Transformation der ersten Datei beginnen. Werfen Sie zunächst einen Blick auf die Konfigurationsoptionen von [WebdriverIOs](configuration). Konfigurationsdateien können sehr komplex werden und es kann sinnvoll sein, nur die wesentlichen Teile zu portieren und zu sehen, wie der Rest hinzugefügt werden kann. Sobald entsprechende Tests bestimmte Optionen benötigen, können weiter Optionen migriert werden.
 
 Für die erste Migration transformieren wir nur die Konfigurationsdatei und führen Folgendes aus:
 

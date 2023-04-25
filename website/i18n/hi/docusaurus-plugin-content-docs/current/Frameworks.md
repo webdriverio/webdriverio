@@ -17,7 +17,7 @@ WebdriverIO के साथ प्रत्येक ढांचे को ए
 एनपीएम इंस्टॉल @wdio/mocha-framework --save-dev
 ```
 
-डिफ़ॉल्ट रूप से WebdriverIO एक [अभिकथन लाइब्रेरी](Assertion.md) प्रदान करता है जो अंतर्निहित है जिसमें आप तुरंत प्रारंभ कर सकते हैं:
+डिफ़ॉल्ट रूप से WebdriverIO एक [अभिकथन लाइब्रेरी](assertion) प्रदान करता है जो अंतर्निहित है जिसमें आप तुरंत प्रारंभ कर सकते हैं:
 
 ```js
 describe('my awesome website', () => {
@@ -51,7 +51,7 @@ it('should test something', (done) => {
 })
 ```
 
-यदि आप कुछ एसिंक्रोनस रूप से चलाना चाहते हैं, तो आप या तो [`browser.call`](/docs/api/browser/call) कमांड या [कस्टम कमांड](CustomCommands.md)का उपयोग कर सकते हैं।
+यदि आप कुछ एसिंक्रोनस रूप से चलाना चाहते हैं, तो आप या तो [`browser.call`](/docs/api/browser/call) कमांड या [कस्टम कमांड](customcommands)का उपयोग कर सकते हैं।
 
 ### मोचा विकल्प
 
@@ -230,7 +230,7 @@ Type: `boolean`<br /> Default: `false`
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-यदि आप कुकुम्बर का उपयोग करना चाहते हैं, तो `framework` प्रॉपर्टी को `cucumber` में `framework: 'cucumber'` जोड़कर [कॉन्फिग फाइल](ConfigurationFile.md)।
+यदि आप कुकुम्बर का उपयोग करना चाहते हैं, तो `framework` प्रॉपर्टी को `cucumber` में `framework: 'cucumber'` जोड़कर [कॉन्फिग फाइल](configurationfile) ।
 
 कुकुम्बर के लिए विकल्प कॉन्फ़िग फ़ाइल में `cucumberOpts`के साथ दिए जा सकते हैं। विकल्पों की पूरी सूची देखें [यहाँ](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options)।
 

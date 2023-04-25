@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
 
 ```js
 // mypageobject.page.js

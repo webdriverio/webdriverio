@@ -17,7 +17,7 @@ First, install the adapter package from NPM:
 npm install @wdio/mocha-framework --save-dev
 ```
 
-By default WebdriverIO provides an [assertion library](Assertion.md) that is built-in which you can start right away:
+By default WebdriverIO provides an [assertion library](assertion) that is built-in which you can start right away:
 
 ```js
 describe('my awesome website', () => {
@@ -51,7 +51,7 @@ it('should test something', (done) => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](CustomCommands.md).
+If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](customcommands).
 
 ### Mocha Options
 
@@ -230,7 +230,7 @@ First, install the adapter package from NPM:
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
+If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
 
 Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 

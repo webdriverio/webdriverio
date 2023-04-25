@@ -24,7 +24,7 @@ WebdriverIO nutzt die Leistungsfähigkeit des [WebDriver](https://w3c.github.io/
 
 Darüber hinaus unterstützt WebdriverIO auch alternative, proprietäre Automatisierungsprotokolle wie [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) für Debugging- und Selbstprüfungszwecke. Dadurch kann der Benutzer über [Puppeteer](https://pptr.dev/) nahtlos zwischen herkömmlichen Befehlen auf Basis von WebDriver und leistungsstarken Browserinteraktionen wechseln.
 
-Lesen Sie mehr über die Unterschiede dieser Automatisierungsstandards im Abschnitt zu [Automatisierungsprotokollen](./AutomationProtocols.md).
+Lesen Sie mehr über die Unterschiede dieser Automatisierungsstandards im Abschnitt zu [Automatisierungsprotokollen](automationProtocols).
 
 ## Echte Open Source Software
 
