@@ -5,7 +5,7 @@ title: Getting Started
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
