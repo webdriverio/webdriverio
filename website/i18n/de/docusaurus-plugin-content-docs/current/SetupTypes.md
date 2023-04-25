@@ -35,7 +35,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-Alle [Protokollbefehle](./api/_webdriver.md) geben die rohe Antwort vom Automatisierungstreiber zurück. Das Paket ist sehr leicht und es gibt __keine__ intelligente Logik wie automatische Wartezeiten um die Interaktion mit der Protokollnutzung zu vereinfachen.
+Alle [Protokollbefehle](api/webdriver) geben die rohe Antwort vom Automatisierungstreiber zurück. Das Paket ist sehr leicht und es gibt __keine__ intelligente Logik wie automatische Wartezeiten um die Interaktion mit der Protokollnutzung zu vereinfachen.
 
 Die auf die Instanz angewendeten Protokollbefehle hängen von dem Sitzungstyp des Treibers ab. Wenn der Treiber beispielsweise eine mobile Sitzung startet, wendet das Paket alle Appium- und Mobile JSON Wire-Protokollbefehle auf den Instanzprototyp an.
 
@@ -45,7 +45,7 @@ Weitere Informationen zu diesen Paketschnittstellen finden Sie unter [Modules AP
 
 ## Standalone-Modus
 
-Um die Interaktion mit dem WebDriver-Protokoll zu vereinfachen, implementiert das Paket `webdriverio` eine Vielzahl von Befehlen, die auf Befehle des WebDriver Protokoll aufbauen (z. B. den Befehl [`dragAndDrop`](./api/element/_dragAndDrop.md)) und Kernkonzepte wie [intelligente Selektoren](./Selectors.md) oder [automatische Wartezeiten](./AutoWait.md) beinhalten. Das obige Beispiel lässt sich wie folgt vereinfachen:
+Um die Interaktion mit dem WebDriver-Protokoll zu vereinfachen, implementiert das Paket `webdriverio` eine Vielzahl von Befehlen, die auf Befehle des WebDriver Protokoll aufbauen (z. B. den Befehl [`dragAndDrop`](api/element/dragAndDrop)) und Kernkonzepte wie [intelligente Selektoren](selectors) oder [automatische Wartezeiten](autowait) beinhalten. Das obige Beispiel lässt sich wie folgt vereinfachen:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
@@ -69,6 +69,6 @@ Hier ist dasselbe Beispiel von oben, als Testspezifikation geschrieben und von W
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-Der Testrunner ist eine Abstraktion beliebter Testframeworks wie Mocha, Jasmine oder Cucumber. Um Ihre Tests mit dem WDIO-Test-Runner auszuführen, lesen Sie den Abschnitt [Erste Schritte](GettingStarted.md) für weitere Informationen.
+Der Testrunner ist eine Abstraktion beliebter Testframeworks wie Mocha, Jasmine oder Cucumber. Um Ihre Tests mit dem WDIO-Test-Runner auszuführen, lesen Sie den Abschnitt [Erste Schritte](gettingstarted) für weitere Informationen.
 
 Weitere Informationen zur `@wdio/cli` Testrunner-Paketschnittstelle finden Sie unter [Modules API](/docs/api/modules).
