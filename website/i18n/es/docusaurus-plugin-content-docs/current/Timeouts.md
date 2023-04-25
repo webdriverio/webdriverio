@@ -3,7 +3,8 @@ id: timeouts
 title: Tiempos de espera
 ---
 
-importar pestañas desde '@theme/Tabs'; importar TabItem desde '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 Cada comando en WebdriverIO es una operación asíncrona. Se lanza una solicitud al servidor de Selenium (o un servicio en la nube como [Sauce Labs](https://saucelabs.com)), y su respuesta contiene el resultado una vez que la acción ha finalizado o fallado.
 
