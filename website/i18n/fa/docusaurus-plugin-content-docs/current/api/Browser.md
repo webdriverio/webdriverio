@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-این موضوع می تواند مفید باشد اگر برای مثال بخواهید انتخابگر خودتان را در [ اشیاء صفحه](PageObjects.md) بر اساس نوع دستگاه تعریف کنید. برای مثال:
+This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
 
 ```js
 // mypageobject.page.js
