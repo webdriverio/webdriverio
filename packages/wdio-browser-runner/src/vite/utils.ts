@@ -81,8 +81,10 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                  */
                 window.process = {
                     platform: 'browser',
-                    env: {},
-                    stdout: {}
+                    env: ${JSON.stringify(processEnv)},
+                    stdout: {},
+                    stderr: {},
+                    cwd: () => '${process.cwd()}',
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
