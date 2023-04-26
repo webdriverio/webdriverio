@@ -107,43 +107,43 @@ pnpm create wdio . --yes
 
 ## اجرای تست
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+تست را می توان با استفاده از دستور `run` و با اشاره به پیکربندی WebdriverIO که به تازگی ایجاد کرده اید اجرا کرد:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+اگر دوست دارید فایل های تست خاصی را اجرا کنید، می توانید یک پارامتر `--spec` اضافه کنید:
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+یا مجموعه‌ها را در فایل پیکربندی خود تعریف کنید و فقط فایل‌های تستی تعریف شده توسط یک مجموعه را اجرا کنید:
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## اجرا در یک اسکریپت
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+اگر می خواهید از WebdriverIO به عنوان یک موتور اتوماسیون در حالت [مستقل](/docs/setuptypes#standalone-mode) در یک اسکریپت Node.JS استفاده کنید، می توانید مستقیماً WebdriverIO را نصب کنید و از آن به عنوان یک بسته در کد خود استفاده کنید، به عنوان مثال برای ایجاد اسکرین شات از یک وب سایت:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__توجه:__ همه دستورهای WebdriverIO ناهمزمان هستند و باید با استفاده از [`async/await`](https://javascript.info/async-await) به درستی مدیریت شوند.
 
-## Record tests
+## ضبط تست
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO ابزارهایی را ارائه می دهد که به شما کمک می کند تا با ضبط اقدامات خود روی صفحه شروع کنید و اسکریپت های آزمایش WebdriverIO را به طور خودکار تولید کنید. برای اطلاعات بیشتر به [ضبط تست با Chrome DevTools Recorder](/docs/record) مراجعه کنید.
 
-## System Requirements
+## پیش نیازهای سیستم
 
-You’ll need [Node.js](http://nodejs.org) installed.
+شما نیاز به نصب [Node.js](http://nodejs.org) دارید.
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
+- حداقل v16.x یا بالاتر را نصب کنید زیرا این قدیمی ترین نسخه فعال LTS است
+- فقط نسخه هایی که نسخه LTS هستند یا خواهند شد، رسما پشتیبانی می شوند
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+اگر Node در حال حاضر روی سیستم شما نصب نیست، پیشنهاد می کنیم از ابزاری مانند [NVM](https://github.com/creationix/nvm) یا [Volta](https://volta.sh/) برای مدیریت چندین نسخه فعال Node.js استفاده کنید. NVM یک انتخاب محبوب است، در حالی که Volta نیز جایگزین خوبی است.
