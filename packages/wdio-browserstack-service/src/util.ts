@@ -20,6 +20,7 @@ import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHO
 import RequestQueueHandler from './request-handler'
 
 import { version as bstackServiceVersion } from '../package.json'
+import PerformanceTester from './performance-tester'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -163,8 +164,11 @@ function processError(error: any, fn: Function, args: any[]) {
 function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
-            // @ts-ignore
-            const result = fn(...args)
+            let functionToHandle = fn
+            if (process.env.MEASURE_OBS_PERFORMANCE) {
+                functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
+            }
+            const result = functionToHandle(...args)
             if (result instanceof Promise) {
                 return result.catch(error => processError(error, fn, args))
             }
@@ -196,7 +200,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = method.call(this, ...args)
+                        const result = (process.env.MEASURE_OBS_PERFORMANCE ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }

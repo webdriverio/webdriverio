@@ -6,6 +6,7 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
+import TestReporter from './reporter'
 
 import {
     frameworkSupportsHook,
@@ -236,8 +237,9 @@ class _InsightsHandler {
             return
         }
         const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-        if (!this._tests[identifier]) {
+        if (!testMeta) {
             return
         }
 
@@ -246,7 +248,7 @@ class _InsightsHandler {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
-                    test_run_uuid: this._tests[identifier].uuid,
+                    test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
@@ -264,7 +266,7 @@ class _InsightsHandler {
         const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
-                test_run_uuid: this._tests[identifier].uuid,
+                test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
                 http_response: {

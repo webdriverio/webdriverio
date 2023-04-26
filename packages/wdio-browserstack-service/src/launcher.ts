@@ -23,6 +23,7 @@ import {
     isBStackSession,
     setConfigDetails
 } from './util'
+import PerformanceTester from './performance-tester'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -87,6 +88,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._buildIdentifier = bstackOptions!.buildIdentifier
                 }
             })
+        }
+
+        if (process.env.MEASURE_OBS_PERFORMANCE) {
+            PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
         // by default observability will be true unless specified as false
@@ -220,6 +225,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
+        }
+
+        if (process.env.MEASURE_OBS_PERFORMANCE) {
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+            if (!process.env.START_TIME) {
+                return
+            }
+            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+            log.info(`Total duration is ${duration / 1000 } s`)
         }
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
