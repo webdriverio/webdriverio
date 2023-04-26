@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.7 (2023-04-26)
+
+#### :memo: Documentation
+* `wdio-selenium-standalone-service`
+  * [#9969](https://github.com/webdriverio/webdriverio/pull/9969) chore(docs): use -- for selenium args in Selenium Standalone Service ([@manuelfidalgo](https://github.com/manuelfidalgo))
+* `wdio-types`
+  * [#10236](https://github.com/webdriverio/webdriverio/pull/10236) networkLogsOptions & interactiveDebugging ([@boutchersj](https://github.com/boutchersj))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Manuel Fidalgo Sicilia ([@manuelfidalgo](https://github.com/manuelfidalgo))
+- Steven Boutcher ([@boutchersj](https://github.com/boutchersj))
+
+
 ## v8.8.6 (2023-04-20)
 
 #### :nail_care: Polish
