@@ -329,7 +329,13 @@ export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): 
     if (framework === 'jasmine') {
         return test.fullName
     }
-    return `${test.parent} - ${test.title}`
+
+    let parentTitle = test.parent
+    // Sometimes parent will be an object instead of a string
+    if (typeof parentTitle === 'object') {
+        parentTitle = (parentTitle as any).title
+    }
+    return `${parentTitle} - ${test.title}`
 }
 
 export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): string {
@@ -456,13 +462,13 @@ export function getHierarchy(fullTitle?: string) {
 }
 
 export function getHookType (hookName: string): string {
-    if (hookName.includes('before each')) {
+    if (hookName.startsWith('"before each"')) {
         return 'BEFORE_EACH'
-    } else if (hookName.includes('before all')) {
+    } else if (hookName.startsWith('"before all"')) {
         return 'BEFORE_ALL'
-    } else if (hookName.includes('after each')) {
+    } else if (hookName.startsWith('"after each"')) {
         return 'AFTER_EACH'
-    } else if (hookName.includes('after all')) {
+    } else if (hookName.startsWith('"after all"')) {
         return 'AFTER_ALL'
     }
     return 'unknown'
