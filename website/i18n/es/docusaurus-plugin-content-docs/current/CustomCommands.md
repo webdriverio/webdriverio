@@ -97,7 +97,7 @@ await browser.user$('foo').user$('bar').click()
 
 Tenga cuidado de no sobrecargar el ámbito del navegador `` con demasiados comandos personalizados.
 
-Recomendamos definir lógica personalizada en [objetos de página](PageObjects.md), así que están vinculados a una página específica.
+Recomendamos definir lógica personalizada en [objetos de página](pageobjects), así que están vinculados a una página específica.
 
 ## Definiciones de Tipo de Contenido
 

@@ -20,7 +20,7 @@ Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting 
 
 Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
 
-![Autocompletion](/img/autocompletion/2.png)
+![Автозавершение](/img/autocompletion/2.png)
 
 ## Visual Studio Code (VSCode)
 

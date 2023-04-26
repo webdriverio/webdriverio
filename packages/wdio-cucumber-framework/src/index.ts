@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 
 import mockery from 'mockery'
 import isGlob from 'is-glob'
-import glob from 'glob'
+import { sync as globSync } from 'glob'
 
 import * as Cucumber from '@cucumber/cucumber'
 import {
@@ -235,7 +235,7 @@ class CucumberAdapter {
     requiredFiles() {
         return this._cucumberOpts.require.reduce(
             (files: string[], requiredFile: string) => files.concat(isGlob(requiredFile)
-                ? glob.sync(requiredFile)
+                ? globSync(requiredFile)
                 : [requiredFile]
             ),
             []

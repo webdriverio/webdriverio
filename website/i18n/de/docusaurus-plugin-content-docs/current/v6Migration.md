@@ -1,11 +1,11 @@
 ---
 id: v6-migration
-title: From v5 to v6
+title: Von v5 auf v6
 ---
 
-This tutorial is for people who are still using `v5` of WebdriverIO and want to migrate to `v6` or to the latest version of WebdriverIO. As mentioned in our [release blog post](https://webdriver.io/blog/2020/03/26/webdriverio-v6-released) the changes for this version upgrade can be summarised as following:
+Dieses Tutorial richtet sich an Personen, die noch `v5` von WebdriverIO verwenden und auf `v6` oder auf die neueste Version von WebdriverIO migrieren möchten. Wie in unserem [Release-Blogbeitrag](https://webdriver.io/blog/2020/03/26/webdriverio-v6-released) erwähnt, können die Änderungen für dieses Versions-Upgrade wie folgt zusammengefasst werden:
 
-- we consolidated the parameters for some commands (e.g. `newWindow`, `react$`, `react$$`, `waitUntil`, `dragAndDrop`, `moveTo`, `waitForDisplayed`, `waitForEnabled`, `waitForExist`) and moved all optional parameters into a single object, e.g.
+- Wir haben die Parameter für einige Befehle konsolidiert (z. B. `newWindow`, `respond$`, `respond$$`, `waitUntil`, `dragAndDrop`, `moveTo`, `waitForDisplayed`, `waitForEnabled`, `waitForExist`) und alle optionalen Parameter in einem einzigen Objekt verschmolzen, z.B.:
 
     ```js
     // v5
@@ -21,7 +21,7 @@ This tutorial is for people who are still using `v5` of WebdriverIO and want to 
     })
     ```
 
-- configurations for services moved into the service list, e.g.
+- Konfigurationen für Services, die in die Pluginliste verschoben, z.B.:
 
     ```js
     // v5
@@ -39,44 +39,44 @@ This tutorial is for people who are still using `v5` of WebdriverIO and want to 
     }
     ```
 
-- some service options were renamed for simplification purposes
-- we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
+- Einige Serviceoptionen wurden zur Vereinfachung umbenannt
+- Wir haben den `launchApp` in `launchChromeApp` für Chrome WebDriver-Sitzungen umbenannt
 
 :::info
 
-If you are using WebdriverIO `v4` or below, please upgrade to `v5` first.
+Wenn Sie WebdriverIO `v4` oder niedriger verwenden, aktualisieren Sie bitte zuerst auf `v5`.
 
 :::
 
-While we would love to have a fully automated process for this the reality looks different. Everyone has a different setup. Every step should be seen as guidance and less like a step by step instruction. If you have issues with the migration, don't hesitate to [contact us](https://github.com/webdriverio/codemod/discussions/new).
+Während wir dafür gerne einen vollautomatisierten Prozess hätten, sieht die Realität anders aus. Jeder nutzt WebdriverIO auf eine andere Art und Weise. Dieses Dokument gilt als eine Hilfestellung und weniger als Schritt-für-Schritt-Anleitung. Wenn Sie Probleme mit der Migration haben, zögern Sie nicht, uns [zu kontaktieren](https://github.com/webdriverio/codemod/discussions/new).
 
 ## Setup
 
-Similar to other migrations we can use the WebdriverIO [codemod](https://github.com/webdriverio/codemod). To install the codemod, run:
+Ähnlich wie bei anderen Migrationen können wir den WebdriverIO [Codemod](https://github.com/webdriverio/codemod)verwenden. Um den Codemod zu installieren, führen Sie Folgendes aus:
 
 ```sh
 npm install jscodeshift @wdio/codemod
 ```
 
-## Upgrade WebdriverIO Dependencies
+## Aktualisieren Sie WebdriverIO-Abhängigkeiten
 
-Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `6.12.0`. If you decide to upgrade from `v5` directly to `v7` you can leave out the tag and install latest versions of all packages. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
+Da alle WebdriverIO-Versionen eng beieinander liegen, ist es am besten, immer auf ein bestimmtes Tag zu aktualisieren, z. B. `6.12.0`. Wenn Sie sich für ein Upgrade von `v5` direkt auf `v8` entscheiden, können Sie das Tag weglassen und die neuesten Versionen aller Pakete installieren. Dazu kopieren wir alle WebdriverIO-bezogenen Abhängigkeiten aus unserer `package.json` und installieren sie neu über:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter@6 @wdio/cli@6 @wdio/cucumber-framework@6 @wdio/local-runner@6 @wdio/spec-reporter@6 @wdio/sync@6 wdio-chromedriver-service@6 webdriverio@6
 ```
 
-Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are example dependencies, yours may differ. Make sure you find the latest v6 version by calling, e.g.:
+Normalerweise sind WebdriverIO-Abhängigkeiten Teil der Dev-Dependencies, je nach Projekt kann dies jedoch variieren. Danach sollte Ihre `package.json` und `package-lock.json` aktualisiert werden. __Hinweis:__ Dies sind Beispielabhängigkeiten, Ihre können abweichen. Stellen Sie sicher, dass Sie die neueste v6-Version finden, indem Sie anrufen, z.B.:
 
 ```sh
 npm show webdriverio versions
 ```
 
-Try to install the latest version 6 available for all core WebdriverIO packages. For community packages this can differ from package to package. Here we recommend to check the changelog for information on which version is still compatible with v6.
+Versuchen Sie, die neueste Version 6 zu installieren, die für alle zentralen WebdriverIO-Pakete verfügbar ist. Bei Community-Paketen kann dies von Paket zu Paket unterschiedlich sein. Hier empfehlen wir, den Changelog zu überprüfen, um Informationen darüber zu erhalten, welche Version noch mit v6 kompatibel ist.
 
-## Transform Config File
+## Konfigurationsdatei Transformieren
 
-A good first step is to start with the config file. All breaking changes can be resolve using the codemod full automatically:
+Ein guter erster Schritt ist, mit der Konfigurationsdatei zu beginnen. Alle Breaking Changes können mit dem Codemod vollautomatisch behoben werden:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
@@ -84,22 +84,22 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
 
 :::caution
 
-The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). We are working to implement support for it soon. If you are using TypeScript please get involved!
+Der Codemod unterstützt noch keine TypeScript-Projekte. Siehe [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). Wir arbeiten daran, die Unterstützung dafür bald zu implementieren. Wenn Sie TypeScript verwenden, ist jede Hilfe gern gesehen!
 
 :::
 
-## Update Spec Files and Page Objects
+## Spec Dateien und Seitenobjekte aktualisieren
 
-In order to update all command changes run the codemod on all your e2e files that contain WebdriverIO commands, e.g.:
+Um alle Befehlsänderungen zu aktualisieren, führen Sie den Codemod auf allen Ihren e2e-Dateien aus, die WebdriverIO-Befehle enthalten, z.B.:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/*
 ```
 
-That's it! No more changes necessary 🎉
+Das war's! Keine Änderungen mehr nötig 🎉
 
-## Conclusion
+## Zusammenfassung
 
-We hope this tutorial guides you a little bit through the migration process to WebdriverIO `v6`. We strongly recommend to continue upgrading to the latest version given that updating to `v7` is trivial due to almost no breaking changes. Please check out the migration guide [to upgrade to v7](v7-migration).
+Wir hoffen, dass dieses Tutorial Ihnen ein wenig durch den Migrationsprozess zu WebdriverIO `v6` geholfen hat. Wir empfehlen dringend, weiterhin auf die neueste Version zu aktualisieren, da die Aktualisierung auf `v7` trivial ist und es fast keine Breaking Changes gibt. Bitte lesen Sie den Migrationsleitfaden [zum Upgrade auf v7](v7-migration).
 
-The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
+Die Community verbessert den Codemod weiter und testet ihn mit verschiedenen Teams in verschiedenen Organisationen. Zögern Sie nicht, [ein Problem zu melden,](https://github.com/webdriverio/codemod/issues/new) wenn Sie Feedback haben, oder [eine Diskussion zu beginnen](https://github.com/webdriverio/codemod/discussions/new) wenn Sie während des Migrationsprozesses auf Schwierigkeiten stoßen.

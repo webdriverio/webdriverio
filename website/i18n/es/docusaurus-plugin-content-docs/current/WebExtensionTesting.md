@@ -5,7 +5,7 @@ title: Prueba de Extensión Web
 
 WebdriverIO es la herramienta ideal para automatizar un navegador. Las extensiones Web son parte del navegador y pueden ser automatizadas de la misma manera. Cada vez que su extensión web utiliza scripts de contenido para ejecutar JavaScript en sitios web u ofrecer una ventana emergente, puede ejecutar una prueba e2e para eso usando WebdriverIO.
 
-## Loading a Web Extension into the Browser
+## Cargar una extensión web en el navegador
 
 Como primer paso tenemos que cargar la extensión bajo prueba en el navegador como parte de nuestra sesión. Esto funciona de forma diferente para Chrome y Firefox.
 

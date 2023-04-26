@@ -10,7 +10,7 @@ const $button = await $('button')
 await expect($button).toBeDisplayed()
 ```
 
-or
+или
 
 ```js
 const selectOptions = await $$('form select>option')

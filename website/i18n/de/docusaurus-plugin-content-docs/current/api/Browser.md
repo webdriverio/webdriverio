@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-Dies kann nützlich sein, um zum Beispiel Selektoren basierend vom Device Typ im [Page Objekt](PageObjects.md) zu definieren:
+Dies kann nützlich sein, um zum Beispiel Selektoren basierend vom Device Typ im [Page Objekt](../pageobjects) zu definieren:
 
 ```js
 // mypageobject.page.js

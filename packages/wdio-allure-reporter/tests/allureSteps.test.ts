@@ -1,5 +1,4 @@
 import path from 'node:path'
-import type { MockedFunction } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import AllureReporter from '../src/index.js'
 import { LabelName, LinkType, Stage, Status, ContentType } from 'allure-js-commons'
@@ -19,9 +18,7 @@ describe('reporter allure steps API', () => {
 
     it('should add passed custom step', async () => {
         await AllureReporter.step('custom step', () => {})
-
-        const [, call] = (process.emit as MockedFunction<any>).calls[0]
-
+        const [, call] = vi.mocked(process.emit).mock.calls[0] as any
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(call.steps).toHaveLength(1)
         expect(call.steps[0]).toMatchObject({
@@ -33,16 +30,15 @@ describe('reporter allure steps API', () => {
 
     it('should add failed custom step', async () => {
         await AllureReporter.step('custom step', () => {
-            throw new Error('an error here')
+            return Promise.reject(new Error('an error here'))
         })
 
-        const [, call] = (process.emit as MockedFunction<any>).calls[0]
-
+        const [, call] = vi.mocked(process.emit).mock.calls[0] as any
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(call.steps).toHaveLength(1)
         expect(call.steps[0]).toMatchObject({
             name: 'custom step',
-            status: Status.FAILED,
+            status: Status.BROKEN,
             stage: Stage.FINISHED,
         })
     })
@@ -54,7 +50,7 @@ describe('reporter allure steps API', () => {
                     step.label('foo', 'bar')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: 'foo', value: 'bar' })
@@ -67,7 +63,7 @@ describe('reporter allure steps API', () => {
                     step.epic('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.EPIC, value: 'foo' })
@@ -80,7 +76,7 @@ describe('reporter allure steps API', () => {
                     step.feature('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.FEATURE, value: 'foo' })
@@ -93,7 +89,7 @@ describe('reporter allure steps API', () => {
                     step.story('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.STORY, value: 'foo' })
@@ -106,7 +102,7 @@ describe('reporter allure steps API', () => {
                     step.suite('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.SUITE, value: 'foo' })
@@ -119,7 +115,7 @@ describe('reporter allure steps API', () => {
                     step.parentSuite('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.PARENT_SUITE, value: 'foo' })
@@ -132,7 +128,7 @@ describe('reporter allure steps API', () => {
                     step.subSuite('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.SUB_SUITE, value: 'foo' })
@@ -145,7 +141,7 @@ describe('reporter allure steps API', () => {
                     step.owner('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.OWNER, value: 'foo' })
@@ -158,7 +154,7 @@ describe('reporter allure steps API', () => {
                     step.severity('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.SEVERITY, value: 'foo' })
@@ -171,7 +167,7 @@ describe('reporter allure steps API', () => {
                     step.tag('foo')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.labels).toHaveLength(1)
                 expect(call.labels[0]).toEqual({ name: LabelName.TAG, value: 'foo' })
@@ -186,7 +182,7 @@ describe('reporter allure steps API', () => {
                     step.link('https://example.org', 'foo', 'bar')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.links).toHaveLength(1)
                 expect(call.links[0]).toEqual({ url: 'https://example.org', name: 'foo', type: 'bar' })
@@ -199,7 +195,7 @@ describe('reporter allure steps API', () => {
                     step.issue('foo', 'https://example.org')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.links).toHaveLength(1)
                 expect(call.links[0]).toEqual({ url: 'https://example.org', name: 'foo', type: LinkType.ISSUE })
@@ -212,7 +208,7 @@ describe('reporter allure steps API', () => {
                     step.tms('foo', 'https://example.org')
                 })
 
-                const [, call] = (process.emit as MockedFunction<any>).calls[0]
+                const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
                 expect(call.links).toHaveLength(1)
                 expect(call.links[0]).toEqual({ url: 'https://example.org', name: 'foo', type: LinkType.TMS })
@@ -226,7 +222,7 @@ describe('reporter allure steps API', () => {
                 step.attach(JSON.stringify({ foo: 'bar' }), ContentType.JSON)
             })
 
-            const [, call] = (process.emit as MockedFunction<any>).calls[0]
+            const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
             expect(call.steps[0].attachments).toHaveLength(1)
             expect(call.steps[0].attachments[0]).toEqual({
@@ -244,7 +240,7 @@ describe('reporter allure steps API', () => {
                 step.parameter('foo', 'bar', { excluded: false, mode: 'hidden' })
             })
 
-            const [, call] = (process.emit as MockedFunction<any>).calls[0]
+            const [, call] = vi.mocked(process.emit).mock.calls[0] as any
 
             expect(call.parameter).toHaveLength(1)
             expect(call.parameter[0]).toEqual({ name: 'foo', value: 'bar', excluded: false, mode: 'hidden' })

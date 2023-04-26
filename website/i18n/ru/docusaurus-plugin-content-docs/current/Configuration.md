@@ -1,9 +1,9 @@
 ---
 id: configuration
-title: Configuration
+title: Конфигурация
 ---
 
-Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Based on the [setup type](setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver Options
 
@@ -68,7 +68,7 @@ Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](h
 
 Type: `Object`<br /> Default: `null`
 
-**Example:**
+**Пример:**
 
 ```js
 {
@@ -179,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -227,7 +227,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
@@ -261,7 +261,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](./Frameworks.md).
+Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
@@ -314,7 +314,7 @@ List of reporters to use. A reporter can be either a string, or an array of `['r
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Example:
+Пример:
 
 ```js
 reporters: [
@@ -385,7 +385,7 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 Gets executed once before all workers get launched.
 
-Parameters:
+Параметры:
 
 - `config` (`object`): WebdriverIO configuration object
 - `param` (`object[]`): list of capabilities details
@@ -394,7 +394,7 @@ Parameters:
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
-Parameters:
+Параметры:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -406,7 +406,7 @@ Parameters:
 
 Gets executed just after a worker process has exited.
 
-Parameters:
+Параметры:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
@@ -417,7 +417,7 @@ Parameters:
 
 Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
-Parameters:
+Параметры:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -427,7 +427,7 @@ Parameters:
 
 Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
 
-Parameters:
+Параметры:
 
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
@@ -437,7 +437,7 @@ Parameters:
 
 Hook that gets executed before the suite starts
 
-Parameters:
+Параметры:
 
 - `suite` (`object`): suite details
 
@@ -445,7 +445,7 @@ Parameters:
 
 Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -454,7 +454,7 @@ Parameters:
 
 Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -482,7 +482,7 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Parameters:
+Параметры:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -493,7 +493,7 @@ Parameters:
 
 Function to be executed after a test (in Mocha/Jasmine) ends.
 
-Parameters:
+Параметры:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -508,7 +508,7 @@ Parameters:
 
 Hook that gets executed after the suite has ended
 
-Parameters:
+Параметры:
 
 - `suite` (`object`): suite details
 
@@ -516,7 +516,7 @@ Parameters:
 
 Gets executed after all tests are done. You still have access to all global variables from the test.
 
-Parameters:
+Параметры:
 
 - `result` (`number`): 0 - test pass, 1 - test fail
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -536,7 +536,7 @@ Parameters:
 
 Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
 
-Parameters:
+Параметры:
 
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
@@ -545,9 +545,9 @@ Parameters:
 
 ### onReload
 
-Gets executed when a refresh happens.
+Выполняется, когда происходит обновление.
 
-Parameters:
+Параметры:
 
 - `oldSessionId` (`string`): session ID of the old session
 - `newSessionId` (`string`): session ID of the new session
@@ -556,7 +556,7 @@ Parameters:
 
 Runs before a Cucumber Feature.
 
-Parameters:
+Параметры:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -565,7 +565,7 @@ Parameters:
 
 Runs after a Cucumber Feature.
 
-Parameters:
+Параметры:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
