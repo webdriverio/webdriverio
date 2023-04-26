@@ -1,13 +1,13 @@
 ---
 id: support
-title: Need Help?
+title: کمک لازم دارید؟
 ---
 
-This project is maintained by a dedicated group of people.
+این پروژه توسط یک گروه اختصاصی از افراد نگهداری می شود.
 
-If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours) to help you with your efforts.
+اگر علاقه مند به مشارکت در پروژه WebdriverIO هستید، [ برنامه ی رایگان ما را در "ساعت های دفتر"](/blog/2020/07/01/office-hours) بررسی کنید تا در تلاش هایتان به شما کمک کنیم.
 
-If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:
+اگر به دنبال کمک فوری برای پروژه خود هستید، با یک متخصص قابل اعتماد WebdriverIO تماس بگیرید:
 
 - [Kevin Lamping](https://www.codementor.io/@kevinlamping)
 - [Add your name to this list](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
