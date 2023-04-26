@@ -34,7 +34,7 @@
     "@wdio/utils": "8.8.6",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^5.0.0",
-    "glob": "^9.3.0",
+    "glob": "^10.2.2",
     "import-meta-resolve": "^3.0.0",
     "read-pkg-up": "^9.1.0"
   },
