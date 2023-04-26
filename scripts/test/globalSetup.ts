@@ -10,7 +10,7 @@ const tmpGotPath = path.join(nodeModulesPath, 'tmp_got')
 const ERROR_MESSAGE = `Renaming "got" dependency failed!
 
 WebdriverIO needs to hide the "got" dependency (at "packages/webdriver/node_modules/got")
-during the test to force Vitest to use our mocked version. WebdriverIO does this by renaming: 
+during the test to force Vitest to use our mocked version. WebdriverIO does this by renaming:
 
 "packages/webdriver/node_modules/got"
 to
@@ -47,6 +47,11 @@ export const setup = async () => {
     await fs.rename(gotPath, tmpGotPath).catch(throwBetterErrorMessageSetup)
 }
 
+let tearDownInProcess = false
 export const teardown = async () => {
+    if (tearDownInProcess) {
+        return
+    }
+    tearDownInProcess = true
     await fs.rename(tmpGotPath, gotPath).catch(throwBetterErrorMessageTearDown)
 }
