@@ -15,7 +15,15 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo, isBStackSession } from './util'
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession,
+    setConfigDetails
+} from './util'
+import PerformanceTester from './performance-tester'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -82,6 +90,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
+        if (process.env.MEASURE_OBS_PERFORMANCE) {
+            PerformanceTester.startMonitoring('performance-report-launcher.csv')
+        }
+
         // by default observability will be true unless specified as false
         this._options.testObservability = this._options.testObservability == false ? false : true
 
@@ -90,6 +102,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+        }
+
+        try {
+            setConfigDetails(this._config, capabilities, this._options)
+        } catch (error: any) {
+            log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 
@@ -207,6 +225,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
+        }
+
+        if (process.env.MEASURE_OBS_PERFORMANCE) {
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+            if (!process.env.START_TIME) {
+                return
+            }
+            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+            log.info(`Total duration is ${duration / 1000 } s`)
         }
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {

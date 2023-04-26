@@ -8,12 +8,12 @@ import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import logger from '@wdio/logger'
 
 import { BrowserstackConfig, TestData, TestMeta } from './types'
-import { getCloudProvider, getGitMetaData, uploadEventData } from './util'
+import { getCloudProvider, getGitMetaData, uploadEventData, o11yClassErrorHandler } from './util'
 import RequestQueueHandler from './request-handler'
 
 const log = logger('@wdio/browserstack-service')
 
-export default class TestReporter extends WDIOReporter {
+class _TestReporter extends WDIOReporter {
     private _capabilities: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability = true
@@ -21,7 +21,7 @@ export default class TestReporter extends WDIOReporter {
     private _suiteName?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
     private _suites: SuiteStats[] = []
-    private _tests: Record<string, TestMeta> = {}
+    private static _tests: Record<string, TestMeta> = {}
     private _gitConfigPath?: string
 
     async onRunnerStart (runnerStats: RunnerStats) {
@@ -33,7 +33,10 @@ export default class TestReporter extends WDIOReporter {
         if (gitMeta) {
             this._gitConfigPath = gitMeta.root
         }
+    }
 
+    static getTests() {
+        return _TestReporter._tests
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
@@ -78,7 +81,7 @@ export default class TestReporter extends WDIOReporter {
     async onTestStart(testStats: TestStats) {
         if (!this.needToSendData('test', 'start')) return
 
-        this._tests[testStats.fullTitle] = {
+        _TestReporter._tests[testStats.fullTitle] = {
             uuid: uuidv4(),
         }
         await this.sendTestRunEvent(testStats, 'TestRunStarted')
@@ -86,9 +89,8 @@ export default class TestReporter extends WDIOReporter {
 
     async sendTestRunEvent(testStats: TestStats, eventType: string) {
         const framework = this._config?.framework
-
         let testData: TestData = {
-            uuid: this._tests[testStats.fullTitle].uuid || uuidv4(),
+            uuid: _TestReporter._tests[testStats.fullTitle].uuid || uuidv4(),
             type: testStats.type,
             name: testStats.title,
             body: {
@@ -109,7 +111,7 @@ export default class TestReporter extends WDIOReporter {
             retries: { limit: testStats.retries || 0, attempts: testStats.retries || 0 }
         }
 
-        if (eventType == 'TestRunStarted' || eventType == 'TestRunSkipped') {
+        if (eventType.startsWith('TestRun')) {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
             testData.integrations = {}
@@ -149,3 +151,7 @@ export default class TestReporter extends WDIOReporter {
         await this.sendTestRunEvent(testStats, 'TestRunSkipped')
     }
 }
+// https://github.com/microsoft/TypeScript/issues/6543
+const TestReporter: typeof _TestReporter = o11yClassErrorHandler(_TestReporter)
+type TestReporter = _TestReporter
+export default TestReporter

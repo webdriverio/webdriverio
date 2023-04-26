@@ -28,6 +28,7 @@
     "@wdio/reporter": "7.25.4",
     "@wdio/types": "7.30.2",
     "browserstack-local": "^1.4.5",
+    "csv-writer": "^1.6.0",
     "form-data": "^4.0.0",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",

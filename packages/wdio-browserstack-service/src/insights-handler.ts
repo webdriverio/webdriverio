@@ -6,6 +6,7 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
+import TestReporter from './reporter'
 
 import {
     frameworkSupportsHook,
@@ -17,6 +18,7 @@ import {
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
     isScreenshotCommand,
+    o11yClassErrorHandler,
     removeAnsiColors,
     sleep,
     uploadEventData
@@ -25,7 +27,7 @@ import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 import RequestQueueHandler from './request-handler'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants'
 
-export default class InsightsHandler {
+class _InsightsHandler {
 
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
@@ -235,8 +237,9 @@ export default class InsightsHandler {
             return
         }
         const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-        if (!this._tests[identifier]) {
+        if (!testMeta) {
             return
         }
 
@@ -245,7 +248,7 @@ export default class InsightsHandler {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
-                    test_run_uuid: this._tests[identifier].uuid,
+                    test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
@@ -263,7 +266,7 @@ export default class InsightsHandler {
         const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
-                test_run_uuid: this._tests[identifier].uuid,
+                test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
                 http_response: {
@@ -485,3 +488,9 @@ export default class InsightsHandler {
         return getUniqueIdentifier(test, this._framework)
     }
 }
+
+// https://github.com/microsoft/TypeScript/issues/6543
+const InsightsHandler: typeof _InsightsHandler = o11yClassErrorHandler(_InsightsHandler)
+type InsightsHandler = _InsightsHandler
+
+export default InsightsHandler
