@@ -1,6 +1,6 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Автодополнение
 ---
 
 import Tabs from '@theme/Tabs';
@@ -12,11 +12,11 @@ import TabItem from '@theme/TabItem';
 
 Если вы уже некоторое время занимаетесь написанием кода программ, то, вероятно, вам нравится автодополнение. Автодополнение доступно во многих редакторах кода по умолчанию.
 
-![Autocompletion](/img/autocompletion/0.png)
+![Автодополнение](/img/autocompletion/0.png)
 
 Определения типов на основе [JSDoc](http://usejsdoc.org/) используется для документирования кода. Автодополнение помогает увидеть дополнительные детали о параметрах и их типах.
 
-![Autocompletion](/img/autocompletion/1.png)
+![Автодополнение](/img/autocompletion/1.png)
 
 Используйте стандартные сочетания клавиш <kbd>⇧ + ⌥ + SPACE</kbd> в IntelliJ, чтобы просмотреть доступную документацию:
 
@@ -24,11 +24,11 @@ import TabItem from '@theme/TabItem';
 
 ## Visual Studio Code (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+Visual Studio Code обычно автоматически использует поддержку типов, и никаких действий не требуется.
 
 ![Autocompletion](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+Если вы используете ванильный JavaScript и хотите иметь правильную поддержку типов, вам необходимо создать `jsconfig.json` в корне вашего проекта и обратиться к пакетам wdio, например:
 
 ```json title="jsconfig.json"
 {
