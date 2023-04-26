@@ -8,17 +8,17 @@ import TabItem from '@theme/TabItem';
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+Автодополнение работает из коробки в IDEA и WebStorm.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+Если вы уже некоторое время занимаетесь написанием кода программ, то, вероятно, вам нравится автодополнение. Автодополнение доступно во многих редакторах кода по умолчанию.
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Определения типов на основе [JSDoc](http://usejsdoc.org/) используется для документирования кода. Автодополнение помогает увидеть дополнительные детали о параметрах и их типах.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+Используйте стандартные сочетания клавиш <kbd>⇧ + ⌥ + SPACE</kbd> в IntelliJ, чтобы просмотреть доступную документацию:
 
 ![Автозавершение](/img/autocompletion/2.png)
 
