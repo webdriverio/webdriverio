@@ -9,7 +9,7 @@ import type { Environment, FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner')
 
-export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
+export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
@@ -79,12 +79,12 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 /**
                  * mock process
                  */
-                window.process = {
+                window.process = window.process || {
                     platform: 'browser',
-                    env: ${JSON.stringify(processEnv)},
+                    env: ${JSON.stringify(p.env)},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '${process.cwd()}',
+                    cwd: () => '${p.cwd()}',
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
@@ -102,7 +102,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
             <script type="module">
-                window.process.env = ${JSON.stringify(processEnv)}
+                window.process.env = ${JSON.stringify(p.env)}
             </script>
         </body>
     </html>`

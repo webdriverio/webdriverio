@@ -30,12 +30,12 @@ exports[`getTemplate > renders template correctly 1`] = `
                 /**
                  * mock process
                  */
-                window.process = {
+                window.process = window.process || {
                     platform: 'browser',
                     env: {\\"some\\":\\"env\\"},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '/Users/christianbromann/Sites/WebdriverIO/webdriverio',
+                    cwd: () => '/some/cwd',
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
