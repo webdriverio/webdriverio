@@ -32,8 +32,10 @@ exports[`getTemplate > renders template correctly 1`] = `
                  */
                 window.process = {
                     platform: 'browser',
-                    env: {},
-                    stdout: {}
+                    env: {\\"some\\":\\"env\\"},
+                    stdout: {},
+                    stderr: {},
+                    cwd: () => '/Users/christianbromann/Sites/WebdriverIO/webdriverio',
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
