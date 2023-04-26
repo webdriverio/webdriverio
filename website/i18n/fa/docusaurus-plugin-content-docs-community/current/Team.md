@@ -1,6 +1,6 @@
 ---
 id: team
-title: Team
+title: تیم
 ---
 
 import Card from '@site/src/theme/card.jsx';
