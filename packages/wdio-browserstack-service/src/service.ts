@@ -17,7 +17,7 @@ import {
     uploadCrashReport
 } from './util'
 import TestReporter from './reporter'
-import PerformanceTester from './performance-tester';
+import PerformanceTester from './performance-tester'
 
 const log = logger('@wdio/browserstack-service')
 
