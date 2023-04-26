@@ -241,8 +241,8 @@ export function addArgument (name: string, value: string) {
  */
 export async function step(name: string, body: StepBodyFunction) {
     const runningStep = new AllureCommandStepExecutable(name)
-    const result = await runningStep.start(body)
-
+    // looks complicated due to https://github.com/allure-framework/allure-js/commit/ce9a6f986d32a079b7f60c9f77a7d90f01d9a9f2#r110599261
+    const result = await new Promise((resolve) => runningStep.run(body, async (result) => resolve(result)))
     tellReporter(events.addAllureStep, result)
 }
 

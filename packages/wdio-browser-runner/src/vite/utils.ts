@@ -42,12 +42,13 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
 
     let sourceMapScript = ''
     let sourceMapSetupCommand = ''
-    await resolve('source-map-support', import.meta.url).then((sourceMapSupportDir) => {
+    try {
+        const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    }, (err) => {
-        log.error(`Failed to setup source-map-support: ${err.message}`)
-    })
+    } catch (err: unknown) {
+        log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
+    }
 
     return /* html */`
     <!doctype html>

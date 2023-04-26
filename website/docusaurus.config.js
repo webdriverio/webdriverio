@@ -24,7 +24,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en'/*, 'de', 'fr', 'es', 'hi'*/],
+        locales: ['en', 'de', 'es', 'hi'/*, 'fr', 'zh-CN', 'ru', 'fa' */],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
@@ -81,9 +81,16 @@ module.exports = {
                 position: 'right',
                 to: '/versions'
             }, {
-            //     type: 'localeDropdown',
-            //     position: 'right',
-            // }, {
+                type: 'localeDropdown',
+                position: 'right',
+                dropdownItemsAfter: [{
+                    type: 'html',
+                    value: '<hr style="margin: 0.3rem 0;">',
+                }, {
+                    href: 'https://github.com/webdriverio/webdriverio/issues/10261',
+                    label: 'Help Us Translate',
+                }]
+            }, {
                 href: repoUrl,
                 position: 'right',
                 className: 'header-github-link',

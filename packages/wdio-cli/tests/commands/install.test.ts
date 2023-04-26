@@ -5,15 +5,19 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs } from 'yargs'
 import yarnInstall from 'yarn-install'
 
-vi.mocked(fs.access).mockResolvedValue()
-
 import * as installCmd from '../../src/commands/install.js'
 import * as configCmd from '../../src/commands/config.js'
 import * as utils from '../../src/utils.js'
 
 vi.mock('yargs')
 vi.mock('yarn-install')
-vi.mock('node:fs/promises')
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue({}),
+        readFile: vi.fn().mockResolvedValue({}),
+        writeFile: vi.fn().mockResolvedValue({})
+    }
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const findInConfigMock = vi.spyOn(utils, 'findInConfig')

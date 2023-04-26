@@ -41,7 +41,7 @@ jasmineOpts: {
 }
 ```
 
-Siehe [timeouts](Timeouts.md) für weitere Informationen darüber, wie man das mit anderen Frameworks macht.
+Siehe [timeouts](timeouts) für weitere Informationen darüber, wie man das mit anderen Frameworks macht.
 
 Um nach dem Debuggen mit den Tests fortzufahren, verwenden Sie in der Shell die Tastenkombination `^C` oder den Befehl `.exit`.
 ## Dynamische Konfiguration

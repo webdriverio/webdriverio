@@ -24,7 +24,7 @@ WebdriverIO aprovecha el poder del protocolo [WebDriver](https://w3c.github.io/w
 
 Además, WebdriverIO también cuenta con soporte para protocolos de automatización alternativos como [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) para depuración e introspección. Esto permite al usuario cambiar sin problemas entre comandos convencionales basados en WebDriver y poderosas interacciones del navegador a través de [Puppeteer](https://pptr.dev/).
 
-Lea más acerca de las diferencias de estos estándares de automatización en la sección de [Protocols de Automatización](./AutomationProtocols.md).
+Lea más acerca de las diferencias de estos estándares de automatización en la sección de [Protocols de Automatización](automationProtocols).
 
 ## Código abierto
 

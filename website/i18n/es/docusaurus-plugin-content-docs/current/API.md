@@ -7,6 +7,7 @@ Bienvenido a la documentación de la API WebdriverIO. Estas páginas contienen m
 
 :::info
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [viejos sitios web de documentación](/versions) !
+:::  
 :::
 :::
 

@@ -5,7 +5,7 @@ title: Premiers pas
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
 
 Bienvenue sur la documentation de WebdriverIO. Cela vous aidera à démarrer rapidement. Si vous rencontrez des problèmes, vous pouvez trouver de l'aide et des réponses sur notre [Discord Support Server](https://discord.webdriver.io) ou vous pouvez me contacter sur [Twitter](https://twitter.com/webdriverio).
 

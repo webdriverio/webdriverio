@@ -1,6 +1,6 @@
 ---
 id: component-testing
-title: Component Testing
+title: Komponenten Testen
 ---
 
 Mit WebdriverIOs [Browser Runner](/docs/runner#browser-runner) können Sie Tests in einem echten Desktop- oder mobilen Browser ausführen, und dabei das WebDriver-Protokoll verwenden, um mit Elementen in der Komponente zu interagieren. Dieser Ansatz hat [viele Vorteile](/docs/runner#browser-runner) im Vergleich zu anderen Test-Frameworks, die nur Tests mit [JSDOM](https://www.npmjs.com/package/jsdom) zulassen.
@@ -99,7 +99,7 @@ Es gibt mehrere Möglichkeiten, wie Sie Ihre Browsertests debuggen können. Am e
 $ npx wdio run ./wdio.conf.js --watch
 ```
 
-Dadurch werden zunächst alle Tests durchlaufen. Der Prozess wird dann angehalten, sobald alle ausgeführt Tests wurden ohne dabei den Browser zu schließen. Sie können dann Änderungen an einzelnen Dateien vornehmen, die dann Tests einzeln erneut ausführen. Wenn Sie die [`filesToWatch`](/docs/configuration#filestowatch) Option festlegen, die mit ihrem Wert auf Ihre Anwendungsdateien verweist, werden alle Tests erneut ausgeführt, wenn Änderungen an Ihrer App vorgenommen werden.
+Dadurch werden zunächst alle Tests durchlaufen. Sie können dann Änderungen an einzelnen Dateien vornehmen, die dann Tests einzeln erneut ausführen. Wenn Sie die [`filesToWatch`](/docs/configuration#filestowatch) Option festlegen, die mit ihrem Wert auf Ihre Anwendungsdateien verweist, werden alle Tests erneut ausgeführt, wenn Änderungen an Ihrer App vorgenommen werden.
 
 ## Debuggen
 
