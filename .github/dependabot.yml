@@ -10,8 +10,6 @@ updates:
   ignore:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
-    # doesn't support glob anymore in v4
-    - dependency-name: "rimraf"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
