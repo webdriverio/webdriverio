@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import glob from 'glob'
+import { sync as globSync } from 'glob'
 
 import RequireLibrary from './RequireLibrary.js'
 import type { PathService, ModuleImportService } from '../types.js'
@@ -27,7 +27,7 @@ export default class FileSystemPathService implements PathService {
      * @returns files matching the glob pattern
      */
     glob(pattern: string, rootDir: string): string[] {
-        const globResult = glob.sync(pattern, {
+        const globResult = globSync(pattern, {
             cwd: rootDir
         }) || []
         const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
