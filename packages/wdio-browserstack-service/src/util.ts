@@ -332,9 +332,8 @@ export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): 
 
     let parentTitle = test.parent
     // Sometimes parent will be an object instead of a string
-    if (typeof test.parent === 'object') {
-        // @ts-ignore
-        parentTitle = parentTitle.title
+    if (typeof parentTitle === 'object') {
+        parentTitle = (parentTitle as any).title
     }
     return `${parentTitle} - ${test.title}`
 }
