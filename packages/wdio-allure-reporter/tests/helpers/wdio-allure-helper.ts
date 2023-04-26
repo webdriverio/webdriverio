@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { rimrafSync } from 'rimraf'
+import rimraf from 'rimraf'
 import type { Attachment, TestResult } from 'allure-js-commons'
 import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
 // eslint-disable-next-line
@@ -66,7 +66,7 @@ export function getResultFiles (resultsDir: any, patterns: RegExp[]) {
 }
 
 export function clean (resultsDir: any) {
-    return rimrafSync(resultsDir)
+    return rimraf.sync(resultsDir)
 }
 
 export function getSuitesFromReporter(reporter: AllureReporter): AllureGroup[] {
