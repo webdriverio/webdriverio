@@ -1,23 +1,23 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: شروع کار
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-:::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+:::نکته 
+اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
-## Initiate a WebdriverIO Setup
+## راه‌اندازی تنظیمات WebdriverIO
 
 To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
-If you're in the root directory of an existing project, run:
+اگر در دایرکتوری ریشه یک پروژه موجود هستید دستور مقابل را اجرا کنید:
 
 <Tabs
   defaultValue="npm"
@@ -68,11 +68,11 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+این تک فرمان، ابزار WebdriverIO CLI را دانلود می کند و یک wizard برای پیکربندی راحت را اجرا می کند که به شما کمک می کند مجموعه تست خود را پیکربندی کنید.
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+Wizard مجموعه ای از سوالات را مطرح می کند که شما را برای راه‌اندازی راهنمایی می کند. شما می‌توانید از یک پارامتر `--yes` که برای انتخاب یک تنظیم پیش‌فرض که از Mocha با Chrome با استفاده از الگوی [Page Object](https://martinfowler.com/bliki/PageObject.html) استفاده می‌شود، استفاده کنید.
 
 <Tabs
   defaultValue="npm"
@@ -105,7 +105,7 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Run Test
+## اجرای تست
 
 You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
 
