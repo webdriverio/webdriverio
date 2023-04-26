@@ -56,7 +56,7 @@
     "recast": "^0.22.0",
     "serialize-error": "^11.0.0",
     "source-map-support": "^0.5.21",
-    "vite": "^4.2.0",
+    "vite": "~4.2.0",
     "vite-plugin-istanbul": "^4.0.1",
     "vite-plugin-top-level-await": "^1.3.0",
     "webdriver": "8.8.6",
