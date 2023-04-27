@@ -1,23 +1,23 @@
 ---
 id: element
-title: The Element Object
+title: شی Element
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+یک Element Object شیئی است که یک Element یا عنصر را در remote user agent نشان می دهد، به عنوان مثال یک نود [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Element) در یک session داخل یک مرورگر یا [یک element موبایل](https://developer.apple.com/documentation/swift/sequence/element) برای تلفن همراه. می توان آن را با استفاده از یکی از دستورات دریافت عناصر متعدد نیز دریافت کرد، به عنوان مثال [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) یا [`shadow$`](/docs/api/element/shadow$).
 
-## Properties
+## ویژگی ها
 
-An element object has the following properties:
+یک شی element دارای ویژگی های زیر است:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| نام         | نوع      | جزئیات                                                                                                                                                                                                                            |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | Session id که از سرور remote اختصاص داده شده است.                                                                                                                                                                                 |
+| `elementId` | `String` | مرجعی از [Web element refrence](https://w3c.github.io/webdriver/#elements) که می تواند برای تعامل با element در سطح پروتکل استفاده شود                                                                                            |
+| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                            |
+| `parent`    | `Object` | یا شیء [browser](/docs/api/browser) هنگامی که عنصر از آن واکشی شده است (مثلاً `const elem = browser.$('selector')`) یا یک شی [element](/docs/api/element) اگر از دامنه element درخواست شده باشد (مثلاً `elemenet.$( "selector")`) |
+| `options`   | `Object` | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. اطلاعات بیشتر در [راه اندازی types](/docs/setuptypes).                                                                     |
 
-## Methods
+## متود ها(توابع)
 
 A element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
 
