@@ -13,8 +13,6 @@ Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenz
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
 :::
 :::
-:::
-:::
 
 ## Iniciar una configuración de WebdriverIO
 
