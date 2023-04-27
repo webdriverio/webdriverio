@@ -542,7 +542,7 @@
     "message": "Test-Framework für Browser und mobile Automatisierung der nächsten Generation für Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "Es kommt mit intelligenten Auswahlstrategien, die die Interaktion z.B. mit {reactComponents} oder das Ausführen tiefer Auswahlabfragen mit verschachtelten Schatten-DOM-Bäumen vereinfachen. Da Interaktionen über ein standardisiertes Automatisierungsprotokoll erfolgen, ist garantiert, dass sie sich nativ verhalten und nicht nur JavaScript emuliert werden."
+    "message": "WebdriverIO ist ein {allInOne} Framework für Ihre Web Development Arbeit. Es ermöglicht Ihnen einfache unit oder Komponenten Tests, sowie auch e2e Test Anwendungen zu schreiben, die im Browser oder auf dem Mobilen Gerät ausgeführt werden können. Dies garantiert, dass Sie in einer Umgebung testen, welches auch von Ihren Nutzern genutzt wird."
   },
   "features.realEnvironments": {
     "message": "Testen in realen Umgebungen"
