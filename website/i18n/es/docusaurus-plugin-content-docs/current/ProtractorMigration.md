@@ -33,7 +33,7 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
 
 :::info
 
- Su configuración puede ser nombrada de forma diferente, sin embargo el principio debe ser el mismo: iniciar la migración de la configuración primero.
+Su configuración puede ser nombrada de forma diferente, sin embargo el principio debe ser el mismo: iniciar la migración de la configuración primero.
 
 :::
 
@@ -58,9 +58,9 @@ Esto le guiará a través de un par de preguntas. Para este escenario de migraci
 - y elegir Mocha por encima de Jasmine.
 
 :::info ¿Por qué Moka?
+
 Aunque es posible que haya estado usando Protractor con Jasmine antes, Mocha proporciona mejores mecanismos de reintento. ¡La elección es suya!
-:::  
-:::
+
 :::
 
 Después del pequeño cuestionario, el asistente instalará todos los paquetes necesarios y los almacenará en su `package.json`.
