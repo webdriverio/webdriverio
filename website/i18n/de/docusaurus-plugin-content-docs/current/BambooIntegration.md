@@ -56,16 +56,19 @@ Wir glauben, dass Sie zu diesem Zeitpunkt die Tests geschrieben haben und die Er
 
     ![Standardstufe](/img/bamboo/defaultstage.png "Standardstufe")
 2. Open your testing job and create tasks to run your tests in Bamboo > **Task 1:** Source Code Checkout
-> **Aufgabe 1:** Quellcode-Checkout
-> **Aufgabe 1:** Quellcode-Checkout **Aufgabe: 4** (optional) Um sicherzustellen, dass Ihre Testergebnisse nicht mit alten Dateien durcheinandergebracht werden, können Sie eine Aufgabe erstellen, um den Ordner `./testresults/` nach einem erfolgreichen Parsen zu Bamboo zu entfernen. Sie können *Script* Task und *Shell Interpreter* verwenden, um die obigen Befehle auszuführen (Dies generiert die Testergebnisse und speichert sie in `. testresults/` Ordner)
+    > **Aufgabe 1:** Quellcode-Checkout
 
-    ![Testlauf](/img/bamboo/testrun.png "Testlauf")
-> **Aufgabe: 3** Fügen Sie *jUnit Parser* Aufgabe hinzu, um Ihre gespeicherten Testergebnisse zu parsen. Bitte geben Sie hier das Verzeichnis der Testergebnisse an (Sie können auch Muster im Ant-Stil verwenden)
+    >**Task 2:** Starte deine Tests mit ```npm i && npm run test```. Du kannst den *Script* Task und *Shell Interpreter* verwenden, um obige Befehle auszuführen (dies wird Ihre Test Ergebnisse erzeugen und im ```./testresults/``` Ordner ablegen)
+
+    ![Test Run](/img/bamboo/testrun.png "Test Run")
+
+    > **Aufgabe: 3** Fügen Sie *jUnit Parser* Aufgabe hinzu, um Ihre gespeicherten Testergebnisse zu parsen. Bitte geben Sie hier das Verzeichnis der Testergebnisse an (Sie können auch Muster im Ant-Stil verwenden)
 
     ![jUnit-Parser](/img/bamboo/junitparser.png "jUnit-Parser")
 
-    !\[jUnit Parser\](/img/bamboo/junitparser.png "jUnit Parser") Note: *Make sure you are keeping the results parser task in *Final* section, so that it always get executed even if your test task is failed*
-> **Aufgabe 1:** Quellcode-Checkout **Aufgabe 1:** Quellcode-Checkout **Aufgabe: 4** (optional) Um sicherzustellen, dass Ihre Testergebnisse nicht mit alten Dateien durcheinandergebracht werden, können Sie eine Aufgabe erstellen, um den Ordner `./testresults/` nach einem erfolgreichen Parsen zu Bamboo zu entfernen. Sie können ein Shell-Skript wie `rm -f ./testresults/*.xml` hinzufügen, um die Ergebnisse zu entfernen, oder `rm -r testresults` , um den gesamten Ordner zu entfernen
+    Note: *Make sure you are keeping the results parser task in *Final* section, so that it always get executed even if your test task is failed*
+
+    > **Aufgabe: 4** (optional) Um sicherzustellen, dass Ihre Testergebnisse nicht mit alten Dateien durcheinandergebracht werden, können Sie eine Aufgabe erstellen, um den Ordner `./testresults/` nach einem erfolgreichen Parsen zu Bamboo zu entfernen. Sie können ein Shell-Skript wie `rm -f ./testresults/*.xml` hinzufügen, um die Ergebnisse zu entfernen, oder `rm -r testresults`, um den gesamten Ordner zu entfernen
 
 Sobald die obige *Raketenwissenschaft* fertig ist, aktivieren Sie bitte den Plan und führen Sie ihn aus. Ihre endgültige Ausgabe wird wie folgt aussehen:
 
