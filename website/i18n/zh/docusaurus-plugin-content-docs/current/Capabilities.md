@@ -10,7 +10,7 @@ A capability is a definition for a remote interface. It helps WebdriverIO to und
 
 :::info
 
-The format of a capability object is well defined by the [WebDriver specification](https://w3c.github.io/webdriver/#capabilities). The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification. The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification.
+The format of a capability object is well defined by the [WebDriver specification](https://w3c.github.io/webdriver/#capabilities). The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification. The format of a capability object is well defined by the [WebDriver specification](https://w3c.github.io/webdriver/#capabilities). The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification. The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification.
 
 :::
 
@@ -37,7 +37,7 @@ While the amount of fixed defined capabilities is verry low, everyone can provid
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - and many more...
 
-Have a look into WebdriverIOs [Capability TypeScript definition](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) to find specific capabilities for your test. Note: not all of them are still valid and might not be supported anymore by the provider. Note: not all of them are still valid and might not be supported anymore by the provider.
+Have a look into WebdriverIOs [Capability TypeScript definition](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) to find specific capabilities for your test. Note: not all of them are still valid and might not be supported anymore by the provider. Note: not all of them are still valid and might not be supported anymore by the provider. Note: not all of them are still valid and might not be supported anymore by the provider.
 
 ## Special Capabilities for Specific Use Cases
 
@@ -45,7 +45,7 @@ This is a list of examples showing which capabilities need to be applied to achi
 
 ### Run Browser Headless
 
-Running a headless browser means to run a browser instance without window or UI. This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities: This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities:
+Running a headless browser means to run a browser instance without window or UI. This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities: This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities: This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities:
 
 <Tabs
   defaultValue="chrome"
