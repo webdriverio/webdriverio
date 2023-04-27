@@ -23,16 +23,16 @@ title: شی Element
 
 علاوه بر آن دستورات زیر نیز موجود است:
 
-| نام                | پارامترها                                                             | جزئیات                                                                                                                                                                                                        |
-| ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                          |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| نام                | پارامترها                                                             | جزئیات                                                                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | اجازه می دهد تا فرمان های سفارشی را تعریف کرد. این دستوات را بعدا می توان از شی browser برای ایجاد ترکیب های مختلف فراخوانی کرد. در راهنمای [Custom Command](/docs/customcommands) بیشتر بخوانید.                            |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | اجازه می دهد تا هر دستور مرورگر را با عملکرد سفارشی بازنویسی کنید. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
 
-## Remarks
+## ملاحظات
 
-### Element Chain
+### زنجیره Element
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element look ups. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+هنگام کار با عناصر، WebdriverIO فرمان خاصی را برای ساده کردن درخواست آنها و جستجوی عناصر تو در تو ی پیچیده ارائه می دهد. از آنجایی که اشیاء element این امکان را می دهد که عناصر را در داخل شاخه خود با استفاده از روش های رایج درخواست پیدا کنید، کاربران می توانند عناصر تودرتو را به صورت زیر درخواست کنند:
 
 ```js
 const header = await $('#header')
