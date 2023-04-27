@@ -545,30 +545,30 @@
     "message": "Viene con estrategias de selector inteligente que simplifican la interacción, por ejemplo, con {reactComponents} o la ejecución de consultas de selector profundo con árboles DOM de sombra anidados. Como las interacciones ocurren a través de un protocolo de automatización estandarizado, se garantiza que se comportan de forma nativa y no solo se emulan con JavaScript."
   },
   "features.realEnvironments": {
-    "message": "Test in Real Environments"
+    "message": "Prueba en entornos reales"
   },
   "features.versatile": {
-    "message": "Versatile and Feature Rich"
+    "message": "Versátil y rico en características"
   },
   "features.autoWait": {
-    "message": "Auto Wait"
+    "message": "Espera automática"
   },
   "features.standards": {
-    "message": "Based on Web Standards"
+    "message": "Basado en estándares web"
   },
   "features.mobileSupport": {
-    "message": "Native Mobile Support"
+    "message": "Soporte móvil nativo"
   },
   "features.community": {
-    "message": "Committed Community"
+    "message": "Comunidad comprometida"
   },
   "homepage.componentTesting.heading": {
-    "message": "E2E and Unit / Component Testing in real Browser!"
+    "message": "¡E2E y pruebas de unidades/componentes en un navegador real!"
   },
   "homepage.componentTesting.para2": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "Viene con estrategias de selector inteligente que simplifican la interacción, por ejemplo, con {reactComponents} o la ejecución de consultas de selector profundo con árboles DOM de sombra anidados. Como las interacciones ocurren a través de un protocolo de automatización estandarizado, se garantiza que se comportan de forma nativa y no solo se emulan con JavaScript."
   },
   "Who is using WebdriverIO?": {
-    "message": "Who is using WebdriverIO?"
+    "message": "¿Quién está usando WebdriverIO?"
   }
 }
