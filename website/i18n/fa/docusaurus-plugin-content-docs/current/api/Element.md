@@ -13,7 +13,7 @@ title: شی Element
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sessionId` | `String` | Session id که از سرور remote اختصاص داده شده است.                                                                                                                                                                                 |
 | `elementId` | `String` | مرجعی از [Web element refrence](https://w3c.github.io/webdriver/#elements) که می تواند برای تعامل با element در سطح پروتکل استفاده شود                                                                                            |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                            |
+| `selector`  | `String` | [انتخابگر](/docs/selectors) برای درخواست element استفاده می شود.                                                                                                                                                                  |
 | `parent`    | `Object` | یا شیء [browser](/docs/api/browser) هنگامی که عنصر از آن واکشی شده است (مثلاً `const elem = browser.$('selector')`) یا یک شی [element](/docs/api/element) اگر از دامنه element درخواست شده باشد (مثلاً `elemenet.$( "selector")`) |
 | `options`   | `Object` | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. اطلاعات بیشتر در [راه اندازی types](/docs/setuptypes).                                                                     |
 
@@ -40,20 +40,20 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-With deep nested structures assigning any nested element to an array to then use it can be quite verbose. Therefor WebdriverIO has the concept of chained element queries that allow to fetch nested elements like this:
+هنگامی که ساختار عمیقا تو در تو باشد، اختصاص دادن هر عنصر تو در تو به یک آرایه ممکن است بسیار مفصل باشد. بنابراین WebdriverIO مفهوم درخواست های element زنجیره ای را دارد که امکان دریافت element های تودرتو مانند زیر را فراهم می کند:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
 ```
 
-This also works when fetching a set of elements, e.g.:
+این موضوع همچنین هنگام دریافت مجموعه ای از عناصر کار می کند، به عنوان مثال:
 
 ```js
 // get the text of the 3rd headline within the 2nd header
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-When working with a set of elements this can especially useful when trying to interact with them, so instead of doing:
+هنگام کار با مجموعه‌ای از element ها، این امر می‌تواند به‌ویژه هنگام تلاش برای تعامل با آنها مفید باشد، بنابراین به جای انجام:
 
 ```js
 const elems = await $$('div')
@@ -62,14 +62,14 @@ const locations = await Promise.all(
 )
 ```
 
-You can directly call Array methods on the element chain, e.g.:
+می توانید مستقیماً متدهای Array را در زنجیره element فراخوانی کنید، به عنوان مثال:
 
 ```js
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) under the hood so all commands from their API are also supported for these use cases.
+WebdriverIO از [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) در بطن خود استفاده می کند، بنابراین تمام دستورات API آنها نیز برای استفاده پشتیبانی می شوند.
 
-### Custom Commands
+### دستورات سفارشی
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+می‌توانید دستورات سفارشی را در محدوده browser تنظیم کنید تا کار هایی که به طور مرتب استفاده می‌شود را در جایی دور انتزاعی کنید. برای اطلاعات بیشتر راهنمای ما در مورد [دستورات سفارشی](/docs/customcommands#adding-custom-commands) را بررسی کنید.
