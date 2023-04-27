@@ -25,8 +25,8 @@ title: شی Element
 
 | نام                | پارامترها                                                             | جزئیات                                                                                                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | اجازه می دهد تا فرمان های سفارشی را تعریف کرد. این دستوات را بعدا می توان از شی browser برای ایجاد ترکیب های مختلف فراخوانی کرد. در راهنمای [Custom Command](/docs/customcommands) بیشتر بخوانید.                            |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | اجازه می دهد تا هر دستور مرورگر را با عملکرد سفارشی بازنویسی کنید. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. در راهنمای [Custom Command](/docs/customcommands) بیشتر بخوانید.                                                       |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
 
 ## ملاحظات
 
