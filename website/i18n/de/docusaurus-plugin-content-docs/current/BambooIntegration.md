@@ -66,7 +66,7 @@ Wir glauben, dass Sie zu diesem Zeitpunkt die Tests geschrieben haben und die Er
 
     ![jUnit-Parser](/img/bamboo/junitparser.png "jUnit-Parser")
 
-    Note: *Make sure you are keeping the results parser task in *Final* section, so that it always get executed even if your test task is failed*
+    Hinweis: *Stellen Sie sicher, dass sie den Ergebnisse Parser Task in der *Final* Section behalten, sodass es auch dann ausgeführt wird, wenn der Test fehlschlägt*
 
     > **Aufgabe: 4** (optional) Um sicherzustellen, dass Ihre Testergebnisse nicht mit alten Dateien durcheinandergebracht werden, können Sie eine Aufgabe erstellen, um den Ordner `./testresults/` nach einem erfolgreichen Parsen zu Bamboo zu entfernen. Sie können ein Shell-Skript wie `rm -f ./testresults/*.xml` hinzufügen, um die Ergebnisse zu entfernen, oder `rm -r testresults`, um den gesamten Ordner zu entfernen
 
