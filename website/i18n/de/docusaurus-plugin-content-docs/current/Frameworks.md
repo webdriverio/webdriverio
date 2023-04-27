@@ -51,8 +51,6 @@ it('should test something', (done) => {
 })
 ```
 
-Wenn Sie etwas asynchron ausführen möchten, nutzen Sie Node.js `async`/`await` features.
-
 ### Mocha-Optionen
 
 Die folgenden Optionen können in Ihrer `wdio.conf.js` angewendet werden, um Ihre Mocha-Umgebung zu konfigurieren. __Hinweis:__ Nicht alle Optionen werden unterstützt, z. B. führt die Anwendung der Option `parallel` zu einem Fehler, da der WDIO-Testrunner seine eigene Art hat, Tests parallel auszuführen. Die folgenden Optionen werden jedoch unterstützt:
@@ -292,7 +290,7 @@ Geben Sie das zu verwendende Cucumber-Profil an.
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Liste der Dateien, die die Step-Definitionen implementieren Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
+Liste der Dateien, die die Step-Definitionen implementieren. Sie können auch einen Glob für Ihre Step-Definitionen angeben.
 
 Type: `string[]`<br /> Default: `[]` Example:
 

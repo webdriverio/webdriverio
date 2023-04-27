@@ -543,5 +543,32 @@
   },
   "homepage.componentTesting.para1": {
     "message": "Il est livré avec des stratégies de sélecteurs intelligents qui simplifient l’interaction, par exemple avec {reactComponents} ou avec des sélecteurs profonds avec des arborescences imbriqués DOM. Comme les interactions se produisent par le biais d'un protocole d'automatisation standardisé, il est garanti qu'ils se comportent nativement et pas seulement JavaScript émulé."
+  },
+  "features.realEnvironments": {
+    "message": "Tester dans des environnements réels"
+  },
+  "features.versatile": {
+    "message": "Polyvalent et riche en fonctionnalités"
+  },
+  "features.autoWait": {
+    "message": "Attente automatique"
+  },
+  "features.standards": {
+    "message": "Basé sur les standards du Web"
+  },
+  "features.mobileSupport": {
+    "message": "Support mobile natif"
+  },
+  "features.community": {
+    "message": "Communauté engagée"
+  },
+  "homepage.componentTesting.heading": {
+    "message": "E2E et unité / tests de composants dans le navigateur réel!"
+  },
+  "homepage.componentTesting.para2": {
+    "message": "Il est livré avec des stratégies de sélecteurs intelligents qui simplifient l’interaction, par exemple avec {reactComponents} ou avec des sélecteurs profonds avec des arborescences imbriqués DOM. Comme les interactions se produisent par le biais d'un protocole d'automatisation standardisé, il est garanti qu'ils se comportent nativement et pas seulement JavaScript émulé."
+  },
+  "Who is using WebdriverIO?": {
+    "message": "Qui utilise WebdriverIO?"
   }
 }
