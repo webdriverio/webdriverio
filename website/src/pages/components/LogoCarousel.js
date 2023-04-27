@@ -1,5 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
+import Translate from '@docusaurus/Translate'
+
 import styles from './LogoCarousel.module.css'
 
 const INTERVAL_LENGTH = 5000
@@ -80,7 +82,9 @@ export default class LogoCarousel extends React.Component {
 
         return (
             <div className={styles.companyUsage} ref={this.containerRef}>
-                <h3>Who is using WebdriverIO?</h3>
+                <h3>
+                    <Translate>Who is using WebdriverIO?</Translate>
+                </h3>
                 <div className={clsx(styles.logos)}>
                     {this.list()}
                     <div className={styles.logoNavigation}>

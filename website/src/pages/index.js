@@ -105,7 +105,10 @@ function Home() {
                         <CodeBlock language="js" children={ComponentTestingExample}></CodeBlock>
                     }
                     isDark
-                    title="E2E and Unit / Component Testing in real Browser!"
+                    title={translate({
+                        id: 'homepage.componentTesting.heading',
+                        message: 'E2E and Unit / Component Testing in real Browser!'
+                    })}
                     text={
                         <>
                             <p>
@@ -124,7 +127,7 @@ function Home() {
                             </p>
                             <p>
                                 <Translate
-                                    id="homepage.componentTesting.para1"
+                                    id="homepage.componentTesting.para2"
                                     values={{ reactComponents: (<b>React components</b>) }}>
                                     {
                                         'It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or ' +
