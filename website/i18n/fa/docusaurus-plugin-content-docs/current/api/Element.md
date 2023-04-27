@@ -19,11 +19,11 @@ title: شی Element
 
 ## متود ها(توابع)
 
-A element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+یک شیء element همه متود ها را از بخش پروتکل ارائه می کند، به عنوان مثال پروتکل [WebDriver](/docs/api/webdriver) و همچنین دستورات فهرست شده در بخش element. دستورات پروتکل موجود به نوع session بستگی دارد. اگر یک session از مرورگر خودکار را اجرا کنید، هیچ یک از دستورات Appium [](/docs/api/appium) در دسترس نخواهد بود و بالعکس.
 
-In addition to that the following commands are available:
+علاوه بر آن دستورات زیر نیز موجود است:
 
-| Name               | Parameters                                                            | Details                                                                                                                                                                                                       |
+| نام                | پارامترها                                                             | جزئیات                                                                                                                                                                                                        |
 | ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                          |
 | `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
