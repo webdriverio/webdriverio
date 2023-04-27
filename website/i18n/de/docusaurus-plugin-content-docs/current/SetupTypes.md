@@ -16,8 +16,9 @@ Für grundlegende Interaktionen mit dem WebDriver und anderen Automatisierungspr
   defaultValue="webdriver"
   values={[
     {label: 'WebDriver', value: 'webdriver'},
-    {label: 'Chrome DevTools', value: 'devtools'},
-  ]}>
+ {label: 'Chrome DevTools', value: 'devtools'},
+ ]
+}>
 <TabItem value="webdriver">
 
 ```js reference useHTTPS
