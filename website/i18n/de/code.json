@@ -545,30 +545,30 @@
     "message": "Es kommt mit intelligenten Auswahlstrategien, die die Interaktion z.B. mit {reactComponents} oder das Ausführen tiefer Auswahlabfragen mit verschachtelten Schatten-DOM-Bäumen vereinfachen. Da Interaktionen über ein standardisiertes Automatisierungsprotokoll erfolgen, ist garantiert, dass sie sich nativ verhalten und nicht nur JavaScript emuliert werden."
   },
   "features.realEnvironments": {
-    "message": "Test in Real Environments"
+    "message": "Testen in realen Umgebungen"
   },
   "features.versatile": {
-    "message": "Versatile and Feature Rich"
+    "message": "Vielseitig und Funktionsreich"
   },
   "features.autoWait": {
-    "message": "Auto Wait"
+    "message": "Automatisches Warten"
   },
   "features.standards": {
-    "message": "Based on Web Standards"
+    "message": "Basierend auf Webstandards"
   },
   "features.mobileSupport": {
-    "message": "Native Mobile Support"
+    "message": "Native Mobile Unterstützung"
   },
   "features.community": {
-    "message": "Committed Community"
+    "message": "Engagierte Gemeinschaft"
   },
   "homepage.componentTesting.heading": {
-    "message": "E2E and Unit / Component Testing in real Browser!"
+    "message": "E2E und Unit/Component Testing im echten Browser!"
   },
   "homepage.componentTesting.para2": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "Es kommt mit intelligenten Befehlen, die die Interaktion z.B. mit React Komponenten oder verschachtelten Shadow-DOM-Elementen vereinfachen. Da Interaktionen über ein standardisiertes Automatisierungsprotokoll erfolgen, ist garantiert, dass sie sich nativ verhalten und nicht nur druch JavaScript emuliert werden."
   },
   "Who is using WebdriverIO?": {
-    "message": "Who is using WebdriverIO?"
+    "message": "Wer verwendet alles WebdriverIO?"
   }
 }
