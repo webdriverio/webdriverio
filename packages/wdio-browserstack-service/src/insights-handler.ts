@@ -91,6 +91,42 @@ class _InsightsHandler {
             }
         }
         await this.sendTestRunEvent(test, 'HookRunFinished', result)
+
+        const hookType = getHookType(test.title)
+        /*
+            If any of the `beforeAll`, `beforeEach`, `afterEach` then the tests after the hook won't run in mocha (https://github.com/mochajs/mocha/issues/4392)
+            So if any of this hook fails, then we are sending the next tests in the suite as skipped.
+            This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
+         */
+        if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
+            const sendTestSkip = async (skippedTest: any) => {
+
+                // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
+                if (skippedTest.state === undefined) {
+                    const fullTitle = `${skippedTest.parent.title} - ${skippedTest.title}`
+                    this._tests[fullTitle] = {
+                        uuid: uuidv4(),
+                        startedAt: (new Date()).toISOString(),
+                        finishedAt: (new Date()).toISOString()
+                    }
+                    await this.sendTestRunEvent(skippedTest, 'TestRunSkipped')
+                }
+            }
+
+            /*
+                Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
+             */
+            const sendSuiteSkipped = async (suite: any) => {
+                for (const skippedTest of suite.tests) {
+                    await sendTestSkip(skippedTest)
+                }
+                for (const skippedSuite of suite.suites) {
+                    await sendSuiteSkipped(skippedSuite)
+                }
+            }
+
+            await sendSuiteSkipped(test.ctx.test.parent)
+        }
     }
 
     async beforeTest (test: Frameworks.Test) {
@@ -304,7 +340,8 @@ class _InsightsHandler {
     private getHierarchy (test: Frameworks.Test) {
         const value: string[] = []
         if (test.ctx && test.ctx.test) {
-            let parent = test.ctx.test.parent
+            // If we already have the parent object, utilize it else get from context
+            let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
             while (parent && parent.title !== '') {
                 value.push(parent.title)
                 parent = parent.parent
@@ -357,12 +394,17 @@ class _InsightsHandler {
             }
         }
 
-        if (eventType == 'TestRunStarted') {
+        if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
+        }
+
+        if (eventType === 'TestRunSkipped') {
+            testData.result = 'skipped'
+            eventType = 'TestRunFinished'
         }
 
         const uploadData: UploadType = {

@@ -573,14 +573,14 @@ describe('afterHook', () => {
 
         it('add hook data', async () => {
             insightsHandler['_tests'] = {}
-            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, { passed: true } as any)
             expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
             expect(sendSpy).toBeCalledTimes(1)
         })
 
         it('update hook data', async () => {
             insightsHandler['_tests'] = { 'test title': {} }
-            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, { passed: true } as any)
             expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
             expect(sendSpy).toBeCalledTimes(1)
         })
