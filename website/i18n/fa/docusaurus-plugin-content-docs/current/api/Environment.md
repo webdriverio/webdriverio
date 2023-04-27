@@ -7,7 +7,7 @@ WebdriverIO متغیرهای محیطی زیر را در هر worker تنظیم 
 
 ## `NODE_ENV`
 
-Set to `'test'` if it's not already set to something else.
+اگر قبلاً روی چیز دیگری تنظیم نشده باشد، روی `'test'` تنظیم می شود.
 
 ## `WDIO_LOG_LEVEL`
 
