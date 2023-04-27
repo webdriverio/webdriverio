@@ -543,5 +543,32 @@
   },
   "homepage.componentTesting.para1": {
     "message": "Viene con estrategias de selector inteligente que simplifican la interacción, por ejemplo, con {reactComponents} o la ejecución de consultas de selector profundo con árboles DOM de sombra anidados. Como las interacciones ocurren a través de un protocolo de automatización estandarizado, se garantiza que se comportan de forma nativa y no solo se emulan con JavaScript."
+  },
+  "features.realEnvironments": {
+    "message": "Test in Real Environments"
+  },
+  "features.versatile": {
+    "message": "Versatile and Feature Rich"
+  },
+  "features.autoWait": {
+    "message": "Auto Wait"
+  },
+  "features.standards": {
+    "message": "Based on Web Standards"
+  },
+  "features.mobileSupport": {
+    "message": "Native Mobile Support"
+  },
+  "features.community": {
+    "message": "Committed Community"
+  },
+  "homepage.componentTesting.heading": {
+    "message": "E2E and Unit / Component Testing in real Browser!"
+  },
+  "homepage.componentTesting.para2": {
+    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+  },
+  "Who is using WebdriverIO?": {
+    "message": "Who is using WebdriverIO?"
   }
 }
