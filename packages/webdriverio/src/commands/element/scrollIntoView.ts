@@ -93,8 +93,8 @@ export async function scrollIntoView (
     }
 
     if (origin) {
-        deltaX = Math.round(deltaX - elemRect.x)
-        deltaY = Math.round(deltaY - (elemRect.y - viewport.height))
+        deltaX = deltaX > viewport.width ? Math.round(viewport.width - elemRect.width - (elemRect.width / 2) - 30) : Math.round(deltaX)
+        deltaY = deltaY > viewport.height ? Math.round(viewport.height - elemRect.height - (elemRect.height / 2) - 30) : Math.round(deltaY)
 
         windowX = 0
         windowY = 0
