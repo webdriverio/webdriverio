@@ -9,7 +9,7 @@ import type { Environment, FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner')
 
-export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
+export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
@@ -42,12 +42,13 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
 
     let sourceMapScript = ''
     let sourceMapSetupCommand = ''
-    await resolve('source-map-support', import.meta.url).then((sourceMapSupportDir) => {
+    try {
+        const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    }, (err) => {
-        log.error(`Failed to setup source-map-support: ${err.message}`)
-    })
+    } catch (err: unknown) {
+        log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
+    }
 
     return /* html */`
     <!doctype html>
@@ -78,10 +79,12 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 /**
                  * mock process
                  */
-                window.process = {
+                window.process = window.process || {
                     platform: 'browser',
-                    env: {},
-                    stdout: {}
+                    env: ${JSON.stringify(p.env)},
+                    stdout: {},
+                    stderr: {},
+                    cwd: () => '${p.cwd()}',
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
@@ -99,7 +102,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
             <script type="module">
-                window.process.env = ${JSON.stringify(processEnv)}
+                window.process.env = ${JSON.stringify(p.env)}
             </script>
         </body>
     </html>`

@@ -1,10 +1,13 @@
 import React from 'react'
 import Link from '@docusaurus/Link'
-import Translate from '@docusaurus/Translate'
+import Translate, { translate } from '@docusaurus/Translate'
 
 export const features = [{
     icon: '🌎',
-    title: 'Test in Real Environments',
+    title: translate({
+        id: 'features.realEnvironments',
+        message: 'Test in Real Environments'
+    }),
     description: (
         <Translate>
             WebdriverIO allows you to test in actual browser or mobile devices used by your users.
@@ -13,7 +16,10 @@ export const features = [{
 },
 {
     icon: '🔩',
-    title: 'Versatile and Feature Rich',
+    title: translate({
+        id: 'features.versatile',
+        message: 'Versatile and Feature Rich'
+    }),
     description: (
         <Translate>
             Use WebdriverIO for full e2e or unit and component testing in the browser.
@@ -21,7 +27,10 @@ export const features = [{
     ),
 }, {
     icon: '💤',
-    title: 'Auto Wait',
+    title: translate({
+        id: 'features.autoWait',
+        message: 'Auto Wait'
+    }),
     description: (
         <Translate>
             WebdriverIO automatically waits for elements to appear before interacting with them.
@@ -29,7 +38,10 @@ export const features = [{
     ),
 }, {
     icon: '📒',
-    title: 'Based on Web Standards',
+    title: translate({
+        id: 'features.standards',
+        message: 'Based on Web Standards'
+    }),
     description: (
         <Translate
             id="homepage.features.crossBrowser"
@@ -46,7 +58,10 @@ export const features = [{
     ),
 }, {
     icon: '📱',
-    title: 'Native Mobile Support',
+    title: translate({
+        id: 'features.mobileSupport',
+        message: 'Native Mobile Support'
+    }),
     description: (
         <Translate
             id="homepage.features.mobile"
@@ -60,7 +75,10 @@ export const features = [{
     ),
 }, {
     icon: '🫂',
-    title: 'Committed Community',
+    title: translate({
+        id: 'features.community',
+        message: 'Committed Community'
+    }),
     description: (
         <Translate
             id="homepage.features.support"

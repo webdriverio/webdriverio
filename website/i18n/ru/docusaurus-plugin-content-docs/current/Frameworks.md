@@ -1,11 +1,11 @@
 ---
 id: frameworks
-title: Frameworks
+title: Фреймворки
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+На текущий момент WDIO поддерживает [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), и [Cucumber](https://cucumber.io/).
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+Чтобы интегрировать фреймворк с WebdriverIO, в NPM должны быть установлены пакеты адаптеров. Вы не можете установить адаптеры в любое место; эти пакеты должны быть установлены там же, где и WebdriverIO. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 
 Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
 
@@ -17,7 +17,7 @@ First, install the adapter package from NPM:
 npm install @wdio/mocha-framework --save-dev
 ```
 
-By default WebdriverIO provides an [assertion library](Assertion.md) that is built-in which you can start right away:
+By default WebdriverIO provides an [assertion library](assertion) that is built-in which you can start right away:
 
 ```js
 describe('my awesome website', () => {
@@ -50,8 +50,6 @@ it('should test something', (done) => {
     done() // throws "done is not a function"
 })
 ```
-
-If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](CustomCommands.md).
 
 ### Mocha Options
 
@@ -230,7 +228,7 @@ First, install the adapter package from NPM:
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
+If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
 
 Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 

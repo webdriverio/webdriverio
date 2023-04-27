@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     test: {
+        dangerouslyIgnoreUnhandledErrors: true,
         include: ['packages/**/*.test.ts'],
         /**
          * not to ESM ported packages

@@ -35,7 +35,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-Todos los comandos de protocolo [](./api/_webdriver.md) devuelven la respuesta cruda del controlador de automatización. El paquete es muy ligero y no hay __ninguna__ lógica inteligente como auto-espera para simplificar la interacción con el uso del protocolo.
+Todos los comandos de protocolo [](api/webdriver) devuelven la respuesta cruda del controlador de automatización. El paquete es muy ligero y no hay __ninguna__ lógica inteligente como auto-espera para simplificar la interacción con el uso del protocolo.
 
 Los comandos de protocolo aplicados a la instancia dependen de la respuesta inicial de sesión del controlador. Por ejemplo, si la respuesta indica que una sesión móvil fue iniciada, el paquete aplica todos los comandos de protocolo Appium y Mobile JSON Wire al prototipo de la instancia.
 
@@ -45,7 +45,7 @@ Para obtener más información sobre estas interfaces de paquete, consulte [Modu
 
 ## Modo independiente
 
-Para simplificar la interacción con el protocolo WebDriver el paquete `webdriverio` implementa una variedad de comandos además del protocolo (e.g. el comando [`dragAndDrop`](./api/element/_dragAndDrop.md) y conceptos básicos como [selectores inteligentes](./Selectors.md) o [auto-espera](./AutoWait.md). El ejemplo de arriba puede ser simplificado de la siguiente forma:
+Para simplificar la interacción con el protocolo WebDriver el paquete `webdriverio` implementa una variedad de comandos además del protocolo (e.g. el comando [`dragAndDrop`](api/element/dragAndDrop) y conceptos básicos como [selectores inteligentes](selectors) o [auto-espera](autowait). El ejemplo de arriba puede ser simplificado de la siguiente forma:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
@@ -69,6 +69,6 @@ Este es el mismo ejemplo de arriba, escrito como una especificación de prueba y
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-El corredor de pruebas es una abstracción de marcos de prueba populares como Mocha, Jasmine, o Cucumber. Para ejecutar tus pruebas usando el corredor de pruebas WDIO, revisa la sección [Iniciando](GettingStarted.md) para más información.
+El corredor de pruebas es una abstracción de marcos de prueba populares como Mocha, Jasmine, o Cucumber. Para ejecutar tus pruebas usando el corredor de pruebas WDIO, revisa la sección [Iniciando](gettingstarted) para más información.
 
 Para obtener más información sobre estas interfaces de paquete, consulte [Modules API](/docs/api/modules).

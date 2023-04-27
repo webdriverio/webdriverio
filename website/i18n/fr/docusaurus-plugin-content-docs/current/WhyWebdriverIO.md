@@ -24,10 +24,10 @@ WebdriverIO tire parti de la puissance du protocole [WebDriver](https://w3c.gith
 
 En outre, WebdriverIO supporte également des protocoles d'automatisation alternatifs et proparitaires, tels que [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) pour le débogage et l'introspection. Cela permet à l'utilisateur de basculer de façon transparente entre les commandes conventionnelles basées sur WebDriver et les interactions puissantes du navigateur via [Puppeteer](https://pptr.dev/).
 
-En savoir plus sur les différences de ces standards d'automatisation dans la section sur [Protocoles d'automatisation](./AutomationProtocols.md).
+En savoir plus sur les différences de ces standards d'automatisation dans la section sur [Protocoles d'automatisation](automationProtocols).
 
 ## Vrai Open Source
 
 Comparé à de nombreux outils d'automatisation dans l'écosystème, WebdriverIO est un projet véritablement open source géré avec une gouvernance ouverte et détenu par une entité à but non lucratif appelée [Fondation OpenJS](https://openjsf.org/). Cela lie légalement le projet à sa croissance et à son orientation dans l’intérêt de tous les participants. L’équipe du projet apprécie l’ouverture et la collaboration et n’est pas guidée par des intérêts monétaires.
 
-Cela rend le projet indépendant quant à la manière dont il est développé et où il est censé aller. Enfin, il donne beaucoup d'opportunités aux gens qui contribuent et s'engagent avec le projet en raison de sa [gouvernance ouverte](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md). Il nous permet de fournir un soutien gratuit 24h/24 et 7j/7 sur notre [canal communautaire](https://discord.webdriver.io) alors que nous construisons une communauté durable qui se soutient et apprend les uns des autres.
+Cela rend le projet indépendant quant à la manière dont il est développé et où il est censé aller. Il nous permet de fournir un soutien gratuit 24h/24 et 7j/7 sur notre [canal communautaire](https://discord.webdriver.io) alors que nous construisons une communauté durable qui se soutient et apprend les uns des autres. Il nous permet de fournir un soutien gratuit 24h/24 et 7j/7 sur notre [canal communautaire](https://discord.webdriver.io) alors que nous construisons une communauté durable qui se soutient et apprend les uns des autres.

@@ -1,18 +1,18 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: Fehlerhafte Tests Wiederholen
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to things like a flaky network or race conditions. (However, it is not recommended to simply increase the rerun rate if tests become unstable!)
+Sie können bestimmte Tests mit dem WebdriverIO-Testrunner wiederholen, die sich aufgrund von verschiedenen Faktoren, wie einem unbeständigen Netzwerk oder anderen Zufälligkeiten als instabil herausstellen. Es wird jedoch nicht empfohlen, die Wiederholungsrate einfach zu erhöhen, wenn Tests instabil werden!
 
-## Rerun suites in Mocha
+## Wiederholen von Mocha Tests
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `() => {}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions). Using Mocha you can also set a retry count for all specs using `mochaOpts.retries` in your `wdio.conf.js`.
+In Mocha können Sie ganze Testsuiten erneut ausführen (alles innerhalb eines `describe` -Blocks). Wenn Sie Mocha verwenden, sollten Sie diesen Retry-Mechanismus der WebdriverIO-Implementierung vorziehen, die es Ihnen nur erlaubt, bestimmte Testblöcke (alles innerhalb eines `it` Blocks) erneut auszuführen. Um die Methode `this.retries()` zu verwenden, muss der Suite-Block `describe` als eine ungebundene Funktion `function(){}` statt einer Pfeil-Funktion `() => {}` geschrieben werde. So wird es in der  [Mocha-Dokumentation](https://mochajs.org/#arrow-functions) beschrieben. Mit Mocha können Sie auch einen Wiederholunglimit für alle Tests festlegen, indem Sie `mochaOpts.retries` in Ihrer `wdio.conf.js` angeben.
 
-Here is an example:
+Hier ist ein Beispiel:
 
 ```js
 describe('retries', function () {
@@ -32,9 +32,9 @@ describe('retries', function () {
 })
 ```
 
-## Rerun single tests in Jasmine or Mocha
+## Wiederholen von Jasmine oder Mocha Tests
 
-To rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
+Um einen bestimmten Testblock erneut auszuführen, können Sie einfach die Anzahl der Wiederholungen als letzten Parameter nach der Testblockfunktion anwenden:
 
 <Tabs
   defaultValue="mocha"
@@ -102,22 +102,22 @@ describe('my flaky app', () => {
 })
 ```
 
-If you are using Jasmine, the second parameter is reserved for timeout. To apply a retry parameter you need to set the timeout to its default value `jasmine.DEFAULT_TIMEOUT_INTERVAL` and then apply your retry count.
+Wenn Sie Jasmine verwenden, ist der zweite Parameter für Timeout reserviert. Um einen Wiederholungsparameter anzugeben, müssen Sie das Zeitlimit auf den Standardwert „jasmine.DEFAULT_TIMEOUT_INTERVAL“ setzen und dann Ihre Wiederholungsanzahl benennen.
 
 </TabItem>
 </Tabs>
 
-This retry mechanism only allows to retry single hooks or test blocks. If your test is accompanied with a hook to set up your application, this hook is not being run. [Mocha offers](https://mochajs.org/#retry-tests) native test retries that provide this behavior while Jasmine doesn't. You can access the number of executed retries in the `afterTest` hook.
+Dieser Wiederholungsmechanismus erlaubt nur die Wiederholung einzelner Hooks oder Testblöcke. Wenn Ihr Test von einer Hook zum Einrichten Ihrer Anwendung begleitet wird, wird diese Hook nicht ausgeführt. [Mocha bietet](https://mochajs.org/#retry-tests) native Testwiederholungen, die dieses Verhalten bereitstellen, während Jasmine dies nicht tut. Sie können auf die Anzahl der ausgeführten Wiederholungen im Hook `afterTest` zugreifen.
 
-## Rerunning in Cucumber
+## Wiederholung von Cucumber Tests
 
-### Rerun full suites in Cucumber
+### Vollständige Suiten in Cucumber erneut ausführen
 
-For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded. For this feature to work you need to set the `scenarioLevelReporter` to `true`.
+Für Cucumber >=6 können Sie die Konfigurationsoption [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) zusammen mit einem optionalen Parameter `retryTagFilter` bereitstellen, damit alle oder einige Ihrer fehlgeschlagenen Szenarien wiederholt werden, bis sie erfolgreich sind. Damit diese Funktion funktioniert, müssen Sie den `scenarioLevelReporter` auf `true`setzen.
 
-### Rerun Step Definitions in Cucumber
+### Schrittdefinitionen in Cucumber erneut ausführen
 
-To define a rerun rate for a certain step definitions just apply a retry option to it, like:
+Um die Anzahl der Wiederholungen für eine bestimmte Schrittdefinition zu definieren, wenden Sie einfach die Wiederholungsoption darauf an, wie zum Beispiel:
 
 ```js
 module.exports = function () {
@@ -131,15 +131,15 @@ module.exports = function () {
 })
 ```
 
-Reruns can only be defined in your step definitions file, never in your feature file.
+Wiederholungen können nur in Ihrer Test-Datei definiert werden, niemals in Ihrer Feature-Datei.
 
-## Add retries on a per-specfile basis
+## Fügen Sie Wiederholungen pro Spezifikationsdatei hinzu
 
-Previously, only test- and suite-level retries were available, which are fine in most cases.
+Zuvor waren nur Wiederholungsversuche auf Test- und Suite-Ebene verfügbar, was in den meisten Fällen in Ordnung ist.
 
-But in any tests which involve state (such as on a server or in a database) the state may be left invalid after the first test failure. Any subsequent retries may have no chance of passing, due to the invalid state they would start with.
+Aber bei allen Tests, die einen Status beinhalten (wie auf einem Server oder in einer Datenbank), kann der Status nach dem ersten fehlgeschlagenen Test ungültig bleiben. Alle nachfolgenden Wiederholungsversuche haben aufgrund des ungültigen Status, mit dem sie beginnen würden, möglicherweise keine Chance zu bestehen.
 
-A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
+Für jede Test-Datei wird eine neue `browser` Session erstellt, was dies zu einem idealen Ort macht, um alle anderen Zustände (Server, Datenbanken) zu verknüpfen und einzurichten. Wiederholungen auf dieser Ebene bedeuten, dass der gesamte Setup-Prozess einfach wiederholt wird, als ob es sich um eine neue Spezifikationsdatei handeln würde.
 
 ```js
 module.exports = function () {
@@ -158,13 +158,13 @@ module.exports = function () {
 }
 ```
 
-## Run a specific test multiple times
+## Wiederholen spezifischer Tests
 
-This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified test(s) or suite(s) x number of times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
+Dadurch soll verhindert werden, dass unzuverlässige Tests in eine Codebasis eingeführt werden. Durch Hinzufügen der Option `--multi-run` cli werden die angegebenen Tests oder Suiten x-mal ausgeführt. Bei Verwendung dieses CLI-Flags muss auch das Flag `--spec` oder `--suite` angegeben werden.
 
-When adding new tests to a codebase, espically through a CI/CD process the tests could pass and get merged but become flakly later on. This flakiness could come from a number of things like network issues, server load, database size, etc. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
+Beim Hinzufügen neuer Tests zu einer Codebasis, insbesondere durch einen CI/CD-Prozess, könnten sich die Tests später als fehlerbehaftet darstellen. Diese Fehlerbeständigkeit kann von einer Reihe von Dingen wie Netzwerkproblemen, Serverlast, Datenbankgröße usw. erzeugt werden. Die Verwendung des Flags `--multi-run` in Ihrem CD/CD-Prozess kann dabei helfen, diese fehlerhaften Tests abzufangen, bevor sie zu einer Hauptcodebasis zusammengeführt werden.
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specifed in `--spec` along with `--multi-run` so it runs the new test x number of times. If the test fails any of those times then the test will not get merged and will need to be looked at why it failed.
+Eine mögliche Strategie besteht darin, Ihre Tests wie gewohnt in Ihrem CI/CD-Prozess auszuführen. Wenn Sie einen neuen Test einführen, können Sie eine weitere Reihe von Tests mit der neuen Spezifikation ausführen, die den `--spec` zusammen mit `--multi-run` Parameter angegeben und damit die neuen Tests x-mal ausgeführen. Wenn der Test in einem dieser Fälle fehlschlägt, muss der Test erst untersucht werden und stabiler gemacht werden.
 
 ```sh
 # This will run the example.e2e.js spec 5 times
