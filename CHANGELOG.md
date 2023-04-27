@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.8 (2023-04-27)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10282](https://github.com/webdriverio/webdriverio/pull/10282) Fix scrollIntoView for element out of the viewport ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10258](https://github.com/webdriverio/webdriverio/pull/10258) [browserstack-service] Sending skipped test details for beforeEach, beforeAll and afterEach hooks in mocha ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 2
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v8.8.7 (2023-04-26)
 
 #### :memo: Documentation
