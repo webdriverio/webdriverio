@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-¡Excelente! ¡Excelente! Ahora necesita definir un archivo de configuración donde se establezca toda la información sobre sus pruebas, capacidades y configuraciones. Cambie a la sección [Archivo de configuración](configurationfile)  para ver cómo debería ser ese archivo.
+¡Excelente! ¡Excelente! ¡Excelente! Ahora necesita definir un archivo de configuración donde se establezca toda la información sobre sus pruebas, capacidades y configuraciones. Cambie a la sección [Archivo de configuración](configurationfile)  para ver cómo debería ser ese archivo.
 
 Con el helper de configuración de `wdio`, es muy fácil de generar el archivo de configuración. Sólo ejecutar:
 
