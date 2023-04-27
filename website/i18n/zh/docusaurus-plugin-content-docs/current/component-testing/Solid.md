@@ -3,11 +3,11 @@ id: solid
 title: SolidJS
 ---
 
-[SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. [SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. [SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner). [SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
 
 ## Setup
 
-To setup WebdriverIO within your SolidJS project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `solid` as preset within your runner options, e.g.: Make sure to select `solid` as preset within your runner options, e.g.:
+To setup WebdriverIO within your SolidJS project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `solid` as preset within your runner options, e.g.: Make sure to select `solid` as preset within your runner options, e.g.: Make sure to select `solid` as preset within your runner options, e.g.:
 
 ```js
 // wdio.conf.js
@@ -22,7 +22,7 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
 
 :::
 
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `solid-js/web` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+In your test use the `render` method from `solid-js/web` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
