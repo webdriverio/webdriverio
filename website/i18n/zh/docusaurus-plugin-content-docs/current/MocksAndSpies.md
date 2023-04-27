@@ -3,17 +3,17 @@ id: mocksandspies
 title: Request Mocks and Spies
 ---
 
-WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
+WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically. You can define custom responses for web resources like REST API requests in your test and modify them dynamically. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
 
 :::info
 
-This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know! It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
+This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know! This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know! It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know! If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
 
 :::
 
 ## Creating a mock
 
-Before you can modify any responses you have define a mock first. Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch): The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+Before you can modify any responses you have define a mock first. Before you can modify any responses you have define a mock first. Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch): The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch): The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
 
 ```js
 // mock all resources ending with "/users/list"
@@ -31,7 +31,7 @@ const strictMock = await browser.mock('**', {
 
 ## Specifying custom responses
 
-Once you have defined a mock you can define custom responses for it. Once you have defined a mock you can define custom responses for it. Those custom responses can be either an object to respond a JSON, a local file to respond with a custom fixture or a web resource to replace the response with a resource from the internet.
+Once you have defined a mock you can define custom responses for it. Once you have defined a mock you can define custom responses for it. Those custom responses can be either an object to respond a JSON, a local file to respond with a custom fixture or a web resource to replace the response with a resource from the internet. Once you have defined a mock you can define custom responses for it. Those custom responses can be either an object to respond a JSON, a local file to respond with a custom fixture or a web resource to replace the response with a resource from the internet.
 
 ### Mocking API Requests
 
@@ -101,7 +101,7 @@ scriptMock.respond('alert("I am a mocked resource")')
 
 ### Redirect web resources
 
-You can also just replace a web resource with another web resource if your desired response is already hosted on the web. This works with individual page resources as well as with a webpage itself, e.g.: This works with individual page resources as well as with a webpage itself, e.g.:
+You can also just replace a web resource with another web resource if your desired response is already hosted on the web. This works with individual page resources as well as with a webpage itself, e.g.: This works with individual page resources as well as with a webpage itself, e.g.: This works with individual page resources as well as with a webpage itself, e.g.:
 
 ```js
 const pageMock = await browser.mock('https://google.com/')
@@ -157,7 +157,7 @@ Instead of returning a custom response you can also just abort the request with 
 - BlockedByClient
 - BlockedByResponse
 
-This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.: You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
+This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.: You can abort a mock by just calling `abort` or `abortOnce`, e.g.: You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
 
 ```js
 const mock = await browser.mock('https://www.google-analytics.com/**')
@@ -166,7 +166,7 @@ mock.abort('Failed')
 
 ## Spies
 
-Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
+Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
 
 ```js
 const mock = await browser.mock('**/user', { method: 'post' })
