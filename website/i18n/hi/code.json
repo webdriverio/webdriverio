@@ -543,5 +543,32 @@
   },
   "homepage.componentTesting.para1": {
     "message": "यह स्मार्ट चयनकर्ता रणनीतियों के साथ आता है जो इंटरेक्शन को आसान बनाता है जैसे {reactComponents} के साथ या नेस्टेड शैडो डोम ट्री के साथ डीप सेलेक्टर क्वेरी चलाना। जैसा कि एक मानकीकृत स्वचालन प्रोटोकॉल के माध्यम से बातचीत होती है, यह गारंटी है कि वे मूल रूप से व्यवहार करते हैं और केवल जावास्क्रिप्ट अनुकरण नहीं करते हैं।"
+  },
+  "features.realEnvironments": {
+    "message": "Test in Real Environments"
+  },
+  "features.versatile": {
+    "message": "Versatile and Feature Rich"
+  },
+  "features.autoWait": {
+    "message": "Auto Wait"
+  },
+  "features.standards": {
+    "message": "Based on Web Standards"
+  },
+  "features.mobileSupport": {
+    "message": "Native Mobile Support"
+  },
+  "features.community": {
+    "message": "Committed Community"
+  },
+  "homepage.componentTesting.heading": {
+    "message": "E2E and Unit / Component Testing in real Browser!"
+  },
+  "homepage.componentTesting.para2": {
+    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+  },
+  "Who is using WebdriverIO?": {
+    "message": "Who is using WebdriverIO?"
   }
 }
