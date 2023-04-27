@@ -1,9 +1,9 @@
 ---
 id: environment
-title: Environment Variables
+title: متغیرهای محیطی
 ---
 
-WebdriverIO sets the following environment variables within every worker:
+WebdriverIO متغیرهای محیطی زیر را در هر worker تنظیم می کند:
 
 ## `NODE_ENV`
 
