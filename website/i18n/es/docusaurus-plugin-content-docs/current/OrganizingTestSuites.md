@@ -249,7 +249,6 @@ Esto es útil con conjuntos de pruebas grandes cuando ya sabe que su compilació
 La opción `bail` espera un número, que especifica cuántas fallas de prueba pueden ocurrir antes de que WebDriver detenga la ejecución de prueba completa. El valor predeterminado es `0`, lo que significa que siempre ejecuta todas las especificaciones de prueba que puede encontrar.
 
 [Consulte la página](configuration) de Opcionespara obtener información adicional sobre la configuración de la fianza.
-
 ## Ejecutar jerarquía de opciones
 
 Al declarar qué especificaciones ejecutar, hay una cierta jerarquía que define qué patrón tendrá prioridad. Actualmente, así es como funciona, de mayor a menor prioridad:
