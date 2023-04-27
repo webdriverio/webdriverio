@@ -542,7 +542,7 @@
     "message": "Marco de prueba de automatización móvil y navegador de próxima generación para Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "Viene con estrategias de selector inteligente que simplifican la interacción, por ejemplo, con {reactComponents} o la ejecución de consultas de selector profundo con árboles DOM de sombra anidados. Como las interacciones ocurren a través de un protocolo de automatización estandarizado, se garantiza que se comportan de forma nativa y no solo se emulan con JavaScript."
+    "message": "WebdriverIO es un marco {allInOne} para el desarrollo de su aplicación web. Le permite ejecutar pruebas de componentes pequeños y livianos, así como ejecutar escenarios de prueba e2e en el navegador o en un dispositivo móvil. Esto garantiza que harás las pruebas en un entorno {usedBy}."
   },
   "features.realEnvironments": {
     "message": "Prueba en entornos reales"
@@ -570,5 +570,11 @@
   },
   "Who is using WebdriverIO?": {
     "message": "¿Quién está usando WebdriverIO?"
+  },
+  "all in one": {
+    "message": "all in one"
+  },
+  "used by your users": {
+    "message": "used by your users"
   }
 }
