@@ -1,11 +1,11 @@
 ---
 id: tips-and-tricks
-title: Tips and Tricks
+title: نکات و ترفندها
 ---
 
-This page contains a set useful tips and tricks that can be helpful when testing a web extension.
+این صفحه حاوی مجموعه ای از نکات و ترفندهای مفید است که می تواند هنگام تست یک افزونه وب مفید باشد.
 
-## Test Popup Modal in Chrome
+## Popup Modal را در کروم تست کنید
 
 If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
 
@@ -57,7 +57,7 @@ export const config: Options.Testrunner = {
 }
 ```
 
-Now, in your test, you can access the popup page via:
+اکنون، در تست خود، می توانید از طریق زیر به popup دسترسی داشته باشید:
 
 ```ts
 await browser.openExtensionPopup('My Web Extension')
