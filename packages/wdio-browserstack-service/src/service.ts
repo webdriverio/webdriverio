@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import CrashReporter from './crash-reporter'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -8,7 +9,13 @@ import got from 'got'
 import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
 
 import InsightsHandler from './insights-handler'
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util'
+import {
+    getBrowserDescription,
+    getBrowserCapabilities,
+    isBrowserstackCapability,
+    getParentSuiteName,
+    isBrowserstackSession
+} from './util'
 import TestReporter from './reporter'
 
 const log = logger('@wdio/browserstack-service')
@@ -88,25 +95,30 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._observability && this._browser) {
-            this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
-            await this._insightsHandler.before()
+            try {
+                this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
+                await this._insightsHandler.before()
 
-            /**
-             * register command event
-             */
-            this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
-                'client:beforeCommand',
-                Object.assign(command, { sessionId: this._browser?.sessionId }),
-                this._currentTest
-            ))
-            /**
-             * register result event
-             */
-            this._browser.on('result', async (result) => await this._insightsHandler?.browserCommand(
-                'client:afterCommand',
-                Object.assign(result, { sessionId: this._browser?.sessionId }),
-                this._currentTest
-            ))
+                /**
+                 * register command event
+                 */
+                this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
+                    'client:beforeCommand',
+                    Object.assign(command, { sessionId: this._browser?.sessionId }),
+                    this._currentTest
+                ))
+                /**
+                 * register result event
+                 */
+                this._browser.on('result', async (result) => await this._insightsHandler?.browserCommand(
+                    'client:afterCommand',
+                    Object.assign(result, { sessionId: this._browser?.sessionId }),
+                    this._currentTest
+                ))
+            } catch (err) {
+                log.error(`Error in service class before function: ${err}`)
+                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+            }
         }
 
         return await this._printSessionURL()

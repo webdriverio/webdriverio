@@ -7,12 +7,25 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
-import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util'
+import {
+    getCloudProvider,
+    getGitMetaData,
+    getHookType,
+    getScenarioExamples,
+    getUniqueIdentifier,
+    getUniqueIdentifierForCucumber,
+    isBrowserstackSession,
+    isScreenshotCommand,
+    o11yClassErrorHandler,
+    removeAnsiColors,
+    sleep,
+    uploadEventData
+} from './util'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 import RequestQueueHandler from './request-handler'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants'
 
-export default class InsightsHandler {
+class _InsightsHandler {
 
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
@@ -506,3 +519,9 @@ export default class InsightsHandler {
         return getUniqueIdentifier(test)
     }
 }
+
+// https://github.com/microsoft/TypeScript/issues/6543
+const InsightsHandler: typeof _InsightsHandler = o11yClassErrorHandler(_InsightsHandler)
+type InsightsHandler = _InsightsHandler
+
+export default InsightsHandler

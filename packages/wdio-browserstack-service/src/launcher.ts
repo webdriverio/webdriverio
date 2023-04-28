@@ -13,9 +13,16 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
+import CrashReporter from './crash-reporter'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo, isBStackSession } from './util'
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession,
+} from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -90,6 +97,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+        }
+
+        try {
+            CrashReporter.setConfigDetails(this._config, capabilities, this._options)
+        } catch (error: any) {
+            log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 

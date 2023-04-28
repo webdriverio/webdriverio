@@ -7,10 +7,10 @@ import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { BrowserstackConfig, TestData } from './types'
-import { getCloudProvider, uploadEventData, getHierarchy } from './util'
+import { getCloudProvider, uploadEventData, getHierarchy, o11yClassErrorHandler } from './util'
 import RequestQueueHandler from './request-handler'
 
-export default class TestReporter extends WDIOReporter {
+class _TestReporter extends WDIOReporter {
     private _capabilities: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability = true
@@ -80,3 +80,7 @@ export default class TestReporter extends WDIOReporter {
         }
     }
 }
+// https://github.com/microsoft/TypeScript/issues/6543
+const TestReporter: typeof _TestReporter = o11yClassErrorHandler(_TestReporter)
+type TestReporter = _TestReporter
+export default TestReporter
