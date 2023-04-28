@@ -2,7 +2,6 @@ import got from 'got'
 import FormData from 'form-data'
 import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import { SevereServiceError } from 'webdriverio'
@@ -14,7 +13,7 @@ import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
-import { VALID_APP_EXTENSION } from './constants.js'
+import { BSTACK_SERVICE_VERSION, VALID_APP_EXTENSION } from './constants.js'
 import {
     launchTestSession,
     shouldAddServiceVersion,
@@ -23,9 +22,6 @@ import {
     isBStackSession,
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
-
-const require = createRequire(import.meta.url)
-const { version: bstackServiceVersion } = require('../package.json')
 
 const log = logger('@wdio/browserstack-service')
 
@@ -55,9 +51,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
-                            capability['bstack:options'] = { wdioService: bstackServiceVersion }
+                            capability['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                            capability['browserstack.wdioService'] = bstackServiceVersion
+                            capability['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                         }
                     }
 
@@ -65,7 +61,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability.build?.toString()
                 } else {
-                    capability['bstack:options'].wdioService = bstackServiceVersion
+                    capability['bstack:options'].wdioService = BSTACK_SERVICE_VERSION
                     this._buildName = capability['bstack:options'].buildName
                     this._projectName = capability['bstack:options'].projectName
                     this._buildTag = capability['bstack:options'].buildTag
@@ -78,15 +74,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                         }
                     }
                     this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                 } else {
                     const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
-                    bstackOptions!.wdioService = bstackServiceVersion
+                    bstackOptions!.wdioService = BSTACK_SERVICE_VERSION
                     this._buildName = bstackOptions!.buildName
                     this._projectName = bstackOptions!.projectName
                     this._buildTag = bstackOptions!.buildTag
@@ -167,7 +163,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
-                bstackServiceVersion: bstackServiceVersion,
+                bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
             })
         }

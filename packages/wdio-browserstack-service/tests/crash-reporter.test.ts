@@ -14,7 +14,9 @@ describe('CrashReporter', () => {
     describe('uploadCrashReport', () => {
         it ('should return if creds are not valid', () => {
             process.env.CREDENTIALS_FOR_CRASH_REPORTING = 'some invalid credentials'
-            CrashReporter.uploadCrashReport('some exception', 'some stack')
+            expect(() => {
+                CrashReporter.uploadCrashReport('some exception', 'some stack')
+            }).not.toThrow()
         })
 
         describe('valid credentials', () => {

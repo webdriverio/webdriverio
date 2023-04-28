@@ -1,15 +1,12 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 import got from 'got'
-import { createRequire } from 'node:module'
 
-import { DATA_ENDPOINT } from './constants.js'
+import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 
 const log = logger('@wdio/browserstack-service')
-const require = createRequire(import.meta.url)
-const { version: bstackServiceVersion } = require('../package.json')
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -66,7 +63,7 @@ export default class CrashReporter {
             hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
             observability_version: {
                 frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
-                sdkVersion: bstackServiceVersion
+                sdkVersion: BSTACK_SERVICE_VERSION
             },
             exception: {
                 error: exception.toString(),
