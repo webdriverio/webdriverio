@@ -99,27 +99,6 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-function filterPII(userConfig: Options.Testrunner) {
-    const configWithoutPII = JSON.parse(JSON.stringify(userConfig));
-    ['user', 'username', 'key', 'accessKey'].forEach(key => delete configWithoutPII[key])
-    const finalServices = []
-    try {
-        for (const serviceArray of configWithoutPII.services) {
-            if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
-                for (let idx=1; idx<serviceArray.length; idx++) {
-                    ['user', 'username', 'key', 'accessKey'].forEach(key => delete serviceArray[idx][key])
-                }
-                finalServices.push(serviceArray)
-                break
-            }
-        }
-    } catch (err) {
-        /* Wrong configuration like strings instead of json objects could break this method, needs no action */
-    }
-    configWithoutPII.services = finalServices
-    return configWithoutPII
-}
-
 function processError(error: any, fn: Function, args: any[]) {
     log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
