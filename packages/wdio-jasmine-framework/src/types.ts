@@ -16,7 +16,6 @@ export interface SuiteEvent extends jasmine.SuiteResult {
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation,
-
     filename?: string
 }
 
