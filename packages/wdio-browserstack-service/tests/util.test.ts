@@ -727,10 +727,10 @@ describe('getGitMetaData', () => {
 
 describe('getHookType', () => {
     it('get hook type as string', () => {
-        expect(getHookType('before each hook for test 1')).toEqual('BEFORE_EACH')
-        expect(getHookType('after each hook for test 1')).toEqual('AFTER_EACH')
-        expect(getHookType('before all hook for test 1')).toEqual('BEFORE_ALL')
-        expect(getHookType('after all hook for test 1')).toEqual('AFTER_ALL')
+        expect(getHookType('"before each" hook for test 1')).toEqual('BEFORE_EACH')
+        expect(getHookType('"after each" hook for test 1')).toEqual('AFTER_EACH')
+        expect(getHookType('"before all" hook for test 1')).toEqual('BEFORE_ALL')
+        expect(getHookType('"after all" hook for test 1')).toEqual('AFTER_ALL')
         expect(getHookType('no hook test')).toEqual('unknown')
     })
 })

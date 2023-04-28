@@ -394,7 +394,13 @@ export async function getGitMetaData () {
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test): string {
-    return `${test.parent} - ${test.title}`
+    let parentTitle = test.parent
+    // Sometimes parent will be an object instead of a string
+    if (typeof test.parent === 'object') {
+        // @ts-ignore
+        parentTitle = parentTitle.title
+    }
+    return `${parentTitle} - ${test.title}`
 }
 
 export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): string {
@@ -512,13 +518,13 @@ export function getHierarchy(fullTitle?: string) {
 }
 
 export function getHookType (hookName: string): string {
-    if (hookName.includes('before each')) {
+    if (hookName.includes('"before each"')) {
         return 'BEFORE_EACH'
-    } else if (hookName.includes('before all')) {
+    } else if (hookName.includes('"before all"')) {
         return 'BEFORE_ALL'
-    } else if (hookName.includes('after each')) {
+    } else if (hookName.includes('"after each"')) {
         return 'AFTER_EACH'
-    } else if (hookName.includes('after all')) {
+    } else if (hookName.includes('"after all"')) {
         return 'AFTER_ALL'
     }
     return 'unknown'
