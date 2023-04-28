@@ -6,11 +6,20 @@ title: Erste Schritte
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
+import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 
 Willkommen auf der WebdriverIO Dokumentation-Seite. Diese wird Ihnen Helfen Ihre WebdriverIO Journey zu starten. Wenn Sie auf Probleme stoßen, finden Sie Hilfe und Antworten auf unserem [Discord Support Server](https://discord.webdriver.io) oder Sie können das Projekt auf [Twitter](https://twitter.com/webdriverio)kontaktieren.
 
 :::info
 Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
+:::
+
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+
+:::tip Official YouTube Channel 🎥
+
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+
 :::
 
 ## WebdriverIO Einrichten
