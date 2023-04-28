@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 import got from 'got'
+// @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 
 import { DATA_ENDPOINT } from './constants'
