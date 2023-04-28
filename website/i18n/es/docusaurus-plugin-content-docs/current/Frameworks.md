@@ -51,8 +51,6 @@ it('should test something', (done) => {
 })
 ```
 
-Si desea ejecutar algo asincrónicamente, puede usar el comando [`browser.call`](/docs/api/browser/call) o [comandos personalizados](customcommands).
-
 ### Opciones de Mocha
 
 Las siguientes opciones se pueden aplicar en su `wdio.conf.js` para configurar su entorno Mocha. __Nota:__ no todas las opciones son compatibles, p. ej. aplicar la opción `paralela` causará un error ya que el testrunner WDIO tiene su propia manera de ejecutar pruebas en paralelo. Se pueden ejecutar las siguientes acciones:

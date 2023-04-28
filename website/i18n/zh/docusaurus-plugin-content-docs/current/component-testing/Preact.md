@@ -7,7 +7,7 @@ title: Preact
 
 ## Setup
 
-To setup WebdriverIO within your Preact project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `preact` as preset within your runner options, e.g.:
+To setup WebdriverIO within your Preact project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `preact` as preset within your runner options, e.g.: Make sure to select `preact` as preset within your runner options, e.g.:
 
 ```js
 // wdio.conf.js
@@ -22,11 +22,11 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
 
 :::
 
-The React preset requires `@preact/preset-vite` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+The React preset requires `@preact/preset-vite` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies: Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/preact @preact/preset-vite

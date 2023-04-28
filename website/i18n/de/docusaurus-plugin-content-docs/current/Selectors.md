@@ -243,7 +243,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Die Locator-Strategie „id“ wird im WebDriver-Protokoll nicht unterstützt, man sollte stattdessen entweder CSS- oder xPath-Selector-Strategien verwenden, um Elemente mit ID zu finden.
 
-Einige Treiber (z. B. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) unterstützen [diesen Selektor](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) jedoch möglicherweise immer noch.
+Einige Treiber (z.B. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) unterstützen [diesen Selektor](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) jedoch möglicherweise immer noch.
 
 Aktuell unterstützte Selektor-Syntax für ID sind:
 
@@ -305,7 +305,7 @@ await button.click()
 
 ### Android DataMatcher und ViewMatcher (nur Espresso)
 
-Die DataMatcher-Strategie von Android bietet eine Möglichkeit, Elemente mit [DataMatcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)zu finden
+Die DataMatcher-Strategie von Android bietet eine Möglichkeit, Elemente mit [DataMatcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)zu finden.
 
 ```js
 const menuItem = await $({

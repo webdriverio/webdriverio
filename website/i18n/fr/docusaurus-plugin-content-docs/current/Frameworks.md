@@ -51,8 +51,6 @@ it('should test something', (done) => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](customcommands).
-
 ### Mocha Options
 
 The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:

@@ -9,7 +9,7 @@ title: सामग्री
 
 WebdriverIO समुदाय दुनिया भर में वर्कशॉप देता है। अपनी स्वयं की मेजबानी करने के लिए इन सामग्रियों का बेझिझक उपयोग करें।
 
-- [वेबड्राइवरियो/वर्कशॉप](https://github.com/webdriverio/workshop)
+- [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
 ## संपत्ति
 

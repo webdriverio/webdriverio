@@ -1,20 +1,20 @@
 ---
 id: team
-title: Team
+title: تیم
 ---
 
 import Card from '@site/src/theme/card.jsx';
 
-The WebdriverIO development is led by a dedicated team of developers and SDETs from various companies as well contributions from people around the world.
+توسعه WebdriverIO توسط یک تیم اختصاصی از توسعه دهندگان و مهندسان تست از شرکت های مختلف و همچنین مشارکت مردم در سراسر جهان هدایت می شود.
 
-## Technical Steering Committee
+## کمیته راهبری فنی
 
 <Card
     name="Adam Bjerstedt"
     avatar="https://avatars2.githubusercontent.com/u/4043890?s=460"
     github="abjerstedt"
 >
-    Senior Software Engineer - Android at <a href="https://www.target.com/">Target</a>.
+    مهندس ارشد نرم افزار - Android در <a href="https://www.target.com/">Target</a>.
 </Card>
 
 <Card
@@ -23,7 +23,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="christian-bromann"
     twitter="bromann"
 >
-    Staff Software Engineer at the Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
+    مهندس نرم‌افزار در دفتر Open Source Program در <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 <Card
@@ -31,7 +31,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+    مهندس ارشد اتوماسیون تست در <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
@@ -40,7 +40,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="klamping"
     twitter="klamping"
 >
-    Senior Front End Engineer.
+    مهندس ارشد Front End.
 </Card>
 
 <Card
@@ -48,7 +48,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars0.githubusercontent.com/u/25589559?s=460"
     github="mgrybyk"
 >
-    Senior Software Development Engineer in Test.
+    مهندس ارشد توسعه نرم افزار در حوزه تست.
 </Card>
 
 <Card
@@ -56,7 +56,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars3.githubusercontent.com/u/1300981?s=460"
     github="WillBrock"
 >
-    Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    مهندس مدیریت اتوماسیون در <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
 <Card
@@ -65,10 +65,10 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="wswebcreation"
     twitter="wswebcreation"
 >
-    Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
+    معمار ارشد راه حل (Solution Architect) در <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
-## Project Collaborators
+## مشارکت کنندگان پروژه
 
 <Card
     name="Baruch Velez"
@@ -86,4 +86,4 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 >
 </Card>
 
-and [many many more](https://github.com/orgs/webdriverio/people).
+و [خیلی خیلی بیشتر](https://github.com/orgs/webdriverio/people).

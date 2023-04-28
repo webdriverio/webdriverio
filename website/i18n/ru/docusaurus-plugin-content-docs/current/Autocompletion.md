@@ -1,6 +1,6 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Автодополнение
 ---
 
 import Tabs from '@theme/Tabs';
@@ -8,27 +8,27 @@ import TabItem from '@theme/TabItem';
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+Автодополнение работает из коробки в IDEA и WebStorm.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+Если вы уже некоторое время занимаетесь написанием кода программ, то, вероятно, вам нравится автодополнение. Автодополнение доступно во многих редакторах кода по умолчанию.
 
-![Autocompletion](/img/autocompletion/0.png)
+![Автодополнение](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Определения типов на основе [JSDoc](http://usejsdoc.org/) используется для документирования кода. Автодополнение помогает увидеть дополнительные детали о параметрах и их типах.
 
-![Autocompletion](/img/autocompletion/1.png)
+![Автодополнение](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+Используйте стандартные сочетания клавиш <kbd>⇧ + ⌥ + SPACE</kbd> в IntelliJ, чтобы просмотреть доступную документацию:
 
 ![Автозавершение](/img/autocompletion/2.png)
 
 ## Visual Studio Code (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+Visual Studio Code обычно автоматически использует поддержку типов, и никаких действий не требуется.
 
 ![Autocompletion](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+Если вы используете ванильный JavaScript и хотите иметь правильную поддержку типов, вам необходимо создать `jsconfig.json` в корне вашего проекта и обратиться к пакетам wdio, например:
 
 ```json title="jsconfig.json"
 {

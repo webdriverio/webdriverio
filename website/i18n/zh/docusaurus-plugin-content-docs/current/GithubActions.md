@@ -10,7 +10,7 @@ If your repository is hosted on Github, you can use [Github Actions](https://doc
 3. on scheduled time
 4. by manual trigger
 
-In the root of your repository, create a `.github/workflows` directory. Add a Yaml file, for example `.github/workflows/ci.yaml`. In there you will configure how to run your tests.
+In the root of your repository, create a `.github/workflows` directory. In the root of your repository, create a `.github/workflows` directory. Add a Yaml file, for example `.github/workflows/ci.yaml`. In there you will configure how to run your tests. In there you will configure how to run your tests.
 
 See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation, and [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
 
