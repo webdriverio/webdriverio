@@ -6,11 +6,20 @@ title: شروع کار
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
+import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 
 به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::نکته 
 اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
+:::
+
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+
+:::tip Official YouTube Channel 🎥
+
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+
 :::
 
 ## راه‌اندازی تنظیمات WebdriverIO
