@@ -99,11 +99,6 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-/*
-    This method filters out PII (such as username, accessKey etc.) & non browsersack service related data
-    present inside the config of a user before using the parsed config for reporting crashes.
-*/
-
 function processError(error: any, fn: Function, args: any[]) {
     log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
