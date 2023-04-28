@@ -13,23 +13,19 @@ import logger from '@wdio/logger'
 import got, { HTTPError } from 'got'
 import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import CrashReporter from './crash-reporter'
 import type { ITestCaseHookParameter } from './cucumber-types'
 
 import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants'
 import RequestQueueHandler from './request-handler'
 
-import { version as bstackServiceVersion } from '../package.json'
 import PerformanceTester from './performance-tester'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
-/* User test config for build run minus PII */
-let userConfigForReporting: any = null
-let credentialsForCrashReportUpload: any = {}
-
-const DEFAULT_REQUEST_CONFIG = {
+export const DEFAULT_REQUEST_CONFIG = {
     agent: {
         http: new http.Agent({ keepAlive: true }),
         https: new https.Agent({ keepAlive: true }),
@@ -105,51 +101,6 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-function filterPII(userConfig: Options.Testrunner) {
-    const configWithoutPII = JSON.parse(JSON.stringify(userConfig));
-    ['user', 'username', 'key', 'accessKey'].forEach(key => delete configWithoutPII[key])
-    const finalServices = []
-    try {
-        for (const serviceArray of configWithoutPII.services) {
-            if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
-                for (let idx=1; idx<serviceArray.length; idx++) {
-                    ['user', 'username', 'key', 'accessKey'].forEach(key => delete serviceArray[idx][key])
-                }
-                finalServices.push(serviceArray)
-                break
-            }
-        }
-    } catch (err) {
-        /* Wrong configuration like strings instead of json objects could break this method, needs no action */
-    }
-    configWithoutPII.services = finalServices
-    return configWithoutPII
-}
-
-function setCredentialsForCrashReportUpload(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
-    credentialsForCrashReportUpload = {
-        username: getObservabilityUser(options, config),
-        password: getObservabilityKey(options, config)
-    }
-    process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify(credentialsForCrashReportUpload)
-}
-
-export function setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
-    const configWithoutPII = filterPII(userConfig)
-    userConfigForReporting = {
-        framework: userConfig.framework,
-        services: configWithoutPII.services,
-        capabilities: capabilities,
-        env: {
-            'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
-            'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
-            'BUILD_TAG': process.env.BUILD_TAG
-        }
-    }
-    process.env.USER_CONFIG_FOR_REPORTING = JSON.stringify(userConfigForReporting)
-    setCredentialsForCrashReportUpload(options, userConfig)
-}
-
 function processError(error: any, fn: Function, args: any[]) {
     log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
@@ -158,10 +109,10 @@ function processError(error: any, fn: Function, args: any[]) {
     } catch (e) {
         argsString = util.inspect(args, { depth: 2 })
     }
-    uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+    CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
 }
 
-function o11yErrorHandler(fn: Function) {
+export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
@@ -217,51 +168,6 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     return errorClass
 }
 
-export async function uploadCrashReport(exception: any, stackTrace: string) {
-    try {
-        if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
-            credentialsForCrashReportUpload = process.env.CREDENTIALS_FOR_CRASH_REPORTING !== undefined ? JSON.parse(process.env.CREDENTIALS_FOR_CRASH_REPORTING) : credentialsForCrashReportUpload
-        }
-    } catch (error) {
-        return log.error(`[Crash_Report_Upload] Failed to parse user credentials while reporting crash due to ${error}`)
-    }
-    if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
-        return log.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
-    }
-
-    try {
-        if (!userConfigForReporting) {
-            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
-        }
-    } catch (error) {
-        log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
-    }
-
-    try {
-        const data = {
-            hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
-            observability_version: {
-                frameworkName: 'WebdriverIO-' + userConfigForReporting ? userConfigForReporting.framework : 'null',
-                sdkVersion: bstackServiceVersion
-            },
-            exception: {
-                error: exception.toString(),
-                stackTrace: stackTrace
-            },
-            config: userConfigForReporting
-        }
-        const url = `${DATA_ENDPOINT}/api/v1/analytics`
-        const response: string = await got.post(url, {
-            ...DEFAULT_REQUEST_CONFIG,
-            ...credentialsForCrashReportUpload,
-            json: data
-        }).text()
-        log.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
-    } catch (error) {
-        log.error(`[Crash_Report_Upload] Failed due to ${error}`)
-    }
-}
-
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
@@ -285,17 +191,17 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         },
-        config: null
+        config: {}
     }
 
     try {
-        if (!userConfigForReporting) {
-            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
+        if (Object.keys(CrashReporter.userConfigForReporting).length === 0) {
+            CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
         }
     } catch (error) {
         log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
     }
-    data.config = userConfigForReporting
+    data.config = CrashReporter.userConfigForReporting
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
