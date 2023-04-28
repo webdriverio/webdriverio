@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
+import util from 'node:util'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -17,11 +18,12 @@ import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
+import CrashReporter from './crash-reporter.js'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
-const DEFAULT_REQUEST_CONFIG = {
+export const DEFAULT_REQUEST_CONFIG = {
     agent: {
         http: new http.Agent({ keepAlive: true }),
         https: new https.Agent({ keepAlive: true }),
@@ -97,7 +99,70 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+function processError(error: any, fn: Function, args: any[]) {
+    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    let argsString: string
+    try {
+        argsString = JSON.stringify(args)
+    } catch (e) {
+        argsString = util.inspect(args, { depth: 2 })
+    }
+    CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+}
+
+export function o11yErrorHandler(fn: Function) {
+    return function (...args: any) {
+        try {
+            const result = fn(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => processError(error, fn, args))
+            }
+            return result
+        } catch (error) {
+            processError(error, fn, args)
+        }
+    }
+}
+
+// https://tugayilik.medium.com/error-handling-via-try-catch-proxy-in-javascript-54116dbf783f
+/*
+    A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
+    If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
+ */
+type ClassType = { new(...args: any[]): any; }; // A generic type for a class
+export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
+    const prototype = errorClass.prototype
+
+    if (Object.getOwnPropertyNames(prototype).length < 2) {
+        return errorClass
+    }
+
+    Object.getOwnPropertyNames(prototype).forEach((methodName) => {
+        const method = prototype[methodName]
+        if (typeof method === 'function' && methodName !== 'constructor') {
+            // In order to preserve this context, need to define like this
+            Object.defineProperty(prototype, methodName, {
+                writable: true,
+                value: function(...args: any) {
+                    try {
+                        const result = method.call(this, ...args)
+                        if (result instanceof Promise) {
+                            return result.catch(error => processError(error, method, args))
+                        }
+                        return result
+
+                    } catch (err) {
+                        processError(err, method, args)
+                    }
+                }
+            })
+        }
+    })
+
+    return errorClass
+}
+
+export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -119,8 +184,19 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
-        }
+        },
+        config: {}
     }
+
+    try {
+        if (Object.keys(CrashReporter.userConfigForReporting).length === 0) {
+            CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
+        }
+    } catch (error) {
+        return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
+    }
+    data.config = CrashReporter.userConfigForReporting
+
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
         const response: LaunchResponse = await got.post(url, {
@@ -161,9 +237,9 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
-}
+})
 
-export async function stopBuildUpstream () {
+export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
     }
@@ -200,7 +276,7 @@ export async function stopBuildUpstream () {
             message: error.message
         }
     }
-}
+})
 
 export function getCiInfo () {
     const env = process.env
