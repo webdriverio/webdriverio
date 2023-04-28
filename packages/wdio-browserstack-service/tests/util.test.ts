@@ -3,6 +3,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
+import CrashReporter from '../src/crash-reporter.js'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -26,7 +27,8 @@ import {
     getObservabilityKey,
     getObservabilityBuild,
     getObservabilityProject,
-    getObservabilityBuildTags
+    getObservabilityBuildTags,
+    o11yErrorHandler,
 } from '../src/util.js'
 
 vi.mock('got')
@@ -793,5 +795,68 @@ describe('getObservabilityBuildTags', () => {
     it('get empty array', () => {
         delete process.env.TEST_OBSERVABILITY_BUILD_TAG
         expect(getObservabilityBuildTags({})).toEqual([])
+    })
+})
+
+describe('o11yErrorHandler', () => {
+    let spy: any
+    beforeEach(() => {
+        spy = vi.spyOn(CrashReporter, 'uploadCrashReport')
+        spy.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+        spy.mockClear()
+        spy.mockReset()
+    })
+
+    describe('synchronous function', () => {
+        const func = (a: number, b: number) => {
+            if (a === 0 && b === 0) {
+                throw 'zero error'
+            }
+            return a + b
+        }
+
+        it ('should pass the arguments and return value correctly', () => {
+            const newFunc = o11yErrorHandler(func)
+            expect(() => {
+                expect(newFunc(1, 2)).toEqual(3)
+            }).not.toThrow()
+            expect(spy).toBeCalledTimes(0)
+        })
+
+        it('should catch error thrown from function', () => {
+            const newFunc = o11yErrorHandler(func)
+            expect(() => {
+                newFunc(0, 0)
+            }).not.toThrow()
+            expect(spy).toBeCalledTimes(1)
+        })
+    })
+
+    describe('asynchronous function', () => {
+        const func = async (a: number, b: number) => {
+            const val = await new Promise(resolve => {
+                if (a === 0 && b === 0) {
+                    throw 'zero error'
+                }
+                resolve(a * b)
+            })
+            return val
+        }
+
+        it('should return values correctly from async function', async () => {
+            const newFunc = o11yErrorHandler(func)
+            const val = await newFunc(1, 2)
+            expect(val).toEqual(2)
+            expect(spy).toBeCalledTimes(0)
+        })
+
+        it('should catch error from async function', async () => {
+            const newFunc = o11yErrorHandler(func)
+            await newFunc(0, 0)
+            expect(spy).toBeCalledTimes(1)
+        })
     })
 })

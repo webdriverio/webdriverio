@@ -115,7 +115,7 @@ function processError(error: any, fn: Function, args: any[]) {
     CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
 }
 
-function o11yErrorHandler(fn: Function) {
+export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             const result = fn(...args)

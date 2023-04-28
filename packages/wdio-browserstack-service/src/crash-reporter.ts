@@ -59,6 +59,7 @@ export default class CrashReporter {
             }
         } catch (error) {
             log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
+            this.userConfigForReporting = {}
         }
 
         const data = {
@@ -85,9 +86,16 @@ export default class CrashReporter {
         })
     }
 
+    static deletePIIKeysFromObject(obj: {[key: string]: any}) {
+        if (!obj) {
+            return
+        }
+        ['user', 'username', 'key', 'accessKey'].forEach(key => delete obj[key])
+    }
+
     static filterPII(userConfig: Options.Testrunner) {
-        const configWithoutPII = JSON.parse(JSON.stringify(userConfig));
-        ['user', 'username', 'key', 'accessKey'].forEach(key => delete configWithoutPII[key])
+        const configWithoutPII = JSON.parse(JSON.stringify(userConfig))
+        this.deletePIIKeysFromObject(configWithoutPII)
         const finalServices = []
         const initialServices = configWithoutPII.services
         delete configWithoutPII.services
@@ -95,7 +103,8 @@ export default class CrashReporter {
             for (const serviceArray of initialServices) {
                 if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
                     for (let idx = 1; idx < serviceArray.length; idx++) {
-                        ['user', 'username', 'key', 'accessKey'].forEach(key => delete serviceArray[idx][key])
+                        this.deletePIIKeysFromObject(serviceArray[idx])
+                        serviceArray[idx] && this.deletePIIKeysFromObject(serviceArray[idx].testObservabilityOptions)
                     }
                     finalServices.push(serviceArray)
                     break
