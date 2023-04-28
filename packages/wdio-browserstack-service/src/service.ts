@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import CrashReporter from './crash-reporter'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -13,8 +14,7 @@ import {
     getBrowserCapabilities,
     isBrowserstackCapability,
     getParentSuiteName,
-    isBrowserstackSession,
-    uploadCrashReport
+    isBrowserstackSession
 } from './util'
 import TestReporter from './reporter'
 
@@ -117,7 +117,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 ))
             } catch (err) {
                 log.error(`Error in service class before function: ${err}`)
-                uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
             }
         }
 

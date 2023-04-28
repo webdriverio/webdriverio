@@ -1,36 +1,38 @@
+import gitRepoInfo from 'git-repo-info'
+import got from 'got'
 import path from 'path'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import got from 'got'
-import gitRepoInfo from 'git-repo-info'
+import CrashReporter from '../src/crash-reporter'
 
 import {
-    getBrowserDescription,
+    batchAndPostEvents,
     getBrowserCapabilities,
-    isBrowserstackCapability,
-    getParentSuiteName,
+    getBrowserDescription,
     getCiInfo,
     getCloudProvider,
-    isBrowserstackSession,
+    getGitMetaData,
+    getHierarchy,
+    getHookType,
+    getLogTag,
+    getObservabilityBuild,
+    getObservabilityBuildTags,
+    getObservabilityKey,
+    getObservabilityProject,
+    getObservabilityUser,
+    getParentSuiteName,
+    getScenarioExamples,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
-    removeAnsiColors,
-    getScenarioExamples,
-    stopBuildUpstream,
-    launchTestSession,
-    getGitMetaData,
-    uploadEventData,
-    getLogTag,
-    getHookType,
+    isBrowserstackCapability,
+    isBrowserstackSession,
     isScreenshotCommand,
-    getObservabilityUser,
-    getObservabilityKey,
-    getObservabilityBuild,
-    getObservabilityProject,
-    getObservabilityBuildTags,
-    getHierarchy,
-    batchAndPostEvents,
-    shouldAddServiceVersion
+    launchTestSession,
+    o11yErrorHandler,
+    removeAnsiColors,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    uploadEventData
 } from '../src/util'
 
 jest.mock('got')
@@ -867,3 +869,66 @@ describe('shouldAddServiceVersion', () => {
         expect(shouldAddServiceVersion({ services: ['chromedriver'] }, true)).toEqual(false)
     })
 })
+
+describe('o11yErrorHandler', () => {
+    let spy: any
+    beforeEach(() => {
+        spy = jest.spyOn(CrashReporter, 'uploadCrashReport')
+        spy.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+        spy.mockClear()
+        spy.mockReset()
+    })
+
+    describe('synchronous function', () => {
+        const func = (a: number, b: number) => {
+            if (a === 0 && b === 0) {
+                throw 'zero error'
+            }
+            return a + b
+        }
+
+        it ('should pass the arguments and return value correctly', () => {
+            const newFunc = o11yErrorHandler(func)
+            expect(() => {
+                expect(newFunc(1, 2)).toEqual(3)
+            }).not.toThrow()
+            expect(spy).toBeCalledTimes(0)
+        })
+
+        it('should catch error thrown from function', () => {
+            const newFunc = o11yErrorHandler(func)
+            expect(() => {
+                newFunc(0, 0)
+            }).not.toThrow()
+            expect(spy).toBeCalledTimes(1)
+        })
+    })
+
+    describe('asynchronous function', () => {
+        const func = async (a: number, b: number) => {
+            return await new Promise(resolve => {
+                if (a === 0 && b === 0) {
+                    throw 'zero error'
+                }
+                resolve(a * b)
+            })
+        }
+
+        it('should return values correctly from async function', async () => {
+            const newFunc = o11yErrorHandler(func)
+            const val = await newFunc(1, 2)
+            expect(val).toEqual(2)
+            expect(spy).toBeCalledTimes(0)
+        })
+
+        it('should catch error from async function', async () => {
+            const newFunc = o11yErrorHandler(func)
+            await newFunc(0, 0)
+            expect(spy).toBeCalledTimes(1)
+        })
+    })
+})
+
