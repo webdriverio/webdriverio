@@ -1,23 +1,23 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: شروع کار
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-:::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+:::نکته 
+اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
-## Initiate a WebdriverIO Setup
+## راه‌اندازی تنظیمات WebdriverIO
 
 To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
-If you're in the root directory of an existing project, run:
+اگر در دایرکتوری ریشه یک پروژه موجود هستید دستور مقابل را اجرا کنید:
 
 <Tabs
   defaultValue="npm"
@@ -68,11 +68,11 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+این تک فرمان، ابزار WebdriverIO CLI را دانلود می کند و یک wizard برای پیکربندی راحت را اجرا می کند که به شما کمک می کند مجموعه تست خود را پیکربندی کنید.
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+Wizard مجموعه ای از سوالات را مطرح می کند که شما را برای راه‌اندازی راهنمایی می کند. شما می‌توانید از یک پارامتر `--yes` که برای انتخاب یک تنظیم پیش‌فرض که از Mocha با Chrome با استفاده از الگوی [Page Object](https://martinfowler.com/bliki/PageObject.html) استفاده می‌شود، استفاده کنید.
 
 <Tabs
   defaultValue="npm"
@@ -105,45 +105,45 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Run Test
+## اجرای تست
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+تست را می توان با استفاده از دستور `run` و با اشاره به پیکربندی WebdriverIO که به تازگی ایجاد کرده اید اجرا کرد:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+اگر دوست دارید فایل های تست خاصی را اجرا کنید، می توانید یک پارامتر `--spec` اضافه کنید:
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+یا مجموعه‌ها را در فایل پیکربندی خود تعریف کنید و فقط فایل‌های تستی تعریف شده توسط یک مجموعه را اجرا کنید:
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## اجرا در یک اسکریپت
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+اگر می خواهید از WebdriverIO به عنوان یک موتور اتوماسیون در حالت [مستقل](/docs/setuptypes#standalone-mode) در یک اسکریپت Node.JS استفاده کنید، می توانید مستقیماً WebdriverIO را نصب کنید و از آن به عنوان یک بسته در کد خود استفاده کنید، به عنوان مثال برای ایجاد اسکرین شات از یک وب سایت:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__توجه:__ همه دستورهای WebdriverIO ناهمزمان هستند و باید با استفاده از [`async/await`](https://javascript.info/async-await) به درستی مدیریت شوند.
 
-## Record tests
+## ضبط تست
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO ابزارهایی را ارائه می دهد که به شما کمک می کند تا با ضبط اقدامات خود روی صفحه شروع کنید و اسکریپت های آزمایش WebdriverIO را به طور خودکار تولید کنید. برای اطلاعات بیشتر به [ضبط تست با Chrome DevTools Recorder](/docs/record) مراجعه کنید.
 
-## System Requirements
+## پیش نیازهای سیستم
 
-You’ll need [Node.js](http://nodejs.org) installed.
+شما نیاز به نصب [Node.js](http://nodejs.org) دارید.
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
+- حداقل v16.x یا بالاتر را نصب کنید زیرا این قدیمی ترین نسخه فعال LTS است
+- فقط نسخه هایی که نسخه LTS هستند یا خواهند شد، رسما پشتیبانی می شوند
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+اگر Node در حال حاضر روی سیستم شما نصب نیست، پیشنهاد می کنیم از ابزاری مانند [NVM](https://github.com/creationix/nvm) یا [Volta](https://volta.sh/) برای مدیریت چندین نسخه فعال Node.js استفاده کنید. NVM یک انتخاب محبوب است، در حالی که Volta نیز جایگزین خوبی است.

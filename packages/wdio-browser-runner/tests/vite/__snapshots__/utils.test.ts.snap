@@ -30,10 +30,12 @@ exports[`getTemplate > renders template correctly 1`] = `
                 /**
                  * mock process
                  */
-                window.process = {
+                window.process = window.process || {
                     platform: 'browser',
-                    env: {},
-                    stdout: {}
+                    env: {\\"some\\":\\"env\\"},
+                    stdout: {},
+                    stderr: {},
+                    cwd: () => '/some/cwd',
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>

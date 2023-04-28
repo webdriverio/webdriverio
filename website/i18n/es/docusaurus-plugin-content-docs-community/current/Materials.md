@@ -9,7 +9,7 @@ Si desea utilizar los materiales de WebdriverIO para sus propios talleres o even
 
 La comunidad WebdriverIO imparte talleres en todo el mundo. No dude en utilizar estos materiales para organizar el suyo propio.
 
-- [webdriver/talleres](https://github.com/webdriverio/workshop)
+- [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
 ## Activos
 

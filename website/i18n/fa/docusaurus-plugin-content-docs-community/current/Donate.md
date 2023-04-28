@@ -1,43 +1,43 @@
 ---
 id: donate
-title: Donate
+title: کمک مالی
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+اگر شرکت شما از WebdriverIO استفاده می‌کند و از آن سود می‌برد، لطفاً از مدیر یا تیم بازاریابی خود بخواهید تا با کمک مالی به مجموعه، از پروژه حمایت کنند. پشتیبانی به نگهداری کنندگان اجازه می دهد تا زمان بیشتری را برای نگهداری و ویژگی های جدید برای همه اختصاص دهند.
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+لطفاً [ صفحه OpenCollective](https://opencollective.com/webdriverio) ما را برای اطلاعات بیشتر در مورد نحوه کمک مالی به پروژه بررسی کنید.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+از همه کسانی که مبلغی را به پروژه اهدا کرده اند و از این پروژه حمایت کرده اند و همه کسانی که در آن مشارکت داشته اند، تشکر می کنیم. واقعا برای ما خیلی معنی داره ❤️
 
-## Expense Policies
+## سیاست های هزینه
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+ما می خواهیم در نحوه پذیرش هزینه با پذیرش آن توسط collective شفاف باشیم. همه باید واجد شرایط مشارکت و ارسال هزینه‌هایی برای توسعه ویژگی‌های خاص باشند. ما همینطور می خواهیم با راه اندازی رویداد ها به جامعه مقداری را بازگردانیم. هزینه های زیر ممکن است واجد شرایط بازپرداخت باشند:
 
-### Event Expenses
+### هزینه های رویداد ها
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+اگر میزبان رویدادی هستید که یک سخنران در مورد استفاده از WebdriverIO و ویژگی های آن صحبت می کند، می توانید تا __100$__ هزینه کنید. الزامات بازپرداخت برای هزینه های رویداد عبارتند از:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- شما یا حساب رویداد باید حداقل 3 بار پروژه را در رسانه های اجتماعی (توئیتر، فیس بوک یا لینکدین) به اشتراک بگذارید
+- صفحه رویداد باید دارای آرم WebdriverIO و پیوندی به صفحه پروژه در توضیحات رویداد شما باشد
+- شما باید از وجوه پرداخت شده برای هزینه های رویداد، مانند غذا، نوشیدنی، اتاق یا اجاره تجهیزات استفاده کنید.
+- شما باید رسیدها را همراه با درخواست بازپرداخت خود ارسال کنید.
 
-### Development Expenses
+### هزینه های توسعه
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+اگر کار توسعه را روی هر یک از مخازن در سازمان GitHub WebdriverIO انجام داده اید، در صورت رعایت شرایط زیر می توانید تا __$ 1000__ را بازپرداخت کنید:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
-- You must submit links to all issues you’ve closed due to your pull requests
-- In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
-- Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
-- You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
-- Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
+- شما باید Pull request های واجد شرایطی را ارسال کرده باشید که حداقل 10 مشکل را که با برچسب [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) نشانه گذاری شده ببندد
+- هر شماره اضافی که با آن برچسب بسته می شود را می توان با 100 دلار بازپرداخت کرد
+- شما باید لینک های تمام مسائلی را که با pull request خود بسته اید ارسال کنید
+- برای بستن خودکار پیام پشتیبانی، باید یک پیام commit با کلمه کلیدی Fix داشته باشید. به عنوان مثال، Fix #1234 برای بستن تیکت شماره 1234.
+- Pull request ها باید توسط فردی از [تیم اصلی](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) ادغام شوند. اگر چندین pull request وجود داشته باشد، عضو اصلی تیم، یا جدیدترین یا بهترین مورد را انتخاب می کند - بنابراین به آنها بستگی دارد که تصمیم بگیرند چه چیزی برای پروژه بهتر است.
+- شما باید با نظر دادن در یک مشکل [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)، آن را درخواست کنید تا مطمئن شوید که هیچ کس دیگری روی همان موضوع کار نمی کند.
+- هر کسی که در WebdriverIO مشارکت داشته باشد، در صورتی که ویژگی‌های پیاده‌سازی‌شده یا رفع اشکال، اهداف یک کار تجاری نباشد، واجد شرایط بازپرداخت هزینه‌ کار خود است.
 
-### Travel Expenses
+### هزینه های سفر
 
-If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
+اگر عضو تیم [کمیته راهبری فنی](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) هستید، واجد شرایط پرداخت هزینه پروازها و اقامت در هتل برای سفر به کنفرانس ها یا جلسات به عنوان بخشی از تعهد سخنرانی در WebdriverIO هستید که توسط خود رویداد یا یک شرکت پرداخت نمی شود. شما می توانید تا 500 دلار هزینه کنید. الزامات بازپرداخت هزینه های سفر عبارتند از:
 
-- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
-- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
-- You must submit receipts with your reimbursement request.
+- شما باید یک پست از حساب اصلی رسانه اجتماعی خود (به عنوان مثال توییتر، لینکدین یا وبلاگ شخصی) ارسال کنید و از همه مشارکت کنندگان در collective پس از برگزاری رویداد تشکر کنید.
+- شما باید از این مبلغ برای هزینه های سفر مانند حمل و نقل زمینی یا هوایی به رویداد و اقامت در هتل استفاده کنید.
+- شما باید رسیدها را همراه با درخواست بازپرداخت خود ارسال کنید.

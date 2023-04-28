@@ -88,18 +88,6 @@ export const config = {
     },
     // ...
 }
-    // define specific suites
-    suites: {
-        login: [
-            './test/specs/login.success.spec.js',
-            './test/specs/login.failure.spec.js'
-        ],
-        otherFeature: [
-            // ...
-        ]
-    },
-    // ...
-}
 ```
 
 Wenn Sie jetzt nur eine einzelne Suite ausführen möchten, können Sie den Suite-Namen als CLI-Argument übergeben:
@@ -116,7 +104,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Gruppieren von Tests zur sequenziellen Ausführung
 
-Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden.  Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen.  Beispiele hierfür sind hauptsächlich dort, wo hohe Einrichtungskosten anfallen, z.B. das Transpilieren von Code oder das Bereitstellen von Cloud-Instanzen für die Umgebung unter Test. Aber es gibt auch erweiterte Nutzerszenarien, die von dieser Fähigkeit profitieren.
+Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden.  Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen.  Beispiele hierfür sind hauptsächlich dort, wo hohe Einrichtungskosten anfallen, z.B. das Transpilieren von Code oder das Bereitstellen von Cloud-Instanzen für die Umgebung unter Test.
 
 Um Tests zur Ausführung in einer einzigen Browser-Sitzung zu gruppieren, definieren Sie sie als Array innerhalb der Specs Definition.
 

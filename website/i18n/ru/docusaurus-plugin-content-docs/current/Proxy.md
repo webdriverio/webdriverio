@@ -1,26 +1,26 @@
 ---
 id: proxy
-title: Proxy Setup
+title: Настройка прокси
 ---
 
-You can tunnel two different types of request through a proxy:
+Через прокси-сервер можно соединить два различных типа запросов:
 
-- connection between your test script and the browser driver (or WebDriver endpoint)
-- connection between the browser and the internet
+- Соединение между вашим тестами и драйвером браузера (или конечной точкой WebDriver)
+- Соединение между браузером и интернетом
 
-## Proxy Between Driver And Test
+## Прокси между драйвером и тестами
 
-If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [global-agent](https://github.com/gajus/global-agent).
+Если у вашей компании есть корпоративный прокси-сервер (например, на `http://my.corp.proxy.com:9090`) для всех исходящих запросов, выполните следующие шаги, чтобы установить и настроить [global-agent](https://github.com/gajus/global-agent).
 
-### Install global-agent
+### Установка global-agent
 
 ```bash npm2yarn
 npm install global-agent --save-dev
 ```
 
-### Add global-agent bootstrap to your config file
+### Добавьте global-agent в bootstrap в файл вашей конфигурации
 
-Add the following require statement to the top of your config file.
+Добавьте следующую инструкцию в начало вашего конфигурационного файла.
 
 ```js title="wdio.conf.js"
 import { bootstrap } from 'global-agent';
@@ -31,16 +31,16 @@ export const config = {
 }
 ```
 
-### Set global-agent environment variables
+### Установить переменные среды для global-agent
 
-Before you start the test, make sure you've exported the variable in the terminal, like so:
+Прежде чем начать тест, убедитесь, что вы экспортировали переменную в терминал, например:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 wdio wdio.conf.js
 ```
 
-You can exclude URLs from the proxy by exporting the variable, like so:
+Вы можете исключить URL-адреса из прокси-сервера, экспортировав переменную, например:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -48,7 +48,7 @@ export GLOBAL_AGENT_NO_PROXY='.foo.com'
 wdio wdio.conf.js
 ```
 
-If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic through a different proxy than HTTP traffic.
+При необходимости вы можете указать `GLOBAL_AGENT_HTTPS_PROXY` для маршрутизации HTTPS-трафика через прокси-сервер, отличный от HTTP-трафика.
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -56,19 +56,19 @@ export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
 wdio wdio.conf.js
 ```
 
-`GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
+`GLOBAL_AGENT_HTTP_PROXY` используется как для запросов HTTP, так и для HTTPS, если `GLOBAL_AGENT_HTTPS_PROXY` не установлен.
 
-If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), start it via:
+Если вы используете [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), запустите его через:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
-## Proxy Between Browser And Internet
+## Прокси между браузером и интернетом
 
-In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).
+Для того чтобы создать туннель между браузером и интернетом вы можете настроить прокси, который может быть полезен (например, для захвата сетевой информации и других данных с помощью таких инструментов, как [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).
 
-The `proxy` parameters can be applied via the standard capabilities the following way:
+Параметр ` proxy ` можно применить через стандартные возможности следующим образом:
 
 ```js title="wdio.conf.js"
 export const config = {
@@ -89,4 +89,4 @@ export const config = {
 }
 ```
 
-For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
+Для получения дополнительной информации см. спецификацию [WebDriver](https://w3c.github.io/webdriver/#proxy).
