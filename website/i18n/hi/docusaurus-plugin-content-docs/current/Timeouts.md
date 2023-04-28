@@ -3,7 +3,8 @@ id: timeouts
 title: समय समाप्त
 ---
 
-'@theme/Tabs'; से टैब आयात करें; @theme/TabItem'; से TabItem को आयात करें;
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 WebdriverIO में प्रत्येक कमांड एक अतुल्यकालिक ऑपरेशन है। सेलेनियम सर्वर (या क्लाउड सेवा जैसे [सॉस लैब्स](https://saucelabs.com)) के लिए एक अनुरोध निकाल दिया गया है, और इसकी प्रतिक्रिया में कार्रवाई पूर्ण या विफल होने के बाद परिणाम होता है।
 

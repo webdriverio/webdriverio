@@ -3,7 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-Basierend auf dem [Setup-Typ](./SetupTypes.md) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
+Basierend auf dem [Setup-Typ](setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
 
 ## WebDriver-Optionen
 
@@ -179,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) Diese Zeitüberschreitung __nur__ wirkt sich auf Befehle aus, die mit `waitFor*` und ihrer Standardwartezeit beginnen.
+Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) Diese Zeitüberschreitung __nur__ wirkt sich auf Befehle aus, die mit `waitFor*` und ihrer Standardwartezeit beginnen.
 
 Informationen zum Erhöhen des Timeouts für einen _Test_finden Sie in der Framework-Dokumentation.
 
@@ -227,7 +227,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-Ähnlich wie im oberen Abschnitt beschriebene `capabilities` Option, außer das mit dieser Option, entweder ein [`Multiremote`](Multiremote.md) Objekt oder mehrere Test Sessions in einem Array zur parallelen Ausführung angegeben werden können.
+Ähnlich wie im oberen Abschnitt beschriebene `capabilities` Option, außer das mit dieser Option, entweder ein [`Multiremote`](multiremote) Objekt oder mehrere Test Sessions in einem Array zur parallelen Ausführung angegeben werden können.
 
 Sie können die gleichen anbieter- und browserspezifischen Capabilities wie oben[anwenden](/docs/configuration#capabilities).
 
@@ -249,7 +249,7 @@ Type: `Number`<br /> Default: `100`
 
 ### injectGlobals
 
-Wenn gesetzt, werden die WebdriverIO Variablen (z. B. `browser`, `$` und `$$`) in die globale Umgebung eingefügt. Wenn Sie die Option allerdings auf `false` setzen, sollten Sie diese aus dem `@wdio/globals` Paket importieren, z.B.:
+`browser`, `$` und `$$`) in die globale Umgebung eingefügt. Wenn Sie die Option allerdings auf `false` setzen, sollten Sie diese aus dem `@wdio/globals` Paket importieren, z.B.:
 
 ```ts
 import { browser, $, $$, expect } from '@wdio/globals'
@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine` | `cucu
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-Spezifische Framework-bezogene Optionen. Informationen zu den verfügbaren Optionen finden Sie in der Dokumentation zum Framework-Adapter. Lesen Sie mehr dazu in [Frameworks](./Frameworks.md).
+Spezifische Framework-bezogene Optionen. Informationen zu den verfügbaren Optionen finden Sie in der Dokumentation zum Framework-Adapter. Lesen Sie mehr dazu in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
@@ -329,7 +329,7 @@ reporters: [
 
 ### reporterSyncInterval
 
-Legt fest, in welchem Intervall der Reporter prüfen soll, ob er synchronisiert ist, wenn er seine Logs asynchron verarbeitet werden (z. B. wenn Logs an einen Drittanbieter hochgeladen werden).
+Legt fest, in welchem Intervall der Reporter prüfen soll, ob er synchronisiert ist, wenn er seine Logs asynchron verarbeitet werden (z. B.
 
 Type: `Number`<br /> Default: `100` (ms)
 

@@ -29,7 +29,7 @@ npm install jscodeshift @wdio/codemod
 
 ## Actualizar dependencias de WebdriverIO
 
-Dado que todas las versiones WebdriverIO están ajustadas entre sí, es lo mejor para siempre actualizar a una etiqueta específica, e.. `6.12.0`. Para ello, copiamos todas las dependencias relacionadas con WebdriverIO de nuestro `package.json` y las reinstalamos a través de:
+Dado que todas las versiones WebdriverIO están ajustadas entre sí, es lo mejor para siempre actualizar a una etiqueta específica, e.. Para ello, copiamos todas las dependencias relacionadas con WebdriverIO de nuestro `package.json` y las reinstalamos a través de:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter@7 @wdio/cli@7 @wdio/cucumber-framework@7 @wdio/local-runner@7 @wdio/spec-reporter@7 @wdio/sync@7 wdio-chromedriver-service@7 wdio-timeline-reporter@7 webdriverio@7

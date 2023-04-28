@@ -23,7 +23,7 @@ Existen muchas estrategias de migración. Dependiendo del tamaño de tu equipo, 
 
 ## Primero el archivo de configuración
 
-Después de haber instalado el código podemos comenzar a transformar el primer archivo. Eche un vistazo primero a [opciones de configuración de WebdriverIOs](Configuration.md). Los archivos de configuración pueden llegar a ser muy complejos y podría tener sentido portar sólo las partes esenciales y ver cómo se puede agregar el resto una vez que se están migrando las pruebas correspondientes que necesitan ciertas opciones.
+Después de haber instalado el código podemos comenzar a transformar el primer archivo. Eche un vistazo primero a [opciones de configuración de WebdriverIOs](configuration). Los archivos de configuración pueden llegar a ser muy complejos y podría tener sentido portar sólo las partes esenciales y ver cómo se puede agregar el resto una vez que se están migrando las pruebas correspondientes que necesitan ciertas opciones.
 
 Para la primera migración, sólo transformamos el archivo de configuración y ejecutamos:
 
@@ -59,6 +59,7 @@ Esto le guiará a través de un par de preguntas. Para este escenario de migraci
 
 :::info ¿Por qué Moka?
 Aunque es posible que haya estado usando Protractor con Jasmine antes, Mocha proporciona mejores mecanismos de reintento. ¡La elección es suya!
+:::
 :::
 
 Después del pequeño cuestionario, el asistente instalará todos los paquetes necesarios y los almacenará en su `package.json`.

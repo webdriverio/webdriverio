@@ -1,59 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`scrollIntoView test > desktop > scrolls by default the element after a previous scr 1`] = `
-{
-  "actions": [
-    {
-      "actions": [
-        {
-          "deltaX": 0,
-          "deltaY": 800,
-          "duration": 200,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": {
-              "scrollIntoView": [MockFunction spy],
-            },
-          },
-          "type": "scroll",
-          "x": 0,
-          "y": 0,
-        },
-      ],
-      "id": "action7",
-      "parameters": {},
-      "type": "wheel",
-    },
-  ],
-}
-`;
-
-exports[`scrollIntoView test > desktop > scrolls by default the element after a previous scroll 1`] = `
-{
-  "actions": [
-    {
-      "actions": [
-        {
-          "deltaX": 0,
-          "deltaY": 800,
-          "duration": 200,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": {
-              "scrollIntoView": [MockFunction spy],
-            },
-          },
-          "type": "scroll",
-          "x": 0,
-          "y": 0,
-        },
-      ],
-      "id": "action7",
-      "parameters": {},
-      "type": "wheel",
-    },
-  ],
-}
-`;
-
 exports[`scrollIntoView test > desktop > scrolls by default the element to the top 1`] = `
 {
   "actions": [

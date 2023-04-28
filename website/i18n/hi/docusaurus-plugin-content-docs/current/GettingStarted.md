@@ -5,7 +5,7 @@ title: शुरू करें
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
 
 WebdriverIO दस्तावेज़ीकरण में आपका स्वागत है। यह आपको तेजी से आरंभ करने में मदद करेगा। यदि आप समस्याओं में भाग लेते हैं, तो आप हमारे [डिसॉर्ड सपोर्ट सर्वर](https://discord.webdriver.io) पर सहायता और उत्तर पा सकते हैं या आप मुझे [ट्विटर](https://twitter.com/webdriverio)पर हिट कर सकते हैं।
 
@@ -137,11 +137,9 @@ __नोट:__ सभी WebdriverIO कमांड अतुल्यकाल
 
 ## रिकॉर्ड परीक्षण
 
-WebdriverIO स्क्रीन पर अपनी परीक्षण क्रियाओं को रिकॉर्ड करके आरंभ करने में आपकी मदद करने के लिए उपकरण प्रदान करता है और स्वचालित रूप से WebdriverIO परीक्षण स्क्रिप्ट उत्पन्न करता है। अधिक जानकारी के लिए Chrome DevTools Recorder</a> के साथ
+WebdriverIO स्क्रीन पर अपनी परीक्षण क्रियाओं को रिकॉर्ड करके आरंभ करने में आपकी मदद करने के लिए उपकरण प्रदान करता है और स्वचालित रूप से WebdriverIO परीक्षण स्क्रिप्ट उत्पन्न करता है। अधिक जानकारी के लिए [Chrome DevTools Recorder](/docs/record) के साथ
 
-रिकॉर्डर परीक्षण देखें।</p> 
-
-
+रिकॉर्डर परीक्षण देखें।
 
 ## सिस्टम आवश्यकताएं
 

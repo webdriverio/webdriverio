@@ -3,16 +3,16 @@ id: protocols
 title: Comandos de protocolo
 ---
 
-WebdriverIO es un marco de automatización que se basa en varios de los protocolos de automatización para controlar un agente remoto, por ejemplo, para un navegador, un dispositivo móvil o un televisor. En función del dispositivo remoto entran en juego distintos protocolos. Estos comandos se asignan al objeto [Navegador](/docs/api/browser) o [Elemento](/docs/api/elemento) en función de la información de la sesión por parte del servidor remoto (por ejemplo, el controlador del navegador).
+WebdriverIO es un marco de automatización que se basa en varios de los protocolos de automatización para controlar un agente remoto, por ejemplo, para un navegador, un dispositivo móvil o un televisor. En función del dispositivo remoto entran en juego distintos protocolos. Estos comandos se asignan al objeto [Navegador](./browser) o [Elemento](./element) en función de la información de la sesión por parte del servidor remoto (por ejemplo, el controlador del navegador).
 
-Internamente WebdriverIO utiliza comandos de protocolo para casi todas las interacciones con el agente remoto. Sin embargo los comandos adicionales asignados al Objeto [Browser](/docs/api/browser) o [Element](/docs/api/element) simplifican el uso de WebdriverIO, por ejemplo, obtener el texto de un elemento utilizando comandos de protocolo tendría el siguiente aspecto:
+Internamente WebdriverIO utiliza comandos de protocolo para casi todas las interacciones con el agente remoto. Sin embargo los comandos adicionales asignados al Objeto [Browser](./browser) o [Element](./element) simplifican el uso de WebdriverIO, por ejemplo, obtener el texto de un elemento utilizando comandos de protocolo tendría el siguiente aspecto:
 
 ```js
 const searchInput = await browser.findElement('css selector', '#lst-ib')
 await client.getElementText(searchInput['elemento-6066-11e4-a52e-4f735466cecf'])
 ```
 
-Utilizando los cómodos comandos del objeto [Browser](/docs/api/browser) o [Element](/docs/api/element) esto puede reducirse a
+Utilizando los cómodos comandos del objeto [Browser](./browser) o [Element](./element) esto puede reducirse a
 
 ```js
 $('#lst-ib').getText()

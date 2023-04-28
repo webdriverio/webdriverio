@@ -1,6 +1,6 @@
 ---
 id: capabilities
-title: Capabilities
+title: Способности
 ---
 
 import Tabs from '@theme/Tabs';

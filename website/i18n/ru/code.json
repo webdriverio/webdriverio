@@ -1,6 +1,6 @@
 {
   "theme.ErrorPageContent.title": {
-    "message": "This page crashed.",
+    "message": "Ошибка загрузки страницы.",
     "description": "The title of the fallback page when the page crashed"
   },
   "theme.ErrorPageContent.tryAgain": {
@@ -16,19 +16,19 @@
     "description": "The first paragraph of the 404 page"
   },
   "theme.NotFound.p2": {
-    "message": "Please contact the owner of the site that linked you to the original URL and let them know their link is broken.",
+    "message": "Ссылка не работает, пожалуйста, обратитесь к владельцу сайта, по ссылке которого вы перешли.",
     "description": "The 2nd paragraph of the 404 page"
   },
   "theme.admonition.note": {
-    "message": "note",
+    "message": "примечание",
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "tip",
+    "message": "подсказка",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.danger": {
-    "message": "danger",
+    "message": "опасность",
     "description": "The default label used for the Danger admonition (:::danger)"
   },
   "theme.admonition.info": {
@@ -84,7 +84,7 @@
     "description": "The title of the page for a blog tag"
   },
   "theme.tags.tagsPageLink": {
-    "message": "View All Tags",
+    "message": "Посмотреть Все Теги",
     "description": "The label of the link targeting the tag list page"
   },
   "theme.docs.breadcrumbs.home": {
@@ -104,11 +104,11 @@
     "description": "The ARIA label for the navbar color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "dark mode",
+    "message": "тёмная тема",
     "description": "The name for the dark color mode"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "light mode",
+    "message": "светлая тема",
     "description": "The name for the light color mode"
   },
   "theme.docs.paginator.navAriaLabel": {
@@ -171,15 +171,15 @@
     "description": "The sentence used to display when a page has been last updated, and by who"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
-    "message": "Versions",
+    "message": "Версии",
     "description": "The label for the navbar versions dropdown on mobile view"
   },
   "theme.AnnouncementBar.closeButtonAriaLabel": {
-    "message": "Close",
+    "message": "Закрыть",
     "description": "The ARIA label for close button of announcement bar"
   },
   "theme.tags.tagsListLabel": {
-    "message": "Tags:",
+    "message": "Теги:",
     "description": "The label alongside a tag list"
   },
   "theme.blog.sidebar.navAriaLabel": {
@@ -187,11 +187,11 @@
     "description": "The ARIA label for recent posts in the blog sidebar"
   },
   "theme.CodeBlock.copied": {
-    "message": "Copied",
+    "message": "Скопировано",
     "description": "The copied button label on code blocks"
   },
   "theme.CodeBlock.copyButtonAriaLabel": {
-    "message": "Copy code to clipboard",
+    "message": "Скопировать код в буфер обмена",
     "description": "The ARIA label for copy code blocks button"
   },
   "theme.CodeBlock.copy": {
@@ -239,7 +239,7 @@
     "description": "The ARIA label for close button of mobile sidebar"
   },
   "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-    "message": "← Back to main menu",
+    "message": "← Вернуться в главное меню",
     "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
@@ -274,7 +274,7 @@
     "description": "The placeholder for search page input"
   },
   "theme.SearchPage.inputLabel": {
-    "message": "Search",
+    "message": "Поиск",
     "description": "The ARIA label for search page input"
   },
   "theme.SearchPage.algoliaLabel": {
@@ -282,19 +282,19 @@
     "description": "The ARIA label for Algolia mention"
   },
   "theme.SearchPage.noResultsText": {
-    "message": "No results were found",
+    "message": "Ничего не найдено",
     "description": "The paragraph for empty search result"
   },
   "theme.SearchPage.fetchingNewResults": {
-    "message": "Fetching new results...",
+    "message": "Получение новых результатов...",
     "description": "The paragraph for fetching new search results"
   },
   "theme.SearchBar.label": {
-    "message": "Search",
+    "message": "Поиск",
     "description": "The ARIA label and placeholder for search button"
   },
   "theme.SearchModal.searchBox.resetButtonTitle": {
-    "message": "Clear the query",
+    "message": "Очистить очередь",
     "description": "The label and ARIA label for search box reset button"
   },
   "theme.SearchModal.searchBox.cancelButtonText": {
@@ -318,7 +318,7 @@
     "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
-    "message": "Favorite",
+    "message": "Избранное",
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
@@ -382,7 +382,7 @@
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "Search docs",
+    "message": "Поиск документов",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.IdealImageMessage.loading": {
@@ -398,15 +398,15 @@
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
-    "message": "404. Image not found",
+    "message": "404. Изображение не найдено",
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
-    "message": "Error. Click to reload",
+    "message": "Ошибка. Нажмите, чтобы перезагрузить",
     "description": "When the image fails to load for unknown error"
   },
   "theme.PwaReloadPopup.info": {
-    "message": "New version available",
+    "message": "Доступна новая версия",
     "description": "The text for PWA reload popup"
   },
   "theme.PwaReloadPopup.refreshButtonText": {
@@ -422,7 +422,7 @@
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "Tags",
+    "message": "Теги",
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
@@ -438,13 +438,13 @@
     "message": "Get Started"
   },
   "Why WebdriverIO?": {
-    "message": "Why WebdriverIO?"
+    "message": "Почему WebdriverIO?"
   },
   "View on GitHub": {
-    "message": "View on GitHub"
+    "message": "Смотреть на GitHub"
   },
   "Watch on YouTube": {
-    "message": "Watch on YouTube"
+    "message": "Смотреть на YouTube"
   },
   "Easy setup for web component testing with:": {
     "message": "Easy setup for web component testing with:"
@@ -468,16 +468,16 @@
     "message": "Integration to developer tools such as:"
   },
   "until October 2023": {
-    "message": "until October 2023"
+    "message": "до Октября 2023"
   },
   "since February 2022": {
-    "message": "since February 2022"
+    "message": "с Февраля 2022"
   },
   "since January 2021": {
-    "message": "since January 2021"
+    "message": "с Января 2021"
   },
   "since December 2019": {
-    "message": "since December 2019"
+    "message": "с Декабря 2019"
   },
   "versions.description": {
     "message": "Docusaurus 2 Versions page listing all documented site versions"
@@ -495,7 +495,7 @@
     "message": "Here you can find the documentation for current released version."
   },
   "Documentation": {
-    "message": "Documentation"
+    "message": "Документация"
   },
   "Release Notes": {
     "message": "Release Notes"
@@ -504,16 +504,16 @@
     "message": "Past versions"
   },
   "Here you can find documentation for previous versions of Docusaurus.": {
-    "message": "Here you can find documentation for previous versions of Docusaurus."
+    "message": "Здесь вы можете найти документацию для предыдущих версий Docusaurus."
   },
   "homepage.createBrowserAnimation": {
-    "message": "Create WebdriverIO Demo"
+    "message": "Создать WebdriverIO Демо"
   },
   "homepage.highlight.getStartedOnYouTube": {
-    "message": "Start learning more about WebdriverIO and how to get started {youtubeLink}."
+    "message": "Узнайте больше о WebdriverIO и о том, как начать пользоваться {youtubeLink}."
   },
   "homepage.highlight.getStartedOnYouTube.label;": {
-    "message": "on YouTube",
+    "message": "на YouTube",
     "description": "The label for the link to my YouTube"
   },
   "homepage.highlight.conferenceTalk": {
@@ -530,18 +530,18 @@
     "message": "WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages native browser APIs to enable integrations to popular developer tools such as {devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to commands for validating if you app is a valid PWA application as well as to commands for capturing frontend performance metrics such as `speedIndex` and others."
   },
   "homepage.features.crossBrowser": {
-    "message": "Cross browser support via automation through {webdriverLink} and {bidiLink}."
+    "message": "Кросс-браузерная поддержка автоматизации по средствам {webdriverLink} и {bidiLink}."
   },
   "homepage.features.mobile": {
-    "message": "Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}."
+    "message": "Запускайте WebdriverIO на реальных мобильных устройствах, смарт-телевизорах или других IoT-устройствах с помощью {appiumLink}."
   },
   "homepage.features.support": {
-    "message": "Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins."
+    "message": "Работает {supportChannelLink} с более чем 8 тысячами участниками и богатой экосистемой плагинов, поддерживаемых сообществом."
   },
   "homepage.tagline": {
-    "message": "Next-gen browser and mobile automation test framework for Node.js"
+    "message": "Фреймворк нового уровня для автоматизации тестирования в браузерах и на мобильных устройствах для Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "Оснащается смарт-селекторные стратегиями, которые упрощающают взаимодействие, например, с {reactComponents} или с глубокими селекторными запросами с вложенными деревьями теневого DOM. Так как взаимодействие происходит с помощью стандартизированного протокола автоматизации, что гарантирует нативное поведение, а не просто эмуляцию JavaScript."
   }
 }

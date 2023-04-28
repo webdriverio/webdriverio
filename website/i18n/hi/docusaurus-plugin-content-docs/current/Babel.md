@@ -29,4 +29,4 @@ module.exports = {
 
 एक बार यह सेट हो जाने के बाद WebdriverIO बाकी का ध्यान रखेगा।
 
-वैकल्पिक रूप से आप कॉन्फ़िगर कर सकते हैं कि कैसे @babel/register [@babel/register](Babel.md) के लिए पर्यावरण वेरिएबल के माध्यम से चलाया जाता है या wdio कॉन्फ़िगरेशन के [autoCompileOpts section](ConfigurationFile.md)का उपयोग कर रहा है।
+वैकल्पिक रूप से आप कॉन्फ़िगर कर सकते हैं कि कैसे @babel/register [@babel/register](babel) के लिए पर्यावरण वेरिएबल के माध्यम से चलाया जाता है या wdio कॉन्फ़िगरेशन के [autoCompileOpts section](configurationfile) का उपयोग कर रहा है।
