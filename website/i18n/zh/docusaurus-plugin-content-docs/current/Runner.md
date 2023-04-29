@@ -5,13 +5,13 @@ title: Runner
 
 import CodeBlock from '@theme/CodeBlock';
 
-A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. WebdriverIO currently supports two different types of runner: local and browser runner.
+A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. WebdriverIO currently supports two different types of runner: local and browser runner. A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. WebdriverIO currently supports two different types of runner: local and browser runner.
 
 ## Local Runner
 
-The [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) initiates your framework (e.g. Mocha, Jasmine or Cucumber) within worker a process and runs all your test files within your Node.js environment. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation.
+The [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) initiates your framework (e.g. Mocha, Jasmine or Cucumber) within worker a process and runs all your test files within your Node.js environment. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation.
 
-Given every test is run in its own isolated process, it is not possible to share data across test files. There are two ways to work around this: There are two ways to work around this:
+Given every test is run in its own isolated process, it is not possible to share data across test files. There are two ways to work around this: There are two ways to work around this: There are two ways to work around this:
 
 - use the [`@wdio/shared-store-service`](https://www.npmjs.com/package/@wdio/shared-store-service) to share data across all workers
 - group spec files (read more in [Organizing Test Suite](https://webdriver.io/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
@@ -28,7 +28,7 @@ npm install --save-dev @wdio/local-runner
 
 ### Setup
 
-The Local Runner is the default runner in WebdriverIO so there is no need to define it within your `wdio.conf.js`. If you want to explicitly set it, you can define it as follows: If you want to explicitly set it, you can define it as follows:
+The Local Runner is the default runner in WebdriverIO so there is no need to define it within your `wdio.conf.js`. If you want to explicitly set it, you can define it as follows: If you want to explicitly set it, you can define it as follows: If you want to explicitly set it, you can define it as follows:
 
 ```js
 // wdio.conf.js
@@ -41,9 +41,9 @@ export const {
 
 ## Browser Runner
 
-As opposed to the [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) the [Browser Runner](https://www.npmjs.com/package/@wdio/browser-runner) initiates and executes the framework within the browser. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks.
+As opposed to the [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) the [Browser Runner](https://www.npmjs.com/package/@wdio/browser-runner) initiates and executes the framework within the browser. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks.
 
-While [JSDOM](https://www.npmjs.com/package/jsdom) is widely used for testing purposes, it is in the end not an actual browser nor can you emulate mobile environments with it. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page.
+While [JSDOM](https://www.npmjs.com/package/jsdom) is widely used for testing purposes, it is in the end not an actual browser nor can you emulate mobile environments with it. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page. While [JSDOM](https://www.npmjs.com/package/jsdom) is widely used for testing purposes, it is in the end not an actual browser nor can you emulate mobile environments with it. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page.
 
 Here is an overview of running tests within JSDOM vs. WebdriverIOs Browser Runner
 
@@ -56,7 +56,7 @@ Here is an overview of running tests within JSDOM vs. WebdriverIOs Browser Runne
 | 5. | Impossible to detect errors cross browser                                                                                                                       | Support for all browsers including mobile browser                                                     |
 | 6. | Can __not__ test for element pseudo states                                                                                                                      | Support for pseudo states such as `:hover` or `:active`                                               |
 
-This runner uses [Vite](https://vitejs.dev/) to compile your test code and load it in the browser. It comes with presets for the following component frameworks: It comes with presets for the following component frameworks:
+This runner uses [Vite](https://vitejs.dev/) to compile your test code and load it in the browser. It comes with presets for the following component frameworks: It comes with presets for the following component frameworks: It comes with presets for the following component frameworks:
 
 - React
 - Preact
@@ -93,7 +93,7 @@ The Browser runner allows following configurations:
 
 #### `preset`
 
-If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`. This option can't be used together with `viteConfig`.
+If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`. This option can't be used together with `viteConfig`. This option can't be used together with `viteConfig`.
 
 __Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
 
@@ -109,7 +109,7 @@ export const {
 
 #### `viteConfig`
 
-Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
+Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness. You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
 
 __Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272) or `(env: ConfigEnv) => UserConfig | Promise<UserConfig>`<br /> __Example:__
 
@@ -134,7 +134,7 @@ export const {
 
 #### `headless`
 
-If set to `true` the runner will update capabilities to run tests headless. If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`.
+If set to `true` the runner will update capabilities to run tests headless. If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`. If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`.
 
 __Type:__ `boolean`<br /> __Default:__ `false`, set to `true` if `CI` environment variable is set
 
@@ -146,7 +146,7 @@ __Type:__ `string`<br /> __Default:__ `process.cwd()`
 
 #### `coverage`
 
-WebdriverIO supports test coverage reporting through [`istanbul`](https://istanbul.js.org/). See [Coverage Options](#coverage-options) for more details. See [Coverage Options](#coverage-options) for more details.
+WebdriverIO supports test coverage reporting through [`istanbul`](https://istanbul.js.org/). See [Coverage Options](#coverage-options) for more details. See [Coverage Options](#coverage-options) for more details. See [Coverage Options](#coverage-options) for more details.
 
 __Type:__ `object`<br /> __Default:__ `undefined`
 
@@ -203,13 +203,13 @@ __Type:__ `string`<br /> __Default:__ `./coverage`
 
 #### `reporter`
 
-Coverage reporters to use. Coverage reporters to use. See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
+Coverage reporters to use. Coverage reporters to use. Coverage reporters to use. See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
 
 __Type:__ `string[]`<br /> __Default:__ `['text', 'html', 'clover', 'json-summary']`
 
 #### `perFile`
 
-Check thresholds per file. Check thresholds per file. See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+Check thresholds per file. Check thresholds per file. Check thresholds per file. See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
 
 __Type:__ `boolean`<br /> __Default:__ `false`
 
@@ -245,9 +245,9 @@ __Type:__ `number`<br /> __Default:__ `undefined`
 
 ### Limitations
 
-When using the WebdriverIO browser runner, it's important to note that thread blocking dialogs like `alert` or `confirm` cannot be used natively. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang.
+When using the WebdriverIO browser runner, it's important to note that thread blocking dialogs like `alert` or `confirm` cannot be used natively. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang.
 
-In such situations, WebdriverIO provides default mocks with default returned values for these APIs. This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking). This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking).
+In such situations, WebdriverIO provides default mocks with default returned values for these APIs. This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking). This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking). This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking).
 
 ### Examples
 
