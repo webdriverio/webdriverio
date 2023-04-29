@@ -7,7 +7,7 @@ Lit 是一款用于构建快速、轻量 Web 组件的库。 得益于 Webdriver
 
 ## Setup
 
-To setup WebdriverIO within your Lit project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements.
+To setup WebdriverIO within your Lit project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements.
 
 Once set-up, you can start the tests by running:
 
