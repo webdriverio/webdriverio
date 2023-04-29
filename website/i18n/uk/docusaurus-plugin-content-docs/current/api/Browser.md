@@ -5,7 +5,7 @@ title: Об'єкт Browser
 
 __Успадковується від:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-Об’єкт браузера – це екземпляр сеансу, який ви використовуєте для керування браузером або мобільним пристроєм. Якщо ви запускаєте свої тести через WDIO, ви можете отримати доступ до екземпляра Browser через глобальні змінні `browser` або `driver` або імпортувати його з пакунка [`@wdio/globals`](/docs/api/globals). Якщо ви використовуєте WDIO в автономному режимі, екземпляр Browser повертається методом [`remote`](/docs/api/modules#remoteoptions-modifier).
+Об’єкт браузера – це екземпляр сеансу, який ви використовуєте для керування браузером або мобільним пристроєм. Якщо ви використовуєте засіб виконання тестів WebdriverIO, ви можете отримати доступ до екземпляра Browser через глобальні змінні `browser` або `driver` або імпортувати його з пакунка [`@wdio/globals`](/docs/api/globals). Якщо ви використовуєте WebdriverIO в автономному режимі, екземпляр Browser повертається методом [`remote`](/docs/api/modules#remoteoptions-modifier).
 
 Сеанс ініціалізується виконавцем тесту. Те саме стосується завершення сеансу. Це також виконується процесом виконання тестів.
 
@@ -120,7 +120,7 @@ This is an event to measure WebDriver level operations. Whenever WebdriverIO sen
 - `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
 - `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
 
-An example event:
+Приклад події:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
