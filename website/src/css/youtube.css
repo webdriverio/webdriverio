@@ -16,6 +16,19 @@
     transition: background-color border;
 }
 
+
+@media (max-width: 600px) {
+    .lty-playbtn {
+        width: 100px;
+        height: 100px;
+    }
+
+    body .lty-playbtn:after {
+        height: 50px;
+        border-width: 25px 0 25px 45px;
+    }
+}
+
 .lty-playbtn:after {
     content: "";
     position: absolute;

@@ -3,9 +3,6 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
 
 Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.

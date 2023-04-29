@@ -3,9 +3,6 @@ id: autocompletion
 title: Autocompletion
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## IntelliJ
 
 Autocompletion works out of the box in IDEA and WebStorm.

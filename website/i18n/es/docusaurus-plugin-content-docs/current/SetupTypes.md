@@ -3,9 +3,6 @@ id: setuptypes
 title: Tipos de configuración
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO puede ser utilizado para varios propósitos. Implementa la API del protocolo WebDriver y puede ejecutar un navegador de forma automática. El framework está diseñado para trabajar en cualquier entorno arbitrario y para cualquier tipo de tarea. Es independiente de cualquier marco de trabajo de terceros y solo requiere Node.js para ejecutarse.
 
 ## Enlaces de protocolo

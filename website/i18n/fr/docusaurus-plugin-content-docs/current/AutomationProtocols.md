@@ -3,9 +3,6 @@ id: automationProtocols
 title: Protocoles d'automatisation
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Avec WebdriverIO, vous pouvez choisir entre plusieurs technologies d'automatisation lors de l'exécution de vos tests bout en bout, localement ou dans le cloud. Par défaut, WebdriverIO recherchera toujours un pilote de navigateur conforme au protocole WebDriver sur `localhost:4444`. S'il ne trouve pas ce pilote, il utilisera Chrome DevTools en utilisant Puppeteer.
 
 Presque tous les navigateurs modernes qui prennent en charge [WebDriver](https://w3c.github.io/webdriver/) prennent également en charge une autre interface native appelée [DevTools](https://chromedevtools.github.io/devtools-protocol/) qui peut être utilisée à des fins d'automatisation.

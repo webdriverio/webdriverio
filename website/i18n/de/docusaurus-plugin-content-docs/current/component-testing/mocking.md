@@ -15,9 +15,6 @@ import { fn, spy } from '@wdio/browser-runner'
 
 Durch den Import von `fn` können Sie eine Spionagefunktion (Mock) erstellen, um ihre Ausführung zu verfolgen, und mit `spyOn` eine Methode auf einem bereits erstellten Objekt verfolgen.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <Tabs
   defaultValue="mocks"
   values={[

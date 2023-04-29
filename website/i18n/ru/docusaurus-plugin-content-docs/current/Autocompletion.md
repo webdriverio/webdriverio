@@ -3,9 +3,6 @@ id: autocompletion
 title: Автодополнение
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## IntelliJ
 
 Автодополнение работает из коробки в IDEA и WebStorm.

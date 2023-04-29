@@ -3,9 +3,6 @@ id: customcommands
 title: कस्टम कमांड
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 यदि आप `browser` उदाहरण को अपने स्वयं के आदेशों के सेट के साथ विस्तारित करना चाहते हैं, तो ब्राउज़र विधि  `addCommand` यहां आपके लिए है। आप अपनी कमांड को एसिंक्रोनस तरीके से लिख सकते हैं, ठीक अपने स्पेक्स की तरह।
 
 ## पैरामीटर

@@ -3,9 +3,6 @@ id: customcommands
 title: Comandos personalizados
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Si quieres extender la instancia de `browser` con tu propio conjunto de comandos, el método navegador  `addCommand` está aquí para usted. Puede escribir su comando de una forma asíncrona, al igual que en sus especificaciones.
 
 ## Parámetros

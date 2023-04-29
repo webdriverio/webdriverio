@@ -3,9 +3,6 @@ id: repl
 title: REPL interface
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways. It can be used in multiple ways.
 
 First you can use it as CLI command by installing `npm install -g @wdio/cli` and spawn a WebDriver session from the command line, e.g.

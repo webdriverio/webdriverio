@@ -3,9 +3,6 @@ id: automationProtocols
 title: स्वचालन प्रोटोकॉल
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO के साथ, आप अपने E2E परीक्षणों को स्थानीय रूप से या क्लाउड में चलाते समय कई स्वचालन तकनीकों के बीच चयन कर सकते हैं। डिफ़ॉल्ट रूप से WebdriverIO हमेशा ऐसे ब्राउज़र ड्राइवर की जाँच करेगा जो `localhost:4444`पर WebDriver प्रोटोकॉल के अनुरूप हो। यदि उसे ऐसा ड्राइवर नहीं मिलता है तो वह हुड के नीचे पपेटियर का उपयोग करके Chrome DevTools का उपयोग करने के लिए जाता है।
 
 लगभग सभी आधुनिक ब्राउज़र जो [WebDriver](https://w3c.github.io/webdriver/) का समर्थन करते हैं, [DevTools](https://chromedevtools.github.io/devtools-protocol/) नामक एक अन्य मूल इंटरफ़ेस का भी समर्थन करते हैं जिसका उपयोग स्वचालन उद्देश्यों के लिए किया जा सकता है।
