@@ -73,7 +73,8 @@ export const COMPILER_OPTIONS = {
 export const SUPPORTED_PACKAGES = {
     runner: [
         { name: 'local - for e2e testing of web and mobile applications', value: '@wdio/local-runner$--$local' },
-        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' }
+        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' },
+        { name: 'mobile - for e2e testing on mobile devices', value: '@wdio/local-runner$--$local' }
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
@@ -197,6 +198,22 @@ function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
 }
 
+function isMobileEnvironment (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[2].value
+}
+
+function selectDefaultService (serviceName: string) {
+    return [SUPPORTED_PACKAGES.service.find(
+        /* istanbul ignore next */
+        ({ name }) => name === serviceName)?.value]
+}
+
+function prioServiceOrderFor (serviceName: string) {
+    const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === serviceName)
+    return SUPPORTED_PACKAGES.service.slice(index)
+        .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+}
+
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
@@ -224,6 +241,12 @@ export const QUESTIONNAIRE = [{
          */
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
+}, {
+    type: 'confirm',
+    name: 'setupMobileEnvironment',
+    message: 'Do you like to set-up Appium for local mobile testing?',
+    default: true,
+    when: /* istanbul ignore next */ (answers: Questionnair) => isMobileEnvironment(answers)
 }, {
     type: 'list',
     name: 'backend',
@@ -431,30 +454,24 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a service to your test setup?',
     choices: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === 'browserstack')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return prioServiceOrderFor('appium')
         }
         return SUPPORTED_PACKAGES.service
     },
     // @ts-ignore
     default: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'browserstack')?.value]
+            return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'sauce')?.value]
+            return selectDefaultService('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return selectDefaultService('appium')
         }
-        return [SUPPORTED_PACKAGES.service.find(
-        /* istanbul ignore next */
-            ({ name }) => name === 'chromedriver')?.value]
+        return selectDefaultService('chromedriver')
     },
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
@@ -480,8 +497,13 @@ export const QUESTIONNAIRE = [{
     name: 'baseUrl',
     message: 'What is the base url?',
     default: 'http://localhost',
-    // no base url for browser tests
-    when: /* istanbul ignore next */ (answers: Questionnair) => !isBrowserRunner(answers)
+    // no base url for:
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        // unit and component testing in the browser
+        !isBrowserRunner(answers) &&
+        // mobile testing with Appium
+        !isMobileEnvironment(answers)
+    )
 }, {
     type: 'confirm',
     name: 'npmInstall',

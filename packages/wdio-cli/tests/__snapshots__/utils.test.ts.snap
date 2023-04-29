@@ -3,7 +3,6 @@
 exports[`getAnswers 1`] = `
 {
   "backend": "On my local machine",
-  "baseUrl": "http://localhost",
   "framework": "@wdio/mocha-framework$--$mocha",
   "generateTestFiles": true,
   "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
