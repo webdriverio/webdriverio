@@ -3,9 +3,6 @@ id: repl
 title: Repl Schnittstelle
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Mit `v4.5.0`führte WebdriverIO eine [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) -Schnittstelle ein, die Ihnen hilft, nicht nur die Framework-API zu lernen, sondern auch Ihre Tests zu debuggen und zu überprüfen. Es kann auf vielfältige Weise verwendet werden.
 
 Zuerst können Sie es als CLI-Befehl verwenden, indem Sie `npm install -g @wdio/cli` installieren und eine WebDriver-Sitzung über die Befehlszeile erstellen, z.B.:
