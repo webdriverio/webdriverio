@@ -3,7 +3,7 @@ id: timeouts
 title: Timeouts
 ---
 
-Each command in WebdriverIO is an asynchronous operation. Each command in WebdriverIO is an asynchronous operation. A request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com)), and its response contains the result once the action has completed or failed.
+Each command in WebdriverIO is an asynchronous operation. Each command in WebdriverIO is an asynchronous operation. A request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com)), and its response contains the result once the action has completed or failed. Each command in WebdriverIO is an asynchronous operation. A request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com)), and its response contains the result once the action has completed or failed.
 
 Therefore, time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
 
@@ -11,7 +11,7 @@ Therefore, time is a crucial component in the whole testing process. When a cert
 
 ### Session Script Timeout
 
-A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise, it is 30 seconds. You can set this timeout like so: Unless stated otherwise, it is 30 seconds. You can set this timeout like so:
+A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise, it is 30 seconds. You can set this timeout like so: Unless stated otherwise, it is 30 seconds. You can set this timeout like so: Unless stated otherwise, it is 30 seconds. You can set this timeout like so:
 
 ```js
 await browser.setTimeout({ 'script': 60000 })
@@ -23,7 +23,7 @@ await browser.executeAsync((done) => {
 
 ### Session Page Load Timeout
 
-A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise, it is 300,000 milliseconds. Unless stated otherwise, it is 300,000 milliseconds.
+A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise, it is 300,000 milliseconds. Unless stated otherwise, it is 300,000 milliseconds. Unless stated otherwise, it is 300,000 milliseconds.
 
 You can set this timeout like so:
 
@@ -35,7 +35,7 @@ await browser.setTimeout({ 'pageLoad': 10000 })
 
 ### Session Implicit Wait Timeout
 
-A session has an associated session implicit wait timeout. A session has an associated session implicit wait timeout. This specifies the time to wait for the implicit element location strategy when locating elements using the [`findElement`](/docs/api/webdriver#findelement) or [`findElements`](/docs/api/webdriver#findelements) commands ([`$`](/docs/api/browser/$) or [`$$`](/docs/api/browser/$$), respectively, when running WebdriverIO with or without the WDIO testrunner). Unless stated otherwise, it is 0 milliseconds. Unless stated otherwise, it is 0 milliseconds.
+A session has an associated session implicit wait timeout. A session has an associated session implicit wait timeout. A session has an associated session implicit wait timeout. This specifies the time to wait for the implicit element location strategy when locating elements using the [`findElement`](/docs/api/webdriver#findelement) or [`findElements`](/docs/api/webdriver#findelements) commands ([`$`](/docs/api/browser/$) or [`$$`](/docs/api/browser/$$), respectively, when running WebdriverIO with or without the WDIO testrunner). Unless stated otherwise, it is 0 milliseconds. Unless stated otherwise, it is 0 milliseconds. Unless stated otherwise, it is 0 milliseconds.
 
 You can set this timeout via:
 
@@ -70,7 +70,7 @@ await myElem.waitForDisplayed({ timeout: 10000 })
 
 ## Framework related timeouts
 
-The testing framework you’re using with WebdriverIO has to deal with timeouts, especially since everything is asynchronous. It ensures that the test process doesn't get stuck if something goes wrong. It ensures that the test process doesn't get stuck if something goes wrong.
+The testing framework you’re using with WebdriverIO has to deal with timeouts, especially since everything is asynchronous. It ensures that the test process doesn't get stuck if something goes wrong. It ensures that the test process doesn't get stuck if something goes wrong. It ensures that the test process doesn't get stuck if something goes wrong.
 
 By default, the timeout is 10 seconds, which means that a single test should not take longer than that.
 
@@ -92,7 +92,7 @@ it('should login into the application', () => {
 })
 ```
 
-In Cucumber, the timeout applies to a single step definition. In Cucumber, the timeout applies to a single step definition. However, if you want to increase the timeout because your test takes longer than the default value, you need to set it in the framework options.
+In Cucumber, the timeout applies to a single step definition. In Cucumber, the timeout applies to a single step definition. However, if you want to increase the timeout because your test takes longer than the default value, you need to set it in the framework options. In Cucumber, the timeout applies to a single step definition. However, if you want to increase the timeout because your test takes longer than the default value, you need to set it in the framework options.
 
 <Tabs
   defaultValue="mocha"
