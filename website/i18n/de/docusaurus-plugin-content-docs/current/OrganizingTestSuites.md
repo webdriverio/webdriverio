@@ -88,6 +88,30 @@ export const config = {
     },
     // ...
 }
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+}
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+}
 ```
 
 Wenn Sie jetzt nur eine einzelne Suite ausführen möchten, können Sie den Suite-Namen als CLI-Argument übergeben:
