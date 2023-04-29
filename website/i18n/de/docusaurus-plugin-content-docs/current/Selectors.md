@@ -305,7 +305,7 @@ await button.click()
 
 ### Android DataMatcher und ViewMatcher (nur Espresso)
 
-Die DataMatcher-Strategie von Android bietet eine Möglichkeit, Elemente mit [DataMatcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)zu finden.
+Die View-Tag-Strategie bietet eine bequeme Möglichkeit, Elemente anhand ihres [-Tags](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29)zu finden.
 
 ```js
 const menuItem = await $({
@@ -315,7 +315,7 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-Und ähnlich [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
+Die DataMatcher-Strategie von Android bietet eine Möglichkeit, Elemente mit [DataMatcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)zu finden.
 
 ```js
 const menuItem = await $({
@@ -328,7 +328,7 @@ await menuItem.click()
 
 ### Android View Tag (nur Espresso)
 
-Die View-Tag-Strategie bietet eine bequeme Möglichkeit, Elemente anhand ihres [-Tags](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29)zu finden.
+Und ähnlich [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
 
 ```js
 const elem = await $('-android viewtag:tag_identifier')
@@ -351,7 +351,7 @@ Sie können auch das "Predicate Searching" innerhalb der iOS-UI-Automatisierung 
 
 ### iOS XCUITest Prädikatzeichenfolgen und Klassenketten
 
-Mit iOS 10 und höher (unter Verwendung des `XCUITest` Treibers) können Sie [Prädikatzeichenfolgen verwenden](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
+Und [Klassenketten](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
 
 ```js
 const selector = `type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'`
@@ -359,7 +359,7 @@ const switch = await $(`-ios predicate string:${selector}`)
 await switch.click()
 ```
 
-Und [Klassenketten](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
+Mit iOS 10 und höher (unter Verwendung des `XCUITest` Treibers) können Sie [Prädikatzeichenfolgen verwenden](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton'
@@ -479,9 +479,9 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-Im obigen Code gibt es eine einfache `MyComponent` -Instanz innerhalb der Anwendung, die React innerhalb eines HTML-Elements mit `id="root"`rendert.
-
 Mit dem Befehl `browser.react$` können Sie eine Instanz von `MyComponent`auswählen:
+
+Im obigen Code gibt es eine einfache `MyComponent` -Instanz innerhalb der Anwendung, die React innerhalb eines HTML-Elements mit `id="root"`rendert.
 
 ```js
 const myCmp = await browser.react$('MyComponent')
