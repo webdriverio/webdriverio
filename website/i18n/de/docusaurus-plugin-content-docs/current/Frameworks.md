@@ -290,7 +290,7 @@ Geben Sie das zu verwendende Cucumber-Profil an.
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Liste der Dateien, die die Step-Definitionen implementieren. Sie können auch einen Glob für Ihre Step-Definitionen angeben.
+Liste der Dateien, die die Step-Definitionen implementieren. Liste der Dateien, die die Step-Definitionen implementieren Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
 
 Type: `string[]`<br /> Default: `[]` Example:
 
