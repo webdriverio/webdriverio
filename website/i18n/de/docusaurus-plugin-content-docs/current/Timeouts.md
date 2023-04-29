@@ -3,9 +3,6 @@ id: timeouts
 title: Timeouts
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Jeder Befehl in WebdriverIO ist eine asynchrone Operation. Eine Anfrage wird an den WebDriver Backend, z.B. ein Selenium-Server (oder einen Cloud-Dienst wie [Sauce Labs](https://saucelabs.com)) gesendet, und seine Antwort enthält das Ergebnis, sobald die Aktion abgeschlossen oder fehlgeschlagen ist.
 
 Daher ist Zeit eine entscheidende Komponente im gesamten Testprozess. Wenn eine bestimmte Aktion vom Ergebnis einer anderen Aktion abhängt, müssen Sie sicherstellen, dass sie die Befehle in der richtigen Reihenfolge ausgeführen. Timeouts spielen eine wichtige Rolle beim Umgang mit diesen Problemen.
