@@ -9,10 +9,7 @@ Welcome to the WebdriverIO documentation. It will help you to get started fast. 
 These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
-<LiteYouTubeEmbed
-    id="rA4IFNyW54c"
-    title="Getting Started with WebdriverIO"
-/>
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
 :::tip Official YouTube Channel 🎥
 
