@@ -9,7 +9,8 @@
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
-    "clear": "docusaurus clear"
+    "clear": "docusaurus clear",
+    "translate": "docusaurus write-translations"
   },
   "dependencies": {
     "@docusaurus/core": "2.2.0",
