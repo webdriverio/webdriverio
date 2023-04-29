@@ -570,5 +570,11 @@
   },
   "Who is using WebdriverIO?": {
     "message": "वेबड्राइवरआईओ का उपयोग कौन कर रहा है?"
+  },
+  "all in one": {
+    "message": "all in one"
+  },
+  "used by your users": {
+    "message": "used by your users"
   }
 }
