@@ -3,8 +3,6 @@ id: repl
 title: Interfaz ERP
 ---
 
-importar pestañas desde '@theme/Tabs'; importar TabItem desde '@theme/TabItem';
-
 Con `v4.5.`, WebdriverIO introdujo una interfaz [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) que le ayuda a no sólo a aprender la API de framework. pero también depurar e inspeccionar sus pruebas. Puede utilizarse de múltiples maneras.
 
 Primero puede usarlo como comando CLI instalando `npm install -g @wdio/cli` y generar una sesión WebDriver desde la línea de comandos, p.
