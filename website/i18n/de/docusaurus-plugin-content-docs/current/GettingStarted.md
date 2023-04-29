@@ -9,6 +9,14 @@ Willkommen auf der WebdriverIO Dokumentation-Seite. Diese wird Ihnen Helfen Ihre
 Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
 :::
 
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+
+:::tip Official YouTube Channel 🎥
+
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+
+:::
+
 ## WebdriverIO Einrichten
 
 Um ein vollständiges WebdriverIO Setup zu einem existierenden oder neuen Projekt hinzuzufügen, verwenden Sie das [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio):
