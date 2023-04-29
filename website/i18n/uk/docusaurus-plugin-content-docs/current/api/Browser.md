@@ -118,7 +118,7 @@ describe('my test', () => {
 - `error`: об’єкт помилки, якщо запит провалився.
 - `request`: об'єкт запиту, де можна знайти адресу, метод, заголовки тощо.
 - `retryCount`: кількість спроб, якщо дорівнює `0`, запит був першою спробою. Він збільшиться, коли WebDriverIO повторить спробу під капотом.
-- `success`: логічне значення, що вказує на те чи було виконано запит. If it's `false`, `error` property will be provided as well.
+- `success`: логічне значення, що вказує на те чи було виконано запит. Якщо дорівнює `false`, властивість `error` також буде присутня.
 
 Приклад події:
 ```js
@@ -133,4 +133,4 @@ Object {
 
 ### Клієнтські Команди
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Ви можете додати власні команди до об'єкта браузера, щоб абстрагувати набори команд які часто використовуються. Ознайомтеся з нашим розділом про [Користувацькі Команди](/docs/customcommands#adding-custom-commands), щоб дізнатися більше.
