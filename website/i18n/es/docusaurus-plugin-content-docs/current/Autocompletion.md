@@ -3,9 +3,6 @@ id: autocompletion
 title: Autocompletado
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## IntelliJ
 
 La autofinalización funciona de forma automática en IDEA y Webstorm.
