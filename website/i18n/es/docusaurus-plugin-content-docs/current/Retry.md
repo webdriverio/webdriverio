@@ -3,9 +3,6 @@ id: retry
 title: Reintentar pruebas Flaky
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Puede volver a ejecutar ciertas pruebas con el testrunner WebdriverIO que resultan ser inestables debido a cosas como una red defectuosa o condiciones de carrera. (Sin embargo, no se recomienda simplemente aumentar la tasa de reejecución si las pruebas se vuelven inestables!)
 
 ## Volver a ejecutar suites en Mocha
