@@ -112,13 +112,13 @@ describe('my test', () => {
 Ось список подій. Майте на увазі, що це ще не повний список доступних подій. Не соромтеся робити свій внесок в оновлення документа, додаючи тут описи інших подій.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+Це подія для відстежування операцій на рівні WebDriver протоколу. Кожного разу, коли WebdriverIO надсилає запит на WebDriver сервер, цю подію буде викликано з параметрами:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: тривалість запиту в мілісекундах.
+- `error`: об’єкт помилки, якщо запит провалився.
+- `request`: об'єкт запиту, де можна знайти адресу, метод, заголовки тощо.
+- `retryCount`: кількість спроб, якщо дорівнює `0`, запит був першою спробою. Він збільшиться, коли WebDriverIO повторить спробу під капотом.
+- `success`: логічне значення, що вказує на те чи було виконано запит. If it's `false`, `error` property will be provided as well.
 
 Приклад події:
 ```js
