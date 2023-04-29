@@ -3,9 +3,6 @@ id: customcommands
 title: Benutzerdefinierte Befehle
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Wenn Sie die Instanz von `browser` mit Ihrem eigenen Befehlssatz erweitern möchten, ist die Browsermethode  `addCommand` für Sie da. Sie können Ihren Befehl asynchron schreiben, genau wie in Ihrem Test.
 
 ## Parameter
