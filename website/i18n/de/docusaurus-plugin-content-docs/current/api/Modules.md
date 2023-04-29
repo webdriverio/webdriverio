@@ -3,9 +3,6 @@ id: modules
 title: Module
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO veröffentlicht verschiedene Module für NPM und andere Anbieter, die Sie verwenden können, um Ihr eigenes Automatisierungs-Framework zu erstellen. Weitere Dokumentation zu WebdriverIO Einrichtungstypen [finden Sie hier](/docs/setuptypes).
 
 ## `webdriver` und `devtools`
