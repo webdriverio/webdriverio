@@ -73,8 +73,7 @@ export const COMPILER_OPTIONS = {
 export const SUPPORTED_PACKAGES = {
     runner: [
         { name: 'local - for e2e testing of web and mobile applications', value: '@wdio/local-runner$--$local' },
-        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' },
-        { name: 'mobile - for e2e testing on mobile devices', value: '@wdio/local-runner$--$local' }
+        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' }
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
@@ -194,12 +193,12 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
-function isBrowserRunner (answers: Questionnair) {
-    return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+function isLocalEnvironment (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[0].value
 }
 
-function isMobileEnvironment (answers: Questionnair) {
-    return answers.runner === SUPPORTED_PACKAGES.runner[2].value
+function isBrowserRunner (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[1].value
 }
 
 function selectDefaultService (serviceName: string) {
@@ -244,9 +243,9 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'setupMobileEnvironment',
-    message: 'Do you like to set-up Appium for local mobile testing?',
-    default: true,
-    when: /* istanbul ignore next */ (answers: Questionnair) => isMobileEnvironment(answers)
+    message: 'Would you like to setup Appium for mobile testing?',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => isLocalEnvironment(answers)
 }, {
     type: 'list',
     name: 'backend',
@@ -502,7 +501,7 @@ export const QUESTIONNAIRE = [{
         // unit and component testing in the browser
         !isBrowserRunner(answers) &&
         // mobile testing with Appium
-        !isMobileEnvironment(answers)
+        !answers.setupMobileEnvironment
     )
 }, {
     type: 'confirm',

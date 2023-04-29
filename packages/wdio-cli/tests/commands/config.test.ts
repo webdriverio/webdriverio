@@ -5,7 +5,8 @@ import inquirer from 'inquirer'
 
 import { handler, builder, parseAnswers, missingConfigurationPrompt, runConfigCommand } from '../../src/commands/config.js'
 import {
-    getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig, createWDIOScript
+    getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig,
+    createWDIOScript, runAppiumInstaller
 } from '../../src/utils.js'
 
 const consoleLog = console.log.bind(console)
@@ -35,7 +36,8 @@ vi.mock('../../src/utils.js', () => ({
     setupBabel: vi.fn(),
     npmInstall: vi.fn(),
     createWDIOConfig: vi.fn(),
-    createWDIOScript: vi.fn()
+    createWDIOScript: vi.fn(),
+    runAppiumInstaller: vi.fn()
 }))
 
 test('builder', () => {
@@ -90,6 +92,7 @@ test('runConfigCommand', async () => {
     expect(npmInstall).toBeCalledTimes(1)
     expect(createWDIOConfig).toBeCalledTimes(1)
     expect(createWDIOScript).toBeCalledTimes(1)
+    expect(runAppiumInstaller).toBeCalledTimes(1)
     expect(vi.mocked(console.log).mock.calls).toMatchSnapshot()
 })
 
