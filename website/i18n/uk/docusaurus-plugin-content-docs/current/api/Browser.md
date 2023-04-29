@@ -20,19 +20,19 @@ The session is initialized by the test runner. The same goes for ending the sess
 | `sessionId`             | `String`   | Ідентифікатор сеансу, призначений з віддаленого сервера.                                                                                               |
 | `options`               | `Object`   | WDIO [параметри](/docs/configuration) які використовувались для створення об’єкту браузера. Подивитися більше про [способи запуску](/docs/setuptypes). |
 | `commandList`           | `String[]` | Список команд, зареєстрованих в екземплярі браузера                                                                                                    |
-| `isMobile`              | `Boolean`  | Вказує на мобільний сеанс. See more under [Mobile Flags](#mobile-flags).                                                                               |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                            |
+| `isMobile`              | `Boolean`  | Вказує на мобільний сеанс. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                   |
+| `isIOS`                 | `Boolean`  | Вказує на сеанс iOS. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                         |
+| `isAndroid`             | `Boolean`  | Вказує на сеанс Android. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                     |
 
-## Methods
+## Методи
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+На основі серверної частини автоматизації, яка використовується для вашого сеансу, WebdriverIO визначає, які [команди протоколів](/docs/api/protocols) будуть приєднані до [об’єкта браузера](/docs/api/browser). Наприклад, якщо ви запускаєте автоматизований сеанс у Chrome, ви матимете доступ до спеціальних команд Chromium, таких як [`elementHover`](/docs/api/chromium#elementhover), але не до жодної з [команд Appium](/docs/api/appium).
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+Крім того, WebdriverIO надає набір зручних методів, які рекомендується використовувати для взаємодії з [браузером](/docs/api/browser) або [елементами](/docs/api/element) на сторінці.
 
-In addition to that the following commands are available:
+На додаток до цього доступні такі команди:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                        |
+| Назва                | Параметри                                                                                                              | Опис                                                                                                                                                                                                           |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
 | `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
