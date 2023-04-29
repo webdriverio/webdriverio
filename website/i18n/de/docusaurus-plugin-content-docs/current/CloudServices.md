@@ -111,7 +111,7 @@ Sie können auch beliebige optionale [unterstützte Fähigkeiten](https://testin
 
 ### Lokale Tests
 
-Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, TestingBot zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den TestingBot-Dienst integrieren.
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)verwenden.
 
 Testingbots Tunnel-Support-Seite enthält die Informationen, die erforderlich sind, um dies zum Laufen zu bringen.
 
@@ -125,7 +125,7 @@ Sie können auch beliebige optionale [Capabilities](https://help.crossbrowsertes
 
 ### Lokale Tests
 
-Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Local Testing](https://www.browserstack.com/local-testing#command-line)verwenden.
+Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, CrossBrowserTesting zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den CrossBrowserTesting-Dienst integrieren.
 
 Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, LambdaTest zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den LambdaTest-Dienst integrieren.
 
