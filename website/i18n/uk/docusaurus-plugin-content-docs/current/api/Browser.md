@@ -1,50 +1,50 @@
 ---
 id: browser
-title: The Browser Object
+title: Об'єкт Browser
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__Успадковується від:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+Об’єкт браузера – це екземпляр сеансу, який ви використовуєте для керування браузером або мобільним пристроєм. Якщо ви використовуєте засіб виконання тестів WebdriverIO, ви можете отримати доступ до екземпляра Browser через глобальні змінні `browser` або `driver` або імпортувати його з пакунка [`@wdio/globals`](/docs/api/globals). Якщо ви використовуєте WebdriverIO в автономному режимі, екземпляр Browser повертається методом [`remote`](/docs/api/modules#remoteoptions-modifier).
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+Сеанс ініціалізується виконавцем тесту. Те саме стосується завершення сеансу. Це також виконується процесом виконання тестів.
 
-## Properties
+## Властивості
 
-A browser object has the following properties:
+Об’єкт браузера має такі властивості:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                               |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                           |
+| Назва                   | Тип        | Опис                                                                                                                                                   |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `capabilities`          | `Object`   | Призначені параметри з віддаленого сервера.<br /><b>Приклад:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                              |
+| `requestedCapabilities` | `Object`   | Параметри, що були надіслані на віддалений сервер.<br /><b>Приклад:</b><pre>{ browserName: 'chrome' }</pre>                                       |
+| `sessionId`             | `String`   | Ідентифікатор сеансу, призначений з віддаленого сервера.                                                                                               |
+| `options`               | `Object`   | WDIO [параметри](/docs/configuration) які використовувались для створення об’єкту браузера. Подивитися більше про [способи запуску](/docs/setuptypes). |
+| `commandList`           | `String[]` | Список команд, зареєстрованих в екземплярі браузера                                                                                                    |
+| `isMobile`              | `Boolean`  | Вказує на мобільний сеанс. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                   |
+| `isIOS`                 | `Boolean`  | Вказує на сеанс iOS. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                         |
+| `isAndroid`             | `Boolean`  | Вказує на сеанс Android. Подивіться більше про [мобільні прапорці](#mobile-flags).                                                                     |
 
-## Methods
+## Методи
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+На основі серверної частини автоматизації, яка використовується для вашого сеансу, WebdriverIO визначає, які [команди протоколів](/docs/api/protocols) будуть приєднані до [об’єкта браузера](/docs/api/browser). Наприклад, якщо ви запускаєте автоматизований сеанс у Chrome, ви матимете доступ до спеціальних команд Chromium, таких як [`elementHover`](/docs/api/chromium#elementhover), але не до жодної з [команд Appium](/docs/api/appium).
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+Крім того, WebdriverIO надає набір зручних методів, які рекомендується використовувати для взаємодії з [браузером](/docs/api/browser) або [елементами](/docs/api/element) на сторінці.
 
-In addition to that the following commands are available:
+На додаток до цього доступні такі команди:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                        |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                    |
+| Назва                | Параметри                                                                                                              | Опис                                                                                                                                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Дозволяє додати спеціальні команди, які можна викликати з об’єкта браузера для цілей композиції. Докладніше читайте в розділі [Клієнтські Команди](/docs/customcommands).                                                                                         |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Дозволяє перезаписувати будь-яку команду браузера клієнтською функціональністю. Використовуйте обережно, оскільки це може заплутати користувачів фреймворку. Докладніше читайте в розділі [Клієнтські Команди](/docs/customcommands#overwriting-native-commands). |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Дозволяє визначити спеціальну стратегію селектора. Докладніше читайте в розділі [Селектори](/docs/selectors#custom-selector-strategies).                                                                                                                          |
 
-## Remarks
+## Примітки
 
-### Mobile Flags
+### Мобільні Прапорці
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+Якщо вам потрібно налаштувати свій тест залежно від того, чи працює ваш сеанс на мобільному пристрої, ви можете використати мобільні прапорці, щоб перевірити це.
 
-For example, given this config:
+Наприклад, із цією конфігурацією:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+Ви зможете отримати доступ до таких прапорців у своєму тесті:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
+Це може бути корисним, якщо, наприклад, ви хочете визначити селектори у своїх [об’єктах сторінки](../pageobjects) на основі типу пристрою, як це:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+Ви також можете використовувати ці прапорці для запуску лише певних тестів для певних типів пристроїв:
 
 ```js
 // mytest.e2e.js
@@ -106,21 +106,21 @@ describe('my test', () => {
 })
 ```
 
-### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+### Події
+Об’єкт браузера є також і об'єктом EventEmitter, і деякі подій викликатимуться залежно від використання.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+Ось список подій. Майте на увазі, що це ще не повний список доступних подій. Не соромтеся робити свій внесок в оновлення документа, додаючи тут описи інших подій.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+Це подія для відстежування операцій на рівні WebDriver протоколу. Кожного разу, коли WebdriverIO надсилає запит на WebDriver сервер, цю подію буде викликано з параметрами:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: тривалість запиту в мілісекундах.
+- `error`: об’єкт помилки, якщо запит провалився.
+- `request`: об'єкт запиту, де можна знайти адресу, метод, заголовки тощо.
+- `retryCount`: кількість спроб, якщо дорівнює `0`, запит був першою спробою. Він збільшиться, коли WebDriverIO повторить спробу під капотом.
+- `success`: логічне значення, що вказує на те чи було виконано запит. Якщо дорівнює `false`, властивість `error` також буде присутня.
 
-An example event:
+Приклад події:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### Клієнтські Команди
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Ви можете додати власні команди до об'єкта браузера, щоб абстрагувати набори команд які часто використовуються. Ознайомтеся з нашим розділом про [Користувацькі Команди](/docs/customcommands#adding-custom-commands), щоб дізнатися більше.
