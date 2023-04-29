@@ -3,9 +3,6 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 С помощью WebdriverIO вы можете выбирать из нескольких технологий автоматизации при запуске своих E2E тестов локально или в облаке. По умолчанию WebdriverIO всегда проверяет наличие драйвера браузера, совместимого с протоколом WebDriver, на `localhost:4444`. Если не удается найти такой драйвер, то используется Chrome DevTools с использованием Puppeteer.
 
 Почти все современные браузеры, поддерживающие [WebDriver](https://w3c.github.io/webdriver/), также поддерживают [DevTools](https://chromedevtools.github.io/devtools-protocol/) - еще один нативный интерфейс, который может использоваться для автоматизации.
@@ -159,7 +156,7 @@ await browser.deleteSession()
 
 ### `wdio:devtoolsOptions` Capability
 
-Если вы запускаете тесты WebdriverIO через пакет DevTools, вы можете использовать [кастомные параметры Puppeteer-а](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Эти параметры будут напрямую переданы в методы [` launch `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) или [` connect `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) Puppeteer. Другие пользовательские параметры devtools:
+Если вы запускаете тесты WebdriverIO через пакет DevTools, вы можете использовать [кастомные параметры Puppeteer-а](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Эти параметры будут напрямую переданы в методы [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) или [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) Puppeteer. Другие пользовательские параметры devtools:
 
 #### customPort
 Запустить Chrome на другом порту.
