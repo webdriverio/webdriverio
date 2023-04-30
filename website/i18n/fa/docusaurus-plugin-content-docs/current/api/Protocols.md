@@ -3,28 +3,28 @@ id: protocols
 title: Protocol Commands
 ---
 
-WebdriverIO is an automation framework that relies on various of automation protocols to control a remote agent, e.g. for a browser, mobile device or television. Based on the remote device different protocols come into play. These commands are assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object depending on the session information by the remote server (e.g. browser driver).
+WebdriverIO یک فریمورک اتوماسیون است که برای کنترل یک remote agent، به عنوان مثال برای یک مرورگر، دستگاه تلفن همراه یا تلویزیون، بر پروتکل‌های مختلف اتوماسیون متکی است. بر اساس دستگاه ریموت، پروتکل های مختلفی وارد بازی می شوند. این دستورها بسته به اطلاعات session توسط سرور remote (مثلاً درایور مرورگر) به شیء [Browser](/docs/api/browser) یا [Element](/docs/api/element) اختصاص داده می شوند.
 
-Internally WebdriverIO uses protocol commands for almost all interactions with the remote agent. However additional commands assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object simplify the usage of WebdriverIO, e.g. getting the text of an element using protocol commands would look like this:
+در داخل WebdriverIO تقریباً برای تمام تعاملات با عامل راه دور از دستورات پروتکل استفاده می شود. با این حال دستورات اضافی اختصاص داده شده به [Browser](/docs/api/browser) یا [Element](/docs/api/element) Object استفاده از WebdriverIO را ساده می کند، به عنوان مثال دریافت متن یک element با استفاده از دستورات پروتکل به شکل زیر است:
 
 ```js
 const searchInput = await browser.findElement('css selector', '#lst-ib')
 await client.getElementText(searchInput['element-6066-11e4-a52e-4f735466cecf'])
 ```
 
-Using the convenient commands of the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object this can be reduced to:
+با استفاده از دستورات راحت [Browser](/docs/api/browser) یا [Element](/docs/api/element) Object می توان دستورات را به مورد زیر کاهش داد:
 
 ```js
 $('#lst-ib').getText()
 ```
 
-The following section explain each individual protocol.
+در ادامه هر پروتکل جداگانه توضیح داده می‌شود.
 
-## WebDriver Protocol
+## پروتکل WebDriver
 
-The [WebDriver](https://w3c.github.io/webdriver/#elements) protocol is a web standard for automating browser. As oppose to some other E2E tools it guarantees that automation can be done on actual browser that are used by your users, e.g. Firefox, Safari and Chrome and Chromium based browser like Edge, and not only on browser engines, e.g. WebKit, which are very different.
+پروتکل [WebDriver](https://w3c.github.io/webdriver/#elements) یک استاندارد وب برای خودکارسازی مرورگر است. این استاندارد، برخلاف برخی دیگر از ابزارهای E2E، تضمین می کند که اتوماسیون را می توان در مرورگر واقعی که توسط کاربران شما استفاده می شود، به عنوان مثال فایرفاکس، سافاری و کروم و مرورگر مبتنی بر Chromium مانند Edge، و نه تنها در موتورهای مرورگر، بلکه به عنوان مثال WebKit، که بسیار متفاوت هستند، انجام داد.
 
-The advantage of using the WebDriver protocol as oppose to debugging protocols like [Chrome DevTools](https://w3c.github.io/webdriver/#elements) is that you have a specific set of commands that allow to interact with the browser the same way across all browser which reduces the likelihood for flakiness. Furthermore offers this protocol abilities for massive scalibility by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
+مزیت استفاده از پروتکل WebDriver در مقابل پروتکل‌های اشکال زدایی مانند [Chrome DevTools](https://w3c.github.io/webdriver/#elements) این است که شما مجموعه‌ای از دستورات دارید که اجازه می‌دهد با مرورگر به طور یکسان در تمام مرورگرها تعامل داشته باشید که احتمال ناپایداری تست ها را کاهش می‌دهد. Furthermore offers this protocol abilities for massive scalibility by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
 
 ## WebDriver Bidi Protocol
 
