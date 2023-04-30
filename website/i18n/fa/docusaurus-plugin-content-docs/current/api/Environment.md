@@ -15,4 +15,4 @@ WebdriverIO متغیرهای محیطی زیر را در هر worker تنظیم 
 
 ## `WDIO_WORKER_ID`
 
-یک شناسه منحصر به فرد که به شناسایی worker process کمک می کند. It has format of `{number}-{number}` where the first number identifies the capability and the second the spec file that capability is running, e.g. `0-5` indicates a worker the first running the 6th spec file for the first capability.
+یک شناسه منحصر به فرد که به شناسایی worker process کمک می کند. دارای فرمت `{number}-{number}` است که در آن عدد اول capabilities را مشخص می کند و شماره دوم، فایل تستی است که در حال اجرا است، به عنوان مثال `0-5` یک worker ای را نشان می‌دهد که ششمین فایل تست را در اولین capability اجرا می کند.
