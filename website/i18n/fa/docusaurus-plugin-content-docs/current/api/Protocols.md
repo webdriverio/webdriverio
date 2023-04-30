@@ -28,41 +28,41 @@ $('#lst-ib').getText()
 
 ## پروتکل WebDriver Bidi
 
-پروتکل [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) نسل دوم این پروتکل است و در حال حاضر توسط اکثر سازندگان مرورگر بر روی آن کار می شود. Compared to its pre-predecessor the protocol supports a bi-directional communication (hence "Bidi") between the framework and the remote device. It furthermore introduces additional primitives for better browser introspection to better automate modern web applications in browser.
+پروتکل [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) نسل دوم این پروتکل است و در حال حاضر توسط اکثر سازندگان مرورگر بر روی آن کار می شود. این پروتکل در مقایسه با نسخه قبلی خود از یک ارتباط دو جهته (به همین دلیل "Bidi") بین فریمورک و دستگاه remote پشتیبانی می کند. علاوه بر این، این پروتکل موارد پایه ای دیگری را برای درون نگری بهتر مرورگر و برای خودکارسازی بهتر برنامه های تحت وب در مرورگر معرفی می کند.
 
-Given this protocol is currently work in progress more features will be added over time and supported by browser. If you use WebdriverIOs convenient commands nothing will change for you. WebdriverIO will make use of these new protocol capabilities as soon as they are available and supported in the browser.
+با توجه به اینکه این پروتکل در حال حاضر در حال ساخت است، ویژگی های بیشتری به مرور زمان اضافه می شود و توسط مرورگر پشتیبانی خواهد شد. اگر از دستورات راحت WebdriverIO استفاده کنید، هیچ چیز برای شما تغییر نخواهد کرد. WebdriverIO از قابلیت‌های پروتکل جدید به محض اینکه در مرورگر موجود و پشتیبانی شوند، استفاده خواهد کرد.
 
 ## Appium
 
-The [Appium](https://appium.io/) project provides capabilities to automate mobile, desktop and all other kinds of IoT devices. While WebDriver focuses on browser and the web, the vision of Appium is to use the same approach but for any arbitrary device. In addition to the commands that WebDriver defines, it has special commands that often are specific to the remote device that is being automated. For mobile testing scenarios this is ideal when you want to write and run the same tests for both Android and iOS applications.
+پروژه [Appium](https://appium.io/) قابلیت هایی را برای خودکارسازی موبایل، دسکتاپ و سایر انواع دستگاه های IoT فراهم می کند. در حالی که WebDriver بر مرورگر و وب تمرکز می کند، چشم انداز Appium استفاده از همان رویکرد اما برای هر دستگاه دلخواه است. این پروتکل، علاوه بر دستوراتی که WebDriver تعریف می کند، دستورات خاصی دارد که اغلب مختص دستگاه remote است که در حال خودکار شدن است. این پروتکل برای سناریوهای تست تلفن همراه، زمانی که می خواهید تست های مشابهی را برای برنامه های اندروید و iOS بنویسید و اجرا کنید، ایده آل است.
 
-According to Appium [documentation](https://appium.io/docs/en/about-appium/intro/?lang=en) it was designed to meet mobile automation needs according to a philosophy outlined by the following four tenets:
+بر اساس اسناد Appium [](https://appium.io/docs/en/about-appium/intro/?lang=en) ، برای برآوردن نیازهای اتوماسیون موبایل مطابق با فلسفه ای طراحی شده است که توسط چهار اصل زیر مشخص شده است:
 
-- You shouldn't have to recompile your app or modify it in any way in order to automate it.
-- You shouldn't be locked into a specific language or framework to write and run your tests.
-- A mobile automation framework shouldn't reinvent the wheel when it comes to automation APIs.
-- A mobile automation framework should be open source, in spirit and practice as well as in name!
+- برای خودکارسازی آن، مجبور نیستید برنامه خود را دوباره کامپایل کنید یا به هیچ وجه آن را تغییر دهید.
+- برای نوشتن و اجرای تست‌های خود نباید به زبان یا فریمورک خاصی مجبور شوید.
+- یک فریمورک اتوماسیون تلفن همراه نباید چرخ را دوباره اختراع کند وقتی صحبت از APIهای اتوماسیون می شود.
+- یک فریمورک اتوماسیون موبایل باید از نظر روحی و عملی و همچنین از نظر شفاهی منبع باز باشد!
 
 ## Chromium
 
-The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary).
+پروتکل Chromium مجموعه‌ای فوق‌العاده از دستورات را در بالای پروتکل WebDriver ارائه می‌کند که فقط هنگام اجرای session خودکار از طریق [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary)پشتیبانی می‌شود.
 
 ## Firefox
 
-The Firefox protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Geckodriver](https://github.com/mozilla/geckodriver).
+پروتکل Chromium مجموعه‌ای فوق‌العاده از دستورات را در بالای پروتکل WebDriver ارائه می‌کند که فقط هنگام اجرای session خودکار از طریق [Chromedriver](https://github.com/mozilla/geckodriver)پشتیبانی می‌شود.
 
 ## Sauce Labs
 
-The [Sauce Labs](https://saucelabs.com/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Sauce Labs cloud.
+پروتکل [Sauce Labs](https://saucelabs.com/) مجموعه‌ای فوق‌العاده از دستورات را در بالای پروتکل WebDriver ارائه می‌دهد که فقط در هنگام اجرای جلسه خودکار با استفاده از ابر Sauce Labs پشتیبانی می‌شود.
 
 ## Selenium Standalone
 
-The [Selenium Standalone](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Selenium Grid.
+پروتکل [Selenium Standalone](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) مجموعه‌ای فوق‌العاده از دستورات را در بالای پروتکل WebDriver ارائه می‌دهد که فقط در هنگام اجرای جلسه خودکار با استفاده از ابر Selenium Grid پشتیبانی می‌شود.
 
 ## JSON Wire Protocol
 
-The [JSON Wire Protocol](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) is the pre-predecessor of the WebDriver protocol and __deprecated__ today. While some commands might still be supported in certain environments, it is not recommended to use any of its commands.
+[JSON Wire Protocol](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) نسخه پیشین پروتکل WebDriver است و __امروز__ منسوخ شده است. در حالی که ممکن است برخی از دستورات هنوز در محیط های خاصی پشتیبانی شوند، استفاده از هیچ یک از دستورات آن توصیه نمی شود.
 
 ## Mobile JSON Wire Protocol
 
-The [Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) is a super set of mobile commands on top of the JSON Wire Protocol. Given this one is deprecated the Mobile JSON Wire Protocol also got __deprecated__. Appium might still support some of its commands but it is not recommended to use them.
+[Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) مجموعه ای فوق العاده از دستورات تلفن همراه در بالای پروتکل JSON Wire است. با توجه به این که این پروتکل منسوخ شده است، پروتکل JSON Wire Mobile نیز __منسوخ شده است__. Appium ممکن است هنوز از برخی از دستورات خود پشتیبانی کند، اما استفاده از آنها توصیه نمی شود.
