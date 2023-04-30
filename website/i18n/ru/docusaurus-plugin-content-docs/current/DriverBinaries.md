@@ -5,6 +5,12 @@ title: Driver Binaries
 
 Чтобы запустить автоматизацию на основе протокола WebDriver, необходимо иметь настроенные драйверы браузера, которые переведут команды автоматизации и смогут выполнять их в браузере. Ниже приведено описание, как можно настроить каждый драйвер по отдельности. Вы можете найти список со всеми драйверами [`здесь`](https://github.com/christian-bromann/awesome-selenium#driver) .
 
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
+
 ## Chromedriver
 
 To automate Chrome you can download Chromedriver directly on the [project website](http://chromedriver.chromium.org/downloads) or through the NPM package:
