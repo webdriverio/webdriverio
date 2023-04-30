@@ -1,15 +1,15 @@
 ---
 id: automationProtocols
-title: Automation Protocols
+title: Протоколи автоматизації
 ---
 
-With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
+З WebdriverIO ви можете обирати між кількома технологіями автоматизації для виконання E2E тестів локально або у хмарі. За замовчуванням WebdriverIO завжди перевірятиме наявність WebDriver сервера за адресою `localhost:4444`. Якщо такий сервер не буде знайдено, то буде запущена автоматизація за допомогою Chrome DevTools протоколу використовуючи Puppeteer під капотом.
 
-Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
+Майже всі сучасні браузери, які підтримують [WebDriver](https://w3c.github.io/webdriver/), також підтримують й інший інтерфейс під назвою [DevTools](https://chromedevtools.github.io/devtools-protocol/), який можна використовувати для автоматизації браузера.
 
-Both have advantages and disadvantages, depending on your use case and environment.
+Обидва мають переваги та недоліки, залежно від вашого випадку використання та середовища.
 
-## WebDriver Protocol
+## WebDriver протокол
 
 > [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
 
