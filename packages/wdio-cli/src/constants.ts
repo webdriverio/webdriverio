@@ -193,8 +193,24 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
+function isLocalEnvironment (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[0].value
+}
+
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
+function selectDefaultService (serviceName: string) {
+    return [SUPPORTED_PACKAGES.service.find(
+        /* istanbul ignore next */
+        ({ name }) => name === serviceName)?.value]
+}
+
+function prioServiceOrderFor (serviceName: string) {
+    const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === serviceName)
+    return SUPPORTED_PACKAGES.service.slice(index)
+        .concat(SUPPORTED_PACKAGES.service.slice(0, index))
 }
 
 export const QUESTIONNAIRE = [{
@@ -224,6 +240,12 @@ export const QUESTIONNAIRE = [{
          */
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
+}, {
+    type: 'confirm',
+    name: 'setupMobileEnvironment',
+    message: 'Would you like to setup Appium for mobile testing?',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => isLocalEnvironment(answers)
 }, {
     type: 'list',
     name: 'backend',
@@ -431,30 +453,24 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a service to your test setup?',
     choices: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === 'browserstack')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return prioServiceOrderFor('appium')
         }
         return SUPPORTED_PACKAGES.service
     },
     // @ts-ignore
     default: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'browserstack')?.value]
+            return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'sauce')?.value]
+            return selectDefaultService('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return selectDefaultService('appium')
         }
-        return [SUPPORTED_PACKAGES.service.find(
-        /* istanbul ignore next */
-            ({ name }) => name === 'chromedriver')?.value]
+        return selectDefaultService('chromedriver')
     },
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
@@ -480,8 +496,13 @@ export const QUESTIONNAIRE = [{
     name: 'baseUrl',
     message: 'What is the base url?',
     default: 'http://localhost',
-    // no base url for browser tests
-    when: /* istanbul ignore next */ (answers: Questionnair) => !isBrowserRunner(answers)
+    // no base url for:
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        // unit and component testing in the browser
+        !isBrowserRunner(answers) &&
+        // mobile testing with Appium
+        !answers.setupMobileEnvironment
+    )
 }, {
     type: 'confirm',
     name: 'npmInstall',

@@ -3,6 +3,7 @@ import * as cp from 'node:child_process'
 import fs from 'node:fs/promises'
 
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
+import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
@@ -37,7 +38,8 @@ import {
     setupTypeScript,
     setupBabel,
     createWDIOConfig,
-    createWDIOScript
+    createWDIOScript,
+    runAppiumInstaller
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { COMPILER_OPTION_ANSWERS, COMPILER_OPTIONS } from '../src/constants.js'
@@ -81,6 +83,10 @@ vi.mock('@wdio/config', () => ({
         initialize() { }
         getCapabilities() { }
     }
+}))
+
+vi.mock('execa', () => ({
+    $: vi.fn().mockReturnValue(async (sh: string) => sh)
 }))
 
 beforeEach(() => {
@@ -944,6 +950,29 @@ describe('createWDIOScript', () => {
             .toBe(false)
         expect(cp.spawn).toBeCalledTimes(1)
     })
+})
+
+test('runAppiumInstaller', async () => {
+    expect(await runAppiumInstaller({ setupMobileEnvironment: false } as any))
+        .toBe(undefined)
+    expect(console.log).toBeCalledTimes(0)
+    expect($).toBeCalledTimes(0)
+
+    vi.mocked(inquirer.prompt).mockResolvedValue({
+        continueWithAppiumSetup: false
+    })
+
+    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+        .toBe(undefined)
+    expect(console.log).toBeCalledTimes(1)
+    expect($).toBeCalledTimes(0)
+
+    vi.mocked(inquirer.prompt).mockResolvedValue({
+        continueWithAppiumSetup: true
+    })
+    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+        .toEqual(['npx appium-installer'])
+    expect($).toBeCalledTimes(1)
 })
 
 afterEach(() => {
