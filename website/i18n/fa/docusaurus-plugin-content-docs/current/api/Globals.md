@@ -7,7 +7,7 @@ title: متغیر های جهانی
 
 اگر به شکل دیگری پیکربندی نشده باشد، اشیاء جهانی به صورت زیر تنظیم می شوند:
 
-- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/api/browser)
+- `browser`: WebdriverIO [شی browser](https://webdriver.io/docs/api/browser)
 - `driver`: لقبی برای `browser` (در هنگام اجرای تست های تلفن همراه استفاده می شود)
 - `multiremotebrowser`: نام مستعار برای `browser` یا `driver` اما فقط برای [جلسه چند browser](/docs/multiremote) تنظیم شده است
 - `$`: دستور برای دریافت یک element (در [سند API](/docs/api/browser/$) بیشتر ببینید)
