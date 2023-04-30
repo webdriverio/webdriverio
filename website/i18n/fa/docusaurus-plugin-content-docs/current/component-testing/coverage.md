@@ -3,11 +3,11 @@ id: coverage
 title: Coverage
 ---
 
-WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and and capture code coverage for you.
+اجراکننده مرورگر WebdriverIO از گزارش پوشش کد با استفاده از [`istanbul`](https://istanbul.js.org/)پشتیبانی می کند. تست کننده به طور خودکار کد شما را ابزار می کند و پوشش کد را برای شما ضبط می کند.
 
-## Setup
+## تنظیم
 
-In order to enable code coverage reporting, enable it through the WebdriverIO browser runner configuration, e.g.:
+برای فعال کردن گزارش پوشش کد، آن را از طریق پیکربندی اجراکننده مرورگر WebdriverIO فعال کنید، به عنوان مثال:
 
 ```js title=wdio.conf.js
 export const config = {
@@ -22,9 +22,9 @@ export const config = {
 }
 ```
 
-Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.
+تمام [گزینه های پوشش](/docs/runner#coverage-options)را بررسی کنید تا نحوه صحیح پیکربندی آن را بیاموزید.
 
-## Ignoring Code
+## نادیده گرفتن کد
 
 There may be some sections of your codebase that you wish to purposefully exclude from coverage tracking, to do so you can use the following parsing hints:
 
