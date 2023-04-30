@@ -24,11 +24,11 @@ $('#lst-ib').getText()
 
 پروتکل [WebDriver](https://w3c.github.io/webdriver/#elements) یک استاندارد وب برای خودکارسازی مرورگر است. این استاندارد، برخلاف برخی دیگر از ابزارهای E2E، تضمین می کند که اتوماسیون را می توان در مرورگر واقعی که توسط کاربران شما استفاده می شود، به عنوان مثال فایرفاکس، سافاری و کروم و مرورگر مبتنی بر Chromium مانند Edge، و نه تنها در موتورهای مرورگر، بلکه به عنوان مثال WebKit، که بسیار متفاوت هستند، انجام داد.
 
-مزیت استفاده از پروتکل WebDriver در مقابل پروتکل‌های اشکال زدایی مانند [Chrome DevTools](https://w3c.github.io/webdriver/#elements) این است که شما مجموعه‌ای از دستورات دارید که اجازه می‌دهد با مرورگر به طور یکسان در تمام مرورگرها تعامل داشته باشید که احتمال ناپایداری تست ها را کاهش می‌دهد. Furthermore offers this protocol abilities for massive scalibility by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
+مزیت استفاده از پروتکل WebDriver در مقابل پروتکل‌های اشکال زدایی مانند [Chrome DevTools](https://w3c.github.io/webdriver/#elements) این است که شما مجموعه‌ای از دستورات دارید که اجازه می‌دهد با مرورگر به طور یکسان در تمام مرورگرها تعامل داشته باشید که احتمال ناپایداری تست ها را کاهش می‌دهد. علاوه بر این، توانایی های این پروتکل را برای مقیاس پذیری گسترده با استفاده از ارائه دهندگان خدمات ابری مانند [Sauce Labs](https://saucelabs.com/)، [BrowserStack](https://www.browserstack.com/) و [غیره](https://github.com/christian-bromann/awesome-selenium#cloud-services) ارائه می دهد.
 
-## WebDriver Bidi Protocol
+## پروتکل WebDriver Bidi
 
-The [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol is the second generation of the protocol and is currently being worked on by most browser vendors. Compared to its pre-predecessor the protocol supports a bi-directional communication (hence "Bidi") between the framework and the remote device. It furthermore introduces additional primitives for better browser introspection to better automate modern web applications in browser.
+پروتکل [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) نسل دوم این پروتکل است و در حال حاضر توسط اکثر سازندگان مرورگر بر روی آن کار می شود. Compared to its pre-predecessor the protocol supports a bi-directional communication (hence "Bidi") between the framework and the remote device. It furthermore introduces additional primitives for better browser introspection to better automate modern web applications in browser.
 
 Given this protocol is currently work in progress more features will be added over time and supported by browser. If you use WebdriverIOs convenient commands nothing will change for you. WebdriverIO will make use of these new protocol capabilities as soon as they are available and supported in the browser.
 
