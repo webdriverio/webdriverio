@@ -1,15 +1,15 @@
 ---
 id: tips-and-tricks
-title: Tips and Tricks
+title: Поради та хитрощі
 ---
 
-This page contains a set useful tips and tricks that can be helpful when testing a web extension.
+Ця сторінка містить набір корисних порад та хитрощів, які можуть бути корисними під час тестування веброзширень.
 
-## Test Popup Modal in Chrome
+## Тестування модального виринаючого вікна в Chrome
 
-If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
+Якщо ви призначите `default_popup` дію у `browser_action` секції [маніфесту розширення](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action), ви зможете перевірити цю HTML-сторінку безпосередньо, оскільки натискання іконки розширення у верхній панелі браузера не працюватиме. Замість цього вам буде потрібно безпосередньо відкрити html файл виринаючого вікна розширення.
 
-In Chrome this works by retrieving the extension ID and opening the popup page through `browser.url('...')`. The behavior on that page will be the same as within the popup. To do so we recommend to write the following custom command:
+У Chrome це працює шляхом отримання ідентифікатора розширення та відкриття сторінки виринаючого вікна за допомогою `browser.url('...')`. Поведінка цієї сторінки буде такою ж, як і виринаючого вікна. Для цього ми рекомендуємо додати наступну користувацьку команду:
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
@@ -41,7 +41,7 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+У вашому `wdio.conf.js` ви можете імпортувати цей файл і зареєструвати спеціальну команду у хуку `before`, наприклад:
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'
@@ -57,7 +57,7 @@ export const config: Options.Testrunner = {
 }
 ```
 
-Now, in your test, you can access the popup page via:
+Тепер у вашому тесті ви можете отримати доступ до сторінки виринаючого вікна розширення за допомогою:
 
 ```ts
 await browser.openExtensionPopup('My Web Extension')
