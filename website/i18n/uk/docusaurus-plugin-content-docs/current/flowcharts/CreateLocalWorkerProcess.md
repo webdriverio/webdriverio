@@ -1,6 +1,6 @@
 ---
 id: createlocalworkerprocess
-title: Create worker process
+title: Створити робочий процес
 ---
 
-This flowchart explains how a worker process is created.
+Ця блок-схема пояснює, як створюється робочий процес.
