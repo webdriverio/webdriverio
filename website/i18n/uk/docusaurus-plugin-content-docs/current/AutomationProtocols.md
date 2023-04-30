@@ -11,13 +11,13 @@ title: Протоколи автоматизації
 
 ## WebDriver протокол
 
-> [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
+> [WebDriver](https://w3c.github.io/webdriver/) — це інтерфейс дистанційного керування, який дозволяє переглядати та контролювати віддалений браузер. Протокол декларує не пов'язаний із мовою та платформою інтерфейс як спосіб для позапроцесних програм дистанційно керувати поведінкою браузерів.
 
-The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
+Протокол WebDriver розроблено для автоматизації браузера, щоб симулювати поведінку користувача, тобто все, що може робити користувач, ви можете автоматизувати у браузері. Надається набір стандартних команд, які абстрагують типові взаємодії з програмою (наприклад, навігація, клацання, або зчитування стану елемента). Оскільки це вебстандарт, він добре підтримується всіма основними розробниками браузерів, а також використовується як базовий протокол для мобільної автоматизації за допомогою [Appium](http://appium.io).
 
-To use this automation protocol, you need a proxy server that translates all commands and executes them in the target environment (i.e. the browser or the mobile app).
+Щоб використовувати цей протокол автоматизації, вам потрібен проксі-сервер, який перекладає всі команди та виконує їх у цільовому середовищі (тобто у браузері чи мобільному додатку).
 
-For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
+Для автоматизації браузера проксі-сервер зазвичай є драйвером браузера. Доступні драйвери для всіх браузерів:
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
 - Firefox – [Geckodriver](https://github.com/mozilla/geckodriver/releases)
@@ -25,26 +25,26 @@ For browser automation, the proxy server is usually the browser driver. There ar
 - Internet Explorer – [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
 - Safari – [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
-For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
+Для будь-якого типу мобільної автоматизації вам потрібно буде встановити та налаштувати [Appium](http://appium.io). Це дозволить вам автоматизувати мобільні (iOS/Android) або навіть настільні (macOS/Windows) програми, використовуючи ту саму конфігурацію із WebdriverIO.
 
-There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+Існує також багато сервісів, які надають послуги із запуску автоматизований тест у хмарі. Замість того, щоб налаштовувати всі ці драйвери локально, ви можете просто комунікувати із цим сервісами (наприклад [Sauce Labs](https://saucelabs.com)) у хмарі та перевіряти бачити результати на їхній платформі. Комунікація між тестом і середовищем автоматизації виглядатиме так:
 
-![WebDriver Setup](/img/webdriver.png)
+![Налаштування WebDriver](/img/webdriver.png)
 
-### Advantages
+### Переваги
 
-- Official W3C web standard, supported by all major browsers
-- Simplified protocol that covers common user interactions
-- Support for mobile automation (and even native desktop apps)
-- Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
+- Офіційний веб-стандарт W3C, який підтримується всіма основними браузерами
+- Спрощений протокол, який охоплює розповсюджені користувацькі дії
+- Підтримка мобільної автоматизації (і навіть настільних програм)
+- Можна використовувати як локально, так і в хмарі за допомогою таких служб, як [Sauce Labs](https://saucelabs.com)
 
-### Disadvantages
+### Недоліки
 
-- Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
-- Limited set of automation capabilities (e.g., no support to throttle CPU or network)
-- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
+- Не призначений для поглибленого аналізу браузера (наприклад, відстеження або перехоплення мережевих подій)
+- Обмежений набір можливостей автоматизації (наприклад, відсутність підтримки сповільнення ЦП або мережі)
+- Потребує додаткових зусиль для налаштування драйвера браузера із selenium-standalone/chromedriver/і т.п.
 
-## DevTools Protocol
+## DevTools протокол
 
 The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
 
@@ -52,7 +52,7 @@ While every browser used to have its own internal DevTools interface that was no
 
 The communication happens without any proxy, directly to the browser using WebSockets:
 
-![DevTools Setup](/img/devtools.png)
+![Налаштування DevTools](/img/devtools.png)
 
 WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
 
@@ -191,12 +191,12 @@ import { remote } from 'webdriverio'
 })()
 ```
 
-### Advantages
+### Переваги
 
 - Access to more automation capabilities (e.g. network interception, tracing etc.)
 - No need to manage browser drivers
 
-### Disadvantages
+### Недоліки
 
 - Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
 - Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.
