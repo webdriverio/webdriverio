@@ -5,6 +5,12 @@ title: Browser Treiber
 
 Um die Automatisierung basierend auf dem WebDriver-Protokoll auszuführen, müssen Sie Browsertreiber einrichten, die die Automatisierungsbefehle übersetzen und im Browser ausführen können. Im Folgenden wird beschrieben, wie Sie jeden Treiber einzeln einrichten können. Eine Liste mit allen Treibern finden Sie in der [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
+
 ## Chromedriver
 
 Um Chrome zu automatisieren, können Sie Chromedriver direkt auf der [-Projektwebsite](http://chromedriver.chromium.org/downloads) oder über das NPM-Paket herunterladen:
