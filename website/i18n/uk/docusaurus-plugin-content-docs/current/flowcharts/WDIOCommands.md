@@ -1,6 +1,6 @@
 ---
 id: wdiocommands
-title: WDIO Commands
+title: Команди WDIO
 ---
 
-This flowchart provides a high level overview of the @wdio/cli run, repl, config and install commands.
+Ця блок-схема надає високорівневий огляд run, repl, config та install команд з пакунку @wdio/cli.
