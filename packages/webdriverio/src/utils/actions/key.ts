@@ -20,7 +20,7 @@ export default class KeyAction extends BaseAction {
             // check capabilities first
             platformName && platformName.match(/mac(\s)*os/i) ||
             // if not set, expect we run locally
-            os.type().match(/darwin/i)
+            (this.instance.options.hostname && os.type().match(/darwin/i))
         )
 
         if (value === Key.Ctrl) {
