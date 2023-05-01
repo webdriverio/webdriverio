@@ -9,7 +9,7 @@ Bienvenue sur la documentation de WebdriverIO. Cela vous aidera à démarrer rap
 Ce sont les documents de la dernière version (__>=8.x__) de WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
 :::
 
-<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Démarrage avec les guides" />
 
 :::tip Chaîne YouTube officielle 🎥
 
