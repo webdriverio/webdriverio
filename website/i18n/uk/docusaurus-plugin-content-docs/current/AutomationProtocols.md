@@ -46,17 +46,17 @@ title: Протоколи автоматизації
 
 ## DevTools протокол
 
-The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
+DevTools — це інтерфейс браузера, який зазвичай використовується для віддаленого налагодження браузера за допомогою іншої програми (наприклад, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Окрім його можливостей переглядати вміст браузера майже у всіх можливих формах, його також можна використовувати для керування браузером.
 
-While every browser used to have its own internal DevTools interface that was not really exposed to the user, more and more browsers are now adopting the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). It is used to either debug a web application using Chrome DevTools or control Chrome using tools like [Puppeteer](https://pptr.dev).
+Раніше кожен браузер мав власний внутрішній інтерфейс DevTools, який насправді не був доступний користувачеві, але зараз все більше браузерів використовують [Chrome DevTools протокол](https://chromedevtools.github.io/devtools-protocol/). Цей протокол використовується або для налагодження веб застосунку за допомогою Chrome DevTools, або для керування Chrome за допомогою таких інструментів, як от [Puppeteer](https://pptr.dev).
 
-The communication happens without any proxy, directly to the browser using WebSockets:
+Зв'язок відбувається без жодного проксі-сервера, безпосередньо із браузером за допомогою WebSockets:
 
 ![Налаштування DevTools](/img/devtools.png)
 
-WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
+WebdriverIO дозволяє використовувати можливості DevTools як альтернативну технологію автоматизації для WebDriver, якщо у вас є особливі вимоги до автоматизації браузера. З NPM пакунком [`devtools`](https://www.npmjs.com/package/devtools) ви можете викликати ті ж самі команди, які надає WebDriver, які потім можуть бути використані WebdriverIO та WDIO testrunner для запуску своїх корисних команд із цим протоколом. Пакунок використовує Puppeteer під капотом і тому надає можливість запускати також і команди безпосередньо із Puppeteer, якщо в цьому виникає потреба.
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations or just run WebdriverIO without a browser driver run in the background.
+Щоб використовувати DevTools як протокол автоматизації, змініть значення `automationProtocol` на `devtools` у своїй конфігурації або просто запустіть WebdriverIO без драйвера браузера запущеного у фоновому режимі.
 
 <Tabs
   defaultValue="testrunner"
@@ -108,7 +108,7 @@ describe('my test', () => {
 
 __Note:__ there is no need to have either `selenium-standalone` or `chromedriver` services installed.
 
-We recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+Ми рекомендуємо обернути ваші виклики Puppeteer у команду `call`, щоб усі виклики були виконані до того, як WebdriverIO продовжить виконання наступної команди WebDriver.
 
 </TabItem>
 <TabItem value="standalone">
@@ -152,18 +152,18 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
-By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+Отримавши доступ до інтерфейсу Puppeteer, ви отримуєте доступ до ряду нових можливостей для автоматизації або перегляду браузера та вашої веб сторінки, наприклад, перехоплення мережевих запитів (див. вище), відстеження навігації, уповільнення ЦП або мережі й багато іншого.
 
-### `wdio:devtoolsOptions` Capability
+### Параметр `wdio:devtoolsOptions`
 
-If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
+Якщо ви запускаєте тести WebdriverIO через із DevTools протоколом, ви можете застосувати [спеціальні параметри Puppeteer](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Ці параметри будуть безпосередньо передані в методи [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) або [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) з Puppeteer. Інші параметри devtools:
 
 #### customPort
-Start Chrome on a custom port.
+Запустіть Chrome на вказаному порті.
 
 Type: `number`<br /> Default: `9222` (default of Puppeteer)
 
-Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+Примітка: якщо ви передаєте параметри `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` або `wdio:devtoolsOptions/browserURL`, WebdriverIO намагатиметься з’єднатися із браузером використовуючи надану інформацію, замість запуску браузера. Наприклад, ви можете підключитися до хмари Testingbots використовуючи:
 
 ```js
 import { format } from 'util'
@@ -193,10 +193,10 @@ import { remote } from 'webdriverio'
 
 ### Переваги
 
-- Access to more automation capabilities (e.g. network interception, tracing etc.)
-- No need to manage browser drivers
+- Доступ до додаткових можливостей автоматизації (наприклад, перехоплення мережевих запитів, відстеження тощо)
+- Нема потреби у драйверах браузера
 
 ### Недоліки
 
-- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
-- Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.
+- Підтримує лише браузер на основі Chromium (наприклад, Chrome, Chromium Edge) і (частково) Firefox
+- __Не__ підтримується хмарними сервісами, такими як Sauce Labs, BrowserStack тощо.
