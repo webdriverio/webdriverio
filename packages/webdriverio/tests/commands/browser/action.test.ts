@@ -84,6 +84,29 @@ describe('action command', () => {
         expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
     })
 
+    it('should trigger control key when Key.Ctrl is used because os is mac and platformName is Windows 10', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        // @ts-ignore
+        browser.capabilities.platformName = 'Windows 10'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Control)
+    })
+
+    it('should trigger command key when Key.Ctrl is used because os is mac and hostname is local', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        // @ts-ignore
+        browser.capabilities.platformName = 'Mac OS'
+        browser.options.hostname = 'local'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
+    })
+
     it('should support pointer actions', async () => {
         await browser.action(
             'pointer',
