@@ -1,19 +1,19 @@
 ---
 id: babel
-title: Babel Setup
+title: Налаштування Babel
 ---
 
-To write tests using next-generation JavaScript features, you can use [Babel](https://babeljs.io) to compile your test files.
+Щоб написати тести із використанням функціоналу JavaScript наступного покоління, ви можете використовувати [Babel](https://babeljs.io) для компіляції файлів тестів.
 
-To do so, first install the necessary Babel dependencies:
+Для цього спочатку встановіть необхідні залежності Babel:
 
 ```bash npm2yarn
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly.
+Переконайтеся, що ваш [`babel.config.js`](https://babeljs.io/docs/en/config-files) правильно налаштований.
 
-The simplest setup you can use is:
+Найпростіше налаштування, яке ви можете використовувати:
 
 ```js title="babel.config.js"
 module.exports = {
@@ -27,6 +27,6 @@ module.exports = {
 }
 ```
 
-Once this is set up WebdriverIO will take care of the rest.
+Після налаштування WebdriverIO подбає про решту.
 
-Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](babel) or using wdio config's [autoCompileOpts section](configurationfile) .
+Крім того, ви можете налаштувати, як @babel/register працюватиме через змінні середовища для [@babel/register](babel) або за допомогою конфігурації WDIO [autoCompileOpts](configurationfile).
