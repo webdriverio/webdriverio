@@ -1,13 +1,13 @@
 ---
 id: autowait
-title: Auto-waiting
+title: Автоочікування
 ---
 
-One of the most common reasons for flaky tests are interactions with elements that don't exist in your application at the time you want to interact with it. Modern web applications are very dynamic, elements show up and disappear. As a human we are waiting unconsciously for elements but in an automated script we don't consider this as an action. There are two ways to wait on an element to show up.
+Однією з найпоширеніших причин нестабільних тестів є взаємодія з елементами, які ще не з'явилися у вашому додатку в момент взаємодії з ними. Сучасні веб застосунки дуже динамічні, елементи можуть то з’являтися, то зникати. Ми люди, несвідомо чекаємо на появу елементів, але складаючи сценарії автоматизації ми часто забуваємо про цю "дію". Є два способи дочекатися появи елемента.
 
-## Implicit vs. Explicit
+## Явний vs. Неявний
 
-The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefore makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
+Протокол WebDriver дає можливість вказати [неявний тайм-аут](https://w3c.github.io/webdriver/#timeouts), який визначатиме як довго драйвер має чекати, поки елемент не з’явиться. By default this timeout is set to `0` and therefore makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
 
 :::note
 
