@@ -41,7 +41,7 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+در `wdio.conf.js` خود می توانید این فایل را وارد کنید و دستور سفارشی را در قلاب(hook) `before ` خود ثبت کنید، به عنوان مثال:
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'
