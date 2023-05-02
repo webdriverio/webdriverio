@@ -1,17 +1,17 @@
 ---
 id: environment
-title: Environment Variables
+title: Змінні середовища
 ---
 
-WebdriverIO sets the following environment variables within every worker:
+WebdriverIO встановлює наступні змінні середовища у кожному worker-процессі:
 
 ## `NODE_ENV`
 
-Set to `'test'` if it's not already set to something else.
+Встановлюється у значенні `'test'` якщо ще не встановлено щось інше.
 
 ## `WDIO_LOG_LEVEL`
 
-Can be set to values `trace`, `debug`, `info`, `warn`, `error`, `silent` to write logs with corresponding details. Has priority over the passed `logLevel` value.
+Може мати значення `trace`, `debug`, `info`, `warn`, `error`, `silent` для запису логів на потрібному рівні деталізації. Має пріоритет над значенням `logLevel`.
 
 ## `WDIO_WORKER_ID`
 
