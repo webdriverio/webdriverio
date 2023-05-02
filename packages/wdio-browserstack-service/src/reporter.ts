@@ -89,8 +89,10 @@ class _TestReporter extends WDIOReporter {
 
     async sendTestRunEvent(testStats: TestStats, eventType: string) {
         const framework = this._config?.framework
+        let testMetaData: TestMeta = _TestReporter._tests[testStats.fullTitle]
+
         let testData: TestData = {
-            uuid: _TestReporter._tests[testStats.fullTitle].uuid || uuidv4(),
+            uuid: testMetaData ? testMetaData.uuid : uuidv4(),
             type: testStats.type,
             name: testStats.title,
             body: {
