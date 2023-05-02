@@ -10,7 +10,7 @@ If you're interested in making a contribution to the WebdriverIO project, check 
 If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:
 
 - [Kevin Lamping](https://www.codementor.io/@kevinlamping)
-- [Add your name to this list](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
+- [Добавьте свое имя в этот список](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
 
 ## Stack Overflow
 
@@ -20,10 +20,10 @@ Stack Overflow is a popular forum to ask code-level questions or if you’re stu
 
 There are many online forums which are a great place for discussion about WebdriverIO features, problems and bugs, e.g.:
 
-- [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
-- [Discord Community Server](https://discord.webdriver.io)
-- [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
+- [Обсуждения на GitHub](https://github.com/webdriverio/webdriverio/discussions)
+- [Сервер Сообщества в Discord](https://discord.webdriver.io)
+- [Канал #webdriverio на SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
-## News
+## Новости
 
-For the latest news about WebdriverIO, [follow @webdriverio on Twitter](https://twitter.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.
+Самые последние новости о WebdriverIO можно узнать, [подписавшись на наш канал @webdriverio в Twitter](https://twitter.com/webdriverio), а также в нашем официальном блоге[WebdriverIO](/blog).
