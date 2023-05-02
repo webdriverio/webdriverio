@@ -84,8 +84,9 @@ describe('action command', () => {
         expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
     })
 
-    it('should trigger control key when Key.Ctrl is used because os is mac and platformName is Windows 10', async () => {
+    it('should trigger control key when Key.Ctrl is used because os is mac, platformName is Windows 10 and host is remote', async () => {
         vi.mocked(os.type).mockReturnValue('Darwin')
+        browser.options.hostname = 'remote'
         // @ts-ignore
         browser.capabilities.platformName = 'Windows 10'
         await browser.action('key', { id: 'foobar' })
