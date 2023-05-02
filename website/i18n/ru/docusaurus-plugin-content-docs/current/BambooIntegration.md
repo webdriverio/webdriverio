@@ -3,7 +3,7 @@ id: bamboo
 title: Bamboo
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.atlassian.com/software/bamboo). With the [JUnit](https://webdriver.io/docs/junit-reporter.html) or [Allure](https://webdriver.io/docs/allure-reporter.html) reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO обеспечивает тесную интеграцию с такими CI системами, как [Bamboo](https://www.atlassian.com/software/bamboo). With the [JUnit](https://webdriver.io/docs/junit-reporter.html) or [Allure](https://webdriver.io/docs/allure-reporter.html) reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
 
 1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
 1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
@@ -21,7 +21,7 @@ module.exports = {
     // ...
 }
 ```
-Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
+Примечание: *Всегда рекомендуется хранить результаты теста в отдельной папке, а не в корневой.*
 
 ```js
 // wdio.conf.js - For tests running in parallel
@@ -40,17 +40,17 @@ module.exports = {
 }
 ```
 
-The reports will be similar for all the frameworks and you can use anyone: Mocha, Jasmine or Cucumber.
+Отчеты будут одинаковыми для всех фреймворков и можно использовать любой: Mocha, Jasmine или Cucumber.
 
-By this time, we believe you have the tests written up and results are generated in `./testresults/` folder, and your Bamboo is up and running.
+На данный момент мы считаем, что у вас есть написанные тесты и результаты сгенерированы в папке `./testresults/` , а ваш Bamboo запущен и работает.
 
-## Integrate your tests in Bamboo
+## Интегрируйте свои тесты в Bamboo
 
-1. Open your Bamboo project
+1. Откройте ваш Bamboo проект
 
-    > Create a new plan, link your repository (make sure it always points to newest version of your repository) and create your stages
+    > Создайте новый план, свяжите свой репозиторий (убедитесь, что он всегда указывает на самую новую версию вашего репозитория) и создайте свои шаги
 
-    ![Plan Details](/img/bamboo/plancreation.png "Plan Details")
+    ![Детали плана](/img/bamboo/plancreation.png "Детали Плана")
 
     I will go with the default stage and job. In your case, you can create your own stages and jobs
 
