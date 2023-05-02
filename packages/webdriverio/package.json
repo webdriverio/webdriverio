@@ -79,7 +79,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools": "8.8.7",
-    "devtools-protocol": "^0.0.1137730",
+    "devtools-protocol": "^0.0.1138159",
     "grapheme-splitter": "^1.0.2",
     "import-meta-resolve": "^3.0.0",
     "is-plain-obj": "^4.1.0",
