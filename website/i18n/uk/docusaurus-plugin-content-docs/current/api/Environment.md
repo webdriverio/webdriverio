@@ -15,4 +15,4 @@ WebdriverIO встановлює наступні змінні середови�
 
 ## `WDIO_WORKER_ID`
 
-An unique id that helps identify the worker process. It has format of `{number}-{number}` where the first number identifies the capability and the second the spec file that capability is running, e.g. `0-5` indicates a worker the first running the 6th spec file for the first capability.
+Унікальний ідентифікатор, який допомагає ідентифікувати worker-процес. Він має формат `{number}-{number}`, де перше число визначає browser capability з файлу конфігурації, а друге — поточний spec-файл. Наприклад, `0-5` вказує на worker-процес, який запускає 6-й spec-файл для першої browser capability.
