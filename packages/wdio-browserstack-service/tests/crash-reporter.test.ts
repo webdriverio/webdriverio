@@ -1,4 +1,5 @@
 import got from 'got'
+import { DATA_ENDPOINT } from '../src/constants'
 import CrashReporter from '../src/crash-reporter'
 
 jest.mock('got')
@@ -12,6 +13,13 @@ describe('CrashReporter', function () {
     describe('uploadCrashReport', function () {
         it('should return if creds are not valid', () => {
             process.env.CREDENTIALS_FOR_CRASH_REPORTING = 'some invalid credentials'
+            expect(() => {
+                CrashReporter.uploadCrashReport('some exception', 'some stack')
+            }).not.toThrow()
+        })
+
+        it('should return it no username or key', () => {
+            process.env.CREDENTIALS_FOR_CRASH_REPORTING = '{}'
             expect(() => {
                 CrashReporter.uploadCrashReport('some exception', 'some stack')
             }).not.toThrow()
@@ -33,6 +41,22 @@ describe('CrashReporter', function () {
                 })
                 expect(() => CrashReporter.uploadCrashReport('some exception', 'some stack')).not.toThrow()
                 expect(mockedGot.post).toBeCalledTimes(1)
+            })
+
+            it('should send empty config if fetching config fails', () => {
+                mockedGot.post = jest.fn().mockReturnValue({
+                    text: () => new Promise((resolve) => {
+                        resolve('success')
+                    })
+                })
+                const url = `${DATA_ENDPOINT}/api/v1/analytics`
+                expect(() => CrashReporter.uploadCrashReport('some exception', 'some stack')).not.toThrow()
+                expect(mockedGot.post).toBeCalledTimes(1)
+                expect(mockedGot.post).toBeCalledWith(url, expect.objectContaining({
+                    json: expect.objectContaining({
+                        config: {}
+                    })
+                }))
             })
 
             it('should not raise error if request fails', () => {
@@ -67,7 +91,7 @@ describe('CrashReporter', function () {
             })
         })
 
-        it('should delete user key from browserstack service', () => {
+        it('should delete user key from testObservabilityOptions', () => {
             const userConfig = {
                 'framework': 'some framework',
                 'user': 'some user',
@@ -92,6 +116,30 @@ describe('CrashReporter', function () {
                         testObservabilityOptions: {
                         },
                     }]
+                ]
+            })
+        })
+
+        it('should delete user key from browserstack service options', () => {
+            const userConfig = {
+                'framework': 'some framework',
+                'user': 'some user',
+                'key': 'key',
+                capabilities: {},
+                services: [
+                    ['browserstack', {
+                        user: 'username',
+                        key: 'access-key',
+                    }]
+                ]
+            }
+
+            const filteredConfig = CrashReporter.filterPII(userConfig as any)
+            expect(filteredConfig).toEqual({
+                'framework': 'some framework',
+                capabilities: {},
+                services: [
+                    ['browserstack', {}]
                 ]
             })
         })

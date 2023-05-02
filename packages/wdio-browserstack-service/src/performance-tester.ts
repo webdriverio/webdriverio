@@ -9,7 +9,7 @@ const log = logger('@wdio/browserstack-service')
 export default class PerformanceTester {
     static _observer: PerformanceObserver
     static _csvWriter: any
-    private static _events: any[] = []
+    private static _events: PerformanceEntry[] = []
     static started = false
 
     static startMonitoring(csvName: string = 'performance-report.csv') {
@@ -33,7 +33,7 @@ export default class PerformanceTester {
         return performance
     }
 
-    static calculateTimes(methods: string[]) {
+    static calculateTimes(methods: string[]) : number {
         const times: { [key: string]: number } = {}
         this._events.map((entry) => {
             if (!times[entry.name]) {
@@ -45,6 +45,7 @@ export default class PerformanceTester {
             return times[c] + (a || 0)
         }, 0)
         log.info(`Time for ${methods} is `, timeTaken)
+        return timeTaken
     }
 
     static async stopAndGenerate(filename: string = 'performance-own.html') {
@@ -52,6 +53,7 @@ export default class PerformanceTester {
 
         await sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
         this._observer.disconnect()
+        this.started = false
 
         this.generateCSV(this._events)
 
