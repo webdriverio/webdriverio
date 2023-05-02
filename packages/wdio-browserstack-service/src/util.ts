@@ -204,15 +204,6 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
     data.config = CrashReporter.userConfigForReporting
 
     try {
-        if (Object.keys(CrashReporter.userConfigForReporting).length === 0) {
-            CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
-        }
-    } catch (error) {
-        log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
-    }
-    data.config = CrashReporter.userConfigForReporting
-
-    try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
         const response: LaunchResponse = await got.post(url, {
             ...DEFAULT_REQUEST_CONFIG,
