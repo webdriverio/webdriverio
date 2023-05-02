@@ -39,7 +39,7 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
 
 ## Install WebdriverIO Dependencies
 
-Next step is to configure a minimal WebdriverIO setup that we start building up as we migrate from one framework to another. First we install the WebdriverIO CLI via: First we install the WebdriverIO CLI via: First we install the WebdriverIO CLI via:
+Next step is to configure a minimal WebdriverIO setup that we start building up as we migrate from one framework to another. First we install the WebdriverIO CLI via: First we install the WebdriverIO CLI via:
 
 ```sh
 npm install --save-dev @wdio/cli
@@ -51,23 +51,23 @@ Next we run the configuration wizard:
 npx wdio config
 ```
 
-This will walk you through a couple of questions. This will walk you through a couple of questions. This will walk you through a couple of questions. For this migration scenario you:
+This will walk you through a couple of questions. This will walk you through a couple of questions. For this migration scenario you:
 - pick the default choices
 - we recommend not to auto-generate example files
 - pick a different folder for WebdriverIO files
 - and to choose Mocha above Jasmine.
 
 :::info Why Mocha?
-Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours! ::: The choice is yours! ::: The choice is yours!
+Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours! ::: The choice is yours!
 :::
 
 After the little questionaire the wizard will install all necessary packages and stores them in your `package.json`.
 
 ## Migrate Configuration File
 
-After we have a transformed `conf.ts` and a new `wdio.conf.ts`, it is now time to migrate the configuration from one config to another. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout.
+After we have a transformed `conf.ts` and a new `wdio.conf.ts`, it is now time to migrate the configuration from one config to another. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout.
 
-We will now continue with our `wdio.conf.ts` file only and therefore won't need any changes to the original Protractor config anymore. We can revert those so that both frameworks can run next to each other and we can port on file at the time. We can revert those so that both frameworks can run next to each other and we can port on file at the time. We can revert those so that both frameworks can run next to each other and we can port on file at the time.
+We will now continue with our `wdio.conf.ts` file only and therefore won't need any changes to the original Protractor config anymore. We can revert those so that both frameworks can run next to each other and we can port on file at the time. We can revert those so that both frameworks can run next to each other and we can port on file at the time.
 
 ## Migrate Test File
 
@@ -84,7 +84,7 @@ Now let's transform this file:
 npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./test/specs/first-test.spec.ts
 ```
 
-That's it! That's it! That's it! This file is so simple that we don't need any additional changes anymore and directly can try to run WebdriverIO via:
+That's it! That's it! This file is so simple that we don't need any additional changes anymore and directly can try to run WebdriverIO via:
 
 ```sh
 npx wdio run wdio.conf.ts
@@ -94,7 +94,7 @@ Congratulations 🥳 you just migrated the first file!
 
 ## Next Steps
 
-From this point you continue to transform test by test and page object by page object. There are chances that the codemod will fail for certain files with an error such as: There are chances that the codemod will fail for certain files with an error such as: There are chances that the codemod will fail for certain files with an error such as:
+From this point you continue to transform test by test and page object by page object. There are chances that the codemod will fail for certain files with an error such as: There are chances that the codemod will fail for certain files with an error such as:
 
 ```
 ERR /path/to/project/test/testdata/failing_submit.js Transformation error (Error transforming /test/testdata/failing_submit.js:2)
@@ -107,8 +107,8 @@ The command "submit" is not supported in WebdriverIO. We advise to use the click
   at /path/to/project/test/testdata/failing_submit.js:132:0
 ```
 
-For some Protractor commands there is just no replacement for it in WebdriverIO. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements.
+For some Protractor commands there is just no replacement for it in WebdriverIO. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements.
 
 ## Conclusion
 
-We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process. The community continues to improve the codemod while testing it with various teams in various organisations. We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
+We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.

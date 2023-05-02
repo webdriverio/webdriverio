@@ -8,9 +8,11 @@ Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenz
 :::info
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
 :::
-:::
 
-<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+<LiteYouTubeEmbed
+    id="rA4IFNyW54c"
+    title="Primeros pasos"
+/>
 
 :::tip Canal oficial de YouTube 🎥
 

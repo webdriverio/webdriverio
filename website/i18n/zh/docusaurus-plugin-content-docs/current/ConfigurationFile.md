@@ -3,7 +3,7 @@ id: configurationfile
 title: Configuration File
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON. It’s a NodeJS module that exports a JSON. It’s a NodeJS module that exports a JSON.
+The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON. It’s a NodeJS module that exports a JSON.
 
 Here is an example configuration with all supported properties and additional information:
 

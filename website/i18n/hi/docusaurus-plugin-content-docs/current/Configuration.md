@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। Read more on this in [Frameworks](frameworks).
+विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। इस पर [फ्रेमवर्क](frameworks)में और पढ़ें।
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 

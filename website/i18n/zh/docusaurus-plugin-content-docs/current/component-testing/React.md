@@ -3,11 +3,11 @@ id: react
 title: React
 ---
 
-[React](https://reactjs.org/) makes it painless to create interactive UIs. [React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. [React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner). [React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. [React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
 
 ## Setup
 
-To setup WebdriverIO within your React project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `react` as preset within your runner options, e.g.: Make sure to select `react` as preset within your runner options, e.g.: Make sure to select `react` as preset within your runner options, e.g.:
+To setup WebdriverIO within your React project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `react` as preset within your runner options, e.g.: Make sure to select `react` as preset within your runner options, e.g.:
 
 ```js
 // wdio.conf.js
@@ -22,11 +22,11 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
 
 :::
 
-The React preset requires `@vitejs/plugin-react` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies: Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies: Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+The React preset requires `@vitejs/plugin-react` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies: Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/react @vitejs/plugin-react
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `@testing-library/react` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+In your test use the `render` method from `@testing-library/react` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'

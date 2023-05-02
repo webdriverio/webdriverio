@@ -5,9 +5,9 @@ title: Custom Services
 
 You can write your own custom service for the WDIO test runner to custom-fit your needs.
 
-Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
+Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
 
-There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
+There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
 
 A launcher service can be defined as follows:
 
@@ -70,7 +70,7 @@ export default class CustomWorkerService {
 }
 ```
 
-It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following: Lastly expose both types of workers as following: Lastly expose both types of workers as following:
+It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following: Lastly expose both types of workers as following:
 
 ```js
 import CustomLauncherService from './launcher'
@@ -100,7 +100,7 @@ export default class CustomWorkerService implements Services.ServiceInstance {
 
 ## Service Error Handling
 
-An Error thrown during a service hook will be logged while the runner continues. An Error thrown during a service hook will be logged while the runner continues. An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
+An Error thrown during a service hook will be logged while the runner continues. An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
 
 ```js
 import { SevereServiceError } from 'webdriverio'
@@ -167,7 +167,7 @@ export const config = {
 
 ### Add Published Service to WDIO CLI and Docs
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found. If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found. If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found. If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
 
 Please raise a pull request with the following changes:
 

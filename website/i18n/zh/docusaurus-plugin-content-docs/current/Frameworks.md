@@ -5,9 +5,9 @@ title: Frameworks
 
 The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 
-Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.) (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.) (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
+Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.) (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
 
 ## Using Mocha
 
@@ -30,7 +30,7 @@ describe('my awesome website', () => {
 
 WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
-If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this: Now your test files should be written like this: Now your test files should be written like this:
+If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this: Now your test files should be written like this:
 
 ```js
 suite('my awesome website', () => {
@@ -41,7 +41,7 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha). A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha). A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
+If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha). A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
 __Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
 
@@ -53,7 +53,7 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported: The following options however are supported: The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported: The following options however are supported:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported: The following options however are supported:
 
 #### require
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
@@ -61,7 +61,7 @@ The `require` option is useful when you want to add or extend some basic functio
 Type: `string|string[]`<br /> Default: `[]`
 
 #### compilers
-Use the given module(s) to compile files. Use the given module(s) to compile files. Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+Use the given module(s) to compile files. Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
 
 Type: `string[]`<br /> Default: `[]`
 
@@ -138,7 +138,7 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html). You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html). A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html). A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
 ### Intercept Assertion
 
@@ -164,11 +164,11 @@ jasmineOpts: {
 },
 ```
 
-**Note:** You cannot stop test execution to do something async. It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.) It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.) It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
+**Note:** You cannot stop test execution to do something async. It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.) It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
 
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration). For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration). For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration). For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.
@@ -191,12 +191,12 @@ Whether to randomize spec execution order.
 Type: `boolean`<br /> Default: `true`
 
 #### seed
-Seed to use as the basis of randomization. Seed to use as the basis of randomization. Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+Seed to use as the basis of randomization. Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
 
 Type: `Function`<br /> Default: `null`
 
 #### failSpecWithNoExpectations
-Whether to fail the spec if it ran no expectations. Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure. Setting this to true will report such spec as a failure. Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure. Setting this to true will report such spec as a failure.
+Whether to fail the spec if it ran no expectations. Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure. Setting this to true will report such spec as a failure.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -211,12 +211,12 @@ Function to use to filter specs.
 Type: `Function`<br /> Default: `(spec) => true`
 
 #### grep
-Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set)
+Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set)
 
 Type: `string|Regexp`<br /> Default: `null`
 
 #### invertGrep
-If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set)
+If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set) (Only applicable if no custom `specFilter` function is set)
 
 Type: `boolean`<br /> Default: `false`
 
@@ -230,7 +230,7 @@ npm install @wdio/cucumber-framework --save-dev
 
 If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Options for Cucumber can be given in the config file with `cucumberOpts`. Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Options for Cucumber can be given in the config file with `cucumberOpts`. Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
 
@@ -265,7 +265,7 @@ cucumberOpts: {
  ```
 
 #### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Treat ambiguous definitions as errors. Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+Treat ambiguous definitions as errors. Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -275,7 +275,7 @@ Abort the run on first failure.
 Type: `boolean`<br /> Default: `false`
 
 #### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Treat undefined definitions as warnings. Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+Treat undefined definitions as warnings. Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -290,7 +290,7 @@ Specify the profile to use.
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Require files containing your step definitions before executing features. You can also specify a glob to your step definitions. Require files containing your step definitions before executing features. You can also specify a glob to your step definitions. You can also specify a glob to your step definitions.
+Require files containing your step definitions before executing features. You can also specify a glob to your step definitions. You can also specify a glob to your step definitions.
 
 Type: `string[]`<br /> Default: `[]` Example:
 
@@ -321,7 +321,7 @@ Fail if there are any undefined or pending steps.
 Type: `boolean`<br /> Default: `false`
 
 #### tagExpression
-Only execute the features or scenarios with tags matching the expression. Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details. Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+Only execute the features or scenarios with tags matching the expression. Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `string`<br /> Default: `null`
 
@@ -337,13 +337,13 @@ Type: `number`<br /> Default: `30000`
 
 ### Skipping tests in cucumber
 
-Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber: Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber: In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber:
+Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber: In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber:
 
 `@skip([condition])`
 
-were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions. Of course you can add several tags to scenarios and features to skip a tests under several different conditions. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
+were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report. In this case the skipped tests will be displayed in the test report. In this case the skipped tests will be displayed in the test report.
+You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report. In this case the skipped tests will be displayed in the test report.
 
 Here you have some examples of this syntax:
 - `@skip` or `@skip()`: will always skip the tagged item

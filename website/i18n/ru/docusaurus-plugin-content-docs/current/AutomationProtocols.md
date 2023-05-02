@@ -156,7 +156,7 @@ await browser.deleteSession()
 
 ### `wdio:devtoolsOptions` Capability
 
-Если вы запускаете тесты WebdriverIO через пакет DevTools, вы можете использовать [кастомные параметры Puppeteer-а](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Эти параметры будут напрямую переданы в методы [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) или [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) Puppeteer. Другие пользовательские параметры devtools:
+Если вы запускаете тесты WebdriverIO через пакет DevTools, вы можете использовать [кастомные параметры Puppeteer-а](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Эти параметры будут напрямую переданы в методы [` launch `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) или [` connect `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) Puppeteer. Другие пользовательские параметры devtools:
 
 #### customPort
 Запустить Chrome на другом порту.

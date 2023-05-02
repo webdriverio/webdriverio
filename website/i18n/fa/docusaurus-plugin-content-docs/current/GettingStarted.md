@@ -5,7 +5,7 @@ title: شروع کار
 
 به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-:::نکته 
+:::نکته
 اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
@@ -14,8 +14,6 @@ title: شروع کار
 اگر در دایرکتوری ریشه یک پروژه موجود هستید دستور مقابل را اجرا کنید:
 
 You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
-
-:::
 
 ## راه‌اندازی تنظیمات WebdriverIO
 

@@ -3,7 +3,7 @@ id: modules
 title: Modules
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes). See more documentation on WebdriverIO setup types [here](/docs/setuptypes). See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes). See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
 
 ## `webdriver` and `devtools`
 
@@ -11,7 +11,7 @@ The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) an
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Starts a new session with specific capabilities. Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+Starts a new session with specific capabilities. Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
 
 ##### Paramaters
 
@@ -71,11 +71,11 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality: The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality: The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality: The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
 
 #### `remote(options, modifier)`
 
-Starts a WebdriverIO session. Starts a WebdriverIO session. Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+Starts a WebdriverIO session. Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
 
 ##### Paramaters
 
@@ -119,7 +119,7 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
 
 ##### Paramaters
 
@@ -151,7 +151,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this: For that, you'll need to require the `@wdio/cli` package as module, like this: For that, you'll need to require the `@wdio/cli` package as module, like this:
+Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this: For that, you'll need to require the `@wdio/cli` package as module, like this:
 
 <Tabs
   defaultValue="esm"
@@ -203,7 +203,7 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests. The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
 
 ## `@wdio/browser-runner`
 
