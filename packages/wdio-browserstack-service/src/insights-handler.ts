@@ -5,6 +5,7 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types.js'
+import TestReporter from './reporter.js'
 
 import {
     frameworkSupportsHook,
@@ -101,10 +102,6 @@ class _InsightsHandler {
         }
         await this.sendTestRunEvent(test, 'HookRunFinished', result)
 
-        if (this._framework !== 'mocha') {
-            return
-        }
-
         const hookType = getHookType(test.title)
         /*
             If any of the `beforeAll`, `beforeEach`, `afterEach` then the tests after the hook won't run in mocha (https://github.com/mochajs/mocha/issues/4392)
@@ -143,6 +140,9 @@ class _InsightsHandler {
     }
 
     async beforeTest (test: Frameworks.Test) {
+        if (this._framework !== 'mocha') {
+            return
+        }
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
@@ -152,6 +152,9 @@ class _InsightsHandler {
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
+        if (this._framework !== 'mocha') {
+            return
+        }
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             ...(this._tests[fullTitle] || {}),
@@ -270,8 +273,9 @@ class _InsightsHandler {
             return
         }
         const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-        if (!this._tests[identifier]) {
+        if (!testMeta) {
             return
         }
 
@@ -280,7 +284,7 @@ class _InsightsHandler {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
-                    test_run_uuid: this._tests[identifier].uuid,
+                    test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
@@ -297,7 +301,7 @@ class _InsightsHandler {
         const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
-                test_run_uuid: this._tests[identifier].uuid,
+                test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
                 http_response: {

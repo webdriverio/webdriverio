@@ -87,7 +87,7 @@ describe('before', () => {
 })
 
 describe('beforeScenario', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -115,7 +115,7 @@ describe('beforeScenario', () => {
 })
 
 describe('afterScenario', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -142,7 +142,7 @@ describe('afterScenario', () => {
 })
 
 describe('beforeStep', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -195,7 +195,7 @@ describe('beforeStep', () => {
 })
 
 describe('afterStep', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -318,7 +318,7 @@ describe('afterStep', () => {
 })
 
 describe('attachHookData', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -379,7 +379,7 @@ describe('getHierarchy', () => {
 })
 
 describe('beforeTest', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     describe('mocha', () => {
         beforeEach(() => {
@@ -403,23 +403,19 @@ describe('beforeTest', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, false, 'jasmine')
             insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
             insightsHandler['_tests'] = {}
-            insightsHandler['_hooks'] = {
-                'test title': ['hook_id']
-            }
         })
 
-        it('update test data', async () => {
+        it('shouldn\'t update test data', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', fullName: 'parent test' } as any)
-            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+            expect(insightsHandler['_tests']).toEqual({})
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
         })
     })
 })
 
 describe('beforeHook', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     describe('mocha', () => {
         beforeEach(() => {
@@ -465,7 +461,7 @@ describe('beforeHook', () => {
 })
 
 describe('afterHook', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     describe('mocha', () => {
         beforeEach(() => {
@@ -514,7 +510,7 @@ describe('afterHook', () => {
 })
 
 describe('getIntegrationsObject', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -527,7 +523,7 @@ describe('getIntegrationsObject', () => {
 })
 
 describe('browserCommand', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
     let uploadEventDataSpy
     let commandSpy
 
@@ -573,7 +569,7 @@ describe('browserCommand', () => {
 })
 
 describe('getIdentifier', () => {
-    let insightsHandler
+    let insightsHandler: InsightsHandler
     let getUniqueIdentifierSpy
     let getUniqueIdentifierForCucumberSpy
 
