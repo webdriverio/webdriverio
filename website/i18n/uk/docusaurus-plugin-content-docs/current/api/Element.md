@@ -32,7 +32,7 @@ Element Object - це об'єкт, що представляє собою вид
 
 ### Ланцюги елементів
 
-Під час роботи з елементами WebdriverIO надає спеціальний синтаксис для спрощення пошуку у складному дереві елементів. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+Під час роботи з елементами WebdriverIO надає спеціальний синтаксис для спрощення пошуку у складному дереві елементів. Об’єкти елементів дозволяють шукати вкладені елементи за допомогою звичайних методів пошуку, наприклад:
 
 ```js
 const header = await $('#header')
