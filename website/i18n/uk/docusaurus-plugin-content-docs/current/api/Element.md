@@ -1,38 +1,38 @@
 ---
 id: element
-title: The Element Object
+title: Об'єкт Element
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+Element Object - це об'єкт, що представляє собою видимий чи невидимий елемент у вашому додатку, наприклад це може бути [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) під час запуску сесії в браузері або [мобільний елемент](https://developer.apple.com/documentation/swift/sequence/element) для мобільних пристроїв. Він може бути отриманий за допомогою однієї з багатьох команд для пошуку елементів, наприклад, [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) або [`shadow$`](/docs/api/element/shadow$).
 
-## Properties
+## Властивості
 
-An element object has the following properties:
+Об'єкт елементу має наступні властивості:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| Ім'я        | Тип      | Опис                                                                                                                                                                                                                                                     |
+| ----------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | Id сесії, в якій було знайдено цей елемент. Призначається сервером.                                                                                                                                                                                      |
+| `elementId` | `String` | Посилання на [елемент](https://w3c.github.io/webdriver/#elements), яке можна використовувати для взаємодії з елементом на рівні протоколу                                                                                                                |
+| `selector`  | `String` | [Селектор](/docs/selectors) який був використаний для запиту елемента.                                                                                                                                                                                   |
+| `parent`    | `Object` | Об'єкт [браузера](/docs/api/browser), коли елемент був отриманий з нього (наприклад, `const elem = browser.('selector')`) або [Об'єкт елементу](/docs/api/element) якщо його було отримано пошуком від іншого елементу (наприклад, `elem.$('selector')`) |
+| `options`   | `Object` | WebdriverIO [параметри](/docs/configuration) залежно від того, як було створено об’єкт браузера. Дізнатися більше можна переглянувши [параметри](/docs/setuptypes).                                                                                      |
 
-## Methods
+## Методи
 
-A element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+Об’єкт елементу надає всі методи з розділу протоколу, наприклад, протокол [WebDriver](/docs/api/webdriver), а також команди, перелічені в розділі Api елементу. Доступні команди протоколу залежать від типу сесії. Наприклад, якщо ви запускаєте браузерну сесію, жодна з команд Appium [](/docs/api/appium) не буде доступною, і навпаки.
 
-In addition to that the following commands are available:
+Також доступні такі команди:
 
-| Name               | Parameters                                                            | Details                                                                                                                                                                                                        |
-| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| Ім'я               | Параметри                                                             | Опис                                                                                                                                                                                                                                              |
+| ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Дозволяє додати власні команди, які можна викликати в об’єкта браузера для кращої композиції. Докладніше читайте в розділі [Власні команди](/docs/customcommands).                                                                                |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Дозволяє перезаписувати будь-яку команду браузера власною логікою. Будьте обережні! Це може збити з пантелику того хто буде використовувати код. Докладніше читайте в розділі [Власні команди](/docs/customcommands#overwriting-native-commands). |
 
-## Remarks
+## Примітки
 
-### Element Chain
+### Ланцюги елементів
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element look ups. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+Під час роботи з елементами WebdriverIO надає спеціальний синтаксис для спрощення пошуку у складному дереві елементів. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
 
 ```js
 const header = await $('#header')
