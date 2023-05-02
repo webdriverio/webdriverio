@@ -21,6 +21,17 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.9.0 (2023-05-02)
+
+#### :rocket: New Feature
+* `wdio-cli`
+  * [#10288](https://github.com/webdriverio/webdriverio/pull/10288) (feat): Enable mobile set-up through appium-installer ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v8.8.8 (2023-04-27)
 
 #### :bug: Bug Fix
