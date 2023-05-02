@@ -64,4 +64,5 @@ jobs:
           npx runme --project . run pushReleaseTag
         env:
           NODE_ENV: production
+          RUNME_EXPERIMENTAL_CLI: true
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
