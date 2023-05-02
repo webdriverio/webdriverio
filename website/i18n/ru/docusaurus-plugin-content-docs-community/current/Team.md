@@ -1,6 +1,6 @@
 ---
 id: team
-title: Team
+title: Команда
 ---
 
 import Card from '@site/src/theme/card.jsx';
@@ -14,7 +14,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars2.githubusercontent.com/u/4043890?s=460"
     github="abjerstedt"
 >
-    Senior Software Engineer - Android at <a href="https://www.target.com/">Target</a>.
+    Senior Software Engineer - Android в <a href="https://www.target.com/">Target</a>.
 </Card>
 
 <Card
@@ -23,7 +23,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="christian-bromann"
     twitter="bromann"
 >
-    Staff Software Engineer at the Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
+    Staff Software Engineer в Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 <Card
@@ -31,7 +31,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+    Senior Test Automation Engineer в <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
@@ -56,7 +56,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars3.githubusercontent.com/u/1300981?s=460"
     github="WillBrock"
 >
-    Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    Automation Engineering Manager в <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
 <Card
@@ -68,7 +68,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
-## Project Collaborators
+## Соавторы Проекта
 
 <Card
     name="Baruch Velez"
@@ -86,4 +86,4 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 >
 </Card>
 
-and [many many more](https://github.com/orgs/webdriverio/people).
+и [много много кто ещё](https://github.com/orgs/webdriverio/people).
