@@ -445,29 +445,24 @@ describe('beforeTest', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'jasmine')
             sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-            getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
             insightsHandler['_tests'] = {}
-            insightsHandler['_hooks'] = {
-                'test title': ['hook_id']
-            }
         })
 
-        it('update test data', async () => {
+        it('should return for jasmine', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', fullName: 'parent test' } as any)
-            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+            expect(insightsHandler['_tests']).toEqual({})
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
         })
 
         afterEach(() => {
             sendSpy.mockClear()
-            getUniqueIdentifierSpy.mockClear()
         })
     })
 })
 
 describe('afterTest', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
