@@ -1,14 +1,14 @@
 ---
 id: api
-title: Introduction
+title: Знайомство
 ---
 
-Welcome to the WebdriverIO API docs. These pages contain reference materials for all implemented protocol bindings and convenience commands. Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.
+Ласкаво просимо до документації WebdriverIO API. Ці статті містять роз'яснення та приклади для всіх реалізованих протоколів і зручних команд фреймворка. Команди протоколів, зокрема [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) чи мобільні команди, такі як [Appium](http://appium.io), — це команди, які безпосередньо надсилаються до сервера драйвера. Зручні команди, що доступні через об'єкти [`browser`](/docs/api/browser), [`element`](/docs/api/element) або [`mock`](/docs/api/mock) реалізують вищий рівень абстракції.
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+Це документи для останньої версії (__>=8.x__) WebdriverIO. Якщо ви все ще користуєтеся старішою версією, будь ласка, відвідайте вебсайт зі [старою документацією](/versions)!
 :::
 
-## Contribute
+## Взяти участь
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange link on the bottom left with the label _“Edit this page”_. Make sure you understand the way we write these docs by checking the [Contributing](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) section.
+Якщо ви вважаєте, що у вас є хороший приклад для команди, не соромтеся відкрити PR і поділитися ним. Просто натисніть помаранчеве посилання знизу ліворуч із текстом _"Редагувати цю сторінку"_. Переконайтеся, що ви розумієте, як ми пишемо ці документи, ознайомившись із розділом [Взяти участь](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md).

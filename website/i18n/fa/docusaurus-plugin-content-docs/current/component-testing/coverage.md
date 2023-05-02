@@ -3,11 +3,11 @@ id: coverage
 title: Coverage
 ---
 
-WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and and capture code coverage for you.
+اجراکننده مرورگر WebdriverIO از گزارش پوشش کد با استفاده از [`istanbul`](https://istanbul.js.org/)پشتیبانی می کند. تست کننده به طور خودکار کد شما را ابزار می کند و پوشش کد را برای شما ضبط می کند.
 
-## Setup
+## تنظیم
 
-In order to enable code coverage reporting, enable it through the WebdriverIO browser runner configuration, e.g.:
+برای فعال کردن گزارش پوشش کد، آن را از طریق پیکربندی اجراکننده مرورگر WebdriverIO فعال کنید، به عنوان مثال:
 
 ```js title=wdio.conf.js
 export const config = {
@@ -22,20 +22,20 @@ export const config = {
 }
 ```
 
-Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.
+تمام [گزینه های پوشش](/docs/runner#coverage-options)را بررسی کنید تا نحوه صحیح پیکربندی آن را بیاموزید.
 
-## Ignoring Code
+## نادیده گرفتن کد
 
-There may be some sections of your codebase that you wish to purposefully exclude from coverage tracking, to do so you can use the following parsing hints:
+ممکن است بخش‌هایی از پایگاه کد شما وجود داشته باشد که بخواهید به طور هدفمند از ردیابی پوشش حذف کنید، برای این کار می‌توانید از نکات زیر استفاده کنید:
 
-- `/* istanbul ignore if */`: ignore the next if statement.
-- `/* istanbul ignore else */`: ignore the else portion of an if statement.
-- `/* istanbul ignore next */`: ignore the next thing in the source-code ( functions, if statements, classes, you name it).
-- `/* istanbul ignore file */`: ignore an entire source-file (this should be placed at the top of the file).
+- `/* istanbul ignore if */`: دستور if بعدی را نادیده بگیر.
+- `/* istanbul ignore else */`: نادیده گرفتن قسمت else یک دستور if.
+- `/* istanbul ignore next */`: چیز بعدی در کد را نادیده بگیر ( functions, if statements, classes, یا هر چیز دیگر).
+- `/* istanbul ignore file */`: کل فایل را نادیده بگیر (این کد باید در بالای فایل قرار گیرد).
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+توصیه می شود فایل های تست خود را از گزارش پوشش حذف کنید، زیرا ممکن است باعث ایجاد خطا شود، به عنوان مثال هنگام فراخوانی `execute` یا `executeAsync`. اگر دوست دارید آنها را در گزارش خود نگه دارید، اطمینان حاصل کنید که ابزارسازی آن را از طریق زیر غیر فعال کرده اید:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {

@@ -9,11 +9,17 @@ title: شروع کار
 اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+
+اگر در دایرکتوری ریشه یک پروژه موجود هستید دستور مقابل را اجرا کنید:
+
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+
 ## راه‌اندازی تنظیمات WebdriverIO
 
 To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
-اگر در دایرکتوری ریشه یک پروژه موجود هستید دستور مقابل را اجرا کنید:
+تست را می توان با استفاده از دستور `run` و با اشاره به پیکربندی WebdriverIO که به تازگی ایجاد کرده اید اجرا کرد:
 
 <Tabs
   defaultValue="npm"
@@ -64,7 +70,7 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-این تک فرمان، ابزار WebdriverIO CLI را دانلود می کند و یک wizard برای پیکربندی راحت را اجرا می کند که به شما کمک می کند مجموعه تست خود را پیکربندی کنید.
+اگر دوست دارید فایل های تست خاصی را اجرا کنید، می توانید یک پارامتر `--spec` اضافه کنید:
 
 <CreateProjectAnimation />
 
@@ -103,7 +109,7 @@ pnpm create wdio . --yes
 
 ## اجرای تست
 
-تست را می توان با استفاده از دستور `run` و با اشاره به پیکربندی WebdriverIO که به تازگی ایجاد کرده اید اجرا کرد:
+__توجه:__ همه دستورهای WebdriverIO ناهمزمان هستند و باید با استفاده از [`async/await`](https://javascript.info/async-await) به درستی مدیریت شوند.
 
 ```sh
 npx wdio run ./wdio.conf.js
@@ -115,7 +121,7 @@ npx wdio run ./wdio.conf.js
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-یا مجموعه‌ها را در فایل پیکربندی خود تعریف کنید و فقط فایل‌های تستی تعریف شده توسط یک مجموعه را اجرا کنید:
+شما نیاز به نصب [Node.js](http://nodejs.org) دارید.
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName

@@ -1,54 +1,54 @@
 {
   "version.label": {
-    "message": "Next",
+    "message": "Далі",
     "description": "The label for version current"
   },
   "sidebar.docs.category.Getting Started": {
-    "message": "Getting Started",
+    "message": "Приступаючи до роботи",
     "description": "The label for category Getting Started in sidebar docs"
   },
   "sidebar.docs.category.Core Concepts": {
-    "message": "Core Concepts",
+    "message": "Основні поняття",
     "description": "The label for category Core Concepts in sidebar docs"
   },
   "sidebar.docs.category.Configuration": {
-    "message": "Configuration",
+    "message": "Конфігурація",
     "description": "The label for category Configuration in sidebar docs"
   },
   "sidebar.docs.category.Guides": {
-    "message": "Guides",
+    "message": "Посібники",
     "description": "The label for category Guides in sidebar docs"
   },
   "sidebar.docs.category.Testrunner": {
-    "message": "Testrunner",
+    "message": "Тестувальник",
     "description": "The label for category Testrunner in sidebar docs"
   },
   "sidebar.docs.category.Component Testing": {
-    "message": "Component Testing",
+    "message": "Тестування компонентів",
     "description": "The label for category Component Testing in sidebar docs"
   },
   "sidebar.docs.category.Framework Setup": {
-    "message": "Framework Setup",
+    "message": "Налаштування фреймворку",
     "description": "The label for category Framework Setup in sidebar docs"
   },
   "sidebar.docs.category.Migrate": {
-    "message": "Migrate",
+    "message": "Міграція",
     "description": "The label for category Migrate in sidebar docs"
   },
   "sidebar.docs.category.Integration": {
-    "message": "Integration",
+    "message": "Інтеграція",
     "description": "The label for category Integration in sidebar docs"
   },
   "sidebar.docs.category.Reporter": {
-    "message": "Reporter",
+    "message": "Звітовик",
     "description": "The label for category Reporter in sidebar docs"
   },
   "sidebar.docs.category.Services": {
-    "message": "Services",
+    "message": "Сервіси",
     "description": "The label for category Services in sidebar docs"
   },
   "sidebar.api.category.Protocols": {
-    "message": "Protocols",
+    "message": "Протоколи",
     "description": "The label for category Protocols in sidebar api"
   },
   "sidebar.api.category.browser": {
@@ -64,11 +64,11 @@
     "description": "The label for category mock in sidebar api"
   },
   "sidebar.flowcharts.category.Flowcharts": {
-    "message": "Flowcharts",
+    "message": "Блок-схеми",
     "description": "The label for category Flowcharts in sidebar flowcharts"
   },
   "sidebar.docs.category.Web Extension Testing": {
-    "message": "Web Extension Testing",
+    "message": "Тестування веб-розширень",
     "description": "The label for category Web Extension Testing in sidebar docs"
   }
 }

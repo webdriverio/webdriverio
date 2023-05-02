@@ -1,6 +1,6 @@
 ---
 id: testexecution
-title: Test Execution
+title: Виконання тесту
 ---
 
-This flowchart explains the test execution process and the interaction between @wdio/runner and the most of the other WebdriverIO packages.
+Ця блок-схема пояснює процес виконання тесту та взаємодію між @wdio/runner і більшістю інших пакетів WebdriverIO.

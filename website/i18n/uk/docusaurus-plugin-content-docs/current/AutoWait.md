@@ -1,46 +1,46 @@
 ---
 id: autowait
-title: Auto-waiting
+title: Автоочікування
 ---
 
-One of the most common reasons for flaky tests are interactions with elements that don't exist in your application at the time you want to interact with it. Modern web applications are very dynamic, elements show up and disappear. As a human we are waiting unconsciously for elements but in an automated script we don't consider this as an action. There are two ways to wait on an element to show up.
+Однією з найпоширеніших причин нестабільних тестів є взаємодія з елементами, які ще не з'явилися у вашому додатку в момент взаємодії з ними. Сучасні веб застосунки дуже динамічні, елементи можуть то з’являтися, то зникати. Ми люди, несвідомо чекаємо на появу елементів, але складаючи сценарії автоматизації ми часто забуваємо про цю "дію". Є два способи дочекатися появи елемента.
 
-## Implicit vs. Explicit
+## Явний vs. Неявний
 
-The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefore makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
+Протокол WebDriver дає можливість вказати [неявний тайм-аут](https://w3c.github.io/webdriver/#timeouts), який визначатиме як довго драйвер має чекати, поки елемент не з’явиться. За замовчуванням для цього тайм-ауту встановлено значення `0`, тому драйвер одразу повертає помилку `no such element`, якщо елемент не знайдено на сторінці. Збільшення цього тайм-ауту за допомогою [`setTimeout`](/docs/api/browser/setTimeout) змусить драйвер чекати та збільшить шанси того, що елемент зрештою з’явиться.
 
 :::note
 
-Read more about WebDriver and framework related timeouts in the [timeouts guide](/docs/timeouts)
+Дізнайтеся більше про тайм-аути, пов’язані з WebDriver і фреймворком, у [документації з тайм-аутів](/docs/timeouts)
 
 :::
 
-A different approach is to use explicit waiting which is built into the WebdriverIO framework in commands such as [`waitForExist`](/docs/api/element/waitForExist). With this technique the framework polls for the element by calling multiple [`findElements`](/docs/api/webdriver#findelements) commands until the timeout is reached.
+Іншим підходом є використання явного очікування, вбудованого у WebdriverIO в командах таких як [`waitForExist`](/docs/api/element/waitForExist). За допомогою цієї техніки фреймворк чекає на елемент, викликаючи команду [`findElements`](/docs/api/webdriver#findelements) кілька разів, доки не буде досягнуто тайм-ауту.
 
-## Built-in Waiting
+## Вбудоване очікування
 
-Both waiting mechanisms are incompatible with each other and can cause longer wait times. As implicit waits are a global setting it is applied to all elements which is sometimes not the desired behavior. Therefore WebdriverIO provides a built-in wait mechanism that automatically explicitly waits on the element before interacting with it.
+Обидва механізми очікування несумісні один з одним і можуть призвести до сповільнення роботи. Оскільки неявне очікування є глобальним параметром, воно буде застосоване до всіх елементів, що іноді не є бажаною поведінкою. Тому WebdriverIO надає вбудований механізм очікування, який автоматично та явно очікуватиме на елемент перед взаємодією з ним.
 
 :::info Recommendation
 
-We recommend __not__ using implicit waits at all and have WebdriverIO handle element wait actions.
+Ми рекомендуємо __не__ використовувати неявне очікування взагалі, і дозволити WebdriverIO подбати про очікування елемента.
 
 :::
 
-Using implicit waits is also problematic in cases you are interested to wait until an element disappears. WebdriverIO uses polls for the element until it receives an error. Having an implicit wait option set unnecessarily delays the execution of the command and can cause long test durations.
+Використання неявних очікувань також є проблематичним у випадках, коли вам потрібно дочекатися, поки елемент зникне. WebdriverIO буде шукати елемент необхідну кількість разів, доки не отримає помилку. Встановлення неявного параметра очікування тільки дарма затримуватиме виконання команд та може спричинити збільшення часу необхідного для виконання тестів.
 
-You can set a default value for WebdriverIOs automatic explicit waiting by setting a [`waitforTimeout`](/docs/configuration#waitfortimeout) option in your configuration.
+Ви можете встановити значення за замовчуванням для автоматичного явного очікування WebdriverIO, визначивши параметр [`waitforTimeout`](/docs/configuration#waitfortimeout) у вашій конфігурації.
 
-## Limitations
+## Обмеження
 
-WebdriverIO can only wait for elements when they are implicitly defined. This is always the case when using the [`$`](/docs/api/browser/$) to fetch an element. It however is not supported when fetching a set of elements like this:
+WebdriverIO може чекати на елементи лише у разі коли вони визначені неявно. Це буде так, якщо для отримання об'єкту елемента використовується [`$`](/docs/api/browser/$). Однак це не підтримується у разу роботи із набором елементів, як продемонстровано тут:
 
 ```js
 const divs = await $$('div')
 await divs[2].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
-It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend using [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
+Абсолютно нормальним є отримання набору елементів і виконання дії із n-им елементом цього набору. Однак WebdriverIO не знає, скільки елементів ви очікуєте отримати. Оскільки [`$$`](/docs/api/browser/$$) повертає [масив](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) елементів WebdriverIO, вам потрібно вручну перевірити, чи результуючий масив містить достатню кількість елементів. Для цього ми рекомендуємо використовувати [`waitUntil`](/docs/api/browser/waitUntil), наприклад:
 
 ```js
 const div = await browser.waitUntil(async () => {

@@ -1,25 +1,25 @@
 ---
 id: openofficehours
-title: Office Hours
+title: Офісні години
 ---
 
-Contributing to a big Open Source project can be hard. Especially if the codebase is large and requires a lot of context to understand what certain changes do. Then there is the possibility that tools or infrastructure is being used that are unknown. Nevertheless the project depends on your contributions and help to identify bugs and fix them. How can we overcome this hurdle?
+Зробити внесок у великий проєкт з відкритим кодом може бути важко. Особливо, якщо кодова база велика і вимагає знання контексту, щоб зрозуміти певні зміни. Також існує ймовірність того, що використовуються невідомі інструменти чи інфраструктура. З усім тим, проєкт залежить від ваших внесків і допомоги у виявленні та виправленні помилок. Як же нам подолати цю перешкоду?
 
-The WebdriverIO projects has introduced Open Office Hours that allow everyone to schedule individual 1:1 pairing sessions with the WebdriverIO contributors. This allows you to get started contributing to WebdriverIO easily with the help of people that know the code base well. We only ask you to pick [a task](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Afirst-timers-only) you would like to work on up-front so that the pairing partner can be prepared for the session to provide better guidance. This is a free opportunity for you to not only give back to the WebdriverIO community but also get to know the team behind the project.
+Проєкти WebdriverIO запровадили відкриті офісні години, які дозволяють кожному назначити індивідуальні дзвінки 1:1 з розробниками WebdriverIO. Це дозволить вам розпочати роботу над WebdriverIO із допомогою людей, які добре знають кодову базу. Ми лише просимо вас заздалегідь вибрати [завдання](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Afirst-timers-only), над яким ви б хотіли працювати, щоб партнер міг підготуватися до дзвінка та надати кращі рекомендації. Це нагода для вас не лише віддячити спільноті WebdriverIO, але й познайомитися з командою, що стоїть за проєктом.
 
-Currently we offer 4 slots a week from: every Wednesday 10am - 12am (CEST / GMT+2) for our European friends as well as: 11am - 13am (PDT / GMT -7) for people living on the west side of this hemisphere.
+Нині ми пропонуємо 4 слоти на тиждень: кожної середи 10:00 - 12:00 (CEST / GMT+2) для наших європейських друзів, а також 11:00 - 13:00 (PDT / GMT -7) для людей із західної півкулі.
 
-Before you book an appointment, make sure you can meet the following basic requirements needed to contribute to WebdriverIO:
+Перш ніж забронювати зустріч, переконайтеся, що ви відповідаєте таким основним вимогам, необхідним для допомоги WebdriverIO:
 
-- you've found an issue you like to contribute to in the [issue tracker](https://github.com/webdriverio/webdriverio/issues) (without an issue, your appointment will be cancelled immediatelly)
-- you have been working on a Node.js project before (these sessions can't be used to learn Node.js fundamentals)
-- you've read the [Contribution Guidelines](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) and have the project set-up locally or in an ephemeral workspace
-- you can run the projects unit tests, and they are passing
+- ви знайшли issue, до вирішення якого хочете долучитися, у розділі [issues](https://github.com/webdriverio/webdriverio/issues) на GitHub (якщо issue не буде вказано, вашу зустріч буде негайно відхилено)
+- ви раніше працювали над Node.js проєктом (дзвінки не можна використовувати для вивчення основ Node.js)
+- ви прочитали [Рекомендації для учасників](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) та налаштували проєкт локально або в тимчасовому робочому оточенні
+- ви вмієте запускати модульні тести проєкту, і вони проходять
 
-After that, you can book an appointment at any time on:
+Після цього ви можете забронювати на зустріч у будь-який час за посиланням:
 
 [calendly.com/webdriverio/open-office-hours](https://calendly.com/webdriverio/open-office-hours)
 
-All sessions will be held over [Zoom](https://zoom.us/) or [Google Hangouts](https://hangouts.google.com/) but alternative platforms are possible, please let us know in the comment section. Also please note that this is not a way to get individual consulting for your own projects. The time is to be used to work on WebdriverIO related bugs or features. For support questions we still ask you to use our [Discord Support Server](https://discord.webdriver.io).
+Усі зустрічі проходять у [Zoom](https://zoom.us/) або [Google Hangouts](https://hangouts.google.com/), але можливі й альтернативні платформи, повідомте нам про це в розділі коментарів. Також зауважте, що це не спосіб отримати індивідуальну консультацію для власних проєктів. Весь час буде використано для роботи над помилками чи функціями, пов’язаними з WebdriverIO. Якщо у вас виникли запитання щодо підтримки, ми просимо вас використовувати наш [Сервер підтримки Discord](https://discord.webdriver.io).
 
-We are looking forward to meet you all online and hope to find more collaborators helping us to push the project forward!
+Ми з нетерпінням чекаємо зустрічі з вами онлайн і сподіваємось знайти більше однодумців, які допоможуть нам розвивати проєкт!

@@ -52,19 +52,19 @@
     "description": "The page & hero description of the blog archive page"
   },
   "theme.blog.paginator.navAriaLabel": {
-    "message": "Blog list page navigation",
+    "message": "Навигация по странице списка блога",
     "description": "The ARIA label for the blog pagination"
   },
   "theme.blog.paginator.newerEntries": {
-    "message": "Newer Entries",
+    "message": "Новые записи",
     "description": "The label used to navigate to the newer blog posts page (previous page)"
   },
   "theme.blog.paginator.olderEntries": {
-    "message": "Older Entries",
+    "message": "Старые записи",
     "description": "The label used to navigate to the older blog posts page (next page)"
   },
   "theme.blog.post.paginator.navAriaLabel": {
-    "message": "Blog post page navigation",
+    "message": "Навигация по странице списка блога",
     "description": "The ARIA label for the blog posts pagination"
   },
   "theme.blog.post.paginator.newerPost": {
@@ -80,7 +80,7 @@
     "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.blog.tagTitle": {
-    "message": "{nPosts} tagged with \"{tagName}\"",
+    "message": "{nPosts} отмечен тегом \"{tagName}\"",
     "description": "The title of the page for a blog tag"
   },
   "theme.tags.tagsPageLink": {
@@ -100,7 +100,7 @@
     "description": "The default description for a category card in the generated index about how many items this category includes"
   },
   "theme.colorToggle.ariaLabel": {
-    "message": "Switch between dark and light mode (currently {mode})",
+    "message": "Переключение между тёмной и светлой темой (сейчас используется {mode})",
     "description": "The ARIA label for the navbar color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
@@ -112,11 +112,11 @@
     "description": "The name for the light color mode"
   },
   "theme.docs.paginator.navAriaLabel": {
-    "message": "Docs pages navigation",
+    "message": "Навигация по страницам документов",
     "description": "The ARIA label for the docs pagination"
   },
   "theme.docs.paginator.previous": {
-    "message": "Previous",
+    "message": "Предыдущий",
     "description": "The label used to navigate to the previous doc"
   },
   "theme.docs.paginator.next": {
@@ -124,26 +124,26 @@
     "description": "The label used to navigate to the next doc"
   },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
-    "message": "One doc tagged|{count} docs tagged",
+    "message": "Один документ отмечен|{count} документов с тегами",
     "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.docs.tagDocListPageTitle": {
-    "message": "{nDocsTagged} with \"{tagName}\"",
+    "message": "{nDocsTagged} с \"{tagName}\"",
     "description": "The title of the page for a docs tag"
   },
   "theme.docs.versionBadge.label": {
-    "message": "Version: {versionLabel}"
+    "message": "Версия: {versionLabel}"
   },
   "theme.docs.versions.unreleasedVersionLabel": {
-    "message": "This is unreleased documentation for {siteTitle} {versionLabel} version.",
+    "message": "Это неопубликованная документация для {siteTitle} {versionLabel} версии.",
     "description": "The label used to tell the user that he's browsing an unreleased doc version"
   },
   "theme.docs.versions.unmaintainedVersionLabel": {
-    "message": "This is documentation for {siteTitle} {versionLabel}, which is no longer actively maintained.",
+    "message": "Эта документация для {siteTitle} {versionLabel} больше активно не поддерживается.",
     "description": "The label used to tell the user that he's browsing an unmaintained doc version"
   },
   "theme.docs.versions.latestVersionSuggestionLabel": {
-    "message": "For up-to-date documentation, see the {latestVersionLink} ({versionLabel}).",
+    "message": "Актуальная документация здесь {latestVersionLink} ({versionLabel}).",
     "description": "The label used to tell the user to check the latest version"
   },
   "theme.docs.versions.latestVersionLinkLabel": {
@@ -151,23 +151,23 @@
     "description": "The label used for the latest version suggestion link label"
   },
   "theme.common.editThisPage": {
-    "message": "Edit this page",
+    "message": "Редактировать эту страницу",
     "description": "The link label to edit the current page"
   },
   "theme.common.headingLinkTitle": {
-    "message": "Direct link to heading",
+    "message": "Прямая ссылка на заголовок",
     "description": "Title for link to heading"
   },
   "theme.lastUpdated.atDate": {
-    "message": " on {date}",
+    "message": " на {date}",
     "description": "The words used to describe on which date a page has been last updated"
   },
   "theme.lastUpdated.byUser": {
-    "message": " by {user}",
+    "message": " от {user}",
     "description": "The words used to describe by who the page has been last updated"
   },
   "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "Last updated{atDate}{byUser}",
+    "message": "Обновлено{atDate}{byUser}",
     "description": "The sentence used to display when a page has been last updated, and by who"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
@@ -183,7 +183,7 @@
     "description": "The label alongside a tag list"
   },
   "theme.blog.sidebar.navAriaLabel": {
-    "message": "Blog recent posts navigation",
+    "message": "Навигация по последним сообщениям в блоге",
     "description": "The ARIA label for recent posts in the blog sidebar"
   },
   "theme.CodeBlock.copied": {
@@ -199,11 +199,11 @@
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "Toggle word wrap",
+    "message": "Переключатель переноса слов",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Toggle the collapsible sidebar category '{label}'",
+    "message": "Переключатель сварачиваемой боковой панели категории '{label}'",
     "description": "The ARIA label to toggle the collapsible sidebar category"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
@@ -219,7 +219,7 @@
     "description": "The ARIA label for the link to full blog posts from excerpts"
   },
   "theme.blog.post.readingTime.plurals": {
-    "message": "One min read|{readingTime} min read",
+    "message": "Одна минута на прочтение|{readingTime} мин. для прочтения",
     "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.navbar.mobileLanguageDropdown.label": {
@@ -227,15 +227,15 @@
     "description": "The label for the mobile language switcher dropdown"
   },
   "theme.docs.sidebar.collapseButtonTitle": {
-    "message": "Collapse sidebar",
+    "message": "Свернуть боковую панель",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.collapseButtonAriaLabel": {
-    "message": "Collapse sidebar",
+    "message": "Свернуть боковую панель",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
-    "message": "Close navigation bar",
+    "message": "Закрыть панель навигации",
     "description": "The ARIA label for close button of mobile sidebar"
   },
   "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
@@ -243,34 +243,34 @@
     "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "Toggle navigation bar",
+    "message": "Переключатель навигационной панели",
     "description": "The ARIA label for hamburger menu button of mobile navigation"
   },
   "theme.docs.sidebar.expandButtonTitle": {
-    "message": "Expand sidebar",
+    "message": "Раскрыть боковую панель",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.docs.sidebar.expandButtonAriaLabel": {
-    "message": "Expand sidebar",
+    "message": "Раскрыть боковую панель",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.SearchBar.seeAll": {
-    "message": "See all {count} results"
+    "message": "Посмотреть все {count} результаты"
   },
   "theme.SearchPage.documentsFound.plurals": {
-    "message": "One document found|{count} documents found",
+    "message": "Найден один документ|{count} документов найдено",
     "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.SearchPage.existingResultsTitle": {
-    "message": "Search results for \"{query}\"",
+    "message": "Результаты поиска для \"{query}\"",
     "description": "The search page title for non-empty query"
   },
   "theme.SearchPage.emptyResultsTitle": {
-    "message": "Search the documentation",
+    "message": "Найти документацию",
     "description": "The search page title for empty query"
   },
   "theme.SearchPage.inputPlaceholder": {
-    "message": "Type your search here",
+    "message": "Введите поисковый запрос здесь",
     "description": "The placeholder for search page input"
   },
   "theme.SearchPage.inputLabel": {
@@ -278,7 +278,7 @@
     "description": "The ARIA label for search page input"
   },
   "theme.SearchPage.algoliaLabel": {
-    "message": "Search by Algolia",
+    "message": "Поиск по Algolia",
     "description": "The ARIA label for Algolia mention"
   },
   "theme.SearchPage.noResultsText": {
@@ -302,19 +302,19 @@
     "description": "The label and ARIA label for search box cancel button"
   },
   "theme.SearchModal.startScreen.recentSearchesTitle": {
-    "message": "Recent",
+    "message": "Недавние",
     "description": "The title for recent searches"
   },
   "theme.SearchModal.startScreen.noRecentSearchesText": {
-    "message": "No recent searches",
+    "message": "Нет недавних запросов",
     "description": "The text when no recent searches"
   },
   "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
-    "message": "Save this search",
+    "message": "Сохранить этот поисковый запрос",
     "description": "The label for save recent search button"
   },
   "theme.SearchModal.startScreen.removeRecentSearchButtonTitle": {
-    "message": "Remove this search from history",
+    "message": "Удалить этот запрос из истории поиска",
     "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
@@ -322,15 +322,15 @@
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
-    "message": "Remove this search from favorites",
+    "message": "Удалить этот поисковый запрос из избранного",
     "description": "The label for remove favorite search button"
   },
   "theme.SearchModal.errorScreen.titleText": {
-    "message": "Unable to fetch results",
+    "message": "Не удалось получить результаты",
     "description": "The title for error screen of search modal"
   },
   "theme.SearchModal.errorScreen.helpText": {
-    "message": "You might want to check your network connection.",
+    "message": "Проверьте подключение к сети.",
     "description": "The help text for error screen of search modal"
   },
   "theme.SearchModal.footer.selectText": {
@@ -374,11 +374,11 @@
     "description": "The text for the suggested query when no results are found for the following search"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
-    "message": "Believe this query should return results?",
+    "message": "Считаете, что этот запрос должен быть обработан?",
     "description": "The text for the question where the user thinks there are missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
-    "message": "Let us know.",
+    "message": "Свяжитесь с нами.",
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
@@ -394,7 +394,7 @@
     "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
   },
   "theme.IdealImageMessage.offline": {
-    "message": "Your browser is offline. Image not loaded",
+    "message": "Нет подключения к сети. Картинка не загружается",
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
@@ -418,7 +418,7 @@
     "description": "The ARIA label for close button of PWA reload popup"
   },
   "theme.common.skipToMainContent": {
-    "message": "Skip to main content",
+    "message": "Перейти к основному содержанию",
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
@@ -426,7 +426,7 @@
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
-    "message": "WebdriverIO allows you to test in actual browser or mobile devices used by your users."
+    "message": "WebdriverIO позволяет вам тестировать в настоящем браузере или на мобильных устройствах, используемыми вашими пользователями."
   },
   "Use WebdriverIO for full e2e or unit and component testing in the browser.": {
     "message": "Use WebdriverIO for full e2e or unit and component testing in the browser."
@@ -435,7 +435,7 @@
     "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
   },
   "Get Started": {
-    "message": "Get Started"
+    "message": "Начать"
   },
   "Why WebdriverIO?": {
     "message": "Почему WebdriverIO?"
@@ -447,10 +447,10 @@
     "message": "Смотреть на YouTube"
   },
   "Easy setup for web component testing with:": {
-    "message": "Easy setup for web component testing with:"
+    "message": "Простая настройка для тестирования веб-компонентов с помощью:"
   },
   "homepage.hightlight.createProject": {
-    "message": "Get Started With WebdriverIO within Seconds"
+    "message": "Начните работу с WebdriverIO за считанные секунды"
   },
   "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!": {
     "message": "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!"
@@ -489,19 +489,19 @@
     "message": "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made."
   },
   "Current version (Stable)": {
-    "message": "Current version (Stable)"
+    "message": "Текущая версия (Стабильная)"
   },
   "Here you can find the documentation for current released version.": {
-    "message": "Here you can find the documentation for current released version."
+    "message": "Здесь вы можете найти документацию для текущей выпущенной версии."
   },
   "Documentation": {
     "message": "Документация"
   },
   "Release Notes": {
-    "message": "Release Notes"
+    "message": "Сведения о версии"
   },
   "Past versions": {
-    "message": "Past versions"
+    "message": "Прошлые версии"
   },
   "Here you can find documentation for previous versions of Docusaurus.": {
     "message": "Здесь вы можете найти документацию для предыдущих версий Docusaurus."
@@ -554,7 +554,7 @@
     "message": "Auto Wait"
   },
   "features.standards": {
-    "message": "Based on Web Standards"
+    "message": "На основе веб-стандартов"
   },
   "features.mobileSupport": {
     "message": "Native Mobile Support"
@@ -569,6 +569,12 @@
     "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
   },
   "Who is using WebdriverIO?": {
-    "message": "Who is using WebdriverIO?"
+    "message": "Кто пользуется WebdriverIO?"
+  },
+  "all in one": {
+    "message": "все в одном"
+  },
+  "used by your users": {
+    "message": "используется вашими пользователями"
   }
 }

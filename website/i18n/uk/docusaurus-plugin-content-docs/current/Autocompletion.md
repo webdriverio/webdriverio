@@ -1,6 +1,6 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Автодоповнення коду
 ---
 
 ## IntelliJ
