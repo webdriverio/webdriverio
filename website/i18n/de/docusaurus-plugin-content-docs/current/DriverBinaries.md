@@ -7,7 +7,7 @@ Um die Automatisierung basierend auf dem WebDriver-Protokoll auszuführen, müss
 
 :::tip
 
-If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+Wenn Sie das Testen von mobilen und anderen UI-Plattformen einrichten möchten, werfen Sie einen Blick in unser [Appium Setup](appium) -Guide.
 
 :::
 
