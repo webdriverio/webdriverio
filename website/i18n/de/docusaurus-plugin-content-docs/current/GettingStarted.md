@@ -9,11 +9,11 @@ Willkommen auf der WebdriverIO Dokumentation-Seite. Diese wird Ihnen Helfen Ihre
 Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
 :::
 
-<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Erste Schritte mit WebdriverIO" />
 
-:::tip Official YouTube Channel 🎥
+:::tip Offizieller YouTube-Kanal 🎥
 
-You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+Weitere Videos rund um WebdriverIO finden Sie auf dem [offiziellen YouTube-Kanal](https://youtube.com/@webdriverio). Vergewissern Sie sich, dass Sie abonnieren!
 
 :::
 
