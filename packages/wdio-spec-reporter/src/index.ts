@@ -544,7 +544,7 @@ export default class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
-        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
@@ -557,7 +557,7 @@ export default class SpecReporter extends WDIOReporter {
 
         // Mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

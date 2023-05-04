@@ -38,14 +38,14 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
         ? [
             sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
-            sanitizeString(caps.platformVersion),
-            sanitizeString(caps.app)
+            sanitizeString(caps['appium:platformVersion']),
+            sanitizeString(caps['appium:app'])
         ]
         : [
             sanitizeString(caps.browserName),
             sanitizeString(caps.version || caps.browserVersion),
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps.app)
+            sanitizeString(caps['appium:app'])
         ]
 
     result = result.filter(n => n !== undefined && n !== '')
