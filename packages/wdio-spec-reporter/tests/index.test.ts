@@ -203,9 +203,9 @@ describe('SpecReporter', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         browserName: 'safari',
-                        deviceName: 'udid-serial-of-device',
-                        platformVersion: '14.3',
-                        platformName: 'iOS',
+                        ['appium:deviceName']: 'udid-serial-of-device',
+                        ['appium:platformVersion']: '14.3',
+                        ['appium:platformName']: 'iOS',
                         testobject_test_report_url: ' https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2'
                     },
                     sessionId: 'c752c683e0874da4b1dad593ce6645b2',
@@ -772,52 +772,60 @@ describe('SpecReporter', () => {
 
         it('should return verbose mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS'
+            })).toBe('iPhone 6 Plus on iOS 9.2')
+        })
+
+        it('should return verbose mobile combo', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS'
             })).toBe('iPhone 6 Plus on iOS 9.2')
         })
 
         it('should return preface mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS'
             }, false)).toBe('iPhone 6 Plus iOS 9.2')
         })
 
         it('should return verbose mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
+                ['appium:app']: 'sauce-storage:myApp.app'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return preface mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
+                ['appium:app']: 'sauce-storage:myApp.app'
             }, true)).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return verbose mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
                 browserName: 'Safari'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
         })
 
         it('should return preface mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
                 browserName: 'Safari'
             }, false)).toBe('iPhone 6 Plus iOS 9.2')
         })

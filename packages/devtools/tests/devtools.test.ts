@@ -38,7 +38,7 @@ test('newSession', async () => {
      * don't include platform specific information in snapshot
      */
     delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformName
-    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
+    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platform
 
     expect(client.options.capabilities).toMatchSnapshot()
     expect(client.options.requestedCapabilities).toMatchSnapshot()
@@ -73,7 +73,7 @@ test('attachSession', async () => {
      * don't include platform specific information in snapshot
      */
     delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformName
-    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
+    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platform
 
     expect(otherClient.capabilities).toMatchSnapshot()
     expect(otherClient.requestedCapabilities).toMatchSnapshot()

@@ -294,13 +294,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  */
 export function setupDirectConnect(client: Client) {
     const capabilities = client.capabilities as Capabilities.DesiredCapabilities
-    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
-    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
-    let directConnectPath = capabilities.directConnectPath
-    if (!(directConnectPath || directConnectPath === '')) {
-        directConnectPath = capabilities['appium:directConnectPath']
-    }
-    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
+    const directConnectProtocol = capabilities['appium:directConnectProtocol']
+    const directConnectHost = capabilities['appium:directConnectHost']
+    const directConnectPath = capabilities['appium:directConnectPath']
+    const directConnectPort = capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +

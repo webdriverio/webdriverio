@@ -535,7 +535,7 @@ export default class SpecReporter extends WDIOReporter {
             ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
             (capability as Capabilities.DesiredCapabilities)
         )
-        const device = caps.deviceName
+        const device = caps['appium:deviceName']
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
         /**
          * fallback to different capability types:
@@ -544,7 +544,7 @@ export default class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
-        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
@@ -553,11 +553,11 @@ export default class SpecReporter extends WDIOReporter {
          */
         const platform = isMultiremote
             ? ''
-            : caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+            : caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

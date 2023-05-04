@@ -291,8 +291,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
-
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
     }
 
     _updateJob (requestBody: any) {

@@ -79,7 +79,7 @@ export default class DevTools {
             browserName: (userAgent.browser.name || browserName || 'unknown').split(' ').shift()?.toLowerCase(),
             browserVersion: userAgent.browser.version,
             platformName: os.platform(),
-            platformVersion: os.release()
+            platform: os.release()
         }
 
         if (vendorCapPrefix) {
