@@ -535,7 +535,7 @@ export default class SpecReporter extends WDIOReporter {
             ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
             (capability as Capabilities.DesiredCapabilities)
         )
-        const device = caps.deviceName
+        const device = caps['appium:deviceName']
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
         /**
          * fallback to different capability types:
@@ -553,7 +553,7 @@ export default class SpecReporter extends WDIOReporter {
          */
         const platform = isMultiremote
             ? ''
-            : caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+            : caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {

@@ -36,8 +36,8 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
      */
     result = caps.deviceName
         ? [
-            sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
+            sanitizeString(caps.deviceName || caps['appium:deviceName']),
             sanitizeString(caps['appium:platformVersion']),
             sanitizeString(caps['appium:app'])
         ]

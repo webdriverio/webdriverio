@@ -75,7 +75,7 @@ describe('onPrepare', () => {
         const capabilities = { samsungGalaxy: { capabilities: {} } }
 
         await service.onPrepare(config, capabilities)
-        expect(capabilities.samsungGalaxy.capabilities).toEqual({ 'app': 'bs://<app-id>' })
+        expect(capabilities.samsungGalaxy.capabilities).toEqual({ 'appium:app': 'bs://<app-id>' })
     })
 
     it('should add the "appium:app" property to a multiremote capability if "bstack:options" present', async () => {
