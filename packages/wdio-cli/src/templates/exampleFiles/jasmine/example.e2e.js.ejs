@@ -4,10 +4,10 @@
  */
 if (usePageObjects) {
 %><%- isUsingTypeScript || esmSupport
-    ? `import LoginPage from '${relativePath}/login.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
+    ? `import LoginPage from '${relativePath}/login.page${esmSupport ? '.js' : ''}';`
     : `const LoginPage = require('${relativePath}/login.page');` %>
 <%- isUsingTypeScript || esmSupport
-    ? `import SecurePage from '${relativePath}/secure.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
+    ? `import SecurePage from '${relativePath}/secure.page${esmSupport ? '.js' : ''}';`
     : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 describe('My Login application', () => {
