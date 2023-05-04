@@ -3,21 +3,21 @@ id: lit
 title: Lit
 ---
 
-Lit is a simple library for building fast, lightweight web components. Testing Lit web components with WebdriverIO is very easy thanks to WebdriverIOs [shadow DOM selectors](/docs/selectors#deep-selectors) you can query in shadow roots nested elements with just one single command.
+Lit est une bibliothèque simple pour créer des composants Web rapides et légers. Tester les composants Web Lit avec WebdriverIO est très facile grâce aux sélecteurs DOM fantômes WebdriverIOs [](/docs/selectors#deep-selectors) , vous pouvez interroger les éléments imbriqués dans les racines fantômes avec une seule commande.
 
-## Setup
+## Configurer
 
-To setup WebdriverIO within your Lit project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements.
+Pour configurer WebdriverIO dans votre projet Lit, suivez les [instructions](/docs/component-testing#set-up) dans nos documents de test de composants. Pour Lit, vous n'avez pas besoin d'un préréglage car les composants Web Lit n'ont pas besoin de passer par un compilateur, ce sont de pures améliorations de composants Web.
 
-Once set-up, you can start the tests by running:
+Une fois configuré, vous pouvez démarrer les tests en exécutant :
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## Écriture de tests
 
-Given you have the following Lit component:
+Étant donné que vous avez le composant Lit suivant :
 
 ```ts title="./components/Component.ts"
 import { LitElement, css, html } from 'lit'
@@ -35,7 +35,7 @@ export class SimpleGreeting extends LitElement {
 }
 ```
 
-In order test the component you have to render it into the test page before the test starts and ensure it gets cleaned up afterwards:
+Pour tester le composant, vous devez le rendre dans la page de test avant le début du test et vous assurer qu'il est nettoyé par la suite :
 
 ```ts title="lit.test.js"
 import expect from 'expect'
@@ -66,4 +66,4 @@ describe('Lit Component testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for Lit in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/lit-typescript-vite).
+Vous pouvez trouver un exemple complet d'une suite de tests de composants WebdriverIO pour Lit dans notre référentiel [exemples](https://github.com/webdriverio/component-testing-examples/tree/main/lit-typescript-vite).
