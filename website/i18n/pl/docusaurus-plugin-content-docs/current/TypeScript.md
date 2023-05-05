@@ -1,21 +1,21 @@
 ---
 id: typescript
-title: Налаштування TypeScript
+title: TypeScript Setup
 ---
 
-Ви можете писати тести, використовуючи [TypeScript](http://www.typescriptlang.org) для автозаповнення і безпеки типів.
+You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
 
-Вам знадобиться встановити [`typescript`](https://github.com/microsoft/TypeScript) і [`ts-node`](https://github.com/TypeStrong/ts-node) як `devDependencies` командою:
+You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
 
 ```bash npm2yarn
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO автоматично визначить, чи встановлено ці залежності, і скомпілює вашу конфігурацію та тести для вас. Переконайтеся, що `tsconfig.json` знаходиться в тому самому каталозі, що й конфігурація WDIO. Якщо вам потрібно налаштувати роботу ts-node, скористайтеся змінними середовища для [ts-node](https://www.npmjs.com/package/ts-node#options) або скористайтеся [розділом autoCompileOpts](configurationfile) конфігурації wdio.
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
 
-## Конфігурація
+## Configuration
 
-Ви можете вказати свої опції `ts-node` через `wdio.conf.ts`, наприклад:
+You can provide custom `ts-node` options through your `wdio.conf.ts`, e.g.:
 
 ```ts title="wdio.conf.ts"
 export const config = {
@@ -32,16 +32,16 @@ export const config = {
 }
 ```
 
-Або застосувати їх через середовище:
+Or apply them through the environment:
 
 ```sh
 # run wdio testrunner with custom tsconfig.json location
 TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
 ```
 
-Мінімальна версія TypeScript — `v4.0.5`.
+The minimum TypeScript version is `v4.0.5`.
 
-## Налаштування фреймворку
+## Framework Setup
 
 And your `tsconfig.json` needs the following:
 
