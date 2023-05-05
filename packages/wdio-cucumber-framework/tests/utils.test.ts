@@ -165,7 +165,13 @@ describe('utils', () => {
             browserName: 'chrome'
         }, {
             id: '123',
-            tags: [{ name: '@skip(browserName="chrome")' }]
+            tags: [{ name: '@skip()' }]
+        } as any)).toBe(false)
+        expect(filterPickles({
+            browserName: 'chrome'
+        }, {
+            id: '123',
+            tags: [{ name: '@skip' }]
         } as any)).toBe(false)
         expect(filterPickles({
             browserName: 'chrome'
