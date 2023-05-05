@@ -1,6 +1,6 @@
 ---
 id: runner
-title: Runner
+title: اجرا کننده
 ---
 
 import CodeBlock from '@theme/CodeBlock';
