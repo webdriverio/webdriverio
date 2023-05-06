@@ -1,17 +1,17 @@
 ---
 id: web-extension-testing
-title: Web Extension Testing
+title: Тестування веброзширень
 ---
 
-WebdriverIO is the ideal tool to automate a browser. Web Extensions are a part of the browser and can be automated in the same way. Whenever your web extension uses content scripts to run JavaScript on websites or offer a popup modal, you can run an e2e test for that using WebdriverIO.
+WebdriverIO — ідеальний інструмент для автоматизації браузера. Веброзширення є частиною браузера і можуть бути автоматизовані таким же чином. Незалежно від того, чи ваше веброзширення запускає JavaScript на відкритих вебсайтах, чи відкриває власне виринаюче вікно, ви можете створити для цього e2e тест за допомогою WebdriverIO.
 
-## Loading a Web Extension into the Browser
+## Завантаження веброзширення в браузер
 
-As a first step we have to load the extension under test into the browser as part of our session. This works differently for Chrome and Firefox.
+Для початку нам потрібно завантажити розширення, яке будемо тестувати, у браузер під час початку сесії. Це відбуватиметься по-різному для Chrome і Firefox.
 
 :::info
 
-These docs leave out Safari web extensions as their support for it is way behind and user demand not high. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
+У цьому документі не згадуються веброзширення для Safari, оскільки їхня реалізація значно відстає від стандартів, а попит користувачів невисокий. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
 
 :::
 
