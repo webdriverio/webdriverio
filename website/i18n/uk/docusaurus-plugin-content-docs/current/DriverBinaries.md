@@ -1,9 +1,9 @@
 ---
 id: driverbinaries
-title: Driver Binaries
+title: Бінарні файли драйверів
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+Щоб запустити автоматизацію на основі протоколу WebDriver, вам потрібно налаштувати драйвери браузерів, які розуміють команди автоматизації та виконують їх у браузері. Нижче описано, як можна налаштувати кожен драйвер окремо. Ви можете знайти список усіх драйверів у [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver).
 
 :::tip
 
