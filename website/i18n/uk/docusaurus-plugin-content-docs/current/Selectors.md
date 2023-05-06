@@ -1,11 +1,11 @@
 ---
 id: selectors
-title: Selectors
+title: Селектори
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+[WebDriver протокол](https://w3c.github.io/webdriver/) надає кілька типів селекторів для пошуку елемента. WebdriverIO спрощує їх, щоб зробити пошук елементів простішим. Зауважте, що попри те, що команди для пошуку елементів називаються `$` та `$$`, вони не мають нічого спільного з jQuery або [Sizzle Selector Engine](https://github.com/jquery/sizzle).
 
-While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+Зауважте, що не всі із великої кількості типів селекторів можуть забезпечити, надійний пошук потрібного вам елемента. Наприклад, маючи таку кнопку:
 
 ```html
 <button
@@ -19,17 +19,17 @@ While there are so many different selectors available, only a few of them provid
 </button>
 ```
 
-We __do__ and __do not__ recommend the following selectors:
+Ми __рекомендуємо__ і __не рекомендуємо__ наступні селектори:
 
-| Selector                                      | Recommended  | Notes                                                       |
-| --------------------------------------------- | ------------ | ----------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Never      | Worst - too generic, no context.                            |
-| `$('.btn.btn-large')`                         | 🚨 Never      | Bad. Coupled to styling. Highly subject to change.          |
-| `$('#main')`                                  | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write.                       |
-| `$('button[name="submission"]')`              | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics.   |
-| `$('button[data-testid="submit"]')`           | ✅ Good       | Requires additional attribute, not connected to a11y.       |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Always     | Best. Resembles how the user interacts with the page.       |
+| Селектор                                      | Використовувати | Роз'яснення                                                 |
+| --------------------------------------------- | --------------- | ----------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Ніколи        | Найгірше – надто загальне, без контексту.                   |
+| `$('.btn.btn-large')`                         | 🚨 Ніколи        | Поганий. Coupled to styling. Highly subject to change.      |
+| `$('#main')`                                  | ⚠️ Обережно     | Better. But still coupled to styling or JS event listeners. |
+| `$(() => document.queryElement('button'))` | ⚠️ Обережно     | Effective querying, complex to write.                       |
+| `$('button[name="submission"]')`              | ⚠️ Обережно     | Coupled to the `name` attribute which has HTML semantics.   |
+| `$('button[data-testid="submit"]')`           | ✅ Можна         | Requires additional attribute, not connected to a11y.       |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Завжди        | Best. Resembles how the user interacts with the page.       |
 
 ## CSS Query Selector
 
