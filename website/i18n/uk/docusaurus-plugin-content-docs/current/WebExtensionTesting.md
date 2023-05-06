@@ -11,13 +11,13 @@ WebdriverIO — ідеальний інструмент для автомати�
 
 :::info
 
-У цьому документі не згадуються веброзширення для Safari, оскільки їхня реалізація значно відстає від стандартів, а попит користувачів невисокий. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
+У цьому документі не згадуються веброзширення для Safari, оскільки їхня реалізація значно відстає від стандартів, а попит користувачів невисокий. Якщо ви створюєте веброзширення для Safari, будь ласка [створіть issue у GitHub](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) і допоможіть нам додати підтримку у WebdriverIO.
 
 :::
 
 ### Chrome
 
-Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capaiblities as following:
+Завантажити веброзширення в Chrome можна, вказавши вміст скомпільованого `.crx` файлу, як рядок у `base64` форматі, або вказавши шлях до теки із веброзширенням. Найпростіше буде зробити останнє, визначивши ваші параметри Chrome таким чином:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -40,11 +40,11 @@ export const config = {
 
 :::info
 
-If you automate a different browser than Chrome, e.g. Brave, Edge or Opera, chances are that the browser option match with the example above, just using a different capability name, e.g. `ms:edgeOptions`.
+Якщо ви автоматизуєте інший вебпереглядач, ніж Chrome, наприклад, Brave, Edge або Opera, є ймовірність, що опція буде збігатися із наведеним вище прикладом, просто використайте назву для параметра відповідно для браузера параметрів, наприклад `ms:edgeOptions` для Edge.
 
 :::
 
-If you compile your extension as `.crx` file using e.g. the [crx](https://www.npmjs.com/package/crx) NPM package, you can also inject the bundled extension via:
+Якщо ви скомпілюєте своє розширення як файл `.crx`, використовуючи, наприклад, NPM пакунок [crx](https://www.npmjs.com/package/crx), ви також можете додати розширення за допомогою наступних параметрів:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -67,7 +67,7 @@ export const config = {
 
 ### Firefox
 
-To create a Firefox profile that includes extensions you can use the [Firefox Profile Service](/docs/firefox-profile-service) to set up your session accordingly. However you might run into issues where your local developed extension can't be loaded due to signing issues. In this case you can also load an extension in the `before` hook via the [`installAddOn`](/docs/api/gecko#installaddon) command, e.g.:
+Щоб створити профіль Firefox із розширеннями, ви можете скористатися [Службою профілів Firefox](/docs/firefox-profile-service), щоб налаштувати відповідно налаштувати сесію. Однак у вас можуть виникнути проблема, що ваше локально розроблене розширення не може бути встановлено через проблеми із підписом. У цьому випадку ви можете встановити розширення за допомогою хуку `before` використовуючи команду [`installAddOn`](/docs/api/gecko#installaddon), наприклад:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -88,7 +88,7 @@ export const config = {
 }
 ```
 
-In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](https://www.npmjs.com/package/web-ext) NPM package. You can bundle your extension using the following example command:
+Щоб створити файл `.xpi`, рекомендується використовувати NPM пакунок [`web-ext`](https://www.npmjs.com/package/web-ext). Ви можете зібрати своє розширення за допомогою такої команди:
 
 ```sh
 npx web-ext build -s dist/ -a . -n web-extension-firefox.xpi
