@@ -227,7 +227,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## ARIA - атрибут ролі
 
-For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
+Для пошуку елементів на основі [ARIA ролей](https://www.w3.org/TR/html-aria/#docconformance)ви можете безпосередньо вказати роль елемента, як `[role=button]` у селекторі:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L13
@@ -237,13 +237,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L131-L132
 ```
 
-## ID Attribute
+## Атрибут ID
 
-Locator strategy "id" is not supported in WebDriver protocol, one should use either CSS or xPath selector strategies instead to find elements using ID.
+Тип пошуку «id» не підтримується протоколом WebDriver, замість цього слід використовувати CSS або xPath пошук вказавши ID елемента.
 
-However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
+Проте деякі драйвери (наприклад [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) все ще можуть [підтримувати](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) цей селектор.
 
-Current supported selector syntaxes for ID are:
+Поточні підтримувані способи пошуку елемента за ID:
 
 ```js
 //css locator
@@ -255,45 +255,45 @@ const button = await $('//*[@id="someid"]')
 const button = await $('id=resource-id/iosname')
 ```
 
-## JS Function
+## JS Функція
 
-You can also use JavaScript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
+Ви також можете використовувати функції JavaScript для пошуку елементів використовуючи вбудоване API. Звичайно, ви можете зробити це лише всередині вебконтексту (наприклад у браузері або вебконтексті на мобільному пристрої).
 
-Given the following HTML structure:
+Маючи наступну структуру HTML:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/js.html
 ```
 
-You can query the sibling element of `#elem` as follows:
+Ви можете запитати сусідній від `#elem` елемент наступним чином:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L139-L143
 ```
 
-## Deep Selectors
+## Глибокі селектори
 
-Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
+Багато вебзастосунків інтегрують елементи із [тіньовим DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Без обхідних шляхів пошук елементів у тіньовому DOM є технічно неможливим. [`shadow$`](https://webdriver.io/docs/api/element/shadow$) і [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) були такими обхідними шляхами, які мали свої [обмеження](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Але тепер за допомогою глибокого селектора ви можете шукати елементи всередині будь-якого тіньового DOM використовуючи стандартну функцію для пошуку.
 
-Given we have an application with the following structure:
+Маючи вебзастосунок із такою структурою:
 
 ![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
-With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
+За допомогою цього селектора ви можете знайти елемент `<button />`, який розташований в іншому тіньову DOM, наприклад:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L147-L149
 ```
 
-## Mobile Selectors
+## Мобільні селектори
 
-For hybrid mobile testing, it's important that the automation server is in the correct *context* before executing commands. For automating gestures, the driver ideally should be set to native context. But to select elements from the DOM, the driver will need to be set to the platform's webview context. Only *then* can the methods mentioned above can be used.
+Для гібридного мобільного тестування важливо, щоб сервер автоматизації був у потрібному *контексті* перед виконанням команд. Для автоматизації жестів драйвер в ідеалі має бути налаштований на головний контекст. Але щоб знайти елементи у DOM, драйвер потрібно налаштувати на контекст вебпереглядача. Лише *тоді* можна використовувати методи, згадані вище.
 
-For native mobile testing, there is no switching between contexts, as you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.
+Для нативного мобільного тестування не потрібно змінювати контексти, оскільки вам потрібно використовувати спеціальні мобільні типи селекторів та використовувати безпосередньо базову технологію автоматизації пристрою. Це особливо корисно, коли тест потребує тонкого контролю над пошуком елементів.
 
 ### Android UiAutomator
 
-Android’s UI Automator framework provides a number of ways to find elements. You can use the [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), in particular the [UiSelector class](https://developer.android.com/reference/androidx/test/uiautomator/UiSelector) to locate elements. In Appium you send the Java code, as a string, to the server, which executes it in the application’s environment, returning the element or elements.
+Платформа Android UI Automator надає кілька типів пошуку елементів. Ви можете використовувати [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), зокрема [клас UiSelector](https://developer.android.com/reference/androidx/test/uiautomator/UiSelector) для пошуку елементів. В Appium ви надсилаєте рядок із Java кодом на сервер, який виконує його в середовищі мобільного додатку, повертаючи елемент або декілька елементів.
 
 ```js
 const selector = 'new UiSelector().text("Cancel").className("android.widget.Button")'
@@ -301,9 +301,9 @@ const button = await $(`android=${selector}`)
 await button.click()
 ```
 
-### Android DataMatcher and ViewMatcher (Espresso only)
+### Android DataMatcher і ViewMatcher (тільки Espresso)
 
-Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
+Тип DataMatcher від Espresso забезпечує пошук елементів за [DataMatcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
 ```js
 const menuItem = await $({
@@ -313,7 +313,7 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-And similarly [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
+І аналогічно [ViewMatcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
 
 ```js
 const menuItem = await $({
@@ -324,9 +324,9 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-### Android View Tag (Espresso only)
+### Android View Tag (тільки Espresso)
 
-The view tag strategy provides a convenient way to find elements by their [tag](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
+Тип View Tag забезпечує зручний спосіб пошуку елементів за їхнім [тегом](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
 
 ```js
 const elem = await $('-android viewtag:tag_identifier')
@@ -335,9 +335,9 @@ await elem.click()
 
 ### iOS UIAutomation
 
-When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements.
+Під час автоматизації iOS застосунків для пошуку елементів можна використовувати Apple [UI Automation фреймворк](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html).
 
-This JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) has methods to access to the view and everything on it.
+Це JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) має методи доступу до представлення елемента та всього, що в ньому міститься.
 
 ```js
 const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
@@ -345,11 +345,11 @@ const button = await $(`ios=${selector}`)
 await button.click()
 ```
 
-You can also use predicate searching within iOS UI Automation in Appium to refine element selection even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) for details.
+Ви також можете використовувати предикатний пошук з iOS UI Automation в Appium, щоб ще більш точно вибирати елементи. Дивіться [тут](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) щоб дізнатися більше.
 
-### iOS XCUITest predicate strings and class chains
+### iOS XCUITest рядки предикатів і ланцюжки класів
 
-With iOS 10 and above (using the `XCUITest` driver), you can use [predicate strings](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
+З iOS 10 і вище (за допомогою драйвера `XCUITest`) ви можете використовувати [рядки предикатів](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
 
 ```js
 const selector = `type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'`
@@ -357,7 +357,7 @@ const switch = await $(`-ios predicate string:${selector}`)
 await switch.click()
 ```
 
-And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
+І [ланцюжки класів](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton'
@@ -367,25 +367,25 @@ await button.click()
 
 ### Accessibility ID
 
-The `accessibility id` locator strategy is designed to read a unique identifier for a UI element. This has the benefit of not changing during localization or any other process that might change text. In addition, it can be an aid in creating cross-platform tests, if elements that are functionally the same have the same accessibility id.
+Тип пошуку `accessibility id` призначена для пошуку за унікальним ідентифікатором елемента інтерфейсу користувача. Цей спосіб має перевагу, оскільки ідентифікатор не змінюється під час локалізації чи будь-якого іншого процесу. Крім того, це може бути корисно при створенні кросплатформних тестів, коли функціонально однакові елементи мають однаковий ідентифікатор доступності.
 
-- For iOS this is the `accessibility identifier` laid out by Apple [here](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html).
-- For Android the `accessibility id` maps to the `content-description` for the element, as described [here](https://developer.android.com/training/accessibility/accessible-app.html).
+- Для iOS це `accessibility identifier` викладений Apple [тут](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html).
+- Для Android `accessibility id` відповідає `content-description` елемента, як описано [тут](https://developer.android.com/training/accessibility/accessible-app.html).
 
-For both platforms, getting an element (or multiple elements) by their `accessibility id` is usually the best method. It is also the preferred way over the deprecated `name` strategy.
+Для обох платформ зазвичай найкращим методом є пошук елемента (або кількох елементів) за їхнім `accessibility id`. Використання цього типу селекторів, також є більш бажаним за використання застарілого типу `name`.
 
 ```js
 const elem = await $('~my_accessibility_identifier')
 await elem.click()
 ```
 
-### Class Name
+### Назва класу
 
-The `class name` strategy is a `string` representing a UI element on the current view.
+Назва класу — це рядок, який представляє елемент інтерфейсу користувача у поточному контексті.
 
-- For iOS it is the full name of a [UIAutomation class](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), and will begin with `UIA-`, such as `UIATextField` for a text field. A full reference can be found [here](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
-- For Android it is the fully qualified name of a [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html), such `android.widget.EditText` for a text field. A full reference can be found [here](https://developer.android.com/reference/android/widget/package-summary.html).
-- For Youi.tv it is the full name of a Youi.tv class, and will being with `CYI-`, such as `CYIPushButtonView` for a push button element. A full reference can be found at [You.i Engine Driver's GitHub page](https://github.com/YOU-i-Labs/appium-youiengine-driver)
+- Для iOS це повна назва класу [UIAutomation](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), що починається з `UIA-`, наприклад `UIATextField` для текстового поля. Повну довідку можна знайти [тут](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
+- Для Android це повна назва [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [класу](https://developer.android.com/reference/android/widget/package-summary.html), наприклад `android.widget.EditText` для текстового поля. Повну довідку можна знайти [тут](https://developer.android.com/reference/android/widget/package-summary.html).
+- Для Youi.tv це повна назва класу Youi.tv і що починається з `CYI-`, наприклад `CYIPushButtonView` для елемента кнопки. Повну довідку можна знайти на GitHub сторінці [You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver)
 
 ```js
 // iOS example
@@ -396,11 +396,11 @@ await $('android.widget.DatePicker').click()
 await $('CYIPushButtonView').click()
 ```
 
-## Chain Selectors
+## Ланцюжок селекторів
 
-If you want to be more specific in your query, you can chain selectors until you've found the right element. If you call `element` before your actual command, WebdriverIO starts the query from that element.
+Якщо ви хочете більше конкретизувати свій пошук, ви можете об'єднувати селектори, доки не дійдете до потрібного елементу. Якщо ви маєте інший елемент перед командою пошуку, WebdriverIO починає пошук із цього елемента.
 
-For example, if you have a DOM structure like:
+Наприклад, якщо у вас є така структура DOM:
 
 ```html
 <div class="row">
@@ -422,40 +422,40 @@ For example, if you have a DOM structure like:
 </div>
 ```
 
-And you want to add product B to the cart, it would be difficult to do that just by using the CSS selector.
+І ви хочете додати продукт B у кошик, це буде важко зробити, просто використовуючи селектор CSS.
 
-With selector chaining, it's way easier. Simply narrow down the desired element step by step:
+З ланцюжком селекторів це набагато простіше. Просто конкретизуйте свій пошук крок за кроком:
 
 ```js
 await $('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
-### Appium Image Selector
+### Селектор зображень Appium
 
-Using the  `-image` locator strategy, it is possible to send an Appium an image file representing an element you want to access.
+Використовуючи тип селектора `-image`, можна надіслати Appium файл зображення, що представляє елемент, до якого ви хочете отримати доступ.
 
-Supported file formats `jpg,png,gif,bmp,svg`
+Підтримувані формати файлів `jpg,png,gif,bmp,svg`
 
-Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Повну довідку можна знайти [тут](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
 await elem.click()
 ```
 
-**Note**: The way how Appium works with this selector is that it will internally make a (app)screenshot and use the provided image selector to verify if the element can be found in that (app)screenshot.
+**Примітка**: Спосіб, у який Appium працює з цим селектором, полягає в тому, що він створює знімок екрана (застосунку) і використовує надане зображення, щоб перевірити, чи можна знайти елемент на знімку екрана (застосунку).
 
-Be aware of the fact that Appium might resize the taken (app)screenshot to make it match the CSS-size of your (app)screen (this will happen on iPhones but also on Mac machines with a Retina display because the DPR is bigger than 1). This will result in not finding a match because the provided image selector might have been taken from the original screenshot. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
+Майте на увазі, що Appium може змінити розмір зробленого знімка екрана (застосунку), щоб він відповідав CSS-розміру вашого екрана (застосунку) (це обов'язково станеться на iPhone, а також на комп’ютерах Mac із дисплеєм Retina, оскільки DPR більший ніж 1). Це призведе до того, що збіг не буде знайдено, оскільки наданий селектор зображення міг бути взятий з оригінального знімка екрана. Ви можете виправити це, оновивши налаштування сервера Appium, перегляньте [документацію Appium](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) для налаштувань і [цей коментар](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) з докладним поясненням.
 
-## React Selectors
+## Селектори React
 
-WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
+WebdriverIO дозволяє пошук компонентів React за їхнім іменем. Для цього у вас є дві команди: `react$` та `react$$`.
 
-These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements (depending on which function is used).
+Ці команди дозволяють шукати компоненти у [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) і повертати або один елемент WebdriverIO, або масив елементів (залежно від того, яка функція використовується).
 
-**Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
+**Примітка**: Команди `react$` і `react$$` подібні за функціональністю, за винятком того, що `react$$` поверне *усі* відповідні екземпляри як масив елементів WebdriverIO, а `react$` поверне лише перший знайдений екземпляр.
 
-#### Basic example
+#### Простий приклад
 
 ```jsx
 // index.jsx
@@ -477,19 +477,19 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`.
+У наведеному вище коді є простий екземпляр `MyComponent` всередині застосунку, який React відображає всередині елемента HTML з `id="root"`.
 
-With the `browser.react$` command, you can select an instance of `MyComponent`:
+За допомогою команди `browser.react$` ви можете отримати доступ до екземпляра `MyComponent`:
 
 ```js
 const myCmp = await browser.react$('MyComponent')
 ```
 
-Now that you have the WebdriverIO element stored in `myCmp` variable, you can execute element commands against it.
+Тепер, коли у вас є елемент WebdriverIO, збережений у змінній `myCmp`, ви можете виконувати  різні команди елемента із ним.
 
-#### Filtering components
+#### Фільтрація компонентів
 
-The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. To do so, you need to pass a second argument for props and/or a third argument for state to the browser command.
+Бібліотека, яку WebdriverIO використовує, дозволяє фільтрувати компоненти за параметрами та/або станом. Для цього вам потрібно передати команді браузера другий аргумент для параметрів та/або третій аргумент для стану.
 
 ```jsx
 // index.jsx
@@ -516,7 +516,7 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-If you want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO`, you can execute the command like so:
+Якщо ви хочете отримати екземпляр `MyComponent`, який має параметр `name` зі значенням `WebdriverIO`, ви можете виконати таку команду:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -524,7 +524,7 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-If you wanted to filter our selection by state, the `browser` command would looks something like so:
+Якщо ви хочете відфільтрувати компоненти за станом, команда виглядатиме приблизно так:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -532,9 +532,9 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-#### Dealing with `React.Fragment`
+#### Робота з `React.Fragment`
 
-When using the `react$` command to select React [fragments](https://reactjs.org/docs/fragments.html), WebdriverIO will return the first child of that component as the component's node. If you use `react$$`, you will receive an array containing all the HTML nodes inside the fragments that match the selector.
+У разі використання команди `react$` для вибору React [fragments](https://reactjs.org/docs/fragments.html) WebdriverIO поверне перший вкладений елемент цього компонента. Якщо ви використовуєте `react$$`, ви отримаєте масив, що містить усі HTML-елементи всередині фрагментів, які відповідають селектору.
 
 ```jsx
 // index.jsx
@@ -561,14 +561,14 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-Given the above example, this is how the commands would work:
+З наведеним вище прикладом, ось як працюватимуть команди:
 
 ```js
 await browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
 await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
 ```
 
-**Note:** If you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
+**Примітка:** Якщо у вас є кілька екземплярів `MyComponent` і ви використовуєте `react$$` для пошуку цих компонентів-фрагментів, вам буде повернено масив усіх елементів. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
 
 ## Custom Selector Strategies
 
