@@ -331,3 +331,208 @@ test('connect to an existing devtools browser url', async () => {
     expect(vi.mocked(puppeteer.connect))
         .toBeCalledWith(devtoolsOptions)
 })
+
+test('launch Chrome with default Args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'chrome',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+
+    expect(launchChromeBrowser).toBeCalledWith(
+        expect.objectContaining({
+            chromeFlags: expect.arrayContaining([
+                '--ignore-certificate-errors',
+            ]),
+        })
+    )
+})
+
+test('launch Chrome while ignoring default args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'chrome',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+
+    expect(launchChromeBrowser).toBeCalledWith(
+        expect.objectContaining({
+            chromeFlags: expect.arrayContaining([
+                '--ignore-certificate-errors',
+            ]),
+        })
+    )
+})
+
+test('launch Edge with default Args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'edge',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            args: ['--ignore-certificate-errors'],
+        })
+    )
+})
+
+test('launch Edge while ignoring default args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'edge',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            args: ['--ignore-certificate-errors'],
+        })
+    )
+})
+
+test('launch Firefox with default Args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'firefox',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            'ignoreHTTPSErrors': true
+        })
+    )
+})
+
+test('launch Firefox while ignoring default args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
+    await launch({
+        browserName: 'firefox',
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+            ignoreHTTPSErrors: true
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            'ignoreHTTPSErrors': true
+        })
+    )
+})
+
+test('launch Chrome with default Args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'chrome',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+        }
+    })
+
+    expect(launchChromeBrowser).toBeCalledWith(
+        expect.objectContaining({
+            chromeFlags: expect.arrayContaining([
+                '--ignore-certificate-errors',
+            ]),
+        })
+    )
+})
+
+test('launch Chrome while ignoring default args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'chrome',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+        }
+    })
+
+    expect(launchChromeBrowser).toBeCalledWith(
+        expect.objectContaining({
+            chromeFlags: expect.arrayContaining([
+                '--ignore-certificate-errors',
+            ]),
+        })
+    )
+})
+
+test('launch Edge with default Args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'edge',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            args: ['--ignore-certificate-errors'],
+        })
+    )
+})
+
+test('launch Edge while ignoring default args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'edge',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            args: ['--ignore-certificate-errors'],
+        })
+    )
+})
+
+test('launch Firefox with default Args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'firefox',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false,
+            headless: true,
+        }
+    })
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            'ignoreHTTPSErrors': true
+        })
+    )
+})
+
+test('launch Firefox while ignoring default args to ignore certificate errors (W3C capability acceptInsecureCerts)', async () => {
+    await launch({
+        browserName: 'firefox',
+        acceptInsecureCerts: true,
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: true,
+            headless: true,
+        }
+    })
+
+    expect(puppeteer.launch).toBeCalledWith(
+        expect.objectContaining({
+            'ignoreHTTPSErrors': true,
+        })
+    )
+})
