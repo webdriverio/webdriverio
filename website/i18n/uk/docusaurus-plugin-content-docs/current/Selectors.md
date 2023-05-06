@@ -21,51 +21,51 @@ title: Селектори
 
 Ми __рекомендуємо__ і __не рекомендуємо__ наступні селектори:
 
-| Селектор                                      | Використовувати | Роз'яснення                                                 |
-| --------------------------------------------- | --------------- | ----------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Ніколи        | Найгірше – надто загальне, без контексту.                   |
-| `$('.btn.btn-large')`                         | 🚨 Ніколи        | Поганий. Coupled to styling. Highly subject to change.      |
-| `$('#main')`                                  | ⚠️ Обережно     | Better. But still coupled to styling or JS event listeners. |
-| `$(() => document.queryElement('button'))` | ⚠️ Обережно     | Effective querying, complex to write.                       |
-| `$('button[name="submission"]')`              | ⚠️ Обережно     | Coupled to the `name` attribute which has HTML semantics.   |
-| `$('button[data-testid="submit"]')`           | ✅ Можна         | Requires additional attribute, not connected to a11y.       |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Завжди        | Best. Resembles how the user interacts with the page.       |
+| Селектор                                      | Використовувати | Роз'яснення                                                     |
+| --------------------------------------------- | --------------- | --------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Ніколи        | Найгірше – надто загальне, без контексту.                       |
+| `$('.btn.btn-large')`                         | 🚨 Ніколи        | Поганий. Зв'язаний зі стилями. Дуже схильний до змін.           |
+| `$('#main')`                                  | ⚠️ Обережно     | Краще. Але все ще зв'язаний зі стилями або слухачами подій JS.  |
+| `$(() => document.queryElement('button'))` | ⚠️ Обережно     | Ефективний, проте занадто складний для написання.               |
+| `$('button[name="submission"]')`              | ⚠️ Обережно     | Зв'язаний із атрибутом `name`, який має семантику HTML.         |
+| `$('button[data-testid="submit"]')`           | ✅ Можна         | Вимагає додаткових атрибутів, не пов'язаних із доступністю.     |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Завжди        | Найкращий. Демонструє те, як користувач взаємодіє зі сторінкою. |
 
-## CSS Query Selector
+## CSS селектори
 
-If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
+Якщо не вказано інше, WebdriverIO шукатиме елементи за допомогою [CSS селекторів](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors), наприклад:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L7-L8
 ```
 
-## Link Text
+## Текст посилання
 
-To get an anchor element with a specific text in it, query the text starting with an equals (`=`) sign.
+Щоб отримати елемент посилання із певним текстом у ньому, вкажіть текст, починаючи зі знака рівності (`=`).
 
-For example:
+Наприклад:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L3
 ```
 
-You can query this element by calling:
+Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L16-L18
 ```
 
-## Partial Link Text
+## Частковий текст посилання
 
-To find a anchor element whose visible text partially matches your search value, query it by using `*=` in front of the query string (e.g. `*=driver`).
+Щоб знайти елемент посилання, текст якого частково містить текст що ви шукаєте, використайте `*=` перед вашим текстом (наприклад `*=driver`).
 
-You can query the element from the example above by also calling:
+Ви можете знайти елемент із прикладу вище, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L24-L26
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Примітка:__ Ви не можете поєднувати кілька типів пошуку в одному селекторі. Використовуйте кілька послідовних пошуків елементів для досягнення цієї мети, наприклад:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
@@ -73,41 +73,41 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('*=driver')
 ```
 
-## Element with certain text
+## Елемент з певним текстом
 
-The same technique can be applied to elements as well.
+Цю ж техніку можна застосувати і до елементів.
 
-For example, here's a query for a level 1 heading with the text "Welcome to my Page":
+Наприклад, ось запит для заголовка рівня 1 із текстом "Welcome to my Page":
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L2
 ```
 
-You can query this element by calling:
+Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
 ```
 
-Or using query partial text:
+Або використовуючи пошук за частковим збігом тексту:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
 ```
 
-The same works for `id` and `class` names:
+Те саме працює для атрибутів `id` та `class`:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L4
 ```
 
-You can query this element by calling:
+Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Примітка:__ Ви не можете поєднувати кілька типів пошуку в одному селекторі. Використовуйте кілька послідовних пошуків елементів для досягнення цієї мети, наприклад:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
@@ -115,23 +115,23 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('h1*=Welcome')
 ```
 
-## Tag Name
+## Назва тегу
 
-To query an element with a specific tag name, use `<tag>` or `<tag />`.
+Щоб знайти елемент із певною назвою тегу, використовуйте `<tag>` або `<tag />`.
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L5
 ```
 
-You can query this element by calling:
+Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L61-L62
 ```
 
-## Name Attribute
+## Атрибут name
 
-For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
+Для запиту елементів із певним атрибутом name ви можете використовувати звичайний CSS селектор або спеціальний тип пошуку за цим атрибутом, що реалізований у [JSONWire протоколі](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol), вказавши щось на зразок `[name="some-name"]` у своєму селекторі:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L6
@@ -141,33 +141,33 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L68-L69
 ```
 
-__Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+__Примітка:__ Цей тип пошуку застарів та працює лише в старих браузерах, які працюють із JSONWire протоколом або з Appium.
 
 ## xPath
 
-It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
+Отримати доступ до елемента можна також через [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
 
-An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
+Селектор xPath має такий формат: `//body/div[6]/div[1]/span[1]`.
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/xpath.html
 ```
 
-You can query the second paragraph by calling:
+Ви можете знайти другий абзац, викликавши:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L75-L76
 ```
 
-You can use xPath to also traverse up and down the DOM tree:
+Ви також можете використовувати xPath для переходу вгору та вниз DOM деревом:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L78-L79
 ```
 
-## Accessibility Name Selector
+## Ім'я доступності
 
-Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+Шукайте елементи за їхніми іменами доступності. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
 
 :::info
 
