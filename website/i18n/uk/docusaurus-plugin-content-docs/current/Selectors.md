@@ -277,7 +277,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Маючи вебзастосунок із такою структурою:
 
-![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
+![Приклад Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Приклад Chrome")
 
 За допомогою цього селектора ви можете знайти елемент `<button />`, який розташований в іншому тіньову DOM, наприклад:
 
@@ -568,11 +568,11 @@ await browser.react$('MyComponent') // returns the WebdriverIO Element for the f
 await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
 ```
 
-**Примітка:** Якщо у вас є кілька екземплярів `MyComponent` і ви використовуєте `react$$` для пошуку цих компонентів-фрагментів, вам буде повернено масив усіх елементів. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
+**Примітка:** Якщо у вас є кілька екземплярів `MyComponent` і ви використовуєте `react$$` для пошуку цих компонентів-фрагментів, вам буде повернено масив усіх елементів. Іншими словами, якщо у вас є 3 екземпляри `<MyComponent />`, вам буде повернено масив із шістьма елементами WebdriverIO.
 
-## Custom Selector Strategies
+## Користувацькі селектори
 
-If your app requires a specific way to fetch elements you can define yourself a custom selector strategy that you can use with `custom$` and `custom$$`. For that register your strategy once in the beginning of the test:
+Якщо для вашого застосунку потрібен особливий спосіб пошуку елементів, ви можете визначити власний тип селектора, який можна використовувати за допомогою `custom$` і `custom$$`. Для цього зареєструйте свій тип селектора один раз на початку тесту:
 
 ```js
 browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
@@ -585,7 +585,7 @@ browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
 })
 ```
 
-Given the following HTML snippet:
+Маючи наступну структуру HTML:
 
 ```html
 <div class="foobar" id="first">
@@ -595,7 +595,7 @@ Given the following HTML snippet:
 </div>
 ```
 
-Then use it by calling:
+Потім використовуйте його, викликавши:
 
 ```js
 const elem = await browser.custom$('myCustomStrategy', '.foobar')
@@ -604,4 +604,4 @@ const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
 console.log(await elem.getAttribute('id')) // returns "second"
 ```
 
-**Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute) command can be run.
+**Примітка:** це працюватиме лише у вебсередовищі, де можна запустити команду [`execute`](/docs/api/browser/execute).
