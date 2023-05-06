@@ -29,6 +29,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@cucumber/messages": "22.0.0",
+    "@cucumber/gherkin": "26.2.0",
+    "@cucumber/tag-expressions": "5.0.1",
     "@wdio/logger": "8.6.6",
     "@wdio/types": "8.10.0",
     "@wdio/utils": "8.10.0",

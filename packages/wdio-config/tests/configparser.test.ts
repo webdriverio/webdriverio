@@ -21,9 +21,14 @@ const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
 const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts')
+const FIXTURES_CUCUMBER_FEATURE_A = path.resolve(FIXTURES_PATH, 'test-a.feature')
+const FIXTURES_CUCUMBER_FEATURE_B = path.resolve(FIXTURES_PATH, 'test-b.feature')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
+const FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS = path.resolve(FIXTURES_PATH, 'test-c.feature')
+const FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS_LINE_WITH_TAG_9 = path.resolve(FIXTURES_PATH, 'test-c.feature:9')
+
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -89,12 +94,13 @@ async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<File
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../RequireLibrary.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-c.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents('test file contents'),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
@@ -413,7 +419,7 @@ describe('ConfigParser', () => {
 
         it('should allow specifying mutliple single spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, FIXTURES_CONF] })
+            await configParser.initialize({ spec: [INDEX_PATH, FIXTURES_CONF] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
@@ -423,7 +429,7 @@ describe('ConfigParser', () => {
 
         it('should allow to specify partial matching spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : ['Library'] })
+            await configParser.initialize({ spec: ['Library'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
@@ -431,7 +437,7 @@ describe('ConfigParser', () => {
 
         it('should handle an array in the config_specs', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
-            await configParser.initialize({ spec : ['Library'] })
+            await configParser.initialize({ spec: ['Library'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
@@ -439,7 +445,7 @@ describe('ConfigParser', () => {
 
         it('should exclude duplicate spec files', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, INDEX_PATH] })
+            await configParser.initialize({ spec: [INDEX_PATH, INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -936,5 +942,253 @@ describe('ConfigParser', () => {
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')
         })
+    })
+
+    describe('Cucumber filtering', () => {
+
+        it('should include files with tag in Feature', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize()
+
+            configParser['merge']({
+                framework: 'cucumber',
+                specs: [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ],
+                cucumberOpts: {
+                    tagExpression: '@runall'
+                },
+            })
+            const filePaths = configParser.getSpecs()
+
+            expect(filePaths).toStrictEqual([
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+            ])
+        })
+
+        it('should include files with tag in root Scenarios', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize()
+
+            configParser['merge']({
+                framework: 'cucumber',
+                specs: [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ],
+                cucumberOpts: {
+                    tagExpression: '@run'
+                },
+            })
+            const filePaths = configParser.getSpecs()
+
+            expect(filePaths).toStrictEqual([
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+            ])
+        })
+
+        it('should include files with tag in Scenario inside Rule', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize()
+
+            configParser['merge']({
+                framework: 'cucumber',
+                specs: [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ],
+                cucumberOpts: {
+                    tagExpression: '@runinrule'
+                },
+            })
+            const filePaths = configParser.getSpecs()
+
+            expect(filePaths).toStrictEqual(
+                [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS]
+            )
+        })
+
+        it('should include files with tag in Rule', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize()
+
+            configParser['merge']({
+                framework: 'cucumber',
+                specs: [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ],
+                cucumberOpts: {
+                    tagExpression: '@runrule'
+                },
+            })
+            const filePaths = configParser.getSpecs()
+
+            expect(filePaths).toStrictEqual(
+                [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS]
+            )
+        })
+
+        it('should include files with tag in root Scenario Outline', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize()
+
+            configParser['merge']({
+                framework: 'cucumber',
+                specs: [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ],
+                cucumberOpts: {
+                    tagExpression: '@runoutline'
+                },
+            })
+            const filePaths = configParser.getSpecs()
+
+            expect(filePaths).toStrictEqual(
+                [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS]
+            )
+        })
+    })
+
+    it('should include files with tag in Scenario Outline inside Rule', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+        await configParser.initialize()
+
+        configParser['merge']({
+            framework: 'cucumber',
+            specs: [
+                FIXTURES_CUCUMBER_FEATURE_A,
+                FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+            ],
+            cucumberOpts: {
+                tagExpression: '@runinruleoutline'
+            },
+        })
+        const filePaths = configParser.getSpecs()
+
+        expect(filePaths).toStrictEqual(
+            [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS]
+        )
+    })
+
+    it('should not include any files if tag expression does not match any tags', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+        await configParser.initialize()
+
+        configParser['merge']({
+            framework: 'cucumber',
+            specs: [
+                FIXTURES_CUCUMBER_FEATURE_A,
+                FIXTURES_CUCUMBER_FEATURE_B_LINE_7,
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+            ],
+            cucumberOpts: {
+                tagExpression: '@notfoundanywhere'
+            },
+        })
+        const filePaths = configParser.getSpecs()
+
+        expect(filePaths).toStrictEqual([])
+    })
+
+    it('should not include any files if tag is nowhere to be found', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+        await configParser.initialize()
+
+        configParser['merge']({
+            framework: 'cucumber',
+            specs: [
+                [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B
+                ],
+                FIXTURES_PATH + '/**/*.feature',
+                [
+                    FIXTURES_PATH + '/**/*.feature',
+                    FIXTURES_CUCUMBER_FEATURE_A
+                ],
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS,
+                [
+                    FIXTURES_PATH + '/**/*.feature',
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ]
+            ],
+            cucumberOpts: {
+                tagExpression: '@notfoundanywhere'
+            },
+        })
+        const filePaths = configParser.getSpecs()
+
+        expect(filePaths).toStrictEqual([])
+    })
+
+    it('should include files if they have matching tags at specified line', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+        await configParser.initialize()
+
+        configParser['merge']({
+            framework: 'cucumber',
+            specs: [
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS_LINE_WITH_TAG_9
+            ],
+            cucumberOpts: {
+                tagExpression: '@tagAtLine'
+            },
+        })
+        const filePaths = configParser.getSpecs()
+
+        expect(filePaths).toStrictEqual(
+            [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS]
+        )
+    })
+
+    it('should include specific files grouped accordingly if tag is found somewhere', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+        await configParser.initialize()
+
+        configParser['merge']({
+            framework: 'cucumber',
+            specs: [
+                [
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B
+                ],
+                FIXTURES_PATH + '/**/*.feature',
+                [
+                    FIXTURES_PATH + '/**/*.feature',
+                    FIXTURES_CUCUMBER_FEATURE_A
+                ],
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS,
+                [
+                    FIXTURES_PATH + '/**/*.feature',
+                    FIXTURES_CUCUMBER_FEATURE_A,
+                    FIXTURES_CUCUMBER_FEATURE_B,
+                    FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+                ]
+            ],
+            cucumberOpts: {
+                tagExpression: '@runall'
+            },
+        })
+        const filePaths = configParser.getSpecs()
+
+        expect(filePaths).toStrictEqual([
+            FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS,
+            [FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS],
+            [
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS,
+                FIXTURES_CUCUMBER_FEATURE_C_COMPLEX_RULES_OUTLINES_BACKGROUND_TAGS
+            ]
+        ])
     })
 })
