@@ -11,14 +11,14 @@ Społeczność WebdriverIO prowadzi warsztaty na całym świecie. Zachęcamy do 
 
 - [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
-## Assets
+## Zasoby
 
-If you create your own WebdriverIO content for education purposes, feel free to grab these assets to include in your materials.
+Jeśli tworzysz własne treści WebdriverIO do celów edukacyjnych, możesz pobrać te zasoby i dołączyć je do swoich materiałów.
 
 ### Roboter Logo
 
 ![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
 
-### Project Logo
+### Logo Projektu
 
 ![Roboter Logo](/img/materials/logo.svg "Project Logo")
