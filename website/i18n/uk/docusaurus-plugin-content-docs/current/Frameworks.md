@@ -1,23 +1,23 @@
 ---
 id: frameworks
-title: Frameworks
+title: Тестові фреймворки
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+Наразі виконувач тестів WDIO підтримує [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/)і [Cucumber](https://cucumber.io/).
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+Щоб інтегрувати будь-який із фреймворків з WebdriverIO, у NPM є пакунки-адаптери, які потрібно заздалегідь встановити. Ці пакунки не мають бути встановлені деінде, натомість їх треба встановити в тому самому місці, де встановлено WebdriverIO. Отже, якщо ви встановили WebdriverIO глобально, обов’язково встановіть глобально і пакунок-адаптер.
 
-Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
+У тестових файлах (або файлах із визначенням кроків) ви можете отримати доступ до екземпляра WebDriver за допомогою глобальної змінної `browser`. (Вам не потрібно починати або завершувати Selenium сесію. Про це подбає виконувач тестів `WDIO`)
 
-## Using Mocha
+## Використання із Mocha
 
-First, install the adapter package from NPM:
+Спочатку встановіть пакунок-адаптер із NPM:
 
 ```bash npm2yarn
 npm install @wdio/mocha-framework --save-dev
 ```
 
-By default WebdriverIO provides an [assertion library](assertion) that is built-in which you can start right away:
+За замовчуванням WebdriverIO постачається із вбудованою [бібліотекою перевірок](assertion), яку ви можете використовувати у ваших тестах:
 
 ```js
 describe('my awesome website', () => {
@@ -28,9 +28,9 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
+WebdriverIO підтримує такі [інтерфейси Mocha](https://mochajs.org/#interfaces): `BDD` (за замовчуванням), `TDD` і `QUnit`.
 
-If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
+Якщо ви хочете описувати свої тести стилі TDD стилі, встановіть значення `tdd` для властивості `ui`, що в об'єкті `mochaOpts` у вашому файлі конфігурацій. Тепер ваші файли із тестами можуть містити наступне:
 
 ```js
 suite('my awesome website', () => {
@@ -41,9 +41,9 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
+Якщо ви хочете визначити й інші налаштування Mocha, ви можете додати їх до об'єкта `mochaOpts` у файлі конфігурації. Список усіх варіантів можна знайти на вебсайті фреймворку [Mocha](https://mochajs.org/api/mocha).
 
-__Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
+__Примітка:__ WebdriverIO не підтримує застарілий метод зворотного виклику `done` у Mocha:
 
 ```js
 it('should test something', (done) => {
@@ -51,9 +51,9 @@ it('should test something', (done) => {
 })
 ```
 
-### Mocha Options
+### Параметри Mocha
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:
+Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Mocha. __Примітка:__ не всі параметри підтримуються, наприклад, застосування параметра `parallel` призведе до помилки, оскільки виконувач тестів WDIO має власний механізм паралельного запуску тестів. Підтримуються такі параметри:
 
 #### require
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
