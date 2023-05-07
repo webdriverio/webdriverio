@@ -1,13 +1,13 @@
 ---
 id: materials
-title: Materials
+title: Materiały
 ---
 
-If you want to use WebdriverIO materials for your own workshops or events feel free to grab them directly from here.
+Jeśli chcesz wykorzystać materiały WebdriverIO do własnych warsztatów lub organizacji wydarzeń, pobierz je stąd.
 
-## Workshops
+## Warsztaty
 
-The WebdriverIO community gives workshops around the world. Feel free to use these materials to host your own.
+Społeczność WebdriverIO prowadzi warsztaty na całym świecie. Zachęcamy do korzystania z tych materiałów do organizacji własnych.
 
 - [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
