@@ -257,35 +257,35 @@ const button = await $('id=resource-id/iosname')
 
 ## تابع JS
 
-You can also use JavaScript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
+همچنین می توانید از توابع جاوا اسکریپت برای دریافت عناصر با استفاده از API های بومی وب استفاده کنید. البته، شما فقط می توانید این کار را در یک زمینه وب (به عنوان مثال، `browser`، یا وب در تلفن همراه) انجام دهید.
 
-Given the following HTML structure:
+ساختار HTML زیر را فرض کنید:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/js.html
 ```
 
-You can query the sibling element of `#elem` as follows:
+می توانید عنصر خواهر و برادر `#elem` را به صورت زیر جستجو کنید:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L139-L143
 ```
 
-## Deep Selectors
+## انتخابگرهای عمیق
 
-Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
+بسیاری از برنامه های فرانت اند به شدت به عناصر دارای [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM) متکی هستند. از نظر فنی امکان درخواست عناصر در Shadow DOM بدون راه حل های خاص وجود ندارد. [`shadow$`](https://webdriver.io/docs/api/element/shadow$) و [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) راه حل هایی بوده اند که [محدودیت](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow) خود را داشتند. با انتخابگر عمیق، اکنون می توانید با استفاده از دستور query مشترک، همه عناصر را در هر DOM سایه ای درخواست کنید.
 
-Given we have an application with the following structure:
+فرض کنید یک برنامه با ساختار زیر داریم:
 
 ![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
-With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
+با استفاده از این انتخابگر می توانید عنصر `<button />` را که در یک Shadow DOM دیگر قرار دارد، جستجو کنید، به عنوان مثال:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L147-L149
 ```
 
-## Mobile Selectors
+## انتخابگرهای موبایل
 
 For hybrid mobile testing, it's important that the automation server is in the correct *context* before executing commands. For automating gestures, the driver ideally should be set to native context. But to select elements from the DOM, the driver will need to be set to the platform's webview context. Only *then* can the methods mentioned above can be used.
 
