@@ -199,11 +199,11 @@
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "Przełącz zwijanie wyrazów",
+    "message": "Włącz/wyłącz zwijanie wyrazów",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Toggle the collapsible sidebar category '{label}'",
+    "message": "Zwiń/rozwiń kategorię '{label}' w panelu bocznym",
     "description": "The ARIA label to toggle the collapsible sidebar category"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
@@ -219,7 +219,7 @@
     "description": "The ARIA label for the link to full blog posts from excerpts"
   },
   "theme.blog.post.readingTime.plurals": {
-    "message": "One min read|{readingTime} min read",
+    "message": "Minuta czytania|Minut czytania: {readingTime}",
     "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.navbar.mobileLanguageDropdown.label": {
@@ -243,7 +243,7 @@
     "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "Przełącz panel nawigacyjny",
+    "message": "Pokaż/ukryj panel nawigacyjny",
     "description": "The ARIA label for hamburger menu button of mobile navigation"
   },
   "theme.docs.sidebar.expandButtonTitle": {
@@ -322,135 +322,135 @@
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
-    "message": "Remove this search from favorites",
+    "message": "Usuń to wyszukiwanie z ulubionych",
     "description": "The label for remove favorite search button"
   },
   "theme.SearchModal.errorScreen.titleText": {
-    "message": "Unable to fetch results",
+    "message": "Nie udało się pobrać wyników",
     "description": "The title for error screen of search modal"
   },
   "theme.SearchModal.errorScreen.helpText": {
-    "message": "You might want to check your network connection.",
+    "message": "Upewnij się, że Twoje połączenie sieciowe nie ma zakłóceń.",
     "description": "The help text for error screen of search modal"
   },
   "theme.SearchModal.footer.selectText": {
-    "message": "to select",
+    "message": "zaznacz",
     "description": "The explanatory text of the action for the enter key"
   },
   "theme.SearchModal.footer.selectKeyAriaLabel": {
-    "message": "Enter key",
+    "message": "Wprowadź klucz",
     "description": "The ARIA label for the Enter key button that makes the selection"
   },
   "theme.SearchModal.footer.navigateText": {
-    "message": "to navigate",
+    "message": "nawiguj",
     "description": "The explanatory text of the action for the Arrow up and Arrow down key"
   },
   "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
-    "message": "Arrow up",
+    "message": "Strzałka w górę",
     "description": "The ARIA label for the Arrow up key button that makes the navigation"
   },
   "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
-    "message": "Arrow down",
+    "message": "Strzałka w dół",
     "description": "The ARIA label for the Arrow down key button that makes the navigation"
   },
   "theme.SearchModal.footer.closeText": {
-    "message": "to close",
+    "message": "zamknij",
     "description": "The explanatory text of the action for Escape key"
   },
   "theme.SearchModal.footer.closeKeyAriaLabel": {
-    "message": "Escape key",
+    "message": "Klawisz Escape",
     "description": "The ARIA label for the Escape key button that close the modal"
   },
   "theme.SearchModal.footer.searchByText": {
-    "message": "Search by",
+    "message": "Szukaj z wykorzystaniem",
     "description": "The text explain that the search is making by Algolia"
   },
   "theme.SearchModal.noResultsScreen.noResultsText": {
-    "message": "No results for",
+    "message": "Brak wyników dla",
     "description": "The text explains that there are no results for the following search"
   },
   "theme.SearchModal.noResultsScreen.suggestedQueryText": {
-    "message": "Try searching for",
+    "message": "Spróbuj wyszukać",
     "description": "The text for the suggested query when no results are found for the following search"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
-    "message": "Believe this query should return results?",
+    "message": "Czy uważasz, że to zapytanie powinno zwrócić wyniki?",
     "description": "The text for the question where the user thinks there are missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
-    "message": "Let us know.",
+    "message": "Daj nam znać.",
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "Search docs",
+    "message": "Przeszukaj dokumentację",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.IdealImageMessage.loading": {
-    "message": "Loading...",
+    "message": "Ładowanie...",
     "description": "When the full-scale image is loading"
   },
   "theme.IdealImageMessage.load": {
-    "message": "Click to load{sizeMessage}",
+    "message": "Kliknij, aby załadować{sizeMessage}",
     "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
   },
   "theme.IdealImageMessage.offline": {
-    "message": "Your browser is offline. Image not loaded",
+    "message": "Twoja przeglądarka jest offline. Obraz nie został załadowany",
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
-    "message": "404. Image not found",
+    "message": "404. Nie znaleziono obrazu",
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
-    "message": "Error. Click to reload",
+    "message": "Błąd. Kliknij, aby odświeżyć",
     "description": "When the image fails to load for unknown error"
   },
   "theme.PwaReloadPopup.info": {
-    "message": "New version available",
+    "message": "Dostępna jest nowa wersja",
     "description": "The text for PWA reload popup"
   },
   "theme.PwaReloadPopup.refreshButtonText": {
-    "message": "Refresh",
+    "message": "Odśwież",
     "description": "The text for PWA reload button"
   },
   "theme.PwaReloadPopup.closeButtonAriaLabel": {
-    "message": "Close",
+    "message": "Zamknij",
     "description": "The ARIA label for close button of PWA reload popup"
   },
   "theme.common.skipToMainContent": {
-    "message": "Skip to main content",
+    "message": "Przejdź do głównej zawartości",
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "Tags",
+    "message": "Tagi",
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
-    "message": "WebdriverIO allows you to test in actual browser or mobile devices used by your users."
+    "message": "WebdriverIO umożliwia testowanie w rzeczywistych przeglądarkach lub urządzeniach mobilnych wykorzystywanych przez Twoich użytkowników."
   },
   "Use WebdriverIO for full e2e or unit and component testing in the browser.": {
-    "message": "Use WebdriverIO for full e2e or unit and component testing in the browser."
+    "message": "WebdriverIO możesz wykorzystać do pełnych testów end-to-end, jednostkowych oraz komponentowych z wykorzystaniem przeglądarki."
   },
   "WebdriverIO automatically waits for elements to appear before interacting with them.": {
-    "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
+    "message": "WebdriverIO automatycznie czeka na pojawienie się elementów, zanim przejdzie do interakcji."
   },
   "Get Started": {
-    "message": "Get Started"
+    "message": "Pierwsze kroki"
   },
   "Why WebdriverIO?": {
-    "message": "Why WebdriverIO?"
+    "message": "Dlaczego WebdriverIO?"
   },
   "View on GitHub": {
-    "message": "View on GitHub"
+    "message": "Zobacz na GitHubie"
   },
   "Watch on YouTube": {
-    "message": "Watch on YouTube"
+    "message": "Obejrzyj na YouTube"
   },
   "Easy setup for web component testing with:": {
-    "message": "Easy setup for web component testing with:"
+    "message": "Prosta konfiguracja do testów komponentowych dzięki:"
   },
   "homepage.hightlight.createProject": {
-    "message": "Get Started With WebdriverIO within Seconds"
+    "message": "Rozpocznij pracę z WebdriverIO w kilka sekund"
   },
   "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!": {
     "message": "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!"
