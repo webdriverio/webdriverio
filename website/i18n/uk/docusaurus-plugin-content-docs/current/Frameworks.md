@@ -56,83 +56,83 @@ it('should test something', (done) => {
 Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Mocha. __Примітка:__ не всі параметри підтримуються, наприклад, застосування параметра `parallel` призведе до помилки, оскільки виконувач тестів WDIO має власний механізм паралельного запуску тестів. Підтримуються такі параметри:
 
 #### require
-The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
+Параметр `require` корисний, коли ви хочете додати або розширити деякі вбудовані функції (WebdriverIO параметр).
 
 Type: `string|string[]`<br /> Default: `[]`
 
 #### compilers
-Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+Використовуйте вказаний(і) модуль(і) для компіляції файлів. Компілятори будуть підключені раніше, ніж `require` (WebdriverIO параметр).
 
 Type: `string[]`<br /> Default: `[]`
 
 #### allowUncaught
-Propagate uncaught errors.
+Поширювати неперехоплені помилки.
 
 Type: `boolean`<br /> Default: `false`
 
 #### bail
-Bail after first test failure.
+Зупинитися після першого невдалого тесту.
 
 Type: `boolean`<br /> Default: `false`
 
 #### checkLeaks
-Check for global variable leaks.
+Перевіряти на наявність витоку глобальних змінних.
 
 Type: `boolean`<br /> Default: `false`
 
 #### delay
-Delay root suite execution.
+Відкласти виконання головного набору.
 
 Type: `boolean`<br /> Default: `false`
 
 #### fgrep
-Test filter given string.
+Відфільтрувати тести на відповідність вказаному рядку.
 
 Type: `string`<br /> Default: `null`
 
 #### forbidOnly
-Tests marked `only` fail the suite.
+Використання `only` у тестових файлах викличе визнання всього набору тестів невдалим.
 
 Type: `boolean`<br /> Default: `false`
 
 #### forbidPending
-Pending tests fail the suite.
+Використання `skip` у тестових файлах викличе визнання всього набору тестів невдалим.
 
 Type: `boolean`<br /> Default: `false`
 
 #### fullTrace
-Full stacktrace upon failure.
+Показати повний стек викликів у разі помилки.
 
 Type: `boolean`<br /> Default: `false`
 
 #### global
-Variables expected in global scope.
+Очікувані глобальні змінні.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### grep
-Test filter given regular expression.
+Відфільтрувати тести на відповідність вказаному регулярному виразу.
 
 Type: `RegExp|string`<br /> Default: `null`
 
 #### invert
-Invert test filter matches.
+Інвертувати збіги фільтра тестів.
 
 Type: `boolean`<br /> Default: `false`
 
 #### retries
-Number of times to retry failed tests.
+Кількість повторень для невдалих тестів.
 
 Type: `number`<br /> Default: `0`
 
 #### timeout
-Timeout threshold value (in ms).
+Порогове значення тайм-ауту (у мс).
 
 Type: `number`<br /> Default: `30000`
 
-## Using Jasmine
+## Використання із Jasmine
 
-First, install the adapter package from NPM:
+Спочатку встановіть пакунок-адаптер із NPM:
 
 ```bash npm2yarn
 npm install @wdio/jasmine-framework --save-dev
