@@ -332,8 +332,6 @@ test('connect to an existing devtools browser url', async () => {
         .toBeCalledWith(devtoolsOptions)
 })
 
-//asd
-
 test('launch Chrome with default Args to ignore certificate errors (devtools option ignoreHTTPSErrors)', async () => {
     await launch({
         browserName: 'chrome',
