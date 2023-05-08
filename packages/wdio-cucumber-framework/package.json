@@ -38,7 +38,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "8.5.3",
+    "@cucumber/cucumber": "9.1.2",
     "@cucumber/gherkin": "26.2.0",
     "@cucumber/gherkin-streams": "^5.0.0",
     "@cucumber/messages": "22.0.0",
