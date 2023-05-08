@@ -196,47 +196,47 @@ Type: `boolean`<br /> Default: `true`
 Type: `Function`<br /> Default: `null`
 
 #### failSpecWithNoExpectations
-Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+Чи вважати тест невдалим, якщо у ньому не має жодної перевірки. За замовчуванням тест, який не виконує жодної перевірки, буде вважатися успішним. Якщо встановити цей параметр у true, такий тест буде вважатися невдалим.
 
 Type: `boolean`<br /> Default: `false`
 
 #### oneFailurePerSpec
-Whether to cause specs to only have one expectation failure.
+Чи обмежувати тестові файли тільки однією невдалою перевіркою.
 
 Type: `boolean`<br /> Default: `false`
 
 #### specFilter
-Function to use to filter specs.
+Функція для фільтрації тестів.
 
 Type: `Function`<br /> Default: `(spec) => true`
 
 #### grep
-Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+Виконуйте лише тести, які відповідають цьому рядку або регулярному виразу. (Застосовується, лише якщо не встановлено функцію `specFilter`)
 
 Type: `string|Regexp`<br /> Default: `null`
 
 #### invertGrep
-If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+Якщо true, буде виконано лише ті тести, що не збігаються з виразом, використаним у `grep`. (Застосовується, лише якщо не встановлено функцію `specFilter`)
 
 Type: `boolean`<br /> Default: `false`
 
-## Using Cucumber
+## Використання із Cucumber
 
-First, install the adapter package from NPM:
+Спочатку встановіть пакунок-адаптер із NPM:
 
 ```bash npm2yarn
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
+Якщо ви хочете використовувати Cucumber, установіть для властивості `framework` значення `cucumber`, додавши `framework: 'cucumber'` до [файлу конфігурації](configurationfile).
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Параметри для Cucumber можна вказати у файлі конфігурації в об'єкті `cucumberOpts`. Перегляньте повний список параметрів [тут](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 
-To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
+Щоб швидко налаштувати роботу із Cucumber, перегляньте наш проєкт [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate), який містить усі необхідні визначення, і ви відразу зможете почати описувати файли функцій.
 
-### Cucumber Options
+### Параметри Cucumber
 
-The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
+Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Cucumber за допомогою властивості `cucumberOpts`:
 
 #### backtrace
 Show full backtrace for errors.
