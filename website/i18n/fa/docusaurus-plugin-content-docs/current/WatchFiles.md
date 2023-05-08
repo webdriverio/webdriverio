@@ -1,15 +1,15 @@
 ---
 id: watcher
-title: Watch Test Files
+title: زیر نظر گرفتن فایل های تست
 ---
 
-With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+با تست کننده WDIO می توانید فایل ها را در حین کار روی آنها زیر نظر بگیرید. اگر چیزی را در برنامه یا فایل های تستی خود تغییر دهید، به طور خودکار دوباره اجرا می شوند. با افزودن یک پرچم `--watch` هنگام فراخوانی دستور `wdio` ، تست‌کننده پس از اجرای همه آزمایش‌ها منتظر تغییرات فایل می‌ماند.
 
 ```sh
 wdio wdio.conf.js --watch
 ```
 
-By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
+به‌طور پیش‌فرض، فقط تغییرات در فایل‌های `specs` شما مشاهده خواهد شد. با این حال، با تنظیم یک ویژگی `filesToWatch` در `wdio.conf.js` خود که حاوی لیستی از مسیرهای فایل است (پشتیبانی از globbing) این فایل ها نیز زیر نظر گرفته خواهند شد تا کل مجموعه تست دوباره اجرا شود. اگر می‌خواهید با تغییر کد برنامه خود، به طور خودکار همه تست ها مجددا اجرا شوند، این کار مفید است.
 
 ```js
 // wdio.conf.js
@@ -24,5 +24,5 @@ export const config = {
 ```
 
 :::info
-Try to run tests in parallel as much as possible. E2E tests are, by nature, slow. Rerunning tests is only useful if you can keep the individual test run time short. In order to save time, the testrunner keeps WebDriver sessions alive while waiting for file changes. Make sure your WebDriver backend can be modified so that it doesn't automatically close the session if no command was executed after some duration of time.
+تا حد امکان سعی کنید تست ها را به صورت موازی اجرا کنید. تست های E2E، طبیعتا، کند هستند. اجرای مجدد تست‌ها تنها در صورتی مفید است که بتوانید زمان اجرای هر تست را کوتاه نگه دارید. به منظور صرفه جویی در زمان، تست کننده session های WebDriver را در حالی که منتظر تغییرات فایل است، زنده نگه می دارد. مطمئن شوید که بک اند WebDriver شما قابل تغییر است تا اگر بعد از مدتی هیچ فرمانی اجرا نشد، session به طور خودکار بسته نشود.
 :::
