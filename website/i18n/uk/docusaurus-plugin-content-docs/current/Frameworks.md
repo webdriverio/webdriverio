@@ -164,34 +164,34 @@ jasmineOpts: {
 },
 ```
 
-**Note:** You cannot stop test execution to do something async. It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
+**Примітка:** Ви не можете призупиняти виконання тестів, щоб зробити щось асинхронне. В такому разі, може статися так, що команда займатиме забагато часу, і стан застосунку зміниться. (Хоча зазвичай знімок екрана все одно зробиться трохи пізніше, що все ще таки надасть _хоч якусь_ корисну інформацію про помилку.)
 
-### Jasmine Options
+### Параметри Jasmine
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Jasmine за допомогою властивості `jasmineOpts`. Для отримання додаткової інформації про ці параметри конфігурації перегляньте [документацію Jasmine](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
-Default Timeout Interval for Jasmine operations.
+Інтервал очікування за замовчуванням для операцій Jasmine.
 
 Type: `number`<br /> Default: `60000`
 
 #### helpers
-Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+Масив зі шляхами (або ґлобами) до файлів відносно spec_dir для підключення перед тестами jasmine.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### requires
-The `requires` option is useful when you want to add or extend some basic functionality.
+Параметр `requires` корисний, коли ви хочете додати або розширити деякі вбудовані функції.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### random
-Whether to randomize spec execution order.
+Чи рандомізувати порядок виконання тестів.
 
 Type: `boolean`<br /> Default: `true`
 
 #### seed
-Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+Початкове число для використання як основи рандомізації. Null призводить до випадкового визначення початкового числа на початку виконання.
 
 Type: `Function`<br /> Default: `null`
 
