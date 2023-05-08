@@ -36,7 +36,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",
     "@wdio/config": "8.10.0",
     "@wdio/logger": "8.6.6",
