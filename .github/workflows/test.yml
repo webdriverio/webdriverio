@@ -42,7 +42,7 @@ jobs:
         if: failure()
         with:
           name: logs
-          path: examples/wdio/browser-runner/logs
+          path: e2e/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:
