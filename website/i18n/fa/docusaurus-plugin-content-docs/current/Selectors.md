@@ -277,7 +277,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 فرض کنید یک برنامه با ساختار زیر داریم:
 
-![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
+![مثال کروم](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "مثال کروم")
 
 با استفاده از این انتخابگر می توانید عنصر `<button />` را که در یک Shadow DOM دیگر قرار دارد، جستجو کنید، به عنوان مثال:
 
@@ -372,20 +372,20 @@ await button.click()
 - برای iOS، این شناسه `دسترسی پذیری` است که توسط Apple [در اینجا](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html) ارائه شده است.
 - برای Android، `شناسه دسترسی پذیری` به `content-description` برای عنصر، همانطور که در [اینجا](https://developer.android.com/training/accessibility/accessible-app.html) توضیح داده شده است، نگاشت می شود.
 
-For both platforms, getting an element (or multiple elements) by their `accessibility id` is usually the best method. It is also the preferred way over the deprecated `name` strategy.
+برای هر دو پلتفرم، دریافت یک عنصر (یا چندین عنصر) با `شناسه دسترسی پذیری` معمولاً بهترین روش است. همچنین این روش نسبت به استراتژی منسوخ `name` ترجیح داده می‌شود.
 
 ```js
 const elem = await $('~my_accessibility_identifier')
 await elem.click()
 ```
 
-### Class Name
+### نام کلاس
 
-The `class name` strategy is a `string` representing a UI element on the current view.
+استراتژی `نام کلاس` یک `رشته` است که نشان دهنده یک عنصر UI در view فعلی است.
 
-- For iOS it is the full name of a [UIAutomation class](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), and will begin with `UIA-`, such as `UIATextField` for a text field. A full reference can be found [here](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
-- For Android it is the fully qualified name of a [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html), such `android.widget.EditText` for a text field. A full reference can be found [here](https://developer.android.com/reference/android/widget/package-summary.html).
-- For Youi.tv it is the full name of a Youi.tv class, and will being with `CYI-`, such as `CYIPushButtonView` for a push button element. A full reference can be found at [You.i Engine Driver's GitHub page](https://github.com/YOU-i-Labs/appium-youiengine-driver)
+- برای iOS این نام کامل یک کلاس [UIAutomation](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) است و با `UIA-`شروع می شود، مانند `UIATextField` برای یک فیلد متنی. مرجع کامل را می توان در [اینجا](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation) یافت.
+- برای Android، این نام کاملاً واجد شرایط یک [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html) است، مانند `android.widget.EditText` برای یک فیلد متنی. مرجع کامل را می توان در [اینجا](https://developer.android.com/reference/android/widget/package-summary.html) یافت.
+- برای Youi.tv نام کامل یک کلاس Youi.tv است و دارای `CYI-`است، مانند `CYIPushButtonView` برای عنصر push button. مرجع کامل را می توان در صفحه [You.i Engine Driver's GitHub](https://github.com/YOU-i-Labs/appium-youiengine-driver) یافت
 
 ```js
 // iOS example
@@ -396,11 +396,11 @@ await $('android.widget.DatePicker').click()
 await $('CYIPushButtonView').click()
 ```
 
-## Chain Selectors
+## انتخابگرهای زنجیره ای
 
-If you want to be more specific in your query, you can chain selectors until you've found the right element. If you call `element` before your actual command, WebdriverIO starts the query from that element.
+اگر می‌خواهید در جستجوی خود دقیق‌تر باشید، می‌توانید انتخابگرها را تا زمانی که عنصر مناسب را پیدا کنید، زنجیره‌ای کنید. اگر قبل از دستور واقعی خود `عنصر` را فراخوانی کنید، WebdriverIO درخواست را از آن عنصر شروع می کند.
 
-For example, if you have a DOM structure like:
+به عنوان مثال، اگر شما یک ساختار DOM مانند زیر داشته باشید:
 
 ```html
 <div class="row">
@@ -422,40 +422,40 @@ For example, if you have a DOM structure like:
 </div>
 ```
 
-And you want to add product B to the cart, it would be difficult to do that just by using the CSS selector.
+و شما می خواهید محصول B را به سبد خرید اضافه کنید، انجام این کار فقط با استفاده از انتخابگر CSS دشوار خواهد بود.
 
-With selector chaining, it's way easier. Simply narrow down the desired element step by step:
+با زنجیر کردن انتخابگر، این کار بسیار ساده‌تر است. به سادگی عنصر مورد نظر را مرحله به مرحله محدود کنید:
 
 ```js
 await $('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
-### Appium Image Selector
+### انتخابگر تصویر Appium
 
-Using the  `-image` locator strategy, it is possible to send an Appium an image file representing an element you want to access.
+با استفاده از استراتژی مکان یاب  `-image` ، می توان یک فایل تصویری به Appium ارسال کرد که نشان دهنده عنصری است که می خواهید به آن دسترسی داشته باشید.
 
-Supported file formats `jpg,png,gif,bmp,svg`
+فرمت های فایل پشتیبانی شده `jpg، png، gif، bmp، svg`
 
-Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+مرجع کامل را می توان در [اینجا](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md) یافت
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
 await elem.click()
 ```
 
-**Note**: The way how Appium works with this selector is that it will internally make a (app)screenshot and use the provided image selector to verify if the element can be found in that (app)screenshot.
+**نکته**: نحوه عملکرد Appium با این انتخابگر به این صورت است که به صورت داخلی یک اسکرین شات (برنامه) می گیرد و از انتخابگر تصویر ارائه شده برای بررسی اینکه آیا عنصر را می توان در آن اسکرین شات (برنامه) پیدا کرد، استفاده می کند.
 
-Be aware of the fact that Appium might resize the taken (app)screenshot to make it match the CSS-size of your (app)screen (this will happen on iPhones but also on Mac machines with a Retina display because the DPR is bigger than 1). This will result in not finding a match because the provided image selector might have been taken from the original screenshot. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
+به این واقعیت توجه داشته باشید که Appium ممکن است اندازه اسکرین شات (برنامه) گرفته شده را تغییر دهد تا با اندازه CSS صفحه (برنامه) شما مطابقت داشته باشد (این اتفاق در آیفون ها و همچنین در دستگاه های مک با صفحه نمایش رتینا رخ می دهد زیرا DPR آنها بزرگتر 1) است. این موضوع منجر به عدم مطابقت می شود زیرا انتخابگر تصویر ارائه شده ممکن است از اسکرین شات اصلی گرفته شده باشد. می‌توانید با به‌روزرسانی تنظیمات سرور Appium این مشکل را برطرف کنید، [Appium Docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) برای تنظیمات و [این نظر](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) را برای توضیح مفصل تر ببینید.
 
-## React Selectors
+## انتخابگرهای React
 
-WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
+WebdriverIO راهی برای انتخاب اجزای React بر اساس نام کامپوننت ارائه می دهد. برای انجام این کار، دو دستور در اختیار دارید: `react$` و `react$$`.
 
-These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements (depending on which function is used).
+این دستورات به شما امکان می‌دهند اجزای [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) را انتخاب کنید و یک عنصر WebdriverIO یا آرایه‌ای از عناصر را برگردانید (بسته به اینکه از کدام تابع استفاده می‌کنید).
 
-**Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
+**نکته**: دستورات `react$` و `react$` از نظر عملکرد مشابه هستند، با این تفاوت که `react$$` *تمام* موارد منطبق را به عنوان آرایه ای از عناصر WebdriverIO برمی گرداند و `react$` اولین نمونه پیدا شده.
 
-#### Basic example
+#### مثال پایه ای
 
 ```jsx
 // index.jsx
@@ -477,19 +477,19 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`.
+در کد بالا یک نمونه ساده `MyComponent` در داخل برنامه وجود دارد که React آن را در یک عنصر HTML با `id="root"` رندر می کند.
 
-With the `browser.react$` command, you can select an instance of `MyComponent`:
+با دستور `browser.react$` ، می توانید نمونه ای از `MyComponent`را انتخاب کنید:
 
 ```js
 const myCmp = await browser.react$('MyComponent')
 ```
 
-Now that you have the WebdriverIO element stored in `myCmp` variable, you can execute element commands against it.
+اکنون که عنصر WebdriverIO را در متغیر `myCmp` ذخیره کرده اید، می توانید دستورات عنصر ها را بر روی آن اجرا کنید.
 
-#### Filtering components
+#### فیلتر کردن اجزا
 
-The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. To do so, you need to pass a second argument for props and/or a third argument for state to the browser command.
+کتابخانه ای که WebdriverIO به صورت داخلی از آن استفاده می کند، اجازه می دهد تا انتخاب شما را بر اساس props و/یا state کامپوننت فیلتر کند. برای انجام این کار، باید یک آرگومان دوم برای props و/یا یک آرگومان سوم برای state با دستور browser ارسال کنید.
 
 ```jsx
 // index.jsx
@@ -516,7 +516,7 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-If you want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO`, you can execute the command like so:
+اگر می خواهید نمونه `MyComponent` را که دارای prop `name` است به عنوان `WebdriverIO`انتخاب کنید، می توانید دستور را به این صورت اجرا کنید:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -524,7 +524,7 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-If you wanted to filter our selection by state, the `browser` command would looks something like so:
+اگر می خواهید انتخاب را بر اساس state فیلتر کنید، دستور `browser` چیزی شبیه به این خواهد بود:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -532,9 +532,9 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-#### Dealing with `React.Fragment`
+#### برخورد با `React.Fragment`
 
-When using the `react$` command to select React [fragments](https://reactjs.org/docs/fragments.html), WebdriverIO will return the first child of that component as the component's node. If you use `react$$`, you will receive an array containing all the HTML nodes inside the fragments that match the selector.
+هنگام استفاده از دستور `react$` برای انتخاب React [fragments](https://reactjs.org/docs/fragments.html)، WebdriverIO اولین فرزند آن کامپوننت را به عنوان نود کامپوننت برمی گرداند. اگر از `react$$`استفاده کنید، یک آرایه حاوی تمام نود های HTML داخل fragment بدست می‌آورید که با انتخابگر مطابقت دارند.
 
 ```jsx
 // index.jsx
@@ -561,18 +561,18 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-Given the above example, this is how the commands would work:
+با توجه به مثال بالا، دستورات به این صورت عمل می کنند:
 
 ```js
 await browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
 await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
 ```
 
-**Note:** If you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
+**توجه:** اگر چندین نمونه از `MyComponent` دارید و از `react$$` برای انتخاب این اجزای fragment استفاده می کنید، یک آرایه یک بعدی از همه نود ها به شما برگردانده می شود. به عبارت دیگر، اگر 3 `<MyComponent/>` نمونه داشته باشید، یک آرایه با شش عنصر WebdriverIO به شما برگردانده می شود.
 
-## Custom Selector Strategies
+## استراتژی های انتخاب کننده سفارشی
 
-If your app requires a specific way to fetch elements you can define yourself a custom selector strategy that you can use with `custom$` and `custom$$`. For that register your strategy once in the beginning of the test:
+اگر برنامه شما به روش خاصی برای دریافت عناصر نیاز دارد، می‌توانید یک استراتژی انتخاب‌کننده سفارشی برای خود تعریف کنید که می‌توانید از `custom$` و `custom$$`استفاده کنید. برای این منظور استراتژی خود را یک بار در ابتدای تست ثبت کنید:
 
 ```js
 browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
@@ -585,7 +585,7 @@ browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
 })
 ```
 
-Given the following HTML snippet:
+تکه کد HTML زیر را فرض کنید:
 
 ```html
 <div class="foobar" id="first">
@@ -595,7 +595,7 @@ Given the following HTML snippet:
 </div>
 ```
 
-Then use it by calling:
+سپس با فرمان زیر از آن استفاده کنید:
 
 ```js
 const elem = await browser.custom$('myCustomStrategy', '.foobar')
@@ -604,4 +604,4 @@ const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
 console.log(await elem.getAttribute('id')) // returns "second"
 ```
 
-**Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute) command can be run.
+**توجه:** این مثال فقط در یک محیط وبی کار می کند که در آن دستور [`execute`](/docs/api/browser/execute) می تواند اجرا شود.
