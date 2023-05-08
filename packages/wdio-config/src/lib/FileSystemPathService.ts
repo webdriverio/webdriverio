@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { sync as globSync } from 'glob'
+import glob from 'glob'
 
 import RequireLibrary from './RequireLibrary.js'
 import type { PathService, ModuleImportService } from '../types.js'
@@ -27,7 +27,7 @@ export default class FileSystemPathService implements PathService {
      * @returns files matching the glob pattern
      */
     glob(pattern: string, rootDir: string): string[] {
-        const globResult = globSync(pattern, {
+        const globResult = glob.sync(pattern, {
             cwd: rootDir
         }) || []
         const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
@@ -36,14 +36,13 @@ export default class FileSystemPathService implements PathService {
          * and we also want to be able to find files with these characters included
          * we add an additional check to see if the file as pattern exists.
          * add file to globResult only if filename doesn't include pattern(*)
-         * and globResult doesn't contain the fileName
+         * and globResult doest contain the fileName
          * and file should be available
          */
         if (!pattern.includes('*') && !globResult.includes(pattern) && !globResult.includes(fileName) && fs.existsSync(fileName)) {
             globResult.push(fileName)
         }
-
-        return globResult.sort()
+        return globResult
     }
 
     ensureAbsolutePath(filepath: string, rootDir: string): string {

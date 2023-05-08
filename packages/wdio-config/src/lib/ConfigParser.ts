@@ -1,5 +1,4 @@
 import path from 'node:path'
-import fs from 'node:fs'
 
 import logger from '@wdio/logger'
 import { deepmerge } from 'deepmerge-ts'
@@ -15,21 +14,9 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 
 import type { PathService, ModuleImportService } from '../types.js'
 
-import * as Messages from '@cucumber/messages'
-import Gherkin from '@cucumber/gherkin'
-import TagExpressionParser from '@cucumber/tag-expressions'
-
-const uuidFn = Messages.IdGenerator.uuid()
-const builder = new Gherkin.AstBuilder(uuidFn)
-const matcher = new Gherkin.GherkinClassicTokenMatcher()
-const gherkinParser = new Gherkin.Parser(builder, matcher)
-
 const log = logger('@wdio/config:ConfigParser')
 
 type Spec = string | string[]
-type SpecDoc = Messages.GherkinDocument | Messages.GherkinDocument[]
-type SpecContent = string | string[]
-
 type ESMImport = { config?: TestrunnerOptionsWithParameters }
 type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
 type ImportedConfigModule = ESMImport | DefaultImport
@@ -84,7 +71,7 @@ export default class ConfigParser {
     /**
      * initializes the config object
      */
-    async initialize(object: MergeConfig = {}) {
+    async initialize (object: MergeConfig = {}) {
         /**
          * only run auto compile functionality once but allow the config parse to be initialised
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
@@ -117,7 +104,7 @@ export default class ConfigParser {
 
     /**
      * merges config file with default values
-     * @param {string} filename path of file relative to current directory
+     * @param {String} filename path of file relative to current directory
      */
     private async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
@@ -226,7 +213,7 @@ export default class ConfigParser {
 
     /**
      * Add hooks from an existing service to the runner config.
-     * @param {object} service - an object that contains hook methods.
+     * @param {Object} service - an object that contains hook methods.
      */
     addService(service: Services.Hooks) {
         const addHook = (hookName: string, hook: Function) => {
@@ -276,12 +263,12 @@ export default class ConfigParser {
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0) {
+        if (Array.isArray(capExclude) && exclude.length === 0){
             exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
-        if (!isSpecParamPassed && Array.isArray(capSpecs)) {
+        if (!isSpecParamPassed && Array.isArray(capSpecs)){
             specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
@@ -310,13 +297,6 @@ export default class ConfigParser {
         // Remove any duplicate tests from the final specs array
         specs = [...new Set(specs)]
 
-        // For Cucumber, filter the specs according to the tag expression
-        // Some workers would only spawn to then skip the spec (Feature) file
-        // Filtering at this stage can prevent the spawning of a massive number of workers
-        if (this._config.framework === 'cucumber' && this._config.cucumberOpts?.tagExpression) {
-            specs = this.filterSpecsByTagExpression(specs)
-        }
-
         // If the --multi-run flag is set, duplicate the specs array
         // Ensure that when --multi-run is set that either --spec or --suite is also set
         const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
@@ -329,119 +309,11 @@ export default class ConfigParser {
         return this.filterSpecs(specs, <string[]>exclude)
     }
 
-    readFiles(filePaths: Spec[]): Spec[] {
-
-        const removePrefix = (value: string, prefix: string) =>
-            value.startsWith(prefix) ? value.slice(prefix.length) : value
-
-        return ConfigParser
-            .getFilePaths(filePaths, this._config.rootDir, this._pathService)
-            .map(spec => Array.isArray(spec)
-                ? spec.map(filePath => removePrefix(filePath, 'file://'))
-                : removePrefix(spec, 'file://')
-            )
-            .map(spec => {
-                return Array.isArray(spec)
-                    ? spec.map(filePath => fs.readFileSync(filePath, 'utf8'))
-                    : fs.readFileSync(spec, 'utf8')
-            })
-    }
-
-    getGherkinDocuments(filePaths: Spec[]): SpecDoc[] {
-        return this.readFiles(filePaths)
-            .map((specContent: SpecContent, idx: number) => {
-
-                const docs: Messages.GherkinDocument[] = [specContent]
-                    .flat(1)
-                    .map((content: string, ctIdx: number) => ({
-                        ...gherkinParser.parse(content),
-                        uri: Array.isArray(specContent)
-                            ? filePaths[idx][ctIdx]
-                            : filePaths[idx],
-                    }) as Messages.GherkinDocument)
-
-                const [doc, ...etc] = docs
-
-                return etc.length ? docs : doc
-            })
-    }
-
-    filterSpecsByTagExpression(specs: Spec[], tagExpression: string = this._config.cucumberOpts?.tagExpression ?? '') {
-
-        if (!tagExpression) {
-            return specs
-        }
-
-        const tagParser = TagExpressionParser(tagExpression)
-
-        const shouldRun = (doc: Messages.GherkinDocument): boolean => {
-
-            if (!doc.feature) {
-                return false
-            }
-
-            const ext = path.extname(doc.uri!)
-
-            const lineOnFile = ext.startsWith('feature:')
-                ? Number(ext.split('feature:').pop())
-                : undefined
-
-            const hasTags = (msg: { feature?: Messages.Feature } & Messages.FeatureChild) => {
-                const type = (msg.feature ?? msg.rule ?? msg.scenario)
-                return type
-                    ? (lineOnFile && type.location.line === lineOnFile) || tagParser.evaluate(type.tags.map(t => t.name))
-                    : false
-            }
-
-            return (
-                // Check if Feature has matching tags
-                hasTags(doc)
-
-                // Check if some root Scenarios have matching tags
-                || doc.feature!.children.filter(c => c.scenario).some(hasTags)
-
-                // Check if some Rules have matching tags
-                || doc.feature!.children.filter(c => c.rule).some(hasTags)
-
-                // Check if some Scenarios within Rules have matching tags
-                || doc.feature!.children
-                    .filter(c => c.rule)
-                    .map(c => c.rule!.children.filter(c => c.scenario))
-                    .flat(1)
-                    .some(hasTags)
-            )
-        }
-
-        const filePaths = ConfigParser.getFilePaths(
-            specs,
-            this._config.rootDir,
-            this._pathService
-        )
-
-        const filteredSpecs: Spec[] = this.getGherkinDocuments(filePaths)
-            .map(specDoc => {
-                const [doc, ...etc] = [specDoc].flat(1).filter(shouldRun)
-
-                return Array.isArray(specDoc)
-                    // Return group only if its not empty
-                    ? doc && [doc, ...etc]
-                    : doc
-            })
-            .filter(Boolean)
-            .map(doc => {
-                // Get URIs from Gherkin documents to run
-                const [uri, ...etc] = [doc].flat(1).map(doc => doc.uri!)
-                return Array.isArray(doc) ? [uri, ...etc] : uri
-            })
-
-        return filteredSpecs
-    }
-
     /**
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {string[]} cliArgFileList  list of files in a string form
+     * @param  {String[]} cliArgFileList  list of files in a string form
      * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
@@ -495,7 +367,7 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig() {
+    getConfig () {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
         }
@@ -580,7 +452,7 @@ export default class ConfigParser {
      * returns specs files with the excludes filtered
      *
      * @param  {String[] | String[][]} spec files -  list of spec files
-     * @param  {string[]} exclude files -  list of exclude files
+     * @param  {String[]} exclude files -  list of exclude files
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
     filterSpecs(specs: Spec[], exclude: string[]) {
