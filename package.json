@@ -104,7 +104,7 @@
     "eslint-plugin-wdio": "^8.0.14",
     "husky": "^8.0.3",
     "inquirer": "^9.2.0",
-    "jsdom": "^21.1.1",
+    "jsdom": "^22.0.0",
     "lerna": "^6.6.1",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
