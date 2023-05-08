@@ -138,15 +138,15 @@ Type: `number`<br /> Default: `30000`
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+Потім ви можете налаштувати середовище Jasmine, додавши властивість `jasmineOpts` до файлу конфігурації. Список усіх можливих параметрів можна знайти на вебсайті фреймворку [Jasmine](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Intercept Assertion
+### Перехоплення перевірок
 
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
+Фреймворк Jasmine дозволяє перехоплювати кожну перевірку, щоб залогувати стан застосунку або вебсайту, залежно від результату перевірки.
 
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
+Наприклад, дуже зручно робити скріншот кожного разу, коли перевірка закінчується невдало. В об'єкт `jasmineOpts` ви можете додати властивість під назвою `expectationResultHandler`, яка приймає функцію для виконання. Параметри цієї функції надають інформацію про результати перевірки.
 
-The following example demonstrates how to take a screenshot if an assertion fails:
+У наступному прикладі показано, як зробити знімок екрана, якщо перевірка завершується невдало:
 
 ```js
 jasmineOpts: {
