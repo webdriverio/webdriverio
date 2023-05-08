@@ -1,6 +1,6 @@
 ---
 id: web-extension-testing
-title: Web Extension Testing
+title: تست افزودنی‌های وب
 ---
 
 WebdriverIO ابزاری ایده آل برای خودکارسازی مرورگر است. افزودنی‌های وب بخشی از مرورگر هستند و می توانند به همان روش خودکار شوند. هر زمان که برنامه افزودنی وب شما از اسکریپت‌های محتوا برای اجرای جاوا اسکریپت در وب‌سایت‌ها استفاده می‌کند یا یک پاپ آپ مدال ارائه می‌دهد، می‌توانید با استفاده از WebdriverIO یک آزمایش e2e برای آن اجرا کنید.
@@ -67,7 +67,7 @@ export const config = {
 
 ### Firefox
 
-To create a Firefox profile that includes extensions you can use the [Firefox Profile Service](/docs/firefox-profile-service) to set up your session accordingly. However you might run into issues where your local developed extension can't be loaded due to signing issues. In this case you can also load an extension in the `before` hook via the [`installAddOn`](/docs/api/gecko#installaddon) command, e.g.:
+برای ایجاد نمایه فایرفاکس که شامل برنامه‌های افزودنی باشد، می‌توانید از سرویس [فایرفاکس پروفایل](/docs/firefox-profile-service) برای تنظیم session خود استفاده کنید. با این حال ممکن است با مشکلی مواجه شوید که برنامه افزودنی شما که محلی توسعه یافته است، به دلیل مشکلات امضا بارگیری نشود. در این حالت می‌توانید از طریق دستور [`installAddOn`](/docs/api/gecko#installaddon) یک افزونه را در هوک `before` بارگذاری کنید، به عنوان مثال:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -88,7 +88,7 @@ export const config = {
 }
 ```
 
-In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](https://www.npmjs.com/package/web-ext) NPM package. You can bundle your extension using the following example command:
+برای تولید یک فایل `.xpi`، توصیه می شود از بسته [`web-ext`](https://www.npmjs.com/package/web-ext) NPM استفاده کنید. می توانید برای مثال برنامه افزودنی خود را با استفاده فرمان از زیر بسته بندی کنید:
 
 ```sh
 npx web-ext build -s dist/ -a . -n web-extension-firefox.xpi

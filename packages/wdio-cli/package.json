@@ -45,7 +45,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.1.0",
     "@wdio/config": "8.10.0",
     "@wdio/globals": "8.10.0",
     "@wdio/logger": "8.6.6",
@@ -59,7 +59,7 @@
     "ejs": "^3.1.8",
     "execa": "^7.0.0",
     "import-meta-resolve": "^3.0.0",
-    "inquirer": "9.1.5",
+    "inquirer": "9.2.2",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
