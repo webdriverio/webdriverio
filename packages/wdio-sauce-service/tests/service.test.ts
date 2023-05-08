@@ -33,6 +33,12 @@ vi.mock('fs/promises', () => ({
             'wdio-1-0-browser.log',
             'wdio-1-0-driver.log',
             'wdio-1-0.log',
+            'wdio-1-1-browser.log',
+            'wdio-1-1-driver.log',
+            'wdio-1-1.log',
+            'wdio-1-11-browser.log',
+            'wdio-1-11-driver.log',
+            'wdio-1-11.log',
             'wdio.log'
         ]))
     }
@@ -553,16 +559,16 @@ test('_uploadLogs should upload', async () => {
     )
     const api = { uploadJobAssets: vi.fn().mockResolvedValue({}) }
     service['_api'] = api as any
-    await service.beforeSession({} as any, null as never, null as never, '1-0')
+    await service.beforeSession({} as any, null as never, null as never, '1-1')
     await service['_uploadLogs']('123')
     expect(api.uploadJobAssets).toBeCalledTimes(1)
     expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
     expect(api.uploadJobAssets.mock.calls[0][1].files)
-        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-browser.log'))
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-1-browser.log'))
     expect(api.uploadJobAssets.mock.calls[0][1].files)
-        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-driver.log'))
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-1-driver.log'))
     expect(api.uploadJobAssets.mock.calls[0][1].files)
-        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0.log'))
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-1.log'))
 })
 
 test('_uploadLogs should not fail in case of a platform error', async () => {
