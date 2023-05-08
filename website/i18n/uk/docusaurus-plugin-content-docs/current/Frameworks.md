@@ -239,12 +239,12 @@ npm install @wdio/cucumber-framework --save-dev
 Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Cucumber за допомогою властивості `cucumberOpts`:
 
 #### backtrace
-Show full backtrace for errors.
+Показати повний стек викликів для помилок.
 
 Type: `Boolean`<br /> Default: `true`
 
 #### requireModule
-Require modules prior to requiring any support files.
+Модулі які буде підключено перед, файлами підтримки.
 
 Type: `string[]`<br /> Default: `[]`<br /> Example:
 
@@ -265,32 +265,32 @@ cucumberOpts: {
  ```
 
 #### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+Розглядати неоднозначні визначення як помилки. Зверніть увагу, що цей параметр підтримується лише `@wdio/cucumber-framework`, і не розпізнається самим cucumber-js.
 
 Type: `boolean`<br /> Default: `false`
 
 #### failFast
-Abort the run on first failure.
+Припинити виконання при першому невдалому тесті.
 
 Type: `boolean`<br /> Default: `false`
 
 #### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+Розглядати невизначені визначення як попередження. Зверніть увагу, що цей параметр підтримується лише @wdio/cucumber-framework, і не розпізнається самим cucumber-js.
 
 Type: `boolean`<br /> Default: `false`
 
 #### names
-Only execute the scenarios with name matching the expression (repeatable).
+Виконувати лише сценарії з іменами, які відповідають виразу (повторюване).
 
 Type: `RegExp[]`<br /> Default: `[]`
 
 #### profile
-Specify the profile to use.
+Профіль для використання.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+Файли, що містять визначення ваших кроків, які буде підключено перед виконанням функцій. Ви також можете вказати ґлоб патерн до файлів із визначенням кроків.
 
 Type: `string[]`<br /> Default: `[]` Example:
 
@@ -301,37 +301,37 @@ cucumberOpts: {
 ```
 
 #### snippetSyntax
-Specify a custom snippet syntax.
+Укажіть користувацький фрагмент синтаксису.
 
 Type: `string`<br /> Default: `null`
 
 #### snippets
-Hide step definition snippets for pending steps.
+Приховувати фрагменти із визначенням кроків для кроків в очікуванні.
 
 Type: `boolean`<br /> Default: `true`
 
 #### source
-Hide source uris.
+Чи показувати URI.
 
 Type: `boolean`<br /> Default: `true`
 
 #### strict
-Fail if there are any undefined or pending steps.
+Викидати помилка, якщо є невизначені або незавершені кроки.
 
 Type: `boolean`<br /> Default: `false`
 
 #### tagExpression
-Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+Виконувати функції або сценарії лише з тегами, що відповідають виразу. Будь ласка, перегляньте документацію [Cucumber](https://docs.cucumber.io/cucumber/api/#tag-expressions) для додаткової інформації.
 
 Type: `string`<br /> Default: `null`
 
 #### tagsInTitle
-Add cucumber tags to feature or scenario name.
+Додати теги Cucumber до назви функції або сценарію.
 
 Type: `boolean`<br /> Default: `false`
 
 #### timeout
-Timeout in milliseconds for step definitions.
+Час очікування в мілісекундах для визначення кроків.
 
 Type: `number`<br /> Default: `30000`
 
