@@ -1,5 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs'
+
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 
@@ -28,7 +30,9 @@ import {
 } from '@cucumber/cucumber'
 import type { IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
+import type { FeatureChild, GherkinDocument, RuleChild } from '@cucumber/messages'
 import { IdGenerator } from '@cucumber/messages'
+import Gherkin from '@cucumber/gherkin'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
@@ -38,13 +42,20 @@ import { DEFAULT_OPTS } from './constants.js'
 import { setUserHookNames } from './utils.js'
 import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
 
+import TagExpressionParser from '@cucumber/tag-expressions'
+
+const uuidFn = IdGenerator.uuid()
+const builder = new Gherkin.AstBuilder(uuidFn)
+const matcher = new Gherkin.GherkinClassicTokenMatcher()
+const gherkinParser = new Gherkin.Parser(builder, matcher)
+
 const require = createRequire(import.meta.url)
 const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default
 const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
 
-function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResult {
+function getResultObject(world: ITestCaseHookParameter): Frameworks.PickleResult {
     return {
         passed: (world.result?.status === Cucumber.Status.PASSED || world.result?.status === Cucumber.Status.SKIPPED),
         error: world.result?.message as string,
@@ -99,6 +110,7 @@ class CucumberAdapter {
         const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0
             ? this._cucumberFeaturesWithLineNumbers
             : this._specs
+
         this._pickleFilter = new Cucumber.PickleFilter({
             cwd: this._cwd,
             featurePaths: featurePathsToRun,
@@ -116,8 +128,122 @@ class CucumberAdapter {
         this._cucumberReporter = new CucumberReporter(this._eventBroadcaster, this._pickleFilter, reporterOptions, this._cid, this._specs, this._reporter)
     }
 
+    readFiles(filePaths: Options.Testrunner['specs'] = []): (string | string[])[] {
+        return filePaths.map(filePath => {
+            return Array.isArray(filePath)
+                ? filePath.map(file => fs.readFileSync(path.resolve(file), 'utf8'))
+                : fs.readFileSync(path.resolve(filePath), 'utf8')
+        })
+    }
+
+    getGherkinDocuments(files: Options.Testrunner['specs'] = []): (GherkinDocument | GherkinDocument[])[] {
+        return this.readFiles(files).map((specContent, idx) => {
+
+            const docs: GherkinDocument[] = [specContent]
+                .flat(1)
+                .map((content, ctIdx) => (
+                    {
+                        ...gherkinParser.parse(content),
+                        uri: Array.isArray(specContent)
+                            ? files[idx][ctIdx]
+                            : files[idx],
+                    } as GherkinDocument
+                ))
+
+            const [doc, ...etc] = docs
+
+            return etc.length ? docs : doc
+        })
+    }
+
+    filterSpecsByTagExpression(
+        specs: Options.Testrunner['specs'] = [],
+        tagExpression = this._config.cucumberOpts?.tagExpression ?? ''
+    ): typeof specs {
+
+        if (!tagExpression) {
+            return specs
+        }
+
+        const tagParser = TagExpressionParser(tagExpression)
+
+        const shouldRun = (doc: GherkinDocument) => {
+
+            if (!doc.feature) {
+                return false
+            }
+
+            const ext = path.extname(doc.uri!)
+
+            const lineOnFile = ext.startsWith('feature:')
+                ? Number(ext.split('feature:').pop())
+                : undefined
+
+            const hasTags = (msg: GherkinDocument & FeatureChild & RuleChild) => {
+                const type = (msg.feature ?? msg.rule ?? msg.scenario)
+
+                if (type) {
+                    const matches = tagParser.evaluate(type.tags.map(t => t.name))
+
+                    return lineOnFile
+                        // Evaluate only specific line
+                        ? type.location.line === lineOnFile && matches
+                        : matches
+                }
+                return false
+            }
+
+            return (
+                // Check if Feature has matching tags
+                hasTags(doc)
+
+                // Check if some root Scenarios have matching tags
+                || doc.feature.children.filter(c => c.scenario).some(hasTags)
+
+                // Check if some Rules have matching tags
+                || doc.feature.children.filter(c => c.rule).some(hasTags)
+
+                // Check if some Scenarios within Rules have matching tags
+                || doc.feature.children
+                    .filter(c => c.rule)
+                    .map(c => c.rule!.children.filter(c => c.scenario))
+                    .flat(1)
+                    .some(hasTags)
+            )
+        }
+
+        const filteredSpecs: Options.Testrunner['specs'] = this
+            .getGherkinDocuments([this._specs])
+            .map((specDoc: GherkinDocument | GherkinDocument[]) => {
+
+                const [doc, ...etc] = [specDoc].flat(1).filter(shouldRun)
+
+                const ret = Array.isArray(specDoc)
+                    // Return group only if its not empty
+                    ? doc && [doc, ...etc]
+                    : doc
+
+                return ret as GherkinDocument | GherkinDocument[]
+            })
+            .filter((doc: GherkinDocument) => !!doc)
+            .map(doc => {
+                // Get URIs from Gherkin documents to run
+                const [uri, ...etc] = [doc].flat(1).map(doc => doc.uri!)
+                return Array.isArray(doc) ? [uri, ...etc] : uri
+            })
+
+        return filteredSpecs
+    }
+
     async init() {
         try {
+            // Filter the specs according to the tag expression
+            // Some workers would only spawn to then skip the spec (Feature) file
+            // Filtering at this stage can prevent the spawning of a massive number of workers
+            if (this._config.cucumberOpts?.tagExpression) {
+                this._specs = this.filterSpecsByTagExpression([this._specs]).flat(1)
+            }
+
             const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
                 defaultDialect: this._cucumberOpts.featureDefaultLanguage,
                 newId: this._newId
@@ -332,7 +458,7 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps (config: Options.Testrunner) {
+    wrapSteps(config: Options.Testrunner) {
         const wrapStep = this.wrapStep
         const cid = this._cid
         const getHookParams = () => this.getHookParams && this.getHookParams()
@@ -432,7 +558,7 @@ export {
 
 declare global {
     namespace WebdriverIO {
-        interface CucumberOpts extends CucumberOptions {}
-        interface HookFunctionExtension extends HookFunctionExtensionImport {}
+        interface CucumberOpts extends CucumberOptions { }
+        interface HookFunctionExtension extends HookFunctionExtensionImport { }
     }
 }

@@ -4,16 +4,28 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
+import type * as Messages from '@cucumber/messages'
 
-import CucumberAdapter from '../src/index.js'
 import { setUserHookNames } from '../src/utils.js'
 import * as packageExports from '../src/index.js'
+
+import CucumberAdapter from '../src/index.js'
 
 vi.mock('mockery')
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
-vi.mock('@cucumber/messages', () => ({ IdGenerator: { incrementing: vi.fn() } }))
+vi.mock('@cucumber/messages', async () => {
+    const module: typeof Messages = await vi.importActual('@cucumber/messages')
+
+    return {
+        IdGenerator: {
+            uuid: module.IdGenerator.uuid,
+            incrementing: vi.fn()
+        }
+    }
+})
+
 vi.mock('../src/reporter', () => ({
     default: class CucumberReporter {
         eventListener = {
@@ -27,7 +39,7 @@ vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
 })
 vi.mock('moduleB', () => ({
-    default: function moduleB (opts: any) {
+    default: function moduleB(opts: any) {
         // @ts-ignore
         global.MODULE_B_WAS_LOADED_WITH = opts
     }
@@ -304,7 +316,7 @@ describe('CucumberAdapter', () => {
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
-        function wdioHookFn () { return 'foobar' }
+        function wdioHookFn() { return 'foobar' }
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
         expect(
             vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
@@ -317,5 +329,105 @@ describe('CucumberAdapter', () => {
         expect(testFnWrapper).toBeCalledTimes(0)
         wrappedStep('someWorld', 1, 2, 3)
         expect(vi.mocked(testFnWrapper).mock.calls).toMatchSnapshot()
+    })
+
+    it('can run when filtering by tag at Feature level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at root Scenario level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@run' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Rule level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Scenario within Rule', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runinrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by non-existent tag', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@notpresent' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(0)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 })
