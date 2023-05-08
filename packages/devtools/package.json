@@ -47,7 +47,7 @@
     "chrome-launcher": "^0.15.0",
     "edge-paths": "^3.0.5",
     "import-meta-resolve": "^3.0.0",
-    "puppeteer-core": "19.11.1",
+    "puppeteer-core": "20.1.1",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.1",
     "uuid": "^9.0.0",
