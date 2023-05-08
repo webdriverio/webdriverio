@@ -1,6 +1,6 @@
 {
   "item.label.Docs": {
-    "message": "Docs",
+    "message": "Dokumentacja",
     "description": "Navbar item with label Docs"
   },
   "item.label.API": {
@@ -12,11 +12,11 @@
     "description": "Navbar item with label Blog"
   },
   "item.label.Contribute": {
-    "message": "Contribute",
+    "message": "Pomóż w rozwoju",
     "description": "Navbar item with label Contribute"
   },
   "item.label.Community": {
-    "message": "Community",
+    "message": "Społeczność",
     "description": "Navbar item with label Community"
   },
   "item.label.v8": {

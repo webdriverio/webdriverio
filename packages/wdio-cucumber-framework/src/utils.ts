@@ -177,7 +177,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
     return !(pickle && pickle.tags && pickle.tags
         .map(p => p.name?.match(skipTag))
         .filter(Boolean)
-        .map(m => parse(m![1]))
+        .map(m => parse(m![1] ?? ''))
         .find((filter: Capabilities.Capabilities) => Object.keys(filter)
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
