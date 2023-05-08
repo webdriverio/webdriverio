@@ -28,6 +28,6 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0"
+    "@types/node": "^20.1.0"
   }
 }

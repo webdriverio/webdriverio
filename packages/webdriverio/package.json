@@ -67,7 +67,7 @@
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.1.0",
     "@wdio/config": "8.10.0",
     "@wdio/logger": "8.6.6",
     "@wdio/protocols": "8.8.1",
