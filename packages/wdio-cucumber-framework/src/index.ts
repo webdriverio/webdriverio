@@ -28,7 +28,7 @@ import {
     Then,
     When
 } from '@cucumber/cucumber'
-import type { IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
+import type { IRuntimeOptions, ITestCaseHookParameter, PickleFilter } from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
 import type { FeatureChild, GherkinDocument, RuleChild } from '@cucumber/messages'
 import { IdGenerator } from '@cucumber/messages'
@@ -72,7 +72,7 @@ class CucumberAdapter {
     private _eventBroadcaster: EventEmitter
     private _cucumberReporter: CucumberReporter
     private _eventDataCollector: typeof EventDataCollector
-    private _pickleFilter: Cucumber.PickleFilter
+    private _pickleFilter: InstanceType<typeof PickleFilter>
     private getHookParams?: Function
 
     constructor(
