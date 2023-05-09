@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.1 (2023-05-09)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#10355](https://github.com/webdriverio/webdriverio/pull/10355) sauce-service: only upload relevant logs for instance ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#10327](https://github.com/webdriverio/webdriverio/pull/10327) (fix) wdio-cucumber-framework: fix error after #10134 ([@egerix](https://github.com/egerix))
+
+#### :memo: Documentation
+* [#10324](https://github.com/webdriverio/webdriverio/pull/10324) Update Browser.md ([@ilich-garcia27](https://github.com/ilich-garcia27))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Egor Ivanov ([@egerix](https://github.com/egerix))
+- Ilich García ([@ilich-garcia27](https://github.com/ilich-garcia27))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.10.0 (2023-05-04)
 
 #### :bug: Bug Fix
