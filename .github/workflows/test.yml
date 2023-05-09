@@ -28,14 +28,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Dependency Check
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
-        env:
-          DETECT_CHROMEDRIVER_VERSION: true
       - name: Interop Tests
         run: |
           npm i chromedriver --detect_chromedriver_version
