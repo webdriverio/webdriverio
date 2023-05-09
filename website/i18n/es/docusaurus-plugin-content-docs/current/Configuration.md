@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. Consulte [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) para obtener más detalles.
+Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. Consulte [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) para obtener más detalles.
 
 ### logLevel
 

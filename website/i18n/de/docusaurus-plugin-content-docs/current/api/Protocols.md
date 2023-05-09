@@ -36,7 +36,7 @@ Da dieses Protokoll derzeit in Arbeit ist, werden im Laufe der Zeit weitere Funk
 
 Das [Appium](https://appium.io/) Projekt bietet Funktionen zur Automatisierung von Mobil-, Desktop- und allen anderen Arten von IoT-Geräten. Während sich WebDriver auf Browser und das Web konzentriert, ist die Vision von Appium, denselben Ansatz zu verwenden, jedoch für beliebige Geräte. Zusätzlich zu den von WebDriver definierten Befehlen verfügt es über spezielle Befehle, die häufig spezifisch für das zu automatisierende Remotegerät sind. Für mobile Testszenarien ist dies ideal, wenn Sie die gleichen Tests sowohl für Android als auch für iOS-Anwendungen schreiben und ausführen möchten.
 
-Laut Appium [Dokumentation](https://appium.io/docs/en/about-appium/intro/?lang=en) wurde es entwickelt, um die Anforderungen der mobilen Automatisierung gemäß einer Philosophie zu erfüllen, die von den folgenden vier Grundsätzen umrissen wird:
+Laut Appium [Dokumentation](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) wurde es entwickelt, um die Anforderungen der mobilen Automatisierung gemäß einer Philosophie zu erfüllen, die von den folgenden vier Grundsätzen umrissen wird:
 
 - Sie sollten Ihre App nicht neu kompilieren oder in irgendeiner Weise ändern müssen, um sie zu automatisieren.
 - Sie sollten nicht an eine bestimmte Sprache oder ein bestimmtes Framework gebunden sein, um Ihre Tests zu schreiben und auszuführen.
