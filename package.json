@@ -43,7 +43,7 @@
     "test:unit:run": "vitest --config vitest.config.mts --run",
     "test:unit:watch": "vitest --config vitest.config.mts --watch",
     "test:component": "run-s test:component:*",
-    "test:component:setup": "cd e2e/wdio && DETECT_CHROMEDRIVER_VERSION=true npm install",
+    "test:component:setup": "cd e2e/wdio && npm install",
     "test:component:run": "cd e2e/wdio && npm run test:browser",
     "test:smoke": "node ./tests/smoke.runner.js",
     "test:e2e": "vitest --config e2e/vitest.config.ts",

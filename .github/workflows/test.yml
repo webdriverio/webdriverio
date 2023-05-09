@@ -34,6 +34,8 @@ jobs:
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Interop Tests
         run: |
           npm i chromedriver --detect_chromedriver_version
