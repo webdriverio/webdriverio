@@ -562,7 +562,7 @@ Learn more about:
 - [Serenity/JS Cucumber configuration options](https://serenity-js.org/api/cucumber-adapter/interface/CucumberConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [Serenity/JS Jasmine configuration options](https://serenity-js.org/api/jasmine-adapter/interface/JasmineConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [Serenity/JS Mocha configuration options](https://serenity-js.org/api/mocha-adapter/interface/MochaConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
-- [WebdriverIO configuration file](https://webdriver.io/docs/configurationfile/)
+- [WebdriverIO configuration file](configurationfile)
 
 ### Producing Serenity BDD reports and living documentation
 
