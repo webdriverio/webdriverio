@@ -11,13 +11,13 @@ title: پروتکل های اتوماسیون
 
 ## پروتکل WebDriver
 
-> [WebDriver](https://w3c.github.io/webdriver/) یک رابط کنترل از راه دور است که امکان بررسی و کنترل user agent را فراهم می کند. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
+> [WebDriver](https://w3c.github.io/webdriver/) یک رابط کنترل از راه دور است که امکان بررسی و کنترل user agent را فراهم می کند. این یک پروتکل خنثی نسبت به پلتفرم و زبان را به عنوان راهی برای برنامه های خارج از فرآیند ارائه می کند تا از راه دور رفتار مرورگرهای وب را آموزش دهند.
 
-The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
+پروتکل WebDriver برای خودکارسازی مرورگر از دیدگاه کاربر طراحی شده است، به این معنی که هر کاری که کاربر قادر به انجام آن است، شما می توانید با مرورگر انجام دهید. این پروتکل مجموعه ای از دستورات را ارائه می دهد که تعاملات رایج با یک برنامه کاربردی (مثلاً پیمایش، کلیک کردن، یا خواندن وضعیت یک عنصر) را انتزاعی می کند. از آنجایی که این یک استاندارد وب است، به خوبی در تمام سازندگان اصلی مرورگرها پشتیبانی می شود و همچنین به عنوان پروتکل زیربنایی برای اتوماسیون تلفن همراه با استفاده از [Appium](http://appium.io) استفاده می شود.
 
-To use this automation protocol, you need a proxy server that translates all commands and executes them in the target environment (i.e. the browser or the mobile app).
+برای استفاده از این پروتکل اتوماسیون، به یک سرور پراکسی نیاز دارید که تمام دستورات را ترجمه کرده و در محیط هدف (یعنی مرورگر یا اپلیکیشن موبایل) اجرا کند.
 
-For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
+برای اتوماسیون مرورگر، سرور پروکسی معمولاً درایور مرورگر است. درایورهای موجود برای همه مرورگرها وجود دارد:
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
 - Firefox – [Geckodriver](https://github.com/mozilla/geckodriver/releases)
@@ -25,28 +25,28 @@ For browser automation, the proxy server is usually the browser driver. There ar
 - Internet Explorer – [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
 - Safari – [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
-For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
+برای هر نوع اتوماسیون تلفن همراه، باید [Appium](http://appium.io) را نصب و راه‌اندازی کنید. به شما این امکان را می دهد که برنامه های موبایل (iOS/Android) یا حتی دسکتاپ (macOS/Windows) را با استفاده از همان تنظیمات WebdriverIO خودکار کنید.
 
-There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+همچنین خدمات زیادی وجود دارد که به شما امکان می دهد تست اتوماسیون خود را در فضای ابری در مقیاس بالا انجام دهید. به جای اینکه مجبور باشید همه این درایورها را به صورت محلی راه‌اندازی کنید، می توانید فقط با این سرویس ها (مثلاً [Sauce Labs](https://saucelabs.com)) در فضای ابری صحبت کنید و نتایج را در پلتفرم آنها بررسی کنید. ارتباط بین اسکریپت تست و محیط اتوماسیون به صورت زیر خواهد بود:
 
 ![WebDriver Setup](/img/webdriver.png)
 
-### Advantages
+### مزایا
 
-- Official W3C web standard, supported by all major browsers
-- Simplified protocol that covers common user interactions
-- Support for mobile automation (and even native desktop apps)
-- Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
+- استاندارد وب رسمی W3C که توسط همه مرورگرهای اصلی پشتیبانی می شود
+- پروتکل ساده شده که تعاملات متداول کاربر را پوشش می دهد
+- پشتیبانی از اتوماسیون موبایل (و حتی برنامه های دسکتاپ بومی)
+- قابل استفاده به صورت محلی و همچنین در فضای ابری استفاده کرد از طریق سرویس هایی مانند [Sauce Labs](https://saucelabs.com)
 
-### Disadvantages
+### معایب
 
-- Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
-- Limited set of automation capabilities (e.g., no support to throttle CPU or network)
-- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
+- برای تجزیه و تحلیل عمیق مرورگر (به عنوان مثال، ردیابی یا رهگیری رویدادهای شبکه) طراحی نشده است
+- مجموعه محدودی از قابلیت های اتوماسیون (به عنوان مثال، عدم پشتیبانی از کنترل CPU یا شبکه)
+- تلاش اضافی برای راه‌اندازی درایور مرورگر با سلنیوم مستقل/Chromedriver/و غیره
 
-## DevTools Protocol
+## پروتکل DevTools
 
-The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
+رابط DevTools یک رابط مرورگر بومی است که معمولاً برای اشکال‌زدایی مرورگر از یک برنامه راه دور استفاده می‌شود (مثلاً [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
 
 While every browser used to have its own internal DevTools interface that was not really exposed to the user, more and more browsers are now adopting the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). It is used to either debug a web application using Chrome DevTools or control Chrome using tools like [Puppeteer](https://pptr.dev).
 
