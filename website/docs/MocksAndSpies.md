@@ -7,7 +7,7 @@ WebdriverIO comes with built in support for modifying network responses that all
 
 :::info
 
-This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) and [Sauce Labs](https://saucelabs.com/) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
+This feature is currently only supported when running local tests on Chrome. It is planned to be supported on [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) soon. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
 
 :::
 
