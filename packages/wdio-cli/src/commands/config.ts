@@ -9,7 +9,7 @@ import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS, SUPPORTED_PACKAGES
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
-    createWDIOConfig, createWDIOScript
+    createWDIOConfig, createWDIOScript, runAppiumInstaller
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
@@ -147,6 +147,8 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
         parsedAnswers.projectRootDir,
         parsedAnswers.projectRootDir
     ))
+
+    await runAppiumInstaller(parsedAnswers)
 }
 
 export async function handler(argv: ConfigCommandArguments, runConfigCmd = runConfigCommand) {

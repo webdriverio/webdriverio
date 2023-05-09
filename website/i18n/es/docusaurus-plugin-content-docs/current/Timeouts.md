@@ -3,9 +3,6 @@ id: timeouts
 title: Tiempos de espera
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Cada comando en WebdriverIO es una operación asíncrona. Se lanza una solicitud al servidor de Selenium (o un servicio en la nube como [Sauce Labs](https://saucelabs.com)), y su respuesta contiene el resultado una vez que la acción ha finalizado o fallado.
 
 Por lo tanto, el tiempo es un componente crucial en todo el proceso de prueba. Cuando una acción determinada depende del estado de una acción diferente, es necesario asegurarse de que se ejecutan en el orden correcto. Los tiempos de espera desempeñan un papel importante a la hora de abordar estas cuestiones.

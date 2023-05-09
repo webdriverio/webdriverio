@@ -21,6 +21,52 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.1 (2023-05-09)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#10355](https://github.com/webdriverio/webdriverio/pull/10355) sauce-service: only upload relevant logs for instance ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#10327](https://github.com/webdriverio/webdriverio/pull/10327) (fix) wdio-cucumber-framework: fix error after #10134 ([@egerix](https://github.com/egerix))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#10329](https://github.com/webdriverio/webdriverio/pull/10329) [browserstack-service] devtools: Honor acceptInsecureCerts and ignoreHTTPSErrors settings ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* [#10324](https://github.com/webdriverio/webdriverio/pull/10324) Update Browser.md ([@ilich-garcia27](https://github.com/ilich-garcia27))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Egor Ivanov ([@egerix](https://github.com/egerix))
+- Ilich García ([@ilich-garcia27](https://github.com/ilich-garcia27))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
+## v8.10.0 (2023-05-04)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-allure-reporter`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-reporter`, `wdio-spec-reporter`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#10317](https://github.com/webdriverio/webdriverio/pull/10317) Valid W3C Appium caps only ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#10297](https://github.com/webdriverio/webdriverio/pull/10297) Check for hostname before setting isMac to true ([@therealbrad](https://github.com/therealbrad))
+
+#### Committers: 2
+- Brad DerManouelian ([@therealbrad](https://github.com/therealbrad))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.9.0 (2023-05-02)
+
+#### :rocket: New Feature
+* `wdio-cli`
+  * [#10288](https://github.com/webdriverio/webdriverio/pull/10288) (feat): Enable mobile set-up through appium-installer ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v8.8.8 (2023-04-27)
 
 #### :bug: Bug Fix

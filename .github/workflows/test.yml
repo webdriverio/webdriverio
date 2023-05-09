@@ -28,6 +28,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Dependency Check
@@ -42,7 +44,7 @@ jobs:
         if: failure()
         with:
           name: logs
-          path: examples/wdio/browser-runner/logs
+          path: e2e/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:

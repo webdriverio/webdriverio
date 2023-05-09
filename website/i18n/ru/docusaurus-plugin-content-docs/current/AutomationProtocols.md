@@ -3,24 +3,21 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+С помощью WebdriverIO вы можете выбирать из нескольких технологий автоматизации при запуске своих E2E тестов локально или в облаке. По умолчанию WebdriverIO всегда проверяет наличие драйвера браузера, совместимого с протоколом WebDriver, на `localhost:4444`. Если не удается найти такой драйвер, то используется Chrome DevTools с использованием Puppeteer.
 
-With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
+Почти все современные браузеры, поддерживающие [WebDriver](https://w3c.github.io/webdriver/), также поддерживают [DevTools](https://chromedevtools.github.io/devtools-protocol/) - еще один нативный интерфейс, который может использоваться для автоматизации.
 
-Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
-
-Both have advantages and disadvantages, depending on your use case and environment.
+Оба протокола имеют преимущества и недостатки, в зависимости от вашего варианта использования и окружения.
 
 ## Протокол WebDriver
 
-> [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
+> [WebDriver](https://w3c.github.io/webdriver/) - это интерфейс удаленного управления браузером, который позволяет получать информацию о нем и управлять его действиями через программный интерфейс. Он предоставляет независимый от платформы и языка протокол, позволяющий внешним программам удаленно управлять поведением веб-браузеров.
 
-The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
+Протокол WebDriver был разработан для автоматизации браузера с точки зрения пользователя, что означает, что все, что пользователь может сделать в браузере, можно сделать и при помощи автоматизации. WebDriver предоставляет набор команд, которые абстрагируют общие взаимодействия с приложением (например, навигация, клики или чтение состояния элемента). Поскольку это веб-стандарт, он хорошо поддерживается всеми основными поставщиками браузеров, а также используется в качестве базового протокола для мобильной автоматизации с использованием [Appium](http://appium.io).
 
-To use this automation protocol, you need a proxy server that translates all commands and executes them in the target environment (i.e. the browser or the mobile app).
+Чтобы использовать этот протокол автоматизации, нужен прокси-сервер, который переводит все команды и выполняет их в целевой среде (то есть в браузере или мобильном приложении).
 
-For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
+Для автоматизации браузера прокси-сервером обычно является драйвер браузера. Драйвера доступны для всех браузеров:
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
 - Firefox – [Geckodriver](https://github.com/mozilla/geckodriver/releases)
@@ -28,38 +25,38 @@ For browser automation, the proxy server is usually the browser driver. There ar
 - Internet Explorer – [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
 - Safari – [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
-For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
+Для любого вида мобильной автоматизации вам потребуется установить и настроить [Appium](http://appium.io). Это позволит вам автоматизировать мобильные (iOS/Android) или даже настольные (macOS/Windows) приложения, используя ту же настройку WebdriverIO.
 
-There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+Также существует множество сервисов, позволяющих запускать ваши тесты в облаке и у вас будет возможность быстрой масштабируемости. Вместо того чтобы устанавливать все эти драйверы локально, вы можете просто обратиться к этим службам (например [Sauce Labs](https://saucelabs.com)) в облаке и проверить результаты на их платформе. Общение между тестами и средой автоматизации будет выглядеть следующим образом:
 
-![WebDriver Setup](/img/webdriver.png)
+![Настройка веб-драйвера](/img/webdriver.png)
 
-### Advantages
+### Преимущества
 
-- Official W3C web standard, supported by all major browsers
-- Simplified protocol that covers common user interactions
-- Support for mobile automation (and even native desktop apps)
-- Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
+- Официальный веб-стандарт W3C, поддерживаемый всеми основными браузерами
+- Упрощенный протокол, который охватывает все действия пользователя
+- Поддержка мобильной автоматизации (и даже настольных приложений)
+- Может использоваться как локально, так и в облаке с помощью сервисов, как [Sauce Labs](https://saucelabs.com)
 
 ### Недостатки
 
 - Не предназначен для углубленного анализа браузера (например, отслеживания или перехвата сетевых событий)
 - Набор возможностей автоматизации ограничен (например, отсутствие поддержки для тротллинга ЦП или сети)
-- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
+- Дополнительные усилия по установке драйвера браузера с помощью selenium-standalone/chromedriver/etc
 
 ## DevTools Protocol
 
-The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
+Интерфейс DevTools - это нативный интерфейс браузера, который обычно используется для отладки браузера из удаленного приложения (например, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Помимо возможности отладки браузера в разных формах, DevTools также может использоваться для его управления.
 
-While every browser used to have its own internal DevTools interface that was not really exposed to the user, more and more browsers are now adopting the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). It is used to either debug a web application using Chrome DevTools or control Chrome using tools like [Puppeteer](https://pptr.dev).
+Хотя раньше у каждого браузера был свой собственный внутренний интерфейс DevTools, который на самом деле не был доступен пользователю, сейчас все больше и больше браузеров используют протокол [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/). Он используется либо для отладки веб-приложения с помощью Chrome DevTools, либо для управления Chrome с помощью таких инструментов, как [Puppeteer](https://pptr.dev).
 
-The communication happens without any proxy, directly to the browser using WebSockets:
+Общение происходит без прокси, непосредственно в браузер с помощью WebSockets:
 
-![DevTools Setup](/img/devtools.png)
+![Настройка DevTools](/img/devtools.png)
 
-WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
+WebdriverIO позволяет использовать возможности DevTools в качестве альтернативной технологии автоматизации WebDriver, если у вас есть специальные требования для автоматизации браузера. С помощью пакета NPM [`devtools`](https://www.npmjs.com/package/devtools) мы можем использовать те же команды, что и WebDriver, которые затем могут быть использованы WebdriverIO и тест-раннером WDIO для выполнения команд поверх этого протокола. Он использует Puppeteer под капотом и позволяет запускать последовательность команд с помощью Puppeteer.
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations or just run WebdriverIO without a browser driver run in the background.
+Чтобы использовать DevTools в качестве вашего протокола автоматизации переключите флаг `automationProtocol` на `devtools` в своих конфигурациях или запустите WebdriverIO без драйвера браузера в фоновом режиме.
 
 <Tabs
   defaultValue="testrunner"
@@ -111,7 +108,7 @@ describe('my test', () => {
 
 __Note:__ there is no need to have either `selenium-standalone` or `chromedriver` services installed.
 
-We recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+Мы рекомендуем заключать ваши вызовы Puppeteer в команду call, чтобы все вызовы выполнялись до того, как WebdriverIO продолжит выполнение следующей команды WebDriver.
 
 </TabItem>
 <TabItem value="standalone">
@@ -155,18 +152,18 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
-By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+Обращаясь к интерфейсу Puppeteer, у вас есть доступ к различным новым возможностям для автоматизации или проверки браузера и вашего приложения, например, перехватывание сетевых запросов (см. выше), трассировка браузера, замедление процессора или сетевых возможностей и многое другое.
 
 ### `wdio:devtoolsOptions` Capability
 
-If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
+Если вы запускаете тесты WebdriverIO через пакет DevTools, вы можете использовать [кастомные параметры Puppeteer-а](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Эти параметры будут напрямую переданы в методы [` launch `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) или [` connect `](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) Puppeteer. Другие пользовательские параметры devtools:
 
 #### customPort
-Start Chrome on a custom port.
+Запустить Chrome на другом порту.
 
 Type: `number`<br /> Default: `9222` (default of Puppeteer)
 
-Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+Примечание: если вы передаете параметры `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` или `wdio:devtoolsOptions/browserURL`, то WebdriverIO попытается подключиться с использованием указанных параметров соединения вместо запуска браузера. Например, вы можете подключиться к облаку Testingbots через:
 
 ```js
 import { format } from 'util'

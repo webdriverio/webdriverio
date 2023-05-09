@@ -15,9 +15,6 @@ import { fn, spy } from '@wdio/browser-runner'
 
 Al importar `fn` puede crear una función espía (simulación) para rastrear su ejecución y con `spyOn` seguir un método sobre un objeto ya creado.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <Tabs
   defaultValue="mocks"
   values={[

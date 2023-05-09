@@ -15,9 +15,6 @@ import { fn, spy } from '@wdio/browser-runner'
 
 `fn` आयात करके आप इसके निष्पादन को ट्रैक करने के लिए एक स्पाई फंक्शन (नकली) बना सकते हैं और `spyOn` के साथ पहले से निर्मित वस्तु पर एक विधि को ट्रैक कर सकते हैं।
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <Tabs
   defaultValue="mocks"
   values={[

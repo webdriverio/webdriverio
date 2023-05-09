@@ -542,6 +542,39 @@
     "message": "Navigateur de nouvelle génération et framework de test d'automatisation mobile pour Node.js"
   },
   "homepage.componentTesting.para1": {
+    "message": "WebdriverIO est un framework {allInOne} pour le développement de votre application Web. Il vous permet d'exécuter des tests de composants petits et légers ainsi que d'exécuter des scénarios de test e2e dans le navigateur ou sur un appareil mobile. Cela vous garantit de faire les tests dans un environnement {usedBy}."
+  },
+  "features.realEnvironments": {
+    "message": "Tester dans des environnements réels"
+  },
+  "features.versatile": {
+    "message": "Polyvalent et riche en fonctionnalités"
+  },
+  "features.autoWait": {
+    "message": "Attente automatique"
+  },
+  "features.standards": {
+    "message": "Basé sur les standards du Web"
+  },
+  "features.mobileSupport": {
+    "message": "Support mobile natif"
+  },
+  "features.community": {
+    "message": "Communauté engagée"
+  },
+  "homepage.componentTesting.heading": {
+    "message": "E2E et unité / tests de composants dans le navigateur réel!"
+  },
+  "homepage.componentTesting.para2": {
     "message": "Il est livré avec des stratégies de sélecteurs intelligents qui simplifient l’interaction, par exemple avec {reactComponents} ou avec des sélecteurs profonds avec des arborescences imbriqués DOM. Comme les interactions se produisent par le biais d'un protocole d'automatisation standardisé, il est garanti qu'ils se comportent nativement et pas seulement JavaScript émulé."
+  },
+  "Who is using WebdriverIO?": {
+    "message": "Qui utilise WebdriverIO?"
+  },
+  "all in one": {
+    "message": "tout en un seul"
+  },
+  "used by your users": {
+    "message": "utilisé par vos utilisateurs"
   }
 }

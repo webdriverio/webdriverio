@@ -13,16 +13,16 @@ __گسترشی برای:__ [EventEmitter](https://nodejs.org/api/events.html#cla
 
 یک شی browser دارای ویژگی های زیر است:
 
-| نام                       | نوع        | جزئیات                                                                                                                                           |
-| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `قابلیت ها(capabilities)` | `شیء`      | قابلیت (capabilitie) اختصاص داده شده از سرور remote.<br /><b>مثال:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                               |
-| `requestedCapabilities`   | `شیء`      | قابلیت (capabilitie) درخواست شده از طرف سرور remote.<br /><b>مثال:</b><pre>{ browserName: 'chrome' }</pre>                               |
-| `sessionId`               | `String`   | Session id که از سرور remote اختصاص داده شده است.                                                                                                |
-| `options`                 | `Object`   | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. See more [setup types](/docs/setuptypes). |
-| `commandList`             | `String[]` | لیستی از دستورات ثبت شده در نمونه ی browser                                                                                                      |
-| `isMobile`                | `Boolean`  | یک session برای تلفن همراه را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                    |
-| `isIOS`                   | `Boolean`  | یک session برای ios را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                           |
-| `isAndroid`               | `Boolean`  | یک session برای Android را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                       |
+| نام                       | نوع        | جزئیات                                                                                                                                                        |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `قابلیت ها(capabilities)` | `شیء`      | قابلیت (capabilitie) اختصاص داده شده از سرور remote.<br /><b>مثال:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                            |
+| `قابلیت های درخواست شده`  | `شیء`      | قابلیت (capabilitie) درخواست شده از طرف سرور remote.<br /><b>مثال:</b><pre>{ browserName: 'chrome' }</pre>                                            |
+| `sessionId`               | `String`   | Session id که از سرور remote اختصاص داده شده است.                                                                                                             |
+| `options`                 | `Object`   | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. اطلاعات بیشتر در [راه اندازی types](/docs/setuptypes). |
+| `commandList`             | `String[]` | لیستی از دستورات ثبت شده در نمونه ی browser                                                                                                                   |
+| `isMobile`                | `Boolean`  | یک session برای تلفن همراه را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                                 |
+| `isIOS`                   | `Boolean`  | یک session برای ios را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                                        |
+| `isAndroid`               | `Boolean`  | یک session برای Android را نشان می دهد. در [پرچم های موبایل](#mobile-flags) بیشتر بخوانید.                                                                    |
 
 ## متود ها(توابع)
 
@@ -35,7 +35,7 @@ __گسترشی برای:__ [EventEmitter](https://nodejs.org/api/events.html#cla
 | نام                  | پارامترها                                                                                                              | جزئیات                                                                                                                                                                                                                       |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | اجازه می دهد تا دستورات سفارشی را تعریف کرد که می توان از شی browser برای ترکیب های مختلف فراخوانی شود. در راهنمای [Custom Command](/docs/customcommands) بیشتر بخوانید.                                                     |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | اجازه می دهد تا هر دستور مرورگر را با عملکرد سفارشی بازنویسی کنید. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. با دقت استفاده شود زیرا می تواند کاربران فریمورک را گیج کند. در راهنمای [Custom Command](/docs/customcommands#overwriting-native-commands) بیشتر بخوانید. |
 | `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | اجازه می‌دهد تا استراتژی سفارشی خاصی برای انتخابگر ایجاد کنید. در راهنمای [انتخاب گر ها](/docs/selectors#custom-selector-strategies) بیشتر بخوانید.                                                                          |
 
 ## ملاحظات
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### دستورات سفارشی
 
 می‌توانید دستورات سفارشی را در محدوده browser تنظیم کنید تا کار هایی که به طور مرتب استفاده می‌شود را در جایی دور انتزاعی کنید. برای اطلاعات بیشتر راهنمای ما در مورد [دستورات سفارشی](/docs/customcommands#adding-custom-commands) را بررسی کنید.

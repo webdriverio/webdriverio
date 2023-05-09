@@ -1,6 +1,6 @@
 ---
 id: typescript
-title: TypeScript Setup
+title: راه اندازی TypeScript
 ---
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.

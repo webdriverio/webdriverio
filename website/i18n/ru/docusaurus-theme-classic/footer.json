@@ -44,7 +44,7 @@
     "description": "The label of footer link with label=Twitter linking to https://twitter.com/webdriverio"
   },
   "link.item.label.Tidelift Subscription": {
-    "message": "Tidelift Subscription",
+    "message": "Премиум Подписка",
     "description": "The label of footer link with label=Tidelift Subscription linking to /docs/enterprise/"
   },
   "link.item.label.Donate to WebdriverIO": {

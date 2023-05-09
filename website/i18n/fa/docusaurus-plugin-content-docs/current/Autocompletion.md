@@ -1,34 +1,31 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: تکمیل خودکار
 ---
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+تکمیل خودکار در IDEA و WebStorm خارج از جعبه کار می کند.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+اگر برای مدتی کد نوشته باشید، احتمالاً تکمیل خودکار را دوست دارید. تکمیل خودکار در بسیاری از ویرایشگرهای کد خارج از جعبه موجود است.
 
-![Autocompletion](/img/autocompletion/0.png)
+![تکمیل خودکار](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+تعاریف نوع بر اساس [JSDoc](http://usejsdoc.org/) برای مستندسازی کد استفاده می شود. این موضوع به دیدن جزئیات بیشتر در مورد پارامترها و انواع آنها کمک می کند.
 
-![Autocompletion](/img/autocompletion/1.png)
+![تکمیل خودکار](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+از میانبرهای استاندارد <kbd>⇧ + ⌥ + SPACE</kbd> در پلتفرم IntelliJ برای مشاهده اسناد موجود استفاده کنید:
 
-![Autocompletion](/img/autocompletion/2.png)
+![تکمیل خودکار](/img/autocompletion/2.png)
 
 ## Visual Studio Code (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+Visual Studio Code معمولاً دارای پشتیبانی نوع خودکار است و نیازی به اقدامی نیست.
 
-![Autocompletion](/img/autocompletion/14.png)
+![تکمیل خودکار](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+اگر از جاوا اسکریپت وانیلی(خالی) استفاده می کنید و می خواهید پشتیبانی از نوع مناسب داشته باشید، باید `jsconfig.json` در ریشه پروژه خود ایجاد کنید و به بسته های wdio استفاده شده رجوع بدهید، به عنوان مثال:
 
 ```json title="jsconfig.json"
 {

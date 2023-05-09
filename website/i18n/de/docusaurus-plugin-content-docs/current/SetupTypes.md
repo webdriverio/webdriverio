@@ -3,9 +3,6 @@ id: setuptypes
 title: Setup-Typen
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO kann für verschiedene Zwecke verwendet werden. Es implementiert die WebDriver-Protokoll-API und kann einen Browser automatisiert ausführen. Das Framework ist so konzipiert, dass es in jeder beliebigen Umgebung und für jede Art von Aufgabe gewappnet ist. Es ist unabhängig von Frameworks von Drittanbietern und benötigt nur Node.js, um ausgeführt zu werden.
 
 ## Protokollbindungen
@@ -16,8 +13,9 @@ Für grundlegende Interaktionen mit dem WebDriver und anderen Automatisierungspr
   defaultValue="webdriver"
   values={[
     {label: 'WebDriver', value: 'webdriver'},
-    {label: 'Chrome DevTools', value: 'devtools'},
-  ]}>
+ {label: 'Chrome DevTools', value: 'devtools'},
+ ]
+}>
 <TabItem value="webdriver">
 
 ```js reference useHTTPS

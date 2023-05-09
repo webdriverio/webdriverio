@@ -361,7 +361,7 @@ describe('before', () => {
             }
         )
         browser.capabilities = {
-            app: 'test-app',
+            'appium:app': 'test-app',
             device: 'iPhone XS',
             os: 'iOS',
             os_version: '12.1',
@@ -375,7 +375,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium without global browser capabilities', () => {
         const service = new BrowserstackService({} as any, {
-            app: 'bs://BrowserStackMobileAppId'
+            'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
             key: 'bar',
@@ -391,7 +391,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium if using valid W3C Webdriver capabilities', () => {
         const service = new BrowserstackService({} as any, {
-            app: 'bs://BrowserStackMobileAppId'
+            'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
             key: 'bar',

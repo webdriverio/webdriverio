@@ -3,9 +3,6 @@ id: modules
 title: मॉड्यूल
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO एनपीएम और अन्य रजिस्ट्रियों के लिए विभिन्न मॉड्यूल प्रकाशित करता है जिनका उपयोग आप अपने स्वयं के स्वचालन ढांचे के निर्माण के लिए कर सकते हैं। WebdriverIO सेटअप प्रकार के बारे में अधिक दस्तावेज़ [यहाँ](/docs/setuptypes)देखें।
 
 ## `webdriver` और `devtools`

@@ -15,9 +15,6 @@ import { fn, spy } from '@wdio/browser-runner'
 
 By importing `fn` you can create a spy function (mock) to track its execution and with `spyOn` track a method on an already created object.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <Tabs
   defaultValue="mocks"
   values={[

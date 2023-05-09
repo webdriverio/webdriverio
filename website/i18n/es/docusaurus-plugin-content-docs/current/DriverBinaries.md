@@ -5,6 +5,12 @@ title: Controladores binarios
 
 Para ejecutar la automatización basada en el protocolo WebDriver usted necesita tener los controladores del navegador configurados que traduzcan los comandos de automatización y son capaces de ejecutarlos en el navegador. A continuación se describe cómo puede configurar cada controlador de forma individual. Puedes encontrar una lista con todos los conductores en [`asombro-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
+
 ## Chromedriver
 
 Para automatizar Chrome puedes descargar Chromedriver directamente en el sitio web del proyecto [](http://chromedriver.chromium.org/downloads) o a través del paquete de NPM:

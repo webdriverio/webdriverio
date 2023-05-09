@@ -296,7 +296,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         const files = (await fs.readdir(this._config.outputDir))
-            .filter((file) => file.startsWith(`wdio-${this._cid}`) && file.endsWith('.log'))
+            .filter((file) => (file.startsWith(`wdio-${this._cid}.`) || file.startsWith(`wdio-${this._cid}-`)) && file.endsWith('.log'))
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
         return this._api.uploadJobAssets(

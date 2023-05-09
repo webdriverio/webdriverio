@@ -3,6 +3,7 @@
 @import url(hero.css);
 @import url(buttons.css);
 @import url(codeblock.css);
+@import url(youtube.css);
 
 :root {
     --ifm-color-primary: #ea5906;

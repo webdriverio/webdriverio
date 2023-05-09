@@ -14,6 +14,7 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import yarnInstall from 'yarn-install'
+import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -144,9 +145,6 @@ export async function runOnCompleteHook(
 export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
-        caps.appPackage ||
-        caps.appWaitActivity ||
-        caps.app ||
         caps.platformName ||
         caps['appium:platformName'] ||
         caps['appium:appPackage'] ||
@@ -233,7 +231,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
      * was selected for install
      */
     if (names.some(({ short }) => short === 'appium')) {
-        const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
+        const result = execSync('appium --version || echo APPIUM_MISSING', { stdio: 'pipe' }).toString().trim()
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
         } else if (update) {
@@ -471,7 +469,9 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        const answers = QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+        const ignoredQuestions = ['setupMobileEnvironment']
+        const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
+        const answers = filterdQuestionaire.reduce((answers, question) => Object.assign(
             answers,
             question.when && !question.when(answers)
                 /**
@@ -884,4 +884,26 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
         )
         return false
     }
+}
+
+export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
+    if (!parsedAnswers.setupMobileEnvironment) {
+        return
+    }
+
+    const answer = await inquirer.prompt({
+        name: 'continueWithAppiumSetup',
+        message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
+        type: 'confirm',
+        default: true
+    })
+
+    if (!answer.continueWithAppiumSetup) {
+        return console.log(
+            'Ok! You can learn more about setting up mobile environments in the ' +
+            'Appium docs at https://appium.io/docs/en/2.0/quickstart/'
+        )
+    }
+
+    return $({ stdio: 'inherit' })`npx appium-installer`
 }

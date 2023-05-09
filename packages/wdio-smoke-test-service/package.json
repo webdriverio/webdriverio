@@ -1,6 +1,6 @@
 {
   "name": "@wdio/smoke-test-service",
-  "version": "8.6.6",
+  "version": "8.10.1",
   "description": "A WebdriverIO utility to smoke test services for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service",
@@ -28,6 +28,6 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0"
+    "@types/node": "^20.1.0"
   }
 }

@@ -1,6 +1,6 @@
 ---
 id: mock
-title: The Mock Object
+title: شیء ساختگی(Mock Object)
 ---
 
 The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.

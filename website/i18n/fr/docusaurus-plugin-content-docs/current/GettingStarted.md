@@ -3,14 +3,18 @@ id: gettingstarted
 title: Premiers pas
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js';
-
 Bienvenue sur la documentation de WebdriverIO. Cela vous aidera à démarrer rapidement. Si vous rencontrez des problèmes, vous pouvez trouver de l'aide et des réponses sur notre [Discord Support Server](https://discord.webdriver.io) ou vous pouvez me contacter sur [Twitter](https://twitter.com/webdriverio).
 
 :::info
 Ce sont les documents de la dernière version (__>=8.x__) de WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
+:::
+
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Démarrage avec les guides" />
+
+:::tip Chaîne YouTube officielle 🎥
+
+Vous pouvez trouver plus de vidéos autour de WebdriverIO sur la [chaîne YouTube officielle](https://youtube.com/@webdriverio). Assurez-vous de vous abonner!
+
 :::
 
 ## Lancer une installation WebdriverIO

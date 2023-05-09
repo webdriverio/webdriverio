@@ -115,8 +115,8 @@ function Home() {
                                 <Translate
                                     id="homepage.componentTesting.para1"
                                     values={{
-                                        allInOne: (<b>all in one</b>),
-                                        usedBy: (<b>used by your users</b>)
+                                        allInOne: (<b><Translate>all in one</Translate></b>),
+                                        usedBy: (<b><Translate>used by your users</Translate></b>)
                                     }}>
                                     {
                                         'WebdriverIO is an {allInOne} framework for your web app development. It enables you to run ' +

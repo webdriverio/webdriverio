@@ -3,9 +3,6 @@ id: retry
 title: Fehlerhafte Tests Wiederholen
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Sie können bestimmte Tests mit dem WebdriverIO-Testrunner wiederholen, die sich aufgrund von verschiedenen Faktoren, wie einem unbeständigen Netzwerk oder anderen Zufälligkeiten als instabil herausstellen. Es wird jedoch nicht empfohlen, die Wiederholungsrate einfach zu erhöhen, wenn Tests instabil werden!
 
 ## Wiederholen von Mocha Tests
