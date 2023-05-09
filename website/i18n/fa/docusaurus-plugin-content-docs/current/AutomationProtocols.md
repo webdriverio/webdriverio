@@ -1,17 +1,17 @@
 ---
 id: automationProtocols
-title: Automation Protocols
+title: پروتکل های اتوماسیون
 ---
 
-With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
+با WebdriverIO، هنگام اجرای تست های E2E خود به صورت محلی یا در فضای ابری، می توانید بین چندین فناوری اتوماسیون یکی را انتخاب کنید. به طور پیش فرض WebdriverIO همیشه یک درایور مرورگر را بررسی می کند که با پروتکل WebDriver در `localhost:4444`مطابقت داشته باشد. اگر نتواند چنین درایوری را پیدا کند، به استفاده از ابزار توسعه کروم با استفاده از Puppeteer در لایه های زیرین بازمی‌گردد.
 
-Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
+تقریباً تمام مرورگرهای مدرنی که از [WebDriver](https://w3c.github.io/webdriver/) پشتیبانی می کنند، از رابط بومی دیگری به نام [DevTools](https://chromedevtools.github.io/devtools-protocol/) نیز پشتیبانی می کنند که می تواند برای اهداف اتوماسیون استفاده شود.
 
-Both have advantages and disadvantages, depending on your use case and environment.
+هر دو بسته به مورد استفاده و همچنین بسته به محیط شما، مزایا و معایبی دارند.
 
-## WebDriver Protocol
+## پروتکل WebDriver
 
-> [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
+> [WebDriver](https://w3c.github.io/webdriver/) یک رابط کنترل از راه دور است که امکان بررسی و کنترل user agent را فراهم می کند. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
 
 The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
 
