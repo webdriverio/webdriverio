@@ -29,6 +29,10 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 * `wdio-cucumber-framework`
   * [#10327](https://github.com/webdriverio/webdriverio/pull/10327) (fix) wdio-cucumber-framework: fix error after #10134 ([@egerix](https://github.com/egerix))
 
+#### :nail_care: Polish
+* `devtools`
+  * [#10329](https://github.com/webdriverio/webdriverio/pull/10329) [browserstack-service] devtools: Honor acceptInsecureCerts and ignoreHTTPSErrors settings ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
 #### :memo: Documentation
 * [#10324](https://github.com/webdriverio/webdriverio/pull/10324) Update Browser.md ([@ilich-garcia27](https://github.com/ilich-garcia27))
 
