@@ -1,48 +1,57 @@
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
-
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 
 import mockery from 'mockery'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 
 import * as Cucumber from '@cucumber/cucumber'
-import {
+import Gherkin from '@cucumber/gherkin'
+import { GherkinStreams } from '@cucumber/gherkin-streams'
+import { IdGenerator } from '@cucumber/messages'
+import TagExpressionParser from '@cucumber/tag-expressions'
+
+import CucumberReporter from './reporter.js'
+import { DEFAULT_OPTS } from './constants.js'
+import { setUserHookNames, shouldRun } from './utils.js'
+
+import type { World as WorldType, IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
+import type { GherkinDocument } from '@cucumber/messages'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
+
+const {
     After,
     AfterAll,
     AfterStep,
     Before,
     BeforeAll,
     BeforeStep,
-    DataTable,
-    defineParameterType,
-    defineStep,
+
     Given,
+    Then,
+    When,
+
+    DataTable,
+    World,
+    PickleFilter,
+    Runtime,
+
+    Status,
+
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
-    World,
-    Then,
-    When
-} from '@cucumber/cucumber'
-import type { IRuntimeOptions, ITestCaseHookParameter, PickleFilter } from '@cucumber/cucumber'
-import { GherkinStreams } from '@cucumber/gherkin-streams'
-import type { FeatureChild, GherkinDocument, RuleChild } from '@cucumber/messages'
-import { IdGenerator } from '@cucumber/messages'
-import Gherkin from '@cucumber/gherkin'
+    defineParameterType,
+    defineStep,
+    parseGherkinMessageStream,
+    supportCodeLibraryBuilder,
 
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
-
-import CucumberReporter from './reporter.js'
-import { DEFAULT_OPTS } from './constants.js'
-import { setUserHookNames } from './utils.js'
-import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
-
-import TagExpressionParser from '@cucumber/tag-expressions'
+} = Cucumber
 
 const uuidFn = IdGenerator.uuid()
 const builder = new Gherkin.AstBuilder(uuidFn)
@@ -50,14 +59,19 @@ const matcher = new Gherkin.GherkinClassicTokenMatcher()
 const gherkinParser = new Gherkin.Parser(builder, matcher)
 
 const require = createRequire(import.meta.url)
+
+// EventDataCollector is not exported from main package
+// Cannot import from path mapping without require
+// See https://github.com/TypeStrong/ts-node/pull/1585
 const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default
+
 const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
 
 function getResultObject(world: ITestCaseHookParameter): Frameworks.PickleResult {
     return {
-        passed: (world.result?.status === Cucumber.Status.PASSED || world.result?.status === Cucumber.Status.SKIPPED),
+        passed: (world.result?.status === Status.PASSED || world.result?.status === Status.SKIPPED),
         error: world.result?.message as string,
         duration: world.result?.duration?.nanos as number / 1e6 // convert into ms
     }
@@ -111,7 +125,7 @@ class CucumberAdapter {
             ? this._cucumberFeaturesWithLineNumbers
             : this._specs
 
-        this._pickleFilter = new Cucumber.PickleFilter({
+        this._pickleFilter = new PickleFilter({
             cwd: this._cwd,
             featurePaths: featurePathsToRun,
             names: this._cucumberOpts.names as string[],
@@ -167,56 +181,11 @@ class CucumberAdapter {
 
         const tagParser = TagExpressionParser(tagExpression)
 
-        const shouldRun = (doc: GherkinDocument) => {
-
-            if (!doc.feature) {
-                return false
-            }
-
-            const ext = path.extname(doc.uri!)
-
-            const lineOnFile = ext.startsWith('feature:')
-                ? Number(ext.split('feature:').pop())
-                : undefined
-
-            const hasTags = (msg: GherkinDocument & FeatureChild & RuleChild) => {
-                const type = (msg.feature ?? msg.rule ?? msg.scenario)
-
-                if (type) {
-                    const matches = tagParser.evaluate(type.tags.map(t => t.name))
-
-                    return lineOnFile
-                        // Evaluate only specific line
-                        ? type.location.line === lineOnFile && matches
-                        : matches
-                }
-                return false
-            }
-
-            return (
-                // Check if Feature has matching tags
-                hasTags(doc)
-
-                // Check if some root Scenarios have matching tags
-                || doc.feature.children.filter(c => c.scenario).some(hasTags)
-
-                // Check if some Rules have matching tags
-                || doc.feature.children.filter(c => c.rule).some(hasTags)
-
-                // Check if some Scenarios within Rules have matching tags
-                || doc.feature.children
-                    .filter(c => c.rule)
-                    .map(c => c.rule!.children.filter(c => c.scenario))
-                    .flat(1)
-                    .some(hasTags)
-            )
-        }
-
         const filteredSpecs: Options.Testrunner['specs'] = this
             .getGherkinDocuments([this._specs])
             .map((specDoc: GherkinDocument | GherkinDocument[]) => {
 
-                const [doc, ...etc] = [specDoc].flat(1).filter(shouldRun)
+                const [doc, ...etc] = [specDoc].flat(1).filter(doc => shouldRun(doc, tagParser))
 
                 const ret = Array.isArray(specDoc)
                     // Return group only if its not empty
@@ -249,7 +218,7 @@ class CucumberAdapter {
                 newId: this._newId
             })
 
-            await Cucumber.parseGherkinMessageStream({
+            await parseGherkinMessageStream({
                 cwd: this._cwd,
                 eventBroadcaster: this._eventBroadcaster,
                 gherkinMessageStream,
@@ -276,7 +245,7 @@ class CucumberAdapter {
         let result
         try {
             await this.registerRequiredModules()
-            Cucumber.supportCodeLibraryBuilder.reset(this._cwd, this._newId)
+            supportCodeLibraryBuilder.reset(this._cwd, this._newId)
 
             /**
              * wdio hooks should be added before spec files are loaded
@@ -289,9 +258,9 @@ class CucumberAdapter {
              * we need to somehow identify is function is step or hook
              * so we wrap every user hook function
              */
-            setUserHookNames(Cucumber.supportCodeLibraryBuilder)
-            Cucumber.setDefaultTimeout(this._cucumberOpts.timeout)
-            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
+            setUserHookNames(supportCodeLibraryBuilder)
+            setDefaultTimeout(this._cucumberOpts.timeout)
+            const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
             /**
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
@@ -302,7 +271,7 @@ class CucumberAdapter {
                 .getHookParams
                 .bind(this._cucumberReporter.eventListener)
 
-            const runtime = new Cucumber.Runtime({
+            const runtime = new Runtime({
                 newId: this._newId,
                 eventBroadcaster: this._eventBroadcaster,
                 options: this._cucumberOpts as any as IRuntimeOptions,
@@ -406,7 +375,7 @@ class CucumberAdapter {
      */
     addWdioHooks(config: Options.Testrunner) {
         const eventListener = this._cucumberReporter?.eventListener
-        Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
+        BeforeAll(async function wdioHookBeforeFeature() {
             const params = eventListener?.getHookParams()
             await executeHooksWithArgs(
                 'beforeFeature',
@@ -414,7 +383,7 @@ class CucumberAdapter {
                 [params?.uri, params?.feature]
             )
         })
-        Cucumber.AfterAll(async function wdioHookAfterFeature() {
+        AfterAll(async function wdioHookAfterFeature() {
             const params = eventListener?.getHookParams()
             await executeHooksWithArgs(
                 'afterFeature',
@@ -422,21 +391,21 @@ class CucumberAdapter {
                 [params?.uri, params?.feature]
             )
         })
-        Cucumber.Before(async function wdioHookBeforeScenario(world: ITestCaseHookParameter) {
+        Before(async function wdioHookBeforeScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
                 [world, this]
             )
         })
-        Cucumber.After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
+        After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
                 [world, getResultObject(world), this]
             )
         })
-        Cucumber.BeforeStep(async function wdioHookBeforeStep() {
+        BeforeStep(async function wdioHookBeforeStep() {
             const params = eventListener?.getHookParams()
             await executeHooksWithArgs(
                 'beforeStep',
@@ -444,7 +413,7 @@ class CucumberAdapter {
                 [params?.step, params?.scenario, this]
             )
         })
-        Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
+        AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
             const params = eventListener?.getHookParams()
             await executeHooksWithArgs(
                 'afterStep',
@@ -463,7 +432,7 @@ class CucumberAdapter {
         const cid = this._cid
         const getHookParams = () => this.getHookParams && this.getHookParams()
 
-        Cucumber.setDefinitionFunctionWrapper((fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {
+        setDefinitionFunctionWrapper((fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {
             /**
              * hooks defined in wdio.conf are already wrapped
              */
@@ -500,7 +469,7 @@ class CucumberAdapter {
         options: StepDefinitionOptions,
         getHookParams: Function
     ) {
-        return function (this: Cucumber.World, ...args: any[]) {
+        return function (this: WorldType, ...args: any[]) {
             const hookParams = getHookParams()
             const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
 

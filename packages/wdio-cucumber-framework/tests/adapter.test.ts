@@ -6,7 +6,7 @@ import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
 import type * as Messages from '@cucumber/messages'
 
-import { setUserHookNames } from '../src/utils.js'
+import * as Utils from '../src/utils.js'
 import * as packageExports from '../src/index.js'
 
 import CucumberAdapter from '../src/index.js'
@@ -45,9 +45,15 @@ vi.mock('moduleB', () => ({
     }
 }))
 
-vi.mock('../src/utils', () => ({
-    setUserHookNames: vi.fn()
-}))
+vi.mock('../src/utils', async () => {
+
+    const module: typeof Utils = await vi.importActual('../src/utils')
+
+    return {
+        ...module,
+        setUserHookNames: vi.fn()
+    }
+})
 
 vi.mock('@cucumber/gherkin-streams', () => ({
     GherkinStreams: { fromPaths: vi.fn().mockReturnValue('GherkinStreams.fromPaths') }
@@ -141,7 +147,7 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadSpecFiles).toBeCalledTimes(1)
-        expect(setUserHookNames).toBeCalledTimes(1)
+        expect(Utils.setUserHookNames).toBeCalledTimes(1)
     })
 
     it('can run with failing result', async () => {
