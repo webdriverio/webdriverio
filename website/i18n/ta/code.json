@@ -44,7 +44,7 @@
     "description": "The ARIA label for the back to top button"
   },
   "theme.blog.archive.title": {
-    "message": "Archive",
+    "message": "காப்பகப்படுத்தியவை",
     "description": "The page & hero title of the blog archive page"
   },
   "theme.blog.archive.description": {
@@ -290,7 +290,7 @@
     "description": "The paragraph for fetching new search results"
   },
   "theme.SearchBar.label": {
-    "message": "Search",
+    "message": "தேடல்",
     "description": "The ARIA label and placeholder for search button"
   },
   "theme.SearchModal.searchBox.resetButtonTitle": {
@@ -298,15 +298,15 @@
     "description": "The label and ARIA label for search box reset button"
   },
   "theme.SearchModal.searchBox.cancelButtonText": {
-    "message": "Cancel",
+    "message": "ரத்து செய்",
     "description": "The label and ARIA label for search box cancel button"
   },
   "theme.SearchModal.startScreen.recentSearchesTitle": {
-    "message": "Recent",
+    "message": "சமீபம்",
     "description": "The title for recent searches"
   },
   "theme.SearchModal.startScreen.noRecentSearchesText": {
-    "message": "No recent searches",
+    "message": "சமீபத்திய தேடல்கள்",
     "description": "The text when no recent searches"
   },
   "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
@@ -318,11 +318,11 @@
     "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
-    "message": "Favorite",
+    "message": "பிடித்தவை",
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
-    "message": "Remove this search from favorites",
+    "message": "பிடித்தவற்றிலிருந்து இந்தத் தேடலை அகற்றவும்",
     "description": "The label for remove favorite search button"
   },
   "theme.SearchModal.errorScreen.titleText": {
@@ -378,27 +378,27 @@
     "description": "The text for the question where the user thinks there are missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
-    "message": "Let us know.",
+    "message": "எங்களுக்கு தெரிவியுங்கள்.",
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "Search docs",
+    "message": "ஆவணங்களைத் தேடுங்கள்",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.IdealImageMessage.loading": {
-    "message": "Loading...",
+    "message": "ஏற்றுகிறது...",
     "description": "When the full-scale image is loading"
   },
   "theme.IdealImageMessage.load": {
-    "message": "Click to load{sizeMessage}",
+    "message": "{sizeMessage} ஏற்ற கிளிக் செய்யவும்",
     "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
   },
   "theme.IdealImageMessage.offline": {
-    "message": "Your browser is offline. Image not loaded",
+    "message": "உங்கள் பிரௌசர் ஆஃப்லைனில் உள்ளது. படம் ஏற்றப்படவில்லை",
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
-    "message": "404. Image not found",
+    "message": "404: பக்கம் கிடைக்கவில்லை",
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
@@ -406,7 +406,7 @@
     "description": "When the image fails to load for unknown error"
   },
   "theme.PwaReloadPopup.info": {
-    "message": "New version available",
+    "message": "புதிய பதிப்பு கிடைக்கிறது",
     "description": "The text for PWA reload popup"
   },
   "theme.PwaReloadPopup.refreshButtonText": {
