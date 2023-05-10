@@ -38,10 +38,11 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "8.5.3",
+    "@cucumber/cucumber": "8.11.1",
     "@cucumber/gherkin": "26.2.0",
-    "@cucumber/gherkin-streams": "^5.0.0",
+    "@cucumber/gherkin-streams": "^5.0.1",
     "@cucumber/messages": "22.0.0",
+    "@cucumber/tag-expressions": "5.0.1",
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.6.6",
     "@wdio/types": "8.10.1",

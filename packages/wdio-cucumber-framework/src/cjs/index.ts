@@ -5,16 +5,19 @@ const {
     Before,
     BeforeAll,
     BeforeStep,
-    DataTable,
+
+    Given,
+    Then,
+    When,
+
     defineParameterType,
     defineStep,
-    Given,
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
+
+    DataTable,
     World,
-    Then,
-    When
 } = require('@cucumber/cucumber')
 
 const adapterFactory = {
@@ -25,22 +28,25 @@ const adapterFactory = {
         const instance = await adapter.init()
         return instance
     },
-    After: After,
-    AfterAll: AfterAll,
-    AfterStep: AfterStep,
-    Before: Before,
-    BeforeAll: BeforeAll,
-    BeforeStep: BeforeStep,
-    DataTable: DataTable,
-    defineParameterType: defineParameterType,
-    defineStep: defineStep,
-    Given: Given,
-    setDefaultTimeout: setDefaultTimeout,
-    setDefinitionFunctionWrapper: setDefinitionFunctionWrapper,
-    setWorldConstructor: setWorldConstructor,
-    World: World,
-    Then: Then,
-    When: When,
+    After,
+    AfterAll,
+    AfterStep,
+    Before,
+    BeforeAll,
+    BeforeStep,
+
+    Given,
+    Then,
+    When,
+
+    defineParameterType,
+    defineStep,
+    setDefaultTimeout,
+    setDefinitionFunctionWrapper,
+    setWorldConstructor,
+
+    DataTable,
+    World,
 }
 
 module.exports = adapterFactory
