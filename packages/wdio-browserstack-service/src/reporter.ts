@@ -9,7 +9,7 @@ import * as url from 'node:url'
 import { v4 as uuidv4 } from 'uuid'
 
 import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
-import { getCloudProvider, uploadEventData, o11yClassErrorHandler, getGitMetaData } from './util.js'
+import { getCloudProvider, uploadEventData, o11yClassErrorHandler, getGitMetaData, removeAnsiColors } from './util.js'
 import RequestQueueHandler from './request-handler.js'
 
 const log = logger('@wdio/browserstack-service')
@@ -24,6 +24,7 @@ class _TestReporter extends WDIOReporter {
     private _suites: SuiteStats[] = []
     private static _tests: Record<string, TestMeta> = {}
     private _gitConfigPath?: string
+    private _gitConfigured: boolean = false
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
@@ -32,10 +33,18 @@ class _TestReporter extends WDIOReporter {
         if (typeof this._config.testObservability !== 'undefined') {
             this._observability = this._config.testObservability
         }
+        await this.configureGit()
+    }
+
+    async configureGit() {
+        if (this._gitConfigured) {
+            return
+        }
         const gitMeta = await getGitMetaData()
         if (gitMeta) {
             this._gitConfigPath = gitMeta.root
         }
+        this._gitConfigured = true
     }
 
     static getTests() {
@@ -46,7 +55,14 @@ class _TestReporter extends WDIOReporter {
         let filename = suiteStats.file
         if (this._config?.framework === 'jasmine') {
             try {
-                filename = url.fileURLToPath(suiteStats.file)
+                if (suiteStats.file.startsWith('file://')) {
+                    filename = url.fileURLToPath(suiteStats.file)
+                }
+
+                if (filename === 'unknown spec file') {
+                    // Sometimes in cases where a file has two suites. Then the file name be unknown for second suite, so getting the filename from first suite
+                    filename = this._suiteName || suiteStats.file
+                }
             } catch (e) {
                 log.debug('Error in decoding file name of suite')
             }
@@ -68,7 +84,7 @@ class _TestReporter extends WDIOReporter {
         case 'cucumber':
             return false
         case 'jasmine':
-            return testType === 'test'
+            return testType === 'test' && event !== 'skip'
         default:
             return false
         }
@@ -107,8 +123,10 @@ class _TestReporter extends WDIOReporter {
 
     async sendTestRunEvent(testStats: TestStats, eventType: string) {
         const framework = this._config?.framework
+        const scopes = this._suites.map(s => s.title)
         const testMetaData: TestMeta = _TestReporter._tests[testStats.fullTitle]
 
+        await this.configureGit()
         const testData: TestData = {
             uuid: testMetaData ? testMetaData.uuid : uuidv4(),
             type: testStats.type,
@@ -118,7 +136,7 @@ class _TestReporter extends WDIOReporter {
                 code: null
             },
             scope: testStats.fullTitle,
-            scopes: this._suites.map(s => s.title),
+            scopes: scopes,
             identifier: testStats.fullTitle,
             file_name: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
             location: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
@@ -142,6 +160,19 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
+            }
+        }
+
+        if (eventType === 'TestRunFinished' || eventType === 'HookRunFinished') {
+            const { error } = testStats
+            const failed = testStats.state === 'failed'
+            if (failed) {
+                testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
+                if (error && testData.result !== 'skipped') {
+                    testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
+                    testData.failure_reason = removeAnsiColors(error.message)
+                    testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                }
             }
         }
 
