@@ -30,7 +30,7 @@ Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo pu
 
 ### Extensiones de capacidad de Motor de Automatización
 
-- `appium:xxx`: [Appium](https://appium.io/docs/en/writing-running-appium/caps/)
+- `appium:xxx`: [Appium](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - y mucho más...
 

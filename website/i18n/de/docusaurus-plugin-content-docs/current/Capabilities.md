@@ -30,7 +30,7 @@ Während die Menge an fest definierten Fähigkeiten sehr gering ist, kann jeder 
 
 ### Erweiterungen der Automation Engine-Capabilities
 
-- `appium:xxx`: [Appium](https://appium.io/docs/en/writing-running-appium/caps/)
+- `appium:xxx`: [Appium](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - und viel, viel mehr!
 

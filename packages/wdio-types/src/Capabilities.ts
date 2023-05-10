@@ -396,7 +396,7 @@ export interface ChromeCapabilities {
 /**
  * Appium General W3C Capabilities
  *
- * @see https://appium.io/docs/en/writing-running-appium/caps/
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/
  */
 export interface AppiumCapabilities {
     /**
@@ -439,7 +439,7 @@ export interface AppiumCapabilities {
     'appium:deviceName'?: string;
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -486,7 +486,7 @@ export interface AppiumCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://appium.io/docs/en/writing-running-appium/caps/#android-only
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
  */
 export interface AppiumAndroidCapabilities {
     'appium:appiumVersion'?: string;

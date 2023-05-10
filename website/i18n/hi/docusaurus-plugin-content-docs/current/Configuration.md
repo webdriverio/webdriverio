@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-यदि आप मोबाइल उपकरणों पर वेब या नेटिव परीक्षण चला रहे हैं, तो `capabilities` वेबड्राइवर प्रोटोकॉल से भिन्न है। अधिक विवरण के लिए [एपियम डॉक्स](http://appium.io/docs/en/writing-running-appium/caps/) देखें।
+यदि आप मोबाइल उपकरणों पर वेब या नेटिव परीक्षण चला रहे हैं, तो `capabilities` वेबड्राइवर प्रोटोकॉल से भिन्न है। अधिक विवरण के लिए [एपियम डॉक्स](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) देखें।
 
 ### logLevel
 
