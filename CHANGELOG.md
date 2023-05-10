@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.2 (2023-05-10)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#10330](https://github.com/webdriverio/webdriverio/pull/10330) @wdio/cucumber-framework: Filter specs /w Cucumber Tag Expression before spawning workers ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* `wdio-appium-service`, `wdio-protocols`, `wdio-types`, `webdriverio`
+  * [#10359](https://github.com/webdriverio/webdriverio/pull/10359) Fix Appium Doc Links ([@noahgregory-avanade](https://github.com/noahgregory-avanade))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- [@noahgregory-avanade](https://github.com/noahgregory-avanade)
+
+
 ## v8.10.1 (2023-05-09)
 
 #### :bug: Bug Fix
