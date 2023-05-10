@@ -1,9 +1,9 @@
 ---
 id: frameworks
-title: Frameworks
+title: فریمورک ها
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+اجرا کننده WDIO در حال حاضر از [Mocha](http://mochajs.org/)،  [Jasmine](http://jasmine.github.io/) و [Cucumber](https://cucumber.io/) پشتیبانی می کند.
 
 To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 

@@ -1,6 +1,6 @@
 ---
 id: capabilities
-title: Capabilities
+title: قابلیت ها(capabilities)
 ---
 
 A capability is a definition for a remote interface. It helps WebdriverIO to understand in which browser or mobile environment you like to run your tests on. Capabilities are less crucial when developing tests locally as you run it on one remote interface most of the time but becomes more important when running a large set of integration tests in CI/CD.
