@@ -566,7 +566,7 @@
     "message": "ரியல் பிரௌசரில் E2E மற்றும் யூனிட்/காம்போனென்ட் டெஸ்டிங்!"
   },
   "homepage.componentTesting.para2": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "இது ஸ்மார்ட் செலக்டர் உத்திகளுடன் வருகிறது, இது {reactComponents} உடன் தொடர்புகொள்வதை எளிதாக்குகிறது அல்லது டீப் செலெக்டர் கியூரியை நெஸ்ட்டேட் ஷாடோவ் DOM ட்ரீஸ் உதவியுடன் இயக்குகிறது. தரப்படுத்தப்பட்ட ஆட்டோமேஷன் நெறிமுறை மூலம் இடைவினைகள் நிகழும்போது அவை சொந்தமாக நடந்துகொள்வது உத்தரவாதம் அளிக்கப்படுகிறது மற்றும் ஜாவாஸ்கிரிப்ட் மட்டுமே பின்பற்றப்படவில்லை."
   },
   "Who is using WebdriverIO?": {
     "message": "WebdriverIO ஐ யார் பயன்படுத்துகிறார்கள்?"
