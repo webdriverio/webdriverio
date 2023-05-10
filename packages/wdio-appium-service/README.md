@@ -1,7 +1,7 @@
 WebdriverIO Appium Service
 ==========================
 
-Handling the Appium server is out of the scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](http://appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
+Handling the Appium server is out of the scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](https://appium.github.io/appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
 
 ## Installation
 
@@ -85,7 +85,7 @@ export const config = {
 ### args
 Map of arguments for the Appium server, passed directly to `appium`.
 
-See [the documentation](http://appium.io/docs/en/writing-running-appium/server-args/index.html) for possible arguments.
+See [the documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/server-args/index.html) for possible arguments.
 The arguments should be supplied in lower camel case, so `--pre-launch true` becomes `preLaunch: true` or passed as an array.
 
 Type: `Object` or `Array`

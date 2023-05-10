@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-Wenn Sie Web- oder native Tests auf Mobilgeräten ausführen, unterscheiden sich `Capabilities` vom WebDriver-Protokoll. Siehe [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) für weitere Details.
+Wenn Sie Web- oder native Tests auf Mobilgeräten ausführen, unterscheiden sich `Capabilities` vom WebDriver-Protokoll. Siehe [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) für weitere Details.
 
 ### logLevel
 
