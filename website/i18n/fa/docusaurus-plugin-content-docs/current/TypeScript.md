@@ -11,11 +11,11 @@ title: راه اندازی TypeScript
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
+WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. اگر نیاز به پیکربندی نحوه اجرای ts-node دارید، از متغیرهای محیطی (Environment Variables) برای [ts-node](https://www.npmjs.com/package/ts-node#options) استفاده کنید یا از تنظیم wdio در بخش autoCompileOpts استفاده کنید.
 
-## Configuration
+## پیکربندی
 
-You can provide custom `ts-node` options through your `wdio.conf.ts`, e.g.:
+شما می توانید گزینه های سفارشی `ts-node` را از طریق `wdio.conf.ts` خود ارائه دهید، به عنوان مثال:
 
 ```ts title="wdio.conf.ts"
 export const config = {
@@ -32,18 +32,18 @@ export const config = {
 }
 ```
 
-Or apply them through the environment:
+یا آنها را از طریق محیط اعمال کنید:
 
 ```sh
 # run wdio testrunner with custom tsconfig.json location
 TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
 ```
 
-The minimum TypeScript version is `v4.0.5`.
+حداقل نسخه TypeScript نسخه `4.0.5` است.
 
-## Framework Setup
+## راه اندازی فریمورک
 
-And your `tsconfig.json` needs the following:
+و `tsconfig.json` شما به موارد زیر نیاز دارد:
 
 ```json title="tsconfig.json"
 {
@@ -53,13 +53,13 @@ And your `tsconfig.json` needs the following:
 }
 ```
 
-Please avoid importing `webdriverio` or `@wdio/sync` explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
+از وارد کردن `webdriverio` یا `@wdio/sync` خودداری کنید. `نوع WebdriverIO` و `WebDriver` بعد از اضافه شدن به `انواع` در `tsconfig.json` در همه جا قابل دسترسی خواهد بود. اگر از سرویس های اضافی WebdriverIO، افزونه ها یا بسته اتوماسیون `devtools` استفاده می کنید، آنها را به لیست `انواع` نیز اضافه کنید زیرا بسیاری از آنها نوع های اضافه تری را ارائه می دهند.
 
-## Framework Types
+## نوع ها در فریمورک
 
-Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
+بسته به فریمورکی که استفاده می کنید، باید انواع آن فریمورک را به ویژگی انواع در `tsconfig.json` خود اضافه کنید و همچنین تعاریف نوع آن را نصب کنید. به خصوص اگر می‌خواهید برای کتابخانه ادعای داخلی [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio) پشتیبانی از نوع را داشته باشید، این امر بسیار مهم است.
 
-For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
+به عنوان مثال، اگر تصمیم دارید از فریمورک Mocha استفاده کنید، باید `@types/mocha` را نصب کنید و آن را به این صورت اضافه کنید تا همه انواع در سطح جهانی در دسترس باشند:
 
 <Tabs
   defaultValue="mocha"
@@ -104,9 +104,9 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 </TabItem>
 </Tabs>
 
-## Services
+## سرویس‌ها
 
-If you use services that add commands to the browser scope you also need to include these into your `tsconfig.json`. For example if you use the `@wdio/devtools-service` ensure that you add it to the `types` as well, e.g.:
+اگر از سرویس‌هایی استفاده می‌کنید که دستوراتی را به محدوده browser اضافه می‌کنند، باید آنها را نیز در `tsconfig.json` خود قرار دهید. به عنوان مثال، اگر از `@wdio/devtools-service` استفاده می کنید، مطمئن شوید که آن را به `انواع` نیز اضافه می کنید، به عنوان مثال:
 
 ```json title="tsconfig.json"
 {
@@ -121,11 +121,11 @@ If you use services that add commands to the browser scope you also need to incl
 }
 ```
 
-Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
+افزودن سرویس ها و گزارشگران به پیکربندی TypeScript شما همچنین امنیت نوع فایل پیکربندی WebdriverIO شما را تقویت می کند.
 
-## Type Definitions
+## تعریف انواع
 
-When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
+هنگام اجرای دستورات WebdriverIO معمولاً همه ویژگی ها نوع مشخصی دارند، بنابراین نیازی به درگیری برای اضافه کردن انواع اضافی را ندارید. با این حال ممکن است مواردی باشد که می خواهید متغیرها را از قبل تعریف کنید. برای اطمینان از ایمن بودن نوع این موارد می توانید از همه انواع تعریف شده در بسته [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) استفاده کنید. به عنوان مثال اگر دوست دارید گزینه remote را برای `webdriverio` تعریف کنید، می توانید این کار را اینطور انجام دهید:
 
 ```ts
 import type { Options } from '@wdio/types'
@@ -139,8 +139,8 @@ const config: Options.WebdriverIO = {
 }
 ```
 
-## Tips and Hints
+## نکات و ترفندها
 
-### Compile & Lint
+### کامپایل و Lint
 
-To be entirely safe, you may consider following the best practices: compile your code with TypeScript compiler (run `tsc` or `npx tsc`) and have [eslint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin) running on [pre-commit hook](https://github.com/typicode/husky).
+برای اینکه کاملاً ایمن باشید، می‌توانید بهترین مثال‌ها را دنبال کنید: کد خود را با کامپایلر TypeScript کامپایل کنید ( `tsc` یا `npx tsc`را اجرا کنید) و [Eslint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin) را روی [هوک پیش از commit](https://github.com/typicode/husky) اجرا کنید.
