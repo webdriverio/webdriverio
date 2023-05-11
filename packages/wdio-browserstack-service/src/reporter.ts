@@ -1,6 +1,6 @@
 import path from 'node:path'
 import url from 'node:url'
-import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter, { SuiteStats, TestStats, RunnerStats, HookStats } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -76,7 +76,7 @@ class _TestReporter extends WDIOReporter {
         case 'cucumber':
             return false
         case 'jasmine':
-            return testType === 'test' && event !== 'skip'
+            return event !== 'skip'
         default:
             return false
         }
@@ -84,6 +84,7 @@ class _TestReporter extends WDIOReporter {
 
     async onTestEnd(testStats: TestStats) {
         if (!this.needToSendData('test', 'end')) return
+        if (testStats.fullTitle === '<unknown test>') return
 
         testStats.end ||= new Date()
         await this.sendTestRunEvent(testStats, 'TestRunFinished')
@@ -91,6 +92,7 @@ class _TestReporter extends WDIOReporter {
 
     async onTestStart(testStats: TestStats) {
         if (!this.needToSendData('test', 'start')) return
+        if (testStats.fullTitle === '<unknown test>') return
 
         _TestReporter._tests[testStats.fullTitle] = {
             uuid: uuidv4(),
@@ -98,10 +100,42 @@ class _TestReporter extends WDIOReporter {
         await this.sendTestRunEvent(testStats, 'TestRunStarted')
     }
 
-    async sendTestRunEvent(testStats: TestStats, eventType: string) {
+    async onHookStart(hookStats: HookStats) {
+        if (!this.needToSendData('hook', 'start')) {
+            return
+        }
+
+        const identifier = this.getHookIdentifier(hookStats)
+        const hookId = uuidv4()
+        _TestReporter._tests[identifier] = {
+            uuid: hookId,
+            startedAt: (new Date()).toISOString()
+        }
+        await this.sendTestRunEvent(hookStats, 'HookRunStarted')
+    }
+
+    async onHookEnd(hookStats: HookStats) {
+        const identifier = this.getHookIdentifier(hookStats)
+        if (_TestReporter._tests[identifier]) {
+            _TestReporter._tests[identifier].finishedAt = (new Date()).toISOString()
+        } else {
+            _TestReporter._tests[identifier] = {
+                finishedAt: (new Date()).toISOString()
+            }
+        }
+        await this.sendTestRunEvent(hookStats, 'HookRunFinished')
+    }
+
+    getHookIdentifier(hookStats: HookStats) {
+        return `${hookStats.title} for ${this._suites.at(-1)?.title}`
+    }
+
+    async sendTestRunEvent(testStats: TestStats|HookStats, eventType: string) {
         const framework = this._config?.framework
         const scopes = this._suites.map(s => s.title)
-        let testMetaData: TestMeta = _TestReporter._tests[testStats.fullTitle]
+        const identifier = testStats.type === 'test' ? (testStats as TestStats).fullTitle : this.getHookIdentifier(testStats as HookStats)
+        const testMetaData: TestMeta = _TestReporter._tests[identifier]
+        const scope = testStats.type === 'test' ? (testStats as TestStats).fullTitle : `${this._suites[0].title} - ${testStats.title}`
 
         await this.configureGit()
         let testData: TestData = {
@@ -112,9 +146,9 @@ class _TestReporter extends WDIOReporter {
                 lang: 'webdriverio',
                 code: null
             },
-            scope: testStats.fullTitle,
+            scope: scope,
             scopes: scopes,
-            identifier: testStats.fullTitle,
+            identifier: identifier,
             file_name: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
             location: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
             vc_filepath: (this._gitConfigPath && this._suiteName) ? path.relative(this._gitConfigPath, this._suiteName) : undefined,
@@ -123,7 +157,10 @@ class _TestReporter extends WDIOReporter {
             framework: framework,
             duration_in_ms: testStats._duration,
             result: testStats.state,
-            retries: { limit: testStats.retries || 0, attempts: testStats.retries || 0 }
+        }
+
+        if (testStats.type === 'test') {
+            testData.retries = { limit: (testStats as TestStats).retries || 0, attempts: (testStats as TestStats).retries || 0 }
         }
 
         if (eventType.startsWith('TestRun')) {
