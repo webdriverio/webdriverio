@@ -3,15 +3,15 @@ id: typescript
 title: راه اندازی TypeScript
 ---
 
-You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
+می‌توانید با استفاده از [TypeScript](http://www.typescriptlang.org) تست‌ها را برای تکمیل خودکار و امنیت نوع بنویسید.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
+شما به [`typescript`](https://github.com/microsoft/TypeScript) و [`ts-node`](https://github.com/TypeStrong/ts-node) به عنوان `devDependencies` نیاز دارید، از طریق:
 
 ```bash npm2yarn
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
+WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
 
 ## Configuration
 
