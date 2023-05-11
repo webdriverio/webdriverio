@@ -205,13 +205,20 @@ class CucumberAdapter {
     }
 
     async init() {
+
+        // Filter the specs according to the tag expression
+        // Some workers would only spawn to then skip the spec (Feature) file
+        // Filtering at this stage can prevent the spawning of a massive number of workers
+        if (this._config.cucumberOpts?.tagExpression) {
+            this._specs = this.filterSpecsByTagExpression([this._specs]).flat(1)
+        }
+
+        if (this._specs.length === 0) {
+            this._hasTests = false
+            return this
+        }
+
         try {
-            // Filter the specs according to the tag expression
-            // Some workers would only spawn to then skip the spec (Feature) file
-            // Filtering at this stage can prevent the spawning of a massive number of workers
-            if (this._config.cucumberOpts?.tagExpression) {
-                this._specs = this.filterSpecsByTagExpression([this._specs]).flat(1)
-            }
 
             const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
                 defaultDialect: this._cucumberOpts.featureDefaultLanguage,
@@ -228,6 +235,7 @@ class CucumberAdapter {
             })
 
             this._hasTests = this._cucumberReporter.eventListener.getPickleIds(this._capabilities).length > 0
+
         } catch (runtimeError) {
             await executeHooksWithArgs('after', this._config.after, [runtimeError, this._capabilities, this._specs])
             throw runtimeError
