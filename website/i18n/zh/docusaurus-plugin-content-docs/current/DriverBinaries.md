@@ -3,7 +3,13 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
 
 ## Chromedriver
 
@@ -87,7 +93,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via: After download you can start the driver via:
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -95,7 +101,7 @@ cd $unzipped_file
 
 ## Edgedriver
 
-You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows: After download you can start Edgedriver as follows:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
 
 ```sh
 ./path/to/edgedriver --port=4444 --verbose
