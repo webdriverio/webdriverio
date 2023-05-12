@@ -7,7 +7,7 @@ If you want to use WebdriverIO materials for your own workshops or events feel f
 
 ## Workshops
 
-The WebdriverIO community gives workshops around the world. Feel free to use these materials to host your own. Feel free to use these materials to host your own.
+The WebdriverIO community gives workshops around the world. Feel free to use these materials to host your own.
 
 - [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
