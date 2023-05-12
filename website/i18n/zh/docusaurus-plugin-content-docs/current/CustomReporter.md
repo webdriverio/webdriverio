@@ -3,7 +3,7 @@ id: customreporter
 title: Custom Reporter
 ---
 
-You can write your own custom reporter for the WDIO test runner that is tailored to your needs. And it’s easy! And it’s easy!
+You can write your own custom reporter for the WDIO test runner that is tailored to your needs. And it’s easy!
 
 All you need to do is to create a node module that inherits from the `@wdio/reporter` package, so it can receive messages from the test.
 
@@ -55,13 +55,13 @@ export const config = {
 }
 ```
 
-You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`.
+You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`.
 
 ## Event Handler
 
-You can register an event handler for several events which are triggered during testing. All of the following handlers will receive payloads with useful information about the current state and progress. All of the following handlers will receive payloads with useful information about the current state and progress.
+You can register an event handler for several events which are triggered during testing. All of the following handlers will receive payloads with useful information about the current state and progress.
 
-The structure of these payload objects depend on the event, and are unified across the frameworks (Mocha, Jasmine, and Cucumber). Once you implement a custom reporter, it should work for all frameworks. Once you implement a custom reporter, it should work for all frameworks.
+The structure of these payload objects depend on the event, and are unified across the frameworks (Mocha, Jasmine, and Cucumber). Once you implement a custom reporter, it should work for all frameworks.
 
 The following list contains all possible methods you can add to your reporter class:
 
@@ -87,7 +87,7 @@ export default class CustomReporter extends WDIOReporter {
 
 The method names are pretty self explanatory.
 
-To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter). It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
+To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 
 ```js
 import WDIOReporter from '@wdio/reporter'
@@ -122,7 +122,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 
 ## Wait Until `isSynchronised`
 
-If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js): An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js):
+If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js):
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {
@@ -185,7 +185,7 @@ export const config = {
 
 ### Add Published Service to WDIO CLI and Docs
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found. If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
 
 Please raise a pull request with the following changes:
 
