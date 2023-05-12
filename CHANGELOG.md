@@ -21,6 +21,17 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.3 (2023-05-12)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#10368](https://github.com/webdriverio/webdriverio/pull/10368) wdio-cucumber-framework: Don't attempt to filter empty specs ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.10.2 (2023-05-10)
 
 #### :bug: Bug Fix
