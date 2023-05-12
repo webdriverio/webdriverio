@@ -129,14 +129,14 @@ Boilerplate-Projekt zum Ausführen von Appium-Tests mit WebdriverIO für:
 - iOS/Android-Hybrid-Apps
 - Android Chrome und iOS Safari-Browser
 
-Diess Boilerplaye beinhalten Folgendes:
+Dieses Boilerplate beinhaltet folgendes:
 
 - Framework: Mocha
 - Features:
-    - Configs for:
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for:
+    - Konfigurationen für:
+        - iOS und Android App
+        - iOS und Android Browsers
+    - Helfer für:
         - WebView
         - Gestures
         - Native alerts
@@ -164,7 +164,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
 ## [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
-Boilerplate project to run E2E tests with Mocha.
+Boilerplate Projekt um E2E Tests mit Mocha durchzuführen.
 
 - Frameworks:
     - WebdriverIO (v7)
