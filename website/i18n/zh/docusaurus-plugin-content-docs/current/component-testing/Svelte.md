@@ -7,7 +7,7 @@ title: Svelte
 
 ## Setup
 
-To setup WebdriverIO within your Svelte project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `svelte` as preset within your runner options, e.g.: Make sure to select `svelte` as preset within your runner options, e.g.:
+To setup WebdriverIO within your Svelte project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `svelte` as preset within your runner options, e.g.:
 
 ```js
 // wdio.conf.js
@@ -22,7 +22,7 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
 
 :::
 
@@ -57,7 +57,7 @@ Given you have the following Svelte component:
 <button on:click="{handleClick}">{buttonText}</button>
 ```
 
-In your test use the `render` method from `@testing-library/svelte` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.: To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+In your test use the `render` method from `@testing-library/svelte` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
 
 ```ts title="svelte.test.js"
 import expect from 'expect'
