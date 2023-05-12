@@ -14,7 +14,7 @@ If you're seeking immediate help with your own project, reach out to a trusted W
 
 ## Stack Overflow
 
-Stack Overflow is a popular forum to ask code-level questions or if you’re stuck with a specific error. Stack Overflow is a popular forum to ask code-level questions or if you’re stuck with a specific error. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
+Stack Overflow is a popular forum to ask code-level questions or if you’re stuck with a specific error. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
 
 ## Discussion Forums
 
