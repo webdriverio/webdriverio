@@ -1,11 +1,11 @@
 ---
 id: configurationfile
-title: Configuration File
+title: فایل پیکربندی
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
+فایل پیکربندی شامل تمام اطلاعات لازم برای اجرای مجموعه تست شما است. این فایل یک ماژول NodeJS است که یک JSON صادر می کند.
 
-Here is an example configuration with all supported properties and additional information:
+در اینجا یک نمونه پیکربندی با تمام ویژگی های پشتیبانی شده و اطلاعات اضافی آمده است:
 
 ```js
 export const config = {
@@ -495,4 +495,4 @@ export const config = {
 }
 ```
 
-You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
+همچنین می توانید فایلی را با تمام گزینه ها و تغییرات ممکن در [پوشه نمونه](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js) پیدا کنید.

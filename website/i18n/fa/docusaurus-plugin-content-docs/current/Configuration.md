@@ -1,61 +1,61 @@
 ---
 id: configuration
-title: Configuration
+title: پیکربندی
 ---
 
-Based on the [setup type](setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+بر اساس [تنظیم نوع](setuptypes) (مثلاً با استفاده از اتصال پروتکل خام، WebdriverIO به عنوان بسته مستقل و اجرا کننده تست WDIO) مجموعه متفاوتی از گزینه ها برای کنترل محیط وجود دارد.
 
-## WebDriver Options
+## گزینه های WebDriver
 
-The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
+هنگام استفاده از بسته پروتکل [`webdriver`](https://www.npmjs.com/package/webdriver) گزینه های زیر تعریف می شوند:
 
 ### protocol
 
-Protocol to use when communicating with the driver server.
+پروتکل مورد استفاده در هنگام برقراری ارتباط با سرور درایور.
 
 Type: `String`<br /> Default: `http`
 
 ### hostname
 
-Host of your driver server.
+میزبان سرور درایور شما.
 
 Type: `String`<br /> Default: `localhost`
 
 ### port
 
-Port your driver server is on.
+پورتی که سرور درایور شما روی آن است.
 
 Type: `Number`<br /> Default: `4444`
 
 ### path
 
-Path to driver server endpoint.
+مسیری به سرور درایور شما.
 
 Type: `String`<br /> Default: `/`
 
 ### queryParams
 
-Query parameters that are propagated to the driver server.
+پارامترهای درخواست که به سرور درایور انتشار می یابند.
 
 Type: `Object`<br /> Default: `null`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+نام کاربری سرویس ابری شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `null`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+کلید دسترسی به سرویس ابری یا کلید مخفی شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `null`
 
 ### capabilities
 
-Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfully run a session.
+قابلیت(Capability) هایی را که می خواهید در جلسه WebDriver خود اجرا کنید را تعریف می کند. برای جزئیات بیشتر، پروتکل [WebDriver](https://w3c.github.io/webdriver/#capabilities) را بررسی کنید. اگر درایور قدیمی‌تری را اجرا می‌کنید که از پروتکل WebDriver پشتیبانی نمی‌کند، برای اجرای موفقیت‌آمیز یک جلسه، باید از قابلیت‌های [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) استفاده کنید.
 
-Next to the WebDriver based capabilities you can apply browser and vendor specific options that allow deeper configuration to the remote browser or device. These are documented in the corresponding vendor docs, e.g.:
+در کنار قابلیت‌های مبتنی بر WebDriver، می‌توانید گزینه‌هایی که خاص یک مرورگر و یا سازنده خاصی است را اعمال کنید که امکان پیکربندی عمیق‌تر را برای مرورگر یا دستگاه در راه دور فراهم می‌کند. اینها در اسناد سازنده مربوطه مستند شده اند، به عنوان مثال:
 
 - `goog:chromeOptions`: for [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
 - `moz:firefoxOptions`: for [Mozilla Firefox](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html)
@@ -64,11 +64,11 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
+علاوه بر این، یک ابزار مفید Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/) است که به شما کمک می کند این شی را با کلیک کردن روی قابلیت های مورد نظر خود ایجاد کنید.
 
 Type: `Object`<br /> Default: `null`
 
-**Example:**
+**مثال:**
 
 ```js
 {
@@ -78,37 +78,37 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+اگر تست های وب یا بومی را روی دستگاه های تلفن همراه اجرا می کنید، `قابلیت(Capability)` با پروتکل WebDriver متفاوت است. برای جزئیات بیشتر به [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) مراجعه کنید.
 
 ### logLevel
 
-Level of logging verbosity.
+سطح و میزان لاگ.
 
 Type: `String`<br /> Default: `info`<br /> Options: `trace` | `debug` | `info` | `warn` | `error` | `silent`
 
 ### outputDir
 
-Directory to store all testrunner log files (including reporter logs and `wdio` logs). If not set, all logs are streamed to `stdout`. Since most reporters are made to log to `stdout`, it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (like the `junit` reporter, for example).
+دایرکتوری برای ذخیره همه فایل‌های لاگ اجرا کننده تست (از جمله لاگ‌های گزارش‌دهنده ها و `لاگ wdio`). اگر تنظیم نشود، همه گزارش‌ها به `stdout` ارسال می‌شوند. از آنجایی که اکثر گزارش‌دهنده ها برای لاگ در `stdout`ساخته شده اند، توصیه می شود از این گزینه فقط برای گزارش‌دهنده های خاصی استفاده شود که در آن انتقال گزارش به یک فایل منطقی تر است (مثلاً گزارش‌دهنده `junit`).
 
-When running in standalone mode, the only log generated by WebdriverIO will be the `wdio` log.
+هنگامی که در حالت مستقل اجرا می شود، تنها گزارشی که توسط WebdriverIO ایجاد می شود، گزارش `wdio` خواهد بود.
 
 Type: `String`<br /> Default: `null`
 
 ### connectionRetryTimeout
 
-Timeout for any WebDriver request to a driver or grid.
+مهلت زمانی برای هر درخواست WebDriver به درایور یا شبکه.
 
 Type: `Number`<br /> Default: `120000`
 
 ### connectionRetryCount
 
-Maximum count of request retries to the Selenium server.
+حداکثر تعداد درخواست‌های مجدد به سرور سلنیوم.
 
 Type: `Number`<br /> Default: `3`
 
 ### agent
 
-Allows you to use a custom`http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
+به شما امکان می دهد از یک عامل سفارشی `http`/`https`/`http2` [](https://www.npmjs.com/package/got#agent) برای درخواست استفاده کنید.
 
 Type: `Object`<br /> Default:
 
@@ -121,11 +121,11 @@ Type: `Object`<br /> Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request and when connect to browser through Puppeteer using CDP protocol.
+مشخص کردن `headers` های سفارشی برای ارسال با هر درخواست WebDriver و هنگام اتصال به مرورگر از طریق Puppeteer با استفاده از پروتکل CDP.
 
 :::caution
 
-These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+این header ها به درخواست مرورگر منتقل __نمی شوند__. اگر به دنبال اصلاح هدر درخواست، برای درخواست های مرورگر هستید، لطفاً در [#6361](https://github.com/webdriverio/webdriverio/issues/6361) شرکت کنید!
 
 :::
 

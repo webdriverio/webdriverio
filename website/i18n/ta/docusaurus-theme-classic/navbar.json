@@ -1,6 +1,6 @@
 {
   "item.label.Docs": {
-    "message": "Docs",
+    "message": "ஆவணங்கள்",
     "description": "Navbar item with label Docs"
   },
   "item.label.API": {
@@ -8,15 +8,15 @@
     "description": "Navbar item with label API"
   },
   "item.label.Blog": {
-    "message": "Blog",
+    "message": "வலைப்பதிவு",
     "description": "Navbar item with label Blog"
   },
   "item.label.Contribute": {
-    "message": "Contribute",
+    "message": "பங்களியுங்கள்",
     "description": "Navbar item with label Contribute"
   },
   "item.label.Community": {
-    "message": "Community",
+    "message": "சமூகம்",
     "description": "Navbar item with label Community"
   },
   "item.label.v8": {
