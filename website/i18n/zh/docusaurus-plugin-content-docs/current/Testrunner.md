@@ -3,7 +3,7 @@ id: testrunner
 title: Testrunner
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
+WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
 WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
 
@@ -34,9 +34,9 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](configurationfile)  section to see what that file should look like. Switch over to the [Configuration File](configurationfile)  section to see what that file should look like.
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](configurationfile)  section to see what that file should look like.
 
-With the `wdio` configuration helper, it is super easy to generate your config file. Just run: Just run:
+With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
 ```sh
 $ npx wdio config
@@ -60,13 +60,13 @@ You can also initialize your test run without the `run` command:
 npx wdio wdio.conf.js
 ```
 
-That's it! That's it! Now, you can access to the selenium instance via the global variable `browser`.
+That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
 ## Commands
 
 ### `wdio config`
 
-The `config` command runs the WebdriverIO configuration helper. The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
+The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
 
 Example:
 
@@ -125,7 +125,7 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typeScript) and [Babel (@babel/register)](babel) pages.
+> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typeScript) and [Babel (@babel/register)](babel) pages.
 
 ### `wdio install`
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
@@ -196,7 +196,7 @@ cucumber
 
 ### `wdio repl`
 
-The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
+The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
 
 Run tests in local chrome:
 
