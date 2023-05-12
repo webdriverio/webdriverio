@@ -5,11 +5,11 @@ title: Lit
 
 Lit 是一款用于构建快速、轻量 Web 组件的库。 得益于 WebdriverIO 的 [影子 DOM 选择器](/docs/selectors#deep-selectors)，您可以一键快速查询 Shadow Root 中的嵌套元素来进行测试。
 
-## Setup
+## 设置
 
-To setup WebdriverIO within your Lit project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements. For Lit you don't need a preset as Lit web components don't need to run through a compiler, they are pure web component enhancements.
+要在您的 Lit 项目中设置 WebdriverIO，请按照我们的组件测试文档中的 [说明](/docs/component-testing#set-up) 进行操作。 对于 Lit，您不需要预设，因为 Lit 网络组件不需要通过编译器运行，它们是纯粹的网络组件增强功能。
 
-Once set-up, you can start the tests by running:
+设置完成后，您可以通过运行以下命令开始测试：
 
 ```sh
 npx wdio run ./wdio.conf.js
