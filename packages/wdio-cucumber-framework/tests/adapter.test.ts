@@ -118,9 +118,9 @@ describe('CucumberAdapter', () => {
     })
 
     it('should trigger after hook if initiation fails', async () => {
+
         vi.mocked(Cucumber.parseGherkinMessageStream)
             .mockRejectedValueOnce(new Error('boom'))
-
         const err = await CucumberAdapter.init!('0-0', {
             cucumberFeaturesWithLineNumbers: ['/bar/foo', '/foo/bar']
         }, ['/foo/bar'], {}, {})
@@ -350,6 +350,7 @@ describe('CucumberAdapter', () => {
         )
 
         expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
 
         const result = await adapter.run()
 
@@ -370,6 +371,7 @@ describe('CucumberAdapter', () => {
         )
 
         expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
 
         const result = await adapter.run()
 
@@ -390,6 +392,7 @@ describe('CucumberAdapter', () => {
         )
 
         expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
 
         const result = await adapter.run()
 
@@ -410,6 +413,7 @@ describe('CucumberAdapter', () => {
         )
 
         expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
 
         const result = await adapter.run()
 
@@ -430,6 +434,7 @@ describe('CucumberAdapter', () => {
         )
 
         expect(adapter._specs).toHaveLength(0)
+        expect(adapter._hasTests).toBe(false)
 
         const result = await adapter.run()
 
