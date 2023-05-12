@@ -3,15 +3,15 @@ id: donate
 title: தானம் செய்க
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+உங்கள் நிறுவனம் WebdriverIO ஐப் பயன்படுத்தினால் மற்றும் அதிலிருந்து பலன்கள் இருந்தால், கூட்டுக்கு நன்கொடை அளிப்பதன் மூலம் திட்டத்திற்கு ஆதரவளிக்க உங்கள் மேலாளர் அல்லது உங்கள் சந்தைப்படுத்தல் குழுவிடம் கேளுங்கள். பராமரிப்பு மற்றும் புதிய அம்சங்களுக்குப் பரிந்துரையாக இருப்பதன் மூலம் பராமரிப்பாளர்கள் மேலும் நேரம் செலுத்தும் மற்றும் அனைத்துவரின் பயனுக்கும் புதிய அம்சங்களை அறிமுகப்படுத்த முடியும்.".
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+திட்டத்திற்கு எப்படி நன்கொடை அளிப்பது என்பது பற்றிய கூடுதல் தகவலுக்கு, எங்கள் [OpenCollective பக்கம்](https://opencollective.com/webdriverio) ஐப் பார்க்கவும்.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+குழுவிற்கு பணத்தை நன்கொடையாக வழங்கப்போகும் அல்லது வழங்கிய அனைவருக்கும் நன்றி, திட்டத்திற்கு ஆதரவளித்த மற்றும் அதற்குப் பங்களித்த அனைவருக்கும் நன்றி. இதற்கு மிக்க நன்றி ❤️
 
-## Expense Policies
+## செலவுக் கொள்கைகள்
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+கூட்டு செலவினங்களை ஏற்கும் விதத்தில் வெளிப்படைத்தன்மையுடன் இருக்க விரும்புகிறோம். Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
 ### Event Expenses
 
