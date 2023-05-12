@@ -3,11 +3,11 @@ id: mock
 title: The Mock Object
 ---
 
-The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command. It can be received using the [`mock`](/docs/api/browser/mock) command.
+The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
 
 :::
 
@@ -43,7 +43,7 @@ Here is a list of events.
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback. Request is passed in event callback.
+This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
 
 Request interface:
 ```ts
@@ -57,7 +57,7 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback. Response is passed in event callback.
+This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
 
 Response interface:
 ```ts
@@ -71,7 +71,7 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback. Fail is passed in event callback.
+This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
 
 Fail interface:
 ```ts
@@ -83,7 +83,7 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback. Match is passed in event callback.
+This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
 
 Match interface:
 ```ts
@@ -107,7 +107,7 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback. `requestId` is passed in event callback.
+This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
 
 ## Examples
 
