@@ -3,11 +3,15 @@ id: react
 title: React
 ---
 
-[ React ](https://reactjs.org/) இன்டராக்டிவ் UIகளை உருவாக்குவதை வலியற்றதாக்குகிறது. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[ React ](https://reactjs.org/) இன்டராக்டிவ் UIகளை உருவாக்குவதை வலியற்றதாக்குகிறது. உங்கள் அப்ளிகேஷனில் உள்ள ஒவ்வொரு ஸ்டேட்டிற்கும் எளிமையான காட்சிகளை வடிவமைத்து, உங்கள் டேட்டா மாறும்போது ரியாக்ட் திறமையாகப் புதுப்பித்துச் சரியான காம்போனென்டுகளை வழங்கும். WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner)யை பயன்படுத்தி உண்மையான பிரௌசரில் நேரடியாக ரியாக்ட் காம்போனென்டுகளை சோதிக்கலாம்.
 
-## Setup
+## செட்அப்
 
-To setup WebdriverIO within your React project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `react` as preset within your runner options, e.g.:
+உங்கள் ரியாக்ட் ப்ரொஜெக்ட்டில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் </a>instructions
+
+ வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் `react` முன்னமைவாகத் தேர்ந்தெடுக்கவும், எ.கா.:</p> 
+
+
 
 ```js
 // wdio.conf.js
@@ -20,27 +24,38 @@ export const config = {
 }
 ```
 
+
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+நீங்கள் ஏற்கனவே [Vite](https://vitejs.dev/) யை டெவலப்மென்ட் சர்வராகப் பயன்படுத்துகிறீர்கள் என்றால், உங்கள் WebdriverIO கட்டமைப்பிற்குள் `vite.config.ts` இல் உங்கள் கட்டமைப்பை மீண்டும் பயன்படுத்தலாம். மேலும் தகவலுக்கு, `viteConfig` இன் [runner options](/docs/runner#runner-options)ஐப் பார்க்கவும்.
 
-:::
+:::  
 
-The React preset requires `@vitejs/plugin-react` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+ரியாக்ட் முன்னமைவுக்கு `@vitejs/plugin-react` நிறுவப்பட வேண்டும். டெஸ்ட் பக்கத்தில் காம்போனென்டுகளை வழங்குவதற்கு [Testing Library](https://testing-library.com/) ஐப் பயன்படுத்தவும் பரிந்துரைக்கிறோம். எனவே நீங்கள் பின்வரும் கூடுதல் சார்புகளை நிறுவ வேண்டும்:
+
+
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/react @vitejs/plugin-react
 ```
 
-You can then start the tests by running:
+
+பின்னர் நீங்கள் டெஸ்டுகளை ரன் செய்வதன் மூலம் தொடங்கலாம்:
+
+
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
 
-Given you have the following React component:
+
+
+## டெஸ்டுகளை எழுதுதல்
+
+உங்களிடம் பின்வரும் React காம்போனென்ட் உள்ளது:
+
+
 
 ```tsx title="./components/Component.jsx"
 import React, { useState } from 'react'
@@ -61,7 +76,10 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `@testing-library/react` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+
+உங்கள் டெஸ்டில் `@testing-library/react` இலிருந்து ` render ` மெத்தடை பயன்படுத்தி டெஸ்ட் பக்கத்துடன் காம்போனென்டுகளை இணைக்கவும். காம்போனென்டுகளுடன் தொடர்பு கொள்ள WebdriverIO கட்டளைகளைப் பயன்படுத்தப் பரிந்துரைக்கிறோம், ஏனெனில் அவை உண்மையான பயனர் தொடர்புகளுக்கு மிகவும் நெருக்கமாகச் செயல்படுகின்றன, எ.கா.:
+
+
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
@@ -84,5 +102,6 @@ describe('React Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for React in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite).
+
+React க்கான WebdriverIO காம்போனென்ட் டெஸ்ட் தொகுப்பின் முழு உதாரணத்தையும் எங்களின் [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite)இல் காணலாம்.
 
