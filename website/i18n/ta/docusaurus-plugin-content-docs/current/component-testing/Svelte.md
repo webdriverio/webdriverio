@@ -3,11 +3,11 @@ id: svelte
 title: Svelte
 ---
 
-[Svelte](https://svelte.dev/) is a radical new approach to building user interfaces. Whereas traditional frameworks like React and Vue do the bulk of their work in the browser, Svelte shifts that work into a compile step that happens when you build your app. You can test Svelte components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[Svelte](https://svelte.dev/) என்பது பயனர் இடைமுகங்களை உருவாக்குவதற்கான ஒரு தீவிரமான புதிய அணுகுமுறையாகும். ரியாக்ட் மற்றும் வ்யூ போன்ற பாரம்பரிய பிரமேஒர்க்குகள் பிரௌசரில் தங்கள் பணியின் பெரும்பகுதியைச் செய்யும் அதே வேளையில், ஸ்வெல்ட் உங்கள் பயன்பாட்டை உருவாக்கும்போது ஏற்படும் தொகுக்கும் படியாக மாற்றுகிறது. WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner) யைப்பயன்படுத்தி உண்மையான பிரௌசரில் Svelte காம்போனென்டுகளை நேரடியாகச் சோதிக்கலாம்.
 
-## Setup
+## செட்அப்
 
-To setup WebdriverIO within your Svelte project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `svelte` as preset within your runner options, e.g.:
+உங்கள் Svelte ப்ரொஜெக்ட்டில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் [instructions](/docs/component-testing#set-up) வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களில் `svelte` முன்னமைவாகத் தேர்ந்தெடுக்கவும், எ.கா.:
 
 ```js
 // wdio.conf.js
