@@ -42,9 +42,9 @@ __ Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitt
 
 ### Mobile Flags
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+உங்கள் அமர்வு மொபைல் சாதனத்தில் இயங்குகிறதா இல்லையா என்பதன் அடிப்படையில் உங்கள் டெஸ்டை மாற்ற வேண்டும் என்றால், சரிபார்க்க மொபைல் flagsகளை அணுகலாம்.
 
-For example, given this config:
+எடுத்துக்காட்டாக, இந்தக் கட்டமைப்பு கொடுக்கப்பட்டுள்ளது:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+உங்கள் டெஸ்டில் இந்தக் flagsகளை நீங்கள் அணுகலாம்:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
+எடுத்துக்காட்டாக, உங்கள் [page objects](../pageobjects) இல் உள்ள செலக்டர்ஸுகளை சாதன வகையின் அடிப்படையில் வரையறுக்க விரும்பினால், இது பயனுள்ளதாக இருக்கும்:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+குறிப்பிட்ட சாதன வகைகளுக்கான குறிப்பிட்ட டெஸ்டுகளை மட்டும் இயக்க இந்தக் flagsகளைப் பயன்படுத்தலாம்:
 
 ```js
 // mytest.e2e.js
@@ -107,20 +107,20 @@ describe('my test', () => {
 ```
 
 ### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+பிரவுசர் ஆப்ஜெக்ட் ஒரு EventEmitter மற்றும் உங்கள் பயன்பாட்டு நிகழ்வுகளுக்காக இரண்டு நிகழ்வுகள் வெளியிடப்படும்.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+நிகழ்வுகளின் பட்டியல் இங்கே. இது இன்னும் கிடைக்கக்கூடிய நிகழ்வுகளின் முழு பட்டியல் அல்ல என்பதை நினைவில் கொள்ளவும். மேலும் நிகழ்வுகளின் விளக்கங்களை இங்கே சேர்ப்பதன் மூலம் ஆவணத்தைப் புதுப்பிக்கப் பங்களிக்க தயங்க வேண்டாம்.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+இது WebDriver நிலை செயல்பாடுகளை அளவிடும் நிகழ்வு. WebdriverIO WebDriver பின்தளத்திற்கு கோரிக்கையை அனுப்பும் போதெல்லாம், இந்த நிகழ்வு சில பயனுள்ள தகவல்களுடன் வெளியிடப்படும்:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: கோரிக்கையின் கால அளவு மில்லி வினாடியில்.
+- `error`: கோரிக்கை தோல்வியுற்றால் Error object.
+- ` request `: Request object. நீங்கள் url, method, headers போன்றவற்றைக் காணலாம்.
+- `retryCount`: இது `0`எனில், கோரிக்கை முதல் முயற்சி. WebDriverIO தன்னிச்சையாக மீண்டும் முயற்சிக்கும்போது இது அதிகரிக்கும்.
+- ` success `: Boolean கோரிக்கை வெற்றியடைந்ததா இல்லையா என்பதைப் பிரதிநிதித்துவப்படுத்தும். அது ` false `என்றால், ` error ` property வழங்கப்படும்.
 
-An example event:
+உதாரண நிகழ்வு:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -133,4 +133,4 @@ Object {
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+பொதுவாகப் பயன்படுத்தப்படும் பணிப்பாய்வுகளைத் தவிர்க்க, பிரவுசர் ஸ்கோப்பில் தனிப்பயன் கட்டளைகளை அமைக்கலாம். மேலும் தகவலுக்கு [Custom Commands](/docs/customcommands#adding-custom-commands) இல் உள்ள எங்கள் வழிகாட்டியைப் பார்க்கவும்.
