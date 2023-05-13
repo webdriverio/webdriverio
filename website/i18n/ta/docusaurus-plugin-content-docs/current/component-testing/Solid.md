@@ -27,7 +27,7 @@ export const config = {
 
 :::info
 
-நீங்கள் ஏற்கனவே [Vite](https://vitejs.dev/) டெவலப்மென்ட் சர்வராகப் பயன்படுத்துகிறீர்கள் என்றால், உங்கள் WebdriverIO கட்டமைப்பிற்குள் `vite.config.ts` இல் உங்கள் உள்ளமைவை மீண்டும் பயன்படுத்தலாம். மேலும் தகவலுக்கு, `viteConfig` இன் [ரன்னர் விருப்பங்கள்](/docs/runner#runner-options)ஐப் பார்க்கவும்.
+நீங்கள் ஏற்கனவே [Vite](https://vitejs.dev/) டெவலப்மென்ட் சர்வராகப் பயன்படுத்துகிறீர்கள் என்றால், உங்கள் WebdriverIO கட்டமைப்பிற்குள் `vite.config.ts` இல் உங்கள் கட்டமைப்பை மீண்டும் பயன்படுத்தலாம். மேலும் தகவலுக்கு, `viteConfig` இன் [ரன்னர் விருப்பங்கள்](/docs/runner#runner-options)ஐப் பார்க்கவும்.
 
 :::  
 
@@ -53,7 +53,7 @@ npx wdio run ./wdio.conf.js
 
 ## டெஸ்டுகளை எழுதுதல்
 
-உங்களிடம் பின்வரும் React காம்போனென்ட் உள்ளது:
+பின்வரும் SolidJS கூறு உங்களிடம் இருப்பதால்:
 
 
 
@@ -113,5 +113,5 @@ describe('React Component Testing', () => {
 ```
 
 
-React க்கான WebdriverIO காம்போனென்ட் டெஸ்ட் தொகுப்பின் முழு உதாரணத்தையும் எங்களின் [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite)இல் காணலாம்.
+SolidJS க்கான WebdriverIO காம்போனென்ட் டெஸ்ட் தொகுப்பின் முழு உதாரணத்தையும் எங்களின் [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite)இல் காணலாம்.
 
