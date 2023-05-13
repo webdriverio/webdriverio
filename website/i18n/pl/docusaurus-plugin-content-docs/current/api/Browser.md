@@ -1,36 +1,36 @@
 ---
 id: browser
-title: The Browser Object
+title: Obiekt przeglądrki (The Browser Object)
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__Dziedziczy:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+Obiekt przeglądarki (browser object) to instancja sesji, której używasz do sterowania przeglądarką albo urządzeniem mobilnym. Jeśli używasz test runnera WDIO, możesz uzyskać dostęp do instancji WebDrivera za pośrednictwem globalnego obiektu przeglądarki `browser`, sterownika `driver`, lub możesz go zaimportować za pomocą [`@wdio/globals`](/docs/api/globals). Jeśli używasz WebdriverIO w trybie autonomicznym (standalone), obiekt przeglądarki jest zwracany przez metodę [`remote`](/docs/api/modules#remoteoptions-modifier).
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+Sesja jest inicjowana przez test runner. To samo dotyczy zakończenia sesji. Odbywa się to również w procesie test runnera.
 
-## Properties
+## Właściwości
 
-A browser object has the following properties:
+Obiekt przeglądarki (browser) posiada następujące właściwości:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                               |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                           |
+| Nazwa                   | Typ        | Szczegóły                                                                                                                                                                 |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capabilities`          | `Object`   | Przypisane możliwości (capabilities) ze zdalnego serwera.<br /><b>Przykład:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                                   |
+| `requestedCapabilities` | `Object`   | Możliwości (capabilities) żądane od zdalnego serwera.<br /><b>Przykład:</b><pre>{ browserName: 'chrome' }</pre>                                                       |
+| `sessionId`             | `String`   | Identyfikator sesji (session id) przypisany ze zdalnego serwera.                                                                                                          |
+| `options`               | `Object`   | [Opcje](/docs/configuration) (options) WebdriverIO w zależności od sposobu utworzenia obiektu przeglądarki. Zobacz więcej w sekcji [typy konfiguracji](/docs/setuptypes). |
+| `commandList`           | `String[]` | Lista poleceń należących do instancji przeglądarki                                                                                                                        |
+| `isMobile`              | `Boolean`  | Oznaczenie sesji mobilnej. Zobacz więcej w sekcji [Flagi mobilne](#mobile-flags).                                                                                         |
+| `isIOS`                 | `Boolean`  | Oznaczenie sesji iOS. Zobacz więcej w sekcji [Flagi mobilne](#mobile-flags).                                                                                              |
+| `isAndroid`             | `Boolean`  | Oznaczenie sesji Android. Zobacz więcej w sekcji [Flagi mobilne](#mobile-flags).                                                                                          |
 
-## Methods
+## Metody
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+Na podstawie backendu automatyzacji używanego w Twojej sesji, WebdriverIO określa, które [Polecenia protokołu](/docs/api/protocols) (protocol commands) zostaną dołączone do [obiektu przeglądarki](/docs/api/browser). Na przykład, jeśli uruchomisz zautomatyzowaną sesję w Chrome, będziesz mieć dostęp do poleceń specyficznych dla Chromium, takich jak [`elementHover`](/docs/api/chromium#elementhover), ale nie będziesz mieć dostępu do żadnego z [poleceń Appium](/docs/api/appium).
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+Ponadto WebdriverIO zapewnia zestaw wygodnych metod, które są rekomendowane w celu interakcji z [przeglądarką](/docs/api/browser) lub [elementami](/docs/api/element) na stronie.
 
-In addition to that the following commands are available:
+Oprócz tego dostępne są następujące polecenia:
 
 | Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                        |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
