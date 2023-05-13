@@ -1,13 +1,13 @@
 ---
 id: team
-title: Team
+title: குழு
 ---
 
 import Card from '@site/src/theme/card.jsx';
 
-The WebdriverIO development is led by a dedicated team of developers and SDETs from various companies as well contributions from people around the world.
+WebdriverIO மேம்பாடு பல்வேறு நிறுவனங்களின் டெவலப்பர்கள் மற்றும் SDET கள் மற்றும் உலகெங்கிலும் உள்ளவர்களின் பங்களிப்புகளின் அர்ப்பணிப்புக் குழுவால் வழிநடத்தப்படுகிறது.
 
-## Technical Steering Committee
+## தொழில்நுட்ப வழிநடத்தல் குழு
 
 <Card
     name="Adam Bjerstedt"
