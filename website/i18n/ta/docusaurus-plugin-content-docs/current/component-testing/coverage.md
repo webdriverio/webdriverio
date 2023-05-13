@@ -26,7 +26,7 @@ export const config = {
 
 ## கோடை புறக்கணித்தல்
 
-There may be some sections of your codebase that you wish to purposefully exclude from coverage tracking, to do so you can use the following parsing hints:
+கவரேஜ் டிராக்கிங்கிலிருந்து வேண்டுமென்றே விலக்க விரும்பும் உங்கள் கோட்பேஸின் சில பிரிவுகள் இருக்கலாம், இதைச் செய்ய, பின்வரும் பாகுபடுத்தும் குறிப்புகளைப் பயன்படுத்தலாம்:
 
 - `/* istanbul ignore if */`: ignore the next if statement.
 - `/* istanbul ignore else */`: ignore the else portion of an if statement.
