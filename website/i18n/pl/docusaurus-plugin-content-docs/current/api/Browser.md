@@ -42,9 +42,9 @@ Oprócz tego dostępne są następujące polecenia:
 
 ### Flagi mobilne
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+W razie konieczności modyfikacji testów na podstawie tego, czy sesja działa na urządzeniu mobilnym, możesz uzyskać dostęp do flag urządzeń mobilnych, aby to sprawdzić.
 
-For example, given this config:
+Na przykład, biorąc pod uwagę tę konfigurację:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+Możesz uzyskać dostęp do tych flag w swoim teście w następujący sposób:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
+Taki zabieg może okazać się pomocny, jeżeli, na przykład, chcesz zdefiniować selektory w ramach [page objects](../pageobjects) na podstawie typu urządzenia, jak poniżej:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+Możesz także użyć tych flag, aby uruchomić tylko niektóre testy dla określonych typów urządzeń:
 
 ```js
 // mytest.e2e.js
@@ -106,21 +106,21 @@ describe('my test', () => {
 })
 ```
 
-### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+### Eventy
+Obiekt przeglądarki jest EventEmitterem i emitowanych jest kilka zdarzeń dla różnych przypadków użycia.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+Poniżej znajduje się lista eventów. Pamiętaj, że nie jest to jeszcze pełna lista wszystkich dostępnych eventów. Możesz pomóc w aktualizacji dokumentu, dodając brakujące opisy eventów.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+Event mający na celu pomiar wydajności na poziomie WebDrivera. Ilekroć WebdriverIO wyśle żądanie do backendu WebDrivera, event zostanie wyemitowany z kilkoma przydatnymi informacjami:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: Czas trwania żądania w milisekundach.
+- `error`: Błąd obiektu, jeśli żądanie się nie powiodło.
+- `request`: Obiekt żądania. Zawiera url, metodę, nagłówki itp.
+- `retryCount`: Jeśli zwrócone zostanie `0`, żądanie było pierwszą próbą. Wzrośnie po tym, jak WebDriverIO ponownie spróbuje wykonać żądanie.
+- `success`: Zwraca wartość typu boolean na bazie tego, czy żądanie zakończyło się sukcesem lub nie. Jeśli zwrócony będzie `false`, zostanie przekazana również właściwość `error`.
 
-An example event:
+Przykładowy event:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### Niestandardowe polecenia
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Możesz ustawić niestandardowe polecenia w zakresie przeglądarki, aby wyodrębnić często wykorzystywane przypadki użycia. Aby uzyskać więcej informacji, zapoznaj się z naszym przewodnikiem na temat [poleceń niestandardowych](/docs/customcommands#adding-custom-commands).
