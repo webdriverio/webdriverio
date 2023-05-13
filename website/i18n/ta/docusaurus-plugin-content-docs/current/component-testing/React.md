@@ -3,7 +3,7 @@ id: react
 title: React
 ---
 
-[React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[ React ](https://reactjs.org/) இன்டராக்டிவ் UIகளை உருவாக்குவதை வலியற்றதாக்குகிறது. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
 
 ## Setup
 
