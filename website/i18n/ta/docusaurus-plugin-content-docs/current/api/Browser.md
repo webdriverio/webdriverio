@@ -1,28 +1,28 @@
 ---
 id: browser
-title: The Browser Object
+title: பிரௌசர் ஆப்ஜெக்ட்
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__ Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+பிரௌசர் ஆப்ஜெக்ட் என்பது பிரௌசர் அல்லது மொபைல் சாதனத்தைக் கட்டுப்படுத்த நீங்கள் பயன்படுத்தும் செஷன் நிகழ்வாகும். நீங்கள் WDIO டெஸ்ட் ரன்னரைப் பயன்படுத்தினால், குளோபல் ` browser ` அல்லது ` driver ` ஆப்ஜெக்ட் மூலம் WebDriver நிகழ்வை அணுகலாம் அல்லது [`@wdio/globals`](/docs/api/globals)ஐப் பயன்படுத்தி இறக்குமதி செய்யலாம். நீங்கள் தனித்தனி முறையில் WebdriverIO ஐப் பயன்படுத்தினால், பிரௌசர் ஆப்ஜெக்ட் [` remote `](/docs/api/modules#remoteoptions-modifier) முறையில் திருப்பியளிக்கப்படும்.
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+டெஸ்ட் ரன்னெறால் செஷன் தொடங்கப்படுகிறது. செஷனை முடிப்பதற்கும் இதுவே செல்கிறது. இது டெஸ்ட் ரன்னர் செயல்முறையாலும் செய்யப்படுகிறது.
 
 ## Properties
 
-A browser object has the following properties:
+பிரௌசர் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                               |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                           |
+| பெயர்                   | வகை        | விவரங்கள்                                                                                                                                             |
+| ----------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capabilities`          | `Object`   | ரிமோட் சர்வரிலிருந்து ஒதுக்கப்பட்ட திறன்.<br /><b> Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                               |
+| `requestedCapabilities` | `Object`   | ரிமோட் சர்வரிலிருந்து கேட்கப்பட்ட திறன்கள்.<br /><b> Example:</b><pre>{ browserName: 'chrome' }</pre>                                             |
+| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                                           |
+| `options`               | `Object`   | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). மேலும் [setup types](/docs/setuptypes)காண்க. |
+| `commandList`           | `String[]` | பிரௌசர் நிகழ்வில் பதிவுசெய்யப்பட்ட கட்டளைகளின் பட்டியல்                                                                                               |
+| `isMobile`              | `Boolean`  | மொபைல் அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                                |
+| `isIOS`                 | `Boolean`  | மொபைல் அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                                |
+| `isAndroid`             | `Boolean`  | Android அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                               |
 
 ## Methods
 
