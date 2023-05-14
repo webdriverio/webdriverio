@@ -9,7 +9,7 @@ title: Preact
 
 உங்கள் Preact ப்ரொஜெக்ட்டில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் </a>instructions
 
- வழிமுறைகளைப் பின்பற்றவும். Make sure to select `preact` as preset within your runner options, e.g.:</p> 
+ வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் `preact` முன்னமைவாகத் தேர்ந்தெடுக்கவும், எ.கா.:</p> 
 
 
 
