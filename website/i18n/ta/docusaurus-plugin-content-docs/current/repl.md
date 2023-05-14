@@ -3,15 +3,15 @@ id: repl
 title: REPL interface
 ---
 
-With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.
+`v4.5.0`உடன், WebdriverIO ஆனது [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) இன்டெர்பேசை அறிமுகப்படுத்தியது, இது பிரமேஒர்க் API ஐக் கற்றுக்கொள்வது மட்டுமல்லாமல், பிழைத்திருத்தம் மற்றும் உங்கள் டெஸ்டுகளை ஆய்வு செய்ய உதவுகிறது. இது பல வழிகளில் பயன்படுத்தப்படலாம்.
 
-First you can use it as CLI command by installing `npm install -g @wdio/cli` and spawn a WebDriver session from the command line, e.g.
+முதலில் `npm install -g @wdio/cli` ஐ நிறுவி CLI கட்டளையாகப் பயன்படுத்தலாம் மற்றும் கட்டளை வரியிலிருந்து WebDriver அமர்வை உருவாக்கலாம், எ.கா.
 
 ```sh
 wdio repl chrome
 ```
 
-This would open a Chrome browser that you can control with the REPL interface. Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [Sauce Labs](https://saucelabs.com) (or other cloud vendor) account, you can also directly run the browser on your command line in the cloud via:
+இது REPL இடைமுகத்துடன் நீங்கள் கட்டுப்படுத்தக்கூடிய Chrome உலாவியைத் திறக்கும். Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [Sauce Labs](https://saucelabs.com) (or other cloud vendor) account, you can also directly run the browser on your command line in the cloud via:
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
