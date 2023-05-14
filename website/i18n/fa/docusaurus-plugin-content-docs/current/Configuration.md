@@ -133,25 +133,25 @@ Type: `Object`<br /> Default: `{}`
 
 ### transformRequest
 
-Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+تابعی برای intercept کردن [ویژگی های درخواست HTTP](https://github.com/sindresorhus/got#options) قبل از درخواست WebDriver
 
 Type: `(RequestOptions) => RequestOptions`<br /> Default: *none*
 
 ### transformResponse
 
-Function intercepting HTTP response objects after a WebDriver response has arrived. The function is passed the original response object as the first and the corresponding `RequestOptions` as the second argument.
+تابعی برای intercept اشیاء در پاسخ HTTP پس از رسیدن پاسخ WebDriver. تابع به شیء پاسخ اصلی به عنوان اولین و `RequestOptions` مربوطه به عنوان آرگومان دوم ارسال می شود.
 
 Type: `(Response, RequestOptions) => Response`<br /> Default: *none*
 
 ### strictSSL
 
-Whether it does not require SSL certificate to be valid. It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+آیا برای معتبر بودن به گواهی SSL نیاز هست یا خیر. می توان آن را از طریق متغیرهای محیطی به صورت `STRICT_SSL` یا `strict_ssl` تنظیم کرد.
 
 Type: `Boolean`<br /> Default: `true`
 
 ### enableDirectConnect
 
-Whether enable [Appium direct connection feature](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). It does nothing if the response did not have proper keys while the flag is enabled.
+فعال کردن [ویژگی اتصال مستقیم Appium](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). اگر در حالی که پرچم فعال است، پاسخ کلیدهای مناسبی نداشته باشد، کاری انجام نمی دهد.
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -159,29 +159,29 @@ Type: `Boolean`<br /> Default: `true`
 
 ## WebdriverIO
 
-The following options (including the ones listed above) can be used with WebdriverIO in standalone:
+گزینه های زیر (از جمله موارد ذکر شده در بالا) را می توان با WebdriverIO به صورت مستقل استفاده کرد:
 
 ### automationProtocol
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+تعریف پروتکلی که می خواهید برای اتوماسیون مرورگر خود استفاده کنید. در حال حاضر فقط [`webdriver`](https://www.npmjs.com/package/webdriver) و [`devtools`](https://www.npmjs.com/package/devtools) پشتیبانی می شوند، زیرا اینها فناوری های اصلی اتوماسیون مرورگر موجود هستند.
 
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+اگر می‌خواهید مرورگر را با استفاده از `devtools` خودکار کنید، مطمئن شوید که بسته NPM را نصب کرده‌اید (`$ npm install --save-dev devtools`).
 
 Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
-Shorten `url` command calls by setting a base URL.
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
-- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
+با تنظیم یک URL پایه، فراخوانی دستور های `url` را کوتاه کنید.
+- اگر پارامتر `url` شما با `/`شروع می شود، `baseUrl` به قبل اضافه می شود (به جز مسیر `baseUrl`، اگر مسیری وجود داشته باشد دارد).
+- اگر پارامتر `url` بدون شماتیک یا `/` (مثل`some/path`) شروع می شود، سپس `baseUrl` کامل مستقیما اضافه می شود.
 
 Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+مهلت زمانی پیش‌فرض برای همه دستورات ` waitFor*`. (به کوچک بودن حرف `f` در نام گزینه توجه کنید.) این مهلت __فقط__ بر دستوراتی که با `waitFor*` شروع می شوند و در زمان انتظار پیش فرض آنها تأثیر می گذارد.
 
-To increase the timeout for a _test_, please see the framework docs.
+برای افزایش زمان برای _یک تست_، لطفاً به اسناد فریمورک مراجعه کنید.
 
 Type: `Number`<br /> Default: `3000`
 
