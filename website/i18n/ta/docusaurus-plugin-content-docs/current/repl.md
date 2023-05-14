@@ -11,23 +11,23 @@ title: REPL interface
 wdio repl chrome
 ```
 
-இது REPL இடைமுகத்துடன் நீங்கள் கட்டுப்படுத்தக்கூடிய Chrome உலாவியைத் திறக்கும். Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [Sauce Labs](https://saucelabs.com) (or other cloud vendor) account, you can also directly run the browser on your command line in the cloud via:
+இது REPL இடைமுகத்துடன் நீங்கள் கட்டுப்படுத்தக்கூடிய Chrome உலாவியைத் திறக்கும். அமர்வைத் தொடங்க, போர்ட் `4444` இல் இயங்கும் பிரௌசர் டிரைவர் உங்களிடம் உள்ளதா என்பதை உறுதிப்படுத்தவும். உங்களிடம் [Sauce Labs](https://saucelabs.com) (அல்லது பிற கிளவுட் விற்பனையாளர்) கணக்கு இருந்தால், உங்கள் கமாண்ட் லைனில் பிரௌசரை நேரடியாகக் கிளவுடில் இயக்கலாம்:
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-If driver is running on different port eg : 9515, it could passed with the command line argument --port or alias -p
+டிரைவர் வெவ்வேறு போர்ட்டில் இயங்கினால், எ. கா: 9515, அது கமாண்ட் லைன் ஆர்குமென்டில் --port அல்லது alias -p உடன் அனுப்பப்படும்
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY -p 9515
 ```
 
-Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object.
+WebdriverIO config பைலில் உள்ள capabilitiesயை பயன்படுத்தி Repl ஐ இயக்கலாம். Wdio supports capabilities ஆப்ஜெக்ட்; அல்லது ; multiremote capability list அல்லது ஆப்ஜெக்ட்.
 
-If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index.
+config பைல் capabilities ஆப்ஜெக்டை பயன்படுத்தினால், config பைலுக்கான பாதையைச் செலுத்தவும், அது multiremote capability என்றால், list அல்லது multiremoteல் இருந்து எந்த capabilities யைப் பயன்படுத்த வேண்டும் என்பதைக positional argument மூலம் குறிப்பிடவும். குறிப்பு: listக்கு நாங்கள் பூஜ்ஜிய அடிப்படையிலான குறியீட்டைக் கருதுகிறோம்.
 
-### Example
+### எடுத்துக்காட்டு
 
 WebdriverIO with capability array:
 
@@ -70,7 +70,7 @@ export const config = {
 wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 ```
 
-Or if you want to run local mobile tests using Appium:
+அல்லது Appium ஐப் பயன்படுத்தி லோக்கல் மொபைல் டெஸ்டுகளை ரன் செய்ய விரும்பினால்:
 
 <Tabs
   defaultValue="android"
@@ -95,21 +95,21 @@ wdio repl ios
 </TabItem>
 </Tabs>
 
-This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+இது கனெக்டட் டிவைஸ்/எமுலேட்டர்/சிமுலேட்டரில் Chrome/Safari அமர்வைத் திறக்கும். அமர்வைத் தொடங்குவதற்கு Appium போர்ட் `4444` இல் இயங்குவதை உறுதிசெய்யவும்.
 
 ```sh
 wdio repl './path/to/your_app.apk'
 ```
 
-This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+இது கனெக்டட் டிவைஸ்/எமுலேட்டர்/சிமுலேட்டரில் ஆப் அமர்வைத் திறக்கும். அமர்வைத் தொடங்குவதற்கு Appium போர்ட் `4444` இல் இயங்குவதை உறுதிசெய்யவும்.
 
-Capabilities for iOS device can be passed with arguments:
+iOS சாதனத்திற்கான Capabilitiesகளை ஆர்குமென்சுடன் அனுப்பலாம்:
 
-* `-v`      - `platformVersion`: version of Android/iOS platform
-* `-d`      - `deviceName`: name of mobile device
-* `-u`      - `udid`: udid for real devices
+* `-v`      - `platformVersion`: ஆண்ட்ராய்டு/iOS இயங்குதளத்தின் பதிப்பு
+* `-d`      - `deviceName`: மொபைல் சாதனத்தின் பெயர்
+* `-u`      - `udid`: ரியல் சாதனங்களுக்கான udid
 
-Usage:
+பயன்பாடு:
 
 <Tabs
   defaultValue="long"
@@ -134,8 +134,8 @@ wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
 </TabItem>
 </Tabs>
 
-You can apply any options (see `wdio repl --help`) available for your REPL session.
+உங்கள் REPL அமர்வுக்குக் கிடைக்கக்கூடிய எந்த விருப்பங்களையும் நீங்கள் பயன்படுத்தலாம் (`wdio repl --help`ஐப் பார்க்கவும்).
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
-Another way to use the REPL is in inside your tests via the [`debug`](/docs/api/browser/debug) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
+REPL ஐப் பயன்படுத்த மற்றொரு வழி [`debug`](/docs/api/browser/debug) கட்டளை வழியாக உங்கள் டெஸ்டிற்குள் உள்ளது. அழைக்கப்படும் போது இது உலாவியை நிறுத்தும், மேலும் நீங்கள் பயன்பாட்டிற்கு (எ.கா. dev கருவிகளுக்கு) செல்ல அல்லது கட்டளை வரியிலிருந்து உலாவியைக் கட்டுப்படுத்த உதவுகிறது. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
