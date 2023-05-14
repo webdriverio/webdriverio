@@ -3,17 +3,17 @@ id: mocking
 title: Mocking
 ---
 
-When writing tests it's only a matter of time before you need to create a "fake" version of an internal — or external — service. This is commonly referred to as mocking. WebdriverIO provides utility functions to help you out. You can `import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'` to access it. See more information about the available mocking utilities in the [API docs](/docs/api/modules#wdiobrowser-runner).
+டெஸ்டுகளை எழுதும்போது, நீங்கள் இன்டெர்னல் அல்லது எக்ஸ்டெர்னல் சர்வீஸின் "போலி" பதிப்பை உருவாக்க வேண்டும். இது பொதுவாக மாக்கிங் என்று குறிப்பிடப்படுகிறது. WebdriverIO உங்களுக்கு உதவ பயன்பாட்டு செயல்பாடுகளை வழங்குகிறது. அதை அணுக '@wdio/browser-runner'</code> இலிருந்து {fn, spyOn, mock, unmock } ஐ நீங்கள் `இறக்குமதி செய்யலாம். <a href="/docs/api/modules#wdiobrowser-runner">API docs</a>இல் இருக்கும் மாக் செய்யும் பயன்பாடுகள்பற்றிய கூடுதல் தகவலைப் பார்க்கவும்.</p>
 
-## Functions
+<h2 spaces-before="0">செயல்பாடுகள்</h2>
 
-In order to validate whether certain function handler are called as part of your component tests, the `@wdio/browser-runner` module exports mocking primitives you can use to test, if these functions have been called. You can import these methods via:
+<p spaces-before="0">சில செயல்பாடு ஹேண்ட்லர்கள் உங்கள் காம்போனென்ட் சோதனைகளின் ஒரு பகுதியாக அழைக்கப்படுகிறதா என்பதைச் சரிபார்க்க, <code>@wdio/browser-runner` மாட்யூல் மாக் செய்யும் ப்ரிமிட்டிவ்களை ஏற்றுமதி செய்கிறது, இந்தச் செயல்பாடுகள் அழைக்கப்பட்டிருந்தால், நீங்கள் சோதிக்க பயன்படுத்தலாம். இந்த மெத்தெடுகளை நீங்கள் இறக்குமதி செய்யலாம்:
 
 ```js
 import { fn, spy } from '@wdio/browser-runner'
 ```
 
-By importing `fn` you can create a spy function (mock) to track its execution and with `spyOn` track a method on an already created object.
+`fn` ஐ இறக்குமதி செய்வதன் மூலம், அதன் செயல்பாட்டைக் கண்காணிக்க உளவு செயல்பாட்டை (mock) உருவாக்கலாம் மற்றும் `spyOn` மூலம் ஏற்கனவே உருவாக்கப்பட்ட ஆப்ஜெக்ட்டின் மீது ஒரு மெத்தடை கண்காணிக்கலாம்.
 
 <Tabs
   defaultValue="mocks"
@@ -24,7 +24,7 @@ By importing `fn` you can create a spy function (mock) to track its execution an
 }>
 <TabItem value="mocks">
 
-The full example can be found in the [Component Testing Example](https://github.com/webdriverio/component-testing-examples/blob/main/react-typescript-vite/src/tests/LoginForm.test.tsx) repository.
+முழு உதாரணத்தையும் [Component Testing Example](https://github.com/webdriverio/component-testing-examples/blob/main/react-typescript-vite/src/tests/LoginForm.test.tsx) இல் காணலாம் களஞ்சியம்.
 
 ```ts
 import React from 'react'
@@ -58,7 +58,7 @@ describe('LoginForm', () => {
 </TabItem>
 <TabItem value="spies">
 
-The full example can be found in the [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) directory.
+முழு உதாரணத்தையும் [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) கோப்பகத்தில் காணலாம்.
 
 ```js
 import { expect, $ } from '@wdio/globals'
@@ -95,17 +95,17 @@ describe('Lit Component testing', () => {
 </TabItem>
 </Tabs>
 
-WebdriverIO just re-exports [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) here which is a lightweight Jest compatible spy implementation that can be used with WebdriverIOs [`expect`](/docs/api/expect-webdriverio) matchers. You can find more documentation on these mock functions on the [Vitest project page](https://vitest.dev/api/mock.html).
+WebdriverIO [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) மீண்டும் ஏற்றுமதி செய்கிறது, இது WebdriverIOs [` expect `](/docs/api/expect-webdriverio) மேட்ச்சர்களுடன் பயன்படுத்தக்கூடிய இலகுரக ஜெஸ்ட் இணக்கமான உளவு செயலாக்கமாகும். இந்த மாக் செயல்பாடுகள்பற்றிய கூடுதல் ஆவணங்களை [Vitest project page](https://vitest.dev/api/mock.html)இல் காணலாம்.
 
-Of course, you can also install and import any other spy framework, e.g. [SinonJS](https://sinonjs.org/), as long as it supports the browser environment.
+நிச்சயமாக, நீங்கள் வேறு எந்த உளவு பிரமேஒர்க்கையும் நிறுவலாம் மற்றும் இறக்குமதி செய்யலாம், எ.கா. [SinonJS](https://sinonjs.org/), பிரௌசர் என்விரான்மென்டை ஆதரிக்கும் வரை.
 
-## Modules
+## தொகுதிகள்
 
-Mock local modules or observe third-party-libraries, that are invoked in some other code, allowing you to test arguments, output or even redeclare its implementation.
+லோக்கல் தொகுதிகளை மாக் செய்யவும் அல்லது வேறுசில கோடில் செயல்படுத்தப்படுகின்ற மூன்றாம் தரப்பு-லைப்ரரிகளை கண்காணிக்கவும், ஆர்குமென்டுகளை டெஸ்ட் செய்யவும், வெளியீடு செய்யவும் அல்லது அதன் செயலாக்கத்தை மீண்டும் அறிவிக்கவும் அனுமதிக்கிறது.
 
 There are two ways to mock functions: Either by creating a mock function to use in test code, or writing a manual mock to override a module dependency.
 
-### Mocking File Imports
+### பைல் இறக்குமதிகளை மாக் செய்தல்
 
 Let's imagine our component is importing a utility method from a file to handle a click.
 
