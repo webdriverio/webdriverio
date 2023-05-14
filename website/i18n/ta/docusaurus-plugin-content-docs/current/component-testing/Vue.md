@@ -3,7 +3,7 @@ id: vue
 title: Vue.js
 ---
 
-[Vue.js](https://vuejs.org/) என்பது இணைய பயனர் இடைமுகங்களை உருவாக்குவதற்கான அணுகக்கூடிய, செயல்திறன் மற்றும் பல்துறை கட்டமைப்பாகும். WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner)பயன்படுத்தி Vue.js காம்போனென்டுகளை உண்மையான பிரௌசரில் நேரடியாகச் சோதிக்கலாம்.
+[Vue.js](https://vuejs.org/) என்பது இணைய பயனர் இடைமுகங்களை உருவாக்குவதற்கான அணுகக்கூடிய, செயல்திறன் மற்றும் பல்துறை பிரமேஒர்க் ஆகும். WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner)பயன்படுத்தி Vue.js காம்போனென்டுகளை உண்மையான பிரௌசரில் நேரடியாகச் சோதிக்கலாம்.
 
 ## செட்அப்
 
@@ -53,7 +53,7 @@ npx wdio run ./wdio.conf.js
 
 ## டெஸ்டுகளை எழுதுதல்
 
-Given you have the following Vue.js component:
+பின்வரும் Vue.js காம்போனென்ட் உங்களிடம் உள்ளது:
 
 
 
