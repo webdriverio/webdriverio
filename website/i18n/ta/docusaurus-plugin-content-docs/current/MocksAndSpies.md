@@ -1,6 +1,6 @@
 ---
 id: mocksandspies
-title: Request Mocks and Spies
+title: மாக்ஸ் மற்றும் ஸ்பைகளைக் கோருங்கள்
 ---
 
 WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
@@ -13,7 +13,7 @@ This feature is currently only supported when running local tests on Chrome. It 
 
 ## Creating a mock
 
-Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+நீங்கள் எந்தப் பதில்களையும் மாற்றுவதற்கு முன், நீங்கள் முதலில் ஒரு மாக்கை வரையறுக்க வேண்டும். This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
 
 ```js
 // mock all resources ending with "/users/list"
