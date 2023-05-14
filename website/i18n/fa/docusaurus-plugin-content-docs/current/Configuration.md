@@ -187,111 +187,111 @@ Type: `Number`<br /> Default: `3000`
 
 ### waitforInterval
 
-Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
+فاصله پیش‌فرض برای همه دستورات `waitFor*` برای بررسی اینکه آیا وضعیت مورد انتظار (مثلاً visibility) تغییر کرده است یا خیر.
 
 Type: `Number`<br /> Default: `500`
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU. To change your region to EU, add `region: 'eu'` to your config.
+اگر در Sauce Labs اجرا می‌شود، می‌توانید تست‌ها را بین مراکز داده مختلف اجرا کنید: ایالات متحده یا اتحادیه اروپا. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
 
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+__توجه:__ این فقط در صورتی تأثیر می گذارد که `user` و `key` را ارائه دهید که به حساب Sauce Labs شما متصل شده باشند.
 
 Type: `String`<br /> Default: `us`
 
-*(only for vm and or em/simulators)*
+*(فقط برای vm و یا em/شبیه سازها)*
 
 ---
 
 ## Testrunner Options
 
-The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
+گزینه‌های زیر (از جمله موارد ذکر شده در بالا) فقط برای اجرای WebdriverIO با تست‌کننده WDIO تعریف شده‌اند:
 
 ### specs
 
-Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process. All paths are seen as relative from the config file path.
+تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. همه مسیرها از مسیر فایل پیکربندی به صورت نسبی دیده می شوند.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
 ### exclude
 
-Exclude specs from test execution. All paths are seen as relative from the config file path.
+مستثنی کردن spec ها برای اجرای تست. همه مسیرها از مسیر فایل پیکربندی به صورت نسبی دیده می شوند.
 
 Type: `String[]`<br /> Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+یک شی که مجموعه های مختلفی را توصیف می کند، که سپس می توانید با گزینه `--suite` در `wdio` CLI آن را مشخص کنید.
 
 Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+مانند بخش `capabilities` که در بالا توضیح داده شد. با این تفاوت که گزینه ای وجود دارد برای تعیین گزینه [`multiremote`](multiremote) شیء و یا چندین WebDriver Session در یک آرایه برای اجرای موازی.
 
-You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
+می‌توانید همان قابلیت‌های خاص سازنده و مرورگر را که [در بالا](/docs/configuration#capabilities) توضیح داده شده است، اعمال کنید.
 
 Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
-Maximum number of total parallel running workers.
+حداکثر تعداد کل worker ها در حال اجرا موازی.
 
-__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
+__توجه:__ ممکن است عددی به زیادی `100`باشد، زمانی که تست ها بر روی برخی از فروشندگان خارجی مانند دستگاه های Sauce Labs انجام می شود. در آنجا، تست ها بر روی یک ماشین واحد آزمایش نمی شوند، بلکه روی چندین ماشین مجازی تست می شوند. اگر قرار است آزمایش‌ها روی یک ماشین توسعه محلی اجرا شوند، از عددی استفاده کنید که معقول‌تر است، مانند `4`، `3`، یا `5`. اساساً، این تعداد مرورگرهایی است که همزمان راه‌اندازی می‌شوند و آزمایش‌های شما را همزمان اجرا می‌کنند، بنابراین بستگی به میزان رم دستگاه شما و تعداد برنامه‌های دیگر در حال اجرا در دستگاه شما دارد.
 
 Type: `Number`<br /> Default: `100`
 
 ### maxInstancesPerCapability
 
-Maximum number of total parallel running workers per capability.
+حداکثر تعداد کل worker ها در حال اجرا موازی در هر capability.
 
 Type: `Number`<br /> Default: `100`
 
 ### injectGlobals
 
-Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment. If you set to `false`, you should import from `@wdio/globals`, e.g.:
+اضافه کردن متغییر های جهانی WebdriverIO (مثلاً `browser`، `$` و `$$`). اگر روی `false`تنظیم کنید، باید آنها را از `@wdio/globals` وارد کنید، به عنوان مثال:
 
 ```ts
 import { browser, $, $$, expect } from '@wdio/globals'
 ```
 
-Note: WebdriverIO doesn't handle injection of test framework specific globals.
+توجه: WebdriverIO کاری با تزریق متغیر های جهانی فریمورک ها ندارد.
 
 Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+اگر می خواهید اجرای تست‌های شما پس از تعداد معینی از شکست متوقف شود، از `bail` استفاده کنید. (به طور پیش‌فرض روی `0`قرار می‌گیرد، که همه تست‌ها را بدون توجه به هر اتفاقی اجرا می‌کند.) **توجه:** لطفاً توجه داشته باشید که هنگام استفاده از اجرا کننده تست شخص ثالث (مانند موکا)، ممکن است به پیکربندی اضافی نیاز باشد.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
 ### specFileRetries
 
-The number of times to retry an entire specfile when it fails as a whole.
+تعداد دفعات امتحان مجدد کل یک فایل زمانی که به طور کلی ناموفق است.
 
 Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDelay
 
-Delay in seconds between the spec file retry attempts
+چند ثانیه تأخیر بین تلاش‌های مجدد فایل تست
 
 Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
+اینکه آیا فایل‌های تکرار شده باید فوراً دوباره امتحان شوند یا به انتهای صف موکول شوند.
 
 Type: `Boolean`<br /> Default: `true`
 
 ### services
 
-Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
+سرویس ها کار خاصی را به عهده می گیرند که شما نمی خواهید از آن مراقبت کنید. آنها تقریباً بدون هیچ تلاشی تنظیمات تست شما را بهبود می بخشند.
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
 ### framework
 
-Defines the test framework to be used by the WDIO testrunner.
+فریمورک تستی را برای استفاده توسط اجرا کننده تست WDIO تعریف می‌کند.
 
 Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
