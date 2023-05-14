@@ -3,10 +3,10 @@ id: jenkins
 title: Jenkins
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org). With the `junit` reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO [Jenkins](https://jenkins-ci.org)போன்ற CI அமைப்புகளுக்கு இறுக்கமான ஒருங்கிணைப்பை வழங்குகிறது. `junit` ரிப்போர்டர் மூலம், உங்கள் டெஸ்டுகளை எளிதாகப் பிழைத்திருத்தம் செய்யலாம் மற்றும் உங்கள் டெஸ்ட் முடிவுகளைக் கண்காணிக்கலாம். ஒருங்கிணைப்பு மிகவும் எளிதானது.
 
-1. Install the `junit` test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
-1. Update your config to save your XUnit results where Jenkins can find them, (and specify the `junit` reporter):
+1. `junit` டெஸ்ட் ரிப்போர்டரை நிறுவவும்: `$ npm install @wdio/junit-reporter --save-dev`)
+1. ஜென்கின்ஸ் அவற்றைக் கண்டறியக்கூடிய XUnit முடிவுகளைச் சேமிக்க உங்கள் கட்டமைப்பைப் புதுப்பிக்கவும், (மற்றும் `junit` ரிப்போர்டரை குறிப்பிடவும்):
 
 ```js
 // wdio.conf.js
@@ -22,17 +22,17 @@ module.exports = {
 }
 ```
 
-It is up to you which framework to choose. The reports will be similar. For this tutorial, we’ll use Jasmine.
+எந்த பிரமேஒர்க்கை தேர்வு செய்வது என்பது உங்களுடையது. அறிக்கைகள் ஒரே மாதிரியாக இருக்கும். இந்த டுடோரியலுக்கு, ஜாஸ்மினைப் பயன்படுத்துவோம்.
 
-After you have written couple of tests, you can setup a new Jenkins job. Give it a name and a description:
+நீங்கள் இரண்டு டெஸ்டுகளை எழுதியபிறகு, நீங்கள் ஒரு புதிய ஜென்கின்ஸ் ஜாபை அமைக்கலாம். அதற்கு ஒரு பெயரையும் விளக்கத்தையும் கொடுங்கள்:
 
 ![Name And Description](/img/jenkins/jobname.png "Name And Description")
 
-Then make sure it grabs always the newest version of your repository:
+உங்கள் களஞ்சியத்தின் புதிய பதிப்பை அது எப்போதும் உபயோகிக்கிறது என்பதை உறுதிப்படுத்தவும்:
 
 ![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
 
-**Now the important part:** Create a `build` step to execute shell commands. The `build` step needs to build your project. Since this demo project only tests an external app, you don't need to build anything. Just install the node dependencies and run the command `npm test` (which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`).
+**Now the important part:** ஷெல் கட்டளைகளை இயக்க `build` உருவாக்கவும். The `build` step needs to build your project. Since this demo project only tests an external app, you don't need to build anything. Just install the node dependencies and run the command `npm test` (which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`).
 
 If you have installed a plugin like AnsiColor, but logs are still not colored, run tests with environment variable `FORCE_COLOR=1` (e.g., `FORCE_COLOR=1 npm test`).
 
