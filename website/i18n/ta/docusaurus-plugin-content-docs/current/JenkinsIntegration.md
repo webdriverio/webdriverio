@@ -26,26 +26,26 @@ module.exports = {
 
 நீங்கள் இரண்டு டெஸ்டுகளை எழுதியபிறகு, நீங்கள் ஒரு புதிய ஜென்கின்ஸ் ஜாபை அமைக்கலாம். அதற்கு ஒரு பெயரையும் விளக்கத்தையும் கொடுங்கள்:
 
-![Name And Description](/img/jenkins/jobname.png "Name And Description")
+![பெயர் மற்றும் விளக்கம்](/img/jenkins/jobname.png "பெயர் மற்றும் விளக்கம்")
 
 உங்கள் களஞ்சியத்தின் புதிய பதிப்பை அது எப்போதும் உபயோகிக்கிறது என்பதை உறுதிப்படுத்தவும்:
 
-![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
+![ஜென்கின்ஸ் கிட் அமைப்பு](/img/jenkins/gitsetup.png "ஜென்கின்ஸ் கிட் அமைப்பு")
 
-**Now the important part:** ஷெல் கட்டளைகளை இயக்க `build` உருவாக்கவும். The `build` step needs to build your project. Since this demo project only tests an external app, you don't need to build anything. Just install the node dependencies and run the command `npm test` (which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`).
+**Now the important part:** ஷெல் கட்டளைகளை இயக்க `build` உருவாக்கவும். `build` ஆனது உங்கள் ப்ரொஜெக்டை உருவாக்க வேண்டும். இந்த டெமோ திட்டம் வெளிப்புற பயன்பாட்டை மட்டுமே டெஸ்ட் செய்யும் என்பதால், நீங்கள் எதையும் உருவாக்க வேண்டியதில்லை. நோடு சார்புகளை நிறுவி, `npm test` கட்டளையை இயக்கவும் (இது `node_modules/.bin/wdio test/wdio.conf.js`க்கான மாற்றுப்பெயர் ஆகும்).
 
-If you have installed a plugin like AnsiColor, but logs are still not colored, run tests with environment variable `FORCE_COLOR=1` (e.g., `FORCE_COLOR=1 npm test`).
+நீங்கள் AnsiColor போன்ற ப்ளுகின்சை நிறுவியிருந்தாலும், பதிவுகள் இன்னும் நிறமாக இல்லை என்றால், என்விரான்மெண்ட் வேறியபல் `FORCE_COLOR=1` (எ.கா., `FORCE_COLOR=1 npm சோதனை`) மூலம் டெஸ்டுகளை இயக்கவும்.
 
-![Build Step](/img/jenkins/runjob.png "Build Step")
+![பில்டு செட்டப்](/img/jenkins/runjob.png "பில்டு செட்டப்")
 
-After your test, you’ll want Jenkins to track your XUnit report. To do so, you have to add a post-build action called _"Publish JUnit test result report"_.
+உங்கள் டெஸ்டிற்குப் பிறகு, உங்கள் XUnit அறிக்கையை ஜென்கின்ஸ் கண்காணிக்க வேண்டும். அவ்வாறு செய்ய, _"Publish JUnit test result report"_எனப்படும் போஸ்ட் பில்டு செயலைச் சேர்க்க வேண்டும்.
 
-You could also install an external XUnit plugin to track your reports. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
+உங்கள் அறிக்கைகளைக் கண்காணிக்க வெளிப்புற XUnit பலுகின்ஸ்களையும் நிறுவலாம். JUnit ஒன் அடிப்படை ஜென்கின்ஸ் நிறுவலுடன் வருகிறது, இப்போதைக்கு போதுமானது.
 
-According to the config file, the XUnit reports will be saved in the project’s root directory. These reports are XML files. So, all you need to do in order to track the reports is to point Jenkins to all XML files in your root directory:
+கட்டமைப்பு கோப்பின் படி, XUnit அறிக்கைகள் ப்ரொஜெக்ட்டின் ரூட் டைரக்டரியில் சேமிக்கப்படும். இந்த அறிக்கைகள் XML கோப்புகள். எனவே, அறிக்கைகளைக் கண்காணிக்க நீங்கள் செய்ய வேண்டியது உங்கள் ரூட் டைரக்டரியில் உள்ள அனைத்து XML பைல்களுக்கும் ஜென்கின்ஸ் சுட்டிக்காட்டுவதுதான்:
 
-![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
+![போஸ்ட் பில்டு ஆக்ஷன்](/img/jenkins/postjob.png "போஸ்ட் பில்டு ஆக்ஷன்")
 
-That's it! You’ve now set up Jenkins to run your WebdriverIO jobs. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs, and a list of commands with payload that got used in each test.
+அவ்வளவுதான்! நீங்கள் இப்போது உங்கள் WebdriverIO வேலைகளை இயக்க Jenkins ஐ அமைத்துள்ளீர்கள். உங்கள் ஜாப் இப்போது விரிவான டெஸ்ட் முடிவுகளை வரலாற்று விளக்கப்படங்கள், தோல்வியுற்ற ஜாப்கள் பற்றிய ஸ்டேக்ட்ரேஸ் தகவல் மற்றும் ஒவ்வொரு டெஸ்டிலும் பயன்படுத்தப்பட்ட பேலோட் கொண்ட கட்டளைகளின் பட்டியலை வழங்கும்.
 
-![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")
+![ஜென்கின்ஸ் இறுதி ஒருங்கிணைப்பு](/img/jenkins/final.png "ஜென்கின்ஸ் இறுதி ஒருங்கிணைப்பு")
