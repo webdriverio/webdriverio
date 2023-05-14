@@ -28,14 +28,14 @@ export const config = {
 
 கவரேஜ் டிராக்கிங்கிலிருந்து வேண்டுமென்றே விலக்க விரும்பும் உங்கள் கோட்பேஸின் சில பிரிவுகள் இருக்கலாம், இதைச் செய்ய, பின்வரும் பாகுபடுத்தும் குறிப்புகளைப் பயன்படுத்தலாம்:
 
-- `/* istanbul ignore if */`: ignore the next if statement.
-- `/* istanbul ignore else */`: ignore the else portion of an if statement.
-- `/* istanbul ignore next */`: ignore the next thing in the source-code ( functions, if statements, classes, you name it).
-- `/* istanbul ignore file */`: ignore an entire source-file (this should be placed at the top of the file).
+- `/* istanbul ignore if */`: அடுத்த if அறிக்கையைப் புறக்கணிக்கவும்.
+- `/* istanbul ignore else */`: if அறிக்கையின் else பகுதியைப் புறக்கணிக்கவும்.
+- `/* istanbul ignore next */`: source-codeஇல் next thingயை புறக்கணிக்கவும் ( functions, if statements, classes, you name it).
+- `/* istanbul ignore file */`: முழு source-fileயை புறக்கணிக்கவும் (இது பைலின் மேல் பகுதியில் வைக்கப்பட வேண்டும்).
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+`execute` அல்லது `executeAsync` கட்டளைகளை அழைக்கும்போது பிழைகளை ஏற்படுத்தக்கூடும் என்பதால், உங்கள் டெஸ்ட் பைல்களை கவரேஜ் அறிக்கையிடலிலிருந்து விலக்கப் பரிந்துரைக்கப்படுகிறது. உங்கள் அறிக்கையில் அவற்றை வைத்திருக்க விரும்பினால், பின்வரும் வழிகளில் அவற்றைப் பயன்படுத்துவதைத் தவிர்க்கவும்:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {
