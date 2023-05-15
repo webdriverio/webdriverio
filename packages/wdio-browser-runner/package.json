@@ -34,7 +34,7 @@
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.1",
     "@types/node": "^20.1.0",
-    "@vitest/spy": "^0.30.0",
+    "@vitest/spy": "^0.31.0",
     "@wdio/globals": "8.10.2",
     "@wdio/local-runner": "8.10.2",
     "@wdio/logger": "8.6.6",
