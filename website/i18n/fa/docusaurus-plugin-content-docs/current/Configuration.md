@@ -279,7 +279,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
+اینکه آیا فایل‌های تکرار شده باید فوراً دوباره امتحان شوند یا به انتهای صف موکول شوند.
 
 Type: `Boolean`<br /> Default: `true`
 

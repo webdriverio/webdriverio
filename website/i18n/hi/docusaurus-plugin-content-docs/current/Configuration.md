@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-यदि आप मोबाइल उपकरणों पर वेब या नेटिव परीक्षण चला रहे हैं, तो `capabilities` वेबड्राइवर प्रोटोकॉल से भिन्न है। See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+यदि आप मोबाइल उपकरणों पर वेब या नेटिव परीक्षण चला रहे हैं, तो `capabilities` वेबड्राइवर प्रोटोकॉल से भिन्न है। अधिक विवरण के लिए [एपियम डॉक्स](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) देखें।
 
 ### logLevel
 
@@ -279,7 +279,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
+पुन: प्रयास किए गए विनिर्देशों को तुरंत पुनः प्रयास किया जाना चाहिए या कतार के अंत तक स्थगित कर दिया जाना चाहिए या नहीं।
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -298,7 +298,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। Read more on this in [Frameworks](frameworks).
+विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। इस पर [फ्रेमवर्क](frameworks)में और पढ़ें।
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
