@@ -38,7 +38,7 @@
     "@wdio/types": "8.10.2",
     "@wdio/utils": "8.10.2",
     "expect-webdriverio": "^4.0.1",
-    "jasmine": "^4.2.1"
+    "jasmine": "^5.0.0"
   },
   "devDependencies": {
     "@types/jasmine": "4.3.1"
