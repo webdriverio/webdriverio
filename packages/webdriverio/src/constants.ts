@@ -168,7 +168,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     waitforTimeout: {
         type: 'number',
-        default: 3000
+        default: 5000
     },
     /**
      * supported test framework by wdio testrunner
