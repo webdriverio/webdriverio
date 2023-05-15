@@ -5,28 +5,28 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 
 எலிமென்ட் ஆப்ஜெக்ட் என்பது ரிமோட் யூசர் ஏஜெண்டில் உள்ள எலிமென்டைக் குறிக்கும் ஒரு ஆப்ஜெக்டாகும், எ.கா. [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) ஒரு பிரௌசரில் அமர்வை இயக்கும் போது அல்லது மொபைலில் [a mobile element](https://developer.apple.com/documentation/swift/sequence/element). [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) அல்லது [`shadow$`](/docs/api/element/shadow$)போன்ற பல எலிமென்ட் வினவல் கட்டளைகளில் ஒன்றைப் பயன்படுத்தி அதைப் பெறலாம்.
 
-## Properties
+## பண்புகள்
 
 பிரௌசர் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| பெயர்       | வகை      | விவரங்கள்                                                                                                                                                                                                                                     |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | ரிமோட் சர்வரில் இருந்து அமர்வு ஐடி ஒதுக்கப்பட்டது.                                                                                                                                                                                            |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| பெயர்       | வகை      | விவரங்கள்                                                                                                                                                                                                                                            |
+| ----------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | ரிமோட் சர்வரில் இருந்து அமர்வு ஐடி ஒதுக்கப்பட்டது.                                                                                                                                                                                                   |
+| `elementId` | `String` | தொடர்புடைய [web element reference](https://w3c.github.io/webdriver/#elements), இது நெறிமுறை மட்டத்தில் உள்ள எலிமென்டுடன் தொடர்பு கொள்ள பயன்படுகிறது                                                                                                  |
+| `selector`  | `String` | [Selector](/docs/selectors) எலிமென்டைக் வினவப் பயன்படுகிறது.                                                                                                                                                                                         |
+| `parent`    | `Object` | [Browser Object](/docs/api/browser) அதிலிருந்து எலிமென்டைப் பெறும்போது (எ.கா. `const elem = browser.$('selector')`) அல்லது [Element Object](/docs/api/element) அது ஒரு எலிமென்ட் ஸ்கோப்பிலிருந்து எடுக்கப்பட்டிருந்தால் (எ.கா. `elem.$('selector')`) |
+| `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). See more [setup types](/docs/setuptypes).                                                                                                   |
 
-## Methods
+## மெத்தெடுகள்
 
-A element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+ஒரு எலிமென்ட் ஆப்ஜெக்ட் நெறிமுறை பிரிவிலிருந்து அனைத்து மெத்தெடுகளையும் வழங்குகிறது, எ.கா. [WebDriver](/docs/api/webdriver) நெறிமுறை மற்றும் எலிமென்ட் பிரிவில் பட்டியலிடப்பட்ட கட்டளைகள். கிடைக்கும் நெறிமுறை கட்டளைகள் அமர்வு வகையைப் பொறுத்தது. நீங்கள் ஒரு தானியங்கு பிரௌசர் அமர்வை இயக்கினால், Appium [commands](/docs/api/appium) எதுவும் கிடைக்காது மற்றும் நேர்மாறாகவும் இருக்கும்.
 
-In addition to that the following commands are available:
+கூடுதலாக, பின்வரும் கட்டளைகள் கிடைக்கின்றன:
 
-| Name               | Parameters                                                            | Details                                                                                                                                                                                                        |
-| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| பெயர்              | பாராமீட்டர்கள்                                                        | விவரங்கள்                                                                                                                                                                                                                                                |
+| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | கலவை நோக்கங்களுக்காகப் பிரௌசர் பொருளிலிருந்து அழைக்கப்படும் தனிப்பயன் கட்டளைகளை வரையறுக்க அனுமதிக்கிறது. [Custom Command](/docs/customcommands) வழிகாட்டியில் மேலும் படிக்கவும்.                                                                         |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | தனிப்பயன் செயல்பாட்டுடன் எந்த பிரௌசர் கட்டளையையும் மேலெழுத அனுமதிக்கிறது. பிரேம்வர்கைப் பயன்படுத்துபவர்களைக் குழப்பக்கூடும் என்பதால் கவனமாகப் பயன்படுத்தவும். Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
 
 ## Remarks
 
