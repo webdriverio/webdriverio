@@ -3,15 +3,15 @@ id: element
 title: எலிமெண்ட் ஆப்ஜெக்ட்
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+எலிமென்ட் ஆப்ஜெக்ட் என்பது ரிமோட் யூசர் ஏஜெண்டில் உள்ள எலிமென்டைக் குறிக்கும் ஒரு ஆப்ஜெக்டாகும், எ.கா. [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) ஒரு பிரௌசரில் அமர்வை இயக்கும் போது அல்லது மொபைலில் [a mobile element](https://developer.apple.com/documentation/swift/sequence/element). [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) அல்லது [`shadow$`](/docs/api/element/shadow$)போன்ற பல எலிமென்ட் வினவல் கட்டளைகளில் ஒன்றைப் பயன்படுத்தி அதைப் பெறலாம்.
 
 ## Properties
 
-An element object has the following properties:
+பிரௌசர் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
+| பெயர்       | வகை      | விவரங்கள்                                                                                                                                                                                                                                     |
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
+| `sessionId` | `String` | ரிமோட் சர்வரில் இருந்து அமர்வு ஐடி ஒதுக்கப்பட்டது.                                                                                                                                                                                            |
 | `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
 | `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
 | `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
