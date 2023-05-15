@@ -1,30 +1,30 @@
 ---
 id: donate
-title: Donate
+title: تبرع لنا
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+إذا كانت شركتك تستخدم WebdriverIO وتستفيد منها. من فضلك اطلب من مديرك أو فريق التسويق الخاص بك دعم المشروع عن طريق التبرع للمجموعة. سيسمح الدعم للمشرفين بتخصيص مزيد من الوقت للصيانة والميزات الجديدة للجميع.
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+الرجاء مراجعة [صفحة OpenCollective](https://opencollective.com/webdriverio) للحصول على مزيد من المعلومات حول كيفية التبرع للمشروع.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+شكراً لكل من تبرع أو سيتبرع بالمال للجماعة وبالتالي دعم المشروع وكل من ساهم فيه. هذا حقا يعني الكثير ❤️
 
-## Expense Policies
+## سياسات المصروفات
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+نحن نريد أن نكون شفافين في الطريقة التي نقبل بها النفقات للجماعة. وينبغي أن يكون لكل شخص الحق في المشاركة وأن يرسل النفقات اللازمة للتنمية في بعض المميزات. ونريد أيضا أن نعود إلى المجتمع بالسماح لنا بنفقات الفعاليات. قد تكون أنواع المصروفات التالية مؤهلة للاسترداد من المجموعة:
 
-### Event Expenses
+### مصاريف الفعالية
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+إذا قمت باستضافة حدث أو فعالية يتحدث فيه متحدث عن استخدام WebdriverIO ومميزاته يمكنك حساب نفقة ما يصل إلى __100 $__. تشمل متطلبات السداد لنفقات الحدث ما يلي:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- يجب أن تشارك أنت أو حساب الحدث المشروع على وسائل التواصل الاجتماعي (Twitter أو Facebook أو LinkedIn) 3 مرات على الأقل
+- يجب أن تحتوي صفحة الحدث على شعار WebdriverIO وربط لصفحة المشروع في وصف الاجتماع الخاص بك
+- يجب عليك استخدام الأموال لنفقات مناسبة مثل المأكولات أو المشروبات أو تأجير المكان أو تأجير المعدات.
+- يجب عليك تقديم إيصالات مع طلب الاسترداد الخاص بك.
 
 ### Development Expenses
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+إذا كنت قد أنجزت أعمال التطوير في أي من المستودعات داخل مؤسسة GitHub WebdriverIO ، فيمكنك سداد ما يصل إلى __$ 1000__ إذا تم استيفاء المتطلبات التالية:
 
 - You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
 - Every additional issue closed with that label can be expensed with $100
