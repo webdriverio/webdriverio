@@ -53,7 +53,7 @@
     "istanbul-lib-source-maps": "^4.0.1",
     "istanbul-reports": "^3.1.5",
     "modern-node-polyfills": "^0.1.0",
-    "recast": "^0.22.0",
+    "recast": "^0.23.2",
     "serialize-error": "^11.0.0",
     "source-map-support": "^0.5.21",
     "vite": "~4.2.0",
