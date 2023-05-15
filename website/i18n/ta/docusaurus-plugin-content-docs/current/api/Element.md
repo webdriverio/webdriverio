@@ -15,7 +15,7 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 | `elementId` | `String` | தொடர்புடைய [web element reference](https://w3c.github.io/webdriver/#elements), இது நெறிமுறை மட்டத்தில் உள்ள எலிமென்டுடன் தொடர்பு கொள்ள பயன்படுகிறது                                                                                                  |
 | `selector`  | `String` | [Selector](/docs/selectors) எலிமென்டைக் வினவப் பயன்படுகிறது.                                                                                                                                                                                         |
 | `parent`    | `Object` | [Browser Object](/docs/api/browser) அதிலிருந்து எலிமென்டைப் பெறும்போது (எ.கா. `const elem = browser.$('selector')`) அல்லது [Element Object](/docs/api/element) அது ஒரு எலிமென்ட் ஸ்கோப்பிலிருந்து எடுக்கப்பட்டிருந்தால் (எ.கா. `elem.$('selector')`) |
-| `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). See more [setup types](/docs/setuptypes).                                                                                                   |
+| `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). மேலும் [setup types](/docs/setuptypes)காண்க.                                                                                                |
 
 ## மெத்தெடுகள்
 
