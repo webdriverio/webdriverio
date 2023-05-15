@@ -101,7 +101,7 @@ scriptMock.respond('alert("I am a mocked resource")')
 
 ### வலை ரிசோர்சுகளை திருப்பி விடவும்
 
-நீங்கள் விரும்பிய பதில் இணையத்தில் ஏற்கனவே ஹோஸ்ட் செய்யப்பட்டிருந்தால், வலை ரிசோர்சை மற்றொரு வலை ரிசோர்சுடன் மாற்றலாம். This works with individual page resources as well as with a webpage itself, e.g.:
+நீங்கள் விரும்பிய பதில் இணையத்தில் ஏற்கனவே ஹோஸ்ட் செய்யப்பட்டிருந்தால், வலை ரிசோர்சை மற்றொரு வலை ரிசோர்சுடன் மாற்றலாம். இது தனிப்பட்ட பக்க ரிசோர்சுகளுடனும் இணையப் பக்கத்துடனும் வேலை செய்கிறது, எ.கா.:
 
 ```js
 const pageMock = await browser.mock('https://google.com/')
@@ -110,9 +110,9 @@ await browser.url('https://google.com')
 console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 ```
 
-### Dynamic responses
+### டைனமிக் ரெஸ்பான்செஸ்
 
-If your mock response depends on the original resource response you can also dynamically modify the resource by passing in a function receives the original response as parameter and sets the mock based on the return value, e.g.:
+உங்கள் மாக் பதில் அசல் ரிசோர்ஸ் பதிலைச் சார்ந்து இருந்தால், நீங்கள் ஒரு செயல்பாட்டில் பாஸ் செய்வதன் மூலம் ரிசோர்சை மாறும் வகையில் மாற்றலாம், அசல் ரெஸ்பான்சை பேராமீட்டராகப் பெறுகிறது மற்றும் திரும்ப மதிப்பின் அடிப்படையில் மாக்கை அமைக்கிறது, எ.கா.:
 
 ```js
 const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
@@ -138,9 +138,9 @@ console.log(await $$('#todo-list li label').map((el) => el.getText()))
 // ]
 ```
 
-## Aborting mocks
+## மாக்குகளை கைவிடுதல்
 
-Instead of returning a custom response you can also just abort the request with one of the following HTTP errors:
+தனிப்பயன் பதிலைத் தருவதற்குப் பதிலாக, பின்வரும் HTTP பிழைகளில் ஒன்றைக் கொண்டு கோரிக்கையை நிறுத்தலாம்:
 
 - Failed
 - Aborted
@@ -157,16 +157,16 @@ Instead of returning a custom response you can also just abort the request with 
 - BlockedByClient
 - BlockedByResponse
 
-This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
+உங்கள் செயல்பாட்டு டெஸ்டுகளில் எதிர்மறையான தாக்கத்தை ஏற்படுத்தும் மூன்றாம் தரப்பு ஸ்கிரிப்டை உங்கள் பக்கத்திலிருந்து தடுக்க விரும்பினால் இது மிகவும் பயனுள்ளதாக இருக்கும். `abort` அல்லது `abortOnce`அழைப்பதன் மூலம் நீங்கள் ஒரு மாக்கை நிறுத்தலாம், எ.கா.:
 
 ```js
 const mock = await browser.mock('https://www.google-analytics.com/**')
 mock.abort('Failed')
 ```
 
-## Spies
+## ஸ்பைகள்
 
-Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
+ஒவ்வொரு மாக்கும் தானாகவே ஒரு ஸ்பையாகும், அது அந்த ரிசோர்சிற்கு பிரௌசர் செய்த கோரிக்கைகளின் அளவைக் கணக்கிடுகிறது. நீங்கள் தனிப்பயன் பதிலைப் பயன்படுத்தாவிட்டால் அல்லது மாக்கிற்கான காரணத்தை நிறுத்தினால், நீங்கள் வழக்கமாகப் பெறும் இயல்புநிலைப் பதிலுடன் அது தொடரும். இது பிரௌசர் எத்தனை முறை கோரிக்கையை வைத்தது என்பதைச் சரிபார்க்க உங்களை அனுமதிக்கிறது, எ.கா. குறிப்பிட்ட API எண்டு பாயிண்டிற்கு.
 
 ```js
 const mock = await browser.mock('**/user', { method: 'post' })
