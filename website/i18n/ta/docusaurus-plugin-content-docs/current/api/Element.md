@@ -23,16 +23,16 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 
 கூடுதலாக, பின்வரும் கட்டளைகள் கிடைக்கின்றன:
 
-| பெயர்              | பாராமீட்டர்கள்                                                        | விவரங்கள்                                                                                                                                                                                                                                                |
-| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | கலவை நோக்கங்களுக்காகப் பிரௌசர் பொருளிலிருந்து அழைக்கப்படும் தனிப்பயன் கட்டளைகளை வரையறுக்க அனுமதிக்கிறது. [Custom Command](/docs/customcommands) வழிகாட்டியில் மேலும் படிக்கவும்.                                                                         |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | தனிப்பயன் செயல்பாட்டுடன் எந்த பிரௌசர் கட்டளையையும் மேலெழுத அனுமதிக்கிறது. பிரேம்வர்கைப் பயன்படுத்துபவர்களைக் குழப்பக்கூடும் என்பதால் கவனமாகப் பயன்படுத்தவும். Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| பெயர்              | பாராமீட்டர்கள்                                                        | விவரங்கள்                                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | கலவை நோக்கங்களுக்காகப் பிரௌசர் பொருளிலிருந்து அழைக்கப்படும் தனிப்பயன் கட்டளைகளை வரையறுக்க அனுமதிக்கிறது. [Custom Command](/docs/customcommands) வழிகாட்டியில் மேலும் படிக்கவும்.                                                                                  |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | தனிப்பயன் செயல்பாட்டுடன் எந்த பிரௌசர் கட்டளையையும் மேலெழுத அனுமதிக்கிறது. பிரேம்வர்கைப் பயன்படுத்துபவர்களைக் குழப்பக்கூடும் என்பதால் கவனமாகப் பயன்படுத்தவும். [Custom Command](/docs/customcommands#overwriting-native-commands) வழிகாட்டியில் மேலும் படிக்கவும். |
 
-## Remarks
+## குறிப்புகள்
 
-### Element Chain
+### எலிமென்ட் செயின்
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element look ups. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+எலிமென்டுகளுடன் பணிபுரியும்போது WebdriverIO அவற்றை வினவுவதை எளிதாக்க சிறப்பு சிண்டாக்ஸ் மற்றும் காம்போசிட் காம்ப்ளெக்ஸ் நெஸ்டட் எலிமென்ட் தோற்றத்தை வழங்குகிறது. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
 
 ```js
 const header = await $('#header')
