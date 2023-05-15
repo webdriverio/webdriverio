@@ -11,7 +11,7 @@ Ce sont les documents de la dernière version (__>=8.x__) de WebdriverIO. Si vou
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Démarrage avec les guides" />
 
-:::tip کانال رسمی یوتیوب 🎥
+:::tip Chaîne YouTube officielle 🎥
 
 Vous pouvez trouver plus de vidéos autour de WebdriverIO sur la [chaîne YouTube officielle](https://youtube.com/@webdriverio). Assurez-vous de vous abonner!
 
