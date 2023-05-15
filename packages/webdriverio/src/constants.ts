@@ -310,7 +310,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         default: 0
     },
     /**
-     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred: {
         type: 'boolean',

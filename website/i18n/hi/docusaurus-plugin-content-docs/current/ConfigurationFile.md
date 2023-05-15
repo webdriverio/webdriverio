@@ -200,7 +200,7 @@ export const config = {
     specFileRetries: 1,
     // Delay in seconds between the spec file retry attempts
     specFileRetriesDelay: 0,
-    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    // Whether or not retried spec files should be retried immediately or deferred to the end of the queue
     specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.
@@ -454,7 +454,7 @@ export const config = {
       *
       * कुकुम्बर स्टेप से पहले रन करता है।
      * @param {Pickle.IPickleStep}    स्टेप    स्टेप डेटा
-      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल 
+      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल
       * @param {{object}}   संदर्भ   कुकुम्बर विश्व वस्तु
       */
      स्टेप से पहले: फ़ंक्शन (चरण, परिदृश्य, संदर्भ) {
