@@ -3,25 +3,23 @@ id: gettingstarted
 title: شروع کار
 ---
 
-به مستندات WebdriverIO خوش آمدید. این به شما کمک می کند تا سریع شروع کنید. اگر با مشکل مواجه شدید، می‌توانید در [سرور پشتیبانی Discord] ما (https://discord.webdriver.io) راهنما و پاسخ‌ها را بیابید یا می‌توانید در [توئیتر] به من ضربه بزنید (https://twitter.com/webdriverio).
+به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-:::info
-
+:::نکته 
 اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
-
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
 :::tip کانال رسمی یوتیوب 🎥
 
-می‌توانید ویدیوهای بیشتری در اطراف WebdriverIO در [کانال رسمی YouTube] (https://youtube.com/@webdriverio) پیدا کنید. حتما مشترک شوید!
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
 
 :::
 
 ## راه‌اندازی تنظیمات WebdriverIO
 
-برای افزودن یک راه‌اندازی کامل WebdriverIO به یک پروژه موجود یا جدید با استفاده از [WebdriverIO Starter Toolkit] (https://www.npmjs.com/package/create-wdio)، اجرا کنید:
+To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
 تست را می توان با استفاده از دستور `run` و با اشاره به پیکربندی WebdriverIO که به تازگی ایجاد کرده اید اجرا کرد:
 
@@ -39,7 +37,7 @@ title: شروع کار
 npm init wdio .
 ```
 
-یا اگر می خواهید یک پروژه جدید ایجاد کنید:
+or if you want to create a new project:
 
 ```sh
 npm init wdio ./path/to/new/project
@@ -52,7 +50,7 @@ npm init wdio ./path/to/new/project
 yarn create wdio .
 ```
 
-یا اگر می خواهید یک پروژه جدید ایجاد کنید:
+or if you want to create a new project:
 
 ```sh
 yarn create wdio ./path/to/new/project
@@ -65,7 +63,7 @@ yarn create wdio ./path/to/new/project
 pnpm create wdio .
 ```
 
-یا اگر می خواهید یک پروژه جدید ایجاد کنید:
+or if you want to create a new project:
 
 ```sh
 pnpm create wdio ./path/to/new/project

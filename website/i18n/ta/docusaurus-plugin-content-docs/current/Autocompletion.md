@@ -1,31 +1,31 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: தன்னியக்க நிறைவு
 ---
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+IDEA மற்றும் WebStorm இல் தன்னியக்க நிறைவு வேலை செய்கிறது.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+நீங்கள் ப்ரோக்ராம் கோடு எழுதுபவராக இருந்தால் கொண்டிருந்தால், தானாகக் கோடு நிரப்புவதை நீங்கள் விரும்பலாம். பல கோடு எடிட்டர்களில் தானியங்குநிரப்புதல் விரைவில் கிடைக்கிறது.
 
-![Autocompletion](/img/autocompletion/0.png)
+![தன்னியக்க நிறைவு](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Codeயை ஆவணப்படுத்த [JSDoc](http://usejsdoc.org/) அடிப்படையாகக் கொண்ட டைப் டெபினிஷன்ஸ் பயன்படுத்தப்படுகின்றன. பாராமீட்டர்கள் மற்றும் அவற்றின் வகைகளைப் பற்றிய கூடுதல் விவரங்களைக் காண இது உதவுகிறது.
 
-![Autocompletion](/img/autocompletion/1.png)
+![தன்னியக்க நிறைவு](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+கிடைக்கும் ஆவணங்களைப் பார்க்க, IntelliJ இயங்குதளத்தில் நிலையான குறுக்குவழிகள் <kbd>⇧ + ⌥ + SPACE</kbd> ஐப் பயன்படுத்தவும்:
 
-![Autocompletion](/img/autocompletion/2.png)
+![தன்னியக்க நிறைவு](/img/autocompletion/2.png)
 
 ## Visual Studio Code (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+விஷுவல் ஸ்டுடியோ கோடில் பொதுவாக டைப் சப்போர்ட் தானாகவே ஒருங்கிணைக்கப்படும் மற்றும் எந்த நடவடிக்கையும் தேவையில்லை.
 
-![Autocompletion](/img/autocompletion/14.png)
+![தன்னியக்க நிறைவு](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+நீங்கள் வெண்ணிலா ஜாவாஸ்கிரிப்டைப் பயன்படுத்தினால், சரியான டைப் சப்போர்ட்டை பெற விரும்பினால், உங்கள் ப்ராஜெக்ட் ரூட்டில் `jsconfig.json` ஐ உருவாக்கி, பயன்படுத்திய wdio தொகுப்புகளைப் பார்க்கவும், எ.கா.:
 
 ```json title="jsconfig.json"
 {

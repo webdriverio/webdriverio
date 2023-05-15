@@ -1,50 +1,50 @@
 ---
 id: browser
-title: The Browser Object
+title: பிரௌசர் ஆப்ஜெக்ட்
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__ Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+பிரௌசர் ஆப்ஜெக்ட் என்பது பிரௌசர் அல்லது மொபைல் சாதனத்தைக் கட்டுப்படுத்த நீங்கள் பயன்படுத்தும் செஷன் நிகழ்வாகும். நீங்கள் WDIO டெஸ்ட் ரன்னரைப் பயன்படுத்தினால், குளோபல் ` browser ` அல்லது ` driver ` ஆப்ஜெக்ட் மூலம் WebDriver நிகழ்வை அணுகலாம் அல்லது [`@wdio/globals`](/docs/api/globals)ஐப் பயன்படுத்தி இறக்குமதி செய்யலாம். நீங்கள் தனித்தனி முறையில் WebdriverIO ஐப் பயன்படுத்தினால், பிரௌசர் ஆப்ஜெக்ட் [` remote `](/docs/api/modules#remoteoptions-modifier) முறையில் திருப்பியளிக்கப்படும்.
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+டெஸ்ட் ரன்னெறால் செஷன் தொடங்கப்படுகிறது. செஷனை முடிப்பதற்கும் இதுவே செல்கிறது. இது டெஸ்ட் ரன்னர் செயல்முறையாலும் செய்யப்படுகிறது.
 
 ## Properties
 
-A browser object has the following properties:
+பிரௌசர் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                               |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                           |
+| பெயர்                   | வகை        | விவரங்கள்                                                                                                                                             |
+| ----------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capabilities`          | `Object`   | ரிமோட் சர்வரிலிருந்து ஒதுக்கப்பட்ட திறன்.<br /><b> Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                               |
+| `requestedCapabilities` | `Object`   | ரிமோட் சர்வரிலிருந்து கேட்கப்பட்ட திறன்கள்.<br /><b> Example:</b><pre>{ browserName: 'chrome' }</pre>                                             |
+| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                                           |
+| `options`               | `Object`   | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). மேலும் [setup types](/docs/setuptypes)காண்க. |
+| `commandList`           | `String[]` | பிரௌசர் நிகழ்வில் பதிவுசெய்யப்பட்ட கட்டளைகளின் பட்டியல்                                                                                               |
+| `isMobile`              | `Boolean`  | மொபைல் அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                                |
+| `isIOS`                 | `Boolean`  | மொபைல் அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                                |
+| `isAndroid`             | `Boolean`  | Android அமர்வைக் குறிக்கிறது. [Mobile Flags](#mobile-flags)இன் கீழ் மேலும் பார்க்கவும்.                                                               |
 
 ## Methods
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+உங்கள் அமர்வுக்கு பயன்படுத்தப்படும் ஆட்டோமேஷன் பின்தளத்தின் அடிப்படையில், [browser object](/docs/api/browser)உடன் எந்த [Protocol Commands](/docs/api/protocols) இணைக்கப்படும் என்பதை WebdriverIO அடையாளம் காட்டுகிறது. எடுத்துக்காட்டாக, நீங்கள் Chrome இல் தானியங்கு அமர்வை இயக்கினால், [`elementHover`](/docs/api/chromium#elementhover) போன்ற Chromium குறிப்பிட்ட கட்டளைகளுக்கான அணுகலைப் பெறுவீர்கள், ஆனால் [Appium commands ](/docs/api/appium) க்கு அல்ல.
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+மேலும் WebdriverIO ஆனது, பக்கத்தில் உள்ள [ browser ](/docs/api/browser) அல்லது [ elements ](/docs/api/element) உடன் தொடர்பு கொள்ள, பயன்படுத்தப் பரிந்துரைக்கப்படும் வசதியான முறைகளின் தொகுப்பை வழங்குகிறது.
 
-In addition to that the following commands are available:
+கூடுதலாக, பின்வரும் கட்டளைகள் கிடைக்கின்றன:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                        |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allows to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                   |
+| பெயர்                | சுட்டீடுகள்(பாராமீட்டர்கள்)                                                                                            | விவரங்கள்                                                                                                                                                                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | கலவை நோக்கங்களுக்காகப் பிரௌசர் ஆப்ஜெக்ட்டினிலிருந்து அழைக்கப்படும் தனிப்பயன் கட்டளைகளை வரையறுக்க அனுமதிக்கிறது. [Custom Command](/docs/customcommands) வழிகாட்டியில் மேலும் படிக்கவும்.                                                                        |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | தனிப்பயன் செயல்பாட்டுடன் எந்த பிரௌசர் கட்டளையையும் மேலெழுத அனுமதிக்கிறது. பிரமேஒர்க் பயன்படுத்துபவர்களைக் குழப்பக்கூடும் என்பதால் கவனமாகப் பயன்படுத்தவும். [Custom Command](/docs/customcommands#overwriting-native-commands) வழிகாட்டியில் மேலும் படிக்கவும். |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | தனிப்பயன் செலெக்டர் உத்தியை வரையறுக்க அனுமதிக்கிறது, மேலும் [ Selectors ](/docs/selectors#custom-selector-strategies) வழிகாட்டியில் படிக்கவும்.                                                                                                                |
 
-## Remarks
+## குறிப்புகள்
 
 ### Mobile Flags
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+உங்கள் அமர்வு மொபைல் சாதனத்தில் இயங்குகிறதா இல்லையா என்பதன் அடிப்படையில் உங்கள் டெஸ்டை மாற்ற வேண்டும் என்றால், சரிபார்க்க மொபைல் flagsகளை அணுகலாம்.
 
-For example, given this config:
+எடுத்துக்காட்டாக, இந்தக் கட்டமைப்பு கொடுக்கப்பட்டுள்ளது:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+உங்கள் டெஸ்டில் இந்தக் flagsகளை நீங்கள் அணுகலாம்:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
+எடுத்துக்காட்டாக, உங்கள் [page objects](../pageobjects) இல் உள்ள செலக்டர்ஸுகளை சாதன வகையின் அடிப்படையில் வரையறுக்க விரும்பினால், இது பயனுள்ளதாக இருக்கும்:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+குறிப்பிட்ட சாதன வகைகளுக்கான குறிப்பிட்ட டெஸ்டுகளை மட்டும் இயக்க இந்தக் flagsகளைப் பயன்படுத்தலாம்:
 
 ```js
 // mytest.e2e.js
@@ -107,20 +107,20 @@ describe('my test', () => {
 ```
 
 ### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+பிரவுசர் ஆப்ஜெக்ட் ஒரு EventEmitter மற்றும் உங்கள் பயன்பாட்டு நிகழ்வுகளுக்காக இரண்டு நிகழ்வுகள் வெளியிடப்படும்.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+நிகழ்வுகளின் பட்டியல் இங்கே. இது இன்னும் கிடைக்கக்கூடிய நிகழ்வுகளின் முழு பட்டியல் அல்ல என்பதை நினைவில் கொள்ளவும். மேலும் நிகழ்வுகளின் விளக்கங்களை இங்கே சேர்ப்பதன் மூலம் ஆவணத்தைப் புதுப்பிக்கப் பங்களிக்க தயங்க வேண்டாம்.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+இது WebDriver நிலை செயல்பாடுகளை அளவிடும் நிகழ்வு. WebdriverIO WebDriver பின்தளத்திற்கு கோரிக்கையை அனுப்பும் போதெல்லாம், இந்த நிகழ்வு சில பயனுள்ள தகவல்களுடன் வெளியிடப்படும்:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: கோரிக்கையின் கால அளவு மில்லி வினாடியில்.
+- `error`: கோரிக்கை தோல்வியுற்றால் Error object.
+- ` request `: Request object. நீங்கள் url, method, headers போன்றவற்றைக் காணலாம்.
+- `retryCount`: இது `0`எனில், கோரிக்கை முதல் முயற்சி. WebDriverIO தன்னிச்சையாக மீண்டும் முயற்சிக்கும்போது இது அதிகரிக்கும்.
+- ` success `: Boolean கோரிக்கை வெற்றியடைந்ததா இல்லையா என்பதைப் பிரதிநிதித்துவப்படுத்தும். அது ` false `என்றால், ` error ` property வழங்கப்படும்.
 
-An example event:
+உதாரண நிகழ்வு:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -133,4 +133,4 @@ Object {
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+பொதுவாகப் பயன்படுத்தப்படும் பணிப்பாய்வுகளைத் தவிர்க்க, பிரவுசர் ஸ்கோப்பில் தனிப்பயன் கட்டளைகளை அமைக்கலாம். மேலும் தகவலுக்கு [Custom Commands](/docs/customcommands#adding-custom-commands) இல் உள்ள எங்கள் வழிகாட்டியைப் பார்க்கவும்.

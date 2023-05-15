@@ -3,10 +3,10 @@ id: bamboo
 title: Bamboo
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.atlassian.com/software/bamboo). With the [JUnit](https://webdriver.io/docs/junit-reporter.html) or [Allure](https://webdriver.io/docs/allure-reporter.html) reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO [Bamboo](https://www.atlassian.com/software/bamboo)போன்ற CI அமைப்புகளுக்கு இறுக்கமான ஒருங்கிணைப்பை வழங்குகிறது. [JUnit](https://webdriver.io/docs/junit-reporter.html) அல்லது [Allure](https://webdriver.io/docs/allure-reporter.html) ரிப்போர்டர் மூலம், உங்கள் டெஸ்டுகளை எளிதாகப் பிழைத்திருத்தம் செய்யலாம் மற்றும் உங்கள் டெஸ்ட் முடிவுகளைக் கண்காணிக்கலாம். ஒருங்கிணைப்பு மிகவும் எளிதானது.
 
-1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
-1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
+1. JUnit டெஸ்ட் ரிப்போர்டரை நிறுவவும்: `$ npm install @wdio/junit-reporter --save-dev`)
+1. பேம்பூ உங்கள் ஜூனிட் முடிவுகளைச் சேமிக்க உங்கள் கட்டமைப்பைப் புதுப்பிக்கவும், (மற்றும் `junit` ரிப்போர்டரை குறிப்பிடவும்):
 
 ```js
 // wdio.conf.js
@@ -21,7 +21,7 @@ module.exports = {
     // ...
 }
 ```
-Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
+குறிப்பு: *டெஸ்ட் முடிவுகளை ரூட் போல்டரில் இருப்பதை விடத் தனி போல்டரில் வைத்திருப்பது எப்பொழுதும் நற்பயனைத் தரும்.*
 
 ```js
 // wdio.conf.js - For tests running in parallel
@@ -40,45 +40,45 @@ module.exports = {
 }
 ```
 
-The reports will be similar for all the frameworks and you can use anyone: Mocha, Jasmine or Cucumber.
+ரிபோர்டுகள் எல்லா பிரேம்வர்கிற்கும் ஒரே மாதிரியாக இருக்கும், மேலும் நீங்கள் எவையேனும் பயன்படுத்தலாம்: மோக்கா, ஜாஸ்மின் அல்லது குகும்பர்.
 
-By this time, we believe you have the tests written up and results are generated in `./testresults/` folder, and your Bamboo is up and running.
+இந்த நேரத்தில், நீங்கள் எழுதப்பட்ட டெஸ்டுகள் மற்றும் முடிவுகள் `./testresults/` போல்டரில் உருவாக்கப்பட்டு உங்கள் பேம்பூ இயங்கிக்கொண்டிருக்கிறது என்று நாங்கள் நம்புகிறோம்.
 
-## Integrate your tests in Bamboo
+## பேம்பூவுடன் உங்கள் டெஸ்டுகளை ஒருங்கிணைக்கவும்
 
-1. Open your Bamboo project
+1. உங்கள் பேம்பூ ப்ரொஜெக்டைத் திறக்கவும்
 
-    > Create a new plan, link your repository (make sure it always points to newest version of your repository) and create your stages
+    > ஒரு புதிய பிளானை உருவாக்கவும், உங்கள் களஞ்சியத்தை இணைக்கவும் (அது எப்போதும் உங்கள் களஞ்சியத்தின் புதிய பதிப்பைச் சுட்டிக்காட்டுகிறது என்பதை உறுதிப்படுத்தவும்) மற்றும் உங்கள் ஸ்டேஜுகளை உருவாக்கவும்
 
-    ![Plan Details](/img/bamboo/plancreation.png "Plan Details")
+    ![பிளான் விவரங்கள்](/img/bamboo/plancreation.png "பிளான் விவரங்கள்")
 
-    I will go with the default stage and job. In your case, you can create your own stages and jobs
+    நான் இயல்பு ஸ்டேஜ் மற்றும் ஜாபுடன் செல்வேன். உங்கள் விஷயத்தில், நீங்கள் உங்கள் சொந்த ஸ்டேஜுகளையும் ஜாபுகளையும் உருவாக்கலாம்
 
-    ![Default Stage](/img/bamboo/defaultstage.png "Default Stage")
-2. Open your testing job and create tasks to run your tests in Bamboo
-> **Task 1:** Source Code Checkout
-> **Task 2:** Run your tests `npm i && npm run test`. You can use *Script* task and *Shell Interpreter* to run the above commands (This will generate the test results and save them in `./testresults/` folder)
+    ![இயல்புநிலை நிலை](/img/bamboo/defaultstage.png "இயல்புநிலை ஸ்டேஜ்")
+2. உங்கள் டெஸ்ட் ஜாபைத் திறந்து, பேம்பூ உங்கள் டெஸ்டுகளை இயக்கப் பணிகளை உருவாக்கவும்
+> ** Task 1:** சோர்ஸ் கோடு செக்அவுட்
+> ** Task 2:** உங்கள் டெஸ்டுகளை இயக்கவும் `npm i && npm run test`. மேலே உள்ள கட்டளைகளை இயக்க நீங்கள் *Script* task and *Shell Interpreter* பயன்படுத்தலாம் (இது டெஸ்ட் முடிவுகளை உருவாக்கி அவற்றை `./testresults/` போல்டரில் சேமிக்கும்)
 
-    ![Test Run](/img/bamboo/testrun.png "Test Run")
-> **Task: 3** Add *jUnit Parser* task to parse your saved test results. Please specify the test results directory here (you can use Ant style patterns as well)
+    ![டெஸ்ட் ஓட்டம்](/img/bamboo/testrun.png "டெஸ்ட் ஓட்டம்")
+> **Task: 3** உங்கள் சேமித்த டெஸ்ட் முடிவுகளை அலச, *jUnit Parser* பணியைச் சேர்க்கவும். டெஸ்ட் முடிவுகள் டைரக்டரியை இங்கே குறிப்பிடவும் (நீங்கள் Ant style வடிவங்களையும் பயன்படுத்தலாம்)
 
-    ![jUnit Parser](/img/bamboo/junitparser.png "jUnit Parser")
+    ![jUnit பார்சர்](/img/bamboo/junitparser.png "jUnit Parser")
 
-    Note: *Make sure you are keeping the results parser task in *Final* section, so that it always get executed even if your test task is failed*
-> **Task: 4** (optional) In order to make sure that your test results are not messed up with old files, you can create a task to remove the `./testresults/` folder after a successful parse to Bamboo. You can add a shell script like `rm -f ./testresults/*.xml` to remove the results or `rm -r testresults` to remove the complete folder
+    குறிப்பு: **Make sure you are keeping the results parser task in *Final* பகுதி, இதனால் உங்கள் டெஸ்ட் தோல்வியடைந்தாலும் அது எப்போதும் செயல்படுத்தப்படும்*
+> ** Task: 4** (optional) உங்கள் டெஸ்ட் முடிவுகள் பழைய பைல்களுடன் குழப்பமடையவில்லை என்பதை உறுதிப்படுத்த, பேம்பூ ஒரு வெற்றிகரமான அலசலுக்குப் பிறகு `./testresults/` போல்டரை அகற்றுவதற்கான பணியை நீங்கள் உருவாக்கலாம். முடிவுகளை அகற்ற `rm -f ./testresults/*.xml` போன்ற ஷெல் ஸ்கிரிப்டைச் சேர்க்கலாம் அல்லது முழு போல்டரை அகற்ற `rm -r testresults` சேர்க்கலாம்
 
-Once the above *rocket science* is done, please enable the plan and run it. Your final output will be like:
+மேலே உள்ள *rocket science* முடிந்ததும், பிளானை இயக்கி அதை ரன் செய்யவும். உங்கள் இறுதி வெளியீடு இப்படி இருக்கும்:
 
-## Successful Test
+## வெற்றிகரமான டெஸ்ட்
 
-![Successful Test](/img/bamboo/successfulltest.png "Successful Test")
+![வெற்றிகரமான டெஸ்ட்](/img/bamboo/successfulltest.png "வெற்றிகரமான டெஸ்ட்")
 
-## Failed Test
+## தோல்வியடைந்த டெஸ்ட்
 
-![Failed Test](/img/bamboo/failedtest.png "Failed Test")
+![தோல்வியடைந்த டெஸ்ட்](/img/bamboo/failedtest.png "தோல்வியடைந்த டெஸ்ட்")
 
 ## Failed and Fixed
 
-![Failed and Fixed](/img/bamboo/failedandfixed.png "Failed and Fixed")
+![தோல்வியடைந்து சரி செய்யப்பட்டது](/img/bamboo/failedandfixed.png "தோல்வியடைந்து சரி செய்யப்பட்டது")
 
-Yay!! That's all. You have successfully integrated your WebdriverIO tests in Bamboo.
+Yay!! அவ்வளவுதான். பேம்பூவுடன் உங்கள் WebdriverIO டெஸ்டுகளை வெற்றிகரமாக ஒருங்கிணைத்துவிட்டீர்கள்.

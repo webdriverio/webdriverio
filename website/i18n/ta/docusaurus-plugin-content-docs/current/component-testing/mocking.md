@@ -3,17 +3,17 @@ id: mocking
 title: Mocking
 ---
 
-When writing tests it's only a matter of time before you need to create a "fake" version of an internal — or external — service. This is commonly referred to as mocking. WebdriverIO provides utility functions to help you out. You can `import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'` to access it. See more information about the available mocking utilities in the [API docs](/docs/api/modules#wdiobrowser-runner).
+டெஸ்டுகளை எழுதும்போது, நீங்கள் இன்டெர்னல் அல்லது எக்ஸ்டெர்னல் சர்வீஸின் "போலி" பதிப்பை உருவாக்க வேண்டும். இது பொதுவாக மாக்கிங் என்று குறிப்பிடப்படுகிறது. WebdriverIO உங்களுக்கு உதவ பயன்பாட்டு செயல்பாடுகளை வழங்குகிறது. அதை அணுக '@wdio/browser-runner'</code> இலிருந்து {fn, spyOn, mock, unmock } ஐ நீங்கள் `இறக்குமதி செய்யலாம். <a href="/docs/api/modules#wdiobrowser-runner">API docs</a>இல் இருக்கும் மாக் செய்யும் பயன்பாடுகள்பற்றிய கூடுதல் தகவலைப் பார்க்கவும்.</p>
 
-## Functions
+<h2 spaces-before="0">செயல்பாடுகள்</h2>
 
-In order to validate whether certain function handler are called as part of your component tests, the `@wdio/browser-runner` module exports mocking primitives you can use to test, if these functions have been called. You can import these methods via:
+<p spaces-before="0">சில செயல்பாடு ஹேண்ட்லர்கள் உங்கள் காம்போனென்ட் சோதனைகளின் ஒரு பகுதியாக அழைக்கப்படுகிறதா என்பதைச் சரிபார்க்க, <code>@wdio/browser-runner` மாட்யூல் மாக் செய்யும் ப்ரிமிட்டிவ்களை ஏற்றுமதி செய்கிறது, இந்தச் செயல்பாடுகள் அழைக்கப்பட்டிருந்தால், நீங்கள் சோதிக்க பயன்படுத்தலாம். இந்த மெத்தெடுகளை நீங்கள் இறக்குமதி செய்யலாம்:
 
 ```js
 import { fn, spy } from '@wdio/browser-runner'
 ```
 
-By importing `fn` you can create a spy function (mock) to track its execution and with `spyOn` track a method on an already created object.
+`fn` ஐ இறக்குமதி செய்வதன் மூலம், அதன் செயல்பாட்டைக் கண்காணிக்க உளவு செயல்பாட்டை (mock) உருவாக்கலாம் மற்றும் `spyOn` மூலம் ஏற்கனவே உருவாக்கப்பட்ட ஆப்ஜெக்ட்டின் மீது ஒரு மெத்தடை கண்காணிக்கலாம்.
 
 <Tabs
   defaultValue="mocks"
@@ -24,7 +24,7 @@ By importing `fn` you can create a spy function (mock) to track its execution an
 }>
 <TabItem value="mocks">
 
-The full example can be found in the [Component Testing Example](https://github.com/webdriverio/component-testing-examples/blob/main/react-typescript-vite/src/tests/LoginForm.test.tsx) repository.
+முழு உதாரணத்தையும் [Component Testing Example](https://github.com/webdriverio/component-testing-examples/blob/main/react-typescript-vite/src/tests/LoginForm.test.tsx) இல் காணலாம் களஞ்சியம்.
 
 ```ts
 import React from 'react'
@@ -58,7 +58,7 @@ describe('LoginForm', () => {
 </TabItem>
 <TabItem value="spies">
 
-The full example can be found in the [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) directory.
+முழு உதாரணத்தையும் [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) கோப்பகத்தில் காணலாம்.
 
 ```js
 import { expect, $ } from '@wdio/globals'
@@ -95,19 +95,19 @@ describe('Lit Component testing', () => {
 </TabItem>
 </Tabs>
 
-WebdriverIO just re-exports [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) here which is a lightweight Jest compatible spy implementation that can be used with WebdriverIOs [`expect`](/docs/api/expect-webdriverio) matchers. You can find more documentation on these mock functions on the [Vitest project page](https://vitest.dev/api/mock.html).
+WebdriverIO [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) மீண்டும் ஏற்றுமதி செய்கிறது, இது WebdriverIOs [` expect `](/docs/api/expect-webdriverio) மேட்ச்சர்களுடன் பயன்படுத்தக்கூடிய இலகுரக ஜெஸ்ட் இணக்கமான உளவு செயலாக்கமாகும். இந்த மாக் செயல்பாடுகள்பற்றிய கூடுதல் ஆவணங்களை [Vitest project page](https://vitest.dev/api/mock.html)இல் காணலாம்.
 
-Of course, you can also install and import any other spy framework, e.g. [SinonJS](https://sinonjs.org/), as long as it supports the browser environment.
+நிச்சயமாக, நீங்கள் வேறு எந்த உளவு பிரமேஒர்க்கையும் நிறுவலாம் மற்றும் இறக்குமதி செய்யலாம், எ.கா. [SinonJS](https://sinonjs.org/), பிரௌசர் என்விரான்மென்டை ஆதரிக்கும் வரை.
 
-## Modules
+## தொகுதிகள்
 
-Mock local modules or observe third-party-libraries, that are invoked in some other code, allowing you to test arguments, output or even redeclare its implementation.
+லோக்கல் தொகுதிகளை மாக் செய்யவும் அல்லது வேறுசில கோடில் செயல்படுத்தப்படுகின்ற மூன்றாம் தரப்பு-லைப்ரரிகளை கண்காணிக்கவும், ஆர்குமென்டுகளை டெஸ்ட் செய்யவும், வெளியீடு செய்யவும் அல்லது அதன் செயலாக்கத்தை மீண்டும் அறிவிக்கவும் அனுமதிக்கிறது.
 
-There are two ways to mock functions: Either by creating a mock function to use in test code, or writing a manual mock to override a module dependency.
+செயல்பாடுகளை மாக் செய்ய இரண்டு வழிகள் உள்ளன: டெஸ்ட் கோடில் பயன்படுத்த ஒரு மாக் செயல்பாட்டை உருவாக்குவதன் மூலம் அல்லது ஒரு தொகுதி சார்புநிலையை ஓவர்ரைடு செய்ய ஒரு மேனுவல் மாக் எழுதுவதன் மூலம்.
 
-### Mocking File Imports
+### பைல் இறக்குமதிகளை மாக் செய்தல்
 
-Let's imagine our component is importing a utility method from a file to handle a click.
+ஒரு க்ளிக்கைக் கையாள ஒரு பைலிலிருந்து ஒரு பயன்பாட்டு முறையை எங்கள் காம்போனென்ட் இறக்குமதி செய்கிறது என்று கற்பனை செய்து கொள்வோம்.
 
 ```js title=utils.js
 export function handleClick () {
@@ -115,7 +115,7 @@ export function handleClick () {
 }
 ```
 
-In our component the click handler is used as following:
+எங்கள் காம்போனென்டுகளில் கிளிக் கையாளுதல் பின்வருமாறு பயன்படுத்தப்படுகிறது:
 
 ```ts title=LitComponent.js
 import { handleClick } from './utils.js'
@@ -128,7 +128,7 @@ export class SimpleButton extends LitElement {
 }
 ```
 
-To mock the `handleClick` from `utils.js` we can use the `mock` method in our test as following:
+`utils.js` இலிருந்து `handleClick` மாக் செய்ய, எங்கள் டெஸ்டில் `mock` மெத்தடைப் பின்வருமாறு பயன்படுத்தலாம்:
 
 ```js title=LitComponent.test.js
 import { expect, $ } from '@wdio/globals'
@@ -154,9 +154,9 @@ describe('Simple Button Component Test', () => {
 })
 ```
 
-### Mocking Dependencies
+### மாக்கிங் சார்புகள்
 
-Suppose we have a class that fetches users from our API. The class uses [`axios`](https://github.com/axios/axios) to call the API then returns the data attribute which contains all the users:
+எங்களின் API இலிருந்து பயனர்களைப் பெறும் ஒரு கிளாஸ் எங்களிடம் உள்ளது என்று வைத்துக்கொள்வோம். API ஐ அழைக்கக் கிளாஸ் [`axios`](https://github.com/axios/axios) ஐப் பயன்படுத்துகிறது, பின்னர் அனைத்து பயனர்களையும் உள்ளடக்கிய டேட்டா ஆட்ரிபூட் வழங்குகிறது:
 
 ```js title=users.js
 import axios from 'axios';
@@ -170,9 +170,9 @@ class Users {
 export default Users
 ```
 
-Now, in order to test this method without actually hitting the API (and thus creating slow and fragile tests), we can use the `mock(...)` function to automatically mock the axios module.
+இப்போது, API ஐத் தாக்காமல் இந்த டெஸ்ட் செய்வதற்காக (இதனால் மெதுவான மற்றும் பலவீனமான டெஸ்டுகளை உருவாக்குதல்), நாம் `mock(...)` செயல்பாட்டைப் பயன்படுத்தி, axios தொகுதியைத் தானாகவே மாக் செய்யலாம்.
 
-Once we mock the module we can provide a [`mockResolvedValue`](https://vitest.dev/api/mock.html#mockresolvedvalue) for `.get` that returns the data we want our test to assert against. In effect, we are saying that we want `axios.get('/users.json')` to return a fake response.
+தொகுதியை நாம் மாக் செய்தவுடன், [`mockResolvedValue`](https://vitest.dev/api/mock.html#mockresolvedvalue) `get.` ஐப் பெறுங்கள், இது எங்கள் டெஸ்டிற்கு எதிராக நாங்கள் உறுதிப்படுத்த விரும்பும் டேட்டாவை வழங்கும். உண்மையில், போலியான பதிலை வழங்க `axios.get('/users.json')` வேண்டும் என்று கூறுகிறோம்.
 
 ```js title=users.test.js
 import axios from 'axios'; // imports defined mock
@@ -204,9 +204,9 @@ describe('User API', () => {
 })
 ```
 
-## Partials
+## பகுதிகள்
 
-Subsets of a module can be mocked and the rest of the module can keep their actual implementation:
+ஒரு தொகுதியின் துணைக்குழுக்கள் மாக் செய்யப்படலாம் மற்றும் மீதமுள்ள தொகுதிகள் அவற்றின் உண்மையான செயலாக்கத்தை வைத்திருக்க முடியும்:
 
 ```js title=foo-bar-baz.js
 export const foo = 'foo';
@@ -214,7 +214,7 @@ export const bar = () => 'bar';
 export default () => 'baz';
 ```
 
-In your test you can access the original module by calling the `origModuleFactory` function:
+உங்கள் டெஸ்டில் `origModuleFactory` செயல்பாட்டை அழைப்பதன் மூலம் அசல் தொகுதியை அணுகலாம்:
 
 ```js
 import { mock, fn } from '@wdio/browser-runner'
@@ -244,11 +244,11 @@ describe('partial mock', () => {
 })
 ```
 
-## Manual Mocks
+## மேனுவல் மாக்ஸ்
 
-Manual mocks are defined by writing a module in a `__mocks__/` (see also `automockDir` option) subdirectory. If the module you are mocking is a Node module (e.g.: `lodash`), the mock should be placed in the `__mocks__` directory and will be automatically mocked. There's no need to explicitly call `mock('module_name')`.
+`__mocks__/` (`automockDir` விருப்பத்தையும் பார்க்கவும்) துணை டைரக்டரியில் ஒரு தொகுதியை எழுதுவதன் மூலம் மேனுவல் மாக்குகள் வரையறுக்கப்படுகின்றன. நீங்கள் மாக் செய்யும் தொகுதி ஒரு நோடு தொகுதியாக இருந்தால் (எ.கா: `lodash`), அந்த மாக் `__mocks__` டைரக்டரியில் வைக்கப்பட வேண்டும் மற்றும் தானாகவே மாக் செய்யப்படும். `mock('module_name')`வெளிப்படையாக அழைக்க வேண்டிய அவசியம் இல்லை.
 
-Scoped modules (also known as scoped packages) can be mocked by creating a file in a directory structure that matches the name of the scoped module. For example, to mock a scoped module called `@scope/project-name`, create a file at `__mocks__/@scope/project-name.js`, creating the `@scope/` directory accordingly.
+ஸ்கோப் செய்யப்பட்ட தொகுதிகள் (ஸ்கோப்டு பேக்கேஜ்கள் என்றும் அழைக்கப்படுகின்றன) டைரக்டரி அமைப்பில் ஒரு பைலை உருவாக்குவதன் மூலம் மாக் செய்யப்படலாம், இது ஸ்கோப்டு தொகுதியின் பெயருடன் பொருந்த வேண்டும். எடுத்துக்காட்டாக, `@scope/project-name`எனப்படும் ஸ்கோப் தொகுதியை மாக் செய்ய, `__mocks__/@scope/project-name.js`இல் ஒரு பைலை உருவாக்கவும், அதன்படி `@scope/` டைரக்டரியை உருவாக்கவும்.
 
 ```
 .
@@ -262,7 +262,7 @@ Scoped modules (also known as scoped packages) can be mocked by creating a file 
 └── views
 ```
 
-When a manual mock exists for a given module, WebdriverIO will use that module when explicitly calling `mock('moduleName')`. However, when automock is set to true, the manual mock implementation will be used instead of the automatically created mock, even if `mock('moduleName')` is not called. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
+கொடுக்கப்பட்ட தொகுதிக்கு ஒரு மேனுவல் மாக் இருக்கும்போது, WebdriverIO `mock('moduleName')`வெளிப்படையாக அழைக்கும்போது அந்தத் தொகுதியைப் பயன்படுத்தும். இருப்பினும், automock true என அமைக்கப்படும்போது, `mock('moduleName')` அழைக்கப்படாவிட்டாலும், தானாக உருவாக்கப்பட்ட மாக்கிற்கு பதிலாகக் மேனுவல் மாக் செயல்படுத்தல் பயன்படுத்தப்படும். இந்த நடத்தையிலிருந்து விலக, உண்மையான தொகுதிச் செயலாக்கத்தைப் பயன்படுத்த வேண்டிய டெஸ்டுகளில் `unmock('moduleName')` நீங்கள் வெளிப்படையாக அழைக்க வேண்டும், எ.கா.:
 
 ```js
 import { unmock } from '@wdio/browser-runner'
@@ -272,7 +272,7 @@ unmock('lodash')
 
 ## Hoisting
 
-In order to get mocking to work in the browser, WebdriverIO rewrites the test files and hoists the mock calls above everything else (see also [this blog post](https://www.coolcomputerclub.com/posts/jest-hoist-await/) on the hoisting problem in Jest). This limits the way you can pass in variables into the mock resolver, e.g.:
+பிரௌசரில் மாக் செய்வதைப் பெறுவதற்காக, WebdriverIO டெஸ்ட் பைல்களை மீண்டும் எழுதுகிறது மற்றும் எல்லாவற்றிற்கும் மேலாக மாக் அழைப்புகளை உயர்த்துகிறது (Jest இல் ஏற்றுதல் பிரச்சனையில் [this blog post](https://www.coolcomputerclub.com/posts/jest-hoist-await/) ஐயும் பார்க்கவும்). மாக் ரிசல்வரில் நீங்கள் வேறியபல்ஸுகளை அனுப்பும் வழியை இது கட்டுப்படுத்துகிறது, எ.கா.:
 
 ```js title=component.test.js
 import dep from 'dependency'
@@ -287,7 +287,7 @@ mock('./some/module.ts', () => ({
 }))
 ```
 
-To fix this you have to define all used variables inside the resolver, e.g.:
+இதைச் சரிசெய்ய, ரிசல்வருக்குள் பயன்படுத்தப்படும் அனைத்து வேறியபல்ஸுகளையும் நீங்கள் வரையறுக்க வேண்டும், எ.கா.:
 
 ```js title=component.test.js
 /**
@@ -304,6 +304,6 @@ mock('./some/module.ts', async () => {
 })
 ```
 
-## Requests
+## கோரிக்கை
 
-If you are looking for mocking browser requests, e.g. API calls, head over to the [Request Mock and Spies](/docs/mocksandspies) section.
+மாக் செய்யும் பிரௌசர் கோரிக்கைகளை நீங்கள் தேடுகிறீர்களானால், எ.கா. API அழைப்புகள், [Request Mock and Spies](/docs/mocksandspies) பகுதிக்குச் செல்லவும்.

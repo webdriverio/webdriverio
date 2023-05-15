@@ -1,20 +1,20 @@
 ---
 id: team
-title: Team
+title: Zespół
 ---
 
 import Card from '@site/src/theme/card.jsx';
 
-The WebdriverIO development is led by a dedicated team of developers and SDETs from various companies as well contributions from people around the world.
+Rozwój WebdriverIO jest prowadzony przez dedykowany zespół programistów i specjalistów SDET z różnych firm, a także kontrybutorów z całego świata.
 
-## Technical Steering Committee
+## Techniczny Komitet Sterujący
 
 <Card
     name="Adam Bjerstedt"
     avatar="https://avatars2.githubusercontent.com/u/4043890?s=460"
     github="abjerstedt"
 >
-    Senior Software Engineer - Android at <a href="https://www.target.com/">Target</a>.
+    Senior Software Engineer - Android w <a href="https://www.target.com/">Target</a>.
 </Card>
 
 <Card
@@ -23,7 +23,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="christian-bromann"
     twitter="bromann"
 >
-    Staff Software Engineer at the Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
+    Staff Software Engineer w Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 <Card
@@ -31,7 +31,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+    Senior Test Automatoin Engineer w <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
@@ -40,7 +40,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="klamping"
     twitter="klamping"
 >
-    Senior Front End Engineer.
+    Seniore Front End Engineer.
 </Card>
 
 <Card
@@ -48,7 +48,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars0.githubusercontent.com/u/25589559?s=460"
     github="mgrybyk"
 >
-    Senior Software Development Engineer in Test.
+    Senior Software Development Engineer w Testach.
 </Card>
 
 <Card
@@ -56,7 +56,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars3.githubusercontent.com/u/1300981?s=460"
     github="WillBrock"
 >
-    Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    Automation Engineering Manager w <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
 <Card
@@ -68,7 +68,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
-## Project Collaborators
+## Współtwórcy projektu
 
 <Card
     name="Baruch Velez"
@@ -86,4 +86,4 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 >
 </Card>
 
-and [many many more](https://github.com/orgs/webdriverio/people).
+i [wiele wiele więcej](https://github.com/orgs/webdriverio/people).

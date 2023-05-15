@@ -5,9 +5,9 @@ title: Preact
 
 [Preact](https://preactjs.com/) 是 React 的轻量级替代框架，具有相同的现代 API。 您可以使用 WebdriverIO 及其[浏览器测试节点](/docs/runner#browser-runner)来测试 Preact 组件。
 
-## Setup
+## 设置
 
-To setup WebdriverIO within your Preact project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `preact` as preset within your runner options, e.g.: Make sure to select `preact` as preset within your runner options, e.g.:
+要在您的 Preact 项目中设置 WebdriverIO，请按照我们的组件测试文档中的 [说明](/docs/component-testing#set-up) 进行操作。 确保在您的跑步者选项中选择 `preact` 作为预设，例如：
 
 ```js
 // wdio.conf.js
@@ -22,11 +22,11 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options). For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+如果您已经在使用 [Vite](https://vitejs.dev/) 作为开发服务器，您也可以在 WebdriverIO 配置中的 `vite.config.ts` 中重新使用您的配置。 有关详细信息，请参阅 [runner options](/docs/runner#runner-options)中的 `viteConfig`.
 
 :::
 
-The React preset requires `@preact/preset-vite` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies: Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+React 预设需要安装 `@preact/preset-vite`。 我们还建议使用 [Testing Library](https://testing-library.com/) 将组件呈现到测试页面中。 因此，您需要安装以下附加依赖项：
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/preact @preact/preset-vite

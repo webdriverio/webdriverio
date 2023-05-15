@@ -1,13 +1,13 @@
 ---
 id: coverage
-title: Coverage
+title: கவரேஜ்
 ---
 
-WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and and capture code coverage for you.
+WebdriverIO இன் பிரௌசர் ரன்னர் [` istanbul `](https://istanbul.js.org/)ஐப் பயன்படுத்தி கோடு கவரேஜ் அறிக்கையிடலை ஆதரிக்கிறது. டெஸ்ட்ரன்னர் தானாகவே உங்கள் கோடை கருவி செய்து, உங்களுக்காக கோடு கவரேஜை கைப்பற்றும்.
 
-## Setup
+## செட்அப்
 
-In order to enable code coverage reporting, enable it through the WebdriverIO browser runner configuration, e.g.:
+கோடு கவரேஜ் அறிக்கையிடலை இயக்க, WebdriverIO பிரௌசர் ரன்னர் கான்பிகரேஷன் மூலம் அதை இயக்கவும், எ.கா.:
 
 ```js title=wdio.conf.js
 export const config = {
@@ -22,20 +22,20 @@ export const config = {
 }
 ```
 
-Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.
+அனைத்து [coverage options](/docs/runner#coverage-options)ஐப் பார்க்கவும், அதை எவ்வாறு சரியாகக் கட்டமைப்பது என்பதை அறிய.
 
-## Ignoring Code
+## கோடை புறக்கணித்தல்
 
-There may be some sections of your codebase that you wish to purposefully exclude from coverage tracking, to do so you can use the following parsing hints:
+கவரேஜ் டிராக்கிங்கிலிருந்து வேண்டுமென்றே விலக்க விரும்பும் உங்கள் கோட்பேஸின் சில பிரிவுகள் இருக்கலாம், இதைச் செய்ய, பின்வரும் பாகுபடுத்தும் குறிப்புகளைப் பயன்படுத்தலாம்:
 
-- `/* istanbul ignore if */`: ignore the next if statement.
-- `/* istanbul ignore else */`: ignore the else portion of an if statement.
-- `/* istanbul ignore next */`: ignore the next thing in the source-code ( functions, if statements, classes, you name it).
-- `/* istanbul ignore file */`: ignore an entire source-file (this should be placed at the top of the file).
+- `/* istanbul ignore if */`: அடுத்த if அறிக்கையைப் புறக்கணிக்கவும்.
+- `/* istanbul ignore else */`: if அறிக்கையின் else பகுதியைப் புறக்கணிக்கவும்.
+- `/* istanbul ignore next */`: source-codeஇல் next thingயை புறக்கணிக்கவும் ( functions, if statements, classes, you name it).
+- `/* istanbul ignore file */`: முழு source-fileயை புறக்கணிக்கவும் (இது பைலின் மேல் பகுதியில் வைக்கப்பட வேண்டும்).
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+`execute` அல்லது `executeAsync` கட்டளைகளை அழைக்கும்போது பிழைகளை ஏற்படுத்தக்கூடும் என்பதால், உங்கள் டெஸ்ட் பைல்களை கவரேஜ் அறிக்கையிடலிலிருந்து விலக்கப் பரிந்துரைக்கப்படுகிறது. உங்கள் அறிக்கையில் அவற்றை வைத்திருக்க விரும்பினால், பின்வரும் வழிகளில் அவற்றைப் பயன்படுத்துவதைத் தவிர்க்கவும்:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {

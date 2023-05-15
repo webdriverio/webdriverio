@@ -1,24 +1,24 @@
 ---
 id: materials
-title: Materials
+title: பொருட்கள்
 ---
 
-If you want to use WebdriverIO materials for your own workshops or events feel free to grab them directly from here.
+உங்கள் சொந்த பட்டறைகள் அல்லது நிகழ்வுகளுக்கு WebdriverIO பொருட்களைப் பயன்படுத்த விரும்பினால், அவற்றை இங்கிருந்து நேரடியாகப் பெறலாம்.
 
-## Workshops
+## பட்டறைகள்
 
-The WebdriverIO community gives workshops around the world. Feel free to use these materials to host your own.
+WebdriverIO சமூகம் உலகம் முழுவதும் பட்டறைகளை வழங்குகிறது. உங்கள் சொந்தமாக ஹோஸ்ட் செய்ய இந்தப் பொருட்களைப் பயன்படுத்த தயங்க வேண்டாம்.
 
 - [webdriverio/workshop](https://github.com/webdriverio/workshop)
 
-## Assets
+## சொத்துக்கள்
 
-If you create your own WebdriverIO content for education purposes, feel free to grab these assets to include in your materials.
+கல்வி நோக்கங்களுக்காக உங்கள் சொந்த WebdriverIO உள்ளடக்கத்தை நீங்கள் உருவாக்கினால், உங்கள் பொருட்களில் சேர்க்க இந்தச் சொத்துக்களை தயங்காமல் பெறுங்கள்.
 
-### Roboter Logo
+### ரோபோட்டர் லோகோ
 
 ![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
 
-### Project Logo
+### திட்டச் சின்னம்
 
 ![Roboter Logo](/img/materials/logo.svg "Project Logo")

@@ -1,15 +1,15 @@
 ---
 id: tips-and-tricks
-title: Tips and Tricks
+title: குறிப்புகள் மற்றும் தந்திரங்கள்
 ---
 
-This page contains a set useful tips and tricks that can be helpful when testing a web extension.
+Web extensionயை டெஸ்ட் செய்யும்பொழுது உதவியாக இருக்கும் பயனுள்ள உதவிக்குறிப்புகள் மற்றும் தந்திரங்கள் இந்தப் பக்கத்தில் உள்ளன.
 
 ## Test Popup Modal in Chrome
 
-If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
+உங்கள் [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) இல் `default_popup` browser action entryயை வரையறுத்தால், பிரௌசர் top barஇல் உள்ள extension ஐகானைக் கிளிக் செய்வது வேலை செய்யாது என்பதால், அந்த HTML பக்கத்தை நேரடியாகச் சோதிக்கலாம். அதற்கு பதிலாக, நீங்கள் பாப்அப் html கோப்பை நேரடியாக திறக்க வேண்டும்.
 
-In Chrome this works by retrieving the extension ID and opening the popup page through `browser.url('...')`. The behavior on that page will be the same as within the popup. To do so we recommend to write the following custom command:
+Chrome இல், extension ஐடியை மீட்டெடுத்து, `browser.url('...')`மூலம் பாப்அப் பக்கத்தைத் திறப்பதன் மூலம் இது செயல்படுகிறது. அந்தப் பக்கத்தில் உள்ள நடத்தை பாப்அப்பில் உள்ளதைப் போலவே இருக்கும். இதைச் செய்ய, பின்வரும் custom commandயை எழுத பரிந்துரைக்கிறோம்:
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
@@ -41,7 +41,7 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+உங்கள் `wdio.conf.js` இல் இந்தக் fileயை நீங்கள் இறக்குமதி செய்து,`before ` hookல் custom commandயைப் பதிவு செய்யலாம், எ.கா.:
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'
@@ -57,7 +57,7 @@ export const config: Options.Testrunner = {
 }
 ```
 
-Now, in your test, you can access the popup page via:
+இப்போது, உங்கள் டெஸ்ட்இல், நீங்கள் பாப்அப் பக்கத்தை இதன் மூலம் அணுகலாம்:
 
 ```ts
 await browser.openExtensionPopup('My Web Extension')
