@@ -11,7 +11,7 @@ title: شروع کار
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
-:::tip کانال رسمی یوتیوب 🎥
+:::tip Official YouTube Channel 🎥
 
 You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
 
