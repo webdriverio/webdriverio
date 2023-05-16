@@ -1,15 +1,15 @@
 ---
 id: watcher
-title: Watch Test Files
+title: டெஸ்ட் பைல்களைப் பார்க்கவும்
 ---
 
-With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+WDIO டெஸ்ட்ரன்னர் மூலம் நீங்கள் பைல்களில் பணிபுரியும்போது அவற்றைப் பார்க்கலாம். உங்கள் அப்ப்ளிகேஷனில் அல்லது உங்கள் டெஸ்ட் பைல்களில் ஏதேனும் ஒன்றை மாற்றினால் அவை தானாகவே மீண்டும் இயங்கும். `wdio` கட்டளையை அழைக்கும்போது `--watch` பிளாகைச் சேர்ப்பதன் மூலம், அனைத்து டெஸ்டுகளையும் இயக்கியபிறகு, டெஸ்ட்ரன்னர் பைல் மாற்றங்களுக்காகக் காத்திருக்கும், எ.கா.
 
 ```sh
 wdio wdio.conf.js --watch
 ```
 
-By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
+இயல்பாக, இது உங்கள் `specs` பைல்களில் ஏற்படும் மாற்றங்களை மட்டுமே பார்க்கிறது. இருப்பினும், உங்கள் `wdio.conf.js` இல் `filesToWatch` ப்ராபர்ட்டியை அமைப்பதன் மூலம், பைல் பாதைகளின் பட்டியலைக் கொண்டுள்ளது (குளோப்பிங் ஆதரிக்கப்படுகிறது) முழு தொகுப்பையும் மீண்டும் இயக்குவதற்காக இந்தக் பைல்கள் மாற்றப்படுவதையும் அது கண்காணிக்கும். உங்கள் அப்ப்ளிகேஷன் கோடை மாற்றியிருந்தால், உங்கள் எல்லா டெஸ்டுகளையும் தானாக மீண்டும் இயக்க விரும்பினால் இது பயனுள்ளதாக இருக்கும், எ.கா.
 
 ```js
 // wdio.conf.js
@@ -24,5 +24,5 @@ export const config = {
 ```
 
 :::info
-Try to run tests in parallel as much as possible. E2E tests are, by nature, slow. Rerunning tests is only useful if you can keep the individual test run time short. In order to save time, the testrunner keeps WebDriver sessions alive while waiting for file changes. Make sure your WebDriver backend can be modified so that it doesn't automatically close the session if no command was executed after some duration of time.
+டெஸ்டுகளை முடிந்தவரை இணையாக இயக்க முயற்சிக்கவும். E2E டெஸ்டுகள் இயல்பாகவே மெதுவாக இருக்கும். தனிப்பட்ட டெஸ்ட் இயக்க நேரத்தை நீங்கள் குறைவாக வைத்திருந்தால் மட்டுமே டெஸ்டுகளை மீண்டும் இயக்குவது பயனுள்ளதாக இருக்கும். நேரத்தைச் சேமிப்பதற்காக, பைல் மாற்றங்களுக்காகக் காத்திருக்கும்போது, டெஸ்ட்ரன்னர் WebDriver அமர்வுகளை உயிர்ப்புடன் வைத்திருக்கிறார். உங்கள் WebDriver பின்தளத்தை மாற்றியமைக்க முடியும் என்பதை உறுதிப்படுத்திக் கொள்ளுங்கள், இதனால் சிறிது நேரத்திற்குப் பிறகு எந்தக் கட்டளையும் செயல்படுத்தப்படாவிட்டால் அது தானாகவே அமர்வை விட்டுவிடாமல் இருக்க வேண்டும்.
 :::

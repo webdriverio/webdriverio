@@ -1,27 +1,27 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: தொடங்குதல்
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+WebdriverIO ஆவணப்படுத்தலுக்கு வரவேற்கிறோம். விரைவாகத் தொடங்க இது உதவும். நீங்கள் சிக்கல்களைச் சந்திக்க நேர்ந்தால், எங்கள் [Discord Support Server](https://discord.webdriver.io) இல் உதவி மற்றும் பதில்களைக் காணலாம் அல்லது [Twitter](https://twitter.com/webdriverio)இல் எங்களை அணுகலாம்.
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+WebdriverIO இன் சமீபத்திய பதிப்பின் (__>=8.x__) ஆவணங்கள் இவை. நீங்கள் இன்னும் பழைய பதிப்பைப் பயன்படுத்துகிறீர்கள் என்றால், தயவுசெய்து [old documentation websites](/versions) யைப் பார்வையிடவும்!
 :::
 
-<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="WebdriverIO உடன் தொடங்குதல்" />
 
 :::tip کانال رسمی یوتیوب 🎥
 
-You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+[official YouTube channel](https://youtube.com/@webdriverio)இல் WebdriverIO ஐச் பற்றி மேலும் வீடியோக்களைக் காணலாம். நீங்கள் குழுசேர உறுதி செய்யவும்!
 
 :::
 
-## Initiate a WebdriverIO Setup
+## WebdriverIO அமைப்பைத் தொடங்கவும்
 
-To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
+[WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio)ஐப் பயன்படுத்தி ஏற்கனவே உள்ள அல்லது புதிய ப்ரொஜெக்டிற்கு முழு WebdriverIO அமைப்பைச் சேர்க்க, இயக்கவும்:
 
-If you're in the root directory of an existing project, run:
+நீங்கள் ஏற்கனவே உள்ள ப்ரொஜெக்ட்டின் ரூட் டைரக்டரியில் இருந்தால், இயக்கவும்:
 
 <Tabs
   defaultValue="npm"
@@ -72,11 +72,11 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+இந்த ஒற்றை கட்டளை WebdriverIO CLI கருவியைப் பதிவிறக்குகிறது மற்றும் உங்கள் டெஸ்ட் தொகுப்பை உள்ளமைக்க உதவும் உள்ளமைவு வழிகாட்டியை இயக்குகிறது.
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+அமைவு மூலம் உங்களுக்கு வழிகாட்டும் ஒரு தொகுப்புக் கேள்விகளை வழிகாட்டி கேட்கும். [Page Object](https://martinfowler.com/bliki/PageObject.html) வடிவத்தைப் பயன்படுத்தி Chrome உடன் மோக்காவைப் பயன்படுத்தும் இயல்புநிலை அமைப்பைத் தேர்வுசெய்ய, நீங்கள் `--yes` பாராமீட்டரை அனுப்பலாம்.
 
 <Tabs
   defaultValue="npm"
@@ -109,45 +109,45 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Run Test
+## டெஸ்டை இயக்கவும்
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+`run` கட்டளையைப் பயன்படுத்தி, நீங்கள் இப்போது உருவாக்கிய WebdriverIO கட்டமைப்பைச் சுட்டிக்காட்டி உங்கள் டெஸ்ட் தொகுப்பைத் தொடங்கலாம்:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+குறிப்பிட்ட டெஸ்ட் பைல்களை இயக்க விரும்பினால், `--spec` பாராமீட்டரைச் சேர்க்கலாம்:
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+அல்லது உங்கள் கட்டமைப்பு பைலில் தொகுப்புகளை வரையறுத்து, தொகுப்பில் வரையறுக்கப்பட்ட டெஸ்ட் பைல்களை இயக்கவும்:
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## ஸ்கிரிப்டில் இயக்கவும்
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+நீங்கள் ஒரு Node.JS ஸ்கிரிப்ட்டில் [ Standalone Mode ](/docs/setuptypes#standalone-mode) இல் WebdriverIO ஐ ஒரு தன்னியக்க இயந்திரமாகப் பயன்படுத்த விரும்பினால், நீங்கள் WebdriverIO ஐ நேரடியாக நிறுவி அதைத் தொகுப்பாகப் பயன்படுத்தலாம், எ.கா. இணையதளத்தின் ஸ்கிரீன்ஷாட்டை உருவாக்க:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__Note:__ அனைத்து WebdriverIO கட்டளைகளும் ஏசின்க்ரநஸ் மற்றும் [`async/waiit`](https://javascript.info/async-await)ஐப் பயன்படுத்தி சரியாகக் கையாளப்பட வேண்டும்.
 
-## Record tests
+## டெஸ்டுகளை பதிவு செய்
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO உங்கள் டெஸ்ட் செயல்களைத் திரையில் பதிவுசெய்து, தானாகவே WebdriverIO டெஸ்ட் ஸ்கிரிப்ட்களை உருவாக்குவதன் மூலம் தொடங்குவதற்கு உதவும் கருவிகளை வழங்குகிறது. மேலும் தகவலுக்கு [Recorder tests with Chrome DevTools Recorder](/docs/record) யைப் பார்க்கவும்.
 
-## System Requirements
+## கணினி தேவைகள்
 
-You’ll need [Node.js](http://nodejs.org) installed.
+நீங்கள் [Node.js](http://nodejs.org) ஐ நிறுவ வேண்டும்.
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
+- குறைந்தது v16.x அல்லது அதற்கு மேற்பட்டவற்றை நிறுவவும் ஏனென்றால் இது தான் பழமையான செயலில் உள்ள LTS பதிப்பு என்பதால்
+- LTS வெளியீடாக இருக்கும் அல்லது மாறும் வெளியீடுகள் மட்டுமே அதிகாரப்பூர்வமாக ஆதரிக்கப்படும்
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+உங்கள் கணினியில் Node தற்போது நிறுவப்படவில்லை எனில், பல செயலில் உள்ள Node.js பதிப்புகளை நிர்வகிப்பதற்கு உதவ, [NVM](https://github.com/creationix/nvm) அல்லது [Volta](https://volta.sh/) போன்ற கருவியைப் பயன்படுத்தப் பரிந்துரைக்கிறோம். NVM ஒரு பிரபலமான தேர்வாகும், அதே சமயம் Voltaவும் ஒரு நல்ல மாற்றாகும்.

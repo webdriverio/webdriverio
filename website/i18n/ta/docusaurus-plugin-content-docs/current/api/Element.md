@@ -15,7 +15,7 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 | `elementId` | `String` | தொடர்புடைய [web element reference](https://w3c.github.io/webdriver/#elements), இது நெறிமுறை மட்டத்தில் உள்ள எலிமென்டுடன் தொடர்பு கொள்ள பயன்படுகிறது                                                                                                  |
 | `selector`  | `String` | [Selector](/docs/selectors) எலிமென்டைக் வினவப் பயன்படுகிறது.                                                                                                                                                                                         |
 | `parent`    | `Object` | [Browser Object](/docs/api/browser) அதிலிருந்து எலிமென்டைப் பெறும்போது (எ.கா. `const elem = browser.$('selector')`) அல்லது [Element Object](/docs/api/element) அது ஒரு எலிமென்ட் ஸ்கோப்பிலிருந்து எடுக்கப்பட்டிருந்தால் (எ.கா. `elem.$('selector')`) |
-| `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). See more [setup types](/docs/setuptypes).                                                                                                   |
+| `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). மேலும் [setup types](/docs/setuptypes)காண்க.                                                                                                |
 
 ## மெத்தெடுகள்
 
@@ -32,7 +32,7 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 
 ### எலிமென்ட் செயின்
 
-எலிமென்டுகளுடன் பணிபுரியும்போது WebdriverIO அவற்றை வினவுவதை எளிதாக்க சிறப்பு சிண்டாக்ஸ் மற்றும் காம்போசிட் காம்ப்ளெக்ஸ் நெஸ்டட் எலிமென்ட் தோற்றத்தை வழங்குகிறது. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+எலிமென்டுகளுடன் பணிபுரியும்போது WebdriverIO அவற்றை வினவுவதை எளிதாக்க சிறப்பு சிண்டாக்ஸ் மற்றும் காம்போசிட் காம்ப்ளெக்ஸ் நெஸ்டட் எலிமென்ட் தோற்றத்தை வழங்குகிறது. பொதுவான வினவல் முறைகளைப் பயன்படுத்தி, எலிமென்ட் ஆப்ஜெக்டுகள் அவற்றின் ட்ரீ பிராஞ்சில் உள்ள எலிமென்டுகளைக் கண்டறிய உங்களை அனுமதிப்பதால், பயனர்கள் நெஸ்டட் எலிமென்டுகளைப் பின்வருமாறு பெறலாம்:
 
 ```js
 const header = await $('#header')
@@ -40,20 +40,20 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-With deep nested structures assigning any nested element to an array to then use it can be quite verbose. Therefor WebdriverIO has the concept of chained element queries that allow to fetch nested elements like this:
+டீப் நெஸ்டட் கட்டமைப்புகள் ஒரு அரேவிற்கு எந்த நெஸ்டட் எலிமென்டையும் ஒதுக்கினால், அதைப் பயன்படுத்துவதற்கு அது மிகவும் வாய்மொழியாக இருக்கும். எனவே WebdriverIO ஆனது இது போன்ற நெஸ்டட் எலிமென்ட்சுகளைப் பெற அனுமதிக்கும் செய்ண்டு எலிமென்ட் வினவல்களின் கருத்தைக் கொண்டுள்ளது:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
 ```
 
-This also works when fetching a set of elements, e.g.:
+எலிமென்ட்சுகளின் தொகுப்பைப் பெறும்போது இதுவும் வேலை செய்கிறது, எ.கா.:
 
 ```js
 // get the text of the 3rd headline within the 2nd header
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-When working with a set of elements this can especially useful when trying to interact with them, so instead of doing:
+எலிமென்ட்சுகளின் தொகுப்புடன் பணிபுரியும்போது, அவற்றுடன் தொடர்பு கொள்ள முயற்சிக்கும்போது இது மிகவும் பயனுள்ளதாக இருக்கும், எனவே செய்வதற்குப் பதிலாக:
 
 ```js
 const elems = await $$('div')
@@ -62,14 +62,14 @@ const locations = await Promise.all(
 )
 ```
 
-You can directly call Array methods on the element chain, e.g.:
+எலிமென்ட் சங்கிலியில் அரே மெத்தெடுகளை நீங்கள் நேரடியாக அழைக்கலாம், எ.கா.:
 
 ```js
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) under the hood so all commands from their API are also supported for these use cases.
+WebdriverIO ஹூட்டின் கீழ் [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) ஐப் பயன்படுத்துகிறது, எனவே அவற்றின் API இன் அனைத்து கட்டளைகளும் இந்தப் பயன்பாட்டு நிகழ்வுகளுக்கு ஆதரிக்கப்படுகின்றன.
 
-### Custom Commands
+### தனிப்பயன் கட்டளைகள்
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+பொதுவாகப் பயன்படுத்தப்படும் பணிப்பாய்வுகளைத் தவிர்க்க, பிரவுசர் ஸ்கோப்பில் தனிப்பயன் கட்டளைகளை அமைக்கலாம். மேலும் தகவலுக்கு [தனிப்பயன் கட்டளைகள்](/docs/customcommands#adding-custom-commands) இல் உள்ள எங்கள் வழிகாட்டியைப் பார்க்கவும்.
