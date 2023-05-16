@@ -1,19 +1,19 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: தொடங்குதல்
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+WebdriverIO ஆவணப்படுத்தலுக்கு வரவேற்கிறோம். விரைவாகத் தொடங்க இது உதவும். நீங்கள் சிக்கல்களைச் சந்திக்க நேர்ந்தால், எங்கள் [Discord Support Server](https://discord.webdriver.io) இல் உதவி மற்றும் பதில்களைக் காணலாம் அல்லது [Twitter](https://twitter.com/webdriverio)இல் எங்களை அணுகலாம்.
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+WebdriverIO இன் சமீபத்திய பதிப்பின் (__>=8.x__) ஆவணங்கள் இவை. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
 :::tip کانال رسمی یوتیوب 🎥
 
-You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+[official YouTube channel](https://youtube.com/@webdriverio)இல் WebdriverIO ஐச் பற்றி மேலும் வீடியோக்களைக் காணலாம். நீங்கள் குழுசேர உறுதி செய்யவும்!
 
 :::
 
