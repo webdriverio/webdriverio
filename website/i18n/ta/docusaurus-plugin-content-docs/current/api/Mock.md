@@ -1,26 +1,26 @@
 ---
 id: mock
-title: The Mock Object
+title: மாக் ஆப்ஜெக்ட்
 ---
 
-The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
+மாக் ஆப்ஜெக்ட் என்பது ஒரு நெட்வொர்க் மாக்கை குறிக்கும் ஒரு ஆப்ஜெக்டாகும், மேலும் `url` மற்றும் `filterOptions`ல் கொடுக்கப்பட்டுள்ள கோரிக்கைகளைப் பற்றிய தகவலைக் கொண்டுள்ளது. இதை [`mock`](/docs/api/browser/mock) கட்டளையைப் பயன்படுத்தி பெறலாம்.
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+`mock` கட்டளையைப் பயன்படுத்த, Chrome DevTools நெறிமுறைக்கான ஆதரவு தேவை என்பதை நினைவில் கொள்ளவும். நீங்கள் Chromium அடிப்படையிலான பிரௌசரில் டெஸ்டுகளை இயக்கினால் அல்லது நீங்கள் Selenium Grid v4 அல்லது அதற்கு மேற்பட்டதைப் பயன்படுத்தினால் அந்த ஆதரவு வழங்கப்படும். கிளவுடில் தானியங்கு டெஸ்டுகளை இயக்கும்போது இந்தக் கட்டளை __not__ ஐப் பயன்படுத்த முடியாது. [Automation Protocols](/docs/automationProtocols) பிரிவில் மேலும் அறியவும்.
 
 :::
 
-You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
+எங்கள் [Mocks and Spies](/docs/mocksandspies) வழிகாட்டியில் WebdriverIO இல் மாக் செய்யும் கோரிக்கைகள் மற்றும் பதில்களைப் பற்றி மேலும் படிக்கலாம்.
 
-## Properties
+## பண்புகள்
 
-A mock object contains the following properties:
+ஒரு மாக் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| Name            | Type       | Details                                                                                                                                                                               |
+| பெயர்           | வகை        | விவரங்கள்                                                                                                                                                                             |
 | --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
-| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
+| `url`           | `String`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட url                                                                                                                                                    |
+| `filterOptions` | `Object`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட ரிசோர்ஸ் பில்டர் ஆப்ஷன்கள்                                                                                                                             |
 | `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
 | `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
 
