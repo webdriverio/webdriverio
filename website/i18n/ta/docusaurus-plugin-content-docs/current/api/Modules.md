@@ -3,15 +3,15 @@ id: modules
 title: Modules
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+உங்கள் சொந்த ஆட்டோமேஷன் பிரேம்வர்க்கை உருவாக்க நீங்கள் பயன்படுத்தக்கூடிய NPM மற்றும் பிற பதிவுகளுக்குப் மாடூல்சுகளை WebdriverIO வெளியிடுகிறது. WebdriverIO அமைவு வகைகள்பற்றிய கூடுதல் ஆவணங்களை [here](/docs/setuptypes) பார்க்கவும்.
 
-## `webdriver` and `devtools`
+## `webdriver` மற்றும் `devtools`
 
-The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+நெறிமுறை தொகுப்புகள் ([`webdriver`](https://www.npmjs.com/package/webdriver) மற்றும் [`devtools`](https://www.npmjs.com/package/devtools)) அமர்வுகளைத் தொடங்க பின்வரும் ஸ்டாடிக் செயல்பாடுகளுடன் ஒரு கிளாசை வெளிப்படுத்துகிறது:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+குறிப்பிட்ட கேப்பபிலிட்டிசுகளுடன் புதிய அமர்வைத் தொடங்கும். Based on the session response commands from different protocols will be provided.
 
 ##### Paramaters
 
