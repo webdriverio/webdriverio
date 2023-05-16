@@ -5,64 +5,64 @@ title: நெறிமுறை கட்டளைகள்
 
 WebdriverIO என்பது ஒரு தன்னியக்க பிரேம்வர்காகும், இது ரிமோட் ஏஜென்ட்டைக் கட்டுப்படுத்த பல்வேறு ஆட்டோமேஷன் நெறிமுறைகளை நம்பியுள்ளது, எ.கா. பிரௌசர், மொபைல் சாதனம் அல்லது தொலைக்காட்சி. ரிமோட் சாதனத்தின் அடிப்படையில் வெவ்வேறு நெறிமுறைகள் செயல்படும். இந்தக் கட்டளைகள் ரிமோட் சர்வர் (எ.கா. உலாவி இயக்கி) மூலம் அமர்வு தகவலைப் பொறுத்து [Browser](/docs/api/browser) அல்லது [Element](/docs/api/element) ஆப்ஜெக்டிற்கு ஒதுக்கப்படும்.
 
-உள்ளுக்குள் WebdriverIO ரிமோட் ஏஜெண்டுடன் கிட்டத்தட்ட அனைத்து தொடர்புகளுக்கும் நெறிமுறை கட்டளைகளைப் பயன்படுத்துகிறது. However additional commands assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object simplify the usage of WebdriverIO, e.g. getting the text of an element using protocol commands would look like this:
+உள்ளுக்குள் WebdriverIO ரிமோட் ஏஜெண்டுடன் கிட்டத்தட்ட அனைத்து தொடர்புகளுக்கும் நெறிமுறை கட்டளைகளைப் பயன்படுத்துகிறது. இருப்பினும் [Browser](/docs/api/browser) அல்லது [Element](/docs/api/element) ஆப்ஜெக்டிற்கு ஒதுக்கப்பட்ட கூடுதல் கட்டளைகள் WebdriverIO இன் பயன்பாட்டை எளிதாக்குகின்றன, எ.கா. நெறிமுறை கட்டளைகளைப் பயன்படுத்தி ஒரு எலிமென்டின் டெக்ட்ஸ்டைப் பெறுவது இப்படி இருக்கும்:
 
 ```js
 const searchInput = await browser.findElement('css selector', '#lst-ib')
 await client.getElementText(searchInput['element-6066-11e4-a52e-4f735466cecf'])
 ```
 
-Using the convenient commands of the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object this can be reduced to:
+[Browser](/docs/api/browser) அல்லது [Element](/docs/api/element) ஆப்ஜெக்டின் வசதியான கட்டளைகளைப் பயன்படுத்தி இதைக் குறைக்கலாம்:
 
 ```js
 $('#lst-ib').getText()
 ```
 
-The following section explain each individual protocol.
+பின்வரும் பிரிவு ஒவ்வொரு தனிப்பட்ட நெறிமுறையை விளக்குகிறது.
 
 ## WebDriver Protocol
 
-The [WebDriver](https://w3c.github.io/webdriver/#elements) protocol is a web standard for automating browser. As oppose to some other E2E tools it guarantees that automation can be done on actual browser that are used by your users, e.g. Firefox, Safari and Chrome and Chromium based browser like Edge, and not only on browser engines, e.g. WebKit, which are very different.
+[WebDriver](https://w3c.github.io/webdriver/#elements) நெறிமுறை என்பது பிரௌசரைத் தானியங்குபடுத்துவதற்கான ஒரு இணைய தரநிலையாகும். வேறுசில E2E கருவிகளுக்கு மாறாக, உங்கள் பயனர்கள் பயன்படுத்தும் உண்மையான பிரௌசரில் ஆட்டோமேஷனைச் செய்ய முடியும் என்று உத்தரவாதம் அளிக்கிறது, எ.கா. பயர்பாக்ஸ், சஃபாரி மற்றும் குரோம் மற்றும் எட்ஜ் போன்ற குரோமியம் அடிப்படையிலான பிரௌசர், மற்றும் பிரௌசர் இயந்திரங்களில் மட்டும் அல்ல, எ.கா. வெப்கிட், வேறுபட்டது.
 
-The advantage of using the WebDriver protocol as oppose to debugging protocols like [Chrome DevTools](https://w3c.github.io/webdriver/#elements) is that you have a specific set of commands that allow to interact with the browser the same way across all browser which reduces the likelihood for flakiness. Furthermore offers this protocol abilities for massive scalibility by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
+[Chrome DevTools](https://w3c.github.io/webdriver/#elements) போன்ற பிழைத்திருத்த நெறிமுறைகளுக்கு மாறாக WebDriver நெறிமுறையைப் பயன்படுத்துவதன் நன்மை என்னவென்றால், எல்லா பிரௌசரிலும் ஒரே மாதிரியாக தொடர்பு கொள்ள அனுமதிக்கும் குறிப்பிட்ட கட்டளைகளின் தொகுப்பு உங்களிடம் உள்ளது, இது சிதைவுக்கான வாய்ப்பைக் குறைக்கிறது. மேலும் [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) மற்றும் [others](https://github.com/christian-bromann/awesome-selenium#cloud-services)போன்ற கிளவுட் விற்பனையாளர்களைப் பயன்படுத்துவதன் மூலம் இந்த நெறிமுறை திறன்கள் பெருமளவு ஸ்கேலபிலிட்டியை வழங்குகிறது.
 
 ## WebDriver Bidi Protocol
 
-The [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol is the second generation of the protocol and is currently being worked on by most browser vendors. Compared to its pre-predecessor the protocol supports a bi-directional communication (hence "Bidi") between the framework and the remote device. It furthermore introduces additional primitives for better browser introspection to better automate modern web applications in browser.
+[WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) நெறிமுறை நெறிமுறையின் இரண்டாம் தலைமுறையாகும், இது தற்போது பெரும்பாலான பிரௌசர் விற்பனையாளர்களால் வேலை செய்யப்படுகிறது. அதன் முன்னோடியுடன் ஒப்பிடும்போது, நெறிமுறை பிரேம்வர்கிற்கும் தொலை சாதனத்திற்கும் இடையே இரு-திசை தொடர்பு (எனவே "Bidi") ஆதரிக்கிறது. பிரௌசரில் நவீன இணைய பயன்பாடுகளைச் சிறப்பாகத் தானியக்கமாக்க சிறந்த பிரௌசர் சுயபரிசோதனைக்கான கூடுதல் ஆதிநிலைகளை இது மேலும் அறிமுகப்படுத்துகிறது.
 
-Given this protocol is currently work in progress more features will be added over time and supported by browser. If you use WebdriverIOs convenient commands nothing will change for you. WebdriverIO will make use of these new protocol capabilities as soon as they are available and supported in the browser.
+இந்த நெறிமுறை தற்போது செயல்பாட்டில் இருப்பதால், காலப்போக்கில் கூடுதல் அம்சங்கள் சேர்க்கப்படும் மற்றும் பிரௌசரால் ஆதரிக்கப்படும். WebdriverIOவின் வசதியான கட்டளைகளைப் பயன்படுத்தினால், எந்த மாற்றமும் இருக்காது. WebdriverIO இந்தப் புதிய நெறிமுறை கேப்பபிலிட்டிசுகள் பிரௌசரில் கிடைக்கும் பொழுதோ அல்லது ஆதரிக்கப்பட்டவுடன் அவற்றைப் பயன்படுத்தும்.
 
 ## Appium
 
-The [Appium](https://appium.io/) project provides capabilities to automate mobile, desktop and all other kinds of IoT devices. While WebDriver focuses on browser and the web, the vision of Appium is to use the same approach but for any arbitrary device. In addition to the commands that WebDriver defines, it has special commands that often are specific to the remote device that is being automated. For mobile testing scenarios this is ideal when you want to write and run the same tests for both Android and iOS applications.
+[Appium](https://appium.io/) ப்ரொஜெக்ட் மொபைல், டெஸ்க்டாப் மற்றும் அனைத்து வகையான IoT சாதனங்களையும் தானியங்குபடுத்தும் திறன்களை வழங்குகிறது. WebDriver பிரௌசர் மற்றும் இணையத்தில் கவனம் செலுத்தும்போது, Appium இன் பார்வை அதே அணுகுமுறையைப் பயன்படுத்துவதாகும், ஆனால் எந்தவொரு தன்னிச்சையான சாதனத்திற்கும். WebDriver வரையறுக்கும் கட்டளைகளுக்குக் கூடுதலாக, இது பெரும்பாலும் தானியங்கி செய்யப்படும் தொலை சாதனத்திற்கு குறிப்பிட்ட சிறப்பு கட்டளைகளைக் கொண்டுள்ளது. மொபைல் டெஸ்ட் சினேரியோக்களுக்கு, Android மற்றும் iOS பயன்பாடுகளுக்கு ஒரே மாதிரியான டெஸ்டுகளை எழுதி இயக்க விரும்பும்போது இது சிறந்தது.
 
-According to Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) it was designed to meet mobile automation needs according to a philosophy outlined by the following four tenets:
+Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) இன் படி, இது பின்வரும் நான்கு கோட்பாடுகளால் கோடிட்டுக் காட்டப்பட்ட தத்துவத்தின் படி மொபைல் ஆட்டோமேஷன் தேவைகளைப் பூர்த்தி செய்ய வடிவமைக்கப்பட்டுள்ளது:
 
-- You shouldn't have to recompile your app or modify it in any way in order to automate it.
-- You shouldn't be locked into a specific language or framework to write and run your tests.
-- A mobile automation framework shouldn't reinvent the wheel when it comes to automation APIs.
-- A mobile automation framework should be open source, in spirit and practice as well as in name!
+- உங்கள் பயன்பாட்டை மீண்டும் தொகுக்கவோ அல்லது அதைத் தானியக்கமாக்குவதற்கு எந்த வகையிலும் மாற்றவோ தேவையில்லை.
+- உங்கள் டெஸ்டுகளை எழுதவும் இயக்கவும் ஒரு குறிப்பிட்ட மொழி அல்லது பிரேம்வர்கிற்குள் நீங்கள் சார்ந்திருக்கக் கூடாது.
+- ஆட்டோமேஷன் APIகளை பொறுத்தவரை மொபைல் ஆட்டோமேஷன் பிரேம்வர்க்கானது புதிதான வற்றை கண்டுபிடிக்க வேண்டும்.
+- ஒரு மொபைல் ஆட்டோமேஷன் பிரேம்வர்கானது ஓபன் சோர்சாக, ஆத்மார்தமாகவும், நடைமுறையிலும், பெயரிலும் இருக்க வேண்டும்!
 
 ## Chromium
 
-The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary).
+Chromium நெறிமுறையானது WebDriver நெறிமுறையின் மேல் ஒரு சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary)மூலம் தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
 
 ## Firefox
 
-The Firefox protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Geckodriver](https://github.com/mozilla/geckodriver).
+Firefox நெறிமுறையானது WebDriver நெறிமுறையின் மேல் ஒரு சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது [Geckodriver](https://github.com/mozilla/geckodriver)மூலம் தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
 
 ## Sauce Labs
 
-The [Sauce Labs](https://saucelabs.com/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Sauce Labs cloud.
+[Sauce Labs](https://saucelabs.com/) நெறிமுறையானது வெப்டிரைவர் நெறிமுறையின் மேல் சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது சாஸ் லேப்ஸ் கிளவுட் பயன்படுத்தி தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
 
 ## Selenium Standalone
 
-The [Selenium Standalone](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Selenium Grid.
+[செலினியம் ஸ்டாண்டலோன்](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) நெறிமுறையானது WebDriver நெறிமுறையின் மேல் சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது Selenium Grid ஐப் பயன்படுத்தி தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
 
 ## JSON Wire Protocol
 
-The [JSON Wire Protocol](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) is the pre-predecessor of the WebDriver protocol and __deprecated__ today. While some commands might still be supported in certain environments, it is not recommended to use any of its commands.
+[JSON Wire Protocol](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) என்பது WebDriver நெறிமுறையின் முன்னோடி மற்றும் __deprecated__ தற்பொழுது. சில கட்டளைகள் சில என்விரான்மென்டுகளில் இன்னும் ஆதரிக்கப்படும் பொழுதிலும், அதன் கட்டளைகள் எதையும் பயன்படுத்தப் பரிந்துரைக்கப்படவில்லை.
 
 ## Mobile JSON Wire Protocol
 
-The [Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) is a super set of mobile commands on top of the JSON Wire Protocol. Given this one is deprecated the Mobile JSON Wire Protocol also got __deprecated__. Appium might still support some of its commands but it is not recommended to use them.
+[Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) என்பது JSON Wire Protocolயும் சேர்த்து மொபைல் கட்டளைகளின் சூப்பர் செட் ஆகும். மொபைல் JSON வயர் புரோட்டோகாலும் __deprecated__. Appium அதன் சில கட்டளைகளை இன்னும் ஆதரிக்கலாம் ஆனால் அவற்றைப் பயன்படுத்தப் பரிந்துரைக்கப்படவில்லை.
