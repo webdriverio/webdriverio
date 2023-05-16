@@ -208,7 +208,7 @@ export const config = {
                 }
 
                 console.log('Allure report successfully generated')
-                resolve()
+                resolve(true)
             })
         })
     }
