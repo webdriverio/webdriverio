@@ -1,6 +1,6 @@
 ---
 id: modules
-title: Modules
+title: மாடூல்ஸ்
 ---
 
 உங்கள் சொந்த ஆட்டோமேஷன் பிரேம்வர்க்கை உருவாக்க நீங்கள் பயன்படுத்தக்கூடிய NPM மற்றும் பிற பதிவுகளுக்குப் மாடூல்சுகளை WebdriverIO வெளியிடுகிறது. WebdriverIO அமைவு வகைகள்பற்றிய கூடுதல் ஆவணங்களை [here](/docs/setuptypes) பார்க்கவும்.
@@ -16,13 +16,13 @@ title: Modules
 ##### பாராமீட்டர்கள்
 
 - `options`: [WebDriver options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `modifier`: கிளையன்ட் நிகழ்வைத் திரும்பப் பெறுவதற்கு முன் அதை மாற்ற அனுமதிக்கும் செயல்பாடு
+- `userPrototype`: நிகழ்வு முன்மாதிரியை நீட்டிக்க அனுமதிக்கும் ப்ராபர்ட்டி ஆப்ஜெக்ட்
+- `customCommandWrapper`: செயல்பாடு அழைப்புகளைச் சுற்றி செயல்பாட்டை ராப் செய்ய உதவும் செயல்பாடு
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [பிரௌசர்](/docs/api/browser) ஆப்ஜெக்ட்
 
 ##### Example
 
@@ -34,20 +34,20 @@ const client = await WebDriver.newSession({
 
 #### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Attaches to a running WebDriver or DevTools session.
+இயங்கும் WebDriver அல்லது DevTools அமர்வுடன் இணைக்கப்பட்டுள்ளது.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: `sessionId` (எ.கா. `{ sessionId: 'xxx' }`) உடன் ஒரு அமர்வை இணைப்பதற்கான நிகழ்வு அல்லது குறைந்தபட்சம் ஒரு ப்ராபர்ட்டியுடன் அமைந்த ஒரு ஆப்ஜெக்ட்
+- `modifier`: கிளையன்ட் நிகழ்வைத் திரும்பப் பெறுவதற்கு முன் அதை மாற்ற அனுமதிக்கும் செயல்பாடு
+- `userPrototype`: நிகழ்வு முன்மாதிரியை நீட்டிக்க அனுமதிக்கும் ப்ராபர்ட்டி ஆப்ஜெக்ட்
+- `customCommandWrapper`: செயல்பாடு அழைப்புகளைச் சுற்றி செயல்பாட்டை ராப் செய்ய உதவும் செயல்பாடு
 
 ##### Returns
 
 - [Browser](/docs/api/browser) object
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -56,13 +56,13 @@ const clonedClient = await WebDriver.attachSession(client)
 
 #### `reloadSession(instance)`
 
-Reloads a session given provided instance.
+அமர்வை வழங்கினால் நிகழ்வை மீண்டும் ரீலோடு செய்கிறது.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `instance`: package instance to reload
+- `நிகழ்வு`: மீண்டும் ரீலோடு செய்வதற்கான தொகுப்பு நிகழ்வு
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -71,22 +71,22 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+நெறிமுறை தொகுப்புகளைப் போலவே (`webdriver` மற்றும் `devtools`) நீங்கள் அமர்வுகளை நிர்வகிக்க WebdriverIO தொகுப்பு API களையும் பயன்படுத்தலாம். `import { remote, attach, multiremote } from 'webdriverio` யைப் பயன்படுத்தி APIகளை இறக்குமதி செய்யலாம் மற்றும் பின்வரும் செயல்பாடுகள் உள்ளன:
 
 #### `remote(options, modifier)`
 
-Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+WebdriverIO அமர்வைத் தொடங்குகிறது. இந்த நிகழ்வு அனைத்து கட்டளைகளையும் நெறிமுறை தொகுப்பாகக் கொண்டுள்ளது ஆனால் கூடுதல் உயர் வரிசை செயல்பாடுகளுடன், [API docs](/docs/api)பார்க்கவும்.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
 - `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
-- `modifier`: function that allows to modify the client instance before it is being returned
+- `modifier`: கிளையன்ட் நிகழ்வைத் திரும்பப் பெறுவதற்கு முன் அதை மாற்ற அனுமதிக்கும் செயல்பாடு
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [பிரௌசர்](/docs/api/browser) ஆப்ஜெக்ட்
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 import { remote } from 'webdriverio'
@@ -98,17 +98,17 @@ const browser = await remote({
 
 #### `attach(attachOptions)`
 
-Attaches to a running WebdriverIO session.
+இயங்கும் WebdriverIO அமர்வுடன் இணைக்கப்பட்டுள்ளது.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `attachOptions`: `sessionId` (எ.கா. `{ sessionId: 'xxx' }`) உடன் ஒரு அமர்வை இணைப்பதற்கான நிகழ்வு அல்லது குறைந்தபட்சம் ஒரு ப்ராபர்ட்டியுடன் அமைந்த ஒரு ஆப்ஜெக்ட்
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [பிரௌசர்](/docs/api/browser) ஆப்ஜெக்ட்
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 import { remote, attach } from 'webdriverio'
@@ -119,17 +119,17 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+ஒரே நிகழ்வில் பல அமர்வைக் கட்டுப்படுத்த உங்களை அனுமதிக்கும் மல்டிரிமோட் நிகழ்வைத் தொடங்குகிறது. உறுதியான பயன்பாட்டு நிகழ்வுகளுக்கு எங்கள் [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) ஐப் பார்க்கவும்.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
+- `multiremoteOptions`: பிரௌசரின் பெயர் மற்றும் அவற்றின் [WebdriverIO Options](/docs/configuration#webdriverio)ஆகியவற்றைக் குறிக்கும் கீஸ்களைக் கொண்ட ஒரு ஆப்ஜெக்ட்.
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [பிரௌசர்](/docs/api/browser) ஆப்ஜெக்ட்
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 import { multiremote } from 'webdriverio'
@@ -151,7 +151,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
+`wdio` கட்டளையை அழைப்பதற்குப் பதிலாக, நீங்கள் டெஸ்ட் ரன்னரரை மாடூலாகச் சேர்த்து, தன்னிச்சையான என்விரான்மென்டில் அதை இயக்கலாம். அதற்கு, நீங்கள் `@wdio/cli` தொகுப்பைத் மாடூலாகத் தேவைபடும், இது போன்று:
 
 <Tabs
   defaultValue="esm"
@@ -176,7 +176,7 @@ const Launcher = require('@wdio/cli').default
 </TabItem>
 </Tabs>
 
-After that, create an instance of the launcher, and run the test.
+அதன் பிறகு, துவக்கியின் நிகழ்வை உருவாக்கி, டெஸ்டை இயக்கவும்.
 
 #### `Launcher(configPath, opts)`
 
