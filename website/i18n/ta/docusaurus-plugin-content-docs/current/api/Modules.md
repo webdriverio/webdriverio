@@ -11,11 +11,11 @@ title: Modules
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-குறிப்பிட்ட கேப்பபிலிட்டிசுகளுடன் புதிய அமர்வைத் தொடங்கும். Based on the session response commands from different protocols will be provided.
+குறிப்பிட்ட கேப்பபிலிட்டிசுகளுடன் புதிய அமர்வைத் தொடங்கும். அமர்வின் அடிப்படையில் வெவ்வேறு நெறிமுறைகளிலிருந்து ரெஸ்பான்ஸ் கட்டளைகள் வழங்கப்படும்.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
+- `options`: [WebDriver options](/docs/configuration#webdriver-options)
 - `modifier`: function that allows to modify the client instance before it is being returned
 - `userPrototype`: properties object that allows to extend the instance prototype
 - `customCommandWrapper`: function that allows to wrap functionality around function calls
