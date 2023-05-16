@@ -108,14 +108,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                             .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
                             .find((s) => s.imported.name === 'mock')
                         if (mockSpecifier && mockSpecifier.local) {
-                            mockFunctionName = mockSpecifier.local.name
+                            mockFunctionName = mockSpecifier.local.name as string
                         }
 
                         const unmockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
                             .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
                             .find((s) => s.imported.name === 'unmock')
                         if (unmockSpecifier && unmockSpecifier.local) {
-                            unmockFunctionName = unmockSpecifier.local.name
+                            unmockFunctionName = unmockSpecifier.local.name as string
                         }
                         mockCalls.push(dec)
                         path.prune()
@@ -138,9 +138,9 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                  */
                                 : b.objectPattern(dec.specifiers!.map((s: types.namedTypes.ImportSpecifier) => {
                                     if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
-                                        return b.property('init', b.identifier('default'), b.identifier(s.local!.name))
+                                        return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
                                     }
-                                    return b.property('init', b.identifier(s.imported.name), b.identifier(s.local!.name))
+                                    return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
                                 })),
                             b.awaitExpression(b.importExpression(b.literal(source)))
                         )
