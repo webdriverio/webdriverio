@@ -19,7 +19,7 @@ Vous pouvez trouver plus de vidéos autour de WebdriverIO sur la [chaîne YouTub
 
 ## Lancer une installation WebdriverIO
 
-Pour ajouter une configuration WebdriverIO complète à un projet existant ou nouveau à l'aide de [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), exécutez :
+Pour ajouter une configuration WebdriverIO complète à un projet existant ou nouveau à l'aide de [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), exécutez:
 
 Si vous êtes dans le répertoire racine d'un projet existant, exécutez :
 
@@ -48,16 +48,14 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
-```sh
-yarn create wdio .
+```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
 pnpm create wdio .
-```sh
-pnpm create wdio .
+```
 
 </TabItem>
 </Tabs>
