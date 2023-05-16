@@ -8,8 +8,15 @@ import * as url from 'node:url'
 
 import { v4 as uuidv4 } from 'uuid'
 
-import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
-import { getCloudProvider, uploadEventData, o11yClassErrorHandler, getGitMetaData, removeAnsiColors } from './util.js'
+import type { BrowserstackConfig, TestData, TestMeta, UploadType } from './types.js'
+import {
+    getCloudProvider,
+    uploadEventData,
+    o11yClassErrorHandler,
+    getGitMetaData,
+    removeAnsiColors,
+    getHookType
+} from './util.js'
 import RequestQueueHandler from './request-handler.js'
 
 const log = logger('@wdio/browserstack-service')
@@ -224,11 +231,16 @@ class _TestReporter extends WDIOReporter {
             eventType = 'TestRunFinished'
         }
 
-        const uploadData = {
+        const uploadData: UploadType = {
             event_type: eventType,
-            test_run: testData
         }
 
+        if (eventType.match(/HookRun/)) {
+            testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+            uploadData.hook_run = testData
+        } else {
+            uploadData.test_run = testData
+        }
         const req = this._requestQueueHandler.add(uploadData)
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
