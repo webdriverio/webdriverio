@@ -17,16 +17,16 @@ title: மாக் ஆப்ஜெக்ட்
 
 ஒரு மாக் ஆப்ஜெக்ட் பின்வரும் பண்புகளைக் கொண்டுள்ளது:
 
-| பெயர்           | வகை        | விவரங்கள்                                                                                                                                                                             |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட url                                                                                                                                                    |
-| `filterOptions` | `Object`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட ரிசோர்ஸ் பில்டர் ஆப்ஷன்கள்                                                                                                                             |
-| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
-| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| பெயர்           | வகை        | விவரங்கள்                                                                                                                                                                              |
+| --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`           | `String`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட url                                                                                                                                                     |
+| `filterOptions` | `Object`   | மாக் கட்டளைக்குள் அனுப்பப்பட்ட ரிசோர்ஸ் பில்டர் ஆப்ஷன்கள்                                                                                                                              |
+| `browser`       | `Object`   | மாக் ஆப்ஜெக்டைப் பெற பயன்படுத்தப்பட்ட [Browser Object](/docs/api/browser).                                                                                                             |
+| `calls`         | `Object[]` | `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` மற்றும் `body`போன்ற பண்புகளை உள்ளடக்கிய பிரௌசர் கோரிக்கைகளைப் பொருத்துவது பற்றிய தகவல் |
 
-## Methods
+## மெத்தெடுகள்
 
-Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
+மாக் ஆப்ஜெக்டுகள் `mock` பிரிவில் பட்டியலிடப்பட்டுள்ள பல்வேறு கட்டளைகளை வழங்குகின்றன, இது பயனர்கள் கோரிக்கை அல்லது பதிலின் நடத்தையை மாற்ற அனுமதிக்கிறது.
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -35,17 +35,17 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
 
-## Events
+## நிகழ்வுகள்
 
-The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+மாக் ஆப்ஜெக்ட் ஒரு EventEmitter ஆகும் மற்றும் உங்கள் பயன்பாட்டிற்கு இரண்டு நிகழ்வுகள் வெளியிடப்படும்.
 
-Here is a list of events.
+நிகழ்வுகளின் பட்டியல் இங்கே.
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
+மாக் வடிவங்களுடன் பொருந்தக்கூடிய நெட்வொர்க் கோரிக்கையைத் தொடங்கும்போது இந்த நிகழ்வு வெளியிடப்படுகிறது. நிகழ்வு அழைப்பின்போது கோரிக்கை செலுத்தப்படுகிறது.
 
-Request interface:
+கோரிக்கை இன்டெர்பேஸ்:
 ```ts
 interface RequestEvent {
     requestId: number
@@ -57,9 +57,9 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
+நெட்வொர்க் ரெஸ்பான்ஸ் [`respond`](/docs/api/mock/respond) அல்லது [`respondOnce`](/docs/api/mock/respondOnce)உடன் மேலெழுதப்படும்போது இந்த நிகழ்வு வெளியிடப்படுகிறது. நிகழ்வு அழைப்பின்போது கோரிக்கை செலுத்தப்படுகிறது.
 
-Response interface:
+ரெஸ்பான்ஸ் இன்டெர்பேஸ்:
 ```ts
 interface OverwriteEvent {
     requestId: number
@@ -71,9 +71,9 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
+நெட்வொர்க் கோரிக்கை [`abort`](/docs/api/mock/abort) அல்லது [`abortOnce`](/docs/api/mock/abortOnce)உடன் நிறுத்தப்படும்போது இந்த நிகழ்வு வெளியிடப்படுகிறது. நிகழ்வு அழைப்பின்போது பெயில் செலுத்தப்படுகிறது.
 
-Fail interface:
+பெயில் இன்டெர்பேஸ்:
 ```ts
 interface FailEvent {
     requestId: number
@@ -83,9 +83,9 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
+`continue` முன் அல்லது `overwrite`க்கு முன், புதிய பொருத்தம் சேர்க்கப்படும்போது இந்த நிகழ்வு வெளியிடப்படுகிறது. நிகழ்வு அழைப்பின்போது மேட்ச் செலுத்தப்படுகிறது.
 
-Match interface:
+மேட்ச் இன்டெர்பேஸ்:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+நெட்வொர்க் பதில் மேலெழுதப்படாமலோ அல்லது குறுக்கிடப்படாமலோ இருந்தாலோ அல்லது ரெஸ்பான்ஸ் ஏற்கனவே மற்றொரு மாக் மூலம் அனுப்பப்பட்டிருந்தாலோ இந்த நிகழ்வு வெளியிடப்படுகிறது. `requestId` நிகழ்வின் அழைப்பில் அனுப்பப்பட்டது.
 
-## Examples
+## எடுத்துக்காட்டுகள்
 
-Getting a number of pending requests:
+நிலுவையில் உள்ள பல கோரிக்கைகளைப் பெறுதல்:
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+404 நெட்வொர்க் பெயில் வருமின் பிழையெனப் பதிவு செய்யவும்:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+மாக் ரெஸ்பான்ட் வேல்யூ பயன்படுத்தப்பட்டதா என்பதைத் தீர்மானித்தல்:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+இந்த எடுத்துக்காட்டில், `firstMock` முதலில் வரையறுக்கப்பட்டது மற்றும் ஒரு `respondOnce` கால் உள்ளது, எனவே `secondMock` ரெஸ்பான்ஸ் வேல்யூ முதல் கோரிக்கைக்குப் பயன்படுத்தப்படாது, ஆனால் மீதமுள்ளவற்றுக்கு பயன்படுத்தப்படும்.
