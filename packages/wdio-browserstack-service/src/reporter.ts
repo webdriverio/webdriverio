@@ -7,8 +7,15 @@ import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import logger from '@wdio/logger'
 
-import { BrowserstackConfig, TestData, TestMeta } from './types'
-import { getCloudProvider, getGitMetaData, uploadEventData, o11yClassErrorHandler, removeAnsiColors } from './util'
+import { BrowserstackConfig, TestData, TestMeta, UploadType } from './types'
+import {
+    getCloudProvider,
+    getGitMetaData,
+    uploadEventData,
+    o11yClassErrorHandler,
+    removeAnsiColors,
+    getHookType
+} from './util'
 import RequestQueueHandler from './request-handler'
 
 const log = logger('@wdio/browserstack-service')
@@ -54,6 +61,11 @@ class _TestReporter extends WDIOReporter {
             try {
                 if (suiteStats.file.startsWith('file://')) {
                     filename = url.fileURLToPath(suiteStats.file)
+                }
+
+                if (filename === 'unknown spec file') {
+                    // Sometimes in cases where a file has two suites. Then the file name be unknown for second suite, so getting the filename from first suite
+                    filename = this._suiteName || suiteStats.file
                 }
             } catch (e) {
                 log.debug('Error in decoding file name of suite')
@@ -195,16 +207,21 @@ class _TestReporter extends WDIOReporter {
             eventType = 'TestRunFinished'
         }
 
-        const uploadData = {
+        const uploadData: UploadType = {
             event_type: eventType,
-            test_run: testData
+        }
+
+        if (eventType.match(/HookRun/)) {
+            testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+            uploadData.hook_run = testData
+        } else {
+            uploadData.test_run = testData
         }
 
         const req = this._requestQueueHandler.add(uploadData)
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
-
     }
 
     async onTestSkip (testStats: TestStats) {
