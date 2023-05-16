@@ -67,9 +67,10 @@ export const config = {
 
 ### Firefox
 
-எக்ஸ்டென்ஷன்களை உள்ளடக்கிய பயர்பாக்ஸ் ப்ரொபைலை உருவாக்க, அதற்கேற்ப உங்கள் அமர்வை அமைக்க [Firefox Profile Service](/docs/firefox-profile-service) யைப்பயன்படுத்தலாம். இருப்பினும், நுழைவு சிக்கல்கள் காரணமாக உங்கள் லோக்கல் டெவெலப்ட் எக்ஸ்ட்டென்ஷனை ஏற்ற முடியாத சிக்கல்களை நீங்கள் சந்திக்க நேரிடலாம். இதில், [`installAddOn`](/docs/api/gecko#installaddon) கட்டளை வழியாக</code>before``இல் எக்ஸ்டென்ஷனை ஏற்றலாம், எ.கா.:</p>
+எக்ஸ்டென்ஷன்களை உள்ளடக்கிய பயர்பாக்ஸ் ப்ரொபைலை உருவாக்க, அதற்கேற்ப உங்கள் அமர்வை அமைக்க [Firefox Profile Service](/docs/firefox-profile-service) யைப்பயன்படுத்தலாம். இருப்பினும், நுழைவு சிக்கல்கள் காரணமாக உங்கள் லோக்கல் டெவெலப்ட் எக்ஸ்ட்டென்ஷனை ஏற்ற முடியாத சிக்கல்களை நீங்கள் சந்திக்க நேரிடலாம். இதில், [`installAddOn`](/docs/api/gecko#installaddon) கட்டளை வழியாக `before` இல் எக்ஸ்டென்ஷனை ஏற்றலாம், எ.கா.:
 
-<pre><code class="js wdio.conf.js">import path from 'node:path'
+```js wdio.conf.js
+import path from 'node:path'
 import url from 'node:url'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -85,7 +86,7 @@ export const config = {
         }
     }
 }
-``</pre>
+```
 
 `.xpi` பைலை உருவாக்க, [`web-ext`](https://www.npmjs.com/package/web-ext) NPM தொகுப்பைப் பயன்படுத்தப் பரிந்துரைக்கப்படுகிறது. பின்வரும் எடுத்துக்காட்டு கட்டளையைப் பயன்படுத்தி உங்கள் எக்ஸ்டென்ஷனை நீங்கள் தொகுக்கலாம்:
 
