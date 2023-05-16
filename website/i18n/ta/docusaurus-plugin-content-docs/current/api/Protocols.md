@@ -1,11 +1,11 @@
 ---
 id: protocols
-title: Protocol Commands
+title: நெறிமுறை கட்டளைகள்
 ---
 
-WebdriverIO is an automation framework that relies on various of automation protocols to control a remote agent, e.g. for a browser, mobile device or television. Based on the remote device different protocols come into play. These commands are assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object depending on the session information by the remote server (e.g. browser driver).
+WebdriverIO என்பது ஒரு தன்னியக்க பிரேம்வர்காகும், இது ரிமோட் ஏஜென்ட்டைக் கட்டுப்படுத்த பல்வேறு ஆட்டோமேஷன் நெறிமுறைகளை நம்பியுள்ளது, எ.கா. பிரௌசர், மொபைல் சாதனம் அல்லது தொலைக்காட்சி. ரிமோட் சாதனத்தின் அடிப்படையில் வெவ்வேறு நெறிமுறைகள் செயல்படும். இந்தக் கட்டளைகள் ரிமோட் சர்வர் (எ.கா. உலாவி இயக்கி) மூலம் அமர்வு தகவலைப் பொறுத்து [Browser](/docs/api/browser) அல்லது [Element](/docs/api/element) ஆப்ஜெக்டிற்கு ஒதுக்கப்படும்.
 
-Internally WebdriverIO uses protocol commands for almost all interactions with the remote agent. However additional commands assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object simplify the usage of WebdriverIO, e.g. getting the text of an element using protocol commands would look like this:
+உள்ளுக்குள் WebdriverIO ரிமோட் ஏஜெண்டுடன் கிட்டத்தட்ட அனைத்து தொடர்புகளுக்கும் நெறிமுறை கட்டளைகளைப் பயன்படுத்துகிறது. However additional commands assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object simplify the usage of WebdriverIO, e.g. getting the text of an element using protocol commands would look like this:
 
 ```js
 const searchInput = await browser.findElement('css selector', '#lst-ib')
