@@ -180,14 +180,14 @@ const Launcher = require('@wdio/cli').default
 
 #### `Launcher(configPath, opts)`
 
-The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
+`Launcher` கிளாஸ் கன்ஸ்ட்ரக்டர் URL ஐ config கோப்பில் எதிர்பார்க்கிறது, மேலும் `opts` ஆப்ஜெக்ட் அமைப்புகளுடன் configல் உள்ளவற்றை மேலெழுதும்.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `configPath`: path to the `wdio.conf.js` to run
-- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
+- `configPath`: `wdio.conf.js` இயக்குவதற்கான பாதை
+- `opts`: config பைலிலிருந்து வேல்யூக்களை மேலெழுத ஆர்குமென்டுகள் ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77))
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 const wdio = new Launcher(
@@ -203,36 +203,36 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+`run` கட்டளை [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) யை வழங்குகிறது. டெஸ்டுகள் வெற்றிகரமாக நடந்தாலோ அல்லது தோல்வியடைந்தாலோ அது தீர்க்கப்படும், மேலும் லாஞ்சரால் டெஸ்டுகளை இயக்க முடியவில்லை என்றால் அது நிராகரிக்கப்படும்.
 
 ## `@wdio/browser-runner`
 
-When running unit or component tests using WebdriverIO's [browser runner](/docs/runner#browser-runner) you can import mocking utilities for your tests, e.g.:
+WebdriverIO இன் [browser runner](/docs/runner#browser-runner) யைப் பயன்படுத்தி யூனிட் அல்லது காம்போனென்ட் டெஸ்டுகளை இயக்கும்போது, உங்கள் டெஸ்டுகளுக்கான மாக் செய்யும் பயன்பாடுகளை நீங்கள் இறக்குமதி செய்யலாம், எ.கா.:
 
 ```ts
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'
 ```
 
-The following named exports are available:
+பின்வரும் பெயரிடப்பட்ட ஏற்றுமதிகள் கிடைக்கின்றன:
 
 #### `fn`
 
-Mock function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+மாக் செயல்பாடு, அதிகாரப்பூர்வ [Vitest docs](https://vitest.dev/api/mock.html#mock-functions)இல் மேலும் பார்க்கவும்.
 
 #### `spyOn`
 
-Spy function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+ஸ்பை செயல்பாடு, அதிகாரப்பூர்வ [Vitest docs](https://vitest.dev/api/mock.html#mock-functions)இல் மேலும் பார்க்கவும்.
 
 #### `mock`
 
-Method to mock file or dependency module.
+பைல் அல்லது சார்பு மாடூளை மாக்காக்கும் முறை.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `moduleName`: either a relative path to the file to be mocked or a module name.
-- `factory`: function to return the mocked value (optional)
+- `moduleName`: மாக் செய்யப்பட வேண்டிய பைலிற்கான தொடர்புடைய பாதை அல்லது மாடூலின் பெயர்.
+- `factory`: மாக் செய்யப்பட்ட வேல்யூவை வழங்கும் செயல்பாடு (optional)
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 mock('../src/constants.ts', () => ({
@@ -250,13 +250,13 @@ mock('lodash', (origModuleFactory) => {
 
 #### `unmock`
 
-Unmock dependency that is defined within the manual mock (`__mocks__`) directory.
+மேனுவல் மாக் (`__mocks__`) டைரக்டரியில் வரையறுக்கப்பட்ட அன்மாக் சார்பு.
 
-##### Paramaters
+##### பாராமீட்டர்கள்
 
-- `moduleName`: name of the module to be unmocked.
+- `moduleName`: அன்மாக் செய்ய வேண்டிய மாடூலின் பெயர்.
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 unmock('lodash')
