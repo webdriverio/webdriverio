@@ -24,7 +24,7 @@ title: மாடூல்ஸ்
 
 - [பிரௌசர்](/docs/api/browser) ஆப்ஜெக்ட்
 
-##### Example
+##### எடுத்துக்காட்டு
 
 ```js
 const client = await WebDriver.newSession({
