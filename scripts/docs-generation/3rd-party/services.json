@@ -111,6 +111,7 @@
   {
     "packageName": "wdio-novus-visual-regression-service",
     "title": "Novus Visual Regression",
+    "branch": "master",
     "githubUrl": "https://github.com/Jnegrier/wdio-novus-visual-regression-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-novus-visual-regression-service"
   },

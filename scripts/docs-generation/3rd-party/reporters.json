@@ -2,6 +2,7 @@
   {
     "packageName": "wdio-reportportal-reporter",
     "title": "Report Portal",
+    "branch": "master",
     "githubUrl": "https://github.com/borisosipov/wdio-reportportal-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-reporter"
   },
@@ -14,24 +15,28 @@
   {
     "packageName": "wdio-html-nice-reporter",
     "title": "HTML",
+    "branch": "master",
     "githubUrl": "https://github.com/rpii/wdio-html-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
   },
   {
     "packageName": "wdio-json-reporter",
     "title": "JSON",
+    "branch": "master",
     "githubUrl": "https://github.com/fijijavis/wdio-json-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-json-reporter"
   },
   {
     "packageName": "wdio-mochawesome-reporter",
     "title": "Mochawesome",
+    "branch": "master",
     "githubUrl": "https://github.com/fijijavis/wdio-mochawesome-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-mochawesome-reporter"
   },
   {
     "packageName": "wdio-timeline-reporter",
     "title": "Timeline",
+    "branch": "master",
     "githubUrl": "https://github.com/QualityOps/wdio-timeline-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-timeline-reporter"
   },
@@ -44,6 +49,7 @@
   {
     "packageName": "wdio-delta-reporter-service",
     "title": "Delta Reporter",
+    "branch": "master",
     "githubUrl": "https://github.com/delta-reporter/delta-reporter-wdio",
     "npmUrl": "https://www.npmjs.com/package/@delta-reporter/wdio-delta-reporter-service"
   },
@@ -62,6 +68,7 @@
   {
     "packageName": "wdio-slack-reporter",
     "title": "Slack Reporter",
+    "branch": "master",
     "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
     "npmUrl": "https://www.npmjs.com/package/@moroo/wdio-slack-reporter"
   },
