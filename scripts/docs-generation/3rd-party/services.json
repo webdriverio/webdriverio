@@ -13,7 +13,7 @@
   },
   {
     "packageName": "wdio-safaridriver-service",
-    "title": "EdgeDriver",
+    "title": "SafariDriver",
     "githubUrl": "https://github.com/webdriverio-community/wdio-safaridriver-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-safaridriver-service"
   },
