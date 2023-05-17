@@ -3,7 +3,11 @@
 This project has a set of commands that help you to validate your code. Every test layer is described further below. You can run them individually or with a single command:
 
 ```sh { name=test }
+<<<<<<< HEAD
 $ npx runme --project . run test-depcheck test-linting test-typings test-unit test-smoke test-component test-e2e
+=======
+runme run test:depcheck test:linting test:typings test:unit test:smoke test:component test:e2e
+>>>>>>> 64f4961a9 (minor updates)
 ```
 
 ## Test Pipeline
@@ -12,32 +16,57 @@ When a PR gets submitted, WebdriverIO runs the following checks:
 
 - [*Dependency Checks*](#dependency-checks)
   ```sh
+<<<<<<< HEAD
   $ npx runme --project . run test-depcheck
   ```
 
 - [*Linting*](#linting)
   ```sh { name=test-linting }
   $ npx runme --project . run --parallel test-eslint test-ejslint
+=======
+  runme run test:depcheck
+  ```
+
+- [*Linting*](#linting)
+  ```sh { name=test:linting }
+  runme run -p test:eslint test:ejslint
+>>>>>>> 64f4961a9 (minor updates)
   ```
 
 - [*TypeScript Definition Tests*](#testing-type-definitions)
   ```sh
+<<<<<<< HEAD
   $ npx runme --project . run test-typings
+=======
+  runme run test:typings
+>>>>>>> 64f4961a9 (minor updates)
   ```
 
 - [*Unit Tests*](#unit-tests)
   ```sh
+<<<<<<< HEAD
   $ npx runme --project . run test-unit
+=======
+  runme run test:unit
+>>>>>>> 64f4961a9 (minor updates)
   ```
 
 - [*Smoke Tests*](#run-e2e-experience-with-smoke-tests)
   ```sh
+<<<<<<< HEAD
   $ npx runme --project . run test-smoke
+=======
+  runme run test:smoke
+>>>>>>> 64f4961a9 (minor updates)
   ```
 
 - [*Component Tests*](#component-testing)
   ```sh
+<<<<<<< HEAD
   $ npx runme --project . run test-component
+=======
+  runme run test:component
+>>>>>>> 64f4961a9 (minor updates)
   ```
 
 - [*e2e Tests*](#e2e-tests)
@@ -75,11 +104,19 @@ As we generate our type definitions, we want to be cautious that the generated d
 
 ```sh { name=test-typings }
 # run tests for latest TypeScript version
+<<<<<<< HEAD
 npx runme --project . run test-typings-setup
 # Run Typing Tests
 npx runme --project . run --parallel test-typings-compile-webdriver test-typings-compile-devtools test-typings-compile-webdriverio test-typings-compile-mocha test-typings-compile-jasmine test-typings-compile-cucumber
 # Clean Compiled Files
 npx runme --project . run test-typings-clean
+=======
+runme run test:typings:setup
+# Run Typing Tests
+runme run -p test:typings:compile:webdriver test:typings:compile:devtools test:typings:compile:webdriverio test:typings:compile:mocha test:typings:compile:jasmine test:typings:compile:cucumber
+# Clean Compiled Files
+runme run test:typings:clean
+>>>>>>> 64f4961a9 (minor updates)
 ```
 
 This will:

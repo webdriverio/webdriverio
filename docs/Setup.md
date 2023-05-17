@@ -86,7 +86,6 @@ This will:
   ```sh { name=copyTemplates }
   cd ../packages/wdio-cli
   npm run copy
-  cd ../../
   ```
 
 #### TypeScript Definitions

@@ -13,7 +13,11 @@ Changes to the docs need to be done in one of these places. Please note that cha
 The easiest way to get a version of the documentation run locally is via:
 
 ```sh { name=docs }
+<<<<<<< HEAD
 npx runme --project . run docs-clean docs-install docs-generate docs-start
+=======
+runme run docs:clean docs:setup docs:generate docs:start
+>>>>>>> 64f4961a9 (minor updates)
 ```
 
 ## Setup Docusaurus

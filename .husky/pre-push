@@ -1,3 +1,3 @@
 #!/bin/sh
 
-npx runme run test:linting
+runme run test:linting
