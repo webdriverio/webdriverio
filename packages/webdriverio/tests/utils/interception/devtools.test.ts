@@ -645,7 +645,12 @@ test('allows to clear mocks', async () => {
 })
 
 test('allows to restore mocks', async () => {
+    const browserMock = {
+        getWindowHandle: vi.fn().mockResolvedValue('window-handle')
+    } as any as Browser
     const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    const sessionMocks = { 'window-handle': new Set([mock]) }
+    const cdpSessions = { 'window-handle': cdpClient }
     mock.respondOnce({ foo: 'bar' })
     mock.respond({ bar: 'foo' })
 
@@ -661,6 +666,49 @@ test('allows to restore mocks', async () => {
     })
     expect(mock.respondOverwrites.length).toBe(1)
 
-    mock.restore()
+    mock.restore(sessionMocks, cdpSessions)
     expect(mock.respondOverwrites.length).toBe(0)
+})
+
+test('removes mock after restore', async () => {
+    const browserMock = {
+        getWindowHandle: vi.fn().mockResolvedValue('window-handle')
+    } as any as Browser
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    const sessionMocks = { 'window-handle': new Set([mock]) }
+    const cdpSessions = { 'window-handle': cdpClient }
+
+    await mock.restore(sessionMocks, cdpSessions)
+
+    expect(sessionMocks).toEqual({})
+})
+
+test('disables fetch domain after restore, if there are no other mocks', async () => {
+    const browserMock = {
+        getWindowHandle: vi.fn().mockResolvedValue('window-handle')
+    } as any as Browser
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    const sessionMocks = { 'window-handle': new Set([mock]) }
+    const cdpSessions = { 'window-handle': cdpClient }
+
+    await mock.restore(sessionMocks, cdpSessions)
+
+    expect(cdpClient.send).toBeCalledWith('Fetch.disable')
+    expect(cdpSessions).toEqual({})
+})
+
+test('does not disable fetch domain after restore, if there are other mocks', async () => {
+    const browserMock = {
+        getWindowHandle: vi.fn().mockResolvedValue('window-handle')
+    } as any as Browser
+    const firstMock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    const secondMock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    const sessionMocks = { 'window-handle': new Set([firstMock, secondMock]) }
+    const cdpSessions = { 'window-handle': cdpClient }
+
+    await firstMock.restore(sessionMocks, cdpSessions)
+
+    expect(cdpClient.send).not.toBeCalledWith('Fetch.disable')
+    expect(sessionMocks).toEqual({ 'window-handle': new Set([secondMock]) })
+    expect(cdpSessions).toEqual({ 'window-handle': cdpClient })
 })

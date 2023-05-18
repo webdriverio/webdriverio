@@ -47,8 +47,8 @@ export default class WebDriverInterception extends Interception {
      * Does everything that `mock.clear()` does, and also
      * removes any mocked return values or implementations.
      */
-    restore () {
-        return this.browser.call(
+    async restore () {
+        await this.browser.call(
             async () => this.browser.clearMockCalls(this.mockId as string, true))
     }
 
