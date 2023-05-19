@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.4 (2023-05-19)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-browser-runner`
+  * [#10417](https://github.com/webdriverio/webdriverio/pull/10417) (browser-runner): avoid responses on map requests ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#10415](https://github.com/webdriverio/webdriverio/pull/10415) fix: set sessionName in case of browser.reloadSession ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.10.3 (2023-05-12)
 
 #### :bug: Bug Fix
