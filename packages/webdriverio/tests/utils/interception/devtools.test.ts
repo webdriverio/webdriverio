@@ -232,6 +232,18 @@ test('decodes base64 responses', async () => {
     expect(mock.calls[1].body).toBe('{"foo":"bar"}')
 })
 
+test('response error', async () => {
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
+    cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
+    await fetchListener(mock, {
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseErrorReason: 'NameNotResolved'
+    })
+
+    expect(mock.calls[0].statusCode).toBe(0)
+})
+
 test('undefined response', async () => {
     const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     cdpClient.send.mockReturnValueOnce(Promise.resolve({}))

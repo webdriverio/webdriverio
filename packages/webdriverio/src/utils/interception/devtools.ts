@@ -27,6 +27,7 @@ type Event = {
     request: Matches & { mockedResponse: string | Buffer }
     responseStatusCode?: number
     responseHeaders: HeaderEntry[]
+    responseErrorReason?: string
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;
@@ -38,9 +39,9 @@ export default class DevtoolsInterception extends Interception {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
-            const isRequest = !event.responseHeaders
+            const isRequest = !event.responseHeaders && !event.responseErrorReason
 
-            event.responseStatusCode ||= 200
+            event.responseStatusCode ||= event.responseErrorReason ? 0 : 200
             event.responseHeaders ||= []
 
             const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
