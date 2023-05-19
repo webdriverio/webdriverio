@@ -41,7 +41,7 @@ Selon la documentation [Appium](https://appium.github.io/appium.io/docs/en/about
 - Vous ne devriez pas avoir à recompiler votre application ou à la modifier de quelque manière que ce soit pour l'automatiser.
 - Vous ne devez pas être enfermé dans un langage ou un framework spécifique pour écrire et exécuter vos tests.
 - Un framework d'automatisation mobile ne devrait pas réinventer la roue en ce qui concerne les API d'automatisation.
-- Un cadre d'automatisation mobile doit être open source, dans l'esprit et la pratique ainsi que dans le nom !
+- Un cadre d'automatisation mobile doit être open source, dans l'esprit et la pratique ainsi que dans le nom!
 
 ## Chromium
 
