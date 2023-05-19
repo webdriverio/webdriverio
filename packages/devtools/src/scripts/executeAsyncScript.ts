@@ -23,7 +23,7 @@ export default (
 ): Promise<any> => {
     return new Promise((_resolve, _reject) => {
         setTimeout(
-            () => _reject('script timeout'),
+            () => _reject(new Error('Evaluation failed: script timeout')),
             scriptTimeout
         )
 

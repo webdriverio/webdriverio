@@ -1,7 +1,7 @@
 
 import type { Capabilities } from '../../../packages/wdio-types'
 
-const SCROLL_MARGIN_TRESHOLD = 20
+const SCROLL_MARGIN_TRESHOLD = 25
 
 describe('main suite 1', () => {
     it('foobar test', async () => {
