@@ -66,6 +66,30 @@ exports[`SpecReporter > getResultDisplay > should print data tables 1`] = `
 ]
 `;
 
+exports[`SpecReporter > getResultDisplay > should print doc string 1`] = `
+[
+  "» /foo/bar/loo.e2e.js",
+  "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
+  "grey Very important business rule",
+  "   green ✓ foo",
+  "     \\"\\"\\"",
+  "     Docstring line 1",
+  "     Docstring line 2",
+  "     Docstring line 3",
+  "     \\"\\"\\"",
+  "   green ✓ bar",
+  "     \\"\\"\\"",
+  "     Docstring line 4",
+  "     Docstring line 5",
+  "     Docstring line 6",
+  "     \\"\\"\\"",
+  "",
+]
+`;
+
 exports[`SpecReporter > getResultDisplay > should validate the result output with tests 1`] = `
 [
   "» /foo/bar/loo.e2e.js",

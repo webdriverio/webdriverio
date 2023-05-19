@@ -9,7 +9,8 @@ import {
     SUITES_NO_TESTS,
     SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
-    SUITES_MULTIPLE_ERRORS
+    SUITES_MULTIPLE_ERRORS,
+    SUITES_WITH_DOC_STRING
 } from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
@@ -395,10 +396,9 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should not print if data table format is not given', () => {
+        it('should print doc string', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
-                suites[0].hooksAndTests[0].argument = 'some different format'
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
                 return suites
             })
             const result = tmpReporter.getResultDisplay()

@@ -352,13 +352,24 @@ export default class SpecReporter extends WDIOReporter {
                 // Output for a single test
                 output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
 
-                // print cucumber data table cells
-                const args = (test as TestStats).argument as Argument
-                if (args && args.rows && args.rows.length) {
-                    const data = buildTableData(args.rows)
-                    const rawTable = printTable(data)
-                    const table = getFormattedRows(rawTable, testIndent)
-                    output.push(...table)
+                // print cucumber data table cells and docstring
+                const arg = (test as TestStats).argument
+                if (typeof(arg) === 'string'){
+                    // Doc string is the same with the indent on the output for a single test
+                    const docstringIndent = '  '
+                    const docstringMark = `${testIndent}${docstringIndent}"""`
+                    const docstring = String(arg)
+                    const formattedDocstringLines = docstring.split('\n')
+                        .map((line: string) => `${testIndent}${docstringIndent}${line}`)
+                    output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
+                } else {
+                    const dataTable = arg as Argument
+                    if (dataTable && dataTable.rows && dataTable.rows.length) {
+                        const data = buildTableData(dataTable.rows)
+                        const rawTable = printTable(data)
+                        const table = getFormattedRows(rawTable, testIndent)
+                        output.push(...table)
+                    }
                 }
 
                 // print pending reasons
