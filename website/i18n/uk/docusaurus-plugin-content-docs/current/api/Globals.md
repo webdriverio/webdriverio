@@ -10,7 +10,7 @@ title: Глобальні змінні
 - `browser`: WebdriverIO [Об’єкт браузеру](https://webdriver.io/docs/api/browser)
 - `driver`: синонім для `browser` (використовується під час виконання мобільних тестів)
 - `multiremotebrowser`: синонім `browser` або `driver`, але встановлюється тільки для [сеансів Multiremote](/docs/multiremote)
-- `$`: команда для пошуку елемента (докладніше у [API документації](/docs/api/browser/$))
+- `$`: команда для пошуку елемента (докладніше в [API документації](/docs/api/browser/$))
 - `$$`: команда для пошуку масиву елементів (докладніше у [API документації](/docs/api/browser/$$))
 - `expect`: фреймворк перевірок для WebdriverIO (докладніше у [API документації](/docs/api/expect-webdriverio))
 
