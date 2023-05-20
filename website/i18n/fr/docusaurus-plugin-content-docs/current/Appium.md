@@ -1,6 +1,6 @@
 ---
 id: appium
-title: Appium Setup
+title: Configuration Appium
 ---
 
 With WebdriverIO you can test not only web application in the browser but also other platforms such as:
