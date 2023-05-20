@@ -3,13 +3,13 @@ id: appium
 title: Configuration Appium
 ---
 
-With WebdriverIO you can test not only web application in the browser but also other platforms such as:
+Avec WebdriverIO, vous pouvez tester non seulement des applications Web dans le navigateur, mais également d'autres plateformes telles que :
 
-- 📱 mobile applications on iOS, Android or Tizen
-- 🖥️ desktop applications on macOS or Windows
-- 📺 as well as TV apps for Roku, tvOS, Android TV and Samsung
+- Des applications mobiles sur IOS, Android ou Tizen
+- Des applications de bureau sur macOS ou Windows
+- Ou encore des applications destinées aux TV connectées pour Roku, tvOS, Android TV ou Samsung
 
-We recommend to use [Appium](https://appium.io/) to help you facilitate these types of tests. You can get an overview on Appium on their [offical documentation page](https://appium.io/docs/en/2.0/intro/).
+Nous vous recommandons d'utiliser [Appium](https://appium.io/) pour vous aider à faciliter ces types de tests. Vous pouvez obtenir un aperçu d'Appium sur leur [page de documentation officielle](https://appium.io/docs/en/2.0/intro/).
 
 Setting up the right environment is not straight forward. Luckily the Appium ecosystem has great tooling around this to help you. To set-up one of the above environments, just run:
 
