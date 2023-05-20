@@ -20,20 +20,6 @@ exports[`SpecReporter > getHeaderDisplay > should validate header output in mult
 ]
 `;
 
-exports[`SpecReporter > getResultDisplay > should not print if data table format is not given 1`] = `
-[
-  "» /foo/bar/loo.e2e.js",
-  "Foo test",
-  "grey Some important",
-  "grey description to read!",
-  "",
-  "grey Very important business rule",
-  "   green ✓ foo",
-  "   green ✓ bar",
-  "",
-]
-`;
-
 exports[`SpecReporter > getResultDisplay > should not print if data table is empty 1`] = `
 [
   "» /foo/bar/loo.e2e.js",
