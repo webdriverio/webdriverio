@@ -1,7 +1,7 @@
 <%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
 
 <%- isUsingTypeScript || esmSupport
-    ? `import Page from './page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
+    ? `import Page from './page${esmSupport ? '.js' : ''}';`
     : "const Page = require('./page');" %>
 
 /**

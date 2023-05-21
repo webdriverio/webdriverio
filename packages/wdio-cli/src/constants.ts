@@ -241,12 +241,6 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
-    type: 'confirm',
-    name: 'setupMobileEnvironment',
-    message: 'Would you like to setup Appium for mobile testing?',
-    default: false,
-    when: /* istanbul ignore next */ (answers: Questionnair) => isLocalEnvironment(answers)
-}, {
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
@@ -260,6 +254,15 @@ export const QUESTIONNAIRE = [{
         }
         return BACKEND_CHOICES
     }
+}, {
+    type: 'confirm',
+    name: 'setupMobileEnvironment',
+    message: 'Would you like to setup Appium for mobile testing?',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        isLocalEnvironment(answers) &&
+        answers.backend === BACKEND_CHOICES[0]
+    )
 }, {
     type: 'input',
     name: 'hostname',

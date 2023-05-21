@@ -7,7 +7,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  *
  * :::info
  *
- * This command is only supported for mobile sessions running on [Appium](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/).
+ * This command is only supported for mobile sessions running on [Appium](https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/start-recording-screen/).
  *
  * :::
  *

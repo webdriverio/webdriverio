@@ -295,7 +295,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
-        delete this._suiteTitle
         delete this._fullTitle
         delete this._suiteFile
         this._failReasons = []
@@ -305,8 +304,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
-
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
     }
 
     _updateJob (requestBody: any) {

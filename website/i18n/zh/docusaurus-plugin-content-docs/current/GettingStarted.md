@@ -6,13 +6,10 @@ title: Getting Started
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)! ::: If you are still using an older version, please visit the [old documentation websites](/versions)!
+These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
-<LiteYouTubeEmbed
-    id="rA4IFNyW54c"
-    title="Getting Started with WebdriverIO"
-/>
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
 :::tip Official YouTube Channel 🎥
 
@@ -79,7 +76,7 @@ This single command downloads the WebdriverIO CLI tool and runs a configuration 
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
 
 <Tabs
   defaultValue="npm"
@@ -144,7 +141,7 @@ __Note:__ all WebdriverIO commands are asynchronous and need to be properly hand
 
 ## Record tests
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
 
 ## System Requirements
 
@@ -153,4 +150,4 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Install at least v16.x or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative. NVM is a popular choice, while Volta is also a good alternative.
+If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.

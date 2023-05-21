@@ -1,32 +1,32 @@
 ---
 id: mock
-title: The Mock Object
+title: L'objet fictif
 ---
 
-The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
+L'objet bouchon est un objet qui représente un bouchon réseau et contient des informations sur les requêtes qui ont été correspondantes à `url` donnée et `filterOptions`. Il peut être reçu en utilisant la commande [`bouchon`](/docs/api/browser/mock).
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+Notez que l'utilisation de la commande `mock` nécessite le support du protocole Chrome DevTools. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. En savoir plus dans la section [Protocoles d'automatisation](/docs/automationProtocols).
 
 :::
 
-You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
+Vous pouvez en savoir plus sur les simulations de requêtes et de réponses dans WebdriverIO dans notre guide de [masques et espions](/docs/mocksandspies).
 
-## Properties
+## Propriétés
 
-A mock object contains the following properties:
+Un objet `browser` possède les propriétés suivantes :
 
-| Name            | Type       | Details                                                                                                                                                                               |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
-| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
-| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
-| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| Nom             | Type       | Détails                                                                                                                                                                                                             |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`           | `String`   | L'url est passée dans la commande bouchon                                                                                                                                                                           |
+| `filterOptions` | `Object`   | Les options de filtrage de ressource sont passées dans la commande bouchon                                                                                                                                          |
+| `browser`       | `Object`   | L'objet [Browser](/docs/api/browser) utilisé pour obtenir l'objet bouchon.                                                                                                                                          |
+| `calls`         | `Object[]` | Informations à propos des requêtes correspondantes du navigateur, contenant des propriétés telles que `url`, `méthode`, `en-têtes`, `initialPriorité`, `référencePolic`, `statusCode`, `responseHeaders` and `body` |
 
-## Methods
+## Méthodes
 
-Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
+Les objets fictifs fournissent diverses commandes, énumérées dans la section `bouchon` , qui permettent aux utilisateurs de modifier le comportement de la requête ou de la réponse.
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -35,17 +35,17 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
 
-## Events
+## Événements
 
-The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+L'objet bouchon est un EventEmitter et quelques événements sont émis pour vos cas d'utilisation.
 
-Here is a list of events.
+Voici une liste des événements.
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
+Cet événement est émis lors du lancement d'une requête réseau qui correspond à des mock patterns. La requête est passée en cas de rappel.
 
-Request interface:
+Interface de requête :
 ```ts
 interface RequestEvent {
     requestId: number
@@ -57,9 +57,9 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
+Cet événement est émis lorsque la réponse réseau est écrasée par [`répondre`](/docs/api/mock/respond) ou [`respondOnce`](/docs/api/mock/respondOnce). La réponse est passée en cas de rappel de l'événement.
 
-Response interface:
+Interface de réponse :
 ```ts
 interface OverwriteEvent {
     requestId: number
@@ -71,9 +71,9 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
+Cet événement est en cours d'émission lorsque la requête réseau est annulée avec [`annule`](/docs/api/mock/abort) ou [`abortOnce`](/docs/api/mock/abortOnce). Le match est passé dans le rappel de l'événement.
 
-Fail interface:
+Erreur de l'interface:
 ```ts
 interface FailEvent {
     requestId: number
@@ -83,9 +83,9 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
+Cet événement est émis quand un nouveau match est ajouté, avant `continuer` ou `écraser`. Le match est passé dans le rappel de l'événement.
 
-Match interface:
+Interface de correspondance:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+Cet événement est émis lorsque la réponse réseau n'a pas été écrasée ou interrompue, ou si la réponse a déjà été envoyée par un autre mock. `requestId` est passé en cas de rappel d'événement.
 
-## Examples
+## Exemples
 
-Getting a number of pending requests:
+Obtention d'un certain nombre de requêtes en attente :
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+Lancer une erreur sur le réseau 404 échoue :
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+Déterminer si la valeur de réponse du bouchon a été utilisée :
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+Dans cet exemple, `firstMock` a été défini en premier et a un appel `respondOnce` , donc la valeur de réponse `secondMock` ne sera pas utilisée pour la première requête, mais sera utilisé pour le reste.

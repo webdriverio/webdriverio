@@ -3,7 +3,7 @@ id: api
 title: 概述
 ---
 
-欢迎参阅 WebdriverIO API 文档。 这里为您提供所有协议绑定和常用指令的快捷参考。 Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.
+欢迎参阅 WebdriverIO API 文档。 这里为您提供所有协议绑定和常用指令的快捷参考。 协议命令，包括 [WebDriver](/docs/api/webdriver)、 [WebDriver Bidi](/docs/api/webdriverBidi) 或移动命令如 [Appium](http://appium.io) 是直接发送到底层驱动程序后端的命令。 [`浏览器`](/docs/api/browser)、 [`element`](/docs/api/element) 或 [`mock`](/docs/api/mock) 对象提供的便捷命令提供更高级别的交互性。
 
 :::info
 这是 WebdriverIO 最新版本 (__>=8.x__) 的文档。 如果您仍在使用老版本，请参阅[旧版文档网站](/versions)！

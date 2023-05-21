@@ -1,6 +1,6 @@
 ---
 id: highleveloverview
-title: High level overview
+title: Високорівневий огляд
 ---
 
-Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+Блок-схема надає високорівневий огляд того, як екосистема WebdriverIO взаємодіє з основними пакетами.

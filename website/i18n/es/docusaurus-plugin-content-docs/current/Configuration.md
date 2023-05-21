@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. Consulte [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) para obtener más detalles.
+Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. Consulte [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) para obtener más detalles.
 
 ### logLevel
 
@@ -179,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
+Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
 
 Para aumentar el tiempo de espera de una _prueba_, por favor vea la documentación del framework.
 

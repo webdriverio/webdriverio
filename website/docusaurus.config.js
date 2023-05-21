@@ -24,7 +24,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'de', 'es', 'hi'/*, 'fr', 'zh-CN', 'ru', 'fa' */],
+        locales: ['en', 'de', 'es', 'hi', 'fr', 'uk', 'fa', 'ta'/*, 'zh-CN', 'ru' */],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',

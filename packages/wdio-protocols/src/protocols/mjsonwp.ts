@@ -57,7 +57,7 @@ export default {
                 type: 'number',
                 name: 'connectionType',
                 description:
-                    'see http://appium.io/docs/en/writing-running-appium/other/network-connection/',
+                    'see https://appium.github.io/appium.io/docs/en/writing-running-appium/other/network-connection/',
             },
         },
         POST: {

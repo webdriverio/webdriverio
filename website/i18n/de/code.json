@@ -570,5 +570,11 @@
   },
   "Who is using WebdriverIO?": {
     "message": "Wer verwendet alles WebdriverIO?"
+  },
+  "all in one": {
+    "message": "alles in einem"
+  },
+  "used by your users": {
+    "message": "von Ihren Benutzern verwendet"
   }
 }

@@ -1,13 +1,13 @@
 ---
 id: setuptypes
-title: Setup Types
+title: Способи використання
 ---
 
-WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO можна використовувати для різних цілей. Він реалізує API для виконання команд WebDriver протоколу та може запускати браузер готовий для автоматизації. Фреймворк розроблений для роботи в будь-якому середовищі та для будь-яких завдань. Він не залежить від сторонніх фреймворків і потребує лише Node.js для роботи.
 
-## Protocol Bindings
+## Імплементації протоколів
 
-For basic interactions with the WebDriver and other automation protocols WebdriverIO uses its own protocol bindings based on the [`webdriver`](https://www.npmjs.com/package/webdriver) NPM package:
+Для базової взаємодії з WebDriver та іншими протоколами автоматизації WebdriverIO використовує власні імплементації протоколів, що базуються на NPM пакунку [`webdriver`](https://www.npmjs.com/package/webdriver):
 
 <Tabs
   defaultValue="webdriver"
@@ -32,15 +32,15 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-All [protocol commands](api/webdriver) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+Усі [команд протоколу](api/webdriver) повертають необроблену відповідь від драйвера автоматизації. Пакет дуже мінімалістичний і __не має__ розумної логіки, як-от автоматичне очікування, щоб спростити мінімізувати використання протоколу.
 
-The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
+Команди протоколу, що зможуть бути використані з екземпляром, залежать від відповіді драйвера на запит початку сеансу. Наприклад, якщо відповідь вказує, на те що було розпочато мобільний сеанс, пакунок дозволяє всі команди протоколу Appium і Mobile JSON Wire цьому екземпляру.
 
-You can run the same set of commands (except mobile ones) using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
+Ви можете використовувати той самий набір команд (крім мобільних) за допомогою Chrome DevTools протоколу із [`devtools`](https://www.npmjs.com/package/devtools) NPM пакунком. Він має той самий інтерфейс, що й пакунок `webdriver`, але виконує автоматизацію на основі [Puppeteer](https://pptr.dev/).
 
-For more information on these package interfaces, see [Modules API](/docs/api/modules).
+Щоб отримати додаткові відомості про інтерфейси цих пакунків, перегляньте розділ [Модулі](/docs/api/modules).
 
-## Standalone Mode
+## Автономний режим
 
 To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](api/element/dragAndDrop) command) and core concepts such as [smart selectors](selectors) or [auto-waits](autowait). The example from above can be simplified like this:
 

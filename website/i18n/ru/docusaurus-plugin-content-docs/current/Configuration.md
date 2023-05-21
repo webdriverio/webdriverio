@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
 
 ### logLevel
 
@@ -279,7 +279,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
 

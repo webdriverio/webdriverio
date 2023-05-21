@@ -3,7 +3,7 @@ id: configurationfile
 title: Configuration File
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON. It’s a NodeJS module that exports a JSON.
+The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
 
 Here is an example configuration with all supported properties and additional information:
 
@@ -200,7 +200,7 @@ export const config = {
     specFileRetries: 1,
     // Delay in seconds between the spec file retry attempts
     specFileRetriesDelay: 0,
-    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    // Whether or not retried spec files should be retried immediately or deferred to the end of the queue
     specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.

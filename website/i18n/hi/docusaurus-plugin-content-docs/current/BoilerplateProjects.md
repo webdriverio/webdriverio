@@ -83,6 +83,42 @@ title: बॉयलरप्लेट प्रोजेक्ट्स
     - ईमेल कार्यक्षमता को एकीकृत करता है
     - टेस्ट रिपोर्ट स्टोरेज और पुनर्प्राप्ति के लिए S3 बाल्टी को एकीकृत करता है
 
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Mocha, and Serenity/JS.
+
+- फ्रेमवर्क
+    - WebdriverIO (v8)
+    - Mocha (v10)
+    - Serenity/JS (v3)
+    - शांति बीडीडी रिपोर्टिंग
+
+- विशेतएं
+    - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
+    - टाइपस्क्रिप्ट
+    - ESLint
+
+## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Cucumber, and Serenity/JS.
+
+- फ्रेमवर्क
+    - WebdriverIO (v8)
+    - Cucumber (v9)
+    - Serenity/JS (v3)
+    - शांति बीडीडी रिपोर्टिंग
+
+- विशेतएं
+    - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
+    - टाइपस्क्रिप्ट
+    - ESLint
+
 # v7 बॉयलरप्लेट प्रोजेक्ट्स
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -175,42 +211,6 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
     - पेज ऑब्जेक्ट मॉडल
     - कुकुम्बर में सैंपल टेस्ट परिदृश्य शामिल करें
     - एकाधिक कुकुम्बर एचटीएमएल रिपोर्ट के साथ एकीकृत
-
-## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) टेम्प्लेट प्रोजेक्ट आपको नवीनतम WebdriverIO, Mocha, और Serenity/JS का उपयोग करके अपने वेब अनुप्रयोगों की स्वीकृति परीक्षण के साथ आरंभ करने में मदद करने के लिए
-
-- फ्रेमवर्क
-    - WebdriverIO
-    - मोचा
-    - शांति/जेएस
-    - शांति बीडीडी रिपोर्टिंग
-
-- विशेतएं
-  - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-  - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
-  - [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)का उपयोग करके सतत एकीकरण (CI) सेटअप
-  - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
-  - टाइपस्क्रिप्ट
-  - ESLint
-
-## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) टेम्प्लेट प्रोजेक्ट आपको नवीनतम WebdriverIO, Mocha, और Serenity/JS का उपयोग करके अपने वेब अनुप्रयोगों की स्वीकृति परीक्षण के साथ आरंभ करने में मदद करने के लिए
-
-- फ्रेमवर्क
-    - WebdriverIO
-    - कुकुम्बर
-    - शांति/जेएस
-    - शांति बीडीडी रिपोर्टिंग
-
-- विशेतएं
-    - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-    - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
-    - [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)का उपयोग करके सतत एकीकरण (CI) सेटअप
-    - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
-    - टाइपस्क्रिप्ट
-    - ESLint
 
 ## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
 

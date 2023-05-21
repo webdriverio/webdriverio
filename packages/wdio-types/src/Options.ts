@@ -396,7 +396,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     specFileRetriesDelay?: number
     /**
-     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred?: boolean
     /**

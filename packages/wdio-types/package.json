@@ -1,6 +1,6 @@
 {
   "name": "@wdio/types",
-  "version": "8.8.7",
+  "version": "8.10.4",
   "description": "Utility package providing type information for a variety of WebdriverIO interfaces",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types",
@@ -30,6 +30,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^18.0.0"
+    "@types/node": "^20.1.0"
   }
 }

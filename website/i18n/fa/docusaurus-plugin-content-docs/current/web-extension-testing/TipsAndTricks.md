@@ -7,9 +7,9 @@ title: نکات و ترفندها
 
 ## Popup Modal را در کروم تست کنید
 
-If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
+اگر یک ورودی عمل مرورگر `default_popup` را در [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) خود تعریف کنید می توانید آن صفحه HTML را مستقیماً آزمایش کنید، زیرا کلیک بر روی نماد افزودنی در نوار بالای مرورگر کار نمی کند. در عوض، باید فایل html پاپ آپ را مستقیماً باز کنید.
 
-In Chrome this works by retrieving the extension ID and opening the popup page through `browser.url('...')`. The behavior on that page will be the same as within the popup. To do so we recommend to write the following custom command:
+در Chrome این کار با بازیابی شناسه افزودنی و باز کردن صفحه بازشو از طریق `browser.url('...')` کار می کند. رفتار در آن صفحه همانند رفتار در پاپ آپ خواهد بود. برای انجام این کار توصیه می کنیم دستور سفارشی زیر را بنویسید:
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
@@ -41,7 +41,7 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+در `wdio.conf.js` خود می توانید این فایل را وارد کنید و دستور سفارشی را در قلاب(hook) `before ` خود ثبت کنید، به عنوان مثال:
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'

@@ -474,7 +474,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, y: 0, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.reject(new Error('Method is not implemented')))
-            } as any as Element<'async'>
+            } as any as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 0, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).not.toHaveBeenCalled()
@@ -558,7 +558,7 @@ describe('utils', () => {
                 .toBe('devtools')
             expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', 'appium:deviceName': 'iPhone' } }))
                 .toBe('webdriver')
-            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', app: 'some app' } }))
+            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', 'appium:app': 'some app' } }))
                 .toBe('webdriver')
         })
 

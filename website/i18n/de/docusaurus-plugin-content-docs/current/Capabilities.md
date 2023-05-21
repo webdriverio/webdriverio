@@ -30,7 +30,7 @@ Während die Menge an fest definierten Fähigkeiten sehr gering ist, kann jeder 
 
 ### Erweiterungen der Automation Engine-Capabilities
 
-- `appium:xxx`: [Appium](https://appium.io/docs/en/writing-running-appium/caps/)
+- `appium:xxx`: [Appium](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - und viel, viel mehr!
 
@@ -87,7 +87,64 @@ Das Ausführen eines Headless-Browsers bedeutet, eine Browserinstanz ohne Fenste
 </TabItem>
 <TabItem value="safari">
 
-Es scheint, dass Safari es [nicht unterstützt] (https://discussions.apple.com/thread/251837694) im Headless-Modus ausgeführt zu werden.
+It seems that Safari [doesn't support](https://discussions.apple.com/thread/251837694) running in headless mode.
+
+</TabItem>
+</Tabs>
+
+### Automate Different Browser Channels
+
+If you like to test a browser version that is not yet released as stable, e.g. Chrome Canary, you can do so by setting capabilities and pointing to the browser you like to start, e.g.:
+
+<Tabs
+  defaultValue="chrome"
+  values={[
+    {label: 'Chrome', value: 'chrome'},
+ {label: 'Firefox', value: 'firefox'},
+ {label: 'Microsoft Edge', value: 'msedge'},
+ {label: 'Safari Edge', value: 'safari'},
+ ]
+}>
+<TabItem value="chrome">
+
+```ts
+{
+    browserName: 'chrome',
+    'goog:chromeOptions': {
+        bin: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
+    }
+}
+```
+
+</TabItem>
+<TabItem value="firefox">
+
+```ts
+    browserName: 'firefox',
+    'moz:firefoxOptions': {
+        bin: '/Applications/Firefox\ Nightly.app/Contents/MacOS/firefox'
+    }
+```
+
+</TabItem>
+<TabItem value="msedge">
+
+```ts
+    browserName: 'msedge',
+    'ms:edgeOptions': {
+        bin: '/Applications/Microsoft\ Edge\ Canary.app/Contents/MacOS/Microsoft\ Edge\ Canary'
+    }
+```
+
+</TabItem>
+<TabItem value="safari">
+
+```ts
+    browserName: 'msedge',
+    'ms:edgeOptions': {
+        browserName: 'Safari Technology Preview'
+    }
+```
 
 </TabItem>
 </Tabs>

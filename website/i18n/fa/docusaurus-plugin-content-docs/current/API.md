@@ -1,14 +1,14 @@
 ---
 id: api
-title: Introduction
+title: مقدمه
 ---
 
-Welcome to the WebdriverIO API docs. These pages contain reference materials for all implemented protocol bindings and convenience commands. Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.
+به اسناد WebdriverIO API خوش آمدید. این صفحات حاوی اطلاعات مرجع برای همه اتصالات پیاده سازی شده پروتکل و دستورات کمکی هستند. دستورات پروتکل، از جمله [WebDriver](/docs/api/webdriver)، [WebDriver Bidi](/docs/api/webdriverBidi) یا دستورات تلفن همراه مانند [Appium](http://appium.io) دستوراتی هستند که مستقیماً به پشتیبان درایور زیرین ارسال می شوند. دستورات آسان ارائه شده توسط [`browser`](/docs/api/browser)، [`element`](/docs/api/element) یا [`mock`](/docs/api/mock) تعامل سطح بالاتری را ارائه می دهند.
 
-:::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+:::نکته 
+اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
-## Contribute
+## مشارکت
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange link on the bottom left with the label _“Edit this page”_. Make sure you understand the way we write these docs by checking the [Contributing](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) section.
+اگر احساس می کنید مثال خوبی برای دستوری دارید، در باز کردن یک PR و ارسال آن تردید نکنید. فقط روی پیوند نارنجی رنگ در پایین سمت چپ با برچسب _"ویرایش این صفحه"_کلیک کنید. با بررسی بخش [مشارکت](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) ، مطمئن شوید که نحوه نوشتن این اسناد را می‌دانید.

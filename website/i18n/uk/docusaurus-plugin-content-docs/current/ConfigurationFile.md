@@ -1,11 +1,11 @@
 ---
 id: configurationfile
-title: Configuration File
+title: Файл конфігурації
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
+Файл конфігурації містить усю необхідну інформацію для запуску набору тестів. Це NodeJS модуль, який експортує JSON.
 
-Here is an example configuration with all supported properties and additional information:
+Ось приклад конфігурації з усіма підтримуваними властивостями та додатковою інформацією:
 
 ```js
 export const config = {
@@ -200,7 +200,7 @@ export const config = {
     specFileRetries: 1,
     // Delay in seconds between the spec file retry attempts
     specFileRetriesDelay: 0,
-    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    // Whether or not retried spec files should be retried immediately or deferred to the end of the queue
     specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.
@@ -495,4 +495,4 @@ export const config = {
 }
 ```
 
-You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
+Ви також можете знайти файл з усіма можливими параметрами та варіаціями в [теці examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).

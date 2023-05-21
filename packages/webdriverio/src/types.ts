@@ -116,7 +116,7 @@ type MultiRemoteElementCommands = {
 }
 
 export type MultiRemoteBrowserCommandsType = {
-    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>

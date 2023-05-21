@@ -8,6 +8,7 @@ import Interception from './index.js'
 import type { Matches, MockOverwrite, MockResponseParams } from './types.js'
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
+import { CDP_SESSIONS, SESSION_MOCKS } from '../../commands/browser/mock.js'
 
 const log = logger('webdriverio')
 
@@ -26,18 +27,21 @@ type Event = {
     request: Matches & { mockedResponse: string | Buffer }
     responseStatusCode?: number
     responseHeaders: HeaderEntry[]
+    responseErrorReason?: string
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
+    private restored = false
+
     static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
-            const isRequest = !event.responseHeaders
+            const isRequest = !event.responseHeaders && !event.responseErrorReason
 
-            event.responseStatusCode ||= 200
+            event.responseStatusCode ||= event.responseErrorReason ? 0 : 200
             event.responseHeaders ||= []
 
             const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
@@ -220,10 +224,27 @@ export default class DevtoolsInterception extends Interception {
     /**
      * Does everything that `mock.clear()` does, and also
      * removes any mocked return values or implementations.
+     * Restored mock does not emit events and could not mock responses
      */
-    restore () {
+    async restore (sessionMocks = SESSION_MOCKS, cdpSessions = CDP_SESSIONS) {
         this.clear()
         this.respondOverwrites = []
+        this.restored = true
+        const handle = await this.browser.getWindowHandle()
+
+        log.trace(`Restoring mock for ${handle}`)
+        sessionMocks[handle].delete(this)
+
+        if (sessionMocks[handle].size) {
+            return
+        }
+
+        log.trace(`Disabling fetch domain for ${handle}`)
+        return cdpSessions[handle].send('Fetch.disable')
+            .then(() => {
+                delete sessionMocks[handle]
+                delete cdpSessions[handle]
+            }).catch(/* istanbul ignore next */logFetchError)
     }
 
     /**
@@ -232,6 +253,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
+        this.ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -241,6 +263,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
+        this.ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params })
     }
 
@@ -249,6 +272,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {string} errorCode  error code of the response
      */
     abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean = true) {
+        this.ensureNotRestored()
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -261,6 +285,12 @@ export default class DevtoolsInterception extends Interception {
      */
     abortOnce (errorReason: Protocol.Network.ErrorReason) {
         this.abort(errorReason, false)
+    }
+
+    private ensureNotRestored() {
+        if (this.restored) {
+            throw new Error('This can\'t be done on restored mock')
+        }
     }
 }
 

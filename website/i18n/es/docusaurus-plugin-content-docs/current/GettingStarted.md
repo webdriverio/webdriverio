@@ -6,13 +6,12 @@ title: Primeros pasos
 Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Servidor de soporte de Discord](https://discord.webdriver.io) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
 :::info
+
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
+
 :::
 
-<LiteYouTubeEmbed
-    id="rA4IFNyW54c"
-    title="Primeros pasos"
-/>
+<LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
 :::tip Canal oficial de YouTube 🎥
 

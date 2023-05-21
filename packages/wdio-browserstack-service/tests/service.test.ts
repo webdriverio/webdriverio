@@ -114,6 +114,18 @@ describe('onReload()', () => {
         await service.onReload('1', '2')
         expect(updateSpy).toBeCalledTimes(0)
     })
+
+    it ('should not reset suiteTitle', async() => {
+        const updateSpy = vi.spyOn(service, '_update')
+        service['_browser'] = browser
+        service['_failReasons'] = []
+        service['_suiteTitle'] = 'my suite title'
+        await service.onReload('1', '2')
+        expect(updateSpy).toHaveBeenCalledWith('1', {
+            status: 'passed',
+        })
+        expect(service['_suiteTitle']).toEqual('my suite title')
+    })
 })
 
 describe('beforeSession', () => {
@@ -361,7 +373,7 @@ describe('before', () => {
             }
         )
         browser.capabilities = {
-            app: 'test-app',
+            'appium:app': 'test-app',
             device: 'iPhone XS',
             os: 'iOS',
             os_version: '12.1',
@@ -375,7 +387,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium without global browser capabilities', () => {
         const service = new BrowserstackService({} as any, {
-            app: 'bs://BrowserStackMobileAppId'
+            'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
             key: 'bar',
@@ -391,7 +403,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium if using valid W3C Webdriver capabilities', () => {
         const service = new BrowserstackService({} as any, {
-            app: 'bs://BrowserStackMobileAppId'
+            'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
             key: 'bar',

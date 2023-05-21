@@ -1,14 +1,14 @@
 ---
 id: flowchartsoverview
-title: Flowcharts
+title: Блок-схеми
 ---
 
-The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
+Блок-схеми надають високорівневий огляд екосистеми WebdriverIO та того, як різні пакунки взаємодіють один з одним.
 
-[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+[Команди WDIO](flowcharts/WDIOCommands.md) – Пояснює роботу команд wdio config, install і repl.
 
-[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+[Створіть локальний робочий процес](flowcharts/CreateLocalWorkerProcess.md) – Пояснює взаємодію між пакетами @wdio/cli, @wdio/local-runner і @wdio/runner і як створюється робочий процес.
 
-[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+[Виконання тесту](flowcharts/TestExecution.md) – Надає огляд того, як виконуються тести в локальному робочому процесі.
 
-[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+[Огляд високого рівня](flowcharts/HighLevelOverview.md) – Надає огляд високого рівня того, як екосистема WebdriverIO взаємодіє з основними пакунками.

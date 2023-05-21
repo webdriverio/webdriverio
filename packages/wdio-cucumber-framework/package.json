@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cucumber-framework",
-  "version": "8.8.7",
+  "version": "8.10.4",
   "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework",
@@ -38,14 +38,15 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "8.5.3",
+    "@cucumber/cucumber": "8.11.1",
     "@cucumber/gherkin": "26.2.0",
-    "@cucumber/gherkin-streams": "^5.0.0",
+    "@cucumber/gherkin-streams": "^5.0.1",
     "@cucumber/messages": "22.0.0",
-    "@types/node": "^18.0.0",
+    "@cucumber/tag-expressions": "5.0.1",
+    "@types/node": "^20.1.0",
     "@wdio/logger": "8.6.6",
-    "@wdio/types": "8.8.7",
-    "@wdio/utils": "8.8.7",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.10.4",
     "glob": "^10.2.2",
     "is-glob": "^4.0.0",
     "mockery": "^2.1.0"

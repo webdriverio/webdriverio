@@ -3,19 +3,19 @@ id: githubactions
 title: Github Actions
 ---
 
-If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) to run your tests on Github's infrastructure.
+Якщо ваш репозиторій на Github, ви можете використовувати [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) для запуску тестів в інфраструктурі Github.
 
-1. everytime you push changes
-2. on every pull request creation
-3. on scheduled time
-4. by manual trigger
+1. кожного разу, коли ви робите push до репозиторію
+2. при кожному створенні Pull Request
+3. в запланований час
+4. вручну
 
-In the root of your repository, create a `.github/workflows` directory. Add a Yaml file, for example `.github/workflows/ci.yaml`. In there you will configure how to run your tests.
+У корені вашого репозиторію створіть теку `.github/workflows`. Додайте файл Yaml, наприклад `.github/workflows/ci.yaml`. Там ви налаштуєте спосіб запуску тестів.
 
-See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation, and [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
+Перегляньте [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) для прикладу реалізації та [приклади тестових прогонів](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
 
 ```yaml reference
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-Find out in the [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) on more information about creating workflow files.
+Дізнайтеся в [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) більше інформації про створення файлів Ci процесу.

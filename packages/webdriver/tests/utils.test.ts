@@ -205,7 +205,7 @@ describe('utils', () => {
         })
 
         it('should do nothing if params contain incomplete direct connect caps', function () {
-            const client = new TestClient({ platformName: 'baz', directConnectHost: 'baz' }, { hostname: 'bar' } as any) as Client
+            const client = new TestClient({ platformName: 'baz', 'appium:directConnectHost': 'baz' }, { hostname: 'bar' } as any) as Client
             setupDirectConnect(client)
             expect(client.options.hostname).toEqual('bar')
         })
@@ -213,10 +213,10 @@ describe('utils', () => {
         it('should update connection params if caps contain all direct connect fields', function () {
             const client = new TestClient({
                 platformName: 'baz',
-                directConnectProtocol: 'https',
-                directConnectHost: 'bar',
-                directConnectPort: 4321,
-                directConnectPath: '/'
+                'appium:directConnectProtocol': 'https',
+                'appium:directConnectHost': 'bar',
+                'appium:directConnectPort': 4321,
+                'appium:directConnectPath': '/'
             }, {
                 protocol: 'http',
                 hostname: 'foo',
@@ -233,10 +233,10 @@ describe('utils', () => {
         it('should update connection params even if path is empty string', function () {
             const client = new TestClient({
                 platformName: 'baz',
-                directConnectProtocol: 'https',
-                directConnectHost: 'bar',
-                directConnectPort: 4321,
-                directConnectPath: ''
+                'appium:directConnectProtocol': 'https',
+                'appium:directConnectHost': 'bar',
+                'appium:directConnectPort': 4321,
+                'appium:directConnectPath': ''
             }, {
                 protocol: 'http',
                 hostname: 'foo',

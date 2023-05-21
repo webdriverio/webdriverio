@@ -3,11 +3,13 @@ id: frameworks
 title: Frameworks
 ---
 
-Der WDIO-Runner unterstützt derzeit [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/) und [Cucumber](https://cucumber.io/).
+WebdriverIO Runner bietet integrierte Unterstützung für [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/)und [Cucumber.js](https://cucumber.io/). Sie können es auch mit Drittanbieter-Open-Source-Frameworks, wie [Serenity/JS](#using-serenityjs) integrieren.
 
-Um jedes Framework mit WebdriverIO zu integrieren, gibt es Adapterpakete auf NPM, die installiert werden müssen. Sie können die Adapter nicht einfach überall installieren; diese Pakete müssen am selben Ort installiert werden, an dem WebdriverIO installiert ist. Wenn Sie also WebdriverIO global installiert haben, stellen Sie sicher, dass Sie auch das Framework-Adapterpaket global installieren.
+:::tip Integrieren von WebdriverIO mit Testframeworks
+Um WebdriverIO mit einem Testframework zu integrieren, benötigen Sie ein Adapterpaket, das auf NPM verfügbar ist. Beachten Sie, dass das Adapterpaket am selben Speicherort installiert werden muss, an dem WebdriverIO installiert ist. Wenn Sie also WebdriverIO global installiert haben, stellen Sie sicher, dass Sie auch das Framework-Adapterpaket global installieren.
+:::
 
-Innerhalb Ihrer Test-Dateien (oder Step-Definitionen) können Sie auf die WebdriverIO-Instanz zugreifen, indem Sie die globale Variable `browser`verwenden oder von `@wdio/globals` importieren. (Sie müssen die Selenium-Sitzung weder starten noch beenden. Dafür sorgt der `wdio` Testrunner.)
+Durch die Integration von WebdriverIO in ein Test-Framework können Sie über die globale `browser` Variable in Ihren Spezifikationsdateien oder Schrittdefinitionen auf die WebdriverIO-Instanz zugreifen. Beachten Sie, dass WebdriverIO sich auch um das Instanziieren und Beenden der Selenium-Sitzung kümmert, so dass Sie es nicht selbst tun müssen selbst.
 
 ## Verwendung von Mocha
 
@@ -290,7 +292,7 @@ Geben Sie das zu verwendende Cucumber-Profil an.
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Liste der Dateien, die die Step-Definitionen implementieren. Sie können auch einen Glob für Ihre Step-Definitionen angeben.
+Liste der Dateien, die die Step-Definitionen implementieren. Liste der Dateien, die die Step-Definitionen implementieren Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
 
 Type: `string[]`<br /> Default: `[]` Example:
 
@@ -367,3 +369,214 @@ import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
 Dadurch wird sichergestellt, dass Sie die richtigen Helfer innerhalb des WebdriverIO-Frameworks verwenden, und Sie können eine unabhängige Cucumber-Version für andere Arten von Tests verwenden.
+
+## Verwendung Serenity/JS
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) ist ein Open-Source-Framework, das entwickelt wurde, um Akzeptanz- und Regressionstests komplexer Softwaresysteme schneller, kollaborativer und einfacher zu skalieren.
+
+Für WebdriverIO-Testsuiten bietet Serenity/JS:
+- [Verbesserte Berichterstattung](https://serenity-js.org/handbook/reporting/?pk_campaign=wdio8&pk_source=webdriver.io) – Sie können Serenity/JS als Drop-in-Ersatz für jedes integrierte WebdriverIO-Framework verwenden, um detaillierte Testausführungsberichte und eine lebendige Dokumentation Ihres Projekts zu erstellen.
+- [Screenplay Pattern APIs](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io) – Um Ihren Testcode über Projekte und Teams hinweg portierbar und wiederverwendbar zu machen, bietet Ihnen Serenity/JS eine optionale [Abstraktionsschicht](https://serenity-js.org/api/webdriverio?pk_campaign=wdio8&pk_source=webdriver.io) zusätzlich zu den nativen WebdriverIO-APIs.
+- [Integrationsbibliotheken](https://serenity-js.org/api/core/?pk_campaign=wdio8&pk_source=webdriver.io) - Für Testsuiten, die dem Screenplay Pattern folgen, bietet Serenity/JS auch optionale Integrationsbibliotheken, die Ihnen beim Schreiben von [API-Tests](https://serenity-js.org/api/rest/?pk_campaign=wdio8&pk_source=webdriver.io), [beim Verwalten lokaler Server](https://serenity-js.org/api/local-server/?pk_campaign=wdio8&pk_source=webdriver.io), [beim Durchführen von Behauptungen](https://serenity-js.org/api/assertions/?pk_campaign=wdio8&pk_source=webdriver.io)und mehr helfen!
+
+![Beispiel für einen Serenity BDD-Bericht](/img/serenity-bdd-reporter.png)
+
+### Installation von Serenity/JS
+
+Um Serenity/JS zu einem [WebdriverIO-Projekt](https://webdriver.io/docs/gettingstarted)hinzuzufügen, installieren Sie die folgenden Serenity/JS-Module von NPM:
+
+```sh npm2yarn
+npm install @serenity-js/{core,web,webdriverio,assertions,console-reporter,serenity-bdd} --save-dev
+```
+
+Erfahren Sie mehr über Serenity/JS-Module:
+- [`@serenity-js/core`](https://serenity-js.org/api/core/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`@serenity-js/web`](https://serenity-js.org/api/web/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`@serenity-js/webdriverio`](https://serenity-js.org/api/webdriverio/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`@serenity-js/assertions`](https://serenity-js.org/api/assertions/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`@serenity-js/console-reporter`](https://serenity-js.org/api/console-reporter/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`@serenity-js/serenity-bdd`](https://serenity-js.org/api/serenity-bdd/?pk_campaign=wdio8&pk_source=webdriver.io)
+
+### Konfiguration von Serenity/JS
+
+Um die Integration mit Serenity/JS zu aktivieren, konfigurieren Sie WebdriverIO wie folgt:
+
+<Tabs>
+<TabItem value="wdio-conf-typescript" label="TypeScript" default>
+
+```typescript title="wdio.conf.ts"
+import { WebdriverIOConfig } from '@serenity-js/webdriverio';
+
+export const config: WebdriverIOConfig = {
+
+    // Tell WebdriverIO to use Serenity/JS framework
+    framework: '@serenity-js/webdriverio',
+
+    // Serenity/JS configuration
+    serenity: {
+        // Configure Serenity/JS to use the appropriate adapter for your test runner
+        runner: 'cucumber',
+        // runner: 'mocha',
+        // runner: 'jasmine',
+
+        // Register Serenity/JS reporting services, a.k.a. the "stage crew"
+        crew: [
+            // Optional, print test execution results to standard output
+            '@serenity-js/console-reporter',
+
+            // Optional, produce Serenity BDD reports and living documentation (HTML)
+            '@serenity-js/serenity-bdd',
+            [ '@serenity-js/core:ArtifactArchiver', { outputDirectory: 'target/site/serenity' } ],
+
+            // Optional, automatically capture screenshots upon interaction failure
+            [ '@serenity-js/web:Photographer', { strategy: 'TakePhotosOfFailures' } ],
+        ]
+    },
+
+    // Configure your Cucumber runner
+    cucumberOpts: {
+        // see Cucumber configuration options below
+    },
+
+
+    // ... or Jasmine runner
+    jasmineOpts: {
+        // see Jasmine configuration options below
+    },
+
+    // ... or Mocha runner
+    mochaOpts: {
+        // see Mocha configuration options below
+    },
+
+    runner: 'local',
+
+    // Any other WebdriverIO configuration
+};
+```
+
+</TabItem>
+<TabItem value="wdio-conf-javascript" label="JavaScript">
+
+```typescript title="wdio.conf.js"
+export const config = {
+
+    // Tell WebdriverIO to use Serenity/JS framework
+    framework: '@serenity-js/webdriverio',
+
+    // Serenity/JS configuration
+    serenity: {
+        // Configure Serenity/JS to use the appropriate adapter for your test runner
+        runner: 'cucumber',
+        // runner: 'mocha',
+        // runner: 'jasmine',
+
+        // Register Serenity/JS reporting services, a.k.a. the "stage crew"
+        crew: [
+            '@serenity-js/console-reporter',
+            '@serenity-js/serenity-bdd',
+            [ '@serenity-js/core:ArtifactArchiver', { outputDirectory: 'target/site/serenity' } ],
+            [ '@serenity-js/web:Photographer', { strategy: 'TakePhotosOfFailures' } ],
+        ]
+    },
+
+    // Configure your Cucumber runner
+    cucumberOpts: {
+        // see Cucumber configuration options below
+    },
+
+
+    // ... or Jasmine runner
+    jasmineOpts: {
+        // see Jasmine configuration options below
+    },
+
+    // ... or Mocha runner
+    mochaOpts: {
+        // see Mocha configuration options below
+    },
+
+    runner: 'local',
+
+    // Any other WebdriverIO configuration
+};
+```
+
+</TabItem>
+</Tabs>
+
+Erfahren Sie mehr über
+- [Konfigurationsoptionen für Serenity/JS Cucumber](https://serenity-js.org/api/cucumber-adapter/interface/CucumberConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [Konfigurationsoptionen für Serenity/JS Jasmine](https://serenity-js.org/api/jasmine-adapter/interface/JasmineConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [Serenity/JS Mocha-Konfigurationsoptionen](https://serenity-js.org/api/mocha-adapter/interface/MochaConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [WebdriverIO-Konfigurationsdatei](configurationfile)
+
+### Erstellung von Serenity BDD-Berichten und Dokumentation
+
+[Serenity BDD-Berichte und Dokumentation](https://serenity-bdd.github.io/docs/reporting/the_serenity_reports) werden von [Serenity BDD CLI](https://github.com/serenity-bdd/serenity-core/tree/main/serenity-cli)generiert, ein Java-Programm, das vom Modul [`@serenity-js/serenity-bdd`](https://serenity-js.org/api/serenity-bdd/?pk_campaign=wdio8&pk_source=webdriver.io) heruntergeladen und verwaltet wird.
+
+Um Serenity BDD-Berichte zu erstellen, muss Ihre Testsuite:
+- Laden Sie die Serenity BDD CLI herunter, indem Sie `serenity-bdd update` aufrufen, das die CLI `jar` lokal zwischenspeichert
+- Erstellen Sie Zwischenberichte von Serenity BDD `.json` , indem Sie [`SerenityBDDReporter`](https://serenity-js.org/api/serenity-bdd/class/SerenityBDDReporter/?pk_campaign=wdio8&pk_source=webdriver.io) gemäß den [Konfigurationsanweisungen](#configuring-serenityjs)registrieren
+- Rufen Sie die Serenity BDD-CLI auf, wenn Sie den Bericht erstellen möchten, indem Sie `serenity-bdd run`aufrufen
+
+Das von allen [Serenity/JS-Projektvorlagen](https://serenity-js.org/handbook/getting-started#serenityjs-project-templates?pk_campaign=wdio8&pk_source=webdriver.io) verwendete Muster basiert auf der Verwendung von:
+- ein [`postinstall`](https://docs.npmjs.com/cli/v9/using-npm/scripts#life-cycle-operation-order) NPM-Skript zum Herunterladen der Serenity BDD CLI
+- [`npm-failsafe`](https://www.npmjs.com/package/npm-failsafe) , um den Berichtsprozess auch dann auszuführen, wenn die Testsuite selbst fehlgeschlagen ist (genau dann, wenn Sie Testberichte am meisten benötigen ...).
+- [`rimraf`](https://www.npmjs.com/package/rimraf) als bequeme Methode zum Entfernen aller Testberichte, die vom vorherigen Lauf übrig geblieben sind
+
+```json title="package.json"
+{
+  "scripts": {
+    "postinstall": "serenity-bdd update",
+    "clean": "rimraf target",
+    "test": "failsafe clean test:execute test:report",
+    "test:execute": "wdio wdio.conf.ts",
+    "test:report": "serenity-bdd run"
+  }
+}
+```
+
+Um mehr über den `SerenityBDDReporter`zu erfahren, konsultieren Sie bitte:
+- Installationsanweisungen in [`@serenity-js/serenity-bdd` Dokumentation](https://serenity-js.org/api/serenity-bdd/?pk_campaign=wdio8&pk_source=webdriver.io),
+- Konfigurationsbeispiele in [`SerenityBDDReporter` API-Dokumente](https://serenity-js.org/api/serenity-bdd/class/SerenityBDDReporter/?pk_campaign=wdio8&pk_source=webdriver.io),
+- [Serenity/JS-Beispiele auf GitHub](https://github.com/serenity-js/serenity-js/tree/main/examples).
+
+### Verwendung der Serenity/JS-Screenplay-Pattern-APIs
+
+Das [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io) ist ein innovativer, benutzerzentrierter Ansatz zum Schreiben hochwertiger automatisierter Abnahmetests. Es führt Sie zu einer effektiven Nutzung von Abstraktionsebenen, Ihren Testszenarien dabei, die Geschäftssprache Ihrer Domäne zu erfassen, und fördert gute Test- und Softwareentwicklungsgewohnheiten in Ihrem Team.
+
+Standardmäßig, wenn Sie `@serenity-js/webdriverio` als Ihr WebdriverIO `Framework`, registrieren, konfiguriert Serenity/JS standardmäßig [Cast](https://serenity-js.org/api/core/class/Cast/?pk_campaign=wdio8&pk_source=webdriver.io) von [Akteuren](https://serenity-js.org/api/core/class/Actor/?pk_campaign=wdio8&pk_source=webdriver.io), wobei jeder Akteur Folgendes kann:
+- [`BrowseTheWebWithWebdriverIO`](https://serenity-js.org/api/webdriverio/class/BrowseTheWebWithWebdriverIO/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [`TakeNotes.usingAnEmptyNotepad()`](https://serenity-js.org/api/core/class/TakeNotes/?pk_campaign=wdio8&pk_source=webdriver.io)
+
+Dies sollte ausreichen, um Ihnen den Einstieg in die Einführung von Testszenarien, die dem Drehbuchmuster folgen, auch in einer vorhandenen Testsuite zu erleichtern, zum Beispiel:
+
+```typescript title="specs/example.spec.ts"
+import { actorCalled } from '@serenity-js/core'
+import { Navigate, Page } from '@serenity-js/web'
+import { Ensure, equals } from '@serenity-js/assertions'
+
+describe('My awesome website', () => {
+    it('can have test scenarios that follow the Screenplay Pattern', async () => {
+        await actorCalled('Alice').attemptsTo(
+            Navigate.to(`https://webdriver.io`),
+            Ensure.that(
+                Page.current().title(),
+                equals(`WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO`)
+            ),
+        )
+    })
+
+    it('can have non-Screenplay scenarios too', async () => {
+        await browser.url('https://webdriver.io')
+        await expect(browser)
+            .toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
+    })
+})
+```
+
+Weitere Informationen zum Drehbuchmuster finden Sie hier:
+- [Das Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+- [Webtests mit Serenity/JS](https://serenity-js.org/handbook/web-testing/?pk_campaign=wdio8&pk_source=webdriver.io)
+- ["BDD in Aktion, Zweite Ausgabe"](https://www.manning.com/books/bdd-in-action-second-edition)

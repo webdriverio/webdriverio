@@ -145,9 +145,6 @@ export async function runOnCompleteHook(
 export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
-        caps.appPackage ||
-        caps.appWaitActivity ||
-        caps.app ||
         caps.platformName ||
         caps['appium:platformName'] ||
         caps['appium:appPackage'] ||

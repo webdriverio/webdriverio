@@ -5,6 +5,12 @@ title: Driver Binaries
 
 वेबड्राइवर प्रोटोकॉल के आधार पर ऑटोमेशन चलाने के लिए आपको ब्राउज़र ड्राइवरों को सेट अप करने की आवश्यकता होती है जो ऑटोमेशन कमांड का अनुवाद करते हैं और उन्हें ब्राउज़र में निष्पादित करने में सक्षम होते हैं। निम्नलिखित वर्णन करता है कि आप प्रत्येक ड्राइवर को व्यक्तिगत रूप से कैसे सेट अप कर सकते हैं। आप [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) रीडमे में सभी ड्राइवरों के साथ एक सूची पा सकते हैं।
 
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
+
 ## क्रोमड्राइवर
 
 क्रोम को स्वचालित करने के लिए आप Chromedriver को सीधे [प्रोजेक्ट वेबसाइट](http://chromedriver.chromium.org/downloads) या NPM पैकेज के माध्यम से डाउनलोड कर सकते हैं:

@@ -23,7 +23,7 @@ import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
-const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS']
+const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS', 'CDP_SESSIONS']
 
 declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
@@ -576,7 +576,7 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
     if (
         desiredCaps.deviceName || caps['appium:deviceName'] ||
         caps['appium:platformVersion'] ||
-        desiredCaps.app || caps['appium:app']
+        caps['appium:app']
     ) {
         return 'webdriver'
     }

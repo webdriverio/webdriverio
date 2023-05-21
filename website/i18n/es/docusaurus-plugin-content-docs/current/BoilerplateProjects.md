@@ -83,6 +83,42 @@ Proyecto Boilerplate para ejecutar pruebas WebdriverIO con Jasmine usando las ca
     - Integra la funcionalidad de Email
     - Integra el cubo s3 para el almacenamiento de los informes de prueba y recuperarlos?
 
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Mocha, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Mocha (v10)
+    - Serenity/JS (v3)
+    - Informes Serenity BDD
+
+- Funcionalidades
+    - [Patrón de reproducción](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Capturas de pantalla automáticas en caso de falla de prueba, incrustadas en informes
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo informe Serenity BDD](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) publicado en las páginas de GitHub
+    - TypeScript
+    - ESLint
+
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Cucumber, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Cucumber (v9)
+    - Serenity/JS (v3)
+    - Informes Serenity BDD
+
+- Funcionalidades
+    - [Patrón de reproducción](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Capturas de pantalla automáticas en caso de falla de prueba, incrustadas en informes
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo informe Serenity BDD](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) publicado en las páginas de GitHub
+    - TypeScript
+    - ESLint
+
 # Proyectos de Boilerplate v7
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -175,42 +211,6 @@ Boilerplate proyecto para ejecutar pruebas de appium para navegador nativo y mó
     - Modelo de objeto de página
     - Contiene escenarios de prueba de ejemplo en pepino
     - Integrado con múltiples informes html de Cucumber
-
-## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) proyecto de plantilla para ayudarle a comenzar con la prueba de aceptación de sus aplicaciones Web usando la última WebdriverIO, Mocha y Serenity/JS
-
-- Frameworks
-    - WebdriverIO v7
-    - Mocha
-    - Serenity/JS
-    - Informes Serenity BDD
-
-- Funcionalidades
-  - [Patrón de reproducción](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-  - Capturas de pantalla automáticas en caso de falla de prueba, incrustadas en informes
-  - Configuración de integración continua (CI) usando [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-  - [Demo informe Serenity BDD](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) publicado en las páginas de GitHub
-  - TypeScript
-  - ESLint
-
-## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) proyecto de plantilla para ayudarlo a comenzar con las pruebas de aceptación de sus aplicaciones web utilizando los últimos WebdriverIO, Cucumber y Serenity/JS
-
-- Frameworks
-    - WebdriverIO v7
-    - Cucumber
-    - Serenity/JS
-    - Informes Serenity BDD
-
-- Funcionalidades
-    - [Patrón de reproducción](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-    - Capturas de pantalla automáticas en caso de falla de prueba, incrustadas en informes
-    - Configuración de integración continua (CI) usando [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-    - [Demo informe Serenity BDD](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) publicado en las páginas de GitHub
-    - TypeScript
-    - ESLint
 
 ## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
 

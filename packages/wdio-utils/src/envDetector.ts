@@ -27,7 +27,9 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
      * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = Boolean(
+        // @ts-expect-error outdated jsonwp cap
         capabilities.automationName ||
+        capabilities['appium:automationName'] ||
         capabilities.deviceName ||
         capabilities.appiumVersion
     )
@@ -41,7 +43,12 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
          * local safari and BrowserStack don't provide platformVersion therefore
          * check also if setWindowRect is provided
          */
-        (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
+        (
+            // @ts-expect-error outdated jsonwp cap
+            capabilities.platformVersion ||
+            capabilities['appium:platformVersion'] ||
+            Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
+        )
     )
     return Boolean(hasW3CCaps || isAppium)
 }

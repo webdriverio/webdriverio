@@ -1,31 +1,31 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Автодоповнення коду
 ---
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+Автодоповнення коду працюватиме одразу в IDEA та WebStorm.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+Якщо ви вже деякий час пишете код, вам, ймовірно, подобається автодоповнення. Функція автодоповнення коду є стандартною в багатьох редакторах коду.
 
-![Autocompletion](/img/autocompletion/0.png)
+![Автодоповнення коду](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Визначення типів за допомогою [JSDoc](http://usejsdoc.org/) використовується для документування коду. Це допомагає побачити додаткову інформацію про параметри та їхні типи.
 
-![Autocompletion](/img/autocompletion/1.png)
+![Автодоповнення коду](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+Використовуйте стандартні комбінації клавіш <kbd>⇧ + ⌥ + ПРОБІЛ</kbd> у середовищах розробки IntelliJ, щоб переглянути доступну документацію:
 
-![Autocompletion](/img/autocompletion/2.png)
+![Автодоповнення коду](/img/autocompletion/2.png)
 
 ## Visual Studio Code (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+У Visual Studio Code зазвичай є вбудована підтримка типів, і не потрібно робити нічого додатково.
 
-![Autocompletion](/img/autocompletion/14.png)
+![Автодоповнення коду](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+Якщо ви використовуєте чистий JavaScript і хочете мати належну підтримку типів, вам потрібно створити `jsconfig.json` у корені вашого проєкту та вказати пакунки wdio, що використовується, наприклад:
 
 ```json title="jsconfig.json"
 {

@@ -11,7 +11,7 @@ import type { Protocol } from 'devtools-protocol'
 export default abstract class Interception extends EventEmitter {
     abstract calls: Matches[] | Promise<Matches[]>
     abstract clear (): void
-    abstract restore (): void
+    abstract restore (): Promise<void>
     abstract respond (overwrite: MockOverwrite, params: MockResponseParams): void
     abstract respondOnce (overwrite: MockOverwrite, params: MockResponseParams): void
     abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
