@@ -90,7 +90,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
-        if (process.env.MEASURE_OBS_PERFORMANCE) {
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
@@ -227,7 +227,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        if (process.env.MEASURE_OBS_PERFORMANCE) {
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-launcher.html')
             PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 

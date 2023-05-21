@@ -116,7 +116,7 @@ export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
-            if (process.env.MEASURE_OBS_PERFORMANCE) {
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -151,7 +151,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env.MEASURE_OBS_PERFORMANCE ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
