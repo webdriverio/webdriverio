@@ -92,7 +92,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
-        if (process.env.MEASURE_OBS_PERFORMANCE) {
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
@@ -228,7 +228,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
 
-            if (process.env.MEASURE_OBS_PERFORMANCE) {
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')
                 PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 

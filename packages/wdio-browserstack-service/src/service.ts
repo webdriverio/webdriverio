@@ -46,7 +46,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.MEASURE_OBS_PERFORMANCE) {
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -206,7 +206,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
 
-        if (process.env.MEASURE_OBS_PERFORMANCE) {
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
