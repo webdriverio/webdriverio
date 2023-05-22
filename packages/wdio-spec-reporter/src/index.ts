@@ -359,7 +359,7 @@ export default class SpecReporter extends WDIOReporter {
                     const docstringIndent = '  '
                     const docstringMark = `${testIndent}${docstringIndent}"""`
                     const docstring = String(arg)
-                    const formattedDocstringLines = docstring.split('\n')
+                    const formattedDocstringLines = docstring.split('\n').filter(line => line)
                         .map((line: string) => `${testIndent}${docstringIndent}${line}`)
                     output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
                 } else {

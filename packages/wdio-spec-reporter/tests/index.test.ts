@@ -396,9 +396,39 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should print doc string', () => {
+        it('should not print if argument is a single line doc string', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
+                suites[0].hooksAndTests[0].argument = 'some different format'
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should print multiple lines doc string', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should print if the doc string is a blank string', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
+                suites[0].hooksAndTests[0].argument = ''
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should not print if the argument is undefined', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
+                suites[0].hooksAndTests[0].argument = undefined
                 return suites
             })
             const result = tmpReporter.getResultDisplay()
