@@ -1,17 +1,17 @@
 ---
 id: element
-title: The Element Object
+title: Element
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+Element jest obiektem reprezentującym element zdalnego agenta użytkownika (remote user agent), np. [element DOM](https://developer.mozilla.org/en-US/docs/Web/API/Element) jeżeli korzystamy z przeglądarki lub [element mobilny](https://developer.apple.com/documentation/swift/sequence/element) w przypadku urządzeń mobilnych. Elementy możemy pozyskiwać z pomocą jednego z wielu poleceń służących do wyszukiwania elementów, np. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) albo [`shadow$`](/docs/api/element/shadow$).
 
-## Properties
+## Właściwości
 
-An element object has the following properties:
+Obiekt element ma następujące właściwości:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
+| Nazwa       | Typ      | Szczegóły                                                                                                                                                                                                                                     |
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
+| `sessionId` | `String` | Identyfikator sesji (session id) przypisany ze zdalnego serwera.                                                                                                                                                                              |
 | `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
 | `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
 | `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
