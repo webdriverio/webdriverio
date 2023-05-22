@@ -20,7 +20,24 @@ exports[`SpecReporter > getHeaderDisplay > should validate header output in mult
 ]
 `;
 
-exports[`SpecReporter > getResultDisplay > should not print if data table format is not given 1`] = `
+exports[`SpecReporter > getResultDisplay > should not print if argument is a single line doc string 1`] = `
+[
+  "» /foo/bar/loo.e2e.js",
+  "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
+  "grey Very important business rule",
+  "   green ✓ foo",
+  "     \\"\\"\\"",
+  "     some different format",
+  "     \\"\\"\\"",
+  "   green ✓ bar",
+  "",
+]
+`;
+
+exports[`SpecReporter > getResultDisplay > should not print if data table is empty 1`] = `
 [
   "» /foo/bar/loo.e2e.js",
   "Foo test",
@@ -34,7 +51,7 @@ exports[`SpecReporter > getResultDisplay > should not print if data table format
 ]
 `;
 
-exports[`SpecReporter > getResultDisplay > should not print if data table is empty 1`] = `
+exports[`SpecReporter > getResultDisplay > should not print if the argument is undefined 1`] = `
 [
   "» /foo/bar/loo.e2e.js",
   "Foo test",
@@ -62,6 +79,48 @@ exports[`SpecReporter > getResultDisplay > should print data tables 1`] = `
   "     │ Brocolli  │ 2      │",
   "     │ Cucumber  │ 10     │",
   "   green ✓ bar",
+  "",
+]
+`;
+
+exports[`SpecReporter > getResultDisplay > should print if the doc string is a blank string 1`] = `
+[
+  "» /foo/bar/loo.e2e.js",
+  "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
+  "grey Very important business rule",
+  "   green ✓ foo",
+  "     \\"\\"\\"",
+  "     \\"\\"\\"",
+  "   green ✓ bar",
+  "     \\"\\"\\"",
+  "     \\"\\"\\"",
+  "",
+]
+`;
+
+exports[`SpecReporter > getResultDisplay > should print multiple lines doc string 1`] = `
+[
+  "» /foo/bar/loo.e2e.js",
+  "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
+  "grey Very important business rule",
+  "   green ✓ foo",
+  "     \\"\\"\\"",
+  "     Docstring line 1",
+  "     Docstring line 2",
+  "     Docstring line 3",
+  "     \\"\\"\\"",
+  "   green ✓ bar",
+  "     \\"\\"\\"",
+  "     Docstring line 4",
+  "     Docstring line 5",
+  "     Docstring line 6",
+  "     \\"\\"\\"",
   "",
 ]
 `;
