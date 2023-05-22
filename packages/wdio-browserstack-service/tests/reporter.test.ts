@@ -10,6 +10,33 @@ jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 jest.mock('uuid', () => ({ v4: () => '123456789' }))
 
 describe('test-reporter', () => {
+    const runnerConfig = {
+        type: 'runner',
+        start: new Date('2018-05-14T15:17:18.901Z'),
+        _duration: 0,
+        cid: '0-0',
+        capabilities: { browserName: 'chrome', browserVersion: '68' }, // session capabilities
+        sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
+        config: { capabilities: { browserName: 'chrome', browserVersion: '68' }, framework: 'mocha', hostname: 'browserstack.com' }, // user capabilities
+        specs: ['/tmp/user/spec.js'],
+        sessionId: 'sessionId'
+    }
+
+    const testStats = {
+        type: 'test',
+        start: new Date('2018-05-14T15:17:18.901Z'),
+        _duration: 0,
+        uid: '23',
+        cid: '0-0',
+        title: 'Given the title is "Google1"',
+        fullTitle: 'TestDesc.TestRun.it',
+        output: [],
+        argument: undefined,
+        retries: 0,
+        parent: '1',
+        state: 'pending'
+    }
+
     beforeEach(() => {
         (log.debug as jest.Mock).mockClear()
     })
@@ -25,13 +52,46 @@ describe('test-reporter', () => {
     })
 
     describe('onSuiteStart', () => {
-        const reporter = new TestReporter({})
-        beforeAll(() => {
-            reporter.onSuiteStart({ file: 'filename' } as any)
+        let reporter: TestReporter
+        const suite = {
+            title: 'suite title',
+            file: 'filename',
+        }
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            reporter.onSuiteStart(suite as any)
         })
 
         it('should set _suiteName', () => {
             expect(reporter['_suiteName']).toEqual('filename')
+        })
+
+        it ('should store suite in stack', () => {
+            expect(reporter['_suites']).toEqual([suite])
+            reporter.onSuiteStart(suite as any)
+            expect(reporter['_suites']).toEqual([suite, suite])
+        })
+    })
+
+    describe('onSuiteEnd', function () {
+        let reporter: TestReporter
+        const suite = {
+            title: 'suite title',
+            file: 'filename',
+        }
+        beforeEach(() => {
+            reporter = new TestReporter({})
+        })
+
+        it('should pop from suites', () => {
+            expect(reporter['_suites']).toEqual([])
+            reporter.onSuiteStart(suite as any)
+            reporter.onSuiteStart(suite as any)
+            expect(reporter['_suites']).toEqual([suite, suite])
+            reporter.onSuiteEnd()
+            expect(reporter['_suites']).toEqual([suite])
+            reporter.onSuiteEnd()
+            expect(reporter['_suites']).toEqual([])
         })
     })
 
@@ -39,17 +99,7 @@ describe('test-reporter', () => {
         const reporter = new TestReporter({})
 
         it('should set properties', () => {
-            reporter.onRunnerStart({
-                type: 'runner',
-                start: '2018-05-14T15:17:18.901Z',
-                _duration: 0,
-                cid: '0-0',
-                capabilities: { browserName: 'chrome', browserVersion: '68' }, // session capabilities
-                sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
-                config: { capabilities: { browserName: 'chrome', browserVersion: '68' }, framework: 'mocha', hostname: 'browserstack.com' }, // user capabilities
-                specs: ['/tmp/user/spec.js'],
-                sessionId: 'sessionId'
-            } as any)
+            reporter.onRunnerStart(runnerConfig as any)
             expect(reporter['_capabilities']).toEqual({ browserName: 'chrome', browserVersion: '68' })
             expect(reporter['_observability']).toEqual(true)
         })
@@ -76,25 +126,13 @@ describe('test-reporter', () => {
         const requestQueueHandler = RequestQueueHandler.getInstance()
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        const scopesSpy = jest.spyOn(utils, 'getHierarchy').mockImplementation(() => [])
         jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
 
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
             getCloudProviderSpy.mockClear()
-            scopesSpy.mockClear()
 
-            reporter.onRunnerStart({
-                type: 'runner',
-                start: '2018-05-14T15:17:18.901Z',
-                _duration: 0,
-                cid: '0-0',
-                capabilities: { browserName: 'chrome', browserVersion: '68' }, // session capabilities
-                sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
-                config: { capabilities: { browserName: 'chrome', browserVersion: '68' }, framework: 'mocha', hostname: 'browserstack.com' }, // user capabilities
-                specs: ['/tmp/user/spec.js'],
-                sessionId: 'sessionId'
-            } as any)
+            reporter.onRunnerStart(runnerConfig as any)
         })
 
         it('uploadEventData called', async () => {
@@ -102,7 +140,7 @@ describe('test-reporter', () => {
             reporter['_config'] = { capabilities: { browserName: 'chrome', browserVersion: '68' }, framework: 'mocha', hostname: 'browserstack.com' }
             await reporter.onTestSkip({
                 type: 'test',
-                start: '2018-05-14T15:17:18.901Z',
+                start: new Date('2018-05-14T15:17:18.901Z'),
                 _duration: 0,
                 uid: '23',
                 cid: '0-0',
@@ -115,7 +153,6 @@ describe('test-reporter', () => {
                 state: 'skipped'
             } as any)
             expect(uploadEventDataSpy).toBeCalledTimes(1)
-            expect(scopesSpy).toBeCalledTimes(1)
             expect(log.debug).toHaveBeenCalledTimes(0)
         })
 
@@ -123,7 +160,7 @@ describe('test-reporter', () => {
             reporter['_config'] = { framework: 'cucumber' } as any
             await reporter.onTestSkip({
                 type: 'test',
-                start: '2018-05-14T15:17:18.901Z',
+                start: new Date('2018-05-14T15:17:18.901Z'),
                 _duration: 0,
                 uid: '23',
                 cid: '0-0',
@@ -136,13 +173,139 @@ describe('test-reporter', () => {
                 state: 'skipped'
             } as any)
             expect(uploadEventDataSpy).toBeCalledTimes(0)
-            expect(scopesSpy).toBeCalledTimes(0)
             expect(log.debug).toHaveBeenCalledTimes(0)
         })
 
         afterEach(() => {
             uploadEventDataSpy.mockClear()
             getCloudProviderSpy.mockClear()
+        })
+    })
+
+    describe('needToSendData', function () {
+        const reporter = new TestReporter({})
+        beforeEach(() => {
+            reporter['_observability'] = true
+        })
+
+        it('should return if not observability', () => {
+            reporter['_observability'] = false
+            expect(reporter.needToSendData('test', 'some event')).toBe(false)
+        })
+
+        it('should return false for cucumber', () => {
+            reporter['_config'] = { framework: 'cucumber' } as any
+            expect(reporter.needToSendData('test', 'some event')).toBe(false)
+        })
+
+        it('should return true for mocha is skip event', () => {
+            reporter['_config'] = { framework: 'mocha' } as any
+            expect(reporter.needToSendData('test', 'skip')).toBe(true)
+        })
+
+        it('should return true for jasmine if type is test', () => {
+            reporter['_config'] = { framework: 'jasmine' } as any
+            expect(reporter.needToSendData('test', 'some event')).toBe(true)
+        })
+    })
+
+    describe('onTestStart', function () {
+        let reporter: TestReporter
+        const requestQueueHandler = RequestQueueHandler.getInstance()
+        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
+        uploadEventDataSpy.mockImplementation()
+        jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
+        let testStartStats = { ...testStats }
+
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            reporter['_observability'] = true
+            reporter.onRunnerStart(runnerConfig as any)
+            testStartStats = { ...testStats }
+        })
+
+        afterEach(() => {
+            uploadEventDataSpy.mockClear()
+        })
+
+        describe('mocha', () => {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'mocha'
+            })
+
+            it ("uploadEventData shouldn't get called", async () => {
+                await reporter.onTestStart(testStartStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(0)
+            })
+        })
+
+        describe('jasmine', function () {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'jasmine'
+                testStartStats.state = 'pending'
+            })
+
+            it('uploadEventData called for jasmine', async () => {
+                await reporter.onTestStart(testStartStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
+            })
+        })
+    })
+
+    describe('onTestEnd', function () {
+        let reporter: TestReporter
+        const requestQueueHandler = RequestQueueHandler.getInstance()
+        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
+        uploadEventDataSpy.mockImplementation()
+        jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
+        let testEndStats = { ...testStats }
+
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            reporter['_observability'] = true
+            reporter.onRunnerStart(runnerConfig as any)
+            testEndStats = { ...testStats }
+        })
+
+        afterEach(() => {
+            uploadEventDataSpy.mockClear()
+        })
+
+        describe('mocha', () => {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'mocha'
+            })
+
+            it ("uploadEventData shouldn't get called", async () => {
+                await reporter.onTestEnd(testEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(0)
+            })
+        })
+
+        describe('jasmine', function () {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'jasmine'
+                testEndStats.state = 'passed'
+            })
+
+            it('uploadEventData called for passed tests', async () => {
+                testEndStats.state = 'passed'
+                await reporter.onTestEnd(testEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
+            })
+
+            it('uploadEventData called for failed tests', async () => {
+                testEndStats.state = 'failed'
+                await reporter.onTestEnd(testEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
+            })
+
         })
     })
 

@@ -307,6 +307,15 @@ describe('getUniqueIdentifier', () => {
         }
         expect(getUniqueIdentifier(test)).toEqual('root-level - title')
     })
+
+    it('return unique identifier for jasmine tests', () => {
+        const test = {
+            description: 'title',
+            fullName: 'root-level title',
+            pending: false
+        }
+        expect(getUniqueIdentifier(test as any, 'jasmine')).toEqual('root-level title')
+    })
 })
 
 describe('getUniqueIdentifierForCucumber', () => {

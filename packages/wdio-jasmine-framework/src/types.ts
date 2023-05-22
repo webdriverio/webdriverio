@@ -15,7 +15,8 @@ export interface SuiteEvent extends jasmine.SuiteResult {
     start: Date,
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
-    error?: jasmine.FailedExpectation
+    error?: jasmine.FailedExpectation,
+    filename?: string
 }
 
 export interface TestEvent extends jasmine.SpecResult {
@@ -23,7 +24,8 @@ export interface TestEvent extends jasmine.SpecResult {
     start: Date,
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
-    error?: jasmine.FailedExpectation
+    error?: jasmine.FailedExpectation,
+    filename?: string
 }
 
 export interface ResultHandlerPayload {

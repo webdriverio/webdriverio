@@ -6,8 +6,10 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
+import TestReporter from './reporter'
 
 import {
+    frameworkSupportsHook,
     getCloudProvider,
     getGitMetaData,
     getHookType,
@@ -59,70 +61,77 @@ class _InsightsHandler {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._framework == 'mocha') {
-            const fullTitle = `${test.parent} - ${test.title}`
-            const hookId = uuidv4()
-            this._tests[fullTitle] = {
-                uuid: hookId,
-                startedAt: (new Date()).toISOString()
-            }
-            this.attachHookData(context, hookId)
-            await this.sendTestRunEvent(test, 'HookRunStarted')
+        if (!frameworkSupportsHook('before', this._framework)) {
+            return
         }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+
+        const hookId = uuidv4()
+        this._tests[fullTitle] = {
+            uuid: hookId,
+            startedAt: (new Date()).toISOString()
+        }
+        this.attachHookData(context, hookId)
+        await this.sendTestRunEvent(test, 'HookRunStarted')
     }
 
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
-        if (this._framework == 'mocha') {
-            const fullTitle = getUniqueIdentifier(test)
-            if (this._tests[fullTitle]) {
-                this._tests[fullTitle].finishedAt = (new Date()).toISOString()
-            } else {
-                this._tests[fullTitle] = {
-                    finishedAt: (new Date()).toISOString()
+        if (!frameworkSupportsHook('after', this._framework)) {
+            return
+        }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+
+        if (this._tests[fullTitle]) {
+            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
+        } else {
+            this._tests[fullTitle] = {
+                finishedAt: (new Date()).toISOString()
+            }
+        }
+        await this.sendTestRunEvent(test, 'HookRunFinished', result)
+
+        const hookType = getHookType(test.title)
+        /*
+            If any of the `beforeAll`, `beforeEach`, `afterEach` then the tests after the hook won't run in mocha (https://github.com/mochajs/mocha/issues/4392)
+            So if any of this hook fails, then we are sending the next tests in the suite as skipped.
+            This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
+         */
+        if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
+            const sendTestSkip = async (skippedTest: any) => {
+
+                // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
+                if (skippedTest.state === undefined) {
+                    const fullTitle = `${skippedTest.parent.title} - ${skippedTest.title}`
+                    this._tests[fullTitle] = {
+                        uuid: uuidv4(),
+                        startedAt: (new Date()).toISOString(),
+                        finishedAt: (new Date()).toISOString()
+                    }
+                    await this.sendTestRunEvent(skippedTest, 'TestRunSkipped')
                 }
             }
-            await this.sendTestRunEvent(test, 'HookRunFinished', result)
 
-            const hookType = getHookType(test.title)
             /*
-                If any of the `beforeAll`, `beforeEach`, `afterEach` then the tests after the hook won't run in mocha (https://github.com/mochajs/mocha/issues/4392)
-                So if any of this hook fails, then we are sending the next tests in the suite as skipped.
-                This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
+                Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
              */
-            if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
-                const sendTestSkip = async (skippedTest: any) => {
-
-                    // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
-                    if (skippedTest.state === undefined) {
-                        const fullTitle = `${skippedTest.parent.title} - ${skippedTest.title}`
-                        this._tests[fullTitle] = {
-                            uuid: uuidv4(),
-                            startedAt: (new Date()).toISOString(),
-                            finishedAt: (new Date()).toISOString()
-                        }
-                        await this.sendTestRunEvent(skippedTest, 'TestRunSkipped')
-                    }
+            const sendSuiteSkipped = async (suite: any) => {
+                for (const skippedTest of suite.tests) {
+                    await sendTestSkip(skippedTest)
                 }
-
-                /*
-                    Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
-                 */
-                const sendSuiteSkipped = async (suite: any) => {
-                    for (const skippedTest of suite.tests) {
-                        await sendTestSkip(skippedTest)
-                    }
-                    for (const skippedSuite of suite.suites) {
-                        await sendSuiteSkipped(skippedSuite)
-                    }
+                for (const skippedSuite of suite.suites) {
+                    await sendSuiteSkipped(skippedSuite)
                 }
-
-                await sendSuiteSkipped(test.ctx.test.parent)
             }
+
+            await sendSuiteSkipped(test.ctx.test.parent)
         }
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const fullTitle = getUniqueIdentifier(test)
+        if (this._framework !== 'mocha') return
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
@@ -131,7 +140,8 @@ class _InsightsHandler {
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        if (this._framework !== 'mocha') return
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
@@ -263,8 +273,9 @@ class _InsightsHandler {
             return
         }
         const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-        if (!this._tests[identifier]) {
+        if (!testMeta) {
             return
         }
 
@@ -273,7 +284,7 @@ class _InsightsHandler {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
-                    test_run_uuid: this._tests[identifier].uuid,
+                    test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
@@ -291,7 +302,7 @@ class _InsightsHandler {
         const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
-                test_run_uuid: this._tests[identifier].uuid,
+                test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
                 http_response: {
@@ -340,7 +351,7 @@ class _InsightsHandler {
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
 
         const testData: TestData = {
@@ -516,7 +527,7 @@ class _InsightsHandler {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }
-        return getUniqueIdentifier(test)
+        return getUniqueIdentifier(test, this._framework)
     }
 }
 

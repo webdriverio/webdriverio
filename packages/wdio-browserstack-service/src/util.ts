@@ -20,6 +20,8 @@ import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './ty
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants'
 import RequestQueueHandler from './request-handler'
 
+import PerformanceTester from './performance-tester'
+
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
@@ -113,7 +115,11 @@ function processError(error: any, fn: Function, args: any[]) {
 export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
-            const result = fn(...args)
+            let functionToHandle = fn
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+                functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
+            }
+            const result = functionToHandle(...args)
             if (result instanceof Promise) {
                 return result.catch(error => processError(error, fn, args))
             }
@@ -145,7 +151,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = method.call(this, ...args)
+                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -393,7 +399,11 @@ export async function getGitMetaData () {
     }
 }
 
-export function getUniqueIdentifier(test: Frameworks.Test): string {
+export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
+    if (framework === 'jasmine') {
+        return test.fullName
+    }
+
     let parentTitle = test.parent
     // Sometimes parent will be an object instead of a string
     if (typeof test.parent === 'object') {
@@ -518,13 +528,13 @@ export function getHierarchy(fullTitle?: string) {
 }
 
 export function getHookType (hookName: string): string {
-    if (hookName.includes('"before each"')) {
+    if (hookName.startsWith('"before each"')) {
         return 'BEFORE_EACH'
-    } else if (hookName.includes('"before all"')) {
+    } else if (hookName.startsWith('"before all"')) {
         return 'BEFORE_ALL'
-    } else if (hookName.includes('"after each"')) {
+    } else if (hookName.startsWith('"after each"')) {
         return 'AFTER_EACH'
-    } else if (hookName.includes('"after all"')) {
+    } else if (hookName.startsWith('"after all"')) {
         return 'AFTER_ALL'
     }
     return 'unknown'
@@ -620,6 +630,14 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
         return [bstackBuildTag]
     }
     return []
+}
+
+export function frameworkSupportsHook(hook: string, framework?: string) {
+    if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
+        return true
+    }
+
+    return false
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
