@@ -3,9 +3,9 @@ id: donate
 title: Donate
 ---
 
-Ако вашата компания използва WebdriverIO и има полза от него, моля, помолете вашия мениджър или вашия маркетингов екип да подкрепят проекта, като дарят на колектива. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+Ако вашата компания използва WebdriverIO и има полза от него, моля, помолете вашия мениджър или вашия маркетингов екип да подкрепят проекта, като дарят на колектива. Това ще позволи на хората, които работят по проекта да отделят повече време за поддръжка и нови функции за всички.
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+Моля, разгледайте нашата [OpenCollective страница](https://opencollective.com/webdriverio) за допълнителна информация как да направите дарение.
 
 Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
 
