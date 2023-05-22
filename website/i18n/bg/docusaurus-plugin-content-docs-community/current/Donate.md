@@ -19,8 +19,8 @@ title: Дарения
 
 - Вие или акаунтът на събитието трябва да споделите проекта в социалните медии (Twitter, Facebook или LinkedIn) поне 3 пъти
 - Страницата на събитието трябва да има логото на WebdriverIO и връзка към страницата на проекта в описанието на срещата
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- Средствата трябва да бъдат използвани само за квалифицираните разходи за събития като храна, напитки, стая или оборудване под наем.
+- Трябва да изпратите разходна разписки със заявката си за възстановяване.
 
 ### Development Expenses
 
