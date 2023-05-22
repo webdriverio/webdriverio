@@ -11,7 +11,7 @@ title: Дарения
 
 ## Политика за разходи
 
-Искаме да сме прозрачни в начина, по който приемаме разходите за екипа. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. Също така искаме да възстановим разходи на общността, като имаме възможност да ги покрием тези, които за изразходвани за събития. Видове разходи, допустими за възстановяване от колектива:
+Искаме да сме прозрачни в начина, по който приемаме разходите за екипа. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. Също така искаме да възстановим разходи на общността, като имаме възможност да ги покрием тези, които са изразходвани за събития. Видове разходи, допустими за възстановяване от колектива:
 
 ### Разходи за събития
 
@@ -24,10 +24,10 @@ title: Дарения
 
 ### Разходи за разработка
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+Ако сте участвали в разработването на някое от 'repositories' на организацията GitHub WebdriverIO, можете да възстановите до __$1000__, ако са изпълнени следните изисквания:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
+- Трябва да сте изпратили квалифицирани 'pull requests' заявки, които затварят поне 10 проблема и имат маркер [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- Всеки допълнителен проблем, затворен с този етикет, може да бъде заплатен с $100
 - You must submit links to all issues you’ve closed due to your pull requests
 - In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
 - Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
