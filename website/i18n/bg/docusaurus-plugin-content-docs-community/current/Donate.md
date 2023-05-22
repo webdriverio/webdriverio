@@ -11,14 +11,14 @@ title: Дарения
 
 ## Политика за разходи
 
-Искаме да сме прозрачни в начина, по който приемаме разходите за колектива. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+Искаме да сме прозрачни в начина, по който приемаме разходите за екипа. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. Също така искаме да възстановим разходи на общността, като имаме възможност да ги покрием тези, които за изразходвани за събития. Видове разходи, допустими за възстановяване от колектива:
 
-### Event Expenses
+### Разходи за събития
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+Ако сте домакин на събитие, на което участник говори за използването на WebdriverIO и неговите функции, можете да похарчите до __$100__. Изискванията за възстановяване на разходи за събитие включват:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
+- Вие или акаунтът на събитието трябва да споделите проекта в социалните медии (Twitter, Facebook или LinkedIn) поне 3 пъти
+- Страницата на събитието трябва да има логото на WebdriverIO и връзка към страницата на проекта в описанието на срещата
 - You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
 - You must submit receipts with your reimbursement request.
 
