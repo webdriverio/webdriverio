@@ -419,6 +419,7 @@ describe('SpecReporter', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
                 suites[0].hooksAndTests[0].argument = ''
+                suites[0].hooksAndTests[1].argument = ''
                 return suites
             })
             const result = tmpReporter.getResultDisplay()
