@@ -163,7 +163,7 @@ function Home() {
                                 <Translate>
                                     The WebdriverIO testrunner comes with a command line interface that
                                     provides a powerful configuration utility and helps you to create your
-                                    test setup in less than a minute. It let's you pick from available
+                                    test setup in less than a minute. It lets you pick from available
                                     test framework integrations and easily allows to add all supported
                                     reporter and service plugins!
                                 </Translate>
