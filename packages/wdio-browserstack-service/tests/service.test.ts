@@ -117,6 +117,18 @@ describe('onReload()', () => {
         await service.onReload('1', '2')
         expect(updateSpy).toBeCalledTimes(0)
     })
+
+    it('should not reset suiteTitle', async () => {
+        const updateSpy = jest.spyOn(service, '_update')
+        service['_browser'] = browser
+        service['_failReasons'] = []
+        service['_suiteTitle'] = 'my suite title'
+        await service.onReload('1', '2')
+        expect(updateSpy).toHaveBeenCalledWith('1', {
+            status: 'passed',
+        })
+        expect(service['_suiteTitle']).toEqual('my suite title')
+    })
 })
 
 describe('beforeSession', () => {

@@ -275,7 +275,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
-        delete this._suiteTitle
         delete this._fullTitle
         this._failReasons = []
         await this._printSessionURL()
