@@ -21,6 +21,29 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.5 (2023-05-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10413](https://github.com/webdriverio/webdriverio/pull/10413) fix: disable restored mocks ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#10416](https://github.com/webdriverio/webdriverio/pull/10416) Spec repoter - add docstring to the final report ([@ductoan0295](https://github.com/ductoan0295))
+* `wdio-browserstack-service`, `wdio-jasmine-framework`
+  * [#10421](https://github.com/webdriverio/webdriverio/pull/10421) Support for Jasmine sessions for BrowserStack Test Observability (v8) ([@sriteja777](https://github.com/sriteja777))
+
+#### :memo: Documentation
+* [#10423](https://github.com/webdriverio/webdriverio/pull/10423) Corrected a typo ([@osandadeshan](https://github.com/osandadeshan))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Osanda Deshan Nimalarathna ([@osandadeshan](https://github.com/osandadeshan))
+- Roman Kuznetsov ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Toan ([@ductoan0295](https://github.com/ductoan0295))
+
+
 ## v8.10.4 (2023-05-19)
 
 #### :bug: Bug Fix
