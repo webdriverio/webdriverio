@@ -7,9 +7,9 @@ title: Donate
 
 Моля, разгледайте нашата [OpenCollective страница](https://opencollective.com/webdriverio) за допълнителна информация как да направите дарение.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+Благодарим на всички, които ще или са дарили пари за колектива и следователно са подкрепили проекта и всички, които са допринесли за него. Това наистина означава много ❤️
 
-## Expense Policies
+## Разходни политики
 
 We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
