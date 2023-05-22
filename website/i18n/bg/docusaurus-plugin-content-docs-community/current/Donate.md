@@ -1,6 +1,6 @@
 ---
 id: donate
-title: Donate
+title: Дарения
 ---
 
 Ако вашата компания използва WebdriverIO и има полза от него, моля, помолете вашия мениджър или вашия маркетингов екип да подкрепят проекта, като дарят на колектива. Това ще позволи на хората, които работят по проекта да отделят повече време за поддръжка и нови функции за всички.
@@ -9,9 +9,9 @@ title: Donate
 
 Благодарим на всички, които ще или са дарили пари за колектива и следователно са подкрепили проекта и всички, които са допринесли за него. Това наистина означава много ❤️
 
-## Разходни политики
+## Политика за разходи
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+Искаме да сме прозрачни в начина, по който приемаме разходите за колектива. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
 ### Event Expenses
 
