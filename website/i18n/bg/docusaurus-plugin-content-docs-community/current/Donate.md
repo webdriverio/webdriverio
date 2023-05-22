@@ -22,7 +22,7 @@ title: Дарения
 - Средствата трябва да бъдат използвани само за квалифицираните разходи за събития като храна, напитки, стая или оборудване под наем.
 - Трябва да изпратите разходна разписки със заявката си за възстановяване.
 
-### Development Expenses
+### Разходи за разработка
 
 If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
 
