@@ -105,11 +105,6 @@ export interface AddTestIdEventArgs {
     linkName?: string
 }
 
-export interface AddEnvironmentEventArgs {
-    name: string
-    value: string
-}
-
 export enum TYPE {
     TEXT = 'text',
     HTML = 'html',

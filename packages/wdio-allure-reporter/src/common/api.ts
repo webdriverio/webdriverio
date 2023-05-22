@@ -142,16 +142,6 @@ export function addTag(tag: string) {
 }
 
 /**
- * Add environment value
- * @name addEnvironment
- * @param {string} name - environment name
- * @param {string} value - environment value
- */
-export function addEnvironment (name: string, value: string) {
-    tellReporter(events.addEnvironment, { name, value })
-}
-
-/**
  * Assign test description to test
  * @name addDescription
  * @param {string} description - description for test
@@ -247,6 +237,6 @@ export async function step(name: string, body: StepBodyFunction) {
 }
 
 export default {
-    addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
+    addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 }
