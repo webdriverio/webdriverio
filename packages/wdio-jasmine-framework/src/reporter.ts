@@ -176,6 +176,7 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
+            file: payload.filename
         }
 
         this._reporter.emit(event, message)
