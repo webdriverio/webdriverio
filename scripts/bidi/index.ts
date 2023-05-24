@@ -73,7 +73,8 @@ for (const assignment of astRemote) {
     const responseType = astLocal.find((a) => camelcase(a.Name) === `${camelcase(assignment.Name)}Result`)
     const commandName = camelcase(assignment.Name)
     const methodId = (((assignment.Properties[0] as Property).Type as PropertyReference[])[0]).Value as string
-    const paramType = `remote.${camelcase((((assignment.Properties[1] as Property).Type as PropertyReference[])[0]).Value as string, { pascalCase: true })}`
+    const paramName = (((assignment.Properties[1] as Property).Type as PropertyReference[])[0]).Value as string
+    const paramType = `remote.${camelcase(paramName, { pascalCase: true })}`
     const resultType = responseType ? `local.${camelcase(responseType.Name, { pascalCase: true })}` : 'local.EmptyResult'
 
     /**
@@ -122,6 +123,19 @@ for (const assignment of astRemote) {
     ].join('\n'), true)
     method.comments = [comment]
     methods.push(method)
+
+    const paramAST = astRemote.find((a) => a.Type === 'group' && a.Name === paramName) as Group
+    const commandParamTS = transform([paramAST])
+    const paramExample = commandParamTS.slice(commandParamTS.indexOf('{'))
+        .replaceAll('\n', '<br />')
+        .replaceAll('*', '\\*')
+        .replaceAll('|', '&#124;')
+    const commandReturnAST = astLocal.find((a) => a.Name === (responseType?.Name || 'EmptyResult')) as Group
+    const commandReturnTS = transform([commandReturnAST])
+    const returnExample = commandReturnTS.slice(commandReturnTS.indexOf('{'))
+    const example = returnExample === '{}'
+        ? undefined
+        : ['', '```ts', ...returnExample.split('\n'), '```'].join('\n   ')
     jsonSpec[methodId] = {
         socket: {
             command: commandName,
@@ -129,10 +143,17 @@ for (const assignment of astRemote) {
             ref: specUrl,
             parameters: [{
                 name: paramKey,
-                type: paramType,
-                description: 'command parameters',
+                type: `\`${paramType}\``,
+                description: `<pre>${paramExample}</pre>`,
                 required: true
-            }]
+            }],
+            ...(example ? {
+                returns: {
+                    type: 'Object',
+                    name: resultType,
+                    description: `Command return value with the following interface:${example}`,
+                }
+            } : {})
         }
     }
 }
