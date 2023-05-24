@@ -8,7 +8,7 @@ import { transform } from 'cddl2ts'
 import { parse, print, types } from 'recast'
 import { parse as parseCDDL, type PropertyReference, type Property, type Group } from 'cddl'
 import downloadSpec from './downloadSpec.js'
-import { BASE_PROTOCOL_SPEC } from './constants.js'
+import { BASE_PROTOCOL_SPEC, GENERATED_FILE_COMMENT } from './constants.js'
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -48,16 +48,17 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     const cddl = transform(ast)
     await fs.writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
-        cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
+        GENERATED_FILE_COMMENT + '\n\n' + cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
     )
     return ast
 }))
 
-const code = `
+const code = `${GENERATED_FILE_COMMENT}
+
 import type * as local from './localTypes.js'
 import type * as remote from './remoteTypes.js'
-import { BidiCore } from './core.js'
-`
+import { BidiCore } from './core.js'`
+
 const bidiCode = parse(code, { parser: typescriptParser }) as types.namedTypes.File
 const methods: types.namedTypes.ClassMethod[] = []
 for (const assignment of astRemote) {

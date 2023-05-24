@@ -22,6 +22,7 @@
     "compile": "node ./scripts/build.js",
     "copy": "cd packages/wdio-cli && npm run copy && cd ../../",
     "generate:typings": "node --loader ts-node/esm ./scripts/type-generation/generate-all-typings.ts",
+    "generate:bidi": "npx ts-node-esm ./scripts/bidi/index.ts",
     "link": "node ./scripts/link.js",
     "pushReleaseTag": "node ./scripts/pushTags.js",
     "setup-full": "run-s bootstrap-full build",
