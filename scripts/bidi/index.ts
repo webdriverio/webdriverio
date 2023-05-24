@@ -59,6 +59,10 @@ import { BidiCore } from './core.js'
 const bidiCode = parse(code, { parser: typescriptParser }) as types.namedTypes.File
 const methods: types.namedTypes.ClassMethod[] = []
 for (const assignment of astRemote) {
+    /**
+     * only create methods for groups that have a method property and therefor are commands that
+     * receive a certain result
+     */
     if (assignment.Type !== 'group' || assignment.Properties.length === 0 || (assignment.Properties[0] as Property).Name !== 'method') {
         continue
     }
@@ -69,6 +73,15 @@ for (const assignment of astRemote) {
     const paramType = `remote.${camelcase((((assignment.Properties[1] as Property).Type as PropertyReference[])[0]).Value as string, { pascalCase: true })}`
     const resultType = responseType ? `local.${camelcase(responseType.Name, { pascalCase: true })}` : 'local.EmptyResult'
 
+    /**
+     * define class methods, e.g.
+     * ```
+     * async sessionNew (params: remote.SessionNewParameters): Promise<local.SessionNewResult> {
+     *     const result = await this.send({ method: 'session.new', params })
+     *     return result.result as local.SessionNewResult
+     * }
+     * ```
+     */
     const paramKey = 'params'
     const methodProp = b.objectProperty(b.identifier('method'), b.stringLiteral(methodId))
     const paramsProp = b.objectProperty(b.identifier(paramKey), b.identifier(paramKey))
@@ -97,6 +110,9 @@ for (const assignment of astRemote) {
     methods.push(method)
 }
 
+/**
+ * define class: `export class BidiHandler extends BidiCore {`
+ */
 const bidiHandlerClass = b.classDeclaration(
     b.identifier('BidiHandler'),
     b.classBody(methods)
@@ -111,9 +127,3 @@ await fs.writeFile(
         quote: 'single'
     }).code.replace(/;/g, '')
 )
-// export class BidiCommands extends BidiHandler {
-//     async sessionNew (params: remote.SessionNewParameters): Promise<local.SessionNewResult> {
-//         const result = await this.send({ method: 'session.new', params })
-//         return result.result as local.SessionNewResult
-//     }
-// }
