@@ -3,7 +3,7 @@ import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/u
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import type { BidiHandler } from './bidi.js'
+import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { BaseClient } from './types.js'
 
@@ -97,12 +97,12 @@ export default function (
         /**
          * Handle Bidi calls
          */
-        if (this.sessionId && BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])) {
+        if (this.sessionId && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function') {
             if (!this.eventMiddleware) {
                 throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
             }
 
-            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params)
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params) as any
         }
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)

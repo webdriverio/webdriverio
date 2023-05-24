@@ -32,6 +32,11 @@ export default {
                     required: true,
                 },
             ],
+            returns: {
+                type: 'Number',
+                name: 'id',
+                description: 'id of WebDriver Bidi request',
+            },
         },
     },
 }
