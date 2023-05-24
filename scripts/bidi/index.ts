@@ -8,9 +8,11 @@ import { transform } from 'cddl2ts'
 import { parse, print, types } from 'recast'
 import { parse as parseCDDL, type PropertyReference, type Property, type Group } from 'cddl'
 import downloadSpec from './downloadSpec.js'
+import { BASE_PROTOCOL_SPEC } from './constants.js'
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const jsonSpec = Object.assign(BASE_PROTOCOL_SPEC)
 
 await downloadSpec()
 
@@ -68,7 +70,7 @@ for (const assignment of astRemote) {
     }
 
     const responseType = astLocal.find((a) => camelcase(a.Name) === `${camelcase(assignment.Name)}Result`)
-    const commandName = b.identifier(camelcase(assignment.Name))
+    const commandName = camelcase(assignment.Name)
     const methodId = (((assignment.Properties[0] as Property).Type as PropertyReference[])[0]).Value as string
     const paramType = `remote.${camelcase((((assignment.Properties[1] as Property).Type as PropertyReference[])[0]).Value as string, { pascalCase: true })}`
     const resultType = responseType ? `local.${camelcase(responseType.Name, { pascalCase: true })}` : 'local.EmptyResult'
@@ -101,13 +103,37 @@ for (const assignment of astRemote) {
     ))
     const param = b.identifier(paramKey)
     param.typeAnnotation = b.tsTypeAnnotation(b.tsTypeReference(b.identifier(paramType)))
-    const method = b.classMethod('method', commandName, [param], b.blockStatement([sendCommandCall, returnStatement]))
+    const method = b.classMethod('method', b.identifier(commandName), [param], b.blockStatement([sendCommandCall, returnStatement]))
     method.async = true
     method.returnType = b.tsTypeAnnotation(b.tsTypeReference(
         b.identifier('Promise'),
         b.tsTypeParameterInstantiation([b.tsTypeReference(b.identifier(resultType))])
     ))
+    const specUrl = `https://w3c.github.io/webdriver-bidi/#command-${methodId.replace('.', '-')}`
+    const description = `WebDriver Bidi command to send command method "${methodId}" with parameters.`
+    const comment = b.commentBlock([
+        '*',
+        ` * ${description}`,
+        ` * @url ${specUrl}`,
+        ` * @param ${paramKey} \`${paramType}\` {@link ${specUrl} | command parameter}`,
+        ` * @returns \`Promise<${resultType}>\``,
+        ' *'
+    ].join('\n'), true)
+    method.comments = [comment]
     methods.push(method)
+    jsonSpec[methodId] = {
+        socket: {
+            command: commandName,
+            description,
+            ref: specUrl,
+            parameters: [{
+                name: paramKey,
+                type: paramType,
+                description: 'command parameters',
+                required: true
+            }]
+        }
+    }
 }
 
 /**
@@ -126,4 +152,8 @@ await fs.writeFile(
         tabWidth: 4,
         quote: 'single'
     }).code.replace(/;/g, '')
+)
+await fs.writeFile(
+    path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
+    `export default ${JSON.stringify(jsonSpec, null, 4)}`
 )

@@ -1,4 +1,4 @@
-export default {
+export const BASE_PROTOCOL_SPEC = {
     sendCommand: {
         socket: {
             command: 'send',
@@ -7,14 +7,14 @@ export default {
             parameters: [
                 {
                     name: 'params',
-                    type: 'object',
+                    type: 'CommandData',
                     description: 'socket payload',
                     required: true,
                 },
             ],
             returns: {
                 type: 'Object',
-                name: 'response',
+                name: 'CommandResponse',
                 description: 'WebDriver Bidi response',
             },
         },
@@ -27,7 +27,7 @@ export default {
             parameters: [
                 {
                     name: 'params',
-                    type: 'object',
+                    type: 'CommandData',
                     description: 'socket payload',
                     required: true,
                 },

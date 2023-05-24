@@ -108,3 +108,4 @@ scripts/bidi/cddl
 packages/webdriver/src/bidi/localTypes.ts
 packages/webdriver/src/bidi/remoteTypes.ts
 packages/webdriver/src/bidi/handler.ts
+packages/wdio-protocols/src/protocols/webdriverBidi.ts
