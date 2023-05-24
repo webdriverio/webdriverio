@@ -1,6 +1,6 @@
 ---
 id: materials
-title: Materials
+title: Материали
 ---
 
 If you want to use WebdriverIO materials for your own workshops or events feel free to grab them directly from here.
