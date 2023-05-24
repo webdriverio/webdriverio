@@ -11,7 +11,7 @@ title: Дарения
 
 ## Политика за разходи
 
-Искаме да сме прозрачни в начина, по който приемаме разходите за екипа. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. Също така искаме да възстановим разходи на общността, като имаме възможност да ги покрием тези, които за изразходвани за събития. Видове разходи, допустими за възстановяване от колектива:
+Искаме да сме прозрачни в начина, по който приемаме разходите за екипа. Всеки трябва да има право да участва и да изпраща разходи за разработване на определени функции. Също така искаме да възстановим разходи на общността, като имаме възможност да ги покрием тези, които са изразходвани за събития. Видове разходи, допустими за възстановяване от колектива:
 
 ### Разходи за събития
 
@@ -22,22 +22,22 @@ title: Дарения
 - Средствата трябва да бъдат използвани само за квалифицираните разходи за събития като храна, напитки, стая или оборудване под наем.
 - Трябва да изпратите разходна разписки със заявката си за възстановяване.
 
-### Development Expenses
+### Разходи за разработка
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+Ако сте участвали в разработването на някое от 'repositories' на организацията GitHub WebdriverIO, можете да възстановите до __$1000__, ако са изпълнени следните изисквания:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
-- You must submit links to all issues you’ve closed due to your pull requests
-- In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
-- Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
-- You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
-- Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
+- Трябва да сте изпратили квалифицирани 'pull requests' заявки, които затварят поне 10 проблема и имат маркер [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- Всеки допълнителен проблем, затворен с този етикет, може да бъде заплатен с $100
+- Трябва да изпратите връзки към всички проблеми, които сте затворили във вашият pull requests
+- За да затворите the ticket автоматично, трябва да имате едно commit съобщение с ключовата дума Fix. Например, Fix #1234, за да затворите ticket #1234.
+- Pull Requests трябва да бъдат merged от някой от [основния екип](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). Ако има няколко Pull Requests, член от основният екип избира най-новият или най-добрият - решението за това зависи от него, да реши кое е най-добро за проекта.
+- Трябва да поискате [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue, като коментирате в темата за него, за да сте сигурни, че никой друг не работи по същия проблем.
+- Всеки, който допринася за развитието на WebdriverIO, има право на възнаграждение за труда си, ако внедрените функции или корекциите на грешки не са цел на комерсиална работа.
 
-### Travel Expenses
+### Пътни разходи
 
-If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
+Ако сте член на [екипа на Техническия управителен комитет](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee), имате право да плащате разходи за полети и хотелско настаняване за пътувания до конференции или срещи като част от ангажимент за популяризирането на WebdriverIO, за да не се плаща от самото събитие или компания. Можете да похарчите до $500. Изискванията за възстановяване на пътни разходи включват:
 
-- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
-- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
-- You must submit receipts with your reimbursement request.
+- Трябва да изпратите публикация от основния си акаунт в социалните медии (напр. Twitter, LinkedIn или личен блог), като благодарите на всички сътрудници на колектива след събитието.
+- Трябва да използвате средствата за квалифицирано пътуване като наземен или въздушен транспорт до събитието и хотелско настаняване.
+- Трябва да изпратите разходна разписки със заявката си за възстановяване.
