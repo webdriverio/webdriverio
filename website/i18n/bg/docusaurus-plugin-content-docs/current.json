@@ -8,7 +8,7 @@
     "description": "The label for category Getting Started in sidebar docs"
   },
   "sidebar.docs.category.Core Concepts": {
-    "message": "Core Concepts",
+    "message": "Основни концепции",
     "description": "The label for category Core Concepts in sidebar docs"
   },
   "sidebar.docs.category.Configuration": {
@@ -16,7 +16,7 @@
     "description": "The label for category Configuration in sidebar docs"
   },
   "sidebar.docs.category.Guides": {
-    "message": "Guides",
+    "message": "Ръководство",
     "description": "The label for category Guides in sidebar docs"
   },
   "sidebar.docs.category.Testrunner": {
