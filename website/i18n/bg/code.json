@@ -1,6 +1,6 @@
 {
   "theme.ErrorPageContent.title": {
-    "message": "This page crashed.",
+    "message": "Страница се срина.",
     "description": "The title of the fallback page when the page crashed"
   },
   "theme.ErrorPageContent.tryAgain": {
@@ -12,11 +12,11 @@
     "description": "The title of the 404 page"
   },
   "theme.NotFound.p1": {
-    "message": "We could not find what you were looking for.",
+    "message": "Не открихме страницата, която търсите.",
     "description": "The first paragraph of the 404 page"
   },
   "theme.NotFound.p2": {
-    "message": "Please contact the owner of the site that linked you to the original URL and let them know their link is broken.",
+    "message": "Моля, свържете се със собственика на сайта, който ви е свързан с оригиналния URL адрес, и го уведомете, че връзката им е повредена.",
     "description": "The 2nd paragraph of the 404 page"
   },
   "theme.admonition.note": {
@@ -24,7 +24,7 @@
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "tip",
+    "message": "съвет",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.danger": {
@@ -36,7 +36,7 @@
     "description": "The default label used for the Info admonition (:::info)"
   },
   "theme.admonition.caution": {
-    "message": "caution",
+    "message": "внимание",
     "description": "The default label used for the Caution admonition (:::caution)"
   },
   "theme.BackToTopButton.buttonAriaLabel": {
