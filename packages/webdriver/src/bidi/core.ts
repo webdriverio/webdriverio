@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
 
-const log = logger('webdriver:BidiHandler')
+const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
 
 export class BidiCore extends EventEmitter {
@@ -21,6 +21,7 @@ export class BidiCore extends EventEmitter {
 
     public connect () {
         return new Promise<void>((resolve) => this.#ws.on('open', () => {
+            log.info('Connected session to Bidi protocol')
             this.#isConnected = true
             resolve()
         }))
@@ -48,6 +49,10 @@ export class BidiCore extends EventEmitter {
                     if (payload.id === id) {
                         clearTimeout(t)
                         h.off('message', listener)
+                        log.info('BIDI RESULT', JSON.stringify(payload))
+                        if (payload.error) {
+                            return reject(new Error(payload.error))
+                        }
                         resolve(payload)
                     }
                 } catch (err: any) {

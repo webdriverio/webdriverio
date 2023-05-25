@@ -20,6 +20,7 @@ export interface SessionFlags {
     isSauce: boolean
     isSeleniumStandalone: boolean
     isDevTools: boolean
+    isBidi: boolean
 }
 
 export interface BaseClient extends EventEmitter, SessionFlags {

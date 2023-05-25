@@ -23,6 +23,7 @@ export default function (
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
+        const isBidiCommand = this.sessionId && this.eventMiddleware && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function'
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -40,7 +41,7 @@ export default function (
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        if (!isBidiCommand && args.length < minAllowedParams || args.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -57,6 +58,9 @@ export default function (
          * parameter type check
          */
         for (const [it, arg] of Object.entries(args)) {
+            if (isBidiCommand) {
+                break
+            }
             const i = parseInt(it, 10)
             const commandParam = commandParams[i]
 
@@ -97,12 +101,13 @@ export default function (
         /**
          * Handle Bidi calls
          */
-        if (this.sessionId && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function') {
+        if (isBidiCommand) {
             if (!this.eventMiddleware) {
                 throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
             }
 
-            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params) as any
+            log.info('BIDI COMMAND', commandCallStructure(command, args, true))
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](args[0]) as any
         }
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)

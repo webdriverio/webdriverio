@@ -115,7 +115,7 @@ export interface BrowsingContextCreateResult {
 }
 
 export interface BrowsingContextGetTreeResult {
-  contexts: BrowsingContextInfo;
+  contexts: BrowsingContextInfoList;
 }
 
 export interface BrowsingContextNavigateResult {
