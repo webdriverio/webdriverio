@@ -226,7 +226,7 @@
   },
   {
     "packageName": "wdio-robonut-service",
-    "title": "Robotnut",
+    "title": "Robonut",
     "githubUrl": "https://github.com/udarrr/wdio-robonut-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-robonut-service"
   }
