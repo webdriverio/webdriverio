@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.2.5",
     "@wdio/logger": "7.26.0",
     "@wdio/types": "7.30.2",
     "cbt_tunnels": "^1.2.2",
