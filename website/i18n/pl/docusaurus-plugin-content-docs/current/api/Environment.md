@@ -1,13 +1,13 @@
 ---
 id: environment
-title: Environment Variables
+title: Zmienne środowiskowe
 ---
 
-WebdriverIO sets the following environment variables within every worker:
+WebdriverIO ustawia następujące zmienne środowiskowe w ramach każdego workera:
 
 ## `NODE_ENV`
 
-Set to `'test'` if it's not already set to something else.
+Domyślnie `'test'` jeżeli nie jest ustawiona inna wartość.
 
 ## `WDIO_LOG_LEVEL`
 
