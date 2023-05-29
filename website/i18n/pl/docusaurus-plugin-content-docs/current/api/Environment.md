@@ -15,4 +15,4 @@ Aby ustawić odpowiedni poziom szczegółowości logów, dostępne są następuj
 
 ## `WDIO_WORKER_ID`
 
-Unikalny identyfikator, który pomaga zidentyfikować proces roboczy (worker). It has format of `{number}-{number}` where the first number identifies the capability and the second the spec file that capability is running, e.g. `0-5` indicates a worker the first running the 6th spec file for the first capability.
+Unikalny identyfikator, który pomaga zidentyfikować proces roboczy (worker). Ma format `{number}-{number}`, gdzie pierwsza liczba oznacza ustawione możliwości (capability), a druga plik specyfikacji (spec), który jest wywoływany, np. `0-5` wskazuje proces roboczy, który jako pierwszy uruchamia szósty plik specyfikacji dla pierwszej możliwości.
