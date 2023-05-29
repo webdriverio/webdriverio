@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+Ten event jest emitowany, gdy odpowiedź sieci nie została nadpisana ani przerwana, lub jeśli odpowiedź została już wysłana przez inny mock. `requestId` jest przekazywany w ramach callbacku dla danego eventu.
 
-## Examples
+## Przykłady
 
-Getting a number of pending requests:
+Pobieranie liczby oczekujących żądań:
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+Rzucanie błędu w przypadku 404 zwróconego jako status odpowiedzi:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+Ustalanie, czy użyto mocka wartości odpowiedzi:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+W tym przykładzie żądanie `firstMock` zostało zdefiniowane jako pierwsze i ma jedno wywołanie `respondOnce`, więc wartość odpowiedzi `secondMock` nie będzie używana dla pierwszego żądania, ale będzie wykorzystana w przypadku pozostałych żądań.
