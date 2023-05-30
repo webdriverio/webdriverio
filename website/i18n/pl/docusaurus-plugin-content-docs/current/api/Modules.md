@@ -1,17 +1,17 @@
 ---
 id: modules
-title: Modules
+title: Moduły
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIO publikuje rozmaite moduły w NPM i innych rejestrach, których można użyć do zbudowania własnego frameworku do automatyzacji. Zobacz więcej dokumentacji na temat różnych typów konfiguracji WebdriverIO [tutaj](/docs/setuptypes).
 
-## `webdriver` and `devtools`
+## `webdriver` oraz `devtools`
 
-The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+Pakiety protokołów ([`webdriver`](https://www.npmjs.com/package/webdriver) i [`devtools`](https://www.npmjs.com/package/devtools)) udostępniają klasę zawierającą następujące funkcje statyczne, które umożliwiają inicjowanie sesji:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+Rozpoczyna nową sesję z określonymi możliwościami (capabilities). Based on the session response commands from different protocols will be provided.
 
 ##### Paramaters
 
