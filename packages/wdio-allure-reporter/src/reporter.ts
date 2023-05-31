@@ -541,7 +541,9 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         // add hook as test to suite
-        this.onTestStart(hook)
+        if (!disableMochaHooks) {
+            this.onTestStart(hook)
+        }
     }
 
     onHookEnd(hook: HookStats) {
@@ -575,7 +577,9 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.onTestPass()
+        if (!disableMochaHooks) {
+            this.onTestPass()
+        }
     }
 
     addLabel({
