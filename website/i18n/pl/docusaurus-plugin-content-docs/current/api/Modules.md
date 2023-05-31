@@ -11,20 +11,20 @@ Pakiety protokołów ([`webdriver`](https://www.npmjs.com/package/webdriver) i [
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Rozpoczyna nową sesję z określonymi możliwościami (capabilities). Based on the session response commands from different protocols will be provided.
+Rozpoczyna nową sesję z określonymi możliwościami (capabilities). Na podstawie odpowiedzi sesji zostaną dostarczone polecenia z różnych protokołów.
 
-##### Paramaters
+##### Parametry
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `options`: [opcje WebDriver](/docs/configuration#webdriver-options)
+- `modifier`: funkcja umożliwiająca modyfikację instancji klienta przed jej zwróceniem
+- `userPrototype`: obiekt właściwości umożliwiający rozszerzenie prototypu instancji
+- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność wokół wywołań funkcji
 
-##### Returns
+##### Zwracane wartości/obiekty
 
-- [Browser](/docs/api/browser) object
+- Obiekt [przeglądarki](/docs/api/browser)
 
-##### Example
+##### Przykład
 
 ```js
 const client = await WebDriver.newSession({
@@ -34,20 +34,20 @@ const client = await WebDriver.newSession({
 
 #### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Attaches to a running WebDriver or DevTools session.
+Odpowiada za dołączenie do istniejącej sesji WebDriver lub DevTools.
 
-##### Paramaters
+##### Parametry
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: instancja umożliwająca dołączenia sesji lub co najmniej obiektu z właściwością `sessionId` (np. `{ sessionId: 'xxx' }`)
+- `modifier`: funkcja umożliwiająca modyfikację instancji klienta przed jej zwróceniem
+- `userPrototype`: obiekt właściwości umożliwiający rozszerzenie prototypu instancji
+- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność wokół wywołań funkcji
 
-##### Returns
+##### Zwracane wartości/obiekty
 
 - [Browser](/docs/api/browser) object
 
-##### Example
+##### Przykład
 
 ```js
 const client = await WebDriver.newSession({...})
