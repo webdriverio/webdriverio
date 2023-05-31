@@ -516,8 +516,8 @@ export default class AllureReporter extends WDIOReporter {
     onHookStart(hook: HookStats) {
         const { disableMochaHooks } = this._options
 
-        // ignore global or blank hooks
-        if (!hook.parent || !this._state.currentSuite || !hook.title) {
+        // ignore global hooks
+        if (!hook.parent || !this._state.currentSuite) {
             return
         }
 
@@ -547,8 +547,8 @@ export default class AllureReporter extends WDIOReporter {
     onHookEnd(hook: HookStats) {
         const { disableMochaHooks } = this._options
 
-        // ignore global or blank hooks
-        if (!hook.parent || !this._state.currentSuite || !hook.title) {
+        // ignore global hooks
+        if (!hook.parent || !this._state.currentSuite) {
             return
         }
 
