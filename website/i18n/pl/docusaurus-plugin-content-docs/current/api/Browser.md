@@ -107,7 +107,7 @@ describe('my test', () => {
 ```
 
 ### Eventy
-Obiekt przeglądarki jest EventEmitterem i emitowanych jest kilka zdarzeń dla różnych przypadków użycia.
+Obiekt przeglądarki jest EventEmitterem i emitowanych jest kilka eventów dla różnych przypadków użycia.
 
 Poniżej znajduje się lista eventów. Pamiętaj, że nie jest to jeszcze pełna lista wszystkich dostępnych eventów. Możesz pomóc w aktualizacji dokumentu, dodając brakujące opisy eventów.
 

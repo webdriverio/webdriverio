@@ -1,6 +1,6 @@
 {
   "item.label.Docs": {
-    "message": "Docs",
+    "message": "Документация",
     "description": "Navbar item with label Docs"
   },
   "item.label.API": {
@@ -8,15 +8,15 @@
     "description": "Navbar item with label API"
   },
   "item.label.Blog": {
-    "message": "Blog",
+    "message": "Блог",
     "description": "Navbar item with label Blog"
   },
   "item.label.Contribute": {
-    "message": "Contribute",
+    "message": "Принос",
     "description": "Navbar item with label Contribute"
   },
   "item.label.Community": {
-    "message": "Community",
+    "message": "Общност",
     "description": "Navbar item with label Community"
   },
   "item.label.v8": {

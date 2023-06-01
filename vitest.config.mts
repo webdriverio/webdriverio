@@ -25,7 +25,7 @@ export default defineConfig({
             ],
             lines: 92,
             functions: 88,
-            branches: 92,
+            branches: 91,
             statements: 92
         },
         globalSetup: [

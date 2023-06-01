@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.6 (2023-06-01)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#10477](https://github.com/webdriverio/webdriverio/pull/10477) @wdio/allure-reporter: Exporting the addTag method so it can be used ([@lukefitz1](https://github.com/lukefitz1))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#10454](https://github.com/webdriverio/webdriverio/pull/10454) added new service to services list is named 'wdio-robonut-service' ([@udarrr](https://github.com/udarrr))
+* `webdriverio`
+  * [#10446](https://github.com/webdriverio/webdriverio/pull/10446) update code links for browser->waitUntil ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 5
+- Adam Christian ([@admc](https://github.com/admc))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@lukefitz1](https://github.com/lukefitz1)
+
+
 ## v8.10.5 (2023-05-22)
 
 #### :bug: Bug Fix

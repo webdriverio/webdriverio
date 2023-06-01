@@ -1,30 +1,30 @@
 ---
 id: modules
-title: Modules
+title: Moduły
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIO publikuje rozmaite moduły w NPM i innych rejestrach, których można użyć do zbudowania własnego frameworku do automatyzacji. Zobacz więcej dokumentacji na temat różnych typów konfiguracji WebdriverIO [tutaj](/docs/setuptypes).
 
-## `webdriver` and `devtools`
+## `webdriver` oraz `devtools`
 
-The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+Pakiety protokołów ([`webdriver`](https://www.npmjs.com/package/webdriver) i [`devtools`](https://www.npmjs.com/package/devtools)) udostępniają klasę zawierającą następujące funkcje statyczne, które umożliwiają inicjowanie sesji:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+Rozpoczyna nową sesję z określonymi możliwościami (capabilities). Na podstawie odpowiedzi sesji zostaną dostarczone polecenia z różnych protokołów.
 
-##### Paramaters
+##### Parametry
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `options`: [opcje WebDriver](/docs/configuration#webdriver-options)
+- `modifier`: funkcja umożliwiająca modyfikację instancji klienta przed jej zwróceniem
+- `userPrototype`: obiekt właściwości umożliwiający rozszerzenie prototypu instancji
+- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność wokół wywołań funkcji
 
-##### Returns
+##### Zwracane wartości/obiekty
 
-- [Browser](/docs/api/browser) object
+- Obiekt [przeglądarki](/docs/api/browser)
 
-##### Example
+##### Przykład
 
 ```js
 const client = await WebDriver.newSession({
@@ -34,20 +34,20 @@ const client = await WebDriver.newSession({
 
 #### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Attaches to a running WebDriver or DevTools session.
+Odpowiada za dołączenie do istniejącej sesji WebDriver lub DevTools.
 
-##### Paramaters
+##### Parametry
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: instancja umożliwająca dołączenia sesji lub co najmniej obiektu z właściwością `sessionId` (np. `{ sessionId: 'xxx' }`)
+- `modifier`: funkcja umożliwiająca modyfikację instancji klienta przed jej zwróceniem
+- `userPrototype`: obiekt właściwości umożliwiający rozszerzenie prototypu instancji
+- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność wokół wywołań funkcji
 
-##### Returns
+##### Zwracane wartości/obiekty
 
 - [Browser](/docs/api/browser) object
 
-##### Example
+##### Przykład
 
 ```js
 const client = await WebDriver.newSession({...})
