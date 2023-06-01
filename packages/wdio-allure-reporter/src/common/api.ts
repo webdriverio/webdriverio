@@ -148,7 +148,7 @@ export function addTag(tag: string) {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function addEnvironment (name: string, value: string) {
-    console.warn('addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter. ')
+    console.warn('⚠️ addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter.')
 }
 
 /**
