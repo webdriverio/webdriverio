@@ -13,7 +13,7 @@ export default async function downloadSpec () {
     const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
     const targetDir = path.join(__dirname, 'cddl')
     const zipPath = path.join(targetDir, 'cddl.zip')
-    await fsp.rm(targetDir, { recursive: true })
+    await fsp.rm(targetDir, { recursive: true, force: true })
     await fsp.mkdir(targetDir)
 
     /**
@@ -50,7 +50,7 @@ export default async function downloadSpec () {
     ]
 
     stream.on('entry', async (entry: Entry) => {
-        const unzippedFilePath = path.join(__dirname, 'cddl', entry.path)
+        const unzippedFilePath = path.join(targetDir, entry.path)
         if (entry.type === 'Directory') {
             return
         }
