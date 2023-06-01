@@ -14,6 +14,11 @@ const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const jsonSpec = Object.assign(BASE_PROTOCOL_SPEC)
 
+if (!process.env.GITHUB_TOKEN) {
+    console.log('Couldn\'t find "GITHUB_TOKEN" environment variable, skipping')
+    process.exit(0)
+}
+
 await downloadSpec()
 
 const cddlTypes = ['local', 'remote']
