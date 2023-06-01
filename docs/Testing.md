@@ -7,7 +7,7 @@ cwd: ../
 This project has a set of commands that help you to validate your code. Every test layer is described further below. You can run them individually or with a single command:
 
 ```sh { name=test }
-$ npx runme run test-depcheck test-linting test-typings test-unit test-smoke test-component test-e2e
+$ npx runme run test:depcheck test:linting test:typings test:unit test:smoke test:component test:e2e
 ```
 
 ## Test Pipeline
@@ -16,37 +16,37 @@ When a PR gets submitted, WebdriverIO runs the following checks:
 
 - [*Dependency Checks*](#dependency-checks)
   ```sh
-  $ npx runme run test-depcheck
+  $ npx runme run test:depcheck
   ```
 
 - [*Linting*](#linting)
-  ```sh { name=test-linting }
-  $ npx runme run --parallel test-eslint test-ejslint
+  ```sh { name=test:linting }
+  $ npx runme run --parallel test:eslint test:ejslint
   ```
 
 - [*TypeScript Definition Tests*](#testing-type-definitions)
   ```sh
-  $ npx runme run test-typings
+  $ npx runme run test:typings
   ```
 
 - [*Unit Tests*](#unit-tests)
   ```sh
-  $ npx runme run test-unit
+  $ npx runme run test:unit
   ```
 
 - [*Smoke Tests*](#run-e2e-experience-with-smoke-tests)
   ```sh
-  $ npx runme run test-smoke
+  $ npx runme run test:smoke
   ```
 
 - [*Component Tests*](#component-testing)
   ```sh
-  $ npx runme run test-component
+  $ npx runme run test:component
   ```
 
 - [*e2e Tests*](#e2e-tests)
   ```sh
-  $ npx runme run test-e2e
+  $ npx runme run test:e2e
   ```
 
 ### Dependency Checks
@@ -54,7 +54,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
 We automatically check if every sub-package has all the dependencies from its `package.json` installed. This ensures that we don't forget to add any dependency to the package.
 You can manually trigger this check by calling:
 
-```sh { name=test-depcheck }
+```sh { name=test:depcheck }
 $ npx ts-node-esm ./scripts/depcheck.ts
 ```
 
@@ -63,13 +63,13 @@ $ npx ts-node-esm ./scripts/depcheck.ts
 A common ESLint test to align code styles and detect syntax errors early.
 You can manually trigger this check by calling:
 
-```sh { name=test-eslint }
+```sh { name=test:eslint }
 $ npx eslint --cache -c ./.eslintrc.cjs
 ```
 
 There is also a linter for several EJS templates that help to detect errors early in development:
 
-```sh { name=test-ejslint }
+```sh { name=test:ejslint }
 $ npx ejslint ./packages/wdio-cli/src/templates/**/*
 ```
 
@@ -77,20 +77,20 @@ $ npx ejslint ./packages/wdio-cli/src/templates/**/*
 
 As we generate our type definitions, we want to be cautious that the generated definitions actually define the interface as expected. To make sure that we don't accidentally change the types and cause users' test to break, we run some simple TypeScript checks. You can run all the type definition tests by running:
 
-```sh { name=test-typings }
+```sh { name=test:typings }
 # run tests for latest TypeScript version
-npx runme run test-typings-setup
+npx runme run test:typings:setup
 # Run Typing Tests
-npx runme run --parallel test-typings-compile-webdriver test-typings-compile-devtools test-typings-compile-webdriverio test-typings-compile-mocha test-typings-compile-jasmine test-typings-compile-cucumber
+npx runme run --parallel test:typings:compile:webdriver test:typings:compile:devtools test:typings:compile:webdriverio test:typings:compile:mocha test:typings:compile:jasmine test:typings:compile:cucumber
 # Clean Compiled Files
-npx runme run test-typings-clean
+npx runme run test:typings:clean
 ```
 
 This will:
 
 - *Setup the Test Environment*
   In order to set up the correct environment for these tests we need to link WebdriverIO packages into a fake `node_modules` directory and install the required dependency for asserting types, via:
-  ```sh { name=test-typings-setup }
+  ```sh { name=test:typings:setup }
   $ node ./tests/typings/setup.js
   $ npm i --no-save tsd
   ```
@@ -101,43 +101,43 @@ This will:
   The test process goes into every directory and tries to compile the file.
 
   __Test `webdriver` package based files__
-  ```sh { name=test-typings-compile-webdriver }
+  ```sh { name=test:typings:compile:webdriver }
   cd ./tests/typings/webdriver
   npx tsc --skipLibCheck
   ```
 
   __Test `devtools` package based files__
-  ```sh { name=test-typings-compile-devtools }
+  ```sh { name=test:typings:compile:devtools }
   cd ./tests/typings/devtools
   npx tsc --skipLibCheck
   ```
 
   __Test `webdriverio` package based files__
-  ```sh { name=test-typings-compile-webdriverio }
+  ```sh { name=test:typings:compile:webdriverio }
   cd ./tests/typings/webdriverio
   npx tsc --skipLibCheck
   ```
 
   __Test `@wdio/mocha-framework` package based files__
-  ```sh { name=test-typings-compile-mocha }
+  ```sh { name=test:typings:compile:mocha }
   cd ./tests/typings/mocha
   npx tsc --skipLibCheck
   ```
 
   __Test `@wdio/jasmine-framework` package based files__
-  ```sh { name=test-typings-compile-jasmine }
+  ```sh { name=test:typings:compile:jasmine }
   cd ./tests/typings/jasmine
   npx tsc --skipLibCheck
   ```
 
   __Test `@wdio/cucumber-framework` package based files__
-  ```sh { name=test-typings-compile-cucumber }
+  ```sh { name=test:typings:compile:cucumber }
   cd ./tests/typings/cucumber
   npx tsc --skipLibCheck
   ```
 
 - *Clean Compiled Files*
-  ```sh { name=test-typings-clean }
+  ```sh { name=test:typings:clean }
   npx rimraf "./tests/typings/**/node_modules" "./tests/typings/**/dist"
   ```
 
@@ -176,7 +176,7 @@ browser.touchAction(touchAction)
 
 Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that your changes cover all necessary code paths. WebdriverIO uses [Vitest](https://vitest.dev/) for running unit tests. You can trigger the test suite by calling:
 
-```sh { name=test-unit }
+```sh { name=test:unit }
 npx vitest --config ./vitest.config.mts --run
 ```
 
@@ -211,7 +211,7 @@ npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 
 To clean up the coverage reports, run:
 
-```sh { name=test-unit-clean }
+```sh { name=test:unit:clean }
 npx rimraf ../coverage
 ```
 
@@ -219,13 +219,13 @@ npx rimraf ../coverage
 
 While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are, for example, proper test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-smoke-test-service/package.json)) to return fake results. This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
-```sh { name=test-smoke }
+```sh { name=test:smoke }
 node ./tests/smoke.runner.js
 ```
 
 The [`smoke.runner.js`](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js) file triggers all tests. It contains several [test suites](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js#L365-L384) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
 
-```sh { name=test-smoke:mochaTestrunner }
+```sh { name=test:smoke:mochaTestrunner }
 node ./tests/smoke.runner.js mochaTestrunner
 ```
 
@@ -239,20 +239,20 @@ With v8 of WebdriverIO a new testrunner was introduced that allows to run tests 
 
 To run the complete component test suite, run:
 
-```sh { name=test-component }
-npx runme run test-component-setup test-component-run
+```sh { name=test:component }
+npx runme run test:component-setup test:component-run
 ```
 
 This will:
 
 - *Setup required dependencies*
-  ```sh { name=test-component-setup }
+  ```sh { name=test:component-setup }
   cd ./e2e
   npm install
   ```
 
 - *Run component test suite*
-  ```sh { name=test-component-run }
+  ```sh { name=test:component-run }
   cd ./e2e
   npm run test:browser
   ```
@@ -263,8 +263,8 @@ Last but not least, we run actual e2e tests with a real browser to ensure that o
 
 You can run the complete e2e test suite via:
 
-```sh { name=test-e2e }
-npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test-e2e-cjs
+```sh { name=test:e2e }
+npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test:e2e-cjs
 ```
 
 This will:
@@ -295,7 +295,7 @@ This will:
 
 - *Validate CJS Support*
   With WebdriverIO v8 we transitioned the code base to ESM. This test validates that some packages can still be used within a CJS context.
-  ```sh { name=test-e2e-cjs }
+  ```sh { name=test:e2e-cjs }
   node e2e/interop/webdriverio.e2e.js
   node e2e/interop/webdriver.e2e.js
   node e2e/interop/devtools.e2e.js
