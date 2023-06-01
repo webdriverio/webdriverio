@@ -68,6 +68,7 @@ export const config = {
 * `addIssue(value)` – assign issue id to test
 * `addAllureId(value)` – assign allure test ops id label to test
 * `addTestId(value)` – assign TMS test id to test
+* ~~`addEnvironment(name, value)` ~~ – a deprecated function that no longer works. Use `reportedEnvironmentVars` instead
 * `addAttachment(name, content, [type])` – save attachment to test.
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
