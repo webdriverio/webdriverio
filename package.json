@@ -6,7 +6,7 @@
     "whereAreMyScripts": "echo \"see docs/Readme.md\"",
     "version": "runme generateChangelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
-    "postinstall:runme": "echo \"RUNME_PROJECT=.\" &> .env",
+    "postinstall:runme": "echo \"RUNME_PROJECT=\"\"\" &> .env",
     "postinstall:husky": "runme run husky",
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },

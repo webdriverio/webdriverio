@@ -18,11 +18,7 @@ If a release is triggered, it runs the following procedures:
 
 - *Build the project from scratch*
   ```sh
-  npx runme --project . run setup
-  ```
-- *Generate Typings*
-  ```sh
-  npx runme --project . run generateTypings
+  npx runme run setup
   ```
 - *Published Packages through Lerna*
   ```sh { name=publish }

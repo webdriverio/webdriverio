@@ -272,25 +272,25 @@ This will:
 - *Validate `devtools` package*
   These tests verify that the WebDriver command implementations with Puppeteer behave as expected according to the WebDriver specification.
   ```sh { name=test-e2e-devtools }
-  npx vitest --config ../e2e/vitest.config.ts
+  npx vitest --config ./e2e/vitest.config.ts --run
   ```
 
 - *Validate Starting Edge Browser*
   This test validates if the `devtools` package can find and start the Microsoft Edge browser.
   ```sh { name=test-e2e-edge }
-  npx vitest --config ../e2e/standalone/vitest.config.ts edge.e2e.ts
+  npx vitest --config ./e2e/standalone/vitest.config.ts edge.e2e.ts --run
   ```
 
 - *Validate Starting Firefox Browser*
   This test validates if the `devtools` package can find and start the Firefox browser.
   ```sh { name=test-e2e-firefox }
-  npx vitest --config ../e2e/standalone/vitest.config.ts firefox.e2e.ts
+  npx vitest --config ./e2e/standalone/vitest.config.ts firefox.e2e.ts --run
   ```
 
 - *Validate Cloud Connection*
   This test validates WebdriverIO can connect seamlessly with cloud vendors such as Sauce Labs.
   ```sh { name=test-e2e-cloud }
-  node --loader ts-node/esm ../packages/wdio-cli/bin/wdio.js ../e2e/wdio/wdio.sauce.conf.ts
+  node --loader ts-node/esm ./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.ts
   ```
 
 - *Validate CJS Support*

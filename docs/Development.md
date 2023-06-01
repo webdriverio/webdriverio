@@ -16,7 +16,7 @@ node ./scripts/build.js --watch
 
 If you only work on a single package, you can watch only for that one by calling:
 
-```sh { name=build-package }
+```sh
 $ node ./scripts/build.js <package-name>
 # or watch file changes of a particular package
 $ node ./scripts/build.js <package-name> --watch

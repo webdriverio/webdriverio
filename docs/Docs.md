@@ -1,5 +1,5 @@
 ---
-cwd: ../
+cwd: ../website
 ---
 
 # Documentation
@@ -17,7 +17,7 @@ Changes to the docs need to be done in one of these places. Please note that cha
 The easiest way to get a version of the documentation run locally is via:
 
 ```sh { name=docs }
-npx runme run docs-clean docs-install docs-generate docs-start
+npx runme run docs:clean docs:install docs:generate docs:start
 ```
 
 ## Setup Docusaurus
@@ -26,8 +26,7 @@ After you have [set up the project](./Setup.md) you can go into the `website` di
 
 To do so, install first the required dependencies:
 
-```sh { name=docs-install }
-cd website
+```sh { name=docs:install category=docs }
 npm install
 ```
 
@@ -35,22 +34,22 @@ npm install
 
 The project pulls its documentation from various sources (see above). To run this process, first clean potentially old documentation via:
 
-```sh { name=docs-clean }
-npx rimraf website/docs/_*.md website/docs/api/_*.md website/docs/api/**/_*.md website/sidebars.json
+```sh { name=docs:clean category=docs }
+npx rimraf "./docs/_*.md" "./docs/api/_*.md" "./docs/api/**/_*.md" ./sidebars.json
 ```
 
 then re-generate them:
 
-```sh { name=docs-generate }
-ts-node-esm ./scripts/docs-generation/generateDocs.ts
+```sh { name=docs:generate category=docs }
+nvm use
+ts-node-esm ../scripts/docs-generation/generateDocs.ts
 ```
 
 ## Start Local Development
 
 You can run a local dev server via:
 
-```sh { name=docs-start }
-cd website
+```sh { name=docs:start category=docs }
 npx docusaurus start
 ```
 
@@ -60,8 +59,7 @@ This will set up everything needed to run the page on [`localhost:3000`](http://
 
 You can build the website and have all static files ready at `./website/build` via:
 
-```sh { name=docs-build }
-cd ./website
+```sh { name=docs:build }
 docusaurus build
 ```
 
@@ -78,5 +76,5 @@ To deploy the website manually, make sure you have the following environment var
 then run:
 
 ```sh { name=docs-deploy }
-node ./scripts/updateDocs.js
+node ../scripts/updateDocs.js
 ```
