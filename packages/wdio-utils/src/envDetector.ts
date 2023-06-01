@@ -276,6 +276,7 @@ export function webdriverEnvironmentDetector(capabilities: Capabilities.Capabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities)
+        isSauce: isSauce(capabilities),
+        isBidi: isBidi(capabilities)
     }
 }

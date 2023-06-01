@@ -102,10 +102,6 @@ export default function (
          * Handle Bidi calls
          */
         if (isBidiCommand) {
-            if (!this.eventMiddleware) {
-                throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
-            }
-
             log.info('BIDI COMMAND', commandCallStructure(command, args, true))
             return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](args[0]) as any
         }

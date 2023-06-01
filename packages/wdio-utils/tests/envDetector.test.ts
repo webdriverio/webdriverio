@@ -15,6 +15,7 @@ import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.respo
 import edgedriverResponse from './__fixtures__/edgedriver.response.json' assert { type: 'json' }
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' assert { type: 'json' }
 import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' assert { type: 'json' }
+import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
     const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
@@ -87,6 +88,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isFirefox).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isFirefox).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isFirefox).toBe(false)
+    })
+
+    it('isBidi', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
     })
 
     it('isSauce', () => {
