@@ -264,32 +264,32 @@ Last but not least, we run actual e2e tests with a real browser to ensure that o
 You can run the complete e2e test suite via:
 
 ```sh { name=test-e2e }
-npx runme run --parallel test-e2e-devtools test-e2e-edge test-e2e-firefox test-e2e-cloud test-e2e-cjs
+npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test-e2e-cjs
 ```
 
 This will:
 
 - *Validate `devtools` package*
   These tests verify that the WebDriver command implementations with Puppeteer behave as expected according to the WebDriver specification.
-  ```sh { name=test-e2e-devtools }
+  ```sh { name=test:e2e:devtools }
   npx vitest --config ./e2e/vitest.config.ts --run
   ```
 
 - *Validate Starting Edge Browser*
   This test validates if the `devtools` package can find and start the Microsoft Edge browser.
-  ```sh { name=test-e2e-edge }
+  ```sh { name=test:e2e:edge }
   npx vitest --config ./e2e/standalone/vitest.config.ts edge.e2e.ts --run
   ```
 
 - *Validate Starting Firefox Browser*
   This test validates if the `devtools` package can find and start the Firefox browser.
-  ```sh { name=test-e2e-firefox }
+  ```sh { name=test:e2e:firefox }
   npx vitest --config ./e2e/standalone/vitest.config.ts firefox.e2e.ts --run
   ```
 
 - *Validate Cloud Connection*
   This test validates WebdriverIO can connect seamlessly with cloud vendors such as Sauce Labs.
-  ```sh { name=test-e2e-cloud }
+  ```sh { name=test:e2e:cloud }
   node --loader ts-node/esm ./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.ts
   ```
 

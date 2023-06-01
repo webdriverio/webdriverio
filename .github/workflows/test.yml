@@ -33,9 +33,9 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Dependency Check
-        run: npm run test:depcheck
+        run: npx runme run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: npx runme run test
       - name: Interop Tests
         run: |
           npm i chromedriver --detect_chromedriver_version
@@ -57,7 +57,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: npx runme run test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
@@ -67,7 +67,7 @@ jobs:
           max_attempts: 3
           command: npm run test:e2e
       - name: E2E Edge Launch Tests
-        run: npm run test:e2e:edge
+        run: npx runme run test:e2e:edge
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -94,7 +94,7 @@ jobs:
           max_attempts: 3
           command: npm run test:e2e
       - name: Safari Component Tests
-        run: npm run test:component
+        run: npx runme run test:component
       # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
       # - name: Setup Firefox
       #   uses: browser-actions/setup-firefox@latest
@@ -104,15 +104,15 @@ jobs:
       #     export FIREFOX_BINARY=$(which firefox)
       #     echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
       # - name: E2E Firefox Launch Tests
-      #   run: npm run test:e2e:firefox
+      #   run: npx runme run test:e2e:firefox
       - name: E2E Connection Test
-        run: npm run test:e2e:cloud
+        run: npx runme run test:e2e:cloud
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        run: npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        run: npx runme run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
