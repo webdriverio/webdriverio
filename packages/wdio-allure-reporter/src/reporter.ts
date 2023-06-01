@@ -12,7 +12,7 @@ import {
 } from 'allure-js-commons'
 import {
     addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
-    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
@@ -22,7 +22,7 @@ import {
 } from './utils.js'
 import { events } from './constants.js'
 import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddAttachmentEventArgs, AddDescriptionEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
     AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
@@ -73,6 +73,9 @@ export default class AllureReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+
+        const { reportedEnvironmentVars } = this._options
+        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
     }
 
     attachLogs() {
@@ -280,7 +283,6 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
-        process.on(events.addEnvironment, this.addEnvironment.bind(this))
         process.on(events.addAttachment, this.addAttachment.bind(this))
         process.on(events.addDescription, this.addDescription.bind(this))
         process.on(events.startStep, this.startStep.bind(this))
@@ -733,15 +735,6 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    addEnvironment({
-        name,
-        value
-    }: AddEnvironmentEventArgs) {
-        this._allure.writeEnvironmentInfo({
-            [name]: value,
-        })
-    }
-
     addDescription({
         description,
         descriptionType
@@ -883,7 +876,6 @@ export default class AllureReporter extends WDIOReporter {
     static addParentSuite = addParentSuite
     static addTestId = addTestId
     static addStory = addStory
-    static addEnvironment = addEnvironment
     static addDescription = addDescription
     static addAttachment = addAttachment
     static startStep = startStep

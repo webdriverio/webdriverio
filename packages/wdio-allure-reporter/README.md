@@ -52,6 +52,7 @@ export const config = {
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 - `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
 - `addConsoleLogs` - optional parameter(`false` by default), set to true in order to attach console logs from step to the reporter.
+- `reportedEnvironmentVars` - Set this option to display the environment variables in the report. Note that setting this, does not modify the actual environment variables.
 
 ## Supported Allure API
 * `addLabel(name, value)` - assign a custom label to test
@@ -67,7 +68,7 @@ export const config = {
 * `addIssue(value)` – assign issue id to test
 * `addAllureId(value)` – assign allure test ops id label to test
 * `addTestId(value)` – assign TMS test id to test
-* `addEnvironment(name, value)` – save environment value
+* ~~`addEnvironment(name, value)` ~~ – a deprecated function that no longer works. Use `reportedEnvironmentVars` instead
 * `addAttachment(name, content, [type])` – save attachment to test.
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
