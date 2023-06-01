@@ -1,4 +1,5 @@
 import webdriver from '../packages/wdio-protocols/src/protocols/webdriver.js'
+import webdriverBidi from '../packages/wdio-protocols/build/protocols/webdriverBidi.js'
 import appium from '../packages/wdio-protocols/src/protocols/appium.js'
 import mjsonwp from '../packages/wdio-protocols/src/protocols/mjsonwp.js'
 import chromium from '../packages/wdio-protocols/src/protocols/chromium.js'
@@ -17,7 +18,8 @@ export const PROTOCOL_NAMES = {
     mjsonwp: 'Mobile JSON Wire Protocol',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone',
-    webdriver: 'WebDriver Protocol'
+    webdriver: 'WebDriver Protocol',
+    webdriverBidi: 'WebDriver Bidi Protocol'
 } as const
 
 export type { Protocol }
@@ -26,7 +28,7 @@ export type Protocols = Record<ProtocolKeys, Protocol>
 
 export const PROTOCOLS: Protocols = {
     appium, chromium, gecko, jsonwp, mjsonwp,
-    saucelabs, selenium, webdriver
+    saucelabs, selenium, webdriver, webdriverBidi
 }
 
 export const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
