@@ -1,5 +1,8 @@
+import fs from 'node:fs/promises'
+import url from 'node:url'
+import path from 'node:path'
+
 import webdriver from '../packages/wdio-protocols/src/protocols/webdriver.js'
-import webdriverBidi from '../packages/wdio-protocols/build/protocols/webdriverBidi.js'
 import appium from '../packages/wdio-protocols/src/protocols/appium.js'
 import mjsonwp from '../packages/wdio-protocols/src/protocols/mjsonwp.js'
 import chromium from '../packages/wdio-protocols/src/protocols/chromium.js'
@@ -9,6 +12,8 @@ import selenium from '../packages/wdio-protocols/src/protocols/selenium.js'
 import jsonwp from '../packages/wdio-protocols/src/protocols/jsonwp.js'
 
 import type { Protocol } from '../packages/wdio-protocols/src/types.js'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export const PROTOCOL_NAMES = {
     appium: 'Appium',
@@ -25,6 +30,12 @@ export const PROTOCOL_NAMES = {
 export type { Protocol }
 export type ProtocolKeys = keyof typeof PROTOCOL_NAMES
 export type Protocols = Record<ProtocolKeys, Protocol>
+
+const bidiTypesPath = path.resolve(__dirname, 'packages', 'wdio-protocols', 'build', 'protocols', 'webdriverBidi.js')
+const hasBidiTypesGenerated = await fs.access(bidiTypesPath).then(() => true, () => false)
+const webdriverBidi = hasBidiTypesGenerated
+    ? await import(bidiTypesPath)
+    : {}
 
 export const PROTOCOLS: Protocols = {
     appium, chromium, gecko, jsonwp, mjsonwp,
