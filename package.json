@@ -6,7 +6,6 @@
     "whereAreMyScripts": "echo \"see docs/Readme.md\"",
     "version": "runme generateChangelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
-    "postinstall:runme": "echo \"RUNME_PROJECT=\"\"\" &> .env",
     "postinstall:husky": "runme run husky",
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },
@@ -58,7 +57,7 @@
     "recursive-readdir": "^2.2.3",
     "request": "^2.88.2",
     "rimraf": "^3.0.2",
-    "runme": "^2.3.5",
+    "runme": "projectMode",
     "shelljs": "^0.8.5",
     "shx": "^0.3.4",
     "tempy": "^3.0.0",
