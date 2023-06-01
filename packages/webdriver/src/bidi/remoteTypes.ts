@@ -119,6 +119,9 @@ export type BrowsingContextCreateType = 'tab' | 'window';
 
 export interface BrowsingContextCreateParameters {
   type: BrowsingContextCreateType;
+  /**
+   * @default null
+   */
   referenceContext?: BrowsingContextBrowsingContext;
 }
 
@@ -128,7 +131,13 @@ export interface BrowsingContextGetTree extends Command {
 }
 
 export interface BrowsingContextGetTreeParameters {
+  /**
+   * @default null
+   */
   maxDepth?: JsUint;
+  /**
+   * @default null
+   */
   root?: BrowsingContextBrowsingContext;
 }
 
@@ -139,7 +148,13 @@ export interface BrowsingContextHandleUserPrompt extends Command {
 
 export interface BrowsingContextHandleUserPromptParameters {
   context: BrowsingContextBrowsingContext;
+  /**
+   * @default true
+   */
   accept?: boolean;
+  /**
+   * @default ''
+   */
   userText?: string;
 }
 
@@ -151,6 +166,9 @@ export interface BrowsingContextNavigate extends Command {
 export interface BrowsingContextNavigateParameters {
   context: BrowsingContextBrowsingContext;
   url: string;
+  /**
+   * @default 'none'
+   */
   wait?: BrowsingContextReadinessState;
 }
 
@@ -217,6 +235,9 @@ export interface BrowsingContextReload extends Command {
 export interface BrowsingContextReloadParameters {
   context: BrowsingContextBrowsingContext;
   ignoreCache?: boolean;
+  /**
+   * @default 'none'
+   */
   wait?: BrowsingContextReadinessState;
 }
 
@@ -541,6 +562,9 @@ export interface ScriptAddPreloadScriptCommand extends Command {
 export interface ScriptAddPreloadScriptParameters {
   functionDeclaration: string;
   arguments?: ScriptChannelValue[];
+  /**
+   * @default null
+   */
   sandbox?: string;
 }
 
