@@ -1,30 +1,30 @@
 {
   "link.title.Docs": {
-    "message": "Docs",
+    "message": "Документация",
     "description": "The title of the footer links column with title=Docs in the footer"
   },
   "link.title.Community": {
-    "message": "Community",
+    "message": "Общност",
     "description": "The title of the footer links column with title=Community in the footer"
   },
   "link.title.More": {
-    "message": "More",
+    "message": "Още",
     "description": "The title of the footer links column with title=More in the footer"
   },
   "link.item.label.Getting Started": {
-    "message": "Getting Started",
+    "message": "Първи Стъпки",
     "description": "The label of footer link with label=Getting Started linking to docs/gettingstarted"
   },
   "link.item.label.API Reference": {
-    "message": "API Reference",
+    "message": "API Препратки",
     "description": "The label of footer link with label=API Reference linking to docs/api"
   },
   "link.item.label.Contribute": {
-    "message": "Contribute",
+    "message": "Принос",
     "description": "The label of footer link with label=Contribute linking to docs/contribute/"
   },
   "link.item.label.Help": {
-    "message": "Help",
+    "message": "Помощ",
     "description": "The label of footer link with label=Help linking to community/support"
   },
   "link.item.label.Stack Overflow": {
@@ -32,7 +32,7 @@
     "description": "The label of footer link with label=Stack Overflow linking to https://stackoverflow.com/questions/tagged/webdriver-io"
   },
   "link.item.label.Support Chat": {
-    "message": "Support Chat",
+    "message": "Чат за поддръжка",
     "description": "The label of footer link with label=Support Chat linking to https://discord.webdriver.io"
   },
   "link.item.label.Slack": {
@@ -44,19 +44,19 @@
     "description": "The label of footer link with label=Twitter linking to https://twitter.com/webdriverio"
   },
   "link.item.label.Tidelift Subscription": {
-    "message": "Tidelift Subscription",
+    "message": "Абонамент за Tidelift",
     "description": "The label of footer link with label=Tidelift Subscription linking to /docs/enterprise/"
   },
   "link.item.label.Donate to WebdriverIO": {
-    "message": "Donate to WebdriverIO",
+    "message": "Дарете на WebdriverIO",
     "description": "The label of footer link with label=Donate to WebdriverIO linking to https://opencollective.com/webdriverio"
   },
   "link.item.label.Blog": {
-    "message": "Blog",
+    "message": "Блог",
     "description": "The label of footer link with label=Blog linking to blog"
   },
   "copyright": {
-    "message": "Copyright © 2023 OpenJS Foundation",
+    "message": "Авторско право © 2023 OpenJS Foundation",
     "description": "The footer copyright"
   },
   "link.item.label.YouTube": {
