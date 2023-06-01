@@ -1,3 +1,7 @@
+---
+cwd: ../
+---
+
 ## Capture Changelogs
 
 Package releases are made using Lerna's release capabilities as GitHub workflow and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md#the-technical-committee) only. All you need to do is go to the [`Manual NPM Publish`](https://github.com/webdriverio/webdriverio/actions/workflows/publish.yml) workflow and trigger a new run. Choose the appropriate version upgrade based on the [Semantic Versioning](https://semver.org/). To help choose the right release type, here are some general guidelines:

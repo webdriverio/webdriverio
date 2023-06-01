@@ -1,3 +1,7 @@
+---
+cwd: ../
+---
+
 # Development
 
 There are different workflows you might use during the development of WebdriverIO.
@@ -12,7 +16,7 @@ node ./scripts/build.js --watch
 
 If you only work on a single package, you can watch only for that one by calling:
 
-```sh
+```sh { name=build-package }
 $ node ./scripts/build.js <package-name>
 # or watch file changes of a particular package
 $ node ./scripts/build.js <package-name> --watch

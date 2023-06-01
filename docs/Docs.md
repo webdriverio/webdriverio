@@ -1,3 +1,7 @@
+---
+cwd: ../
+---
+
 # Documentation
 
 This repository contains everything to set up, build and deploy the WebdriverIO documentation pages. We are using [Docusaurus](https://docusaurus.io/) (v2) to generate the page. The content is generated based off:
@@ -13,11 +17,7 @@ Changes to the docs need to be done in one of these places. Please note that cha
 The easiest way to get a version of the documentation run locally is via:
 
 ```sh { name=docs }
-<<<<<<< HEAD
-npx runme --project . run docs-clean docs-install docs-generate docs-start
-=======
-runme run docs:clean docs:setup docs:generate docs:start
->>>>>>> 64f4961a9 (minor updates)
+npx runme run docs-clean docs-install docs-generate docs-start
 ```
 
 ## Setup Docusaurus
@@ -54,7 +54,7 @@ cd website
 npx docusaurus start
 ```
 
-This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npx runme --project . run docs` script to re-generate the docs.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npx runme run docs` script to re-generate the docs.
 
 ## Build Static Files
 
