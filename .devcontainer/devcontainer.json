@@ -29,7 +29,7 @@
 		}
 	},
 
-	"postCreateCommand": "npm install && npm run setup-full",
+	"postCreateCommand": "npm install && npx runme run setup",
 	"waitFor": "postCreateCommand",
 	"postAttachCommand": {
 		"WebdriverIO Development Environment": "npm run watch",

@@ -20,7 +20,7 @@ tasks:
   - name: Setup WebdriverIO Development Environment
     init: |
       npm install
-      npm run setup-full
+      npx runme run setup
       gp sync-done installation
     command: npm run watch
   - name: Welcome Bash

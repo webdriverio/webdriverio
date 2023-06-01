@@ -31,7 +31,7 @@ jobs:
         env:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npx runme run setup
       - name: Dependency Check
         run: npx runme run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
@@ -55,7 +55,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npx runme run setup
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npx runme run test
       - name: Setup Chrome Browser
@@ -86,7 +86,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npx runme run setup
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
