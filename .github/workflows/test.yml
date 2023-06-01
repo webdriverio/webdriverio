@@ -32,6 +32,8 @@ jobs:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
@@ -58,6 +60,8 @@ jobs:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
       - name: Setup Chrome Browser
@@ -91,6 +95,8 @@ jobs:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
