@@ -630,8 +630,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 
 ## Workflow Execution
 
-<br />
-
 <div align="center">
   <img src="assets/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;">
 </div>
