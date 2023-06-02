@@ -188,9 +188,7 @@ jobs:
           npm run ios
 ```
 
-<span style="color: #999999; font-style: italic;">
-combine the simulator status check and simulator start into a single shell script would have been possible. However, I intentionally separated them to execute them individually. This allows me to utilize the time taken for the simulator to boot up and install the remaining dependencies. Afterwards, I can then proceed to check the status of the simulator, Similarly we will apply same approach to Android emulator (check previous article)
-</span>
+_Combine the simulator status check and simulator start into a single shell script would have been possible. However, I intentionally separated them to execute them individually. This allows me to utilize the time taken for the simulator to boot up and install the remaining dependencies. Afterwards, I can then proceed to check the status of the simulator. Similarly we will apply same approach to Android emulator (check previous article)._
 
 ## Build cross-platform workflow
 
