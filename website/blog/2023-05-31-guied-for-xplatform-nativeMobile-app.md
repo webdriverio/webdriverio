@@ -371,7 +371,6 @@ In order to achieve this, I have developed the following shell script:
 ```bash
 #!/bin/bash
 
-
 function check_current_focus() {
   printf "==> Checking emulator running activity \n"
   start_time=$(date +%s)
