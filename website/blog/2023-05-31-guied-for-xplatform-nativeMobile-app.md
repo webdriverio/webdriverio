@@ -627,10 +627,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
         uses: actions/deploy-pages@v2
 ```
 
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
-
 
 ## Workflow Execution
 
