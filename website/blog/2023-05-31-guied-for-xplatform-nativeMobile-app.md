@@ -290,8 +290,6 @@ WebdriverIO Caps
 These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed.
 </span>                                   
                     
-<br />
-
    ```js
      emulator =
     [{
