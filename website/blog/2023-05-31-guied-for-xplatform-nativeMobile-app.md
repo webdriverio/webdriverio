@@ -484,9 +484,7 @@ jobs:
     # find the full workflow at the end of the article
 ```
 
-<div align="center">
-  <img src="/assets/dispatch.png" alt="Customize your run based on your need" style={{ maxWidth: '45%' }} />
-</div>
+![Input Dispatch](assets/native-mobile-app-testing/dispatch.png)
 
 Finally, Generate our report and deploy it to the GitHub page out of the box
 
@@ -514,7 +512,7 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 
 ## Workflow Execution
 
-![Customize your run based on your need](assets/native-mobile-app-testing/workflowexec.png)
+![Workflow execution](assets/native-mobile-app-testing/workflowexec.png)
 
 ![iOS Job](assets/native-mobile-app-testing/iosJob.png)
 ![Android Job](assets/native-mobile-app-testing/androidJob.png)
