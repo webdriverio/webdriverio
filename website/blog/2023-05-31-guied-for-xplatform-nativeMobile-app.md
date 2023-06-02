@@ -6,7 +6,7 @@ authorImageURL: https://avatars.githubusercontent.com/u/32042806?s=400&v=4
 ---
 
 <div align="center">
-  <img src="assets/ultimateGuide.png" alt="Guide for Cross Platform E2E" style="max-width: 50%;">
+  <img src="assets/native-mobile-app-testing/ultimateGuide.png" alt="Guide for Cross Platform E2E" style="max-width: 50%;">
 </div>
 
 This article is a must-read for those experiencing headaches with mobile automation testing in the context of Continuous Integration and Continuous Deployment (CICD), particularly when it involves native mobile Apps for Android and iOS. It’s quite challenging to find sufficient resources that cover this specific topic.
@@ -22,7 +22,7 @@ During my research, I came across an incredibly useful but often overlooked feat
 This feature allows us to build our pipeline without any additional costs (up to a maximum of 2000 minutes).
 
 <div align="center">
-  <img src="assets/macos-runner.png" alt="MacOs runner" style="max-width: 45%;">
+  <img src="assets/native-mobile-app-testing/macos-runner.png" alt="MacOs runner" style="max-width: 45%;">
 </div>
 
 
@@ -45,7 +45,7 @@ randomly changing UUID for each execution. However, you can still extract the re
 To simplify the process and increase flexibility, we will create our own simulator. Since Xcode is already installed, we can make use of the “xcrun” CLI. To create a simulator from the installed iOS versions using the terminal, simply execute the following command:
 
 ```bash
-xcrun simctl create "Iphone 14 Pro" "com.apple.CoreSimulator.SimDeviceType.Iphone-14-Pro" "com.apple.CoreSimulator.SimRuntime.iOS-16-0"
+xcrun simctl create "iPhone 14 Pro" "com.apple.CoreSimulator.SimDeviceType.iPhone-14-Pro" "com.apple.CoreSimulator.SimRuntime.iOS-16-0"
 ```
 
 Executing this command will result in the immediate creation of a simulator and the subsequent retrieval of its UUID.
@@ -79,7 +79,7 @@ Since we are using IPHONE_MODEL and IOS_VERSION as environment variable in our s
 After successfully creating and booting up the simulator in the previous step, it’s crucial to verify that the process was completed without any issues and that the device is fully prepared for use.
 
 <div align="center">
-  <img src="assets/bootingStatus.png" alt="Checking booting status" style="max-width: 100%;">
+  <img src="assets/native-mobile-app-testing/bootingStatus.png" alt="Checking booting status" style="max-width: 100%;">
 </div>
 
 To ensure the successful starting of our test, it is crucial to confirm that the IOS has fully booted. For this purpose, I have created a code snippet that continuously monitors the device’s status until a specific output is obtained, signifying the completion of the simulator’s booting process.
@@ -163,28 +163,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-         
+
       - name: Export environment variables
         run: |
           export IPHONE_MODEL=$IPHONE_MODEL
           export IOS_VERSION=$IOS_VERSION
-     
+
       - name: Start simulator
         run: |
           chmod a+x ./sscript/start_simu.sh
           ./sscript/start_simu.sh
-     
+
       - name: Install dependencies
-        run: | 
+        run: |
           npm i
-          
+
       - name: Check simulator booting status
         run: |
           chmod a+x ./check_simu.sh
           ./check_simu.sh
 
       - name: Execute the test
-        run: | 
+        run: |
           npm run ios
 ```
 
@@ -201,7 +201,7 @@ name: Wdio-x-native
 
 on:
   workflow_dispatch:
-        
+
 env:
   IPHONE_MODEL: iPhone 8
   IOS_VERSION: 16.2
@@ -218,7 +218,7 @@ env:
 
 jobs:
   ios:
-    runs-on: 
+    runs-on:
        - macos-13
     strategy:
       matrix:
@@ -227,14 +227,14 @@ jobs:
         version: [$IOS_VERSION]
     steps:
       - uses: actions/checkout@v3
-         
+
       - name: Export environment variables
         run: |
           export IPHONE_MODEL=$IPHONE_MODEL
           export IOS_VERSION=$IOS_VERSION
-     
-    -------->
-     
+
+    # find the full workflow at the end of the article
+
 
   android:
     runs-on: macos-13
@@ -244,26 +244,26 @@ jobs:
         emulator_name: [$EMULATOR_NAME]
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Add avdmanager and sdkmanager to system PATH
         run: |
           echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
-      
+
       - name: Install Sdk
         run: |
           yes Y | sdkmanager --licenses
           sdkmanager --install ${ANDROID_SDK_PACKAGES}
-      
+
       - name: Build emulator
 
-    -------->
+    # find the full workflow at the end of the article
 
 ```
 
 In the above example, we have integrated the IOS workflow mentioned earlier with the Android emulator workflow described in our previous [article](https://medium.com/@Amr.sa/build-xplatform-native-mobile-automation-test-with-wdio-like-a-pro-4e8acc797ffe).
 
-_These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed._                          
-                    
+_These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed._
+
 ```js
 const emulator = [{
   platformName: 'android',
@@ -311,17 +311,17 @@ const simulator = [{
 The good news is that workflow is configured properly and the e2e test for the IOS app has been successfully executed
 
 <div align="center">
-  <img src="assets/initialExecution.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/initialExecution.png" alt="Initial executions" style="max-width: 35%;">
 </div>
 
 <div align="center">
-  <img src="assets/specReporter.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/specReporter.png" alt="Initial executions" style="max-width: 35%;">
 </div>
 
 Though the end-to-end test for the iPhone simulator has passed, it was observed that the test for the Android emulator shows instability.
 
 <div align="center">
-  <img src="assets/flakyJob.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/flakyJob.png" alt="Initial executions" style="max-width: 35%;">
 </div>
 
 ## Debugging
@@ -333,13 +333,13 @@ It appears that running Android for the first time in headless mode occasionally
 The issue was confirmed when reviewing the allure report screenshots
 
 <div align="center">
-  <img src="assets/systemUi.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/systemUi.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
 This explains why the terminal log displayed that Appium was unable to locate any element, despite the successful launch of the app.
 
 <div align="center">
-  <img src="assets/unableToFind.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/unableToFind.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
 This makes sense as Appium is trying to find the desired element but on the current running activity which is “.systemui”, even though our target app is launched in the background
@@ -354,16 +354,16 @@ Now that we have identified the issue and its root cause, it’s time to address
 ### System UI Crush
 Fortunately, we can utilize the advantage of being able to grep the current running activity on an Android device. This privilege allows us to detect whether the system UI or any similar Android service will crash or function normally. We can achieve this by executing the following adb shell command:
 
-```shell script 
+```shell script
 adb shell dumpsys window 2>/dev/null | grep -i mCurrentFocus
 ```
 
 <div align="center">
-  <img src="assets/androidFailure1.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/androidFailure1.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
 <div align="center">
-  <img src="assets/androidFailure2.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/androidFailure2.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
 In our ongoing implementation, we can mimic our natural behavior when encountering this issue on an Android device. Specifically, we will continuously click the home button until the issue is resolved. Once the problem is resolved and the Android system is functioning correctly, we anticipate observing the “.NexusLauncherActivity” as the current main activity running (where “Nexus” represents the Android device).
@@ -421,7 +421,7 @@ Rather than significantly extending the Appium connection timeout, I will handle
 ```
 
 <div align="center">
-  <img src="assets/handleUiFailure.png" alt="Testing Apk installation and the shell script" style="max-width: 45%;">
+  <img src="assets/native-mobile-app-testing/handleUiFailure.png" alt="Testing Apk installation and the shell script" style="max-width: 45%;">
 </div>
 
 Excellent! Our solution has been executed successfully with the proper installation of the APK. As expected, the system UI was not responsive, and the shell script effectively managed and handled the situation.
@@ -440,7 +440,7 @@ on:
          type: choice
          description: Select a platform
          required: true
-         options: 
+         options:
             - xplatform
             - ios
             - android
@@ -459,12 +459,12 @@ on:
          type: choice
          description: Select a platform
          required: true
-         options: 
+         options:
             - xplatform
             - ios
             - android
          default: xplatform
-        
+
 
 permissions:
   contents: write
@@ -487,7 +487,7 @@ env:
 
 jobs:
   ios:
-    runs-on: 
+    runs-on:
        - macos-13
     if: ${{ contains(github.event.inputs.e2e, 'ios') || contains(github.event.inputs.e2e, 'xplatform') }}
     strategy:
@@ -497,7 +497,7 @@ jobs:
         version: [$IOS_VERSION]
     steps:
       - uses: actions/checkout@v3
-      ------->
+    # find the full workflow at the end of the article
 
   android:
     runs-on: macos-13
@@ -508,7 +508,7 @@ jobs:
         emulator_name: [$EMULATOR_NAME]
     steps:
       - uses: actions/checkout@v3
-      ------->
+    # find the full workflow at the end of the article
 ```
 
 <div align="center">
@@ -520,19 +520,19 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 ```yaml
       - name: Generate report
         if: always()
-        run: | 
-          npx allure generate report/allure-results    
-         
+        run: |
+          npx allure generate report/allure-results
+
       - name: Setup Pages
         if: always()
         uses: actions/configure-pages@v3
-        
+
       - name: Upload artifact
         if: always()
         uses: actions/upload-pages-artifact@v1
         with:
           path: './allure-report'
-          
+
       - name: Deploy to GitHub Pages
         if: always()
         id: deployment
@@ -543,19 +543,23 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 ## Workflow Execution
 
 <div align="center">
-  <img src="assets/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;">
 </div>
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="assets/iosJob.png" alt="IOS Job" style="max-width: 25%; margin-right: 10px;">
-  <img src="assets/androidJob.png" alt="Android Job" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/iosJob.png" alt="IOS Job" style="max-width: 25%; margin-right: 10px;">
+  <img src="assets/native-mobile-app-testing/androidJob.png" alt="Android Job" style="max-width: 25%;">
 </div>
 
 <div align="center">
-  <img src="assets/success.png" alt="Allure report" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/success.png" alt="Allure report" style="max-width: 25%;">
 </div>
 
 Fantastic news! Our workflow is now functioning flawlessly and exhibits complete stability. The workflow can be triggered against a single platform, such as Android or iOS, or simultaneously against both platforms in parallel.
+
+```yaml reference title="Full workflow"
+https://github.com/amrsa1/wdio-xplatform-mobile-app/blob/main/.github/workflows/xplatform_workflow.yml#L1-L178
+```
 
 ## Conclusion
 
