@@ -27,8 +27,6 @@ This feature allows us to build our pipeline without any additional costs (up to
   <img src="assets/macos-runner.png" alt="MacOs runner" style="max-width: 45%;">
 </div>
 
-<br />
-
 <p align="center">
   <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
 </p>
