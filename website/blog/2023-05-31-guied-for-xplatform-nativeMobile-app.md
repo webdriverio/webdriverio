@@ -39,8 +39,6 @@ Our GitHub actions workflow will be basically the same as Android in the core co
 
 Looks pretty straightforward, but how? Let’s see
 
-<br />
-
 ### Step 1
 As previously mentioned, the GH Actions runner comes packed with a range of available simulators. While we could utilize one of these existing simulators, it would require using the deviceName and it's
 
