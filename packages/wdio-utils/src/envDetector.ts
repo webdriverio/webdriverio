@@ -96,9 +96,9 @@ function isMobile(capabilities: Capabilities.Capabilities) {
         /**
          * If the device is ios, tvos or android, the device might be mobile.
          */
-        capabilities.platformName && capabilities.platformName.toLowerCase().match(/ios/i) ||
-        capabilities.platformName && capabilities.platformName.toLowerCase().match(/tvos/i) ||
-        capabilities.platformName && capabilities.platformName.toLowerCase().match(/android/i) ||
+        capabilities.platformName && capabilities.platformName.match(/ios/i) ||
+        capabilities.platformName && capabilities.platformName.match(/tvos/i) ||
+        capabilities.platformName && capabilities.platformName.match(/android/i) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
