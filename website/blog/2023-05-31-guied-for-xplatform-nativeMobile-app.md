@@ -641,8 +641,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
   <img src="assets/androidJob.png" alt="Android Job" style="max-width: 25%;">
 </div>
 
-<br />
-
 <div align="center">
   <img src="assets/success.png" alt="Allure report" style="max-width: 25%;">
 </div>
