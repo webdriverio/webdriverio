@@ -632,8 +632,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
   <img src="assets/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;">
 </div>
 
-<br />
-
 <div style="display: flex; justify-content: center; align-items: center;">
   <img src="assets/iosJob.png" alt="IOS Job" style="max-width: 25%; margin-right: 10px;">
   <img src="assets/androidJob.png" alt="Android Job" style="max-width: 25%;">
