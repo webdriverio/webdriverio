@@ -340,7 +340,7 @@ This explains why the terminal log displayed that Appium was unable to locate an
   <img src="assets/native-mobile-app-testing/unableToFind.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
-This makes sense as Appium is trying to find the desired element but on the current running activity which is “.systemui”, even though our target app is launched in the background
+This makes sense as Appium is trying to find the desired element but on the current running activity which is `.systemui`, even though our target app is launched in the background
 
 ### Connection timeout
 It has been noted that on certain occasions, Appium encountered failures in initiating the test, with all connection retry attempts proving unsuccessful. However, after conducting a thorough investigation, it was discovered that the installation of the Apk file to the Android emulator through the app:“./test.apk” capability was taking an unusually long time, requiring a significantly extended connection timeout to ensure successful installation which is not the best solution.
