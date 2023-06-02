@@ -32,14 +32,10 @@ jobs:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npx runme run setup
-      - name: Dependency Check
-        run: npx runme run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npx runme run test
       - name: Interop Tests
-        run: |
-          npm i chromedriver --detect_chromedriver_version
-          npm run test:e2e:cjs
+        run: npx runme run test:e2e:cjs
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -58,16 +54,12 @@ jobs:
         run: npx runme run setup
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npx runme run test
-      - name: Setup Chrome Browser
-        uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
-      - name: E2E Edge Launch Tests
-        run: npx runme run test:e2e:edge
       - uses: actions/upload-artifact@v3
         if: failure()
         with:

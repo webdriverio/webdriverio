@@ -7,7 +7,7 @@ cwd: ../
 This project has a set of commands that help you to validate your code. Every test layer is described further below. You can run them individually or with a single command:
 
 ```sh { name=test }
-$ npx runme run test:depcheck test:linting test:typings test:unit test:smoke test:component test:e2e
+$ npx runme run test:depcheck test:linting test:typings test:unit test:smoke test:component
 ```
 
 ## Test Pipeline
@@ -264,7 +264,7 @@ Last but not least, we run actual e2e tests with a real browser to ensure that o
 You can run the complete e2e test suite via:
 
 ```sh { name=test:e2e }
-npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test:e2e-cjs
+npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test:e2e:cjs
 ```
 
 This will:
@@ -295,7 +295,7 @@ This will:
 
 - *Validate CJS Support*
   With WebdriverIO v8 we transitioned the code base to ESM. This test validates that some packages can still be used within a CJS context.
-  ```sh { name=test:e2e-cjs }
+  ```sh { name=test:e2e:cjs }
   node e2e/interop/webdriverio.e2e.js
   node e2e/interop/webdriver.e2e.js
   node e2e/interop/devtools.e2e.js
