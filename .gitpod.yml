@@ -5,7 +5,7 @@ tasks:
   - name: Unit Test Coverage
     init: gp sync-await installation
     command: |
-      npm run test:unit
+      npx runme run test:unit
       cd coverage/lcov-report/
       http-server -p 8000 &
       cd ../../
@@ -22,7 +22,7 @@ tasks:
       npm install
       npx runme run setup
       gp sync-done installation
-    command: npm run watch
+    command: npx runme run watch
   - name: Welcome Bash
     init: gp sync-await installation
     command: node .gitpod/welcome.mjs

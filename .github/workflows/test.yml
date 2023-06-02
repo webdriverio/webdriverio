@@ -59,7 +59,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: npm run test:e2e
+          command: npx runme run test:e2e
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -84,7 +84,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: npm run test:e2e
+          command: npx runme run test:e2e
       - name: Safari Component Tests
         run: npx runme run test:component
       # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923

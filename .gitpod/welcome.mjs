@@ -55,7 +55,7 @@ ${chalk.bold('$ node ./examples/standalone/sample.js')}
 If you want to test changes for the testrunner (e.g. using Mocha), run:
 
 ${chalk.bold('$ cd ./examples/wdio')}
-${chalk.bold('$ npm run test:mocha')}
+${chalk.bold('$ npx runme run test:mocha')}
 
 The following environments are available for you:
     - Preview of the documentation page

@@ -17,7 +17,13 @@ Changes to the docs need to be done in one of these places. Please note that cha
 The easiest way to get a version of the documentation run locally is via:
 
 ```sh { name=docs }
-npx runme run docs:clean docs:install docs:generate docs:start
+npx runme run docs:clean docs:install docs:generate
+```
+
+You can host the page locally by calling:
+
+```sh
+npx runme run docs:start
 ```
 
 ## Setup Docusaurus
@@ -75,6 +81,6 @@ To deploy the website manually, make sure you have the following environment var
 
 then run:
 
-```sh { name=docs-deploy }
+```sh { name=docs:deploy }
 node ../scripts/updateDocs.js
 ```
