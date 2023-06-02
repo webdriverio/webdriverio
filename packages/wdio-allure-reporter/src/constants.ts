@@ -13,7 +13,6 @@ export const events = {
     addIssue: 'allure:addIssue',
     addAllureId: 'allure:addAllureId',
     addTestId: 'allure:addTestId',
-    addEnvironment: 'allure:addEnvironment',
     addDescription: 'allure:addDescription',
     addAttachment: 'allure:addAttachment',
     startStep: 'allure:startStep',

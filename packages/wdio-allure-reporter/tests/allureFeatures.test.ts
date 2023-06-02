@@ -217,20 +217,6 @@ describe('reporter runtime implementation', () => {
         expect(results[0].links.find((link: Link) => link.type === LinkType.TMS).url).toEqual('https://webdriver.io/2')
     })
 
-    it('should correct add environment', () => {
-        const reporter = new AllureReporter({ outputDir })
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onTestStart(testStart())
-        reporter.addEnvironment({ name: 'foo', value: 'bar' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { environmentInfo } = getResults(outputDir)
-
-        expect(environmentInfo).toEqual({ foo: 'bar' })
-    })
-
     it('should correct add description', () => {
         const reporter = new AllureReporter({ outputDir })
 
