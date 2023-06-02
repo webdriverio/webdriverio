@@ -94,9 +94,11 @@ function isMobile(capabilities: Capabilities.Capabilities) {
      */
     return Boolean(
         /**
-         * there are any Appium vendor capabilties
+         * If the device is ios, tvos or android, the device might be mobile.
          */
-        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
+        capabilities.platformName && capabilities.platformName.toLowerCase().match(/ios/i) ||
+        capabilities.platformName && capabilities.platformName.toLowerCase().match(/tvos/i) ||
+        capabilities.platformName && capabilities.platformName.toLowerCase().match(/android/i) ||
         /**
          * capabilities contain mobile only specific capabilities
          */

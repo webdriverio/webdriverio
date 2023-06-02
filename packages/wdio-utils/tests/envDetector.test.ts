@@ -43,6 +43,11 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumW3CCaps }).isMobile).toBe(false)
         const newCaps = { ...chromeCaps, 'appium:options': {} }
         expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(true)
+
+        // match with Appium if it had
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'ios' } }).isMobile).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'tvos' } }).isMobile).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'android' } }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
