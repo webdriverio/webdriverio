@@ -647,8 +647,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
   <img src="assets/success.png" alt="Allure report" style="max-width: 25%;">
 </div>
 
-<br />
-
 Fantastic news! Our workflow is now functioning flawlessly and exhibits complete stability. The workflow can be triggered against a single platform, such as Android or iOS, or simultaneously against both platforms in parallel.
 
 <p align="center">
