@@ -261,17 +261,11 @@ This will:
 
 Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These tests spin up headless Chrome and Firefox browsers to test the commands implemented in the `devtools` package. Given that the WebDriver functionality is already tested with [WPT](https://github.com/web-platform-tests/wpt), we don't need to do it there. In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) is required.
 
-You can run the complete e2e test suite via:
-
-```sh { name=test:e2e }
-npx runme run --parallel test:e2e:devtools test:e2e:edge test:e2e:firefox test:e2e:cloud test:e2e:cjs
-```
-
-This will:
+The following e2e tests are available:
 
 - *Validate `devtools` package*
   These tests verify that the WebDriver command implementations with Puppeteer behave as expected according to the WebDriver specification.
-  ```sh { name=test:e2e:devtools }
+  ```sh { name=test:e2e }
   npx vitest --config ./e2e/vitest.config.ts --run
   ```
 
