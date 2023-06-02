@@ -23,8 +23,6 @@ During my research, I came across an incredibly useful but often overlooked feat
 
 This feature allows us to build our pipeline without any additional costs (up to a maximum of 2000 minutes).
 
-<br />
-
 <div align="center">
   <img src="assets/macos-runner.png" alt="MacOs runner" style="max-width: 45%;">
 </div>
