@@ -265,8 +265,6 @@ jobs:
 
 In the above example, we have integrated the IOS workflow mentioned earlier with the Android emulator workflow described in our previous [article](https://medium.com/@Amr.sa/build-xplatform-native-mobile-automation-test-with-wdio-like-a-pro-4e8acc797ffe).
 
-<br />
-
 _These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed._                          
                     
 ```js
@@ -309,6 +307,7 @@ const simulator = [{
     fullReset: false
   }
 }]
+```
 
 ## Initial Execution
 
@@ -515,13 +514,9 @@ jobs:
       ------->
 ```
 
-<br />
-
 <div align="center">
   <img src="assets/dispatch.png" alt="Customize your run based on your need" style="max-width: 45%;">
 </div>
-
-<br />
 
 Finally, Generate our report and deploy it to the GitHub page out of the box
 
