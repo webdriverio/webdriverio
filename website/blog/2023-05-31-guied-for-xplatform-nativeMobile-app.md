@@ -9,8 +9,6 @@ authorImageURL: https://avatars.githubusercontent.com/u/32042806?s=400&v=4
   <img src="assets/ultimateGuide.png" alt="Guide for Cross Platform E2E" style="max-width: 50%;">
 </div>
 
-<br />
-
 This article is a must-read for those experiencing headaches with mobile automation testing in the context of Continuous Integration and Continuous Deployment (CICD), particularly when it involves native mobile Apps for Android and iOS. It’s quite challenging to find sufficient resources that cover this specific topic.
 
 Within this article, I will guide you through a detailed step-by-step process on how to create a comprehensive end-to-end test pipeline at no cost, utilizing GitHub Actions for both the iOS and Android platforms. We will be using our beloved WebdriverIO framework throughout the tutorial.
@@ -142,7 +140,6 @@ Proceeding further, we will cover the necessary steps and dependencies required 
     "appium-uiautomator2-driver": "*",
     "appium-xcuitest-driver": "*"
   }
-
 ```
 
 ## Connecting the Puzzle Pieces
