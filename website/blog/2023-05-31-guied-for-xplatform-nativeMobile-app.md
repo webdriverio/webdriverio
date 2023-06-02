@@ -77,18 +77,12 @@ By using the script above, we can provide the device model and iOS version as en
 Since we are using IPHONE_MODEL and IOS_VERSION as environment variable in our shell script then we will have to set them in the environment section as shown below
 </span>
 
-<br />
-
 ### Step 2
 After successfully creating and booting up the simulator in the previous step, it’s crucial to verify that the process was completed without any issues and that the device is fully prepared for use.
-
-<br />
 
 <div align="center">
   <img src="assets/bootingStatus.png" alt="Checking booting status" style="max-width: 100%;">
 </div>
-
-<br />
 
 To ensure the successful starting of our test, it is crucial to confirm that the IOS has fully booted. For this purpose, I have created a code snippet that continuously monitors the device’s status until a specific output is obtained, signifying the completion of the simulator’s booting process.
 
@@ -128,8 +122,6 @@ function wait_for_boot() {
 wait_for_boot
 ```
 
-<br />
-
 ### Step 3
 Proceeding further, we will cover the necessary steps and dependencies required for executing your tests. This includes the installation of Appium, the XCUITest driver, and the essential Node.js libraries.
 
@@ -152,10 +144,6 @@ Proceeding further, we will cover the necessary steps and dependencies required 
   }
 
 ```
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
 
 ## Connecting the Puzzle Pieces
 
@@ -206,10 +194,6 @@ jobs:
 <span style="color: #999999; font-style: italic;">
 combine the simulator status check and simulator start into a single shell script would have been possible. However, I intentionally separated them to execute them individually. This allows me to utilize the time taken for the simulator to boot up and install the remaining dependencies. Afterwards, I can then proceed to check the status of the simulator, Similarly we will apply same approach to Android emulator (check previous article)
 </span>
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
 
 ## Build cross-platform workflow
 
@@ -283,94 +267,68 @@ In the above example, we have integrated the IOS workflow mentioned earlier with
 
 <br />
 
-<span style="color: #999999; font-style: italic;">
-WebdriverIO Caps
-These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed.
-</span>                                   
+_These are the recommended configurations that you may require for both the Android emulator and iPhone simulator. It’s important to note that the deviceName, platformVersion, and UUID are not hardcoded in our object. This flexibility allows us to easily switch between different versions and device models as needed._                          
                     
-   ```js
-     emulator =
-    [{
-      'platformName': 'android',
-      'appium:options': {
-        'deviceName': process.env.CI ? process.env.EMULATOR_NAME : 'Nexus',
-        'platformVersion': process.env.CI ? process.env.EMULATOR_VERSION : '13',
-        'automationName': 'uiautomator2',
-        'appPackage': 'com.wdiodemoapp',
-        'appWaitPackage': 'com.wdiodemoapp',
-        'appActivity': 'com.wdiodemoapp.MainActivity',
-        'appWaitActivity': 'com.wdiodemoapp.MainActivity',
-        'uiautomator2ServerLaunchTimeout': 200000,
-        'uiautomator2ServerInstallTimeout': 200000,
-        'appWaitForLaunch': true,
-        'autoGrantPermissions': true,
-        'adbExecTimeout': 200000,
-        'androidInstallTimeout': 150000,
-        'ignoreHiddenApiPolicyError': true,
-        'noReset': true,
-        'fullReset': false
-      }
-    }]
+```js
+const emulator = [{
+  platformName: 'android',
+  'appium:options': {
+    deviceName: process.env.CI ? process.env.EMULATOR_NAME : 'Nexus',
+    platformVersion: process.env.CI ? process.env.EMULATOR_VERSION : '13',
+    automationName: 'uiautomator2',
+    appPackage: 'com.wdiodemoapp',
+    appWaitPackage: 'com.wdiodemoapp',
+    appActivity: 'com.wdiodemoapp.MainActivity',
+    appWaitActivity: 'com.wdiodemoapp.MainActivity',
+    uiautomator2ServerLaunchTimeout: 200000,
+    uiautomator2ServerInstallTimeout: 200000,
+    appWaitForLaunch: true,
+    autoGrantPermissions: true,
+    adbExecTimeout: 200000,
+    androidInstallTimeout: 150000,
+    ignoreHiddenApiPolicyError: true,
+    noReset: true,
+    fullReset: false
+  }
+}]
 
-  simulator =
-    [{
-      platformName: 'iOS',
-      'appium:options': {
-        'deviceName': process.env.CI ? process.env.IPHONE_MODEL : 'Iphone-13',
-        'platformVersion': process.env.CI ? process.env.IOS_VERSION : '15.5',
-        'automationName': 'XCUITest',
-        'bundleId': 'org.wdioNativeDemoApp',
-        'app': 'iOS-Simulator-NativeDemoApp-0.4.0.app.zip',
-        'udid': process.env.CI ? process.env.SIMULATOR_UDID : '15A098DB-B8A0-4D6A-9057-23FF1F0F0D9B',
-        'useNewWDA': true,
-        'usePrebuiltWDA': false,
-        'wdaConnectionTimeout': 180000,
-        'appWaitForLaunch': true,
-        'noReset': true,
-        'fullReset': false
-      }
-    }]
-  ```
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
+const simulator = [{
+  platformName: 'iOS',
+  'appium:options': {
+    deviceName: process.env.CI ? process.env.IPHONE_MODEL : 'Iphone-13',
+    platformVersion: process.env.CI ? process.env.IOS_VERSION : '15.5',
+    automationName: 'XCUITest',
+    bundleId: 'org.wdioNativeDemoApp',
+    app: 'iOS-Simulator-NativeDemoApp-0.4.0.app.zip',
+    udid: process.env.CI ? process.env.SIMULATOR_UDID : '15A098DB-B8A0-4D6A-9057-23FF1F0F0D9B',
+    useNewWDA: true,
+    usePrebuiltWDA: false,
+    wdaConnectionTimeout: 180000,
+    appWaitForLaunch: true,
+    noReset: true,
+    fullReset: false
+  }
+}]
 
 ## Initial Execution
 
 The good news is that workflow is configured properly and the e2e test for the IOS app has been successfully executed
 
-<br />
-
 <div align="center">
   <img src="assets/initialExecution.png" alt="Initial executions" style="max-width: 35%;">
 </div>
-
-<br />
 
 <div align="center">
   <img src="assets/specReporter.png" alt="Initial executions" style="max-width: 35%;">
 </div>
 
-<br />
-
 Though the end-to-end test for the iPhone simulator has passed, it was observed that the test for the Android emulator shows instability.
-
-<br />
 
 <div align="center">
   <img src="assets/flakyJob.png" alt="Initial executions" style="max-width: 35%;">
 </div>
 
-<br />
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
-
 ## Debugging
-
-<br />
 
 ### System UI Crush
 
@@ -378,40 +336,24 @@ It appears that running Android for the first time in headless mode occasionally
 
 The issue was confirmed when reviewing the allure report screenshots
 
-<br />
-
 <div align="center">
   <img src="assets/systemUi.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
-<br />
-
 This explains why the terminal log displayed that Appium was unable to locate any element, despite the successful launch of the app.
-
-<br />
 
 <div align="center">
   <img src="assets/unableToFind.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
-<br />
-
 This makes sense as Appium is trying to find the desired element but on the current running activity which is “.systemui”, even though our target app is launched in the background
-
-<br />
 
 ### Connection timeout
 It has been noted that on certain occasions, Appium encountered failures in initiating the test, with all connection retry attempts proving unsuccessful. However, after conducting a thorough investigation, it was discovered that the installation of the Apk file to the Android emulator through the app:“./test.apk” capability was taking an unusually long time, requiring a significantly extended connection timeout to ensure successful installation which is not the best solution.
 
 Now that we have identified the issue and its root cause, it’s time to address and resolve them.
 
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
-
 ## Resolving
-
-<br />
 
 ### System UI Crush
 Fortunately, we can utilize the advantage of being able to grep the current running activity on an Android device. This privilege allows us to detect whether the system UI or any similar Android service will crash or function normally. We can achieve this by executing the following adb shell command:
@@ -420,19 +362,13 @@ Fortunately, we can utilize the advantage of being able to grep the current runn
 adb shell dumpsys window 2>/dev/null | grep -i mCurrentFocus
 ```
 
-<br />
-
 <div align="center">
   <img src="assets/androidFailure1.png" alt="Initial executions" style="max-width: 30%;">
 </div>
 
-<br />
-
 <div align="center">
   <img src="assets/androidFailure2.png" alt="Initial executions" style="max-width: 30%;">
 </div>
-
-<br />
 
 In our ongoing implementation, we can mimic our natural behavior when encountering this issue on an Android device. Specifically, we will continuously click the home button until the issue is resolved. Once the problem is resolved and the Android system is functioning correctly, we anticipate observing the “.NexusLauncherActivity” as the current main activity running (where “Nexus” represents the Android device).
 
@@ -477,8 +413,6 @@ check_current_focus
 
 The shown function above will continuously loop, If the main activity is not found (NexusLauncherActivity), it will send a home button event and repeat the process until its found or timeout is reached.
 
-<br />
-
 ### Connection timeout
 Rather than significantly extending the Appium connection timeout, I will handle the APK installation in a separate step along with the main activity checking.
 
@@ -490,19 +424,11 @@ Rather than significantly extending the Appium connection timeout, I will handle
           ./mainActivityCheck.sh
 ```
 
-<br />
-
 <div align="center">
   <img src="assets/handleUiFailure.png" alt="Testing Apk installation and the shell script" style="max-width: 45%;">
 </div>
 
-<br />
-
 Excellent! Our solution has been executed successfully with the proper installation of the APK. As expected, the system UI was not responsive, and the shell script effectively managed and handled the situation.
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
 
 ## Optimizing and Enhancing workflow
 
@@ -638,10 +564,6 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 </div>
 
 Fantastic news! Our workflow is now functioning flawlessly and exhibits complete stability. The workflow can be triggered against a single platform, such as Android or iOS, or simultaneously against both platforms in parallel.
-
-<p align="center">
-  <span style="display: inline-block; width: 600px; border-top: 1px solid #E45A28;"></span>
-</p>
 
 ## Conclusion
 
