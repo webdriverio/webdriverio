@@ -52,8 +52,6 @@ xcrun simctl create "Iphone 14 Pro" "com.apple.CoreSimulator.SimDeviceType.Iphon
 
 Executing this command will result in the immediate creation of a simulator and the subsequent retrieval of its UUID.
 
-<br />
-
 To enhance re-usability and optimize the process, we can encapsulate this command within a shell script. With a few modifications, we can ensure that the UUID is stored as an environment variable in GitHub Runner which we will eventually use for our test capabilities.
 
 ```bash
