@@ -15,8 +15,6 @@ This article is a must-read for those experiencing headaches with mobile automat
 
 Within this article, I will guide you through a detailed step-by-step process on how to create a comprehensive end-to-end test pipeline at no cost, utilizing GitHub Actions for both the iOS and Android platforms. We will be using our beloved WebdriverIO framework throughout the tutorial.
 
-<br />
-
 ## Challenge
 
 Our challenge is to establish a unified pipeline workflow that enables testing of our native mobile application on both the iOS and Android platforms. In a [previous article](https://medium.com/innovies-club/building-a-complete-e2e-pipeline-for-testing-native-mobile-apps-with-webdriverio-f2828753aa5d), we thoroughly explored the process of constructing a pipeline for testing an Android app using an emulator with GitHub Actions. To handle the E2E test for the Android component, we will reuse that workflow. However, we still need to address the remaining bigger challenge of creating a separate job for the iPhone/iPad simulator.
