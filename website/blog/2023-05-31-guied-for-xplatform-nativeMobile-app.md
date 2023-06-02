@@ -6,7 +6,7 @@ authorImageURL: https://avatars.githubusercontent.com/u/32042806?s=400&v=4
 ---
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/ultimateGuide.png" alt="Guide for Cross Platform E2E" style="max-width: 50%;">
+  <img src="assets/native-mobile-app-testing/ultimateGuide.png" alt="Guide for Cross Platform E2E" style="max-width: 50%;"/>
 </div>
 
 This article is a must-read for those experiencing headaches with mobile automation testing in the context of Continuous Integration and Continuous Deployment (CICD), particularly when it involves native mobile Apps for Android and iOS. It’s quite challenging to find sufficient resources that cover this specific topic.
@@ -22,7 +22,7 @@ During my research, I came across an incredibly useful but often overlooked feat
 This feature allows us to build our pipeline without any additional costs (up to a maximum of 2000 minutes).
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/macos-runner.png" alt="MacOs runner" style="max-width: 45%;">
+  <img src="assets/native-mobile-app-testing/macos-runner.png" alt="MacOs runner" style="max-width: 45%;"/>
 </div>
 
 
@@ -79,7 +79,7 @@ Since we are using IPHONE_MODEL and IOS_VERSION as environment variable in our s
 After successfully creating and booting up the simulator in the previous step, it’s crucial to verify that the process was completed without any issues and that the device is fully prepared for use.
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/bootingStatus.png" alt="Checking booting status" style="max-width: 100%;">
+  <img src="assets/native-mobile-app-testing/bootingStatus.png" alt="Checking booting status" style="max-width: 100%;"/>
 </div>
 
 To ensure the successful starting of our test, it is crucial to confirm that the IOS has fully booted. For this purpose, I have created a code snippet that continuously monitors the device’s status until a specific output is obtained, signifying the completion of the simulator’s booting process.
@@ -309,17 +309,17 @@ const simulator = [{
 The good news is that workflow is configured properly and the e2e test for the IOS app has been successfully executed
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/initialExecution.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/initialExecution.png" alt="Initial executions" style="max-width: 35%;"/>
 </div>
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/specReporter.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/specReporter.png" alt="Initial executions" style="max-width: 35%;"/>
 </div>
 
 Though the end-to-end test for the iPhone simulator has passed, it was observed that the test for the Android emulator shows instability.
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/flakyJob.png" alt="Initial executions" style="max-width: 35%;">
+  <img src="assets/native-mobile-app-testing/flakyJob.png" alt="Initial executions" style="max-width: 35%;"/>
 </div>
 
 ## Debugging
@@ -331,13 +331,13 @@ It appears that running Android for the first time in headless mode occasionally
 The issue was confirmed when reviewing the allure report screenshots
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/systemUi.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/systemUi.png" alt="Initial executions" style="max-width: 30%;"/>
 </div>
 
 This explains why the terminal log displayed that Appium was unable to locate any element, despite the successful launch of the app.
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/unableToFind.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/unableToFind.png" alt="Initial executions" style="max-width: 30%;"/>
 </div>
 
 This makes sense as Appium is trying to find the desired element but on the current running activity which is `.systemui`, even though our target app is launched in the background
@@ -357,11 +357,11 @@ adb shell dumpsys window 2>/dev/null | grep -i mCurrentFocus
 ```
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/androidFailure1.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/androidFailure1.png" alt="Initial executions" style="max-width: 30%;"/>
 </div>
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/androidFailure2.png" alt="Initial executions" style="max-width: 30%;">
+  <img src="assets/native-mobile-app-testing/androidFailure2.png" alt="Initial executions" style="max-width: 30%;"/>
 </div>
 
 In our ongoing implementation, we can mimic our natural behavior when encountering this issue on an Android device. Specifically, we will continuously click the home button until the issue is resolved. Once the problem is resolved and the Android system is functioning correctly, we anticipate observing the “.NexusLauncherActivity” as the current main activity running (where “Nexus” represents the Android device).
@@ -418,7 +418,7 @@ Rather than significantly extending the Appium connection timeout, I will handle
 ```
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/handleUiFailure.png" alt="Testing Apk installation and the shell script" style="max-width: 45%;">
+  <img src="assets/native-mobile-app-testing/handleUiFailure.png" alt="Testing Apk installation and the shell script" style="max-width: 45%;"/>
 </div>
 
 Excellent! Our solution has been executed successfully with the proper installation of the APK. As expected, the system UI was not responsive, and the shell script effectively managed and handled the situation.
@@ -509,7 +509,7 @@ jobs:
 ```
 
 <div align="center">
-  <img src="assets/dispatch.png" alt="Customize your run based on your need" style="max-width: 45%;">
+  <img src="assets/dispatch.png" alt="Customize your run based on your need" style="max-width: 45%;"/>
 </div>
 
 Finally, Generate our report and deploy it to the GitHub page out of the box
@@ -540,16 +540,16 @@ Finally, Generate our report and deploy it to the GitHub page out of the box
 ## Workflow Execution
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/wokrflowexec.png" alt="Customize your run based on your need" style="max-width: 25%;"/>
 </div>
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="assets/native-mobile-app-testing/iosJob.png" alt="IOS Job" style="max-width: 25%; margin-right: 10px;">
-  <img src="assets/native-mobile-app-testing/androidJob.png" alt="Android Job" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/iosJob.png" alt="IOS Job" style="max-width: 25%; margin-right: 10px;"/>
+  <img src="assets/native-mobile-app-testing/androidJob.png" alt="Android Job" style="max-width: 25%;"/>
 </div>
 
 <div align="center">
-  <img src="assets/native-mobile-app-testing/success.png" alt="Allure report" style="max-width: 25%;">
+  <img src="assets/native-mobile-app-testing/success.png" alt="Allure report" style="max-width: 25%;"/>
 </div>
 
 Fantastic news! Our workflow is now functioning flawlessly and exhibits complete stability. The workflow can be triggered against a single platform, such as Android or iOS, or simultaneously against both platforms in parallel.
