@@ -47,9 +47,12 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(false)
 
         // match with Appium if it had
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'ios' } }).isMobile).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'tvos' } }).isMobile).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'android' } }).isMobile).toBe(true)
+        const iosCaps = { ...chromeCaps, 'platformName': 'ios' }
+        expect(sessionEnvironmentDetector({ capabilities: iosCaps, requestedCapabilities }).isMobile).toBe(true)
+        const tvOSCaps = { ...chromeCaps, 'platformName': 'tvOS' }
+        expect(sessionEnvironmentDetector({ capabilities: tvOSCaps, requestedCapabilities }).isMobile).toBe(true)
+        const androidCaps = { ...chromeCaps, 'platformName': 'Android' }
+        expect(sessionEnvironmentDetector({ capabilities: androidCaps, requestedCapabilities }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
