@@ -41,8 +41,10 @@ describe('sessionEnvironmentDetector', () => {
         // doesn't matter if there are Appium capabilities if returned session details don't show signs of Appium
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumReqCaps }).isMobile).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumW3CCaps }).isMobile).toBe(false)
+
+        // expected to be false since it has apppium: but no mobile related platform name info
         const newCaps = { ...chromeCaps, 'appium:options': {} }
-        expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(false)
 
         // match with Appium if it had
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: { platformName: 'ios' } }).isMobile).toBe(true)

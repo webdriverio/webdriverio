@@ -317,6 +317,7 @@ describe('WebDriver', () => {
                 ...sessionOptions,
                 capabilities: {
                     'appium:automationName': 'foo',
+                    'appium:platformName': 'ios',
                 }
             }) as any as TestClient
             expect(client.isMobile).toBe(true)
