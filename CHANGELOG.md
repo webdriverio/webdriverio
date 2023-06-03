@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.10.7 (2023-06-03)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#10452](https://github.com/webdriverio/webdriverio/pull/10452) Allure reporter add environment variables in config ([@m4hdyar](https://github.com/m4hdyar))
+
+#### :nail_care: Polish
+* `wdio-utils`, `webdriver`
+  * [#10491](https://github.com/webdriverio/webdriverio/pull/10491) fix: tune isMobile for Appium situation ([@KazuCocoa](https://github.com/KazuCocoa))
+
+#### :memo: Documentation
+* [#10490](https://github.com/webdriverio/webdriverio/pull/10490) fix image preview ([@amrsa1](https://github.com/amrsa1))
+* [#10486](https://github.com/webdriverio/webdriverio/pull/10486) Add new article: Guide for Cross Platform E2E Test For Native Mobile APP ([@amrsa1](https://github.com/amrsa1))
+
+#### Committers: 3
+- Amr Salem ([@amrsa1](https://github.com/amrsa1))
+- Kazuaki Matsuo ([@KazuCocoa](https://github.com/KazuCocoa))
+- Mahdyar ([@m4hdyar](https://github.com/m4hdyar))
+
+
 ## v8.10.6 (2023-06-01)
 
 #### :nail_care: Polish
