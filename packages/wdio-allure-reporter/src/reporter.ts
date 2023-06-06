@@ -419,12 +419,14 @@ export default class AllureReporter extends WDIOReporter {
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
 
-            this._startStep(testTitle)
+            if (testTitle || dataTable) {
+                this._startStep(testTitle)
 
-            if (dataTable) {
-                this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+                if (dataTable) {
+                    this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+                }
+                return
             }
-            return
         }
 
         this._startTest(testTitle, test.cid)
