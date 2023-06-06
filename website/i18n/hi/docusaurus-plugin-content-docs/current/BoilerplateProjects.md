@@ -29,6 +29,39 @@ title: बॉयलरप्लेट प्रोजेक्ट्स
     - पेज ऑब्जेक्ट पैटर्न
     - सॉस लैब्स एकीकरण
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- फ्रेमवर्क:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- विशेषताएँ:
+    - Typescript v5
+    - पेज ऑब्जेक्ट पैटर्न
+    - खूबसूरत
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - एपियम
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - फ्रेमवर्क: कुकुम्बर के साथ WDIO-V8 (V8x)।
@@ -166,17 +199,17 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
 
 मोचा के साथ E2E परीक्षण चलाने के लिए बॉयलरप्लेट परियोजना।
 
-- फ्रेमवर्क:
+- Frameworks:
     - WebdriverIO (v8)
     - मोचा
-- विशेषताएँ:
+- Features:
     -   टाइपस्क्रिप्ट
     -   [एक्स्पेक्ट-वेबड्राइवरियो](https://github.com/webdriverio/expect-webdriverio)
     -   [विसुअल प्रतिगमन टेस्ट](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   पेज ऑब्जेक्ट पैटर्न
+    -   Page Object Pattern
     -   [प्रतिबद्ध लिंट](https://github.com/conventional-changelog/commitlint) और [प्रतिबद्ध](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESLint
-    -   खूबसूरत
+    -   Prettier
     -   हस्की
     -   गीथूब एक्शन उदाहरण
     -   आकर्षण रिपोर्ट (विफलता पर स्क्रीनशॉट)
@@ -202,7 +235,7 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
 - फ्रेमवर्क
     - WebdriverIO v7
     - कुकुम्बर v7
-    - एपियम
+    - Appium
 
 - विशेतएं
     - नेटिव एंड्राइड और आईओएस ऐप
