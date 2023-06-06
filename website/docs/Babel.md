@@ -7,7 +7,7 @@ To write tests using next-generation JavaScript features, you can use [Babel](ht
 
 To do so, first install the necessary Babel dependencies:
 
-```bash npm2yarn
+```bash
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
@@ -29,4 +29,4 @@ module.exports = {
 
 Once this is set up WebdriverIO will take care of the rest.
 
-Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](babel) or using wdio config's [autoCompileOpts section](configurationfile) .
+Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](https://babeljs.io/docs/babel-register) or using wdio config's [autoCompileOpts section](https://webdriver.io/docs/configuration) .
