@@ -202,7 +202,7 @@ Proyecto Boilerplate para ejecutar pruebas E2E con Mocha.
 - Frameworks:
     - WebdriverIO (v7)
     - Mocha
-- Features:
+- Funcionalidades:
     -   TypeScript
     -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
     -   [Pruebas de regresión visual](https://github.com/wswebcreation/wdio-image-comparison-service)
