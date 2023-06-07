@@ -28,4 +28,6 @@ We also updated the [protocol docs](/api/webdriverBidi) to include new Bidi comm
 
 Note that even WebdriverIO will offer the latest WebDriver Bidi features, this doesn't mean that those are implemented and shipped in the browser. Every browser vendor has different priorities and resources available to get these new features added and while the teams make great progress it will take more time until everything specified in the protocol lands in a stable browser version. You can be ensured though that WebdriverIO will always provide a typed interface for you to use them once ready.
 
+Furthermore I am working on a proposal to extend the WebdriverIO interface and include a `page` object next to the already known `browser`, `element` and `mock` objects to simplify accessing commands and events connected to a certain browsing context. For informations to that soon!
+
 I want to close up thanking the Mozilla and Google browser teams for their excellent collaboration and efforts to ship this new standard that will enable developers around the world ship high quality web applications in the future.
