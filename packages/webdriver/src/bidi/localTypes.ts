@@ -35,7 +35,7 @@ export type Extensible = Record<string, any>;
 export type JsInt = number;
 export type JsUint = number;
 export type ErrorCode = 'invalid argument' | 'invalid session id' | 'no such alert' | 'no such frame' | 'no such handle' | 'no such node' | 'no such script' | 'session not created' | 'unable to close browser' | 'unknown command' | 'unknown error' | 'unsupported operation';
-export interface SessionResult extends SessionStatusResult {}
+export type SessionResult = SessionNewResult | SessionStatusResult;
 
 export interface SessionCapabilitiesRequest {
   alwaysMatch?: SessionCapabilityRequest;

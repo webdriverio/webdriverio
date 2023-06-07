@@ -9,6 +9,8 @@ import { Readable } from 'node:stream'
 import unzipper, { type Entry } from 'unzipper'
 import { Octokit } from '@octokit/rest'
 
+const MAIN_BRANCH = 'master'
+
 export default async function downloadSpec () {
     const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
     const targetDir = path.join(__dirname, 'cddl')
@@ -30,7 +32,12 @@ export default async function downloadSpec () {
         owner,
         repo,
     })
-    const cddlBuilds = artifacts.data.artifacts.filter(({ name }) => name === 'cddl')
+    // eslint-disable-next-line camelcase
+    const cddlBuilds = artifacts.data.artifacts.filter(({ name, workflow_run }) => (
+        name === 'cddl' &&
+        // eslint-disable-next-line camelcase
+        workflow_run && workflow_run.head_branch === MAIN_BRANCH
+    ))
 
     const { data } = await api.rest.actions.downloadArtifact({
         owner,

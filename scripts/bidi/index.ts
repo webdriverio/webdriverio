@@ -35,10 +35,16 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
          * remove CommandData and Extensible from Command group
          */
         (ast[0] as Group).Properties = [(ast[0] as Group).Properties[0]]
+
         /**
          * have groups with method property extend from Command group
          */
-        const commandGroups = ast.filter((a: Group) => a.Properties && a.Properties[0] && (a.Properties[0] as Property).Name === 'method') as Group[]
+        const commandGroups = ast.filter((a: Group) => (
+            a.Properties &&
+            a.Properties[0] &&
+            (a.Properties[0] as Property).Name === 'method'
+        )) as Group[]
+
         for (const g of commandGroups) {
             g.Properties.push({
                 HasCut: false,
