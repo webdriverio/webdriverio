@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -7,7 +6,9 @@ import typescriptParser from 'recast/parsers/typescript.js'
 import { transform } from 'cddl2ts'
 import { parse, print, types } from 'recast'
 import { parse as parseCDDL, type PropertyReference, type Property, type Group } from 'cddl'
+
 import downloadSpec from './downloadSpec.js'
+import { writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, GENERATED_FILE_COMMENT } from './constants.js'
 
 const b = types.builders
@@ -57,9 +58,9 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     }
 
     const cddl = transform(ast)
-    await fs.writeFile(
+    await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
-        GENERATED_FILE_COMMENT + '\n\n' + cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
+        cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
     )
     return ast
 }))
@@ -179,14 +180,14 @@ const bidiHandlerClass = b.classDeclaration(
 bidiHandlerClass.superClass = b.identifier('BidiCore')
 bidiCode.program.body.push(b.exportNamedDeclaration(bidiHandlerClass))
 
-await fs.writeFile(
+await writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', 'handler.ts'),
     print(bidiCode, {
         tabWidth: 4,
         quote: 'single'
-    }).code.replace(/;/g, '').replace(/\r\n/g, '\n')
+    }).code.replace(/;/g, '')
 )
-await fs.writeFile(
+await writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
     `export default ${JSON.stringify(jsonSpec, null, 4)}`
 )
