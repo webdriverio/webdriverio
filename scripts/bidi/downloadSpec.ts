@@ -21,13 +21,13 @@ export default async function downloadSpec () {
     /**
      * check if `GITHUB_AUTH` environment variable is set to interact with GitHub API
      */
-    if (!process.env.GITHUB_TOKEN) {
+    if (!process.env.GITHUB_AUTH) {
         throw new Error('Please export a "GITHUB_AUTH" access token to access GitHub.')
     }
 
     const owner = 'w3c'
     const repo = 'webdriver-bidi'
-    const api = new Octokit({ auth: process.env.GITHUB_TOKEN })
+    const api = new Octokit({ auth: process.env.GITHUB_AUTH })
     const artifacts = await api.rest.actions.listArtifactsForRepo({
         owner,
         repo,
