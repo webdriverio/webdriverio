@@ -184,7 +184,7 @@ await fs.writeFile(
     print(bidiCode, {
         tabWidth: 4,
         quote: 'single'
-    }).code.replace(/;/g, '')
+    }).code.replace(/;/g, '').replace(/\r\n/g, '\n')
 )
 await fs.writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
