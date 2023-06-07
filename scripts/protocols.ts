@@ -59,7 +59,7 @@ export const EDIT_WARNING = `// -------------------- ATTENTION -----------------
 //
 `
 
-export const SAUCE_API_DESCRIPTION = `
+export const SAUCE_API_DESCRIPTION = /*md*/`
 All commands are only supported on Chrome using Sauce Labs
 [Extended Debugging](https://wiki.saucelabs.com/pages/viewpage.action?pageId=70072943)
 capabilities. You can enable these by setting the following Sauce options:\n\n
@@ -75,7 +75,7 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 \`\`\`
 `
 
-export const JSONWP_API_DESCRIPTION = `
+export const JSONWP_API_DESCRIPTION = /*md*/`
 :::caution depcrecated
 
 The JSONWireProtocol is decrecated and replaced by the [WebDriver](/docs/api/webdriver)
@@ -84,7 +84,23 @@ protocol.
 :::
 `
 
+export const BIDI_API_DESCRIPTION = /*md*/`
+These protocol commands are generated based on the current living
+[WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) specification.
+
+:::caution Use with Caution!
+
+Browser support is not guaranteed and interfaces can change in the future. The standard
+is currently under development and browser vendors will add these capabilities based on their
+own timelines.
+
+:::
+
+Last Updated: ${(new Date()).toString()}
+`
+
 export const PROTOCOL_API_DESCRIPTION = {
     'saucelabs': SAUCE_API_DESCRIPTION,
-    'jsonwp': JSONWP_API_DESCRIPTION
+    'jsonwp': JSONWP_API_DESCRIPTION,
+    'webdriverBidi': BIDI_API_DESCRIPTION
 }
