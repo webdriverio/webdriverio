@@ -206,7 +206,7 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
     -   टाइपस्क्रिप्ट
     -   [एक्स्पेक्ट-वेबड्राइवरियो](https://github.com/webdriverio/expect-webdriverio)
     -   [विसुअल प्रतिगमन टेस्ट](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   Page Object Pattern
+    -   पेज ऑब्जेक्ट पैटर्न
     -   [प्रतिबद्ध लिंट](https://github.com/conventional-changelog/commitlint) और [प्रतिबद्ध](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESLint
     -   Prettier
