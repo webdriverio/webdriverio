@@ -18,6 +18,7 @@
     "clean:website": "rimraf website/docs/_*.md website/docs/api/_*.md website/docs/api/**/_*.md website/sidebars.json",
     "clean:tests": "rimraf tests/typings/**/node_modules tests/typings/**/dist ./coverage",
     "clean:cache": "rimraf .eslintcache",
+    "clean:cddl": "rimraf scripts/bidi/cddl",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
     "compile": "node ./scripts/build.js",
     "copy": "cd packages/wdio-cli && npm run copy && cd ../../",
