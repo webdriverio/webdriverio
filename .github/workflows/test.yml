@@ -54,6 +54,8 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Typings / Unit / Smoke / Component Tests
@@ -85,6 +87,8 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
