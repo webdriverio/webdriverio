@@ -206,7 +206,7 @@ Proyecto Boilerplate para ejecutar pruebas E2E con Mocha.
     -   TypeScript
     -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
     -   [Pruebas de regresión visual](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   Page Object Pattern
+    -   Patrón de objetos de página
     -   [Confirmar lint](https://github.com/conventional-changelog/commitlint) y [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESlint
     -   Prettier
