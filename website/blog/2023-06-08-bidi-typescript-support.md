@@ -20,7 +20,7 @@ With some recent changes in the WebdriverIO repository we now generate a perfect
 
 ![WebDriver Bidi TypeScript Support](assets/bidi.png)
 
-We also updated the [protocol docs](/api/webdriverBidi) to include new Bidi commands that help users to interact with the protocol using [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). As browser start to support more Bidi features WebdriverIO will start running more automation on the new protocol, ensuring that your tests use the latest and greatest cross browser automation standards. Here are some features that are about to land in upcoming browser versions:
+We also updated the [protocol docs](/docs/api/webdriverBidi) to include new Bidi commands that help users to interact with the protocol using [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). As browser start to support more Bidi features WebdriverIO will start running more automation on the new protocol, ensuring that your tests use the latest and greatest cross browser automation standards. Here are some features that are about to land in upcoming browser versions:
 
 - [__Add Preload-Scripts__](https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript): this will be an invaluable command to help WebdriverIO mock Web APIs and inject scripts for introspection
 - [__Network Interception__](https://github.com/w3c/webdriver-bidi/pull/429): this will make WebdriverIOs mock API for network requests compatible cross browser

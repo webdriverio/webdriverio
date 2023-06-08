@@ -65,10 +65,7 @@ const browser = await WebDriver.newSession({
     }
 })
 
-await browser.send({
-    method: 'session.subscribe',
-    params: { events: ['log.entryAdded'] }
-})
+await browser.sessionSubscribe({ events: ['log.entryAdded'] })
 
 /**
  * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}

@@ -21,6 +21,22 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.11.0 (2023-06-08)
+
+#### :rocket: New Feature
+* `wdio-logger`, `wdio-protocols`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#10447](https://github.com/webdriverio/webdriverio/pull/10447) Type Safe Bidi Protocol ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10523](https://github.com/webdriverio/webdriverio/pull/10523) fix: Update Babel.md to fix broken links ([@Dksoni81291](https://github.com/Dksoni81291))
+* [#10517](https://github.com/webdriverio/webdriverio/pull/10517) Webdriverio 8 test framework with cross browser testing ([@syamphaneendra](https://github.com/syamphaneendra))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dhrumil Soni ([@Dksoni81291](https://github.com/Dksoni81291))
+- Syamphaneendra Kalluri ([@syamphaneendra](https://github.com/syamphaneendra))
+
+
 ## v8.10.7 (2023-06-03)
 
 #### :bug: Bug Fix
