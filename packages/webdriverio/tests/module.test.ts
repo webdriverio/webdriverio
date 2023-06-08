@@ -209,7 +209,8 @@ describe('WebdriverIO module interface', () => {
                 isFirefox: false,
                 isIOS: false,
                 isMobile: false,
-                isSauce: false
+                isSauce: false,
+                isBidi: false
             })
         })
     })

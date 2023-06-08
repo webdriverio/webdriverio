@@ -6,7 +6,6 @@ import type MJSONWPCommands from './commands/mjsonwp.js'
 import type SauceLabsCommands from './commands/saucelabs.js'
 import type SeleniumCommands from './commands/selenium.js'
 import type WebDriverCommands from './commands/webdriver.js'
-import type WebDriverBidiCommands from './commands/webdriverBidi.js'
 
 import WebDriverProtocol from './protocols/webdriver.js'
 import WebDriverBidiProtocol from './protocols/webdriverBidi.js'
@@ -18,7 +17,7 @@ import GeckoProtocol from './protocols/gecko.js'
 import SauceLabsProtocol from './protocols/saucelabs.js'
 import SeleniumProtocol from './protocols/selenium.js'
 
-export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands, GeckoCommands, WebDriverBidiCommands {}
+export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands, GeckoCommands {}
 
 export * from './types.js'
 export {
@@ -28,8 +27,7 @@ export {
     WebDriverBidiProtocol,
     // commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
-    SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands,
-    WebDriverBidiCommands
+    SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands
 }
 
 export const CAPABILITY_KEYS = [

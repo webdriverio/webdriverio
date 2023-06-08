@@ -70,7 +70,8 @@ class FakeClient extends EventEmitter {
     isIOS = false
     isSauce = false
     isFirefox = false
-    isDevTools =false
+    isDevTools = false
+    isBidi = false
     isSeleniumStandalone = false
     sessionId = '123'
     capabilities = {}
@@ -85,7 +86,7 @@ type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
     it('should fail if wrong arguments are passed in', async () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
         await expect(commandFn)
             .rejects
             .toThrow(/Wrong parameters applied for findElementFromElement/)
@@ -177,16 +178,6 @@ describe('command wrapper', () => {
 })
 
 describe('Bidi support', () => {
-    it('fails if bidi is not supported', async () => {
-        scope.sessionId = 'foo123'
-        const commandFn = commandWrapper('POST', 'sendCommand', {
-            command: 'send',
-            parameters: []
-        } as any)
-        await expect(async () => commandFn.call(scope))
-            .rejects.toThrow(/doesn't support WebDriver Bidi/)
-    })
-
     it('it propagates command to middleware', async () => {
         (scope as any).eventMiddleware = { send: vi.fn() }
         const commandFn = commandWrapper('POST', 'sendCommand', {

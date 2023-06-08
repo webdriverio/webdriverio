@@ -1,7 +1,7 @@
 import type { EventEmitter } from 'node:events'
 import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { Protocol } from 'devtools-protocol'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -236,7 +236,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
-export interface Browser extends BrowserBase, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
