@@ -31,7 +31,7 @@
     "setup": "run-s bootstrap build",
     "docs": "run-s docs:*",
     "docs:setup": "cd ./website && npm install && cd ..",
-    "docs:generate": "npm run clean:website && node --loader ts-node/esm ./scripts/docs-generation/generateDocs.ts",
+    "docs:generate": "run-s clean:website generate:bidi && node --loader ts-node/esm ./scripts/docs-generation/generateDocs.ts",
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node ./scripts/updateDocs.js",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
