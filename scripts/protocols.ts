@@ -31,7 +31,7 @@ export type { Protocol }
 export type ProtocolKeys = keyof typeof PROTOCOL_NAMES
 export type Protocols = Record<ProtocolKeys, Protocol>
 
-const bidiTypesPath = path.resolve(__dirname, '..', 'packages', 'wdio-protocols', 'build', 'protocols', 'webdriverBidi.js')
+const bidiTypesPath = path.resolve(__dirname, '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts')
 const hasBidiTypesGenerated = await fs.access(bidiTypesPath).then(() => true, () => false)
 const webdriverBidi = hasBidiTypesGenerated
     ? (await import(bidiTypesPath)).default
