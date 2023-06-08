@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "8.10.7",
+  "version": "8.11.0",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
@@ -31,8 +31,8 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/gitconfiglocal": "^2.0.1",
-    "@wdio/logger": "8.10.6",
-    "@wdio/reporter": "8.10.6",
+    "@wdio/logger": "8.11.0",
+    "@wdio/reporter": "8.11.0",
     "@wdio/types": "8.10.4",
     "browserstack-local": "^1.5.1",
     "csv-writer": "^1.6.0",
@@ -41,7 +41,7 @@
     "gitconfiglocal": "^2.1.0",
     "got": "^ 12.6.1",
     "uuid": "^8.3.2",
-    "webdriverio": "8.10.7"
+    "webdriverio": "8.11.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
