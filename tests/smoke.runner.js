@@ -109,6 +109,8 @@ const cjsTestrunner = async () => {
  * Jasmine wdio testrunner tests
  */
 const jasmineTestrunner = async () => {
+    const logFile = path.resolve(__dirname, 'helpers', 'expectationResults.log')
+    await fs.rm(logFile, { force: true })
     const { skippedSpecs } = await launch('jasmineTestrunner', baseConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [
@@ -126,6 +128,21 @@ const jasmineTestrunner = async () => {
     }
 
     assert.strictEqual(skippedSpecs, 1)
+    assert.equal(
+        (await fs.readFile(logFile, 'utf-8')).toString(),
+        [
+            'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
+            'expect(object).toEqual(object)',
+            'expect(object).toBeFalse(boolean)',
+            'expect(string).toHaveTitle(object)',
+            'expect(object).toBeDisplayed(object)',
+            'expect(object).toBeDisplayed(object)',
+            'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
+            ''
+        ].join('\n')
+    )
 }
 
 /**
