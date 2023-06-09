@@ -2,12 +2,17 @@ import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 
 vi.mock('jasmine')
-vi.mock('expect-webdriverio')
+vi.mock('expect-webdriverio', () => ({
+    matchers: {
+        toHaveTitle: vi.fn()
+    }
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 
@@ -70,7 +75,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
+    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(2)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error
@@ -87,6 +92,12 @@ test('should properly set up jasmine', async () => {
     expect(adapter['_jrunner']!.configureDefaultReporter.name).toBe('noop')
     // @ts-ignore outdated types
     adapter['_jrunner']!.configureDefaultReporter()
+
+    expect(jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    expect(jasmine.addAsyncMatchers).toBeCalledWith({
+        toBe: expect.any(Function),
+        toHaveTitle: expect.any(Function)
+    })
 })
 
 test('should propery wrap interfaces', async () => {
@@ -518,4 +529,5 @@ describe('hasTests', () => {
 afterEach(() => {
     vi.mocked(wrapGlobalTestMethod).mockClear()
     vi.mocked(executeHooksWithArgs).mockClear()
+    vi.mocked(jasmine.addAsyncMatchers).mockClear()
 })

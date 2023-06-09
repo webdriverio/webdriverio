@@ -171,7 +171,7 @@ const jasmineTimeout = async () => {
         'spec was not failing due to timeout error'
     )
     assert.ok(
-        specLogs.includes('Error: expect(received).toBe(expected) // Object.is equality'),
+        specLogs.includes('at listOnTimeout (node:internal'),
         'spec was not failing a sync assertion error'
     )
     assert.ok(
@@ -211,7 +211,7 @@ const jasmineAfterAll = async () => {
         'spec did not execute the expected describe'
     )
     assert.ok(
-        specLogs.includes('Error: expect(received).toBe(expected)'),
+        specLogs.includes('actual expected') && specLogs.includes('truefalse'),
         'spec did not fail with the expected check'
     )
     assert.ok(
@@ -221,6 +221,35 @@ const jasmineAfterAll = async () => {
     assert.ok(
         !specLogs.includes('✖ "after all" hook'),
         'spec reported the after all hook as a failed test'
+    )
+}
+
+/**
+ * Jasmine verify failSpecWithNoExpectations support
+ */
+const jasmineFailSpecWithNoExpectations = async () => {
+    const logFile = path.join(__dirname, 'jasmineWithNoExpectations.spec.log')
+    await launch('jasmineAfterAll', baseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'jasmine', 'jasmineWithNoExpectations.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine',
+        jasmineOpts: {
+            failSpecWithNoExpectations: true
+        }
+    }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('No assertions found in test'),
+        'spec did not fail with the expected check'
     )
 }
 
@@ -585,6 +614,7 @@ const nonGlobalTestrunner = async () => {
         jasmineReporter,
         jasmineTimeout,
         jasmineAfterAll,
+        jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
         customReporterString,

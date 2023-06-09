@@ -42,7 +42,7 @@
     "access": "public"
   },
   "optionalDependencies": {
-    "expect-webdriverio": "^4.0.1",
+    "expect-webdriverio": "^4.2.5",
     "webdriverio": "8.11.1"
   }
 }

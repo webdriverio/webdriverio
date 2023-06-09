@@ -4,7 +4,6 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-// @ts-expect-error fix typing
 import { matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
@@ -65,7 +64,8 @@ class JasmineAdapter {
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
             specs: this._specs,
-            cleanStack: this._jasmineOpts.cleanStack
+            cleanStack: this._jasmineOpts.cleanStack,
+            jasmineOpts: this._jasmineOpts
         })
         this._hasTests = true
         this._jrunner.exitOnCompletion = false
