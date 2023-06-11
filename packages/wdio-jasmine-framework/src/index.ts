@@ -4,11 +4,12 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-import { expect } from 'expect-webdriverio'
+import { matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter.js'
+import { jestResultToJasmine } from './utils.js'
 import type {
     JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
 } from './types.js'
@@ -63,7 +64,8 @@ class JasmineAdapter {
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
             specs: this._specs,
-            cleanStack: this._jasmineOpts.cleanStack
+            cleanStack: this._jasmineOpts.cleanStack,
+            jasmineOpts: this._jasmineOpts
         })
         this._hasTests = true
         this._jrunner.exitOnCompletion = false
@@ -193,6 +195,17 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
+        /**
+         * set up WebdriverIO matchers with Jasmine
+         */
+        const expect = jasmineEnv.expectAsync
+        const matchers = this.#setupMatchers(jasmine)
+        jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
+        _setGlobal('expect', expect, this._config.injectGlobals)
+
+        /**
+         * load environment
+         */
         await this._loadFiles()
 
         /**
@@ -283,8 +296,8 @@ class JasmineAdapter {
             hookName,
             this._config[hookName],
             [this.prepareMessage(hookName)]
-        ).catch((e) => {
-            log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
+        ).catch((e: Error) => {
+            log.info(`Error in ${hookName} hook: ${e.stack?.slice(7)}`)
         })
     }
 
@@ -374,6 +387,34 @@ class JasmineAdapter {
 
             return origHandler.call(this, passed, data)
         }
+    }
+
+    #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
+        // @ts-expect-error not exported in jasmine
+        const jasmineMatchers: jasmine.CustomMatcherFactories = jasmine.matchers
+        const syncMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(jasmineMatchers).reduce((prev, [name, fn]) => {
+            prev[name] = (util) => ({
+                compare: async <T>(actual: T, expected: T, ...args: any[]) => fn(util).compare(actual, expected, ...args),
+                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).negativeCompare!(actual, expected, ...args)
+            })
+            return prev
+        }, {} as jasmine.CustomAsyncMatcherFactories)
+        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(matchers as Record<string, any>).reduce((prev, [name, fn]) => {
+            prev[name] = () => ({
+                async compare (...args: unknown[]) {
+                    const context = getConfig()
+                    const result = fn.apply({ ...context, isNot: false }, args)
+                    return jestResultToJasmine(result, false)
+                },
+                async negativeCompare (...args: unknown[]) {
+                    const context = getConfig()
+                    const result = fn.apply({ ...context, isNot: true }, args)
+                    return jestResultToJasmine(result, true)
+                }
+            })
+            return prev
+        }, {} as jasmine.CustomAsyncMatcherFactories)
+        return { ...wdioMatchers, ...syncMatchers }
     }
 }
 

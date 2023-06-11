@@ -34,7 +34,7 @@ export type Protocols = Record<ProtocolKeys, Protocol>
 const bidiTypesPath = path.resolve(__dirname, '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts')
 const hasBidiTypesGenerated = await fs.access(bidiTypesPath).then(() => true, () => false)
 const webdriverBidi = hasBidiTypesGenerated
-    ? (await import(bidiTypesPath)).default
+    ? (await import(url.pathToFileURL(bidiTypesPath).pathname)).default
     : {}
 
 export const PROTOCOLS: Protocols = {
