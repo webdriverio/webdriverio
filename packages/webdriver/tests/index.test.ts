@@ -8,7 +8,7 @@ import type { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
-import { initCount } from '../src/bidi.js'
+import { initCount } from '../src/bidi/core.js'
 import type { Client } from '../src/types.js'
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
@@ -17,10 +17,10 @@ vi.mock('fs')
 vi.mock('ws')
 vi.mock('got')
 
-vi.mock('../src/bidi', () => {
+vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
-        BidiHandler: class BidiHandlerMock {
+        BidiCore: class BidiHandlerMock {
             connect = vi.fn()
             constructor () {
                 ++initCount

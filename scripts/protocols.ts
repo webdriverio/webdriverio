@@ -1,5 +1,8 @@
+import fs from 'node:fs/promises'
+import url from 'node:url'
+import path from 'node:path'
+
 import webdriver from '../packages/wdio-protocols/src/protocols/webdriver.js'
-import webdriverBidi from '../packages/wdio-protocols/src/protocols/webdriverBidi.js'
 import appium from '../packages/wdio-protocols/src/protocols/appium.js'
 import mjsonwp from '../packages/wdio-protocols/src/protocols/mjsonwp.js'
 import chromium from '../packages/wdio-protocols/src/protocols/chromium.js'
@@ -9,6 +12,8 @@ import selenium from '../packages/wdio-protocols/src/protocols/selenium.js'
 import jsonwp from '../packages/wdio-protocols/src/protocols/jsonwp.js'
 
 import type { Protocol } from '../packages/wdio-protocols/src/types.js'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export const PROTOCOL_NAMES = {
     appium: 'Appium',
@@ -25,6 +30,12 @@ export const PROTOCOL_NAMES = {
 export type { Protocol }
 export type ProtocolKeys = keyof typeof PROTOCOL_NAMES
 export type Protocols = Record<ProtocolKeys, Protocol>
+
+const bidiTypesPath = path.resolve(__dirname, '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts')
+const hasBidiTypesGenerated = await fs.access(bidiTypesPath).then(() => true, () => false)
+const webdriverBidi = hasBidiTypesGenerated
+    ? (await import(bidiTypesPath)).default
+    : {}
 
 export const PROTOCOLS: Protocols = {
     appium, chromium, gecko, jsonwp, mjsonwp,
@@ -48,7 +59,7 @@ export const EDIT_WARNING = `// -------------------- ATTENTION -----------------
 //
 `
 
-export const SAUCE_API_DESCRIPTION = `
+export const SAUCE_API_DESCRIPTION = /*md*/`
 All commands are only supported on Chrome using Sauce Labs
 [Extended Debugging](https://wiki.saucelabs.com/pages/viewpage.action?pageId=70072943)
 capabilities. You can enable these by setting the following Sauce options:\n\n
@@ -64,7 +75,7 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 \`\`\`
 `
 
-export const JSONWP_API_DESCRIPTION = `
+export const JSONWP_API_DESCRIPTION = /*md*/`
 :::caution depcrecated
 
 The JSONWireProtocol is decrecated and replaced by the [WebDriver](/docs/api/webdriver)
@@ -73,7 +84,23 @@ protocol.
 :::
 `
 
+export const BIDI_API_DESCRIPTION = /*md*/`
+These protocol commands are generated based on the current living
+[WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) specification.
+
+:::caution Use with Caution!
+
+Browser support is not guaranteed and interfaces can change in the future. The standard
+is currently under development and browser vendors will add these capabilities based on their
+own timelines.
+
+:::
+
+Last Updated: ${(new Date()).toString()}
+`
+
 export const PROTOCOL_API_DESCRIPTION = {
     'saucelabs': SAUCE_API_DESCRIPTION,
-    'jsonwp': JSONWP_API_DESCRIPTION
+    'jsonwp': JSONWP_API_DESCRIPTION,
+    'webdriverBidi': BIDI_API_DESCRIPTION
 }

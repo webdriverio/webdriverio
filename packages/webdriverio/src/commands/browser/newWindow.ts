@@ -63,7 +63,13 @@ export async function newWindow (
     }
 
     const tabsBefore = await this.getWindowHandles()
-    await this.execute(newWindowHelper, url, windowName, windowFeatures)
+
+    if (this.isBidi) {
+        const { context } = await this.browsingContextCreate({ type: 'window' })
+        await this.browsingContextNavigate({ context, url })
+    } else {
+        await this.execute(newWindowHelper, url, windowName, windowFeatures)
+    }
 
     /**
      * if tests are run in DevTools there might be a delay until

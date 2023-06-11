@@ -29,6 +29,39 @@ Proyecto Boilerplate para ejecutar pruebas WebdriverIO con Jasmine usando las ca
     - Patrón de objetos de página
     - Integración de Sauce Labs
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- Frameworks:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- Funcionalidades
+    - Typescript v5
+    - Patrón de objetos de página
+    - Prettier
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - Appium
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: WDIO-V8 con pepino (V8x).
@@ -169,7 +202,7 @@ Proyecto Boilerplate para ejecutar pruebas E2E con Mocha.
 - Frameworks:
     - WebdriverIO (v7)
     - Mocha
-- Funcionalidades
+- Funcionalidades:
     -   TypeScript
     -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
     -   [Pruebas de regresión visual](https://github.com/wswebcreation/wdio-image-comparison-service)
