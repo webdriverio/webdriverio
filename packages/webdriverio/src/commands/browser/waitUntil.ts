@@ -53,9 +53,6 @@ export function waitUntil<ReturnValue>(
             }
             throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
-        if (e.message === 'return value was never truthy' && typeof timeoutMsg === 'string') {
-            throw new Error(timeoutMsg)
-        }
 
         throw new Error(`waitUntil condition failed with the following reason: ${(e && e.message) || e}`)
     })

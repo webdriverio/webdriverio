@@ -225,7 +225,7 @@ describe('waitUntil', () => {
         } catch (err: any) {
             error = err
         } finally {
-            expect(error.message).toContain('waitUntil condition failed with the following reason: return value was never truthy')
+            expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
             expect(val).toBeUndefined()
         }
     })
