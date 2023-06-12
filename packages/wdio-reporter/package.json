@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@types/diff": "^5.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.3.0",
     "@types/object-inspect": "^1.8.0",
     "@types/supports-color": "^8.1.0",
     "@types/tmp": "^0.2.0",
