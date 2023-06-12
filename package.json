@@ -92,7 +92,7 @@
     "jest": "^28.0.3",
     "jest-circus": "^29.0.1",
     "jest-environment-jsdom": "^29.0.1",
-    "lerna": "^6.0.1",
+    "lerna": "^7.0.0",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
     "mime-types": "^2.1.34",
