@@ -72,6 +72,7 @@ packages/**/cjs/
 /*.ts
 devtools.d.ts
 !.eslintrc.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
