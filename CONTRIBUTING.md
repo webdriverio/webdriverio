@@ -93,7 +93,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
     ```sh
     $ npm install
-    $ npm run setup-full
+    $ npm run setup
     ```
 
     The second command does two things:

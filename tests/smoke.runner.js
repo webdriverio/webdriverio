@@ -8,6 +8,7 @@ import { SevereServiceError } from '../packages/node_modules/webdriverio/build/i
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
+const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -111,7 +112,7 @@ const cjsTestrunner = async () => {
 const jasmineTestrunner = async () => {
     const logFile = path.resolve(__dirname, 'helpers', 'expectationResults.log')
     await fs.rm(logFile, { force: true })
-    const { skippedSpecs } = await launch('jasmineTestrunner', baseConfig, {
+    const { skippedSpecs } = await launch('jasmineTestrunner', jasmineConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'jasmine', 'test.js'),

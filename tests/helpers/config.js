@@ -35,7 +35,7 @@ export const config = {
         grep: 'SKIPPED_GREP',
         invertGrep: true,
         require: ['ts-node/esm'],
-        expectationResultHandler: (actual, assertion) => {
+        expectationResultHandler: (_, assertion) => {
             expectationResults += `expect(${typeof assertion.expected}).${assertion.matcherName}(${typeof assertion.actual})\n`
             return fs.writeFile(path.resolve(__dirname, 'expectationResults.log'), expectationResults)
         }

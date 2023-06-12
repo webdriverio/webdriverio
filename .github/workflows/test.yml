@@ -31,7 +31,7 @@ jobs:
         env:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
@@ -59,7 +59,7 @@ jobs:
         env:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
@@ -94,7 +94,7 @@ jobs:
         env:
           DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests

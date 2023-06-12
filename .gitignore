@@ -105,3 +105,4 @@ tests/.retry_succeeded
 website/docs/Contribute.md
 website/community/Resources.md
 scripts/bidi/cddl
+browserstack.err
