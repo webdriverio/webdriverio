@@ -216,11 +216,10 @@ describe('waitUntil', () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(2)
         try {
-            val = await browser.waitUntil(()=>n, {
+            val = await browser.waitUntil(() => n, {
                 timeout: 500,
                 interval: 200
-            }
-            )
+            })
         } catch (err: any) {
             error = err
         } finally {
