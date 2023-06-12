@@ -284,7 +284,14 @@ export default class Runner extends EventEmitter {
             this._browser = await initialiseInstance(config, caps, this._isMultiremote)
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
-            _setGlobal('expect', expect, config.injectGlobals)
+
+            /**
+             * for Jasmine we extend the Jasmine matchers instead of injecting the assertion
+             * library ourselves
+             */
+            if (config.framework !== 'jasmine') {
+                _setGlobal('expect', expect, config.injectGlobals)
+            }
 
             /**
              * re-assign previously registered custom commands to the actual instance

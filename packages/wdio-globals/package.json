@@ -1,6 +1,6 @@
 {
   "name": "@wdio/globals",
-  "version": "8.10.5",
+  "version": "8.11.2",
   "description": "A helper utility for importing global variables directly",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
@@ -42,7 +42,7 @@
     "access": "public"
   },
   "optionalDependencies": {
-    "expect-webdriverio": "^4.0.1",
-    "webdriverio": "8.10.5"
+    "expect-webdriverio": "^4.2.5",
+    "webdriverio": "8.11.2"
   }
 }

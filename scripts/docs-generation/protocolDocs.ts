@@ -83,8 +83,6 @@ export function generateProtocolDocs (sidebars: any) {
                         `title: ${protocol}`,
                         `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.ts`,
                         '---\n',
-                        'import Tabs from \'@theme/Tabs\';',
-                        'import TabItem from \'@theme/TabItem\';\n'
                     ].join('\n')]
 
                     /**

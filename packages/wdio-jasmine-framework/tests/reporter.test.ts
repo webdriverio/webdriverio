@@ -14,7 +14,8 @@ let runnerReporter: EventEmitter
 const PARAMS = {
     cid: '0-2',
     capabilities: { browserName: 'foobar' },
-    specs: ['/foo/bar.test.js']
+    specs: ['/foo/bar.test.js'],
+    jasmineOpts: {}
 }
 
 beforeEach(() => {

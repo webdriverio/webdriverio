@@ -143,22 +143,21 @@ export default class SpecReporter extends WDIOReporter {
 
         const suiteStartBanner = (stat.type === 'feature' || stat.type === 'suite' || stat.type === 'suite:start') ?
             `${this._preface} ${divider}\n`+
-            `${this._preface} Suite started : \n`+
+            `${this._preface} Suite started: \n`+
             `${this._preface}   » ${this._suiteName}\n` : '\n'
 
-        const contentNonTest = stat.type!=='hook' ?
-            `${suiteStartBanner}${this._preface} ${title}` :
-            `${this._preface} Hook executed : ${title}`
+        const content = stat.type === 'test'
+            ? `${this._preface} ${indent}` +
+              `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
+              ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+            : stat.type !== 'hook' ?
+                `${suiteStartBanner}${this._preface} ${title}` :
+                title
+                    ? `${this._preface} Hook executed: ${title}`
+                    : undefined
 
-        const contentTest = `${this._preface} ${indent}` +
-            `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
-            ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
-
-        if (process.send) {
-            process.send({
-                name: 'reporterRealTime',
-                content: stat.type === 'test' ? contentTest : contentNonTest
-            })
+        if (process.send && content) {
+            process.send({ name: 'reporterRealTime', content })
         }
     }
 

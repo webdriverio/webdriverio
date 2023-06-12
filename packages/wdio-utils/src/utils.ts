@@ -59,7 +59,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  * get command call structure
  * (for logging purposes)
  */
-export function commandCallStructure (commandName: string, args: any[]) {
+export function commandCallStructure (commandName: string, args: any[], unfurl = false) {
     const callArgs = args.map((arg) => {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
@@ -81,7 +81,7 @@ export function commandCallStructure (commandName: string, args: any[]) {
         } else if (arg === null) {
             arg = 'null'
         } else if (typeof arg === 'object') {
-            arg = '<object>'
+            arg = unfurl ? JSON.stringify(arg) : '<object>'
         } else if (typeof arg === 'undefined') {
             arg = typeof arg
         }

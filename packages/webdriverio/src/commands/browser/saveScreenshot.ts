@@ -34,7 +34,16 @@ export async function saveScreenshot (
     const absoluteFilepath = getAbsoluteFilepath(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    const screenBuffer = await this.takeScreenshot()
+    let screenBuffer: string
+    if (this.isBidi) {
+        const { contexts } = await this.browsingContextGetTree({})
+        const { data } = await this.browsingContextCaptureScreenshot({
+            context: contexts[0].context
+        })
+        screenBuffer = data
+    } else {
+        screenBuffer = await this.takeScreenshot()
+    }
     const screenshot = Buffer.from(screenBuffer, 'base64')
     fs.writeFileSync(absoluteFilepath, screenshot)
 

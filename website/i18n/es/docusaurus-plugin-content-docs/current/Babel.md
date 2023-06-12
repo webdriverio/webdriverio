@@ -29,4 +29,4 @@ module.exports = {
 
 Una vez que se haya configurado WebdriverIO se encargará del resto.
 
-Alternativamente, puede configurar cómo @babel/register se ejecuta a través de las variables de entorno para [@babel/register](babel) o usando la sección [autoCompileOpts de la configuración de wdio](configurationfile) .
+Alternativamente, puede configurar cómo @babel/register se ejecuta a través de las variables de entorno para [@babel/register](https://babeljs.io/docs/babel-register#environment-variables) o usando la sección [autoCompileOpts de la configuración de wdio](configurationfile#autoCompileOpts) .

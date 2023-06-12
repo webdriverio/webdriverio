@@ -2,6 +2,8 @@ import type { EventEmitter } from 'node:events'
 import type { Options, Capabilities } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
+import type { BidiHandler } from './bidi/handler.js'
+
 export interface JSONWPCommandError extends Error {
     code?: string
     statusCode?: string
@@ -18,6 +20,7 @@ export interface SessionFlags {
     isSauce: boolean
     isSeleniumStandalone: boolean
     isDevTools: boolean
+    isBidi: boolean
 }
 
 export interface BaseClient extends EventEmitter, SessionFlags {
@@ -31,7 +34,7 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommands {}
+export interface Client extends BaseClient, ProtocolCommands, BidiHandler {}
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string

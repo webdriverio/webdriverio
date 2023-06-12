@@ -21,6 +21,77 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.11.2 (2023-06-12)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#10537](https://github.com/webdriverio/webdriverio/pull/10537) (spec-reporter): skip logging when title is empty ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#10535](https://github.com/webdriverio/webdriverio/pull/10535) waitUntil, if given should return custom error message when condition returns always false ([@rashiq231](https://github.com/rashiq231))
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#10533](https://github.com/webdriverio/webdriverio/pull/10533) (jasmine): Bring back Jasmine assertions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@rashiq231](https://github.com/rashiq231)
+
+
+## v8.11.0 (2023-06-08)
+
+#### :rocket: New Feature
+* `wdio-logger`, `wdio-protocols`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#10447](https://github.com/webdriverio/webdriverio/pull/10447) Type Safe Bidi Protocol ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10523](https://github.com/webdriverio/webdriverio/pull/10523) fix: Update Babel.md to fix broken links ([@Dksoni81291](https://github.com/Dksoni81291))
+* [#10517](https://github.com/webdriverio/webdriverio/pull/10517) Webdriverio 8 test framework with cross browser testing ([@syamphaneendra](https://github.com/syamphaneendra))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dhrumil Soni ([@Dksoni81291](https://github.com/Dksoni81291))
+- Syamphaneendra Kalluri ([@syamphaneendra](https://github.com/syamphaneendra))
+
+
+## v8.10.7 (2023-06-03)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#10452](https://github.com/webdriverio/webdriverio/pull/10452) Allure reporter add environment variables in config ([@m4hdyar](https://github.com/m4hdyar))
+
+#### :nail_care: Polish
+* `wdio-utils`, `webdriver`
+  * [#10491](https://github.com/webdriverio/webdriverio/pull/10491) fix: tune isMobile for Appium situation ([@KazuCocoa](https://github.com/KazuCocoa))
+
+#### :memo: Documentation
+* [#10490](https://github.com/webdriverio/webdriverio/pull/10490) fix image preview ([@amrsa1](https://github.com/amrsa1))
+* [#10486](https://github.com/webdriverio/webdriverio/pull/10486) Add new article: Guide for Cross Platform E2E Test For Native Mobile APP ([@amrsa1](https://github.com/amrsa1))
+
+#### Committers: 3
+- Amr Salem ([@amrsa1](https://github.com/amrsa1))
+- Kazuaki Matsuo ([@KazuCocoa](https://github.com/KazuCocoa))
+- Mahdyar ([@m4hdyar](https://github.com/m4hdyar))
+
+
+## v8.10.6 (2023-06-01)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#10477](https://github.com/webdriverio/webdriverio/pull/10477) @wdio/allure-reporter: Exporting the addTag method so it can be used ([@lukefitz1](https://github.com/lukefitz1))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#10454](https://github.com/webdriverio/webdriverio/pull/10454) added new service to services list is named 'wdio-robonut-service' ([@udarrr](https://github.com/udarrr))
+* `webdriverio`
+  * [#10446](https://github.com/webdriverio/webdriverio/pull/10446) update code links for browser->waitUntil ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 5
+- Adam Christian ([@admc](https://github.com/admc))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@lukefitz1](https://github.com/lukefitz1)
+
+
 ## v8.10.5 (2023-05-22)
 
 #### :bug: Bug Fix
