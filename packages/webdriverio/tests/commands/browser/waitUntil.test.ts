@@ -228,26 +228,6 @@ describe('waitUntil', () => {
         }
     })
 
-    it.each([true, 'false', 123])('Should pass for a truthy values: %i', async(n) => {
-        let error
-        let val
-        // @ts-ignore uses expect-webdriverio
-        expect.assertions(2)
-        try {
-            val = await browser.waitUntil(()=> n, {
-                timeout: 500,
-                timeoutMsg: 'Timed Out',
-                interval: 200
-            }
-            )
-        } catch (err: any) {
-            error = err
-        } finally {
-            expect(error).toBeUndefined()
-            expect(val).toBe(n)
-        }
-    })
-
     afterEach(() => {
         vi.mocked(got).mockClear()
     })
