@@ -23,7 +23,6 @@ import type { World as WorldType, IRuntimeOptions, ITestCaseHookParameter } from
 import type { GherkinDocument } from '@cucumber/messages'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
-import type AstNode from '@cucumber/gherkin/dist/src/AstNode.js'
 
 const {
     After,
@@ -86,7 +85,7 @@ class CucumberAdapter {
     private _eventDataCollector: typeof EventDataCollector
     private _pickleFilter: InstanceType<typeof PickleFilter>
     private getHookParams?: Function
-    private gherkinParser: InstanceType<typeof Gherkin.Parser<AstNode>>
+    private gherkinParser: InstanceType<typeof Gherkin.Parser>
 
     constructor(
         private _cid: string,
