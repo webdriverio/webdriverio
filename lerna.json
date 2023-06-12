@@ -24,5 +24,6 @@
       "PR: Docs :memo:": ":memo: Documentation",
       "PR: Internal :house:": ":house: Internal"
     }
-  }
+  },
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }
