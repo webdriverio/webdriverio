@@ -112,7 +112,7 @@
     "husky": "^8.0.3",
     "inquirer": "^9.2.2",
     "jsdom": "^22.0.0",
-    "lerna": "^6.6.2",
+    "lerna": "^7.0.0",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
     "mime-types": "^2.1.35",
