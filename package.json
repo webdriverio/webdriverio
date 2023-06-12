@@ -128,6 +128,6 @@
     "typescript": "^5.0.4",
     "unzipper": "^0.10.14",
     "url-join": "^5.0.0",
-    "vitest": "0.30.1"
+    "vitest": "0.32.0"
   }
 }
