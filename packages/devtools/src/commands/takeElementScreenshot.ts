@@ -22,7 +22,7 @@ export default async function takeElementScreenshot (
 
     return elementHandle.screenshot({
         captureBeyondViewport: false,
-        encoding: "base64",
-        type: "png",
-    });
+        encoding: 'base64',
+        type: 'png',
+    })
 }

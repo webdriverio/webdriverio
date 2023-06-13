@@ -11,8 +11,8 @@ export default async function takeScreenshot (this: DevToolsDriver) {
     const page = this.getPageHandle()
     return page.screenshot({
         captureBeyondViewport: false,
-        encoding: "base64",
+        encoding: 'base64',
         fullPage: false, // limit to viewport
-        type: "png",
-    });
+        type: 'png'
+    })
 }
