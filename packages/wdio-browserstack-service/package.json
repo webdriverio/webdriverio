@@ -34,7 +34,7 @@
     "@wdio/logger": "8.11.0",
     "@wdio/reporter": "8.11.0",
     "@wdio/types": "8.10.4",
-    "browserstack-local": "^1.5.1",
+    "browserstack-local": "^1.5.3",
     "csv-writer": "^1.6.0",
     "form-data": "^4.0.0",
     "git-repo-info": "^2.1.1",
