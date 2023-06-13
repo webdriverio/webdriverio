@@ -10,8 +10,9 @@ import type DevToolsDriver from '../devtoolsdriver.js'
 export default async function takeScreenshot (this: DevToolsDriver) {
     const page = this.getPageHandle()
     return page.screenshot({
-        encoding: 'base64',
+        captureBeyondViewport: false,
+        encoding: "base64",
         fullPage: false, // limit to viewport
-        type: 'png'
-    })
+        type: "png",
+    });
 }
