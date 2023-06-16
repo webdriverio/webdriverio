@@ -200,7 +200,7 @@ class _TestReporter extends WDIOReporter {
             testData.retries = { limit: (testStats as TestStats).retries || 0, attempts: (testStats as TestStats).retries || 0 }
         }
 
-        if (eventType.startsWith('TestRun')) {
+        if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
