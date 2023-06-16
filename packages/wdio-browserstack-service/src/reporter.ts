@@ -149,6 +149,9 @@ class _TestReporter extends WDIOReporter {
                 finishedAt: (new Date()).toISOString()
             }
         }
+        if (!hookStats.state && !hookStats.error) {
+            hookStats.state = 'passed'
+        }
         await this.sendTestRunEvent(hookStats, 'HookRunFinished')
     }
 
