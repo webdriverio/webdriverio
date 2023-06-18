@@ -32,7 +32,7 @@ const BROWSER_DRIVER_ERRORS = [
 export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
-     * JSONWireProtocol and WebDriver protoocol, e.g.
+     * JSONWireProtocol and WebDriver protocol, e.g.
      */
     if (params.capabilities) {
         const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
@@ -49,7 +49,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
                 `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
                 'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
                 'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
-                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out ' +
                 'to your vendor support team if you have further questions.'
             )
         }
@@ -91,7 +91,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save actual receveived session details
+     * save actual received session details
      */
     params.capabilities = response.value.capabilities || response.value
 
@@ -122,7 +122,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
             body.value.message === 'An element could not be located on the page using the given search parameters.' ||
-            // Internet Explorter
+            // Internet Explorer
             body.value.message.toLowerCase().startsWith('unable to find element')
         )
     ) {
