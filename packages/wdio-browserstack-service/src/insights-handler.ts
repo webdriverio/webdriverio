@@ -334,6 +334,9 @@ class _InsightsHandler {
             return
         } else if (context.test) {
             const setHooksFromSuite = (parent: any): boolean => {
+                if (!parent) {
+                    return false
+                }
                 for (const test of parent.tests) {
                     const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
                     if (!this._hooks[uniqueIdentifier]) {
@@ -384,6 +387,9 @@ class _InsightsHandler {
         }
 
         const getTestRunIdFromSuite = (parent: any): string|undefined => {
+            if (!parent) {
+                return
+            }
             for (const test of parent.tests) {
                 const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
                 if (this._tests[uniqueIdentifier]) {
