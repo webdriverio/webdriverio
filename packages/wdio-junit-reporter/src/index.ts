@@ -271,7 +271,8 @@ class JunitReporter extends WDIOReporter {
             }
             const suite = this.suites[suiteKey]
 
-            const sameFeature = isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '')
+            // On windows, we have to remove forward slashes on one path, and a first slash on the other to get the filepaths to match when they should
+            const sameFeature = process.platform === 'win32' ? isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '').replace(/^./, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '').replace(/\\/g, '/') : isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '')
 
             if (isCucumberFrameworkRunner && suite.type === type && sameFeature) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
