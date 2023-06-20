@@ -1,5 +1,5 @@
 {
-  "lerna": "3.4.3",
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "packages": [
     "packages/*"
   ],
