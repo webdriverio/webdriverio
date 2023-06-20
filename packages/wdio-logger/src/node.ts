@@ -22,8 +22,10 @@ const COLORS: Record<string, ColorName> = {
 
 const matches = {
     COMMAND: 'COMMAND',
+    BIDICOMMAND: 'BIDI COMMAND',
     DATA: 'DATA',
-    RESULT: 'RESULT'
+    RESULT: 'RESULT',
+    BIDIRESULT: 'BIDI RESULT'
 }
 
 const SERIALIZERS = [{
@@ -36,7 +38,7 @@ const SERIALIZERS = [{
     /**
      * color commands blue
      */
-    matches: (log: string) => log === matches.COMMAND,
+    matches: (log: string) => log === matches.COMMAND || log === matches.BIDICOMMAND,
     serialize: (log: string) => chalk.magenta(log)
 }, {
     /**
@@ -48,7 +50,7 @@ const SERIALIZERS = [{
     /**
      * color result cyan
      */
-    matches: (log: string) => log === matches.RESULT,
+    matches: (log: string) => log === matches.RESULT || log === matches.BIDIRESULT,
     serialize: (log: string) => chalk.cyan(log)
 }]
 

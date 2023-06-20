@@ -6,3 +6,4 @@
 /tests/typings
 *.d.ts
 !packages/**/src/cjs
+packages/wdio-protocols/src/protocols/webdriverBidi.ts

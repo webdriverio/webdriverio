@@ -94,9 +94,11 @@ function isMobile(capabilities: Capabilities.Capabilities) {
      */
     return Boolean(
         /**
-         * there are any Appium vendor capabilties
+         * If the device is ios, tvos or android, the device might be mobile.
          */
-        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
+        capabilities.platformName && capabilities.platformName.match(/ios/i) ||
+        capabilities.platformName && capabilities.platformName.match(/tvos/i) ||
+        capabilities.platformName && capabilities.platformName.match(/android/i) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -146,7 +148,6 @@ function isAndroid(capabilities?: Capabilities.Capabilities) {
 
 /**
  * detects if session is run on Sauce with extended debugging enabled
- * @param  {string}  hostname     hostname of session request
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
@@ -166,6 +167,23 @@ function isSauce(capabilities?: Capabilities.RemoteCapability) {
             caps['sauce:options'].extendedDebugging
         )
     )
+}
+
+/**
+ * detects if session has support for WebDriver Bidi
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session has WebDriver Bidi support
+ */
+function isBidi(capabilities?: Capabilities.RemoteCapability) {
+    if (!capabilities) {
+        return false
+    }
+
+    const caps: Capabilities.DesiredCapabilities = (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        : capabilities as Capabilities.DesiredCapabilities
+
+    return Boolean(caps.webSocketUrl)
 }
 
 /**
@@ -220,7 +238,8 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isIOS: isIOS(cap),
         isAndroid: isAndroid(cap),
         isSauce: isSauce(requestedCapabilities),
-        isSeleniumStandalone: isSeleniumStandalone(cap)
+        isSeleniumStandalone: isSeleniumStandalone(cap),
+        isBidi: isBidi(capabilities)
     }
 }
 
@@ -240,6 +259,7 @@ export function devtoolsEnvironmentDetector({ browserName }: Capabilities.Capabi
         isChrome: browserName === 'chrome',
         isSauce: false,
         isSeleniumStandalone: false,
+        isBidi: false
     }
 }
 
@@ -256,6 +276,7 @@ export function webdriverEnvironmentDetector(capabilities: Capabilities.Capabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities)
+        isSauce: isSauce(capabilities),
+        isBidi: isBidi(capabilities)
     }
 }

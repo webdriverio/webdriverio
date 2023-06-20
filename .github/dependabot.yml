@@ -30,6 +30,8 @@ updates:
     - dependency-name: "serialize-error"
     - dependency-name: "expect-webdriverio"
     - dependency-name: "allure-js-commons"
+    - dependency-name: "lerna"
+      update-types: ["version-update:semver-major"]
     # moved to ESM only
     - dependency-name: "del"
     - dependency-name: "got"

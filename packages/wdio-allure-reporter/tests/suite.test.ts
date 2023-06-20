@@ -50,6 +50,10 @@ describe('Passing tests', () => {
             outputDir,
             issueLinkTemplate: 'https://example.org/issues/{}',
             tmsLinkTemplate: 'https://example.org/tests/{}',
+            reportedEnvironmentVars:{
+                jenkins: '1.2.3',
+                OS: 'Mocked'
+            }
         })
         const step = {
             step: {
@@ -71,7 +75,6 @@ describe('Passing tests', () => {
         reporter.addSeverity({ severity: 'baz' })
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
-        reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
         reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
@@ -86,7 +89,7 @@ describe('Passing tests', () => {
 
         expect(results).toHaveLength(1)
         expect(containers).toHaveLength(1)
-        expect(Object.values(environmentInfo)).toHaveLength(1)
+        expect(Object.values(environmentInfo)).toHaveLength(2)
 
         allureResult = results[0]
         allureContainer = containers[0]
@@ -162,8 +165,11 @@ describe('Passing tests', () => {
         expect(tms[0].url).toEqual('https://example.org/tests/2')
     })
 
-    it('should add environment variable', () => {
-        expect(allureEnvInfo).toEqual({ jenkins: '1.2.3' })
+    it('should contain environment variables', () => {
+        expect(allureEnvInfo).toEqual({
+            jenkins: '1.2.3',
+            OS: 'Mocked'
+        })
     })
 
     it('should start end custom step', () => {

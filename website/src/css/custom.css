@@ -248,6 +248,10 @@ a code {
     background-color: transparent;
 }
 
+td > pre {
+    margin-bottom: 0!important;
+}
+
 .highlightSection .token-line {
     font-size: 90%!important
 }

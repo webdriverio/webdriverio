@@ -441,4 +441,18 @@ describe('CucumberAdapter', () => {
         expect(result).toBe(0)
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
+
+    it('can set a default language for feature files', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { featureDefaultLanguage: 'da' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+    })
 })

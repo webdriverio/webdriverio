@@ -29,6 +29,39 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Page Object Pattern
     - Sauce Labs integration
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- Frameworks:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- Features:
+    - Typescript v5
+    - Page Object Pattern
+    - Prettier
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - Appium
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: WDIO-V8 with Cucumber (V8x).

@@ -77,7 +77,7 @@ class Timer {
 
         if (typeof result.then !== 'function') {
             if (!result) {
-                return this._checkCondition(new Error('return value was never truthy'))
+                return this._checkCondition(new Error(TIMEOUT_ERROR))
             }
 
             return this._checkCondition(undefined, result)

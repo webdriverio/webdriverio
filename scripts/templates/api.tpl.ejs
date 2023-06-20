@@ -46,7 +46,7 @@ method.alternativeCommands
         : paramTag.type
     ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br /><span class="label labelWarning">optional</span><? }
     ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
-    ?> | <?= paramTag.description ?> |
+    ?> | <?- paramTag.description ?> |
 <? }) ?>
 <? } ?>
 
@@ -75,7 +75,7 @@ if (method.examples.length || method.exampleReferences.length) { ?>
 <? if (method.returns) { ?>
 ##### Returns
 
-- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?= method.returns.description ?>
+- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?- method.returns.description ?>
 <? } ?>
 
 <? if (method.throwsTags.length) { ?>

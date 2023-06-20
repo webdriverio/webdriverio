@@ -72,6 +72,7 @@ packages/**/cjs/
 /*.ts
 devtools.d.ts
 !.eslintrc.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
@@ -104,3 +105,5 @@ tests/.retry_succeeded
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md
+scripts/bidi/cddl
+browserstack.err

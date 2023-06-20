@@ -144,11 +144,11 @@ export function addTag(tag: string) {
 /**
  * Add environment value
  * @name addEnvironment
- * @param {string} name - environment name
- * @param {string} value - environment value
+ * @deprecated addEnvironment is deprecated. Use reportedEnvironmentVars in config instead.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function addEnvironment (name: string, value: string) {
-    tellReporter(events.addEnvironment, { name, value })
+    console.warn('⚠️ addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter.')
 }
 
 /**

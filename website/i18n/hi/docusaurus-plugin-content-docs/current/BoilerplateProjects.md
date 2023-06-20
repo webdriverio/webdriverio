@@ -29,6 +29,39 @@ title: बॉयलरप्लेट प्रोजेक्ट्स
     - पेज ऑब्जेक्ट पैटर्न
     - सॉस लैब्स एकीकरण
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- फ्रेमवर्क:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- विशेषताएँ:
+    - Typescript v5
+    - पेज ऑब्जेक्ट पैटर्न
+    - खूबसूरत
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - एपियम
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - फ्रेमवर्क: कुकुम्बर के साथ WDIO-V8 (V8x)।
