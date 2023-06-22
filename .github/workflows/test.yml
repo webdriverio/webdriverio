@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Upgrade npm
+        run: npm install -g npm@7
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
