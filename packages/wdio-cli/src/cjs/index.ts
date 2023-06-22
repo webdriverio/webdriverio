@@ -9,7 +9,8 @@ class Launcher {
         private args: Partial<RunCommandArguments> = {},
         private isWatchMode = false
     ) {
-        import('../launcher.js').then(launcher =>  this.#esmLauncher = new launcher.default(this.configFilePath, this.args, this.isWatchMode))
+        this.#esmLauncher = import('../launcher.js').then(
+            ({ default: Launcher }) => new Launcher(this.configFilePath, this.args, this.isWatchMode))
     }
 
     /**
@@ -17,7 +18,7 @@ class Launcher {
      * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
     async run(): Promise<undefined | number> {
-        return this.#esmLauncher.run()
+        return (await this.#esmLauncher).run()
     }
 }
 
