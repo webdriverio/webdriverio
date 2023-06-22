@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-    Next-gen browser and mobile automation test work for Node.js.
+    Next-gen browser and mobile automation test framework for Node.js.
 </p>
 
 <p align="center">
