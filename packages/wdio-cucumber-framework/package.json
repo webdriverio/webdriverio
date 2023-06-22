@@ -35,7 +35,7 @@
     "@wdio/types": "7.30.2",
     "@wdio/utils": "7.30.2",
     "expect-webdriverio": "^3.0.0",
-    "glob": "^8.0.3",
+    "glob": "^10.3.0",
     "is-glob": "^4.0.0",
     "long": "^4.0.0",
     "mockery": "^2.1.0"
