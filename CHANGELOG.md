@@ -19,6 +19,29 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.32.0 (2023-06-22)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#10422](https://github.com/webdriverio/webdriverio/pull/10422) fix: set sessionName in case of browser.reloadSession ([@Ankit098](https://github.com/Ankit098))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-jasmine-framework`
+  * [#10173](https://github.com/webdriverio/webdriverio/pull/10173) Support for Jasmine sessions for BrowserStack Test Observability (v7) ([@sriteja777](https://github.com/sriteja777))
+* `wdio-browserstack-service`
+  * [#10226](https://github.com/webdriverio/webdriverio/pull/10226) Error handling for Observability code in browserstack service v7 ([@amaanbs](https://github.com/amaanbs))
+  * [#10259](https://github.com/webdriverio/webdriverio/pull/10259) [browserstack-service] [v7] Sending skipped test details for beforeEach, beforeAll and afterEach hooks in mocha ([@sriteja777](https://github.com/sriteja777))
+
+#### :house: Internal
+* `webdriverio`
+  * [#10604](https://github.com/webdriverio/webdriverio/pull/10604) Fix tests in v7  ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 3
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.31.1 (2023-04-17)
 
 #### :bug: Bug Fix
