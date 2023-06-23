@@ -5,7 +5,7 @@ title: Preact
 
 [Preact](https://preactjs.com/) est une alternative à React, rapide de 3 Ko, qui utilise la même API moderne. Vous pouvez tester les composants Preact directement dans un navigateur en utilisant WebdriverIO et son [browser runner](/docs/runner#browser-runner).
 
-## Configuration
+## Setup
 
 To setup WebdriverIO within your Preact project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `preact` as preset within your runner options, e.g.:
 
