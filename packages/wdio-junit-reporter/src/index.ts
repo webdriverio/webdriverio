@@ -2,8 +2,7 @@ import junit from 'junit-report-builder'
 import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
-
-const FILE_PROTOCOL_REGEX = /^file:\/\//
+import url from 'node:url'
 
 import { limit } from './utils.js'
 import type { JUnitReporterOptions } from './types.js'
@@ -271,8 +270,7 @@ class JunitReporter extends WDIOReporter {
             }
             const suite = this.suites[suiteKey]
 
-            // On windows, we have to remove forward slashes on one path, and a first slash on the other to get the filepaths to match when they should
-            const sameFeature = process.platform === 'win32' ? isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '').replace(/^./, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '').replace(/\\/g, '/') : isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '')
+            const sameFeature = isCucumberFrameworkRunner && url.fileURLToPath(specFileName) === suite.file
 
             if (isCucumberFrameworkRunner && suite.type === type && sameFeature) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
