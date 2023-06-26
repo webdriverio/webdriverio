@@ -14,6 +14,7 @@ export default defineConfig({
         ],
         coverage: {
             enabled: true,
+            provider: 'v8',
             exclude: [
                 '**/build/**',
                 '**/cjs/*.js',
@@ -27,9 +28,6 @@ export default defineConfig({
             functions: 88,
             branches: 91,
             statements: 92
-        },
-        globalSetup: [
-            'scripts/test/globalSetup.ts'
-        ]
+        }
     }
 })

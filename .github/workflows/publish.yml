@@ -25,7 +25,7 @@ jobs:
   authorize:
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2.1.8
+      - uses: octokit/request-action@v2.1.9
         with:
           route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
           team: technical-steering-committee
@@ -58,7 +58,7 @@ jobs:
         run: npm ci
       - name: Release
         run: |
-          npm run setup-full
+          npm run setup
           npm run generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           npm run pushReleaseTag

@@ -6,6 +6,12 @@ describe('Jasmine smoke test', () => {
         expect(test).toBe(123)
     })
 
+    it('should support sync Jest and Jasmine matchers', () => {
+        expect(1).toBe(1) // available in both
+        expect({ foo: 'bar' }).toEqual({ foo: 'bar' }) // Jest matcher
+        expect(false).toBeFalse() // Jasmine matcher
+    })
+
     it('should return async value', async () => {
         await browser.isEventuallyDisplayedScenario()
         await expect(browser).toHaveTitle('Mock Page Title')

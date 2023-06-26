@@ -33,7 +33,7 @@
     "memory": "8gb",
     "storage": "32gb"
   },
-  "postCreateCommand": "npm install && npm run setup-full",
+  "postCreateCommand": "npm install && npm run setup",
   "waitFor": "postCreateCommand",
   "postAttachCommand": {
     "WebdriverIO Development Environment": "npm run watch",

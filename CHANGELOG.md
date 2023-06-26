@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.11.2 (2023-06-12)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#10537](https://github.com/webdriverio/webdriverio/pull/10537) (spec-reporter): skip logging when title is empty ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#10535](https://github.com/webdriverio/webdriverio/pull/10535) waitUntil, if given should return custom error message when condition returns always false ([@rashiq231](https://github.com/rashiq231))
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#10533](https://github.com/webdriverio/webdriverio/pull/10533) (jasmine): Bring back Jasmine assertions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@rashiq231](https://github.com/rashiq231)
+
+
 ## v8.11.0 (2023-06-08)
 
 #### :rocket: New Feature

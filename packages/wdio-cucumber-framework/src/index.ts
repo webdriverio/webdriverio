@@ -54,9 +54,6 @@ const {
 } = Cucumber
 
 const uuidFn = IdGenerator.uuid()
-const builder = new Gherkin.AstBuilder(uuidFn)
-const matcher = new Gherkin.GherkinClassicTokenMatcher()
-const gherkinParser = new Gherkin.Parser(builder, matcher)
 
 const require = createRequire(import.meta.url)
 
@@ -88,6 +85,7 @@ class CucumberAdapter {
     private _eventDataCollector: typeof EventDataCollector
     private _pickleFilter: InstanceType<typeof PickleFilter>
     private getHookParams?: Function
+    private gherkinParser: InstanceType<typeof Gherkin.Parser>
 
     constructor(
         private _cid: string,
@@ -111,6 +109,10 @@ class CucumberAdapter {
         this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
         this._eventBroadcaster = new EventEmitter()
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
+
+        const builder = new Gherkin.AstBuilder(uuidFn)
+        const matcher = new Gherkin.GherkinClassicTokenMatcher(this._config.cucumberOpts?.featureDefaultLanguage || 'en')
+        this.gherkinParser = new Gherkin.Parser(builder, matcher)
 
         this._specs = this._specs.map((spec) => (
             /**
@@ -157,7 +159,7 @@ class CucumberAdapter {
                 .flat(1)
                 .map((content, ctIdx) => (
                     {
-                        ...gherkinParser.parse(content),
+                        ...this.gherkinParser.parse(content),
                         uri: Array.isArray(specContent)
                             ? files[idx][ctIdx]
                             : files[idx],
