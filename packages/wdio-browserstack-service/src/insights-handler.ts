@@ -456,7 +456,9 @@ class _InsightsHandler {
     }
 
     getTestRunId(context: any): string|undefined {
-        if (!context) {return}
+        if (!context) {
+            return
+        }
 
         if (context.currentTest) {
             const uniqueIdentifier = getUniqueIdentifier(context.currentTest, this._framework)
