@@ -582,8 +582,12 @@ export default class AllureReporter extends WDIOReporter {
         if (useCucumberStepReporter) {
             // remove hook from suite if it has no steps or attachments
             const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
-            if (currentItem && currentItem.steps[currentItem.steps.length-1].steps.length === 0 && currentItem.attachments.length === 0) {
-                currentItem.steps.pop()
+            if (currentItem) {
+                const currentStep = currentItem.steps[currentItem.steps.length-1]
+
+                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                    currentItem.steps.pop()
+                }
             }
         }
     }

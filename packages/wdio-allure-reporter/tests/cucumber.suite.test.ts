@@ -189,9 +189,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should have the console log add', () => {
-            expect(allureResult.steps).toHaveLength(3)
+            expect(allureResult.steps).toHaveLength(2)
             expect(allureResult.steps[1].attachments).toHaveLength(1)
-            expect(allureResult.steps[1].attachments[0].name).toEqual('Console Logs')
+            expect(allureResult.steps[1].attachments[0].name).toEqual('Page source')
         })
 
         it('should report one suite', () => {
@@ -610,10 +610,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Hooks removal', () => {
-        outputDir = temporaryDirectory()
-
-        beforeAll(() => {
-            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+        beforeEach(() => {
+            outputDir = temporaryDirectory()
         })
 
         afterAll(() => {
@@ -621,6 +619,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should remove empty hook with no steps or files attached', () => {
+            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
             reporter.onSuiteStart(cucumberHelper.scenarioStart())
@@ -643,12 +643,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             allureResult = results[0]
 
-            const hookStep = allureResult.steps.find((step) => step.name === 'Hook')
+            const hookStep = allureResult.steps.find((step: { name: string }) => step.name === 'Hook')
 
             expect(hookStep).toBeUndefined()
         })
 
         it('should keep empty hook with steps or files attached', () => {
+            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
             reporter.onSuiteStart(cucumberHelper.scenarioStart())
@@ -669,11 +671,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results } = getResults(outputDir)
 
-            expect(results).toHaveLength(2)
+            expect(results).toHaveLength(1)
 
             allureResult = results[0]
 
-            const hookStep = allureResult.steps.find((step) => step.name === 'Hook')
+            const hookStep = allureResult.steps.find((step: { name: string }) => step.name === 'Hook')
 
             expect(hookStep).not.toBeUndefined()
         })
