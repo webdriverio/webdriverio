@@ -1,8 +1,8 @@
 import React from 'react'
-
 import styles from './Robot.module.css'
+import type { FC } from 'react'
 
-export default () => (
+const Robot:FC = () => (
     <svg className={styles.svg} width="242px" height="283px" viewBox="0 0 242 283" version="1.1" xmlns="http://www.w3.org/2000/svg">
         <title>WebdriverIO</title>
         <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
@@ -31,3 +31,5 @@ export default () => (
         </g>
     </svg>
 )
+
+export default Robot

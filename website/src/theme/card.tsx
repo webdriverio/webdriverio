@@ -1,6 +1,11 @@
 import React from 'react'
+import type { FC, ReactNode } from 'react'
 
-function TwitterLink ({ url }) {
+type TwitterLinkProps = {
+    url: string
+}
+
+const TwitterLink: FC<TwitterLinkProps> = ({ url }) => {
     if (!url) {
         return null
     }
@@ -12,7 +17,11 @@ function TwitterLink ({ url }) {
     )
 }
 
-function GitHubLink ({ url }) {
+type GitHubLinkProps = {
+    url: string
+}
+
+const GitHubLink:FC<GitHubLinkProps> = ({ url }) => {
     if (!url) {
         return null
     }
@@ -28,13 +37,21 @@ function GitHubLink ({ url }) {
     )
 }
 
-export default function Card ({
+type CardProps = {
+    name: string
+    avatar: string
+    github: string
+    twitter: string
+    children: ReactNode
+}
+
+const Card: FC<CardProps> = ({
     name,
     avatar,
     github,
     twitter,
     children
-}) {
+}) => {
     return (
         <div className="avatar teamProfile">
             <img
@@ -52,3 +69,5 @@ export default function Card ({
         </div>
     )
 }
+
+export default Card

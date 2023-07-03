@@ -1,9 +1,17 @@
 import React from 'react'
 import clsx from 'clsx'
-
 import styles from './highlight.module.css'
+import type { FC } from 'react'
 
-export default function Highlight({ reversed, title, img, text, isDark }) {
+type HighlightProps = {
+    reversed?: boolean
+    title: string
+    img: React.ReactNode
+    text: React.ReactNode
+    isDark?: boolean
+}
+
+const Highlight: FC<HighlightProps> = ({ reversed, title, img, text, isDark }) => {
     const left = <div className={clsx('col col--6', styles.featureImage, reversed ? styles.featureImageReversed : '')}>{img}</div>
     const right = (
         <div className={clsx('col col--6', styles.featureContent, reversed ? styles.featureContentReversed : '')}>
@@ -32,3 +40,5 @@ export default function Highlight({ reversed, title, img, text, isDark }) {
         </section>
     )
 }
+
+export default Highlight

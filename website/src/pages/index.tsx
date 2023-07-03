@@ -6,15 +6,15 @@ import Link from '@docusaurus/Link'
 import Translate, { translate } from '@docusaurus/Translate'
 import useBaseUrl from '@docusaurus/useBaseUrl'
 
-import LogoCarousel from './components/LogoCarousel.js'
-import Features from './components/Features.js'
-import Section from './components/Section.js'
-import Highlight from './components/Highlight.js'
-import Robot from './components/Robot.js'
-import CreateProjectAnimation from './components/CreateProjectAnimation.js'
+import LogoCarousel from './components/LogoCarousel'
+import Features from './components/Features'
+import Section from './components/Section'
+import Highlight from './components/Highlight'
+import Robot from './components/Robot'
+import CreateProjectAnimation from './components/CreateProjectAnimation'
 
 import styles from './styles.module.css'
-import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.js'
+import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants'
 
 const tagline = translate({
     id: 'homepage.tagline',
