@@ -98,6 +98,7 @@ test('should properly set up jasmine', async () => {
         toBe: expect.any(Function),
         toHaveTitle: expect.any(Function)
     })
+    expect(jasmine.addMatchers).toBe(jasmine.addAsyncMatchers)
 })
 
 test('should propery wrap interfaces', async () => {

@@ -200,6 +200,11 @@ class JasmineAdapter {
          */
         const expect = jasmineEnv.expectAsync
         const matchers = this.#setupMatchers(jasmine)
+        /**
+         * Monkey patch addMatchers to actually call addAsyncMatchers.
+         * This wires the overridden expect (witch is actually expectAsync) with matchers added via addMatchers.
+         */
+        jasmineEnv.addMatchers = jasmineEnv.addAsyncMatchers
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
         _setGlobal('expect', expect, this._config.injectGlobals)
 

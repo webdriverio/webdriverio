@@ -25,6 +25,7 @@ export const jasmine = {
         })
     },
     addAsyncMatchers: vi.fn(),
+    addMatchers: vi.fn(),
     beforeAll: vi.fn((cb) => cb())
 }
 export default class JasmineMock {
