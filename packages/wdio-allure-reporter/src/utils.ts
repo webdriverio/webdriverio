@@ -52,6 +52,15 @@ export const isEmpty = (object: any) =>
     !object || Object.keys(object).length === 0
 
 /**
+ * Is mocha beforeEach hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isMochaBeforeEachHook = (title: string) =>
+    title.includes(mochaEachHooks[0])
+
+/**
  * Is mocha beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
