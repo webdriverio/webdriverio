@@ -3,11 +3,11 @@ id: modules
 title: Moduły
 ---
 
-WebdriverIO publikuje rozmaite moduły w NPM i innych rejestrach, których można użyć do zbudowania własnego frameworku do automatyzacji. Zobacz więcej dokumentacji na temat różnych typów konfiguracji WebdriverIO [tutaj](/docs/setuptypes).
+WebdriverIO publikuje rozmaite moduły w NPM i innych rejestrach, których można użyć do zbudowania własnego frameworku do automatyzacji. Więcej dokumentacji dotyczącej różnych typów konfiguracji WebdriverIO znajdziesz [tutaj](/docs/setuptypes).
 
 ## `webdriver` oraz `devtools`
 
-Pakiety protokołów ([`webdriver`](https://www.npmjs.com/package/webdriver) i [`devtools`](https://www.npmjs.com/package/devtools)) udostępniają klasę zawierającą następujące funkcje statyczne, które umożliwiają inicjowanie sesji:
+Pakiety protokołów ([`webdriver`](https://www.npmjs.com/package/webdriver) i [`devtools`](https://www.npmjs.com/package/devtools)) udostępniają klasę zawierającą następujące funkcje statyczne, umożliwiające inicjowanie sesji:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
@@ -15,10 +15,10 @@ Rozpoczyna nową sesję z określonymi możliwościami (capabilities). Na podsta
 
 ##### Parametry
 
-- `options`: [opcje WebDriver](/docs/configuration#webdriver-options)
+- `options`: [opcje WebDrivera](/docs/configuration#webdriver-options)
 - `modifier`: funkcja umożliwiająca modyfikację instancji klienta przed jej zwróceniem
 - `userPrototype`: obiekt właściwości umożliwiający rozszerzenie prototypu instancji
-- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność wokół wywołań funkcji
+- `customCommandWrapper`: funkcja, która pozwala opakować funkcjonalność w wywołanie funkcji
 
 ##### Zwracane wartości/obiekty
 
