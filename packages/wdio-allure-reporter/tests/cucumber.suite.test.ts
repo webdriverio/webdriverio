@@ -190,7 +190,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         it('should have the console log add', () => {
             expect(allureResult.steps).toHaveLength(2)
-            expect(allureResult.steps[1].attachments).toHaveLength(1)
+            expect(allureResult.steps[0].attachments).toHaveLength(1)
             expect(allureResult.steps[1].attachments[0].name).toEqual('Page source')
         })
 
