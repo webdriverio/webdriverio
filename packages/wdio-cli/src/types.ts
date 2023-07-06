@@ -2,13 +2,11 @@ import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
 import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants.js'
 
-type ValueOf<T> = T[keyof T]
-
 export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
-    backend: ValueOf<typeof BACKEND_CHOICES>
+    backend: typeof BACKEND_CHOICES[number]
     hostname?: string
     port?: string
     path?: string
@@ -20,14 +18,14 @@ export interface Questionnair {
     env_user?: string
     // eslint-disable-next-line
     env_key?: string
-    region?: ValueOf<typeof REGION_OPTION>
+    region?: typeof REGION_OPTION[number]
     framework: string
     specs?: string
     stepDefinitions?: string
     generateTestFiles: boolean
     usePageObjects?: boolean
     pages?: string
-    isUsingCompiler: ValueOf<typeof COMPILER_OPTION_ANSWERS>
+    isUsingCompiler: typeof COMPILER_OPTION_ANSWERS[number]
     reporters: string[]
     services: string[]
     plugins: string[]
@@ -37,6 +35,7 @@ export interface Questionnair {
     createPackageJSON?: boolean
     projectRootCorrect?: boolean
     projectRoot?: string
+    setupMobileEnvironment?: boolean
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {

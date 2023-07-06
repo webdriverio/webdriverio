@@ -6,7 +6,7 @@ import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command.js'
-import { BidiHandler } from './bidi.js'
+import { BidiHandler } from './bidi/handler.js'
 import { DEFAULTS } from './constants.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
@@ -20,10 +20,12 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
+        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
-        if (!options.logLevels || !options.logLevels.webdriver) {
-            logger.setLevel('webdriver', params.logLevel!)
+        if (params.logLevel && (!options.logLevels || !options.logLevels.webdriver)) {
+            logger.setLevel('webdriver', params.logLevel)
         }
 
         /**
@@ -133,3 +135,4 @@ export default class WebDriver {
  */
 export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
+export * from './bidi/handler.js'

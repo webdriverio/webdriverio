@@ -5,7 +5,7 @@ import { COLORS } from './constants.js'
 
 /**
  * replaces whitespaces with underscore and removes dots
- * @param  {String} str  variable to sanitize
+ * @param  {string} str  variable to sanitize
  * @return {String}      sanitized variable
  */
 export function sanitizeString (str?: string) {
@@ -22,7 +22,7 @@ export function sanitizeString (str?: string) {
 
 /**
  * formats capability object into sanitized string for e.g.filenames
- * @param {Object} caps  Selenium capabilities
+ * @param {object} caps  Selenium capabilities
  */
 export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
     if (!caps) {
@@ -36,16 +36,16 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
      */
     result = caps.deviceName
         ? [
-            sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
-            sanitizeString(caps.platformVersion),
-            sanitizeString(caps.app)
+            sanitizeString(caps.deviceName || caps['appium:deviceName']),
+            sanitizeString(caps['appium:platformVersion']),
+            sanitizeString(caps['appium:app'])
         ]
         : [
             sanitizeString(caps.browserName),
             sanitizeString(caps.version || caps.browserVersion),
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps.app)
+            sanitizeString(caps['appium:app'])
         ]
 
     result = result.filter(n => n !== undefined && n !== '')

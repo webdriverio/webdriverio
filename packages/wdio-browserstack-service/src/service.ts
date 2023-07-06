@@ -1,13 +1,21 @@
 import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
+import PerformanceTester from './performance-tester.js'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util.js'
+import {
+    getBrowserDescription,
+    getBrowserCapabilities,
+    isBrowserstackCapability,
+    getParentSuiteName,
+    isBrowserstackSession,
+} from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
+import CrashReporter from './crash-reporter.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -18,6 +26,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
+    private _suiteFile?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
     private _specsRan: boolean = false
@@ -37,6 +46,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+                PerformanceTester.startMonitoring('performance-report-service.csv')
+            }
         }
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -60,11 +72,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
-        if (!config.user) {
+        const testObservabilityOptions = this._options.testObservabilityOptions
+        if (!config.user && !(testObservabilityOptions && testObservabilityOptions.user)) {
             config.user = 'NotSetUser'
         }
 
-        if (!config.key) {
+        if (!config.key && !(testObservabilityOptions && testObservabilityOptions.key)) {
             config.key = 'NotSetKey'
         }
         this._config.user = config.user
@@ -84,29 +97,34 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._observability && this._browser) {
-            this._insightsHandler = new InsightsHandler(
-                this._browser,
-                this._isAppAutomate(),
-                this._config.framework
-            )
-            await this._insightsHandler.before()
+            try {
+                this._insightsHandler = new InsightsHandler(
+                    this._browser,
+                    this._isAppAutomate(),
+                    this._config.framework
+                )
+                await this._insightsHandler.before()
 
-            /**
-             * register command event
-             */
-            this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
-                'client:beforeCommand',
-                Object.assign(command, { sessionId: this._browser?.sessionId }),
-                this._currentTest
-            ))
-            /**
-             * register result event
-             */
-            this._browser.on('result', async (result) => await this._insightsHandler?.browserCommand(
-                'client:afterCommand',
-                Object.assign(result, { sessionId: this._browser?.sessionId }),
-                this._currentTest
-            ))
+                /**
+                 * register command event
+                 */
+                this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
+                    'client:beforeCommand',
+                    Object.assign(command, { sessionId: this._browser?.sessionId }),
+                    this._currentTest
+                ))
+                /**
+                 * register result event
+                 */
+                this._browser.on('result', (result) => this._insightsHandler?.browserCommand(
+                    'client:afterCommand',
+                    Object.assign(result, { sessionId: this._browser?.sessionId }),
+                    this._currentTest
+                ))
+            } catch (err) {
+                log.error(`Error in service class before function: ${err}`)
+                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+            }
         }
 
         return await this._printSessionURL()
@@ -121,6 +139,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
+        this._insightsHandler?.setSuiteFile(suite.file)
 
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
@@ -186,6 +205,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
+
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            await PerformanceTester.stopAndGenerate('performance-service.html')
+            PerformanceTester.calculateTimes([
+                'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
+                'onTestStart', 'onTestEnd', 'onTestSkip', 'before',
+                'beforeHook', 'afterHook', 'beforeTest', 'afterTest',
+                'uploadPending', 'teardown', 'browserCommand'
+            ])
+        }
     }
 
     /**
@@ -266,8 +295,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
-        delete this._suiteTitle
         delete this._fullTitle
+        delete this._suiteFile
         this._failReasons = []
         await this._printSessionURL()
     }
@@ -275,8 +304,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
-
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
     }
 
     _updateJob (requestBody: any) {

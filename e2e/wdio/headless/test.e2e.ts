@@ -1,6 +1,8 @@
 
 import type { Capabilities } from '../../../packages/wdio-types'
 
+const SCROLL_MARGIN_TRESHOLD = 25
+
 describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
@@ -94,4 +96,37 @@ describe('main suite 1', () => {
         ])
         expect(oldScrollPosition).toEqual([x, y])
     })
+
+    it('should be able to handle successive scrollIntoView', async () => {
+        await browser.url('http://guinea-pig.webdriver.io')
+        await browser.setWindowSize(500, 500)
+        const searchInput = await $('.searchinput')
+
+        const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
+            await searchInput.scrollIntoView(params)
+            await browser.pause(500)
+            const [wdioX, wdioY] = await browser.execute(() => [
+                window.scrollX, window.scrollY
+            ])
+
+            await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
+            await browser.pause(500)
+            const [windowX, windowY] = await browser.execute(() => [
+                window.scrollX, window.scrollY
+            ])
+
+            const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
+            expect(Math.abs(wdioX - windowX)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
+            expect(Math.abs(wdioY - windowY)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
+        }
+
+        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
+        await scrollAndCheck()
+        await scrollAndCheck({ block: 'center', inline: 'center' })
+        await scrollAndCheck({ block: 'start', inline: 'start' })
+        await scrollAndCheck({ block: 'end', inline: 'end' })
+        await scrollAndCheck(true)
+        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
+    })
+
 })

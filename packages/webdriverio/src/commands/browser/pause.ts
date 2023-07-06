@@ -15,7 +15,7 @@
  * </example>
  *
  * @alias browser.pause
- * @param {Number} milliseconds time in ms
+ * @param {number} milliseconds time in ms
  * @type utility
  *
  */

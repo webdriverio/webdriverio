@@ -24,8 +24,8 @@ export const CONFIG_HELPER_INTRO = `
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 🤖 Successfully setup project at %s 🎉
 
-Join our Matrix community and instantly find answers to your issues or queries. Or just join and say hi 👋!
-  🔗 https://matrix.to/#/#webdriver.io:gitter.im
+Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio
@@ -151,25 +151,27 @@ export const SUPPORTED_PACKAGES = {
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
-        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' }
+        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
+        { name: 'robonut', value: 'wdio-robonut-service$--$robonut' }
     ]
 } as const
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
-    { name: 'Lit (https://lit.dev/)', value: '' },
+    { name: 'Lit (https://lit.dev/)', value: '$--$' },
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
     { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: '' }
+    { name: 'Other', value: false }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
     react: '@testing-library/react',
     preact: '@testing-library/preact',
     vue: '@testing-library/vue',
-    svelte: '@testing-library/svelte'
+    svelte: '@testing-library/svelte',
+    solid: 'solid-testing-library'
 }
 
 export const BACKEND_CHOICES = [
@@ -192,8 +194,24 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
+function isLocalEnvironment (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[0].value
+}
+
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
+function selectDefaultService (serviceName: string) {
+    return [SUPPORTED_PACKAGES.service.find(
+        /* istanbul ignore next */
+        ({ name }) => name === serviceName)?.value]
+}
+
+function prioServiceOrderFor (serviceName: string) {
+    const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === serviceName)
+    return SUPPORTED_PACKAGES.service.slice(index)
+        .concat(SUPPORTED_PACKAGES.service.slice(0, index))
 }
 
 export const QUESTIONNAIRE = [{
@@ -221,7 +239,7 @@ export const QUESTIONNAIRE = [{
         /**
          * Only show if Testing Library has an add-on for framework
          */
-        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
+        answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
     type: 'list',
@@ -237,6 +255,15 @@ export const QUESTIONNAIRE = [{
         }
         return BACKEND_CHOICES
     }
+}, {
+    type: 'confirm',
+    name: 'setupMobileEnvironment',
+    message: 'Would you like to setup Appium for mobile testing?',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        isLocalEnvironment(answers) &&
+        answers.backend === BACKEND_CHOICES[0]
+    )
 }, {
     type: 'input',
     name: 'hostname',
@@ -369,7 +396,10 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'specs',
     message: 'Where should these files be located?',
-    default: /* istanbul ignore next */ (answers: Questionnair) => getDefaultFiles(answers, 'test/specs/**/*'),
+    default: /* istanbul ignore next */ (answers: Questionnair) => {
+        const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
+        return getDefaultFiles(answers, pattern)
+    },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
 }, {
     type: 'input',
@@ -427,30 +457,24 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a service to your test setup?',
     choices: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === 'browserstack')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')
-            return SUPPORTED_PACKAGES.service.slice(index)
-                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+            return prioServiceOrderFor('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return prioServiceOrderFor('appium')
         }
         return SUPPORTED_PACKAGES.service
     },
     // @ts-ignore
     default: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'browserstack')?.value]
+            return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return [SUPPORTED_PACKAGES.service.find(
-                /* istanbul ignore next */
-                ({ name }) => name === 'sauce')?.value]
+            return selectDefaultService('sauce')
+        } else if (answers.setupMobileEnvironment) {
+            return selectDefaultService('appium')
         }
-        return [SUPPORTED_PACKAGES.service.find(
-        /* istanbul ignore next */
-            ({ name }) => name === 'chromedriver')?.value]
+        return selectDefaultService('chromedriver')
     },
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
@@ -476,8 +500,13 @@ export const QUESTIONNAIRE = [{
     name: 'baseUrl',
     message: 'What is the base url?',
     default: 'http://localhost',
-    // no base url for browser tests
-    when: /* istanbul ignore next */ (answers: Questionnair) => !isBrowserRunner(answers)
+    // no base url for:
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        // unit and component testing in the browser
+        !isBrowserRunner(answers) &&
+        // mobile testing with Appium
+        !answers.setupMobileEnvironment
+    )
 }, {
     type: 'confirm',
     name: 'npmInstall',

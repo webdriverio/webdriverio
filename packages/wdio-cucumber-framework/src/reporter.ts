@@ -21,7 +21,7 @@ export default class CucumberReporter {
 
     constructor (
         eventBroadcaster: EventEmitter,
-        pickleFilter: PickleFilter,
+        pickleFilter: InstanceType<typeof PickleFilter>,
         private _options: ReporterOptions,
         private _cid: string,
         private _specs: string[],

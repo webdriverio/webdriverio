@@ -1,6 +1,6 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "8.6.2",
+  "version": "8.11.2",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
@@ -33,17 +33,18 @@
         "require": "./build/cjs/index.js"
       },
       "./build/cjs/index.js"
-    ]
+    ],
+    "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
-    "@wdio/logger": "8.1.0",
-    "@wdio/types": "8.4.0",
-    "got": "^12.1.0",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "got": "^ 12.6.1",
     "polka": "^0.5.2",
-    "webdriverio": "8.6.2"
+    "webdriverio": "8.11.2"
   },
   "publishConfig": {
     "access": "public"

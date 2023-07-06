@@ -182,17 +182,21 @@ export default class DevToolsDriver {
                 if (err.message.includes('most likely because of a navigation')) {
                     log.debug('Command failed due to unfinished page transition, retrying...')
                     const page = self.getPageHandle()
-                    await new Promise<void>((resolve, reject) => {
-                        const pageloadTimeout = setTimeout(
-                            () => reject(new Error('page load timeout')),
-                            self.timeouts.get('pageLoad'))
 
-                        page.once('load', () => {
-                            clearTimeout(pageloadTimeout)
-                            resolve()
-                        })
-                    })
                     ++retries
+
+                    // In some cases, the page load event never arrives
+                    // Wait for a page load event only after trying to execute the command a few times
+                    if (retries >= 3) {
+                        await new Promise<void>((resolve, reject) => {
+                            const pageloadTimeout = setTimeout(() => reject(new Error('page load timeout')), self.timeouts.get('pageLoad'))
+                            page.once('load', () => {
+                                clearTimeout(pageloadTimeout)
+                                resolve()
+                            })
+                        })
+                    }
+
                     return wrappedCommand.apply(this, args)
                 }
 

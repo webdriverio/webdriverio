@@ -1,0 +1,74 @@
+{
+  "version.label": {
+    "message": "Nächste",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "Erste Schritte",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Core Concepts": {
+    "message": "Kernkonzepte",
+    "description": "The label for category Core Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Configuration": {
+    "message": "Konfiguration",
+    "description": "The label for category Configuration in sidebar docs"
+  },
+  "sidebar.docs.category.Guides": {
+    "message": "Anleitungen",
+    "description": "The label for category Guides in sidebar docs"
+  },
+  "sidebar.docs.category.Testrunner": {
+    "message": "Testrunner",
+    "description": "The label for category Testrunner in sidebar docs"
+  },
+  "sidebar.docs.category.Component Testing": {
+    "message": "Komponenten Testen",
+    "description": "The label for category Component Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Framework Setup": {
+    "message": "Framework-Setup",
+    "description": "The label for category Framework Setup in sidebar docs"
+  },
+  "sidebar.docs.category.Migrate": {
+    "message": "Migrieren",
+    "description": "The label for category Migrate in sidebar docs"
+  },
+  "sidebar.docs.category.Integration": {
+    "message": "Integration",
+    "description": "The label for category Integration in sidebar docs"
+  },
+  "sidebar.docs.category.Reporter": {
+    "message": "Reporter",
+    "description": "The label for category Reporter in sidebar docs"
+  },
+  "sidebar.docs.category.Services": {
+    "message": "Services",
+    "description": "The label for category Services in sidebar docs"
+  },
+  "sidebar.api.category.Protocols": {
+    "message": "Protokolle",
+    "description": "The label for category Protocols in sidebar api"
+  },
+  "sidebar.api.category.browser": {
+    "message": "browser",
+    "description": "The label for category browser in sidebar api"
+  },
+  "sidebar.api.category.element": {
+    "message": "element",
+    "description": "The label for category element in sidebar api"
+  },
+  "sidebar.api.category.mock": {
+    "message": "mock",
+    "description": "The label for category mock in sidebar api"
+  },
+  "sidebar.flowcharts.category.Flowcharts": {
+    "message": "Flussdiagramme",
+    "description": "The label for category Flowcharts in sidebar flowcharts"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "Web Extension Test",
+    "description": "The label for category Web Extension Testing in sidebar docs"
+  }
+}

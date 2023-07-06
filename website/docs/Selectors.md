@@ -3,7 +3,33 @@ id: selectors
 title: Selectors
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle). The following selector types are supported:
+The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+
+While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+
+```html
+<button
+  id="main"
+  class="btn btn-large"
+  name="submission"
+  role="button"
+  data-testid="submit"
+>
+  Submit
+</button>
+```
+
+We __do__ and __do not__ recommend the following selectors:
+
+| Selector | Recommended | Notes |
+| -------- | ----------- | ----- |
+| `$('button')` | 🚨 Never | Worst - too generic, no context. |
+| `$('.btn.btn-large')` | 🚨 Never | Bad. Coupled to styling. Highly subject to change. |
+| `$('#main')` | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
+| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write. |
+| `$('button[name="submission"]')` | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics. |
+| `$('button[data-testid="submit"]')` | ✅ Good | Requires additional attribute, not connected to a11y. |
+| `$('aria/Submit')` or `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page. |
 
 ## CSS Query Selector
 
@@ -198,16 +224,6 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L114-L115
-```
-
-### Fetch by `for` property
-
-```html reference
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L9-L10
-```
-
-```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L124-L125
 ```
 
 ## ARIA - Role Attribute

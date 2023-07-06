@@ -145,7 +145,7 @@ test('should throw if command throws', async () => {
 })
 
 test('should rerun command if it was executed within navigation', async () => {
-    expect.assertions(4)
+    expect.assertions(3)
     let wasCommandCalled = false
     driver.commands.elementClick = vi.fn().mockImplementation(
         () => new Promise((resolve, reject) => setTimeout(
@@ -160,33 +160,49 @@ test('should rerun command if it was executed within navigation', async () => {
             100)
         )
     )
+
     const command = driver.register(commandMock)
 
-    setTimeout(() => {
-        expect(page.once).toBeCalledWith('load', expect.any(Function))
-        page.once.mock.calls.pop()?.pop()()
-    }, 150)
-
     const emit = vi.fn()
+
     const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
+
     expect(driver.commands.elementClick).toBeCalledTimes(2)
     expect(result).toBe(null)
     expect(emit.mock.calls).toMatchSnapshot()
 })
 
+test('should rerun command 3 times before attempting to wait for page load', async () => {
+    expect.assertions(3)
+
+    driver.commands.elementClick = vi.fn().mockImplementation(
+        () => new Promise((resolve, reject) => setTimeout(
+            () => {
+                reject(new Error('foobar most likely because of a navigation'))
+            },
+            100)
+        )
+    )
+
+    const command = driver.register(commandMock)
+
+    const emit = vi.fn()
+
+    const result = await command.call({ emit } as any, '123', 'some text', ['some value']).catch((err) => err.message)
+
+    expect(driver.commands.elementClick).toBeCalledTimes(3)
+    expect(result).toBe('page load timeout')
+    expect(emit.mock.calls).toMatchSnapshot()
+})
+
 test('throws error if navigation takes too long', async () => {
     driver.timeouts.set('pageLoad', 150)
-    let wasCommandCalled = false
+
     driver.commands.elementClick = vi.fn().mockImplementation(
         () => new Promise(
             (resolve, reject) => setTimeout(
                 () => {
-                    if (!wasCommandCalled) {
-                        wasCommandCalled = true
-                        reject(new Error('foobar most likely because of a navigation'))
-                    }
-
-                    resolve(null)
+                    reject(new Error('foobar most likely because of a navigation'))
                 },
                 100
             )
@@ -197,6 +213,8 @@ test('throws error if navigation takes too long', async () => {
     const command = driver.register(commandMock)
     const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
         .catch((err) => err.message)
+
+    expect(page.once).toBeCalledWith('load', expect.any(Function))
     expect(result).toBe('page load timeout')
 })
 

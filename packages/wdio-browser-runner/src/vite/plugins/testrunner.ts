@@ -120,7 +120,10 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             return () => {
                 server.middlewares.use(async (req, res, next) => {
                     log.info(`Received request for: ${req.originalUrl}`)
-                    if (!req.originalUrl) {
+                    /**
+                     * don't return test page when sourcemaps are requested
+                     */
+                    if (!req.originalUrl || req.url?.endsWith('.map')) {
                         return next()
                     }
 

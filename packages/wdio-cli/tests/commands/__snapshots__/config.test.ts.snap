@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`handler 1`] = `
 {
@@ -126,8 +126,8 @@ exports[`runConfigCommand 1`] = `
     "
 🤖 Successfully setup project at /foo/bar 🎉
 
-Join our Matrix community and instantly find answers to your issues or queries. Or just join and say hi 👋!
-  🔗 https://matrix.to/#/#webdriver.io:gitter.im
+Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio

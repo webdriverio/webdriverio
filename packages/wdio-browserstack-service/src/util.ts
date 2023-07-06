@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
+import util from 'node:util'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -12,16 +13,18 @@ import got, { HTTPError } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
+import CrashReporter from './crash-reporter.js'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
-const DEFAULT_REQUEST_CONFIG = {
+export const DEFAULT_REQUEST_CONFIG = {
     agent: {
         http: new http.Agent({ keepAlive: true }),
         https: new https.Agent({ keepAlive: true }),
@@ -97,7 +100,74 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+function processError(error: any, fn: Function, args: any[]) {
+    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    let argsString: string
+    try {
+        argsString = JSON.stringify(args)
+    } catch (e) {
+        argsString = util.inspect(args, { depth: 2 })
+    }
+    CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+}
+
+export function o11yErrorHandler(fn: Function) {
+    return function (...args: any) {
+        try {
+            let functionToHandle = fn
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+                functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
+            }
+            const result = functionToHandle(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => processError(error, fn, args))
+            }
+            return result
+        } catch (error) {
+            processError(error, fn, args)
+        }
+    }
+}
+
+// https://tugayilik.medium.com/error-handling-via-try-catch-proxy-in-javascript-54116dbf783f
+/*
+    A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
+    If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
+ */
+type ClassType = { new(...args: any[]): any; }; // A generic type for a class
+export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
+    const prototype = errorClass.prototype
+
+    if (Object.getOwnPropertyNames(prototype).length < 2) {
+        return errorClass
+    }
+
+    Object.getOwnPropertyNames(prototype).forEach((methodName) => {
+        const method = prototype[methodName]
+        if (typeof method === 'function' && methodName !== 'constructor') {
+            // In order to preserve this context, need to define like this
+            Object.defineProperty(prototype, methodName, {
+                writable: true,
+                value: function(...args: any) {
+                    try {
+                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        if (result instanceof Promise) {
+                            return result.catch(error => processError(error, method, args))
+                        }
+                        return result
+
+                    } catch (err) {
+                        processError(err, method, args)
+                    }
+                }
+            })
+        }
+    })
+
+    return errorClass
+}
+
+export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -119,8 +189,19 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
-        }
+        },
+        config: {}
     }
+
+    try {
+        if (Object.keys(CrashReporter.userConfigForReporting).length === 0) {
+            CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
+        }
+    } catch (error) {
+        return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
+    }
+    data.config = CrashReporter.userConfigForReporting
+
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
         const response: LaunchResponse = await got.post(url, {
@@ -161,9 +242,9 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
-}
+})
 
-export async function stopBuildUpstream () {
+export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
     }
@@ -200,7 +281,7 @@ export async function stopBuildUpstream () {
             message: error.message
         }
     }
-}
+})
 
 export function getCiInfo () {
     const env = process.env
@@ -325,8 +406,17 @@ export async function getGitMetaData () {
     }
 }
 
-export function getUniqueIdentifier(test: Frameworks.Test): string {
-    return `${test.parent} - ${test.title}`
+export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
+    if (framework === 'jasmine') {
+        return test.fullName
+    }
+
+    let parentTitle = test.parent
+    // Sometimes parent will be an object instead of a string
+    if (typeof parentTitle === 'object') {
+        parentTitle = (parentTitle as any).title
+    }
+    return `${parentTitle} - ${test.title}`
 }
 
 export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): string {
@@ -453,13 +543,13 @@ export function getHierarchy(fullTitle?: string) {
 }
 
 export function getHookType (hookName: string): string {
-    if (hookName.includes('before each')) {
+    if (hookName.startsWith('"before each"')) {
         return 'BEFORE_EACH'
-    } else if (hookName.includes('before all')) {
+    } else if (hookName.startsWith('"before all"')) {
         return 'BEFORE_ALL'
-    } else if (hookName.includes('after each')) {
+    } else if (hookName.startsWith('"after each"')) {
         return 'AFTER_EACH'
-    } else if (hookName.includes('after all')) {
+    } else if (hookName.startsWith('"after all"')) {
         return 'AFTER_ALL'
     }
     return 'unknown'
@@ -467,6 +557,13 @@ export function getHookType (hookName: string): string {
 
 export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
+}
+
+export function isBStackSession(config: Options.Testrunner) {
+    if (typeof config.user === 'string' && typeof config.key === 'string' && config.key.length === 20) {
+        return true
+    }
+    return false
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
@@ -548,6 +645,14 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
         return [bstackBuildTag]
     }
     return []
+}
+
+export function frameworkSupportsHook(hook: string, framework?: string) {
+    if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
+        return true
+    }
+
+    return false
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

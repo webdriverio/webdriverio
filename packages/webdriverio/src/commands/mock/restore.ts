@@ -1,5 +1,6 @@
 /**
  * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
+ * Restored mock does not emit events and could not mock responses.
  *
  * <example>
     :addValue.js

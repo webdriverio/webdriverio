@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
-import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types.js'
+import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent, JasmineOpts } from './types.js'
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -12,6 +12,7 @@ export default class JasmineReporter {
 
     private _cid: string
     private _specs: string[]
+    private _jasmineOpts: JasmineOpts
     private _shouldCleanStack: boolean
     private _parent: ParentSuite[] = []
     private _failedCount = 0
@@ -24,6 +25,7 @@ export default class JasmineReporter {
     ) {
         this._cid = params.cid
         this._specs = params.specs
+        this._jasmineOpts = params.jasmineOpts
         this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
     }
 
@@ -89,6 +91,29 @@ export default class JasmineReporter {
          */
         if (test.status === 'excluded') {
             newTest.status = 'pending'
+        }
+
+        /**
+         * mark failing tests due to missing assertion
+         */
+        if (
+            test.status === 'failed' &&
+            this._jasmineOpts.failSpecWithNoExpectations &&
+            test.failedExpectations.length === 0 &&
+            test.passedExpectations.length === 0
+        ) {
+            test.failedExpectations.push({
+                matcherName: 'toHaveAssertion',
+                expected: ' >1 assertions',
+                actual: '0 assertions',
+                passed: false,
+                message: (
+                    'No assertions found in test! This test is failing because no assertions were found ' +
+                    'but "jasmineOpts" had a "failSpecWithNoExpectations" flag set to "true".\n' +
+                    '\nRead more on this Jasmine option at: https://jasmine.github.io/api/5.0/Configuration#failSpecWithNoExpectations'
+                ),
+                stack: ''
+            })
         }
 
         if (test.failedExpectations && test.failedExpectations.length) {
@@ -176,6 +201,7 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
+            file: payload.filename
         }
 
         this._reporter.emit(event, message)

@@ -37,7 +37,7 @@ let resqScript: string
  * </example>
  *
  * @alias browser.react$$
- * @param {String}  selector        of React component
+ * @param {string}  selector        of React component
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
  * @param {Array<any>|number|string|object|boolean=} options.state  React state the element should be in
@@ -60,6 +60,6 @@ export async function react$$ (
         react$$Script as any, selector, props, state
     ) as ElementReference[]
 
-    const elements: ElementArray = await getElements.call(this, selector, res, true)
+    const elements: ElementArray = await getElements.call(this, selector, res, { isReactElement: true })
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
 }

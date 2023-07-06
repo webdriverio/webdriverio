@@ -8,6 +8,7 @@ import Interception from './index.js'
 import type { Matches, MockOverwrite, MockResponseParams } from './types.js'
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
+import { CDP_SESSIONS, SESSION_MOCKS } from '../../commands/browser/mock.js'
 
 const log = logger('webdriverio')
 
@@ -26,22 +27,29 @@ type Event = {
     request: Matches & { mockedResponse: string | Buffer }
     responseStatusCode?: number
     responseHeaders: HeaderEntry[]
+    responseErrorReason?: string
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
+    private restored = false
+
     static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
-            const isRequest = !event.responseHeaders
-            const eventResponseHeaders = event.responseHeaders || []
-            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
+            const isRequest = !event.responseHeaders && !event.responseErrorReason
+
+            event.responseStatusCode ||= event.responseErrorReason ? 0 : 200
+            event.responseHeaders ||= []
+
+            const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {} as Record<string, string>)
-            const { requestId, request, responseStatusCode = 200 } = event
+
+            let mockResponded = false
 
             for (const mock of mocks) {
                 /**
@@ -60,29 +68,32 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * match mock url
                  */
-                if (!Interception.isMatchingRequest(mock.url, request.url)) {
+                if (!Interception.isMatchingRequest(mock.url, event.request.url)) {
                     continue
                 }
 
                 /**
                  * Add statusCode and responseHeaders to request to be used in expect-webdriverio
                  */
-                request.statusCode = responseStatusCode
-                request.responseHeaders = { ...responseHeaders }
+                event.request.statusCode = event.responseStatusCode
+                event.request.responseHeaders = { ...responseHeaders }
 
                 /**
                  * match filter options
                  */
                 if (
-                    filterMethod(request.method, mock.filterOptions.method) ||
-                    filterHeaders(request.headers, mock.filterOptions.requestHeaders) ||
+                    filterMethod(event.request.method, mock.filterOptions.method) ||
+                    filterHeaders(event.request.headers, mock.filterOptions.requestHeaders) ||
                     filterHeaders(responseHeaders, mock.filterOptions.headers) ||
-                    filterRequest(request.postData, mock.filterOptions.postData) ||
-                    filterStatusCode(responseStatusCode, mock.filterOptions.statusCode)
+                    filterRequest(event.request.postData, mock.filterOptions.postData) ||
+                    filterStatusCode(event.responseStatusCode, mock.filterOptions.statusCode)
                 ) {
                     continue
                 }
 
+                mock.emit('request', event)
+
+                const { requestId, request, responseStatusCode } = event
                 const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
@@ -100,7 +111,10 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * no stubbing if no overwrites were defined
                  */
-                if (mock.respondOverwrites.length === 0) {
+                if (mockResponded || mock.respondOverwrites.length === 0) {
+                    mock.emit('match', request)
+                    mock.emit('continue', requestId)
+
                     continue
                 }
 
@@ -128,7 +142,7 @@ export default class DevtoolsInterception extends Interception {
 
                     let responseCode = typeof params.statusCode === 'function' ? params.statusCode(request) : params.statusCode || responseStatusCode
                     let responseHeaders: HeaderEntry[] = [
-                        ...eventResponseHeaders,
+                        ...event.responseHeaders,
                         ...Object.entries(typeof params.headers === 'function' ? params.headers(request) : params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
@@ -150,27 +164,46 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     request.mockedResponse = newBody as string | Buffer
-                    return client.send('Fetch.fulfillRequest', {
-                        requestId,
-                        responseCode,
-                        responseHeaders,
-                        /** do not mock body if it's undefined */
-                        body: isBodyUndefined ? undefined : (newBody instanceof Buffer ? newBody : Buffer.from(newBody as string, 'utf8')).toString('base64')
+                    mock.emit('match', request)
+
+                    const overwriteData = { requestId, responseCode, responseHeaders, body: isBodyUndefined ? undefined : newBody }
+
+                    mock.emit('overwrite', overwriteData)
+                    mockResponded = true
+
+                    const body = typeof overwriteData.body === 'undefined'
+                        ? undefined
+                        : (overwriteData.body instanceof Buffer
+                            ? overwriteData.body
+                            : Buffer.from(overwriteData.body as string, 'utf8')
+                        ).toString('base64')
+
+                    await client.send('Fetch.fulfillRequest', {
+                        ...overwriteData,
+                        body
                     }).catch(/* istanbul ignore next */logFetchError)
+
+                    continue
                 }
 
                 /**
                  * when request is aborted
                  */
                 if (errorReason) {
-                    return client.send('Fetch.failRequest', {
-                        requestId,
-                        errorReason
-                    }).catch(/* istanbul ignore next */logFetchError)
+                    const failData = { requestId, errorReason }
+
+                    mock.emit('fail', failData)
+                    mockResponded = true
+
+                    await client.send('Fetch.failRequest', failData).catch(/* istanbul ignore next */logFetchError)
+
+                    continue
                 }
             }
 
-            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */logFetchError)
+            if (!mockResponded) {
+                return client.send('Fetch.continueRequest', { requestId: event.requestId }).catch(/* istanbul ignore next */logFetchError)
+            }
         }
     }
 
@@ -191,10 +224,27 @@ export default class DevtoolsInterception extends Interception {
     /**
      * Does everything that `mock.clear()` does, and also
      * removes any mocked return values or implementations.
+     * Restored mock does not emit events and could not mock responses
      */
-    restore () {
+    async restore (sessionMocks = SESSION_MOCKS, cdpSessions = CDP_SESSIONS) {
         this.clear()
         this.respondOverwrites = []
+        this.restored = true
+        const handle = await this.browser.getWindowHandle()
+
+        log.trace(`Restoring mock for ${handle}`)
+        sessionMocks[handle].delete(this)
+
+        if (sessionMocks[handle].size) {
+            return
+        }
+
+        log.trace(`Disabling fetch domain for ${handle}`)
+        return cdpSessions[handle].send('Fetch.disable')
+            .then(() => {
+                delete sessionMocks[handle]
+                delete cdpSessions[handle]
+            }).catch(/* istanbul ignore next */logFetchError)
     }
 
     /**
@@ -203,6 +253,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
+        this.ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -212,6 +263,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
+        this.ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params })
     }
 
@@ -220,6 +272,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {string} errorCode  error code of the response
      */
     abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean = true) {
+        this.ensureNotRestored()
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -232,6 +285,12 @@ export default class DevtoolsInterception extends Interception {
      */
     abortOnce (errorReason: Protocol.Network.ErrorReason) {
         this.abort(errorReason, false)
+    }
+
+    private ensureNotRestored() {
+        if (this.restored) {
+            throw new Error('This can\'t be done on restored mock')
+        }
     }
 }
 

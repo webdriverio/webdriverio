@@ -30,6 +30,9 @@ if (!fs.existsSync(TYPINGS_PATH)) {
 }
 
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
+    if (protocolName === 'webdriverBidi') {
+        continue
+    }
     const interfaceName = protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
     const customTypes = new Set()
     const lines = ['']

@@ -29,7 +29,7 @@ import { getElementFromResponse } from '../../utils/index.js'
  * </example>
  *
  * @alias element.selectByAttribute
- * @param {String} attribute     attribute of option element to get selected
+ * @param {string} attribute     attribute of option element to get selected
  * @param {String|Number} value  value of option element to get selected
  * @uses protocol/findElementFromElement, protocol/elementClick
  * @type action

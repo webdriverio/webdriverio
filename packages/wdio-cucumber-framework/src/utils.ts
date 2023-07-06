@@ -1,15 +1,27 @@
 import path from 'node:path'
 
+import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
+import type TagExpressionParser from '@cucumber/tag-expressions'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+
 import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import type { World } from '@cucumber/cucumber'
-import type { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
+import type {
+    TableRow,
+    TableCell,
+    PickleStep,
+    TestStep,
+    Feature,
+    Pickle,
+    TestStepResultStatus,
+    GherkinDocument,
+    FeatureChild,
+    RuleChild
+} from '@cucumber/messages'
 
-import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
-import { isFunctionAsync } from '@wdio/utils'
-
 import type { ReporterStep } from './constants.js'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 import type { TestHookDefinitionConfig } from './types.js'
 
 const log = logger('@wdio/cucumber-framework:utils')
@@ -150,7 +162,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * @param {*} testCase
  */
 export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip\((.*)\)$/
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {
@@ -177,7 +189,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
     return !(pickle && pickle.tags && pickle.tags
         .map(p => p.name?.match(skipTag))
         .filter(Boolean)
-        .map(m => parse(m![1]))
+        .map(m => parse(m![1] ?? ''))
         .find((filter: Capabilities.Capabilities) => Object.keys(filter)
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
@@ -231,4 +243,56 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
         }
         return step
     })
+}
+
+export function hasTags(
+    msg: GherkinDocument | FeatureChild | RuleChild,
+    { tagParser, lineOnFile }: { tagParser: ReturnType<typeof TagExpressionParser>, lineOnFile: number | undefined }
+) {
+    const type = (
+        (msg as GherkinDocument).feature
+        ?? (msg as FeatureChild).rule
+        ?? (msg as RuleChild).scenario
+    )
+
+    if (type) {
+        const matches = tagParser.evaluate(type.tags.map(t => t.name))
+
+        return lineOnFile
+            // Evaluate only specific line
+            ? type.location.line === lineOnFile && matches
+            : matches
+    }
+    return false
+}
+
+export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
+
+    if (!doc.feature) {
+        return false
+    }
+
+    const ext = path.extname(doc.uri!)
+
+    const lineOnFile = ext.startsWith('feature:')
+        ? Number(ext.split('feature:').pop())
+        : undefined
+
+    return (
+        // Check if Feature has matching tags
+        hasTags(doc, { tagParser, lineOnFile })
+
+        // Check if some root Scenarios have matching tags
+        || doc.feature.children.filter(c => c.scenario).some(child => hasTags(child, { tagParser, lineOnFile }))
+
+        // Check if some Rules have matching tags
+        || doc.feature.children.filter(c => c.rule).some(child => hasTags(child, { tagParser, lineOnFile }))
+
+        // Check if some Scenarios within Rules have matching tags
+        || doc.feature.children
+            .filter(c => c.rule)
+            .map(c => c.rule!.children.filter(c => c.scenario))
+            .flat(1)
+            .some(child => hasTags(child, { tagParser, lineOnFile }))
+    )
 }

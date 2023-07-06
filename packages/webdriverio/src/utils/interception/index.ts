@@ -1,4 +1,5 @@
-import minimatch from 'minimatch'
+import EventEmitter from 'node:events'
+import { minimatch } from 'minimatch'
 
 import Timer from '../Timer.js'
 
@@ -7,10 +8,10 @@ import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } fr
 
 import type { Protocol } from 'devtools-protocol'
 
-export default abstract class Interception {
+export default abstract class Interception extends EventEmitter {
     abstract calls: Matches[] | Promise<Matches[]>
     abstract clear (): void
-    abstract restore (): void
+    abstract restore (): Promise<void>
     abstract respond (overwrite: MockOverwrite, params: MockResponseParams): void
     abstract respondOnce (overwrite: MockOverwrite, params: MockResponseParams): void
     abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
@@ -29,6 +30,7 @@ export default abstract class Interception {
         public filterOptions: MockFilterOptions = {},
         public browser: WebdriverIO.Browser
     ) {
+        super()
     }
 
     waitForResponse ({

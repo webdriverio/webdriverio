@@ -6,7 +6,7 @@ expect.extend(matchers as any)
 
 import Component from './HelloWorld.vue'
 
-describe('vue component tests', () => {
+describe('Vue Component Tests', () => {
     it('should do something cool', async () => {
         // The render method returns a collection of utilities to query your component.
         const { getByText } = render(Component)

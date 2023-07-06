@@ -4,25 +4,25 @@ import { TestStats } from '@wdio/reporter'
 
 import WDIOJunitReporter from '../src/index.js'
 
-import mochaRunnerLog from './__fixtures__/mocha-runner.json' assert { type: 'json' }
-import cucumberRunnerLog from './__fixtures__/cucumber-runner.json' assert { type: 'json' }
-import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json' assert { type: 'json' }
-import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json' assert { type: 'json' }
-import cucumberRunnerBrowserstackAndroidLogMissingOS from './__fixtures__/cucumber-runner-browserstack-android-missing-os.json' assert { type: 'json' }
-import suitesLog from './__fixtures__/suites.json' assert { type: 'json' }
-import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json' assert { type: 'json' }
-import featuresLog from './__fixtures__/cucumber-features.json' assert { type: 'json' }
-import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json' assert { type: 'json' }
-import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json' assert { type: 'json' }
-import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json' assert { type: 'json' }
-import nestedSuites from './__fixtures__/nested-suites.json' assert { type: 'json' }
-import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json' assert { type: 'json' }
-import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json' assert { type: 'json' }
-import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json' assert { type: 'json' }
-import suitesHooksLog from './__fixtures__/suites-hooks.json' assert { type: 'json' }
-import suiteTestRetry from './__fixtures__/suite-test-retry.json' assert { type: 'json' }
-import suitesMultipleLog from './__fixtures__/suites-multiple.json' assert { type: 'json' }
-import suitesErrorLog from './__fixtures__/suites-error.json' assert { type: 'json' }
+const mochaRunnerLog = (await vi.importActual('./__fixtures__/mocha-runner.json') as any).default
+const cucumberRunnerLog = (await vi.importActual('./__fixtures__/cucumber-runner.json') as any).default
+const cucumberRunnerBrowserstackIosLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-ios.json') as any).default
+const cucumberRunnerBrowserstackAndroidLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-android.json') as any).default
+const cucumberRunnerBrowserstackAndroidLogMissingOS = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-android-missing-os.json') as any).default
+const suitesLog = (await vi.importActual('./__fixtures__/suites.json') as any).default
+const suitesWithNoErrorObjectLog = (await vi.importActual('./__fixtures__/suites-with-no-error-object.json') as any).default
+const featuresLog = (await vi.importActual('./__fixtures__/cucumber-features.json') as any).default
+const featuresWithFailingThenSkipStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-then-skipped-steps.json') as any).default
+const featuresWithPendingStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-pending-step.json') as any).default
+const featuresWithErrorStepAndNoErrorObjectLog = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object.json') as any).default
+const nestedSuites = (await vi.importActual('./__fixtures__/nested-suites.json') as any).default
+const unorderedFeatureAndScenarioWithError = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json') as any).default
+const suitesWithFailedBeforeEachHookLog = (await vi.importActual('./__fixtures__/suites-with-failed-before-each-hook.json') as any).default
+const suitesWithFailedAfterEachHookLog = (await vi.importActual('./__fixtures__/suites-with-failed-after-each-hook.json') as any).default
+const suitesHooksLog = (await vi.importActual('./__fixtures__/suites-hooks.json') as any).default
+const suiteTestRetry = (await vi.importActual('./__fixtures__/suite-test-retry.json') as any).default
+const suitesMultipleLog = (await vi.importActual('./__fixtures__/suites-multiple.json') as any).default
+const suitesErrorLog = (await vi.importActual('./__fixtures__/suites-error.json') as any).default
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
@@ -113,6 +113,26 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) when feature has file:// protocol', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        reporter.suites = { ...featuresLog } as any
+        const runner = { ...cucumberRunnerLog }
+        runner.specs = runner.specs.map((s: string) => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) when feature has file:// protocol and the addFileAttribute option is set', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = { ...featuresLog } as any
+        const runner = { ...cucumberRunnerLog }
+        runner.specs = runner.specs.map((s: string) => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style)', () => {

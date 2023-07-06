@@ -4,8 +4,10 @@ import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
 import { getBrowserObject } from '../../utils/index.js'
 import type { Mock } from '../../types.js'
 import type { MockFilterOptions } from '../../utils/interception/types.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
 export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+export const CDP_SESSIONS: Record<string, CDPSession> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
@@ -158,7 +160,7 @@ export async function mock (
             page = pages[0]
         }
 
-        const client = await page.target().createCDPSession()
+        const client = CDP_SESSIONS[handle] = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
             patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
         })

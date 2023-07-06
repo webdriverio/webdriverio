@@ -173,7 +173,7 @@ describe('ConciseReporter', () => {
         it('should return mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS'
             })).toBe('iPhone 6 Plus on iOS 9.2')
         })
@@ -181,16 +181,16 @@ describe('ConciseReporter', () => {
         it('should return mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:app']: 'sauce-storage:myApp.app'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS',
                 browserName: 'Safari'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')

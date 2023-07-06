@@ -43,7 +43,8 @@ if (os.platform() !== 'win32') {
             if (!process.env.CI) {
                 process.env.CI = '1'
             }
-            expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', { some: 'env' })).toMatchSnapshot()
+            const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
+            expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', p)).toMatchSnapshot()
             expect(fs.readFile).toBeCalledTimes(2)
         })
     })

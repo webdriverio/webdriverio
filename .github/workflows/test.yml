@@ -7,7 +7,10 @@ on:
     branches:
       - main
       - v7
+      - '!l10n_main'
   pull_request:
+    branches-ignore:
+      - 'l10n_main'
 
 permissions:
   contents: read # to fetch code (actions/checkout)
@@ -25,8 +28,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
@@ -39,7 +46,7 @@ jobs:
         if: failure()
         with:
           name: logs
-          path: examples/wdio/browser-runner/logs
+          path: e2e/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -49,8 +56,12 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
       - name: Setup Chrome Browser
@@ -80,8 +91,12 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:

@@ -84,6 +84,42 @@ describe('action command', () => {
         expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
     })
 
+    it('should trigger control key when Key.Ctrl is used because os is mac, platformName is Windows 10 and host is remote', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        browser.options.hostname = 'remote'
+        // @ts-ignore
+        browser.capabilities.platformName = 'Windows 10'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Control)
+    })
+
+    it('should trigger command key when Key.Ctrl is used because os is mac and hostname is local', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        // @ts-ignore
+        browser.capabilities.platformName = 'Mac OS'
+        browser.options.hostname = 'local'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
+    })
+
+    it('should trigger command key when Key.Ctrl is used because os is mac and hostname is 127.0.0.1', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        // @ts-ignore
+        browser.capabilities.platformName = 'Mac OS'
+        browser.options.hostname = '127.0.0.1'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
+    })
+
     it('should support pointer actions', async () => {
         await browser.action(
             'pointer',

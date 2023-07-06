@@ -4,10 +4,10 @@
  */
 if (usePageObjects) {
 %><%- isUsingTypeScript || esmSupport
-    ? `import LoginPage from '${relativePath}/login.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}'`
+    ? `import LoginPage from '${relativePath}/login.page${esmSupport ? '.js' : ''}'`
     : `const LoginPage = require('${relativePath}/login.page')` %>
 <%- isUsingTypeScript || esmSupport
-    ? `import SecurePage from '${relativePath}/secure.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}'`
+    ? `import SecurePage from '${relativePath}/secure.page${esmSupport ? '.js' : ''}'`
     : `const SecurePage = require('${relativePath}/secure.page')` %>
 
 describe('My Login application', () => {
@@ -21,82 +21,6 @@ describe('My Login application', () => {
     })
 })
 
-<% } else if (runner === 'browser') {
-
-const componentSuffix = preset
-    ? ['svelte', 'vue'].includes(preset)
-        ? preset
-        : isUsingTypeScript ? 'tsx' : 'jsx'
-    : isUsingTypeScript ? 'ts' : 'js'
-const importStatement = preset
-    ? `import Component from '/path/to/component.${componentSuffix}'`
-    : `import '/path/to/component.${componentSuffix}'`
-const renderStatement = (preset
-    ? installTestingLibrary
-        ? [
-            preset.includes('react')
-                ? 'render(<Component />)'
-                : 'render(Component, { prop: \'foobar\' })',
-            'const component = screen.getByText(/Click me!/i)'
-        ]
-        : preset === 'solid'
-            ? [
-                'render(() => <Component />, ref)',
-                'const component = \'.someSelector\''
-            ]
-            : [
-                '// render component here...',
-                'const component = document.querySelector("my-component")'
-            ]
-    : [
-        `const component = document.createElement('example-component')`,
-        `component.setAttribute('prop', 'foobar')`,
-        `document.body.appendChild(component)`
-    ]
-).join('\n        ')
-const assertionStatement = preset && installTestingLibrary
-    ? `expect(component).toContainText('Click me!')`
-    : `await expect(elem).toHaveText('Click me!')`
-
-/**
- * Component Testing
- */
-%>import { expect, $ } from '@wdio/globals'
-<%- installTestingLibrary
-    ? `import { render, screen } from '@testing-library/${preset}'`
-    : preset === 'solid'
-        ? 'import { render } from \'solid-js/web\'\n'
-        : ''
-%><% if (installTestingLibrary) { %>
-
-import * as matchers from '@testing-library/jest-dom/matchers'
-expect.extend(matchers)
-<% } else if (preset === 'preact') { %>
-import {h} from 'preact'
-<% } %>
-// ToDo: fix me
-<%- importStatement %>
-
-describe('<%- (preset || 'my') %> component tests', () => {<%
-    if (preset === 'solid') { %>
-    const ref = document.createElement('div')
-
-    before(() => {
-        document.body.appendChild(ref);
-    })
-
-    after(() => {
-        document.body.removeChild(ref);
-    })
-    <% } %>
-    it('should test my component', async () => {
-        <%- renderStatement %>
-
-        const elem = await $(component)
-        await elem.click()
-        <%- assertionStatement %>
-    })
-})
 <% } else {
 
 /**

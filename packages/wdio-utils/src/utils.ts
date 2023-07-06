@@ -59,7 +59,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  * get command call structure
  * (for logging purposes)
  */
-export function commandCallStructure (commandName: string, args: any[]) {
+export function commandCallStructure (commandName: string, args: any[], unfurl = false) {
     const callArgs = args.map((arg) => {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
@@ -81,7 +81,7 @@ export function commandCallStructure (commandName: string, args: any[]) {
         } else if (arg === null) {
             arg = 'null'
         } else if (typeof arg === 'object') {
-            arg = '<object>'
+            arg = unfurl ? JSON.stringify(arg) : '<object>'
         } else if (typeof arg === 'undefined') {
             arg = typeof arg
         }
@@ -95,7 +95,7 @@ export function commandCallStructure (commandName: string, args: any[]) {
 /**
  * transforms WebDriver result for log stream to avoid unnecessary long
  * result strings e.g. if it contains a screenshot
- * @param {Object} result WebDriver response body
+ * @param {object} result WebDriver response body
  */
 export function transformCommandLogResult (result: { file?: string, script?: string }) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
@@ -267,7 +267,7 @@ export function isBase64(str: string) {
 
 /**
  * Helper utility to check file access
- * @param {String} file file to check access for
+ * @param {string} file file to check access for
  * @return              true if file can be accessed
  */
 export const canAccess = (file?: string) => {

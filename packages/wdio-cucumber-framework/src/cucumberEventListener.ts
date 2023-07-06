@@ -27,7 +27,7 @@ export default class CucumberEventListener extends EventEmitter {
     private _currentDoc: GherkinDocument = { comments: [] }
     private _startedFeatures: string[] = []
 
-    constructor (eventBroadcaster: EventEmitter, private _pickleFilter: PickleFilter) {
+    constructor (eventBroadcaster: EventEmitter, private _pickleFilter: InstanceType<typeof PickleFilter>) {
         super()
         let results: TestStepResult[] = []
         eventBroadcaster.on('envelope', (envelope: Envelope) => {

@@ -28,7 +28,7 @@ const plugins = [{
     packages3rdParty: api3rdParty
 }]
 
-const githubReadme = '/README.md'
+const githubReadme = 'README.md'
 
 const readmeHeaderLines = 9
 const readmeHeaders = ['===', '# ']
@@ -48,7 +48,7 @@ export async function generate3rdPartyDocs (sidebars) {
         const sidebar = sidebars[category]
 
         const items = []
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'main' } of packages3rdParty) {
             const readme = locations
                 ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
                     .then((readmes) => readmes.join('\n'))

@@ -38,7 +38,7 @@ export const config = {
 
 If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.
 
-Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
+Similar to the [page object concept](pageobjects), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
 
 Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
 
@@ -135,6 +135,23 @@ It is also possible to group specs defined in suites, so you can now also define
 ```
 and in this case all of the tests of the "end2end" suite would be run in a single instance.
 
+When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
+
+```json
+  "suites": {
+    end2end: ["./test/specs/test_*.js"]
+  },
+```
+
+This will run the files matching the pattern above in the following order:
+
+```
+  [
+      "./test/specs/test_checkout.js",
+      "./test/specs/test_login.js",
+      "./test/specs/test_product_order.js"
+  ]
+```
 
 ## Run Selected Tests
 
@@ -231,7 +248,7 @@ This is helpful with large test suites when you already know that your build wil
 
 The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
 
-Please see [Options Page](Configuration.md) for additional information on the bail configuration.
+Please see [Options Page](configuration) for additional information on the bail configuration.
 ## Run options hierarchy
 
 When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:

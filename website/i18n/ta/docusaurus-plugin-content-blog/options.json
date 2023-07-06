@@ -1,0 +1,14 @@
+{
+  "title": {
+    "message": "வலைப்பதிவு",
+    "description": "The title for the blog used in SEO"
+  },
+  "description": {
+    "message": "வலைப்பதிவு",
+    "description": "The description for the blog used in SEO"
+  },
+  "sidebar.title": {
+    "message": "சமீபத்திய பதிவுகள்",
+    "description": "The label for the left sidebar"
+  }
+}

@@ -338,7 +338,7 @@ describe('executeScript', () => {
             )
         }).rejects.toThrow('sync error')
 
-        expect(spy).toHaveBeenCalledTimes(1)
+        expect(spy).toHaveBeenCalledTimes(5)
         spy.mockClear()
     })
 

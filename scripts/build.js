@@ -19,11 +19,8 @@ if (HAS_WATCH_FLAG) {
     args.shift()
 }
 
-// Order of packages:
-// 1. root packages
-// 2. core packages (e.g. wdio-cli)
-// 3. plugins (e.g. wdio-allure-reporter)
-const ROOT_PACKAGES = [
+// Required to be compiled first
+const PKG_TO_COMPILE_FIRST = [
     'wdio-types',
     'wdio-protocols',
     'wdio-logger',
@@ -32,7 +29,15 @@ const ROOT_PACKAGES = [
     'wdio-repl',
     'devtools',
     'webdriver',
-    'webdriverio',
+    'webdriverio'
+]
+
+// Order of packages:
+// 1. root packages
+// 2. core packages (e.g. wdio-cli)
+// 3. plugins (e.g. wdio-allure-reporter)
+const ROOT_PACKAGES = [
+    ...PKG_TO_COMPILE_FIRST,
     'wdio-globals',
     'wdio-runner',
     'wdio-local-runner',
@@ -48,7 +53,7 @@ const ESM_CJS_PACKAGES = [
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
-const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'webdriver', 'webdriverio']
+const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'wdio-cli', 'webdriver', 'webdriverio']
 
 const packages = getSubPackages()
     /**
@@ -105,6 +110,17 @@ ESM_CJS_PACKAGES.forEach((pkg) => {
 })
 
 const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+
+/**
+ * if we build the project make sure root packages are compiled first
+ */
+const rootPkgs = packages.filter((p) => PKG_TO_COMPILE_FIRST.find((rp) => p.includes(`/${rp}/`)))
+if (!HAS_WATCH_FLAG && rootPkgs.length) {
+    const rootCmd = cmd(rootPkgs)
+    console.log('\n' + chalk.cyan('Compiling Root packages'))
+    console.log(rootCmd)
+    shell.exec(rootCmd)
+}
 
 const esmCmd = cmd(esmPackages)
 const cjsCmd = cmd(cjsPackages)

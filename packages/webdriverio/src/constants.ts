@@ -168,7 +168,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     waitforTimeout: {
         type: 'number',
-        default: 3000
+        default: 5000
     },
     /**
      * supported test framework by wdio testrunner
@@ -294,6 +294,27 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     injectGlobals: {
         type: 'boolean'
+    },
+    /**
+     * The number of times to retry the entire specfile when it fails as a whole
+     */
+    specFileRetries: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
+     */
+    specFileRetriesDeferred: {
+        type: 'boolean',
+        default: true
     },
     /**
      * list of strings to watch of `wdio` command is called with `--watch` flag

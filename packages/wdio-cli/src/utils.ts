@@ -14,6 +14,7 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import yarnInstall from 'yarn-install'
+import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -81,8 +82,8 @@ export async function runServiceHook(
 /**
  * Run hook in service launcher
  * @param {Array|Function} hook - can be array of functions or single function
- * @param {Object} config
- * @param {Object} capabilities
+ * @param {object} config
+ * @param {object} capabilities
  */
 export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
     if (typeof hook === 'function') {
@@ -144,9 +145,6 @@ export async function runOnCompleteHook(
 export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
-        caps.appPackage ||
-        caps.appWaitActivity ||
-        caps.app ||
         caps.platformName ||
         caps['appium:platformName'] ||
         caps['appium:appPackage'] ||
@@ -233,7 +231,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
      * was selected for install
      */
     if (names.some(({ short }) => short === 'appium')) {
-        const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
+        const result = execSync('appium --version || echo APPIUM_MISSING', { stdio: 'pipe' }).toString().trim()
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
         } else if (update) {
@@ -391,6 +389,52 @@ export async function hasPackage(pkg: string) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles(answers: ParsedAnswers) {
+    if (answers.runner === 'local') {
+        return generateLocalRunnerTestFiles(answers)
+    }
+
+    return generateBrowserRunnerTestFiles(answers)
+}
+
+const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid']
+export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
+    const isUsingFramework = typeof answers.preset === 'string'
+    const preset = isUsingFramework
+        ? answers.preset || 'lit'
+        : ''
+    const tplRootDir = path.join(TEMPLATE_ROOT_DIR, 'browser')
+    await fs.mkdir(answers.destSpecRootPath, { recursive: true })
+
+    /**
+     * render css file
+     */
+    if (isUsingFramework) {
+        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), answers)
+        await fs.writeFile(path.join(answers.destSpecRootPath, 'Component.css'), renderedCss)
+    }
+
+    /**
+     * render component file
+     */
+    const testExt = `${(answers.isUsingTypeScript ? 'ts' : 'js')}${TSX_BASED_FRAMEWORKS.includes(preset) ? 'x' : ''}`
+    const fileExt = ['svelte', 'vue'].includes(preset as 'svelte' | 'vue')
+        ? preset!
+        : testExt
+    if (preset) {
+        const componentOutFileName = `Component.${fileExt}`
+        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), answers)
+        await fs.writeFile(path.join(answers.destSpecRootPath, componentOutFileName), renderedComponent)
+    }
+
+    /**
+     * render test file
+     */
+    const componentFileName = preset ? `Component.${preset}.test.ejs` : 'standalone.test.ejs'
+    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), answers)
+    await fs.writeFile(path.join(answers.destSpecRootPath, `Component.test.${testExt}`), renderedTest)
+}
+
+async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : (answers.framework === 'mocha'
@@ -425,7 +469,9 @@ export async function generateTestFiles(answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        const answers = QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+        const ignoredQuestions = ['setupMobileEnvironment']
+        const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
+        const answers = filterdQuestionaire.reduce((answers, question) => Object.assign(
             answers,
             question.when && !question.when(answers)
                 /**
@@ -531,11 +577,14 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
 export async function getDefaultFiles(answers: Questionnair, pattern: string) {
     const projectProps = await getProjectProps()
     const rootdir = getProjectRoot(answers, projectProps)
-    return pattern.endsWith('.feature')
+    const presetPackage = convertPackageHashToObject(answers.preset || '')
+    const isJSX = TSX_BASED_FRAMEWORKS.includes(presetPackage.short || '')
+    const val = pattern.endsWith('.feature')
         ? path.join(rootdir, pattern)
         : answers?.isUsingCompiler?.toString().includes('TypeScript')
-            ? `${path.join(rootdir, pattern)}.ts`
-            : `${path.join(rootdir, pattern)}.js`
+            ? `${path.join(rootdir, pattern)}.ts${isJSX ? 'x' : ''}`
+            : `${path.join(rootdir, pattern)}.js${isJSX ? 'x' : ''}`
+    return val
 }
 
 /**
@@ -657,8 +706,18 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     /**
      * add helper package for Solidjs testing
      */
-    if (parsedAnswers.preset === 'solid') {
-        parsedAnswers.packagesToInstall.push('solid-js/web')
+    if (presetPackage.short === 'solid') {
+        parsedAnswers.packagesToInstall.push('solid-js')
+    }
+
+    /**
+     * add helper for React rendering when not using Testing Library
+     */
+    if (presetPackage.short === 'react') {
+        parsedAnswers.packagesToInstall.push('react')
+        if (!parsedAnswers.installTestingLibrary) {
+            parsedAnswers.packagesToInstall.push('react-dom')
+        }
     }
 
     /**
@@ -779,7 +838,7 @@ export async function setupBabel(parsedAnswers: ParsedAnswers) {
                 presets: [
                     ['@babel/preset-env', {
                         targets: {
-                            node: 16
+                            node: 18
                         }
                     }]
                 ]
@@ -825,4 +884,26 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
         )
         return false
     }
+}
+
+export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
+    if (!parsedAnswers.setupMobileEnvironment) {
+        return
+    }
+
+    const answer = await inquirer.prompt({
+        name: 'continueWithAppiumSetup',
+        message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
+        type: 'confirm',
+        default: true
+    })
+
+    if (!answer.continueWithAppiumSetup) {
+        return console.log(
+            'Ok! You can learn more about setting up mobile environments in the ' +
+            'Appium docs at https://appium.io/docs/en/2.0/quickstart/'
+        )
+    }
+
+    return $({ stdio: 'inherit' })`npx appium-installer`
 }

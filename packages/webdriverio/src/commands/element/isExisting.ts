@@ -61,6 +61,10 @@ export async function isExisting (this: WebdriverIO.Element) {
         )
     }
 
-    const command = this.isReactElement ? this.parent.react$$.bind(this.parent) : this.parent.$$.bind(this.parent)
+    const command = this.isReactElement
+        ? this.parent.react$$.bind(this.parent)
+        : this.isShadowElement
+            ? this.shadow$$.bind(this.parent)
+            : this.parent.$$.bind(this.parent)
     return command(this.selector as string).then((res) => res.length > 0)
 }

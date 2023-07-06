@@ -3,7 +3,7 @@ export default {
         POST: {
             command: 'shake',
             description: 'Perform a shake action on the device.',
-            ref: 'http://appium.io/docs/en/commands/device/interactions/shake/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/shake/',
             parameters: [],
             support: {
                 ios: {
@@ -17,7 +17,7 @@ export default {
         POST: {
             command: 'lock',
             description: 'Lock the device.',
-            ref: 'http://appium.io/docs/en/commands/device/interactions/lock/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/lock/',
             parameters: [
                 {
                     name: 'seconds',
@@ -43,7 +43,7 @@ export default {
         POST: {
             command: 'unlock',
             description: 'Unlock the device.',
-            ref: 'http://appium.io/docs/en/commands/device/interactions/unlock/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/unlock/',
             parameters: [],
             support: {
                 android: {
@@ -59,7 +59,7 @@ export default {
         POST: {
             command: 'isLocked',
             description: 'Check whether the device is locked or not.',
-            ref: 'http://appium.io/docs/en/commands/device/interactions/is-locked/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/is-locked/',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -80,7 +80,7 @@ export default {
         POST: {
             command: 'startRecordingScreen',
             description: 'Start recording the screen.',
-            ref: 'http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/start-recording-screen/',
             parameters: [
                 {
                     name: 'options',
@@ -104,7 +104,7 @@ export default {
         POST: {
             command: 'stopRecordingScreen',
             description: 'Stop recording screen',
-            ref: 'http://appium.io/docs/en/commands/device/recording-screen/stop-recording-screen/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/stop-recording-screen/',
             parameters: [
                 {
                     name: 'remotePath',
@@ -155,7 +155,7 @@ export default {
             command: 'getPerformanceDataTypes',
             description:
                 'Returns the information types of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
-            ref: 'http://appium.io/docs/en/commands/device/performance-data/performance-data-types/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/performance-data-types/',
             parameters: [],
             returns: {
                 type: 'string[]',
@@ -175,7 +175,7 @@ export default {
             command: 'getPerformanceData',
             description:
                 'Returns the information of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
-            ref: 'http://appium.io/docs/en/commands/device/performance-data/get-performance-data/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/get-performance-data/',
             parameters: [
                 {
                     name: 'packageName',
@@ -214,7 +214,7 @@ export default {
         POST: {
             command: 'pressKeyCode',
             description: 'Press a particular key on the device.',
-            ref: 'http://appium.io/docs/en/commands/device/keys/press-keycode/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/press-keycode/',
             parameters: [
                 {
                     name: 'keycode',
@@ -246,7 +246,7 @@ export default {
         POST: {
             command: 'longPressKeyCode',
             description: 'Press and hold a particular key code on the device.',
-            ref: 'http://appium.io/docs/en/commands/device/keys/long-press-keycode/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/long-press-keycode/',
             parameters: [
                 {
                     name: 'keycode',
@@ -300,7 +300,7 @@ export default {
         POST: {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
-            ref: 'http://appium.io/docs/en/commands/device/interactions/rotate/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/rotate/',
             parameters: [
                 {
                     name: 'x',
@@ -368,7 +368,7 @@ export default {
         GET: {
             command: 'getCurrentActivity',
             description: 'Get the name of the current Android activity.',
-            ref: 'http://appium.io/docs/en/commands/device/activity/current-activity/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-activity/',
             parameters: [],
             returns: {
                 type: 'string',
@@ -386,7 +386,7 @@ export default {
         GET: {
             command: 'getCurrentPackage',
             description: 'Get the name of the current Android package.',
-            ref: 'http://appium.io/docs/en/commands/device/activity/current-package/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-package/',
             parameters: [],
             returns: {
                 type: 'string',
@@ -404,7 +404,7 @@ export default {
         POST: {
             command: 'installApp',
             description: 'Install the given app onto the device.',
-            ref: 'http://appium.io/docs/en/commands/device/app/install-app/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/install-app/',
             parameters: [
                 {
                     name: 'appPath',
@@ -428,7 +428,7 @@ export default {
         POST: {
             command: 'activateApp',
             description: 'Activate the given app onto the device',
-            ref: 'http://appium.io/docs/en/commands/device/app/activate-app/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/activate-app/',
             parameters: [
                 {
                     name: 'appId',
@@ -452,7 +452,7 @@ export default {
         POST: {
             command: 'removeApp',
             description: 'Remove an app from the device.',
-            ref: 'http://appium.io/docs/en/commands/device/app/remove-app/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/remove-app/',
             parameters: [
                 {
                     name: 'appId',
@@ -477,7 +477,7 @@ export default {
         POST: {
             command: 'terminateApp',
             description: 'Terminate the given app on the device',
-            ref: 'http://appium.io/docs/en/commands/device/app/terminate-app/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/terminate-app/',
             parameters: [
                 {
                     name: 'appId',
@@ -502,7 +502,7 @@ export default {
             command: 'isAppInstalled',
             description:
                 'Check whether the specified app is installed on the device.',
-            ref: 'http://appium.io/docs/en/commands/device/app/is-app-installed/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/is-app-installed/',
             parameters: [
                 {
                     name: 'appId',
@@ -532,7 +532,7 @@ export default {
         POST: {
             command: 'queryAppState',
             description: 'Get the given app status on the device',
-            ref: 'http://appium.io/docs/en/commands/device/app/app-state/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/app-state/',
             parameters: [
                 {
                     name: 'appId',
@@ -562,7 +562,7 @@ export default {
         POST: {
             command: 'hideKeyboard',
             description: 'Hide soft keyboard.',
-            ref: 'http://appium.io/docs/en/commands/device/keys/hide-keyboard/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/hide-keyboard/',
             parameters: [
                 {
                     name: 'strategy',
@@ -608,7 +608,7 @@ export default {
         GET: {
             command: 'isKeyboardShown',
             description: 'Whether or not the soft keyboard is shown.',
-            ref: 'http://appium.io/docs/en/commands/device/keys/is-keyboard-shown/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/is-keyboard-shown/',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -633,7 +633,7 @@ export default {
         POST: {
             command: 'pushFile',
             description: 'Place a file onto the device in a particular place.',
-            ref: 'http://appium.io/docs/en/commands/device/files/push-file/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/push-file/',
             parameters: [
                 {
                     name: 'path',
@@ -663,7 +663,7 @@ export default {
         POST: {
             command: 'pullFile',
             description: "Retrieve a file from the device's file system.",
-            ref: 'http://appium.io/docs/en/commands/device/files/pull-file/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-file/',
             parameters: [
                 {
                     name: 'path',
@@ -692,7 +692,7 @@ export default {
         POST: {
             command: 'pullFolder',
             description: "Retrieve a folder from the device's file system.",
-            ref: 'http://appium.io/docs/en/commands/device/files/pull-folder/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-folder/',
             parameters: [
                 {
                     name: 'path',
@@ -716,7 +716,7 @@ export default {
         POST: {
             command: 'toggleAirplaneMode',
             description: 'Toggle airplane mode on device.',
-            ref: 'http://appium.io/docs/en/commands/device/network/toggle-airplane-mode/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-airplane-mode/',
             parameters: [],
             support: {
                 android: {
@@ -729,7 +729,7 @@ export default {
         POST: {
             command: 'toggleData',
             description: 'Switch the state of data service.',
-            ref: 'http://appium.io/docs/en/commands/device/network/toggle-data/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-data/',
             parameters: [],
             support: {
                 android: {
@@ -742,7 +742,7 @@ export default {
         POST: {
             command: 'toggleWiFi',
             description: 'Switch the state of the wifi service.',
-            ref: 'http://appium.io/docs/en/commands/device/network/toggle-wifi/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-wifi/',
             parameters: [],
             support: {
                 android: {
@@ -755,7 +755,7 @@ export default {
         POST: {
             command: 'toggleLocationServices',
             description: 'Switch the state of the location service.',
-            ref: 'http://appium.io/docs/en/commands/device/network/toggle-location-services/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-location-services/',
             parameters: [],
             support: {
                 android: {
@@ -768,7 +768,7 @@ export default {
         POST: {
             command: 'toggleNetworkSpeed',
             description: 'Set network speed (Emulator only)',
-            ref: 'http://appium.io/docs/en/commands/device/network/network-speed/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/network-speed/',
             parameters: [
                 {
                     name: 'netspeed',
@@ -789,7 +789,7 @@ export default {
         POST: {
             command: 'openNotifications',
             description: 'Open Android notifications (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/system/open-notifications/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/open-notifications/',
             parameters: [],
             support: {
                 android: {
@@ -803,7 +803,7 @@ export default {
             command: 'startActivity',
             description:
                 'Start an Android activity by providing package name and activity name.',
-            ref: 'http://appium.io/docs/en/commands/device/activity/start-activity/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/start-activity/',
             parameters: [
                 {
                     name: 'appPackage',
@@ -879,7 +879,7 @@ export default {
             command: 'getSystemBars',
             description:
                 'Retrieve visibility and bounds information of the status and navigation bars.',
-            ref: 'http://appium.io/docs/en/commands/device/system/system-bars/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/system-bars/',
             parameters: [],
             returns: {
                 type: 'object[]',
@@ -898,7 +898,7 @@ export default {
         GET: {
             command: 'getDeviceTime',
             description: 'Get the time on the device.',
-            ref: 'http://appium.io/docs/en/commands/device/system/system-time/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/system-time/',
             parameters: [],
             returns: {
                 type: 'string',
@@ -937,8 +937,8 @@ export default {
         POST: {
             command: 'touchId',
             description:
-                'Simulate a [touch id](https://support.apple.com/en-ca/ht201371) event (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true and the Simulator must be [enrolled](https://support.apple.com/en-ca/ht201371). When you set allowTouchIdEnroll to true, it will set the Simulator to be enrolled by default. The enrollment state can be [toggled](http://appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/index.html). This call will only work if Appium process or its parent application (e.g. Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.',
-            ref: 'http://appium.io/docs/en/commands/device/simulator/touch-id/',
+                'Simulate a [touch id](https://support.apple.com/en-ca/ht201371) event (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true and the Simulator must be [enrolled](https://support.apple.com/en-ca/ht201371). When you set allowTouchIdEnroll to true, it will set the Simulator to be enrolled by default. The enrollment state can be [toggled](https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/index.html). This call will only work if Appium process or its parent application (e.g. Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/touch-id/',
             parameters: [
                 {
                     name: 'match',
@@ -960,7 +960,7 @@ export default {
             command: 'toggleEnrollTouchId',
             description:
                 "Toggle the simulator being [enrolled](https://support.apple.com/en-ca/ht201371) to accept touchId (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true. When `allowTouchIdEnroll` is set to true the Simulator will be enrolled by default, and the 'Toggle Touch ID Enrollment' changes the enrollment state. This call will only work if the Appium process or its parent application (e.g., Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.",
-            ref: 'http://appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/',
             parameters: [
                 {
                     name: 'enabled',
@@ -982,8 +982,8 @@ export default {
         POST: {
             command: 'launchApp',
             description:
-                'Launch an app on device. iOS tests with XCUITest can also use the `mobile: launchApp` method. See detailed [documentation](http://appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-launchapp).',
-            ref: 'http://appium.io/docs/en/commands/device/app/launch-app/',
+                'Launch an app on device. iOS tests with XCUITest can also use the `mobile: launchApp` method. See detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-launchapp).',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/launch-app/',
             parameters: [],
             support: {
                 ios: {
@@ -1000,7 +1000,7 @@ export default {
         POST: {
             command: 'closeApp',
             description: 'Close an app on device.',
-            ref: 'http://appium.io/docs/en/commands/device/app/close-app/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/close-app/',
             parameters: [],
             support: {
                 ios: {
@@ -1017,8 +1017,8 @@ export default {
         POST: {
             command: 'background',
             description:
-                'Send the currently running app for this session to the background. iOS tests with XCUITest can also use the `mobile: terminateApp` method to terminate the current app (see detailed [documentation](http://appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-terminateapp)), and the `mobile: activateApp` to activate an existing application on the device under test and moves it to the foreground (see detailed [documentation](http://appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-activateapp)).',
-            ref: 'http://appium.io/docs/en/commands/device/app/background-app/',
+                'Send the currently running app for this session to the background. iOS tests with XCUITest can also use the `mobile: terminateApp` method to terminate the current app (see detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-terminateapp)), and the `mobile: activateApp` to activate an existing application on the device under test and moves it to the foreground (see detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-activateapp)).',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/background-app/',
             parameters: [
                 {
                     name: 'seconds',
@@ -1044,7 +1044,7 @@ export default {
         POST: {
             command: 'endCoverage',
             description: 'Get test coverage data.',
-            ref: 'http://appium.io/docs/en/commands/device/app/end-test-coverage/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/end-test-coverage/',
             parameters: [
                 {
                     name: 'intent',
@@ -1070,7 +1070,7 @@ export default {
         POST: {
             command: 'getStrings',
             description: 'Get app strings.',
-            ref: 'http://appium.io/docs/en/commands/device/app/get-app-strings/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/get-app-strings/',
             parameters: [
                 {
                     name: 'language',
@@ -1163,7 +1163,7 @@ export default {
         GET: {
             command: 'getSettings',
             description: 'Retrieve the current settings on the device.',
-            ref: 'http://appium.io/docs/en/commands/session/settings/get-settings/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/get-settings/',
             parameters: [],
             returns: {
                 type: 'object',
@@ -1187,7 +1187,7 @@ export default {
         POST: {
             command: 'updateSettings',
             description: 'Update the current setting on the device.',
-            ref: 'http://appium.io/docs/en/commands/session/settings/update-settings/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/update-settings/',
             parameters: [
                 {
                     name: 'settings',
@@ -1231,7 +1231,7 @@ export default {
         POST: {
             command: 'gsmCall',
             description: 'Make GSM call (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/network/gsm-call/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-call/',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1258,7 +1258,7 @@ export default {
         POST: {
             command: 'gsmSignal',
             description: 'Set GSM signal strength (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/network/gsm-signal/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-signal/',
             parameters: [
                 {
                     name: 'signalStrength',
@@ -1285,7 +1285,7 @@ export default {
         POST: {
             command: 'powerCapacity',
             description: 'Set the battery percentage (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/emulator/power_capacity/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_capacity/',
             parameters: [
                 {
                     name: 'percent',
@@ -1306,7 +1306,7 @@ export default {
             command: 'powerAC',
             description:
                 'Set the state of the battery charger to connected or not (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/emulator/power_ac/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_ac/',
             parameters: [
                 {
                     name: 'state',
@@ -1326,7 +1326,7 @@ export default {
         POST: {
             command: 'gsmVoice',
             description: 'Set GSM voice state (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/network/gsm-voice/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-voice/',
             parameters: [
                 {
                     name: 'state',
@@ -1347,7 +1347,7 @@ export default {
         POST: {
             command: 'sendSms',
             description: 'Simulate an SMS message (Emulator only).',
-            ref: 'http://appium.io/docs/en/commands/device/network/send-sms/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/send-sms/',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1374,7 +1374,7 @@ export default {
             command: 'fingerPrint',
             description:
                 'Authenticate users by using their finger print scans on supported emulators.',
-            ref: 'http://appium.io/docs/en/commands/device/authentication/finger-print/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/authentication/finger-print/',
             parameters: [
                 {
                     name: 'fingerprintId',
@@ -1395,7 +1395,7 @@ export default {
         POST: {
             command: 'setClipboard',
             description: 'Set the content of the system clipboard',
-            ref: 'http://appium.io/docs/en/commands/device/clipboard/set-clipboard/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/set-clipboard/',
             parameters: [
                 {
                     name: 'content',
@@ -1428,7 +1428,7 @@ export default {
         POST: {
             command: 'getClipboard',
             description: 'Get the content of the system clipboard',
-            ref: 'http://appium.io/docs/en/commands/device/clipboard/get-clipboard/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/get-clipboard/',
             parameters: [
                 {
                     name: 'contentType',
@@ -1451,7 +1451,7 @@ export default {
             command: 'touchPerform',
             description:
                 "This functionality is only available from within a native context. 'Touch Perform' works similarly to the other singular touch interactions, except that this allows you to chain together more than one touch action as one command. This is useful because Appium commands are sent over the network and there's latency between commands. This latency can make certain touch interactions impossible because some interactions need to be performed in one sequence. Vertical, for example, requires pressing down, moving to a different y coordinate, and then releasing. For it to work, there can't be a delay between the interactions.",
-            ref: 'http://appium.io/docs/en/commands/interactions/touch/touch-perform/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/touch-perform/',
             parameters: [
                 {
                     name: 'actions',
@@ -1519,7 +1519,7 @@ export default {
             command: 'multiTouchPerform',
             description:
                 'This functionality is only available from within a native context. Perform a multi touch action sequence.',
-            ref: 'http://appium.io/docs/en/commands/interactions/touch/multi-touch-perform/',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/multi-touch-perform/',
             parameters: [
                 {
                     name: 'actions',
@@ -1630,7 +1630,7 @@ export default {
             command: 'compareImages',
             description:
                 'Performs images comparison using OpenCV framework features. It is expected that both OpenCV framework and opencv4nodejs module are installed on the machine where Appium server is running.',
-            ref: 'http://appium.io/docs/en/writing-running-appium/image-comparison/',
+            ref: 'https://appium.github.io/appium.io/docs/en/writing-running-appium/image-comparison/',
             parameters: [
                 {
                     name: 'mode',

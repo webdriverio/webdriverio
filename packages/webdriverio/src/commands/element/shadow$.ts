@@ -37,7 +37,7 @@ export async function shadow$ (
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
-        return getElement.call(this, selector as string, res)
+        return getElement.call(this, selector as string, res, { isShadowElement: true })
     } catch (err: unknown) {
         log.warn(
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +

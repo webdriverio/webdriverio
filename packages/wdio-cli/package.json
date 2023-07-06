@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "8.6.2",
+  "version": "8.11.2",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -28,45 +28,56 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/cjs/index.js",
   "type": "module",
-  "exports": "./build/index.js",
+  "module": "./build/index.js",
   "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0",
-    "@wdio/config": "8.6.2",
-    "@wdio/globals": "8.6.2",
-    "@wdio/logger": "8.1.0",
-    "@wdio/protocols": "8.5.7",
-    "@wdio/types": "8.4.0",
-    "@wdio/utils": "8.6.1",
+    "@types/node": "^20.1.1",
+    "@wdio/config": "8.11.0",
+    "@wdio/globals": "8.11.2",
+    "@wdio/logger": "8.11.0",
+    "@wdio/protocols": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.11.0",
     "async-exit-hook": "^2.0.1",
-    "chalk": "^5.0.1",
+    "chalk": "^5.2.0",
     "chokidar": "^3.5.3",
-    "cli-spinners": "^2.6.1",
-    "ejs": "^3.1.8",
-    "execa": "^7.0.0",
-    "import-meta-resolve": "^2.1.0",
-    "inquirer": "9.1.2",
+    "cli-spinners": "^2.9.0",
+    "ejs": "^3.1.9",
+    "execa": "^7.1.1",
+    "import-meta-resolve": "^3.0.0",
+    "inquirer": "9.2.7",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "mkdirp": "^2.0.0",
     "read-pkg-up": "9.1.0",
-    "recursive-readdir": "^2.2.2",
-    "webdriverio": "8.6.2",
-    "yargs": "^17.5.1",
+    "recursive-readdir": "^2.2.3",
+    "webdriverio": "8.11.2",
+    "yargs": "^17.7.2",
     "yarn-install": "^1.0.0"
   },
   "devDependencies": {
     "@types/async-exit-hook": "^2.0.0",
-    "@types/ejs": "^3.1.1",
-    "@types/inquirer": "^9.0.0",
+    "@types/ejs": "^3.1.2",
+    "@types/inquirer": "^9.0.3",
     "@types/lodash.flattendeep": "^4.4.7",
     "@types/lodash.pickby": "^4.6.7",
     "@types/lodash.union": "^4.6.7",
     "@types/recursive-readdir": "^2.2.1",
-    "@types/yargs": "^17.0.10"
+    "@types/yargs": "^17.0.24"
   },
   "publishConfig": {
     "access": "public"

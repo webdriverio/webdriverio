@@ -29,6 +29,39 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Page Object Pattern
     - Sauce Labs integration
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- Frameworks:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- Features:
+    - Typescript v5
+    - Page Object Pattern
+    - Prettier
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - Appium
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: WDIO-V8 with Cucumber (V8x).
@@ -83,6 +116,42 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Integrated Email functionality
     - Integrated s3 bucket for test reports storage and retrieval
 
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Mocha, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Mocha (v10)
+    - Serenity/JS (v3)
+    - Serenity BDD reporting
+
+- Features
+    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Automatic screenshots on test failure, embedded in reports
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+    - TypeScript
+    - ESLint
+
+## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Cucumber, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Cucumber (v9)
+    - Serenity/JS (v3)
+    - Serenity BDD reporting
+
+- Features
+    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Automatic screenshots on test failure, embedded in reports
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+    - TypeScript
+    - ESLint
+
 # v7 Boilerplate Projects
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -119,7 +188,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - WebdriverIO (v7)
   - Mocha
 - Features
-  - [Page Object](PageObjects.md) Model
+  - [Page Object](pageobjects) Model
   - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
   - Allure Report
   - Automatic screenshots capture for failing tests
@@ -179,42 +248,6 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
 
-## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Mocha, and Serenity/JS
-
-- Frameworks
-    - WebdriverIO
-    - Mocha
-    - Serenity/JS
-    - Serenity BDD reporting
-
-- Features
-  - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-  - Automatic screenshots on test failure, embedded in reports
-  - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-  - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-  - TypeScript
-  - ESLint
-
-## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Cucumber, and Serenity/JS
-
-- Frameworks
-    - WebdriverIO
-    - Cucumber
-    - Serenity/JS
-    - Serenity BDD reporting
-
-- Features
-    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-    - Automatic screenshots on test failure, embedded in reports
-    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-    - TypeScript
-    - ESLint
-
 ## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
 
 This a template project to help you show how you can run webdriverio test from Web applications using the latest WebdriverIO, and Cucumber framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
@@ -233,7 +266,7 @@ This a template project to help you show how you can run electronJS tests using 
 This project include:
 
 - Sample electronjs app
-- Sample cucumber testscripts
+- Sample cucumber test scripts
 
 Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
 

@@ -23,7 +23,7 @@ import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
-const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS']
+const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS', 'CDP_SESSIONS']
 
 declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
@@ -171,7 +171,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
 
 /**
  * check for unicode character or split string into literals
- * @param  {String} value  text
+ * @param  {string} value  text
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value: string, isDevTools = false) {
@@ -482,7 +482,9 @@ export async function hasElementId (element: WebdriverIO.Element) {
     if (!element.elementId) {
         const command = element.isReactElement
             ? element.parent.react$.bind(element.parent)
-            : element.parent.$.bind(element.parent)
+            : element.isShadowElement
+                ? element.parent.shadow$.bind(element.parent)
+                : element.parent.$.bind(element.parent)
         element.elementId = (await command(element.selector as string)).elementId
     }
 
@@ -574,7 +576,7 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
     if (
         desiredCaps.deviceName || caps['appium:deviceName'] ||
         caps['appium:platformVersion'] ||
-        desiredCaps.app || caps['appium:app']
+        caps['appium:app']
     ) {
         return 'webdriver'
     }

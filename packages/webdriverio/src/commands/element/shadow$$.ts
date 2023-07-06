@@ -39,7 +39,7 @@ export async function shadow$$ (
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         const res = await browser.findElementsFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
-        const elements = await getElements.call(this, selector as Selector, res)
+        const elements = await getElements.call(this, selector as Selector, res, { isShadowElement: true })
         return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
     } catch (err: unknown) {
         log.warn(

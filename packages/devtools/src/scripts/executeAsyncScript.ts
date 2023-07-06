@@ -7,9 +7,9 @@
  * is suppose to be an element handle
  *
  * @param  {HTMLElement} _            $eval fetched element
- * @param  {String}      script       user script
- * @param  {String}      dataProperty property name for elements being returned
- * @param  {String}      dataFlag     flag for element
+ * @param  {string}      script       user script
+ * @param  {string}      dataProperty property name for elements being returned
+ * @param  {string}      dataFlag     flag for element
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
@@ -23,7 +23,7 @@ export default (
 ): Promise<any> => {
     return new Promise((_resolve, _reject) => {
         setTimeout(
-            () => _reject('script timeout'),
+            () => _reject(new Error('Evaluation failed: script timeout')),
             scriptTimeout
         )
 

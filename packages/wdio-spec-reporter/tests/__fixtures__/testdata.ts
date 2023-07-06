@@ -221,3 +221,31 @@ Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR).forEach(suite => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.hooks]
 })
+
+export const SUITES_WITH_DOC_STRING = {
+    [suiteIds[0]]: {
+        uid: suiteIds[0],
+        title: suiteIds[0].slice(0, -1),
+        rule: '\tVery important business rule',
+        description: '\tSome important\ndescription to read!',
+        file: '/foo/bar/loo.e2e.js',
+        hooks: [],
+        tests: [{
+            uid: 'foo1',
+            title: 'foo',
+            state: 'passed',
+            type: 'test',
+            argument: 'Docstring line 1\nDocstring line 2\nDocstring line 3'
+        }, {
+            uid: 'bar1',
+            title: 'bar',
+            state: 'passed',
+            type: 'test',
+            argument: 'Docstring line 4\nDocstring line 5\nDocstring line 6'
+        }]
+    }
+}
+Object.values(SUITES_WITH_DOC_STRING).forEach(suite => {
+    // @ts-expect-error
+    suite.hooksAndTests = [...suite.tests]
+})

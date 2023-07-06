@@ -8,9 +8,14 @@ import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
 import type { Selector, ElementArray } from '../types.js'
 
+interface GetElementProps {
+    isReactElement?: boolean
+    isShadowElement?: boolean
+}
+
 /**
  * transforms a findElement response into a WDIO element
- * @param  {String} selector  selector that was used to query the element
+ * @param  {string} selector  selector that was used to query the element
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
@@ -18,7 +23,7 @@ export const getElement = function findElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector?: Selector,
     res?: ElementReference | Error,
-    isReactElement = false
+    props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
@@ -60,7 +65,8 @@ export const getElement = function findElement(
         client.selector = selector || ''
         client.parent = this
         client.emit = this.emit.bind(this)
-        client.isReactElement = isReactElement
+        client.isReactElement = props.isReactElement
+        client.isShadowElement = props.isShadowElement
 
         return client
     }, propertiesObject)
@@ -78,7 +84,7 @@ export const getElement = function findElement(
 
 /**
  * transforms a findElements response into an array of WDIO elements
- * @param  {String} selector  selector that was used to query the element
+ * @param  {string} selector  selector that was used to query the element
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
@@ -86,7 +92,7 @@ export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: (ElementReference | Error)[],
-    isReactElement = false
+    props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): ElementArray {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
@@ -136,7 +142,8 @@ export const getElements = function getElements(
             client.parent = this
             client.index = i
             client.emit = this.emit.bind(this)
-            client.isReactElement = isReactElement
+            client.isReactElement = props.isReactElement
+            client.isShadowElement = props.isShadowElement
 
             return client
         }, propertiesObject)

@@ -1,0 +1,74 @@
+{
+  "version.label": {
+    "message": "அடுத்து",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "தொடங்குதல்",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Core Concepts": {
+    "message": "மையக் கருத்துகள்",
+    "description": "The label for category Core Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Configuration": {
+    "message": "கட்டமைப்பு",
+    "description": "The label for category Configuration in sidebar docs"
+  },
+  "sidebar.docs.category.Guides": {
+    "message": "வழிகாட்டிகள்",
+    "description": "The label for category Guides in sidebar docs"
+  },
+  "sidebar.docs.category.Testrunner": {
+    "message": "டெஸ்ட்ரன்னர்",
+    "description": "The label for category Testrunner in sidebar docs"
+  },
+  "sidebar.docs.category.Component Testing": {
+    "message": "காம்போனென்ட் டெஸ்டிங்",
+    "description": "The label for category Component Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Framework Setup": {
+    "message": "பிரேம்வர்க் செட்டப்",
+    "description": "The label for category Framework Setup in sidebar docs"
+  },
+  "sidebar.docs.category.Migrate": {
+    "message": "மாறுதல்",
+    "description": "The label for category Migrate in sidebar docs"
+  },
+  "sidebar.docs.category.Integration": {
+    "message": "ஒருங்கிணைப்பு",
+    "description": "The label for category Integration in sidebar docs"
+  },
+  "sidebar.docs.category.Reporter": {
+    "message": "ரிப்போர்ட்டர்",
+    "description": "The label for category Reporter in sidebar docs"
+  },
+  "sidebar.docs.category.Services": {
+    "message": "சர்வீசஸ்",
+    "description": "The label for category Services in sidebar docs"
+  },
+  "sidebar.api.category.Protocols": {
+    "message": "நெறிமுறைகள்",
+    "description": "The label for category Protocols in sidebar api"
+  },
+  "sidebar.api.category.browser": {
+    "message": "browser",
+    "description": "The label for category browser in sidebar api"
+  },
+  "sidebar.api.category.element": {
+    "message": "element",
+    "description": "The label for category element in sidebar api"
+  },
+  "sidebar.api.category.mock": {
+    "message": "mock",
+    "description": "The label for category mock in sidebar api"
+  },
+  "sidebar.flowcharts.category.Flowcharts": {
+    "message": "பரப்புவரைபடங்கள்",
+    "description": "The label for category Flowcharts in sidebar flowcharts"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "வெப் எக்ஸ்டென்ஷன் டெஸ்டிங்",
+    "description": "The label for category Web Extension Testing in sidebar docs"
+  }
+}

@@ -5,6 +5,7 @@ import { remote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 
 import './frameworks/mocha.js'
+import { showPopupWarning } from './utils.js'
 import type { MochaFramework } from './frameworks/mocha'
 
 type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
@@ -20,6 +21,10 @@ declare global {
         __wdioMockFactories__: Record<string, any>
     }
 }
+
+globalThis.alert = showPopupWarning('alert', undefined)
+globalThis.confirm = showPopupWarning('confirm', false, true)
+globalThis.prompt = showPopupWarning('prompt', null, 'your value')
 
 /**
  * create connection to Vite server

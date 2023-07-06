@@ -199,6 +199,22 @@ export interface LaunchResponse {
     allow_screenshots?: boolean
 }
 
+export interface UserConfigforReporting {
+  framework?: string,
+  services?: any[],
+  capabilities?: Capabilities.RemoteCapability,
+  env?: {
+    'BROWSERSTACK_BUILD': string | undefined,
+    'BROWSERSTACK_BUILD_NAME': string | undefined,
+    'BUILD_TAG': string | undefined,
+  }
+}
+
+export interface CredentialsForCrashReportUpload {
+  username?: string,
+  password?: string
+}
+
 interface IntegrationObject {
     capabilities?: Capabilities.Capabilities,
     session_id?: string

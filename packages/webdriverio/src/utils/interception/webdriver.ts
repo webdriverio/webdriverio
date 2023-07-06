@@ -19,6 +19,13 @@ export default class WebDriverInterception extends Interception {
         this.mockId = mockId
     }
 
+    on() {
+        throw new Error('Not implemented')
+
+        // eslint-disable-next-line no-unreachable
+        return this
+    }
+
     /**
      * allows access to all requests made with given pattern
      */
@@ -40,8 +47,8 @@ export default class WebDriverInterception extends Interception {
      * Does everything that `mock.clear()` does, and also
      * removes any mocked return values or implementations.
      */
-    restore () {
-        return this.browser.call(
+    async restore () {
+        await this.browser.call(
             async () => this.browser.clearMockCalls(this.mockId as string, true))
     }
 

@@ -110,7 +110,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
         /**
          * overwriteCommand
-         * @param  {String}   name              command name to be overwritten
+         * @param  {string}   name              command name to be overwritten
          * @param  {Function} func              function to replace original command with;
          *                                      takes original function as first argument.
          * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
@@ -149,7 +149,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
     /**
      * Enhance monad prototype with function
-     * @param  {String}   name          name of function to attach to prototype
+     * @param  {string}   name          name of function to attach to prototype
      * @param  {Function} func          function to be added to prototype
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument

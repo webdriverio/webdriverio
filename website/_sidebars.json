@@ -32,6 +32,7 @@
       "items": [
         "driverbinaries",
         "capabilities",
+        "appium",
         "babel",
         "typescript",
         "proxy"
@@ -93,6 +94,17 @@
         },
         "component-testing/coverage",
         "component-testing/mocking"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Web Extension Testing",
+      "link": {
+        "type": "doc",
+        "id": "web-extension-testing"
+      },
+      "items": [
+        "web-extension-testing/tips-and-tricks"
       ]
     },
     {

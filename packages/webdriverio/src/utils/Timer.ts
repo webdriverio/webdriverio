@@ -4,10 +4,10 @@ const NOOP = () => {}
 /**
  * Promise-based Timer. Execute fn every tick.
  * When fn is resolved — timer will stop
- * @param {Number} delay - delay between ticks
- * @param {Number} timeout - after that time timer will stop
+ * @param {number} delay - delay between ticks
+ * @param {number} timeout - after that time timer will stop
  * @param {Function} fn - function that returns promise. will execute every tick
- * @param {Boolean} leading - should be function invoked on start
+ * @param {boolean} leading - should be function invoked on start
  * @return {promise} Promise-based Timer.
  */
 class Timer {
@@ -77,7 +77,7 @@ class Timer {
 
         if (typeof result.then !== 'function') {
             if (!result) {
-                return this._checkCondition(new Error('return value was never truthy'))
+                return this._checkCondition(new Error(TIMEOUT_ERROR))
             }
 
             return this._checkCondition(undefined, result)

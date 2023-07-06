@@ -6,19 +6,23 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
+    LinkType, ContentType, AllureCommandStepExecutable,
+} from 'allure-js-commons'
+import {
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddAttachmentEventArgs, AddDescriptionEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
     AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
@@ -69,6 +73,9 @@ export default class AllureReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+
+        const { reportedEnvironmentVars } = this._options
+        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
     }
 
     attachLogs() {
@@ -132,6 +139,7 @@ export default class AllureReporter extends WDIOReporter {
             const currentTest = this._state.pop() as AllureTest | AllureStep
 
             if (currentTest instanceof AllureTest) {
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
             } else {
                 currentTest.endStep()
@@ -163,6 +171,7 @@ export default class AllureReporter extends WDIOReporter {
         currentTest.status = AllureStatus.SKIPPED
 
         if (currentTest instanceof AllureTest) {
+            setHistoryId(currentTest, this._state.currentSuite)
             currentTest.endTest()
         } else {
             currentTest.endStep()
@@ -185,6 +194,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (currentSpec instanceof AllureTest) {
+            setHistoryId(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
         } else {
             currentSpec.endStep()
@@ -208,16 +218,15 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!this._isMultiremote) {
             const caps = this._capabilities as Capabilities.DesiredCapabilities
-            const { browserName, deviceName, desired, device } = caps
+            const { browserName, desired, device } = caps
+            const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
             let targetName = device || browserName || deviceName || cid
-
             // custom mobile grids can have device information in a `desired` cap
-            if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+            if (desired && deviceName && desired['appium:platformVersion']) {
+                targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
             }
-
             const browserstackVersion = caps.os_version || caps.osVersion
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps['appium:platformVersion'] || ''
             const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
 
@@ -274,7 +283,6 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
-        process.on(events.addEnvironment, this.addEnvironment.bind(this))
         process.on(events.addAttachment, this.addAttachment.bind(this))
         process.on(events.addDescription, this.addDescription.bind(this))
         process.on(events.startStep, this.startStep.bind(this))
@@ -304,10 +312,10 @@ export default class AllureReporter extends WDIOReporter {
             getSuiteLabels(suite).forEach((label: Label) => {
                 switch (label.name) {
                 case 'issue':
-                    this.addIssue({ issue: label.value })
+                    this.addIssue({ issue: label.value, linkName: label.value  })
                     break
                 case 'testId':
-                    this.addTestId({ testId: label.value })
+                    this.addTestId({ testId: label.value, linkName: label.value  })
                     break
                 default:
                     this.addLabel(label)
@@ -350,17 +358,26 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.SKIPPED
                 currentTest.stage = Stage.PENDING
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
 
-            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
+            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
                 const currentTest = this._state.pop() as AllureTest
 
-                currentTest.status = AllureStatus.FAILED
+                currentTest.status = getTestStatus(isFailed)
                 currentTest.stage = Stage.FINISHED
+                const error = getErrorFromFailedTest(isFailed)
+
+                if (error) {
+                    currentTest.detailsMessage = error.message
+                    currentTest.detailsTrace = error.stack
+                }
+
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -374,6 +391,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -717,15 +735,6 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    addEnvironment({
-        name,
-        value
-    }: AddEnvironmentEventArgs) {
-        this._allure.writeEnvironmentInfo({
-            [name]: value,
-        })
-    }
-
     addDescription({
         description,
         descriptionType
@@ -867,7 +876,6 @@ export default class AllureReporter extends WDIOReporter {
     static addParentSuite = addParentSuite
     static addTestId = addTestId
     static addStory = addStory
-    static addEnvironment = addEnvironment
     static addDescription = addDescription
     static addAttachment = addAttachment
     static startStep = startStep

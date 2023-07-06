@@ -72,6 +72,7 @@ packages/**/cjs/
 /*.ts
 devtools.d.ts
 !.eslintrc.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
@@ -81,7 +82,6 @@ website/sidebars.json
 website/yarn.lock
 website/sidebars.json
 website/node_modules
-website/i18n/*
 website/docs/api/**/*.md
 !website/docs/api/Environment.md
 !website/docs/api/Globals.md
@@ -105,3 +105,5 @@ tests/.retry_succeeded
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md
+scripts/bidi/cddl
+browserstack.err

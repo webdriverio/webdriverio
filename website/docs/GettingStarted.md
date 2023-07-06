@@ -3,14 +3,21 @@ id: gettingstarted
 title: Getting Started
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
-
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Matrix Support Channel](https://matrix.to/#/#webdriver.io:gitter.im) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
 These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+:::
+
+<LiteYouTubeEmbed
+    id="rA4IFNyW54c"
+    title="Getting Started with WebdriverIO"
+/>
+
+:::tip Official YouTube Channel 🎥
+
+You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+
 :::
 
 ## Initiate a WebdriverIO Setup
@@ -146,4 +153,4 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Install at least v16.x or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
-If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.
+If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.

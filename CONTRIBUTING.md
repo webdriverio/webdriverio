@@ -8,13 +8,13 @@ Everyone who participates in this project, either as a user or a contributor, is
 
 ## Find A Way To Contribute
 
-The project offers a variety of ways to contribute. If you struggle to find something suited for you, join the WebdriverIO [support channel](https://matrix.to/#/#webdriver.io:gitter.im) on Matrix and reach out to the maintainer there. Don't be shy, they are there to help!
+The project offers a variety of ways to contribute. If you struggle to find something suited for you, join the WebdriverIO [support channel](https://discord.webdriver.io) on Matrix and reach out to the maintainer there. Don't be shy, they are there to help!
 
 You can participate by:
 
 - contributing code
 - improving documentation
-- help out in the [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) support channel
+- help out in the [Discord](https://discord.webdriver.io) support channel
 - create educational content (blog posts, tutorials, videos, etc.)
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
@@ -27,7 +27,7 @@ If you want to contribute code, a general good first way to find a task to work 
 
 Often issues require some amount of context to the problem which makes it difficult to get an idea about what needs to be done. Depending on your experience using / working with the project this context can be missing. Often it helps to start with tasks around missing documentation or just increase test coverage of some parts in the code. After some time you will get more familiar with the codebase which allows you to pick up more difficult tasks.
 
-If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) support channel. They are responsible to find a task for you.
+If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Discord](https://discord.webdriver.io) support channel. They are responsible to find a task for you.
 
 ## Reporting New Issues
 
@@ -93,7 +93,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
     ```sh
     $ npm install
-    $ npm run setup-full
+    $ npm run setup
     ```
 
     The second command does two things:
