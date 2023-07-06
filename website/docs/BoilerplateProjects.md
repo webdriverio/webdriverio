@@ -77,11 +77,11 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
 
 - Features
     - Contain sample test scenario in cucumber
-    - Integrates cucumber html reports with Embedded videos on failures
-    - Integrates Lambdatest and CircleCI services
-    - Integrates Visual, Accessibility and API testing
-    - Integrates Email functionality
-    - Integrates s3 bucket for test reports storage and retrieval
+    - Integrated cucumber html reports with Embedded videos on failures
+    - Integrated Lambdatest and CircleCI services
+    - Integrated Visual, Accessibility and API testing
+    - Integrated Email functionality
+    - Integrated s3 bucket for test reports storage and retrieval
 
 # v7 Boilerplate Projects
 
