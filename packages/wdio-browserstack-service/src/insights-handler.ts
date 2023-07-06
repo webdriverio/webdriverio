@@ -332,29 +332,30 @@ class _InsightsHandler {
             this._hooks[parentTest].push(hookId)
             return
         } else if (context.test) {
-            const setHooksFromSuite = (parent: any): boolean => {
-                if (!parent) {
-                    return false
-                }
-                for (const test of parent.tests) {
-                    const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
-                    if (!this._hooks[uniqueIdentifier]) {
-                        this._hooks[uniqueIdentifier] = []
-                    }
-                    this._hooks[uniqueIdentifier].push(hookId)
-                    return true
-                }
-
-                for (const suite of parent.suites) {
-                    const result = setHooksFromSuite(suite)
-                    if (result) {
-                        return true
-                    }
-                }
-                return false
-            }
-            setHooksFromSuite(context.test.parent)
+            this.setHooksFromSuite(context.test.parent, hookId)
         }
+    }
+
+    private setHooksFromSuite(parent: any, hookId: string): boolean {
+        if (!parent) {
+            return false
+        }
+        for (const test of parent.tests) {
+            const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
+            if (!this._hooks[uniqueIdentifier]) {
+                this._hooks[uniqueIdentifier] = []
+            }
+            this._hooks[uniqueIdentifier].push(hookId)
+            return true
+        }
+
+        for (const suite of parent.suites) {
+            const result = this.setHooksFromSuite(suite, hookId)
+            if (result) {
+                return true
+            }
+        }
+        return false
     }
 
     /*
@@ -455,7 +456,7 @@ class _InsightsHandler {
         }
     }
 
-    getTestRunId(context: any): string|undefined {
+    private getTestRunId(context: any): string|undefined {
         if (!context) {
             return
         }
@@ -468,27 +469,27 @@ class _InsightsHandler {
         if (!context.test) {
             return
         }
+        return this.getTestRunIdFromSuite(context.test.parent)
+    }
 
-        const getTestRunIdFromSuite = (parent: any): string|undefined => {
-            if (!parent) {
-                return
-            }
-            for (const test of parent.tests) {
-                const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
-                if (this._tests[uniqueIdentifier]) {
-                    return this._tests[uniqueIdentifier].uuid
-                }
-            }
-
-            for (const suite of parent.suites) {
-                const testRunId: string|undefined = getTestRunIdFromSuite(suite)
-                if (testRunId) {
-                    return testRunId
-                }
-            }
+    private getTestRunIdFromSuite(parent: any): string|undefined {
+        if (!parent) {
             return
         }
-        return getTestRunIdFromSuite(context.test.parent)
+        for (const test of parent.tests) {
+            const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
+            if (this._tests[uniqueIdentifier]) {
+                return this._tests[uniqueIdentifier].uuid
+            }
+        }
+
+        for (const suite of parent.suites) {
+            const testRunId: string|undefined = this.getTestRunIdFromSuite(suite)
+            if (testRunId) {
+                return testRunId
+            }
+        }
+        return
     }
 
     private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
