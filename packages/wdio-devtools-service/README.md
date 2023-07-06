@@ -399,14 +399,23 @@ describe('use Puppeteer', () => {
 
 ### Event Listener
 
-In order to capture events in the browser you can register an event listener to a Chrome DevTools event like:
+In order to capture network events in the browser you can register an event listener to the Chrome DevTools.
+A full list of available [CDP Network Events](https://chromedevtools.github.io/devtools-protocol/tot/Network/).
 
 ```js
 it('should listen on network events', () => {
     await browser.cdp('Network', 'enable')
-    await browser.on('Network.responseReceived', (params) => {
-        console.log(`Loaded ${params.response.url}`)
-    })
+
+    await browser.on('Network.requestWillBeSent', (event) => {
+        console.log(`Request: ${event.request.method} ${event.request.url}`);
+    });
+    await browser.on('Network.responseReceived', (event) => {
+        console.log(`Response: ${event.response.status} ${event.response.url}`);
+    });
+    await browser.on('Network.loadingFailed', (event) => {
+        console.log(`Request failed: ${event.errorText}`);
+    });
+
     await browser.url('https://www.google.com')
 })
 ```
