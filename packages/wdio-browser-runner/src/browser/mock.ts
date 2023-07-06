@@ -17,9 +17,4 @@ export const dirname = () => ''
 export const resolve = () => ''
 export const sep = '/'
 export const type = 'browser'
-
-// mock jest-matcher-utils exports
-export const printDiffOrStringify = () => {}
-export const printReceived = () => {}
-export const printExpected = () => {}
 export default () => {}

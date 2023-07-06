@@ -88,6 +88,8 @@ jobs:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
+      - name: Safari Component Tests
+        run: npm run test:component
       # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
       # - name: Setup Firefox
       #   uses: browser-actions/setup-firefox@latest

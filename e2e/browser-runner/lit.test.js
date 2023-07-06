@@ -78,7 +78,14 @@ describe('Lit Component testing', () => {
         expect(window.TEST_COMMAND).toBe('serve')
     })
 
-    it('should allow to manual mock dependencies', async () => {
+    it('should allow to manual mock dependencies', async function () {
+        /**
+         * this fails in Safari as the click on the button is not recognised
+         */
+        if (browser.capabilities.browserName.toLowerCase() === 'safari') {
+            return this.skip()
+        }
+
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
