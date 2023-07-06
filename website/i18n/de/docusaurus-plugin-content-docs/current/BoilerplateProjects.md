@@ -102,7 +102,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Beispiele für DB-Verbindungen zu beliebigen RDBMS (Oracle, MySql, TeraData, Vertica usw.), jeder Abfrageausführung / Abrufen von Ergebnismengen usw. mit Beispielen für E2E-Tests
     -  BrowserStack-, Sauce Labs-, LambdaTest- und Appium-spezifische `.config` Datei (für die Wiedergabe auf Mobilgeräten). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
-## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
+## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
 - Frameworks
     - WebdriverIO (v8)
@@ -110,11 +110,11 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
 
 - Features
     - Enthalten Beispieltestszenario in Cucumber
-    - Integriert Cucumber-HTML-Berichte mit eingebetteten Videos zu Fehlern
-    - Integriert Lambdatest- und CircleCI-Dienste
-    - Integriert visuelle, Zugänglichkeits- und API-Tests
-    - Integriert E-Mail-Funktionalität
-    - Integriert S3-Bucket zum Speichern und Abrufen von Testberichten
+    - Integrated cucumber html reports with Embedded videos on failures
+    - Integrated Lambdatest and CircleCI services
+    - Integrated Visual, Accessibility and API testing
+    - Integrated Email functionality
+    - Integrated s3 bucket for test reports storage and retrieval
 
 ## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
 
