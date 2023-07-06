@@ -56,13 +56,13 @@ const clonedClient = await WebDriver.attachSession(client)
 
 #### `reloadSession(instance)`
 
-Reloads a session given provided instance.
+Ponownie ładuje sesję w ramach przekazanej instancji.
 
-##### Paramaters
+##### Parametry
 
-- `instance`: package instance to reload
+- `instance`: instancja, która ma zostać ponownie załadowana
 
-##### Example
+##### Przykład
 
 ```js
 const client = await WebDriver.newSession({...})
