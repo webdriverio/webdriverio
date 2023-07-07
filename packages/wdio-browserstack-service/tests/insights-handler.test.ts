@@ -349,6 +349,49 @@ describe('attachHookData', () => {
         } as any, 'hook_id')
         expect(insightsHandler['_hooks']).toEqual({ 'parent - test': ['hook_id_old', 'hook_id'] })
     })
+
+    it('add hook data in test from suite tests', () =>{
+        insightsHandler['_hooks'] = {}
+        insightsHandler['attachHookData']({
+            test: {
+                parent: {
+                    tests: [{
+                        title: 'test',
+                        parent: 'parent'
+                    }],
+                }
+            }
+        } as any, 'hook_id_from_test')
+        expect(insightsHandler['_hooks']).toEqual({ 'parent - test': ['hook_id_from_test'] })
+    })
+
+})
+
+describe('setHooksFromSuite', () => {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['_hooks'] = {}
+    })
+
+    it('should return false if parent is null', () => {
+        const result = insightsHandler['setHooksFromSuite'](null, 'hook_id')
+        expect(result).toEqual(false)
+        expect(insightsHandler['_hooks']).toEqual({})
+    })
+
+    it('should add hook data from nested suite tests', () => {
+        const result = insightsHandler['setHooksFromSuite']({
+            suites: [{
+                tests: [{
+                    title: 'test inside suite',
+                    parent: 'parent'
+                }],
+            }],
+        } as any, 'hook_id_from_test')
+        expect(result).toEqual(true)
+        expect(insightsHandler['_hooks']).toEqual({ 'parent - test inside suite': ['hook_id_from_test'] })
+    })
 })
 
 describe('getHierarchy', () => {
@@ -375,6 +418,67 @@ describe('getHierarchy', () => {
 
     it('return empty array when no context present', () => {
         expect(insightsHandler['getHierarchy']({} as any)).toEqual([])
+    })
+})
+
+describe('getTestRunId', function () {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+    })
+
+    it('should return if null context', () => {
+        expect(insightsHandler['getTestRunId'](null)).toEqual(undefined)
+    })
+
+    it('return test id from current test', () => {
+        const identifier = 'parent title - some title'
+        insightsHandler['_tests'] = { [identifier]: { uuid: '1234' } }
+        expect(insightsHandler['getTestRunId']({
+            currentTest: {
+                title: 'some title',
+                parent: 'parent title'
+            }
+        })).toEqual('1234')
+    })
+
+    it('return test id from test', () => {
+        const identifier = 'parent title - child title'
+        insightsHandler['_tests'] = { [identifier]: { uuid: 'some_uuid' } }
+        expect(insightsHandler['getTestRunId']({
+            test: {
+                parent: {
+                    tests: [{
+                        title: 'child title',
+                        parent: 'parent title'
+                    }]
+                },
+            }
+        })).toEqual('some_uuid')
+    })
+})
+
+describe('getTestRunIdFromSuite', function () {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+    })
+
+    it('should return null if parent null', function () {
+        expect(insightsHandler['getTestRunIdFromSuite'](null)).toEqual(undefined)
+    })
+
+    it('should return test run id from nested suite', () => {
+        insightsHandler['_tests'] = { ['suite title - nested test title']: { uuid: 'some_nested_uuid' } }
+        expect(insightsHandler['getTestRunIdFromSuite']({
+            tests: [],
+            suites: [{
+                tests: [{
+                    title: 'nested test title',
+                    parent: 'suite title'
+                }]
+            }]
+        })).toEqual('some_nested_uuid')
     })
 })
 
