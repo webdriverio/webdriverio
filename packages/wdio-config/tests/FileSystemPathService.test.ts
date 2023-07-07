@@ -103,7 +103,7 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             const error = await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')
                 .catch((err) => err) as Error
-            expect(error.message).toContain('Cannot find module')
+            expect(error.message).toContain('Failed to load url')
         })
     })
 })

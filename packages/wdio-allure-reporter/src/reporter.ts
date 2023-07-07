@@ -547,7 +547,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks
         if (!hook.parent || !this._state.currentSuite) {
@@ -569,7 +569,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (hook.error) {
             // add hook as test to suite for mocha all hooks, when it didn't start before
-            if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+            if (disableMochaHooks && isMochaAllHook) {
                 this.onTestStart(hook)
             }
 
@@ -578,6 +578,18 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         this.onTestPass()
+
+        if (useCucumberStepReporter) {
+            // remove hook from suite if it has no steps or attachments
+            const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
+            if (currentItem) {
+                const currentStep = currentItem.steps[currentItem.steps.length-1]
+
+                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                    currentItem.steps.pop()
+                }
+            }
+        }
     }
 
     addLabel({
