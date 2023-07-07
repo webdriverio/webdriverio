@@ -1,9 +1,9 @@
+import url from 'node:url'
+
 import junit from 'junit-report-builder'
 import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
-
-const FILE_PROTOCOL_REGEX = /^file:\/\//
 
 import { limit } from './utils.js'
 import type { JUnitReporterOptions } from './types.js'
@@ -269,10 +269,9 @@ class JunitReporter extends WDIOReporter {
             if (suiteKey.match(/^"before all"/)) {
                 continue
             }
+
             const suite = this.suites[suiteKey]
-
-            const sameFeature = isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '')
-
+            const sameFeature = isCucumberFrameworkRunner && url.fileURLToPath(specFileName) === suite.file
             if (isCucumberFrameworkRunner && suite.type === type && sameFeature) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
             } else if (!isCucumberFrameworkRunner) {

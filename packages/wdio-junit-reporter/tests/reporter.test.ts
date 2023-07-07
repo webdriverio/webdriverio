@@ -115,26 +115,6 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
-    it('generates xml output (Cucumber-style) when feature has file:// protocol', () => {
-        reporter = new WDIOJunitReporter({ stdout: true })
-        reporter.suites = { ...featuresLog } as any
-        const runner = { ...cucumberRunnerLog }
-        runner.specs = runner.specs.map((s: string) => `file://${s}`)
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
-    it('generates xml output (Cucumber-style) when feature has file:// protocol and the addFileAttribute option is set', () => {
-        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
-        reporter.suites = { ...featuresLog } as any
-        const runner = { ...cucumberRunnerLog }
-        runner.specs = runner.specs.map((s: string) => `file://${s}`)
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
     it('generates xml output (Cucumber-style)', () => {
         reporter.suites = featuresLog as any
 
@@ -321,5 +301,16 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('_buildOrderedReport', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo-${name}-${suite.title}` })
+        reporter._addCucumberFeatureToBuilder = () => '_addCucumberFeatureToBuilder'
+        reporter._addSuiteToBuilder = () => '_addSuiteToBuilder'
+        reporter.suites = {
+            foo: { type: 'feature' },
+            bar: { type: 'feature', file: '/foo/bar' }
+        }
+        expect(reporter['_buildOrderedReport'](null, null, 'file:///foo/bar', 'feature', true)).toBe('_addCucumberFeatureToBuilder')
     })
 })
