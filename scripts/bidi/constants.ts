@@ -55,3 +55,14 @@ export const GENERATED_FILE_COMMENT = `/**
  * from the project root. You can find the scripts that generates this file in
  * ./scripts/bidi/**
  */`
+
+export const CDDL_PARSE_ERROR_MESSAGE = `
+====================
+CDDL PARSING FAILED!
+====================
+
+No updates to the CDDL interface can be applied as the script failed to parse
+the spec CDDL due to the following error:
+
+%s
+`
