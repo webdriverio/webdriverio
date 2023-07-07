@@ -3,7 +3,7 @@ id: preact
 title: Preact
 ---
 
-[Preact](https://preactjs.com/) is a fast 3kB alternative to React with the same modern API. You can test Preact components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[Preact](https://preactjs.com/) est une alternative à React, rapide de 3 Ko, qui utilise la même API moderne. Vous pouvez tester les composants Preact directement dans un navigateur en utilisant WebdriverIO et son [browser runner](/docs/runner#browser-runner).
 
 ## Setup
 
