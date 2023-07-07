@@ -4,6 +4,7 @@ describe('Jasmine smoke test', () => {
     it('should allow sync matchers', () => {
         const test = 123
         expect(test).toBe(123)
+        expect(test).not.toBe(124)
     })
 
     it('should support sync Jest and Jasmine matchers', () => {
