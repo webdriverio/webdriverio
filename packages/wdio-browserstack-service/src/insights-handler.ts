@@ -341,8 +341,8 @@ class _InsightsHandler {
         if (!parent) {
             return false
         }
-        for (const test of parent.tests) {
-            const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
+        if (parent.tests && parent.tests.length > 0) {
+            const uniqueIdentifier = getUniqueIdentifier(parent.tests[0], this._framework)
             if (!this._hooks[uniqueIdentifier]) {
                 this._hooks[uniqueIdentifier] = []
             }

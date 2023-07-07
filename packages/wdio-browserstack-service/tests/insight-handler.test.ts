@@ -415,6 +415,33 @@ describe('attachHookData', () => {
     })
 })
 
+describe('setHooksFromSuite', () => {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+        insightsHandler['_hooks'] = {}
+    })
+
+    it('should return false if parent is null', () => {
+        const result = insightsHandler['setHooksFromSuite'](null, 'hook_id')
+        expect(result).toEqual(false)
+        expect(insightsHandler['_hooks']).toEqual({})
+    })
+
+    it('should add hook data from nested suite tests', () => {
+        const result = insightsHandler['setHooksFromSuite']({
+            suites: [{
+                tests: [{
+                    title: 'test inside suite',
+                    parent: 'parent'
+                }],
+            }],
+        } as any, 'hook_id_from_test')
+        expect(result).toEqual(true)
+        expect(insightsHandler['_hooks']).toEqual({ 'parent - test inside suite': ['hook_id_from_test'] })
+    })
+})
+
 describe('getHierarchy', () => {
     const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
 
@@ -472,6 +499,30 @@ describe('getTestRunId', function () {
                 },
             }
         })).toEqual('some_uuid')
+    })
+})
+
+describe('getTestRunIdFromSuite', function () {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    })
+
+    it('should return null if parent null', function () {
+        expect(insightsHandler['getTestRunIdFromSuite'](null)).toEqual(undefined)
+    })
+
+    it('should return test run id from nested suite', () => {
+        insightsHandler['_tests'] = { ['suite title - nested test title']: { uuid: 'some_nested_uuid' } }
+        expect(insightsHandler['getTestRunIdFromSuite']({
+            tests: [],
+            suites: [{
+                tests: [{
+                    title: 'nested test title',
+                    parent: 'suite title'
+                }]
+            }]
+        })).toEqual('some_nested_uuid')
     })
 })
 
