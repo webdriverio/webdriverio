@@ -445,7 +445,7 @@ describe('getTestRunId', function () {
     it('return test id from test', () => {
         const identifier = 'parent title - child title'
         insightsHandler['_tests'] = { [identifier]: { uuid: 'some_uuid' } }
-        expect(insightsHandler.getTestRunId({
+        expect(insightsHandler['getTestRunId']({
             test: {
                 parent: {
                     tests: [{
