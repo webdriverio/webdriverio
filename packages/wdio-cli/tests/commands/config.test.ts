@@ -1,9 +1,14 @@
 import os from 'node:os'
 import path from 'node:path'
+import fs from 'node:fs/promises'
+
 import { vi, test, expect, afterEach, beforeEach } from 'vitest'
 import inquirer from 'inquirer'
 
-import { handler, builder, parseAnswers, missingConfigurationPrompt, runConfigCommand } from '../../src/commands/config.js'
+import {
+    handler, builder, parseAnswers, missingConfigurationPrompt, runConfigCommand,
+    canAccessConfigPath
+} from '../../src/commands/config.js'
 import {
     getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig,
     createWDIOScript, runAppiumInstaller
@@ -17,6 +22,11 @@ afterEach(() => {
     console.log = consoleLog
 })
 
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockRejectedValue('Yay')
+    }
+}))
 vi.mock('inquirer')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/utils.js', () => ({
@@ -158,4 +168,17 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
     vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
     await missingConfigurationPrompt('config', 'foobar', true, runConfigCmd)
     expect(runConfigCmd).toBeCalledTimes(1)
+})
+
+test('canAccessConfigPath', async () => {
+    vi.mocked(fs.access)
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockResolvedValue('Yay' as any)
+    expect(await canAccessConfigPath('/foo/bar')).toBe(true)
+    expect(fs.access).toBeCalledWith('/foo/bar.js')
+    expect(fs.access).toBeCalledWith('/foo/bar.ts')
+    expect(fs.access).toBeCalledWith('/foo/bar.mjs')
+    expect(fs.access).toBeCalledWith('/foo/bar.mts')
 })
