@@ -173,7 +173,8 @@ export interface TestData {
     hook_type?: string,
     hooks?: string[],
     meta?: TestMeta,
-    tags?: string[]
+    tags?: string[],
+    test_run_id?: string
 }
 
 export interface UserConfig {

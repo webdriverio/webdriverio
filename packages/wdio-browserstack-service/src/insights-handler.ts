@@ -324,14 +324,39 @@ class _InsightsHandler {
      */
 
     private attachHookData (context: any, hookId: string): void {
-        if (!context.currentTest || !context.currentTest.parent) {
+        if (context.currentTest && context.currentTest.parent) {
+            const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
+            if (!this._hooks[parentTest]) {
+                this._hooks[parentTest] = []
+            }
+
+            this._hooks[parentTest].push(hookId)
             return
+        } else if (context.test) {
+            this.setHooksFromSuite(context.test.parent, hookId)
         }
-        const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
-        if (!this._hooks[parentTest]) {
-            this._hooks[parentTest] = []
+    }
+
+    private setHooksFromSuite (parent: any, hookId: string): boolean {
+        if (!parent) {
+            return false
         }
-        this._hooks[parentTest].push(hookId)
+        if (parent.tests && parent.tests.length > 0) {
+            const uniqueIdentifier = getUniqueIdentifier(parent.tests[0], this._framework)
+            if (!this._hooks[uniqueIdentifier]) {
+                this._hooks[uniqueIdentifier] = []
+            }
+            this._hooks[uniqueIdentifier].push(hookId)
+            return true
+        }
+
+        for (const suite of parent.suites) {
+            const result = this.setHooksFromSuite(suite, hookId)
+            if (result) {
+                return true
+            }
+        }
+        return false
     }
 
     /*
@@ -348,6 +373,43 @@ class _InsightsHandler {
             }
         }
         return value.reverse()
+    }
+
+    private getTestRunId(context: any): string|undefined {
+        if (!context) {
+            return
+        }
+
+        if (context.currentTest) {
+            const uniqueIdentifier = getUniqueIdentifier(context.currentTest, this._framework)
+            return this._tests[uniqueIdentifier] && this._tests[uniqueIdentifier].uuid
+        }
+
+        if (!context.test) {
+            return
+        }
+
+        return this.getTestRunIdFromSuite(context.test.parent)
+    }
+
+    private getTestRunIdFromSuite (parent: any): string|undefined {
+        if (!parent) {
+            return
+        }
+        for (const test of parent.tests) {
+            const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
+            if (this._tests[uniqueIdentifier]) {
+                return this._tests[uniqueIdentifier].uuid
+            }
+        }
+
+        for (const suite of parent.suites) {
+            const testRunId: string|undefined = this.getTestRunIdFromSuite(suite)
+            if (testRunId) {
+                return testRunId
+            }
+        }
+        return
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
@@ -394,7 +456,7 @@ class _InsightsHandler {
             }
         }
 
-        if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
+        if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped' || eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
@@ -414,6 +476,7 @@ class _InsightsHandler {
         /* istanbul ignore if */
         if (eventType.match(/HookRun/)) {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+            testData.test_run_id = this.getTestRunId(test.ctx)
             uploadData.hook_run = testData
         } else {
             uploadData.test_run = testData
