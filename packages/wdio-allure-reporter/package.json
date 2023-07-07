@@ -1,6 +1,6 @@
 {
   "name": "@wdio/allure-reporter",
-  "version": "8.11.0",
+  "version": "8.11.3",
   "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
   "author": "Boris Osipov <osipov.boris@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-allure-reporter",
