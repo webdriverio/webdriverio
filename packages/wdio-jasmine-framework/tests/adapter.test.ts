@@ -23,6 +23,11 @@ const TEST_INTERFACES = ['it', 'fit', 'xit']
 const BEFORE_HOOK_IDX = 1
 const AFTER_HOOK_IDX = 3
 
+globalThis.jasmine = {
+    addMatchers: 'addMatchers',
+    addAsyncMatchers: 'addAsyncMatchers'
+}
+
 const wdioReporter: EventEmitter = {
     write: vi.fn(),
     emit: vi.fn(),
@@ -65,6 +70,7 @@ test('comes with a factory', async () => {
     )
     const result = await instance.run()
     expect(result).toBe(0)
+    expect(globalThis.jasmine.addMatchers).toBe(globalThis.jasmine.addAsyncMatchers)
 })
 
 test('should properly set up jasmine', async () => {
