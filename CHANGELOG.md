@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.11.4 (2023-07-07)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#10687](https://github.com/webdriverio/webdriverio/pull/10687) (@wdio/cli): support loading of config files with mjs or mts extension ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.11.3 (2023-07-07)
 
 #### :bug: Bug Fix
