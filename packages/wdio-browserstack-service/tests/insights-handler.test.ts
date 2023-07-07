@@ -428,13 +428,13 @@ describe('getTestRunId', function () {
     })
 
     it('should return if null context', () => {
-        expect(insightsHandler.getTestRunId(null)).toEqual(undefined)
+        expect(insightsHandler['getTestRunId'](null)).toEqual(undefined)
     })
 
     it('return test id from current test', () => {
         const identifier = 'parent title - some title'
         insightsHandler['_tests'] = { [identifier]: { uuid: '1234' } }
-        expect(insightsHandler.getTestRunId({
+        expect(insightsHandler['getTestRunId']({
             currentTest: {
                 title: 'some title',
                 parent: 'parent title'
