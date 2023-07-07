@@ -395,7 +395,13 @@ class JasmineAdapter {
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(jasmineMatchers).reduce((prev, [name, fn]) => {
             prev[name] = (util) => ({
                 compare: async <T>(actual: T, expected: T, ...args: any[]) => fn(util).compare(actual, expected, ...args),
-                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).negativeCompare!(actual, expected, ...args)
+                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
+                    const { pass, message } = fn(util).compare(actual, expected, ...args)
+                    return {
+                        pass: !pass,
+                        message
+                    }
+                }
             })
             return prev
         }, {} as jasmine.CustomAsyncMatcherFactories)
