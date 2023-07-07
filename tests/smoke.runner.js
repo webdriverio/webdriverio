@@ -134,6 +134,7 @@ const jasmineTestrunner = async () => {
         [
             'expect(number).toBe(number)',
             'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
             'expect(object).toEqual(object)',
             'expect(object).toBeFalse(boolean)',
             'expect(string).toHaveTitle(object)',
