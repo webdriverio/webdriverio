@@ -74,6 +74,13 @@
     },
     {
       "type": "category",
+      "label": "Desktop Testing",
+      "items": [
+        "desktop-testing/electron"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Component Testing",
       "link": {
         "type": "doc",

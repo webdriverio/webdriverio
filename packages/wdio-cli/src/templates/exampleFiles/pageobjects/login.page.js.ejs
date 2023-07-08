@@ -1,7 +1,7 @@
-<%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
+<%- answers.isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
 
-<%- isUsingTypeScript || esmSupport
-    ? `import Page from './page${esmSupport ? '.js' : ''}';`
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import Page from './page${answers.esmSupport ? '.js' : ''}';`
     : "const Page = require('./page');" %>
 
 /**
@@ -11,15 +11,15 @@ class LoginPage extends Page {
     /**
      * define selectors using getter methods
      */
-    <%- isUsingTypeScript ? "public " : "" %>get inputUsername () {
+    <%- answers.isUsingTypeScript ? "public " : "" %>get inputUsername () {
         return $('#username');
     }
 
-    <%- isUsingTypeScript ? "public " : "" %>get inputPassword () {
+    <%- answers.isUsingTypeScript ? "public " : "" %>get inputPassword () {
         return $('#password');
     }
 
-    <%- isUsingTypeScript ? "public " : "" %>get btnSubmit () {
+    <%- answers.isUsingTypeScript ? "public " : "" %>get btnSubmit () {
         return $('button[type="submit"]');
     }
 
@@ -27,7 +27,7 @@ class LoginPage extends Page {
      * a method to encapsule automation code to interact with the page
      * e.g. to login using username and password
      */
-    <%- isUsingTypeScript ? "public " : "" %>async login (username<%- isUsingTypeScript ? ": string": "" %>, password<%- isUsingTypeScript ? ": string": "" %>) {
+    <%- answers.isUsingTypeScript ? "public " : "" %>async login (username<%- answers.isUsingTypeScript ? ": string": "" %>, password<%- answers.isUsingTypeScript ? ": string": "" %>) {
         await this.inputUsername.setValue(username);
         await this.inputPassword.setValue(password);
         await this.btnSubmit.click();
@@ -36,9 +36,9 @@ class LoginPage extends Page {
     /**
      * overwrite specific options to adapt it to page object
      */
-    <%- isUsingTypeScript ? "public " : "" %>open () {
+    <%- answers.isUsingTypeScript ? "public " : "" %>open () {
         return super.open('login');
     }
 }
 
-<%- isUsingTypeScript || esmSupport ? "export default": "module.exports =" %> new LoginPage();
+<%- answers.isUsingTypeScript || answers.esmSupport ? "export default": "module.exports =" %> new LoginPage();

@@ -20,7 +20,7 @@ To initiate a new WebdriverIO project, run:
 npm create wdio@latest ./
 ```
 
-An installation wizard will guide you through the process. Ensure you select TypeScript as compiler and don't have it generate page objects for you given this project comes with all page objects needed. Then make sure to select `chromedriver` and `vscode` within the list of services, e.g.:
+An installation wizard will guide you through the process. Ensure you select TypeScript as compiler and don't have it generate page objects for you given this project comes with all page objects needed. Then make sure to select `vscode` within the list of services, e.g.:
 
 ![WebdriverIO Configuration Wizard](/img/vscode.gif "WebdriverIO Configuration Wizard")
 

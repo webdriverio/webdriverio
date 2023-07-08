@@ -177,7 +177,7 @@ export async function handler(argv: RunCommandArguments) {
         NODE_OPTIONS?.includes('ts-node/esm')
     )
     if (isTSFile && !runsWithLoader && nodePath) {
-        NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        NODE_OPTIONS += ' -r ts-node/register --loader ts-node/esm/transpile-only --no-warnings'
         const localTSConfigPath = (
             (
                 params.autoCompileOpts?.tsNodeOpts?.project &&

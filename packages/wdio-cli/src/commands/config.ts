@@ -106,6 +106,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         runner: runnerPackage.short as 'local' | 'browser',
         preset: presetPackage.short,
         framework: frameworkPackage.short,
+        purpose: runnerPackage.purpose,
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),

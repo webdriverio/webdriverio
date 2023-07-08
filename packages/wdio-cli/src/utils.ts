@@ -250,11 +250,8 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
  * @todo add JSComments
  */
 export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
-    const splitHash = pkg.split(hash)
-    return {
-        package: splitHash[0],
-        short: splitHash[1]
-    }
+    const [p, short, purpose] = pkg.split(hash)
+    return { package: p, short, purpose }
 }
 
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {
@@ -437,9 +434,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
 async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
-        : (answers.framework === 'mocha'
-            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
-            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
+        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
@@ -451,7 +446,9 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     )))).reduce((cur, acc) => [...acc, ...(cur)], [])
 
     for (const file of files) {
-        const renderedTpl = await renderFile(file, answers)
+        console.log('Render', file)
+
+        const renderedTpl = await renderFile(file, { answers })
         const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         const destPath = (

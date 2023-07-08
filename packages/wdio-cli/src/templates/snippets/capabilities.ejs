@@ -1,0 +1,34 @@
+capabilities: [{<%
+    if (answers.expEnvAccessKey) { %>
+        // Experitest Access Key
+        // get more information at https://docs.experitest.com/display/TE/Obtaining+Access+Key
+        'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%
+    }
+    if (answers.setupMobileEnvironment) { %>
+        // capabilities for local Appium web tests on an Android Emulator
+        platformName: 'Android', // or "iOS"
+        browserName: 'Chrome', // or "Safari"
+        'appium:deviceName': 'Android GoogleAPI Emulator', // or "iPhone Simulator"
+        'appium:platformVersion': '12.0', // or "16.2" (for running iOS v16)
+        'appium:automationName': 'UiAutomator2' // or "XCUITest"<%
+    }
+    if (answers.purpose === 'vscode') { %>
+        browserName: 'vscode',
+        browserVersion: 'stable', // also possible: "insiders" or a specific version e.g. "1.80.0"
+        'wdio:vscodeOptions': {
+            // points to directory where extension package.json is located
+            extensionPath: __dirname,
+            // optional VS Code settings
+            userSettings: {
+                "editor.fontSize": 14
+            }
+        }<%
+    } else if (answers.purpose === 'electron') { %>
+        // no need to define any capabilities for local Electron web tests
+        // since service plugin takes care of setting everything up<%
+    } else {
+        %>
+        // capabilities for local browser web tests
+        browserName: 'chrome' // or "firefox", "microsoftedge", "safari"<%
+    } %>
+    }],
