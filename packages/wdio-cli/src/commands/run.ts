@@ -168,6 +168,7 @@ export async function handler(argv: RunCommandArguments) {
      */
     const nodePath = process.argv[0]
     let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
+    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts')
     const runsWithLoader = (
         Boolean(
             process.argv.find((arg) => arg.startsWith('--loader')) &&
@@ -175,7 +176,7 @@ export async function handler(argv: RunCommandArguments) {
         ) ||
         NODE_OPTIONS?.includes('ts-node/esm')
     )
-    if (wdioConf.fullPath.endsWith('.ts') && !runsWithLoader && nodePath) {
+    if (isTSFile && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
         const localTSConfigPath = (
             (

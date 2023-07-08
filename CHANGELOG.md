@@ -21,6 +21,54 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.11.4 (2023-07-07)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#10687](https://github.com/webdriverio/webdriverio/pull/10687) (@wdio/cli): support loading of config files with mjs or mts extension ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.11.3 (2023-07-07)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#10686](https://github.com/webdriverio/webdriverio/pull/10686) (@wdio/jasmine-framework): support `addMatcher` ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10685](https://github.com/webdriverio/webdriverio/pull/10685) (@wdio/jasmine-framework): support sync negative matchers ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-junit-reporter`
+  * [#10684](https://github.com/webdriverio/webdriverio/pull/10684) (@wdio/junit-reporter): fix issue with junit reporter not working on windows ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#10475](https://github.com/webdriverio/webdriverio/pull/10475) @wdio/allure-reporter cucumber step reporter adds blank steps before and after each scenario bug fixing ([@JordiSAGE](https://github.com/JordiSAGE))
+* `devtools`
+  * [#10578](https://github.com/webdriverio/webdriverio/pull/10578) fix: Webdriverio v7 screenshot issue/behaviour change webdriverio#9226 ([@franck-jude](https://github.com/franck-jude))
+* `wdio-cucumber-framework`
+  * [#10567](https://github.com/webdriverio/webdriverio/pull/10567) @wdio/cucumber-framework: Enables ability to set a default language for feature files ([@lukefitz1](https://github.com/lukefitz1))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10601](https://github.com/webdriverio/webdriverio/pull/10601) [browserstack-service] added beforeAll and afterAll hook mappings for WDIO mocha and jasmine ([@sriteja777](https://github.com/sriteja777))
+* `webdriver`
+  * [#10584](https://github.com/webdriverio/webdriverio/pull/10584) Fix typos and remove duplicate 'to' in WebDriver error message ([@Kazaz-Or](https://github.com/Kazaz-Or))
+
+#### :memo: Documentation
+* Other
+  * [#10676](https://github.com/webdriverio/webdriverio/pull/10676) Updating the Boilerplate name ([@larryg01](https://github.com/larryg01))
+* `wdio-devtools-service`
+  * [#10677](https://github.com/webdriverio/webdriverio/pull/10677) Update documentation for cdp network events ([@nils-hoyer](https://github.com/nils-hoyer))
+
+#### Committers: 8
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jordi Lagunas ([@JordiSAGE](https://github.com/JordiSAGE))
+- LarryG ([@larryg01](https://github.com/larryg01))
+- Or Kazaz ([@Kazaz-Or](https://github.com/Kazaz-Or))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- [@franck-jude](https://github.com/franck-jude)
+- [@lukefitz1](https://github.com/lukefitz1)
+- [@nils-hoyer](https://github.com/nils-hoyer)
+
+
 ## v8.11.2 (2023-06-12)
 
 #### :bug: Bug Fix

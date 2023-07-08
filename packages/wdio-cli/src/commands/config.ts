@@ -182,7 +182,14 @@ export async function canAccessConfigPath(configPath: string) {
     return await fs.access(`${configPath}.js`).then(
         () => true,
         () => fs.access(`${configPath}.ts`).then(
-            () => true, () => false
+            () => true,
+            () => fs.access(`${configPath}.mjs`).then(
+                () => true,
+                () => fs.access(`${configPath}.mts`).then(
+                    () => true,
+                    () => false
+                )
+            )
         )
     )
 }

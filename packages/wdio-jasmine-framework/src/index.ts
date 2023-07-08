@@ -390,12 +390,25 @@ class JasmineAdapter {
     }
 
     #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
+        /**
+         * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
+         * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous
+         * matchers are added to `expectAsync`
+         */
+        globalThis.jasmine.addMatchers = globalThis.jasmine.addAsyncMatchers as any
+
         // @ts-expect-error not exported in jasmine
         const jasmineMatchers: jasmine.CustomMatcherFactories = jasmine.matchers
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(jasmineMatchers).reduce((prev, [name, fn]) => {
             prev[name] = (util) => ({
                 compare: async <T>(actual: T, expected: T, ...args: any[]) => fn(util).compare(actual, expected, ...args),
-                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).negativeCompare!(actual, expected, ...args)
+                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
+                    const { pass, message } = fn(util).compare(actual, expected, ...args)
+                    return {
+                        pass: !pass,
+                        message
+                    }
+                }
             })
             return prev
         }, {} as jasmine.CustomAsyncMatcherFactories)

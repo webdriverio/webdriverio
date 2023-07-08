@@ -4,6 +4,7 @@ describe('Jasmine smoke test', () => {
     it('should allow sync matchers', () => {
         const test = 123
         expect(test).toBe(123)
+        expect(test).not.toBe(124)
     })
 
     it('should support sync Jest and Jasmine matchers', () => {
@@ -37,4 +38,24 @@ describe('Jasmine smoke test', () => {
 
         expect(this.wdioRetries).toBe(1)
     }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
+
+    describe('support for addMatcher', () => {
+        beforeAll(() => {
+            jasmine.addMatchers({
+                testMatcher: function testMatcher(/*matcherUtils*/) {
+                    return {
+                        compare: function compare(/*actual, expected*/) {
+                            return { pass: true, message: 'Just good vibes.' }
+                        }
+                    }
+                }
+            })
+        })
+
+        it('should provide the custom matcher', () => {
+            const customMatcher = expect(1).testMatcher
+            expect(customMatcher).toBeDefined()
+            expect(customMatcher).toBeInstanceOf(Function)
+        })
+    })
 })

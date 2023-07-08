@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TestStats } from '@wdio/reporter'
@@ -25,6 +26,19 @@ const suitesMultipleLog = (await vi.importActual('./__fixtures__/suites-multiple
 const suitesErrorLog = (await vi.importActual('./__fixtures__/suites-error.json') as any).default
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+
+if (os.platform() === 'win32') {
+    cucumberRunnerLog.specs = ['file:///C:/features/sample_feature.feature']
+    mochaRunnerLog.specs = ['file:///C:/path/to/project/test/specs/sync.spec.js']
+    cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
+    cucumberRunnerBrowserstackAndroidLog.specs = ['file:///C:/features/sample_feature.feature']
+    cucumberRunnerBrowserstackIosLog.specs = ['file:///C:/features/sample_feature.feature']
+    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog]) {
+        for (const [, suite] of Object.entries(fixture) as any) {
+            suite.file = 'C:\\features\\sample_feature.feature'
+        }
+    }
+}
 
 describe('wdio-junit-reporter', () => {
     let reporter: WDIOJunitReporter
@@ -112,111 +126,91 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
-    it('generates xml output (Cucumber-style) when feature has file:// protocol', () => {
-        reporter = new WDIOJunitReporter({ stdout: true })
-        reporter.suites = { ...featuresLog } as any
-        const runner = { ...cucumberRunnerLog }
-        runner.specs = runner.specs.map((s: string) => `file://${s}`)
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
-    it('generates xml output (Cucumber-style) when feature has file:// protocol and the addFileAttribute option is set', () => {
-        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
-        reporter.suites = { ...featuresLog } as any
-        const runner = { ...cucumberRunnerLog }
-        runner.specs = runner.specs.map((s: string) => `file://${s}`)
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style)', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style) (with packageName)', () => {
         reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-tests', stdout: true })
         reporter.suites = featuresLog as any
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
         reporter.suites = featuresWithFailingThenSkipStepLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON', () => {
         reporter.suites = suitesWithNoErrorObjectLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON (Cucumber-style)', () => {
         reporter.suites = featuresWithErrorStepAndNoErrorObjectLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('should build the xml if feature and scenario are unordered in JSON (Cucumber-style)', () => {
         reporter.suites = unorderedFeatureAndScenarioWithError as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked skipped if a single scenario step is pending (Cucumber-style)', () => {
         reporter.suites = featuresWithPendingStepLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if before all hook failed', () => {
         reporter.suites = suitesHooksLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if before each hook failed', () => {
         reporter.suites = suitesWithFailedBeforeEachHookLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if after each hook failed', () => {
         reporter.suites = suitesWithFailedAfterEachHookLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output when test is marked as skipped', () => {
         reporter.suites = suiteTestRetry as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set', () => {
@@ -230,7 +224,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set (Cucumber-style)', () => {
@@ -244,7 +238,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output with correct information when test is ran against Browserstack for iOS apps', () => {
@@ -252,7 +246,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackIosLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackIosLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output with correct information when test is ran against Browserstack for Android apps', () => {
@@ -260,7 +254,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackAndroidLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackAndroidLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('ensures that capabilities passed to buildJunitXml are not null/undefined', () => {
@@ -268,7 +262,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackAndroidLogMissingOS as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackAndroidLogMissingOS as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when the addFileAttribute option is set', () => {
@@ -276,7 +270,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when the addFileAttribute option is set (Cucumber-style)', () => {
@@ -284,42 +278,55 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output without ansi', () => {
         reporter.suites = suitesErrorLog as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when having nested suites', () => {
         reporter.suites = nestedSuites as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
         reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite!.fullTitle}` })
         reporter.suites = suitesErrorLog as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when having classNameFormat override with cucumber', () => {
         reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, activeFeatureName }) => `foo-${packageName}-${activeFeatureName}` })
         reporter.suites = featuresLog as any
 
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace('C:/', '')).toMatchSnapshot()
     })
 
     it( 'generates xml output correctly when having testSuiteNameFormat override with mocha',  () => {
         reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo ${name} ${suite.title}` })
         reporter.suites = suitesErrorLog as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace('file://', '').replace('C:/', '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when having testSuiteNameFormat override with cucumber', () => {
         reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo-${name}-${suite.title}` })
         reporter.suites = featuresLog as any
 
-        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace('C:/', '')).toMatchSnapshot()
+    })
+
+    it('_buildOrderedReport', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo-${name}-${suite.title}` })
+        reporter['_addCucumberFeatureToBuilder'] = () => '_addCucumberFeatureToBuilder'
+        reporter['_addSuiteToBuilder'] = () => '_addSuiteToBuilder'
+        const specFileName = os.platform() === 'win32' ? 'file:///C:/foo/bar' : 'file:///foo/bar'
+        const file = os.platform() === 'win32' ? 'C:\\foo\\bar' : '/foo/bar'
+        reporter.suites = {
+            foo: { type: 'feature' } as any,
+            bar: { type: 'feature', file } as any
+        }
+        expect(reporter['_buildOrderedReport'](null, null as any, specFileName, 'feature', true)).toBe('_addCucumberFeatureToBuilder')
     })
 })
