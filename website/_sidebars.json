@@ -109,6 +109,15 @@
     },
     {
       "type": "category",
+      "label": "VS Code Extension Testing",
+      "link": {
+        "type": "doc",
+        "id": "vscode-extension-testing"
+      },
+      "items": []
+    },
+    {
+      "type": "category",
       "label": "Migrate",
       "items": [
         "v6-migration",
