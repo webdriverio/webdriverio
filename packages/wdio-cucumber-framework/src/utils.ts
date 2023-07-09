@@ -1,12 +1,14 @@
-import path from 'node:path'
+import path from "node:path";
 
-import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
-import type TagExpressionParser from '@cucumber/tag-expressions'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import logger from "@wdio/logger";
+import { isFunctionAsync } from "@wdio/utils";
+import type TagExpressionParser from "@cucumber/tag-expressions";
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from "./constants.js";
+import { compile } from "@cucumber/gherkin";
+import { IdGenerator } from "@cucumber/messages";
 
-import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import type { World } from '@cucumber/cucumber'
+import type { supportCodeLibraryBuilder } from "@cucumber/cucumber";
+import type { World } from "@cucumber/cucumber";
 import type {
     TableRow,
     TableCell,
@@ -17,77 +19,77 @@ import type {
     TestStepResultStatus,
     GherkinDocument,
     FeatureChild,
-    RuleChild
-} from '@cucumber/messages'
+    RuleChild,
+} from "@cucumber/messages";
 
-import type { Capabilities } from '@wdio/types'
-import type { ReporterStep } from './constants.js'
-import type { TestHookDefinitionConfig } from './types.js'
+import type { Capabilities } from "@wdio/types";
+import type { ReporterStep } from "./constants.js";
+import type { TestHookDefinitionConfig } from "./types.js";
 
-const log = logger('@wdio/cucumber-framework:utils')
+const log = logger("@wdio/cucumber-framework:utils");
 
 /**
  * NOTE: this function is exported for testing only
  */
-export function createStepArgument ({ argument }: PickleStep) {
+export function createStepArgument({ argument }: PickleStep) {
     if (!argument) {
-        return undefined
+        return undefined;
     }
 
     if (argument.dataTable) {
         return {
-            rows: argument.dataTable.rows?.map((row: TableRow) => (
-                {
-                    cells: row.cells?.map((cell: TableCell) => cell.value)
-                }
-            ))
-        }
+            rows: argument.dataTable.rows?.map((row: TableRow) => ({
+                cells: row.cells?.map((cell: TableCell) => cell.value),
+            })),
+        };
     }
 
     if (argument.docString) {
-        return argument.docString.content
+        return argument.docString.content;
     }
 
-    return undefined
+    return undefined;
 }
 
 /**
  * format message
  * @param {object} message { type: string, payload: object }
  */
-export function formatMessage ({ payload = {} }: any) {
-    const content = { ...payload }
+export function formatMessage({ payload = {} }: any) {
+    const content = { ...payload };
 
     /**
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
     if (payload.error && (payload.error.message || payload.error.stack)) {
-        const { name, message, stack } = payload.error
-        content.error = { name, message, stack }
+        const { name, message, stack } = payload.error;
+        content.error = { name, message, stack };
     }
 
     if (payload.title && payload.parent) {
-        content.fullTitle = `${payload.parent}: ${payload.title}`
+        content.fullTitle = `${payload.parent}: ${payload.title}`;
     }
 
-    return content
+    return content;
 }
 
 enum StepType {
-    hook = 'hook',
-    test = 'test'
+    hook = "hook",
+    test = "test",
 }
 
 /**
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType (step: TestStep) {
-    return step.hookId ? StepType.hook : StepType.test
+export function getStepType(step: TestStep) {
+    return step.hookId ? StepType.hook : StepType.test;
 }
 
-export function getFeatureId (uri: string, feature: Feature) {
-    return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
+export function getFeatureId(uri: string, feature: Feature) {
+    return `${path.basename(uri)}:${feature.location?.line}:${
+        feature.location?.column
+    }`;
 }
 
 /**
@@ -96,9 +98,14 @@ export function getFeatureId (uri: string, feature: Feature) {
  * @param {string} text
  * @param {string} type
  */
-export function getTestStepTitle (keyword:string = '', text:string = '', type:string) {
-    const title = (!text && type.toLowerCase() !== 'hook') ? 'Undefined Step' : text
-    return `${keyword.trim()} ${title.trim()}`.trim()
+export function getTestStepTitle(
+    keyword: string = "",
+    text: string = "",
+    type: string
+) {
+    const title =
+        !text && type.toLowerCase() !== "hook" ? "Undefined Step" : text;
+    return `${keyword.trim()} ${title.trim()}`.trim();
 }
 
 /**
@@ -110,13 +117,13 @@ export function buildStepPayload(
     scenario: Pickle,
     step: ReporterStep,
     params: {
-        type: string
-        state?: TestStepResultStatus | string | null
-        error?: Error
-        duration?: number
-        title?: string | null
-        passed?: boolean
-        file?: string
+        type: string;
+        state?: TestStepResultStatus | string | null;
+        error?: Error;
+        duration?: number;
+        title?: string | null;
+        passed?: boolean;
+        file?: string;
     }
 ) {
     return {
@@ -130,7 +137,7 @@ export function buildStepPayload(
         tags: scenario.tags,
         featureName: feature.name,
         scenarioName: scenario.name,
-    }
+    };
 }
 
 /**
@@ -138,21 +145,28 @@ export function buildStepPayload(
  * to identify later on is function a step, user hook or wdio hook.
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
  */
-export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
-    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
-        options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
-            const hookFn = testRunHookDefinition.code
-            if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
+export function setUserHookNames(options: typeof supportCodeLibraryBuilder) {
+    CUCUMBER_HOOK_DEFINITION_TYPES.forEach((hookName) => {
+        options[hookName].forEach(
+            (testRunHookDefinition: TestHookDefinitionConfig) => {
+                const hookFn = testRunHookDefinition.code;
+                if (!hookFn.name.startsWith("wdioHook")) {
+                    const userHookAsyncFn = async function (
+                        this: World,
+                        ...args: any
+                    ) {
+                        return hookFn.apply(this, args);
+                    };
+                    const userHookFn = function (this: World, ...args: any) {
+                        return hookFn.apply(this, args);
+                    };
+                    testRunHookDefinition.code = isFunctionAsync(hookFn)
+                        ? userHookAsyncFn
+                        : userHookFn;
                 }
-                const userHookFn = function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
-                }
-                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
-        })
-    })
+        );
+    });
 }
 
 /**
@@ -161,37 +175,57 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
  * @param {*} testCase
  */
-export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip$|^@skip\((.*)\)$/
+export function filterPickles(
+    capabilities: Capabilities.RemoteCapability,
+    pickle?: Pickle
+) {
+    const skipTag = /^@skip$|^@skip\((.*)\)$/;
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {
-            return expr.indexOf(value) >= 0
+            return expr.indexOf(value) >= 0;
         } else if (expr instanceof RegExp) {
-            return expr.test(value)
+            return expr.test(value);
         }
-        return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
-    }
+        return (
+            (expr && ("" + expr).toLowerCase()) ===
+            (value && ("" + value).toLowerCase())
+        );
+    };
 
     const parse = (skipExpr: string) =>
-        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
-            const pos = splitItem.indexOf('=')
-            if (pos > 0) {
-                try {
-                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-                } catch (err: any) {
-                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
+        skipExpr
+            .split(";")
+            .reduce((acc: Record<string, string>, splitItem: string) => {
+                const pos = splitItem.indexOf("=");
+                if (pos > 0) {
+                    try {
+                        acc[splitItem.substring(0, pos)] = eval(
+                            splitItem.substring(pos + 1)
+                        );
+                    } catch (err: any) {
+                        log.error(
+                            `Couldn't use tag "${splitItem}" for filtering because it is malformed`
+                        );
+                    }
                 }
-            }
-            return acc
-        }, {})
+                return acc;
+            }, {});
 
-    return !(pickle && pickle.tags && pickle.tags
-        .map(p => p.name?.match(skipTag))
-        .filter(Boolean)
-        .map(m => parse(m![1] ?? ''))
-        .find((filter: Capabilities.Capabilities) => Object.keys(filter)
-            .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
+    return !(
+        pickle &&
+        pickle.tags &&
+        pickle.tags
+            .map((p) => p.name?.match(skipTag))
+            .filter(Boolean)
+            .map((m) => parse(m![1] ?? ""))
+            .find((filter: Capabilities.Capabilities) =>
+                Object.keys(filter).every(
+                    (key: keyof Capabilities.Capabilities) =>
+                        match((capabilities as any)[key], filter[key] as RegExp)
+                )
+            )
+    );
 }
 
 /**
@@ -199,15 +233,19 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
  * They are NOT available on the scenario, they ARE on the feature.
  * This will add them to it
  */
-export function getRule(feature: Feature, scenarioId: string){
-    const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
+export function getRule(feature: Feature, scenarioId: string) {
+    const rules = feature.children?.filter(
+        (child) => Object.keys(child)[0] === "rule"
+    );
     const rule = rules.find((rule) => {
-        const scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
+        const scenarioRule = rule.rule?.children?.find(
+            (child) => child.scenario?.id === scenarioId
+        );
         if (scenarioRule) {
-            return rule
+            return rule;
         }
-    })
-    return rule?.rule?.name
+    });
+    return rule?.rule?.name;
 }
 
 /**
@@ -215,84 +253,53 @@ export function getRule(feature: Feature, scenarioId: string){
  * on the scenario, they ARE on the feature.
  * This will aad them
  */
-export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
-    return steps.map(step => {
+export function addKeywordToStep(steps: ReporterStep[], feature: Feature) {
+    return steps.map((step) => {
         // Steps without a astNodeIds are hooks
         if (step.astNodeIds && step.astNodeIds.length > 0 && feature.children) {
             // Points to the AST node locations of the pickle. The last one represents the unique id of the pickle.
             // A pickle constructed from Examples will have the first id originating from the Scenario AST node, and
             // the second from the TableRow AST node.
             // See https://github.com/cucumber/cucumber/blob/master/messages/messages.md
-            const astNodeId = step.astNodeIds[0]
+            const astNodeId = step.astNodeIds[0];
 
-            const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
-            let featureChildren = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
-            const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
-            featureChildren = featureChildren.concat(rulesChildrens)
+            const rules = feature.children.filter(
+                (child) => Object.keys(child)[0] === "rule"
+            );
+            let featureChildren = feature.children.filter(
+                (child) => Object.keys(child)[0] !== "rule"
+            );
+            const rulesChildrens: any = rules
+                .map((child) => child.rule?.children)
+                .flat();
+            featureChildren = featureChildren.concat(rulesChildrens);
 
             featureChildren.find((child) =>
                 // @ts-ignore
-                child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
-                    if (featureScenarioStep.id === astNodeId.toString()) {
-                        step.keyword = featureScenarioStep.keyword
+                child[Object.keys(child)[0]].steps.find(
+                    (featureScenarioStep: ReporterStep) => {
+                        if (featureScenarioStep.id === astNodeId.toString()) {
+                            step.keyword = featureScenarioStep.keyword;
+                        }
+                        return;
                     }
-                    return
-                })
-            )
-            return step
+                )
+            );
+            return step;
         }
-        return step
-    })
+        return step;
+    });
 }
 
-export function hasTags(
-    msg: GherkinDocument | FeatureChild | RuleChild,
-    { tagParser, lineOnFile }: { tagParser: ReturnType<typeof TagExpressionParser>, lineOnFile: number | undefined }
+export function shouldRun(
+    doc: GherkinDocument,
+    tagParser: ReturnType<typeof TagExpressionParser>
 ) {
-    const type = (
-        (msg as GherkinDocument).feature
-        ?? (msg as FeatureChild).rule
-        ?? (msg as RuleChild).scenario
-    )
-
-    if (type) {
-        const matches = tagParser.evaluate(type.tags.map(t => t.name))
-
-        return lineOnFile
-            // Evaluate only specific line
-            ? type.location.line === lineOnFile && matches
-            : matches
-    }
-    return false
-}
-
-export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
-
     if (!doc.feature) {
-        return false
+        return false;
     }
 
-    const ext = path.extname(doc.uri!)
-
-    const lineOnFile = ext.startsWith('feature:')
-        ? Number(ext.split('feature:').pop())
-        : undefined
-
-    return (
-        // Check if Feature has matching tags
-        hasTags(doc, { tagParser, lineOnFile })
-
-        // Check if some root Scenarios have matching tags
-        || doc.feature.children.filter(c => c.scenario).some(child => hasTags(child, { tagParser, lineOnFile }))
-
-        // Check if some Rules have matching tags
-        || doc.feature.children.filter(c => c.rule).some(child => hasTags(child, { tagParser, lineOnFile }))
-
-        // Check if some Scenarios within Rules have matching tags
-        || doc.feature.children
-            .filter(c => c.rule)
-            .map(c => c.rule!.children.filter(c => c.scenario))
-            .flat(1)
-            .some(child => hasTags(child, { tagParser, lineOnFile }))
-    )
+    const pickles = compile(doc, "", IdGenerator.incrementing());
+    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name));
+    return tags.some((tag) => tagParser.evaluate(tag));
 }
