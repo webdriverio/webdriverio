@@ -72,7 +72,7 @@ export const COMPILER_OPTIONS = {
  */
 export const SUPPORTED_PACKAGES = {
     runner: [
-        { name: 'E2E Testing - for web and mobile applications', value: '@wdio/local-runner$--$local$--$e2e' },
+        { name: 'E2E Testing - of Web or Mobile Applications', value: '@wdio/local-runner$--$local$--$e2e' },
         { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
         { name: 'Desktop Testing - of Electron Applications\n    > https://webdriver.io/docs/desktop-testing/electron', value: '@wdio/local-runner$--$local$--$electron' },
         { name: 'Desktop Testing - of MacOS Applications\n    > https://webdriver.io/docs/desktop-testing/macos', value: '@wdio/local-runner$--$local$--$macos' },

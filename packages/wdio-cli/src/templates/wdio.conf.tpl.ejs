@@ -48,10 +48,6 @@ if (answers.isUsingTypeScript) {
             transpileOnly: true
         }
     },
-    <% } else if (!answers.isUsingTypeScript && !answers.isUsingBabel) { %>
-    autoCompileOpts: {
-        autoCompile: false
-    },
     <% }
     if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',
