@@ -3,7 +3,7 @@ services: [<%- answers.services.map((service) => {
         return /*js*/`[
         'electron',
         {
-            appPath: './dist',
+            appPath: '${answers.appPath}',
             appName: productName,
             appArgs: ['foo', 'bar=baz'],
             chromedriver: {

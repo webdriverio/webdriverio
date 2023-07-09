@@ -1,6 +1,4 @@
-<%
-console.log(answers)
-if (answers.purpose === 'vscode') {
+<% if (answers.purpose === 'vscode') {
 %><%- include('../../snippets/vscodeTest.js.ejs', { answers }) %><%
 } else if (answers.purpose === 'electron') {
 %><%- include('../../snippets/electronTest.js.ejs', { answers }) %><%

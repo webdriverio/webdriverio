@@ -6,6 +6,7 @@ export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
+    appPath?: string
     backend?: typeof BACKEND_CHOICES[number]
     hostname?: string
     port?: string

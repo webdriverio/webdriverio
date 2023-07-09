@@ -243,6 +243,12 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
+    type: 'input',
+    name: 'appPath',
+    message: 'What is the path to your compiled Electron app?',
+    default: './dist',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+}, {
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',

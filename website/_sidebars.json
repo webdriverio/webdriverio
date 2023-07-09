@@ -105,23 +105,11 @@
     },
     {
       "type": "category",
-      "label": "Web Extension Testing",
-      "link": {
-        "type": "doc",
-        "id": "web-extension-testing"
-      },
+      "label": "Extension Testing",
       "items": [
-        "web-extension-testing/tips-and-tricks"
+        "extension-testing/web-extensions",
+        "extension-testing/vscode-extensions"
       ]
-    },
-    {
-      "type": "category",
-      "label": "VS Code Extension Testing",
-      "link": {
-        "type": "doc",
-        "id": "vscode-extension-testing"
-      },
-      "items": []
     },
     {
       "type": "category",
