@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
 import type TagExpressionParser from '@cucumber/tag-expressions'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
-import { compile } from '@cucumber/gherkin';
-import { IdGenerator } from '@cucumber/messages';
+import { compile } from '@cucumber/gherkin'
+import { IdGenerator } from '@cucumber/messages'
 
 import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import type { World } from '@cucumber/cucumber'
@@ -17,9 +17,7 @@ import type {
     Feature,
     Pickle,
     TestStepResultStatus,
-    GherkinDocument,
-    FeatureChild,
-    RuleChild
+    GherkinDocument
 } from '@cucumber/messages'
 
 import type { Capabilities } from '@wdio/types'
@@ -253,7 +251,7 @@ export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof Tag
         return false
     }
 
-    const pickles = compile(doc, '', IdGenerator.incrementing());
-    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name));
-    return tags.some((tag) => tagParser.evaluate(tag));
+    const pickles = compile(doc, '', IdGenerator.incrementing())
+    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
+    return tags.some((tag) => tagParser.evaluate(tag))
 }
