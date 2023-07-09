@@ -247,27 +247,6 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
     })
 }
 
-export function hasTags(
-    msg: GherkinDocument | FeatureChild | RuleChild,
-    { tagParser, lineOnFile }: { tagParser: ReturnType<typeof TagExpressionParser>, lineOnFile: number | undefined }
-) {
-    const type = (
-        (msg as GherkinDocument).feature
-        ?? (msg as FeatureChild).rule
-        ?? (msg as RuleChild).scenario
-    )
-
-    if (type) {
-        const matches = tagParser.evaluate(type.tags.map(t => t.name))
-
-        return lineOnFile
-            // Evaluate only specific line
-            ? type.location.line === lineOnFile && matches
-            : matches
-    }
-    return false
-}
-
 export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
 
     if (!doc.feature) {
