@@ -24,6 +24,7 @@ exports[`handler 1`] = `
     "plugins": [],
     "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
     "projectRootDir": "/foo/bar",
+    "purpose": undefined,
     "rawAnswers": {
       "backend": "On my local machine",
       "baseUrl": "http://localhost",
@@ -77,6 +78,7 @@ exports[`parseAnswers 1`] = `
   ],
   "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
   "projectRootDir": "/foo/bar",
+  "purpose": undefined,
   "rawAnswers": {
     "backend": "On my local machine",
     "baseUrl": "http://localhost",

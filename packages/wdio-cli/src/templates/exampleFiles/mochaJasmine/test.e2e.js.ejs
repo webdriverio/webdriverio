@@ -1,0 +1,11 @@
+<% if (answers.purpose === 'vscode') {
+%><%- include('../../snippets/vscodeTest.js.ejs', { answers }) %><%
+} else if (answers.purpose === 'electron') {
+%><%- include('../../snippets/electronTest.js.ejs', { answers }) %><%
+} else if (answers.purpose === 'macos') {
+%><%- include('../../snippets/macosTest.js.ejs', { answers }) %><%
+} else if (answers.usePageObjects) {
+%><%- include('../../snippets/testWithPO.js.ejs', { answers }) %><%
+} else if (!answers.usePageObjects) {
+%><%- include('../../snippets/testWithoutPO.js.ejs', { answers }) %><%
+} %>

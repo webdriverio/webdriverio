@@ -250,11 +250,8 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
  * @todo add JSComments
  */
 export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
-    const splitHash = pkg.split(hash)
-    return {
-        package: splitHash[0],
-        short: splitHash[1]
-    }
+    const [p, short, purpose] = pkg.split(hash)
+    return { package: p, short, purpose }
 }
 
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {
@@ -437,9 +434,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
 async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
-        : (answers.framework === 'mocha'
-            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
-            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
+        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
@@ -451,7 +446,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     )))).reduce((cur, acc) => [...acc, ...(cur)], [])
 
     for (const file of files) {
-        const renderedTpl = await renderFile(file, answers)
+        const renderedTpl = await renderFile(file, { answers })
         const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         const destPath = (
@@ -469,7 +464,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        const ignoredQuestions = ['setupMobileEnvironment']
+        const ignoredQuestions = ['e2eEnvironment']
         const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
         const answers = filterdQuestionaire.reduce((answers, question) => Object.assign(
             answers,
@@ -728,6 +723,19 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     }
 
     /**
+     * add Appium mobile drivers if desired
+     */
+    if (parsedAnswers.purpose === 'macos') {
+        parsedAnswers.packagesToInstall.push('appium-mac2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'android') {
+        parsedAnswers.packagesToInstall.push('appium-uiautomator2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'ios') {
+        parsedAnswers.packagesToInstall.push('appium-xcuitest-driver')
+    }
+
+    /**
      * add packages that are required by services
      */
     addServiceDeps(servicePackages, parsedAnswers.packagesToInstall)
@@ -887,7 +895,7 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 }
 
 export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.setupMobileEnvironment) {
+    if (parsedAnswers.e2eEnvironment !== 'mobile') {
         return
     }
 

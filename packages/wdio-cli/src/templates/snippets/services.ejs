@@ -1,0 +1,18 @@
+services: [<%- answers.services.map((service) => {
+    if (service === 'electron') {
+        return /*js*/`[
+        'electron',
+        {
+            appPath: '${answers.appPath}',
+            appName: productName,
+            appArgs: ['foo', 'bar=baz'],
+            chromedriver: {
+                logFileName: 'wdio-chromedriver.log',
+            },
+            electronVersion: '23.1.0',
+        }
+    ]`
+    }
+
+    return `'${service}'`
+}) %>],

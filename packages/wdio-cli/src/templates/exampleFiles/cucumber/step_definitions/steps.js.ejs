@@ -1,16 +1,16 @@
-<%- isUsingTypeScript || esmSupport
+<%- answers.isUsingTypeScript || answers.esmSupport
     ? "import { Given, When, Then } from '@wdio/cucumber-framework';"
     : "const { Given, When, Then } = require('@wdio/cucumber-framework');" %>
 <%
 /**
  * step definition without page objects
  */
-if (usePageObjects) { %>
-<%- isUsingTypeScript || esmSupport
-    ? `import LoginPage from '${relativePath}/login.page${esmSupport ? '.js' : ''}';`
+if (answers.usePageObjects) { %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import LoginPage from '${relativePath}/login.page${answers.esmSupport ? '.js' : ''}';`
     : `const LoginPage = require('${relativePath}/login.page');` %>
-<%- isUsingTypeScript || esmSupport
-    ? `import SecurePage from '${relativePath}/secure.page${esmSupport ? '.js' : ''}';`
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import SecurePage from '${relativePath}/secure.page${answers.esmSupport ? '.js' : ''}';`
     : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 const pages = {

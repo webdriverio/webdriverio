@@ -2,12 +2,12 @@
 * main page object containing all methods, selectors and functionality
 * that is shared across all page objects
 */
-<%- isUsingTypeScript || esmSupport ? "export default" : "module.exports =" %> class Page {
+<%- answers.isUsingTypeScript || answers.esmSupport ? "export default" : "module.exports =" %> class Page {
     /**
     * Opens a sub page of the page
     * @param path path of the sub page (e.g. /path/to/page.html)
     */
-    <%- isUsingTypeScript ? "public " : "" %>open (path<%- isUsingTypeScript ? ": string" : "" %>) {
+    <%- answers.isUsingTypeScript ? "public " : "" %>open (path<%- answers.isUsingTypeScript ? ": string" : "" %>) {
         return browser.url(`https://the-internet.herokuapp.com/${path}`)
     }
 }

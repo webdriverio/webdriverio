@@ -6,7 +6,8 @@ export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
-    backend: typeof BACKEND_CHOICES[number]
+    appPath?: string
+    backend?: typeof BACKEND_CHOICES[number]
     hostname?: string
     port?: string
     path?: string
@@ -35,13 +36,16 @@ export interface Questionnair {
     createPackageJSON?: boolean
     projectRootCorrect?: boolean
     projectRoot?: string
-    setupMobileEnvironment?: boolean
+    e2eEnvironment?: 'web' | 'mobile'
+    mobileEnvironment?: 'android' | 'ios'
+    browserEnvironment?: ('chrome' | 'firefox' | 'safari' | 'microsoftedge')[]
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
     rawAnswers: Questionnair
     runner: 'local' | 'browser'
     framework: string
+    purpose: string
     reporters: string[]
     plugins: string[]
     services: string[]
@@ -115,6 +119,7 @@ export interface ConfigCommandArguments {
 export interface SupportedPackage {
     package: string
     short: string
+    purpose: string
 }
 
 export interface OnCompleteResult {
