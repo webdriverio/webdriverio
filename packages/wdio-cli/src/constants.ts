@@ -282,6 +282,7 @@ export const QUESTIONNAIRE = [{
     name: 'e2eEnvironment',
     message: 'Which environment you would like to automate?',
     choices: E2E_ENVIRONMENTS,
+    default: 'web',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         getTestingPurpose(answers) === 'e2e' &&
         answers.backend === BACKEND_CHOICES[0]
@@ -572,7 +573,7 @@ export const QUESTIONNAIRE = [{
         // unit and component testing in the browser
         !isBrowserRunner(answers) &&
         // mobile testing with Appium
-        answers.e2eEnvironment === 'web' &&
+        answers.e2eEnvironment !== 'mobile' &&
         // nor for VS Code, Electron or MacOS testing
         !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
