@@ -36,7 +36,7 @@ Dado que este protocolo es actualmente un trabajo en curso se añadirán más ca
 
 El proyecto [Appium](https://appium.io/) proporciona capacidades para automatizar dispositivos móviles, de escritorio y todo tipo de dispositivos IoT. Mientras que WebDriver se centra en el navegador y la web, la visión de Appium es utilizar el mismo enfoque pero para cualquier dispositivo arbitrario. Además de los comandos que WebDriver define, dispone de comandos especiales que a menudo son específicos del dispositivo remoto que se está automatizando. Para escenarios de pruebas móviles, esto es ideal cuando se desea escribir y ejecutar las mismas pruebas para aplicaciones Android e iOS.
 
-Según Appium [documentación](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) fue diseñado para satisfacer las necesidades de automatización móvil de acuerdo con una filosofía esbozada por los cuatro principios siguientes:
+According to Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) it was designed to meet mobile automation needs according to a philosophy outlined by the following four tenets:
 
 - No debería tener que recompilar su aplicación ni modificarla en modo alguno para automatizarla.
 - No debería estar encerrado en un lenguaje o marco específico para escribir y ejecutar sus pruebas.
