@@ -36,7 +36,9 @@ export interface Questionnair {
     createPackageJSON?: boolean
     projectRootCorrect?: boolean
     projectRoot?: string
-    setupMobileEnvironment?: boolean
+    e2eEnvironment?: 'web' | 'mobile'
+    mobileEnvironment?: 'android' | 'ios'
+    browserEnvironment?: ('chrome' | 'firefox' | 'safari' | 'microsoftedge')[]
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {

@@ -950,7 +950,7 @@ describe('createWDIOScript', () => {
 })
 
 test('runAppiumInstaller', async () => {
-    expect(await runAppiumInstaller({ setupMobileEnvironment: false } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'web' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(0)
     expect($).toBeCalledTimes(0)
@@ -959,7 +959,7 @@ test('runAppiumInstaller', async () => {
         continueWithAppiumSetup: false
     })
 
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(1)
     expect($).toBeCalledTimes(0)
@@ -967,7 +967,7 @@ test('runAppiumInstaller', async () => {
     vi.mocked(inquirer.prompt).mockResolvedValue({
         continueWithAppiumSetup: true
     })
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
 })

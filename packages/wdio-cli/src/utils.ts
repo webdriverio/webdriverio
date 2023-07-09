@@ -464,7 +464,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        const ignoredQuestions = ['setupMobileEnvironment']
+        const ignoredQuestions = ['e2eEnvironment']
         const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
         const answers = filterdQuestionaire.reduce((answers, question) => Object.assign(
             answers,
@@ -723,10 +723,16 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     }
 
     /**
-     * add Appium Mac2 driver for MacOS testing
+     * add Appium mobile drivers if desired
      */
     if (parsedAnswers.purpose === 'macos') {
         parsedAnswers.packagesToInstall.push('appium-mac2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'android') {
+        parsedAnswers.packagesToInstall.push('appium-uiautomator2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'ios') {
+        parsedAnswers.packagesToInstall.push('appium-xcuitest-driver')
     }
 
     /**
@@ -889,7 +895,7 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 }
 
 export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.setupMobileEnvironment) {
+    if (parsedAnswers.e2eEnvironment !== 'mobile') {
         return
     }
 

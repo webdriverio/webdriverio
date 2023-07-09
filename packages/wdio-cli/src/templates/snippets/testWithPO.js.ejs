@@ -1,12 +1,12 @@
 /**
  * test with page objects
  */
-<%- isUsingTypeScript || esmSupport
-    ? `import LoginPage from '${relativePath}/login.page${esmSupport ? '.js' : ''}'`
-    : `const LoginPage = require('${relativePath}/login.page')` %>
-<%- isUsingTypeScript || esmSupport
-    ? `import SecurePage from '${relativePath}/secure.page${esmSupport ? '.js' : ''}'`
-    : `const SecurePage = require('${relativePath}/secure.page')` %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import LoginPage from '${answers.relativePath}/login.page${answers.esmSupport ? '.js' : ''}'`
+    : `const LoginPage = require('${answers.relativePath}/login.page')` %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import SecurePage from '${answers.relativePath}/secure.page${answers.esmSupport ? '.js' : ''}'`
+    : `const SecurePage = require('${answers.relativePath}/secure.page')` %>
 
 describe('My Login application', () => {
     it('should login with valid credentials', async () => {

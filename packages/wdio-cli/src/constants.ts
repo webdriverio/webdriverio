@@ -116,18 +116,18 @@ export const SUPPORTED_PACKAGES = {
         { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         { name: 'safaridriver', value: 'wdio-safaridriver-service$--$safaridriver' },
         // internal
-        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
-        { name: 'appium', value: '@wdio/appium-service$--$appium' },
-        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
-        { name: 'electron', value: 'wdio-electron-service$--$electron' },
+        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
-        { name: 'vite', value: 'wdio-vite-service$--$vite' },
+        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
+        { name: 'electron', value: 'wdio-electron-service$--$electron' },
+        { name: 'appium', value: '@wdio/appium-service$--$appium' },
+        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
@@ -198,12 +198,34 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
+export const E2E_ENVIRONMENTS = [
+    { name: 'Web - web applications in the browser', value: 'web' },
+    { name: 'Mobile - native, hybrid and mobile web apps, on Android or iOS', value: 'mobile' }
+]
+
+export const MOBILE_ENVIRONMENTS = [
+    { name: 'Android - native, hybrid and mobile web apps, tested on emulators and real devices\n    > using UiAutomator2 (https://www.npmjs.com/package/appium-uiautomator2-driver)', value: 'android' },
+    { name: 'iOS - applications on iOS, iPadOS, and tvOS\n    > using XCTest (https://appium.github.io/appium-xcuitest-driver)', value: 'ios' }
+]
+
+export const BROWSER_ENVIRONMENTS = [
+    { name: 'Chrome', value: 'chrome', driver: 'chromedriver' },
+    { name: 'Firefox', value: 'firefox', driver: 'geckodriver' },
+    { name: 'Safari', value: 'safari', driver: 'safaridriver' },
+    { name: 'Microsoft Edge', value: 'MicrosoftEdge', driver: 'edgedriver' }
+]
+
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
 }
 
 function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose
+}
+
+function getBrowserDriver (browserName: 'chrome' | 'firefox' | 'safari' | 'microsoftedge') {
+    const driverName = BROWSER_ENVIRONMENTS.find((browser) => browser.value === browserName)?.driver
+    return SUPPORTED_PACKAGES.service.find((svc) => svc.name === driverName)?.value
 }
 
 function selectDefaultService (serviceName: string) {
@@ -256,13 +278,32 @@ export const QUESTIONNAIRE = [{
     choices: BACKEND_CHOICES,
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'confirm',
-    name: 'setupMobileEnvironment',
-    message: 'Would you like to setup Appium for mobile testing?',
-    default: false,
+    type: 'list',
+    name: 'e2eEnvironment',
+    message: 'Which environment you would like to automate?',
+    choices: E2E_ENVIRONMENTS,
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         getTestingPurpose(answers) === 'e2e' &&
         answers.backend === BACKEND_CHOICES[0]
+    )
+}, {
+    type: 'list',
+    name: 'mobileEnvironment',
+    message: 'Which mobile environment you\'ld like to automate?',
+    choices: MOBILE_ENVIRONMENTS,
+    when: /* instanbul ignore next */ (answers: Questionnair) => (
+        getTestingPurpose(answers) === 'e2e' &&
+        answers.e2eEnvironment === 'mobile'
+    )
+}, {
+    type: 'checkbox',
+    name: 'browserEnvironment',
+    message: 'With which browser should we start?',
+    choices: BROWSER_ENVIRONMENTS,
+    default: ['chrome'],
+    when: /* instanbul ignore next */ (answers: Questionnair) => (
+        getTestingPurpose(answers) === 'e2e' &&
+        answers.e2eEnvironment === 'web'
     )
 }, {
     type: 'input',
@@ -474,7 +515,7 @@ export const QUESTIONNAIRE = [{
             return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return prioServiceOrderFor('sauce')
-        } else if (answers.setupMobileEnvironment) {
+        } else if (answers.e2eEnvironment === 'mobile') {
             return prioServiceOrderFor('appium')
         } else if (getTestingPurpose(answers) === 'vscode') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'vscode')]
@@ -491,7 +532,9 @@ export const QUESTIONNAIRE = [{
             return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return selectDefaultService('sauce')
-        } else if (answers.setupMobileEnvironment || getTestingPurpose(answers) === 'macos') {
+        } else if (answers.browserEnvironment && answers.browserEnvironment.length) {
+            return answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
+        } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
         } else if (getTestingPurpose(answers) === 'vscode') {
             return selectDefaultService('vscode')
@@ -529,7 +572,7 @@ export const QUESTIONNAIRE = [{
         // unit and component testing in the browser
         !isBrowserRunner(answers) &&
         // mobile testing with Appium
-        !answers.setupMobileEnvironment &&
+        answers.e2eEnvironment === 'web' &&
         // nor for VS Code, Electron or MacOS testing
         !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
