@@ -12,7 +12,7 @@ exports[`getAnswers 1`] = `
   "reporters": [
     "@wdio/spec-reporter$--$spec",
   ],
-  "runner": "@wdio/local-runner$--$local",
+  "runner": "@wdio/local-runner$--$local$--$e2e",
   "services": [
     "wdio-chromedriver-service$--$chromedriver",
   ],
