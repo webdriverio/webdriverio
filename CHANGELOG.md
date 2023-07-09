@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.12.0 (2023-07-09)
+
+#### :rocket: New Feature
+* `wdio-appium-service`, `wdio-cli`
+  * [#10689](https://github.com/webdriverio/webdriverio/pull/10689) (@wdio/cli): improved setup wizard based on testing purpose ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10607](https://github.com/webdriverio/webdriverio/pull/10607) (@wdio/cli): fix CJS interface ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10688](https://github.com/webdriverio/webdriverio/pull/10688) (docs): add docs on testing vscode extensions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.11.4 (2023-07-07)
 
 #### :nail_care: Polish
