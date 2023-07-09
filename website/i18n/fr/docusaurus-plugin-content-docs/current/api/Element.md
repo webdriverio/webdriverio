@@ -7,12 +7,12 @@ Un objet élément est un objet représentant un élément sur l'agent utilisate
 
 ## Propriétés
 
-Un objet `element` possède les propriétés suivantes:
+Un objet `element` possède les propriétés suivantes :
 
 | Nom         | Type     | Détails                                                                                                                                                                                                                                                             |
 | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sessionId` | `String` | Id de session attribué à partir du serveur distant.                                                                                                                                                                                                                 |
-| `elementId` | `String` | Référence de l'élément Web associé pouvant être utilisé pour interagir avec l'élément au niveau du protocole                                                                                                                                                    |
+| `elementId` | `String` | Référence</a> de l'élément Web associé pouvant être utilisé pour interagir avec l'élément au niveau du protocole                                                                                                                                                    |
 | `selector`  | `String` | [Sélecteur](/docs/selectors) utilisé pour interroger l'élément.                                                                                                                                                                                                     |
 | `parent`    | `Object` | Soit le [L'objet Browser](/docs/api/browser) lorsque l'élément a été extrait de celui-ci (par exemple `const elem = browser.$('selector')`) ou un [Objet element](/docs/api/element) s'il a été extrait d'une portée d'élément (par exemple `elem.$( 'sélecteur')`) |
 | `options`   | `Object` | Permet de définir des commandes personnalisées pouvant être appelées depuis l'objet `browser` à des fins de composition. Pour en savoir plus, consultez le guide [Commande personnalisée](/docs/customcommands).                                                    |
@@ -32,7 +32,7 @@ En plus de cela, les commandes suivantes sont disponibles :
 
 ### Chaîne d'éléments
 
-Lorsque vous travaillez avec des éléments, WebdriverIO fournit une syntaxe spéciale pour simplifier leur interrogation et les recherches d'éléments imbriqués complexes. Comme les objets d'élément vous permettent de trouver des éléments dans leur branche d'arborescence à l'aide de méthodes de requête courantes, les utilisateurs peuvent récupérer des éléments imbriqués comme suit:
+Lorsque vous travaillez avec des éléments, WebdriverIO fournit une syntaxe spéciale pour simplifier leur interrogation et les recherches d'éléments imbriqués complexes. Comme les objets d'élément vous permettent de trouver des éléments dans leur branche d'arborescence à l'aide de méthodes de requête courantes, les utilisateurs peuvent récupérer des éléments imbriqués comme suit :
 
 ```js
 const header = await $('#header')
@@ -40,7 +40,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-Avec des structures imbriquées profondes, assigner n'importe quel élément imbriqué à un tableau pour ensuite l'utiliser peut être assez verbeux. À cet effet, WebdriverIO a le concept de requêtes d'éléments chaînés qui permettent de récupérer des éléments imbriqués comme ceci:
+Avec des structures imbriquées profondes, assigner n'importe quel élément imbriqué à un tableau pour ensuite l'utiliser peut être assez verbeux. À cet effet, WebdriverIO a le concept de requêtes d'éléments chaînés qui permettent de récupérer des éléments imbriqués comme ceci :
 
 ```js
 console.log(await $('#header').$('#headline').getText())
