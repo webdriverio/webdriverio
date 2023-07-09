@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-बहुत अच्छा अब आपको कॉन्फ़िगरेशन फ़ाइल को परिभाषित करने की आवश्यकता है जहां आपके परीक्षणों, क्षमताओं और सेटिंग्स के बारे में सारी जानकारी सेट की गई है। यह देखने के लिए [कॉन्फ़िगरेशन फ़ाइल](configurationfile)  अनुभाग पर स्विच करें कि वह फ़ाइल कैसी दिखनी चाहिए।
+बहुत अच्छा अब आपको कॉन्फ़िगरेशन फ़ाइल को परिभाषित करने की आवश्यकता है जहां आपके परीक्षणों, क्षमताओं और सेटिंग्स के बारे में सारी जानकारी सेट की गई है। Switch over to the [Configuration File](configurationfile)  section to see what that file should look like.
 
 `wdio` कॉन्फ़िगरेशन सहायक के साथ, अपनी कॉन्फ़िग फ़ाइल जनरेट करना बहुत आसान है। रन करे:
 
@@ -125,7 +125,7 @@ wdio run ./wdio.conf.js --watch
 --cucumberOpts        Cucumber options
 ```
 
-> नोट: स्वत: संकलन को उचित पुस्तकालय के ईएनवी वर्र्स के साथ आसानी से नियंत्रित किया जा सकता है। [TypeScript (ts-node)](typeScript) और [Babel (@babel/register)](babel) पेजों में प्रलेखित टेस्ट रनर की ऑटो कंपाइलेशन कार्यात्मकता को भी देखें।
+> नोट: स्वत: संकलन को उचित पुस्तकालय के ईएनवी वर्र्स के साथ आसानी से नियंत्रित किया जा सकता है। See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typeScript) and [Babel (@babel/register)](babel) pages.
 
 ### `wdio install`
 `install` कमांड आपको सीएलआई के माध्यम से अपने वेबड्राइवरआईओ प्रोजेक्ट में पत्रकारों और सेवाओं को जोड़ने की अनुमति देता है।
