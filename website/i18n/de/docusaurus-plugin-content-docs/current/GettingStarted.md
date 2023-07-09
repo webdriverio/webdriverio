@@ -11,7 +11,7 @@ Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Erste Schritte mit WebdriverIO" />
 
-:::tip Offizieller YouTube-Kanal 🎥
+:::tip Official YouTube Channel 🎥
 
 Weitere Videos rund um WebdriverIO finden Sie auf dem [offiziellen YouTube-Kanal](https://youtube.com/@webdriverio). Vergewissern Sie sich, dass Sie abonnieren!
 
@@ -27,12 +27,14 @@ Wenn Sie sich im Root-Verzeichnis eines vorhandenen Projekts befinden, führen S
   defaultValue="npm"
   values={[
     {label: 'NPM', value: 'npm'},
-    {label: 'Yarn', value: 'yarn'},
-    {label: 'pnpm', value: 'pnpm'},
+ {label: 'Yarn', value: 'yarn'},
+ {label: 'pnpm', value: 'pnpm'},
  ]
 }>
 <TabItem value="npm">
 
+```sh
+npm init wdio .
 ```sh
 npm init wdio .
 ```
@@ -48,6 +50,8 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
+```sh
+yarn create wdio .
 ```
 
 or if you want to create a new project:
@@ -59,6 +63,8 @@ yarn create wdio ./path/to/new/project
 </TabItem>
 <TabItem value="pnpm">
 
+```sh
+pnpm create wdio .
 ```sh
 pnpm create wdio .
 ```
