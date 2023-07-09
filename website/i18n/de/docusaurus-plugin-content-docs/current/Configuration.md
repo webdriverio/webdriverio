@@ -279,7 +279,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Legt fest, ob wiederholte Testdateien sofort wiederholt oder an das Ende der Warteschlange verschoben werden sollen.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
 
