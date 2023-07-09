@@ -17,6 +17,8 @@ An installation wizard will guide you through the process. Ensure you select _"D
 
 The configuration wizard will install all required Appium packages and creates a `wdio.conf.js` or `wdio.conf.ts` with the necessary configuration to test on MacOS. If you agreed to autogenerate some tests files you can run your first test via `npm run wdio`.
 
+<CreateMacOSProjectAnimation />
+
 That's it 🎉
 
 ## Example
