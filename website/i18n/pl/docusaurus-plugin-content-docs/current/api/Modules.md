@@ -71,7 +71,7 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+Podobnie jak w przypadku pakietów protokołów (`webdriver` i `devtools`) możesz również użyć API z pakietu WebdriverIO do zarządzania sesjami. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
 
 #### `remote(options, modifier)`
 
