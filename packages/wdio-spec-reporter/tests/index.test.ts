@@ -922,6 +922,15 @@ describe('SpecReporter', () => {
                 version: 50,
             } as any, false)).toBe('chrome 50 (unknown)')
         })
+
+        it('should recognise bundleIds', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Mac',
+                automationName: 'Mac2',
+                bundleId: 'com.apple.calculator',
+                sessionId: '53d1c8fd-23d9-4e81-a94b-011d2e694b9a'
+            } as any, false)).toBe('com.apple.calculator Mac')
+        })
     })
 
     describe('add real time report', () => {
