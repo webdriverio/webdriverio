@@ -75,6 +75,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'E2E Testing - for web and mobile applications', value: '@wdio/local-runner$--$local$--$e2e' },
         { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
         { name: 'Desktop Testing - of Electron Applications\n    > https://webdriver.io/docs/desktop-testing/electron', value: '@wdio/local-runner$--$local$--$electron' },
+        { name: 'Desktop Testing - of MacOS Applications\n    > https://webdriver.io/docs/desktop-testing/macos', value: '@wdio/local-runner$--$local$--$macos' },
         { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' }
     ],
     framework: [
@@ -390,7 +391,16 @@ export const QUESTIONNAIRE = [{
     type: 'confirm',
     name: 'generateTestFiles',
     message: 'Do you want WebdriverIO to autogenerate some test files?',
-    default: true
+    default: true,
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * we only have examples for Mocha and Jasmine
+         */
+        if (['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) && answers.framework.includes('cucumber')) {
+            return false
+        }
+        return true
+    }
 }, {
     type: 'input',
     name: 'specs',
@@ -425,13 +435,9 @@ export const QUESTIONNAIRE = [{
         !isBrowserRunner(answers) &&
         /**
          * and also not needed when running VS Code tests since the service comes with
-         * its own page object implementation
+         * its own page object implementation, nor when running Electron or MacOS tests
          */
-        getTestingPurpose(answers) !== 'vscode' &&
-        /**
-         * and also not needed when running Electron tests
-         */
-        getTestingPurpose(answers) !== 'electron'
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
 }, {
     type: 'input',
@@ -474,6 +480,8 @@ export const QUESTIONNAIRE = [{
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'vscode')]
         } else if (getTestingPurpose(answers) === 'electron') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
+        } else if (getTestingPurpose(answers) === 'macos') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
         }
         return SUPPORTED_PACKAGES.service
     },
@@ -483,7 +491,7 @@ export const QUESTIONNAIRE = [{
             return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return selectDefaultService('sauce')
-        } else if (answers.setupMobileEnvironment) {
+        } else if (answers.setupMobileEnvironment || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
         } else if (getTestingPurpose(answers) === 'vscode') {
             return selectDefaultService('vscode')
@@ -522,10 +530,8 @@ export const QUESTIONNAIRE = [{
         !isBrowserRunner(answers) &&
         // mobile testing with Appium
         !answers.setupMobileEnvironment &&
-        // nor for VS Code testing
-        getTestingPurpose(answers) !== 'vscode' &&
-        // nor for Electron testing
-        getTestingPurpose(answers) !== 'electron'
+        // nor for VS Code, Electron or MacOS testing
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
 }, {
     type: 'confirm',

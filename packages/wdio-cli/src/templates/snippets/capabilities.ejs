@@ -26,6 +26,10 @@ capabilities: [{<%
     } else if (answers.purpose === 'electron') { %>
         // no need to define any capabilities for local Electron web tests
         // since service plugin takes care of setting everything up<%
+    } else if (answers.purpose === 'macos') { %>
+        platformName: 'Mac',
+        'appium:automationName': 'Mac2',
+        'appium:bundleId': '<%= answers.generateTestFiles ? 'com.apple.calculator' : '...' %>'<%
     } else {
         %>
         // capabilities for local browser web tests

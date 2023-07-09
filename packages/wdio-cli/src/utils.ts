@@ -446,8 +446,6 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     )))).reduce((cur, acc) => [...acc, ...(cur)], [])
 
     for (const file of files) {
-        console.log('Render', file)
-
         const renderedTpl = await renderFile(file, { answers })
         const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
@@ -722,6 +720,13 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
      */
     if (parsedAnswers.framework === 'jasmine' && parsedAnswers.isUsingTypeScript) {
         parsedAnswers.packagesToInstall.push('@types/jasmine')
+    }
+
+    /**
+     * add Appium Mac2 driver for MacOS testing
+     */
+    if (parsedAnswers.purpose === 'macos') {
+        parsedAnswers.packagesToInstall.push('appium-mac2-driver')
     }
 
     /**

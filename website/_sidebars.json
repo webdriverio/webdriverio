@@ -76,6 +76,8 @@
       "type": "category",
       "label": "Desktop Testing",
       "items": [
+        "desktop-testing/macos",
+        "desktop-testing/windows",
         "desktop-testing/electron"
       ]
     },
