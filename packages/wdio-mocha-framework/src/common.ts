@@ -69,6 +69,7 @@ export function formatMessage (params: FrameworkMessage) {
         message.pending = params.payload.pending || false
         message.file = params.payload.file
         message.duration = params.payload.duration
+        message.body = params.payload.body
 
         /**
          * Add the current test title to the payload for cases where it helps to

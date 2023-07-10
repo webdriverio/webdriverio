@@ -44,7 +44,7 @@ export const runHook = function (
     repeatTest: number,
     timeout: number
 ) {
-    return origFn(function (
+    const wrappedHook = function (
         this: unknown,
         ...hookFnArgs: [
             string,
@@ -73,7 +73,12 @@ export const runHook = function (
             cid,
             repeatTest
         )
-    }, timeout)
+    }
+    /**
+     * make sure Mocha grabs the correct hook function body
+     */
+    wrappedHook.toString = () => hookFn.toString()
+    return origFn(wrappedHook, timeout)
 }
 
 /**
@@ -103,7 +108,7 @@ export const runSpec = function (
     repeatTest: number,
     timeout: number
 ) {
-    return origFn(specTitle, function (
+    const wrappedFn = function (
         this: unknown,
         ...specFnArgs: [
             string,
@@ -132,7 +137,12 @@ export const runSpec = function (
             cid,
             repeatTest
         )
-    }, timeout)
+    }
+    /**
+     * make sure Mocha grabs the correct test function body
+     */
+    wrappedFn.toString = () => specFn.toString()
+    return origFn(specTitle, wrappedFn, timeout)
 }
 
 /**
