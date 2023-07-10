@@ -251,7 +251,7 @@ export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof Tag
         return false
     }
 
-    const pickles = compile(doc, '', IdGenerator.incrementing())
+    const pickles = compile(doc, '', IdGenerator.uuid())
     const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
     return tags.some((tag) => tagParser.evaluate(tag))
 }
