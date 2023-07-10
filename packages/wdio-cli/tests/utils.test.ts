@@ -492,12 +492,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(4)
@@ -526,7 +526,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
-        expect(vi.mocked(readDir).mock.calls[0][0]).toContain('jasmine')
+        expect(vi.mocked(readDir).mock.calls[0][0]).toContain('mochaJasmine')
         expect(vi.mocked(readDir).mock.calls[1][0]).toContain('pageobjects')
 
         /**
@@ -545,12 +545,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(4)
@@ -615,12 +615,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(2)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(2)
@@ -649,12 +649,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(6)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(6)
@@ -950,7 +950,7 @@ describe('createWDIOScript', () => {
 })
 
 test('runAppiumInstaller', async () => {
-    expect(await runAppiumInstaller({ setupMobileEnvironment: false } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'web' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(0)
     expect($).toBeCalledTimes(0)
@@ -959,7 +959,7 @@ test('runAppiumInstaller', async () => {
         continueWithAppiumSetup: false
     })
 
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(1)
     expect($).toBeCalledTimes(0)
@@ -967,7 +967,7 @@ test('runAppiumInstaller', async () => {
     vi.mocked(inquirer.prompt).mockResolvedValue({
         continueWithAppiumSetup: true
     })
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
 })

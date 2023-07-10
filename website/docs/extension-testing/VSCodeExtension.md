@@ -1,5 +1,5 @@
 ---
-id: vscode-extension-testing
+id: vscode-extensions
 title: VS Code Extension Testing
 ---
 
@@ -20,14 +20,7 @@ To initiate a new WebdriverIO project, run:
 npm create wdio@latest ./
 ```
 
-An installation wizard will guide you through the process. Ensure you select TypeScript as compiler and don't have it generate page objects for you given this project comes with all page objects needed. Then make sure to select `chromedriver` and `vscode` within the list of services, e.g.:
-
-![WebdriverIO Configuration Wizard](/img/vscode.gif "WebdriverIO Configuration Wizard")
-
-
-__Note:__ remove `chromedriver` from the list of services in the generated `wdio.conf.ts` afterwards. See also configuration example below.
-
-For more information on how to install `WebdriverIO`, please check the [project docs](https://webdriver.io/docs/gettingstarted).
+An installation wizard will guide you through the process. Ensure you select _"VS Code Extension Testing"_ when it asks you what type of testing you'ld like to do, afterwards just keep the defaults or modify based on your preference.
 
 ## Example Configuration
 

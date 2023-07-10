@@ -30,7 +30,6 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
     private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
-    private _command?: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
@@ -119,19 +118,19 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     onComplete() {
         if (this._process) {
-            log.debug(`Appium (pid: ${this._process.pid}) killed`)
+            log.info(`Appium (pid: ${this._process.pid}) killed`)
             this._process.kill()
         }
     }
 
     private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
-        log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
+        log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
 
         process.stdout.on('data', (data) => {
             if (data.includes('Appium REST http interface listener started')) {
-                log.debug(`Appium started with ID: ${process.pid}`)
+                log.info(`Appium started with ID: ${process.pid}`)
                 callback(null, process)
             }
         })

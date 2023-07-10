@@ -72,8 +72,11 @@ export const COMPILER_OPTIONS = {
  */
 export const SUPPORTED_PACKAGES = {
     runner: [
-        { name: 'local - for e2e testing of web and mobile applications', value: '@wdio/local-runner$--$local' },
-        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' }
+        { name: 'E2E Testing - of Web or Mobile Applications', value: '@wdio/local-runner$--$local$--$e2e' },
+        { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
+        { name: 'Desktop Testing - of Electron Applications\n    > https://webdriver.io/docs/desktop-testing/electron', value: '@wdio/local-runner$--$local$--$electron' },
+        { name: 'Desktop Testing - of MacOS Applications\n    > https://webdriver.io/docs/desktop-testing/macos', value: '@wdio/local-runner$--$local$--$macos' },
+        { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' }
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
@@ -113,17 +116,18 @@ export const SUPPORTED_PACKAGES = {
         { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         { name: 'safaridriver', value: 'wdio-safaridriver-service$--$safaridriver' },
         // internal
-        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
-        { name: 'appium', value: '@wdio/appium-service$--$appium' },
-        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
-        { name: 'electron', value: 'wdio-electron-service$--$electron' },
+        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
+        { name: 'electron', value: 'wdio-electron-service$--$electron' },
+        { name: 'appium', value: '@wdio/appium-service$--$appium' },
+        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
@@ -194,12 +198,34 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
-function isLocalEnvironment (answers: Questionnair) {
-    return answers.runner === SUPPORTED_PACKAGES.runner[0].value
-}
+export const E2E_ENVIRONMENTS = [
+    { name: 'Web - web applications in the browser', value: 'web' },
+    { name: 'Mobile - native, hybrid and mobile web apps, on Android or iOS', value: 'mobile' }
+]
+
+export const MOBILE_ENVIRONMENTS = [
+    { name: 'Android - native, hybrid and mobile web apps, tested on emulators and real devices\n    > using UiAutomator2 (https://www.npmjs.com/package/appium-uiautomator2-driver)', value: 'android' },
+    { name: 'iOS - applications on iOS, iPadOS, and tvOS\n    > using XCTest (https://appium.github.io/appium-xcuitest-driver)', value: 'ios' }
+]
+
+export const BROWSER_ENVIRONMENTS = [
+    { name: 'Chrome', value: 'chrome', driver: 'chromedriver' },
+    { name: 'Firefox', value: 'firefox', driver: 'geckodriver' },
+    { name: 'Safari', value: 'safari', driver: 'safaridriver' },
+    { name: 'Microsoft Edge', value: 'MicrosoftEdge', driver: 'edgedriver' }
+]
 
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
+function getTestingPurpose (answers: Questionnair) {
+    return convertPackageHashToObject(answers.runner).purpose
+}
+
+function getBrowserDriver (browserName: 'chrome' | 'firefox' | 'safari' | 'microsoftedge') {
+    const driverName = BROWSER_ENVIRONMENTS.find((browser) => browser.value === browserName)?.driver
+    return SUPPORTED_PACKAGES.service.find((svc) => svc.name === driverName)?.value
 }
 
 function selectDefaultService (serviceName: string) {
@@ -217,10 +243,8 @@ function prioServiceOrderFor (serviceName: string) {
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
-    message: 'Where should your tests be launched?',
-    choices: SUPPORTED_PACKAGES.runner,
-    // only ask if there are more than 1 runner to pick from
-    when: /* istanbul ignore next */ () => SUPPORTED_PACKAGES.runner.length > 1
+    message: 'What type of testing would you like to do?',
+    choices: SUPPORTED_PACKAGES.runner
 }, {
     type: 'list',
     name: 'preset',
@@ -242,39 +266,57 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
+    type: 'input',
+    name: 'appPath',
+    message: 'What is the path to your compiled Electron app?',
+    default: './dist',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+}, {
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
-    choices: /* instanbul ignore next */ (answers: Questionnair) => {
-        /**
-         * browser runner currently supports only local testing
-         * until we have tunnel support for other cloud vendors
-         */
-        if (isBrowserRunner(answers)) {
-            return BACKEND_CHOICES.slice(0, 1)
-        }
-        return BACKEND_CHOICES
-    }
+    choices: BACKEND_CHOICES,
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'confirm',
-    name: 'setupMobileEnvironment',
-    message: 'Would you like to setup Appium for mobile testing?',
-    default: false,
+    type: 'list',
+    name: 'e2eEnvironment',
+    message: 'Which environment you would like to automate?',
+    choices: E2E_ENVIRONMENTS,
+    default: 'web',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
-        isLocalEnvironment(answers) &&
+        getTestingPurpose(answers) === 'e2e' &&
         answers.backend === BACKEND_CHOICES[0]
+    )
+}, {
+    type: 'list',
+    name: 'mobileEnvironment',
+    message: 'Which mobile environment you\'ld like to automate?',
+    choices: MOBILE_ENVIRONMENTS,
+    when: /* instanbul ignore next */ (answers: Questionnair) => (
+        getTestingPurpose(answers) === 'e2e' &&
+        answers.e2eEnvironment === 'mobile'
+    )
+}, {
+    type: 'checkbox',
+    name: 'browserEnvironment',
+    message: 'With which browser should we start?',
+    choices: BROWSER_ENVIRONMENTS,
+    default: ['chrome'],
+    when: /* instanbul ignore next */ (answers: Questionnair) => (
+        getTestingPurpose(answers) === 'e2e' &&
+        answers.e2eEnvironment === 'web'
     )
 }, {
     type: 'input',
     name: 'hostname',
     message: 'What is the host address of that cloud service?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port on which that service is running?',
     default: '80',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'expEnvAccessKey',
@@ -308,7 +350,7 @@ export const QUESTIONNAIRE = [{
     message: 'Environment variable for username',
     default: 'LT_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
-        answers.backend.toString().indexOf('LambdaTest') > -1 &&
+        answers.backend && answers.backend.indexOf('LambdaTest') > -1 &&
         answers.hostname!.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -317,7 +359,7 @@ export const QUESTIONNAIRE = [{
     message: 'Environment variable for access key',
     default: 'LT_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
-        answers.backend.toString().indexOf('LambdaTest') > -1 &&
+        answers.backend && answers.backend.indexOf('LambdaTest') > -1 &&
         answers.hostname!.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -355,19 +397,19 @@ export const QUESTIONNAIRE = [{
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: 'localhost',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
     message: 'What is the path to your browser driver or grid server?',
     default: '/',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',
     name: 'framework',
@@ -391,7 +433,16 @@ export const QUESTIONNAIRE = [{
     type: 'confirm',
     name: 'generateTestFiles',
     message: 'Do you want WebdriverIO to autogenerate some test files?',
-    default: true
+    default: true,
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * we only have examples for Mocha and Jasmine
+         */
+        if (['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) && answers.framework.includes('cucumber')) {
+            return false
+        }
+        return true
+    }
 }, {
     type: 'input',
     name: 'specs',
@@ -423,7 +474,12 @@ export const QUESTIONNAIRE = [{
         /**
          * page objects aren't common for component testing
          */
-        !isBrowserRunner(answers)
+        !isBrowserRunner(answers) &&
+        /**
+         * and also not needed when running VS Code tests since the service comes with
+         * its own page object implementation, nor when running Electron or MacOS tests
+         */
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
 }, {
     type: 'input',
@@ -460,8 +516,14 @@ export const QUESTIONNAIRE = [{
             return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return prioServiceOrderFor('sauce')
-        } else if (answers.setupMobileEnvironment) {
+        } else if (answers.e2eEnvironment === 'mobile') {
             return prioServiceOrderFor('appium')
+        } else if (getTestingPurpose(answers) === 'vscode') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'vscode')]
+        } else if (getTestingPurpose(answers) === 'electron') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
+        } else if (getTestingPurpose(answers) === 'macos') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
         }
         return SUPPORTED_PACKAGES.service
     },
@@ -471,8 +533,14 @@ export const QUESTIONNAIRE = [{
             return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return selectDefaultService('sauce')
-        } else if (answers.setupMobileEnvironment) {
+        } else if (answers.browserEnvironment && answers.browserEnvironment.length) {
+            return answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
+        } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
+        } else if (getTestingPurpose(answers) === 'vscode') {
+            return selectDefaultService('vscode')
+        } else if (getTestingPurpose(answers) === 'electron') {
+            return selectDefaultService('electron')
         }
         return selectDefaultService('chromedriver')
     },
@@ -505,7 +573,9 @@ export const QUESTIONNAIRE = [{
         // unit and component testing in the browser
         !isBrowserRunner(answers) &&
         // mobile testing with Appium
-        !answers.setupMobileEnvironment
+        answers.e2eEnvironment !== 'mobile' &&
+        // nor for VS Code, Electron or MacOS testing
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
     )
 }, {
     type: 'confirm',

@@ -4,7 +4,7 @@ import MDXComponents from '@theme-original/MDXComponents'
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 // custom components
-import CreateProjectAnimation from '../pages/components/CreateProjectAnimation.js'
+import { CreateProjectAnimation, CreateMacOSProjectAnimation } from '../pages/components/CreateProjectAnimation.js'
 
 export default {
     // Re-use the default mapping
@@ -13,4 +13,5 @@ export default {
     TabItem,
     LiteYouTubeEmbed,
     CreateProjectAnimation,
+    CreateMacOSProjectAnimation,
 }
