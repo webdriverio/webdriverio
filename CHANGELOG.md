@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.12.1 (2023-07-10)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#10693](https://github.com/webdriverio/webdriverio/pull/10693) (@wdio/cucumber-framework): count error if hook fails ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10690](https://github.com/webdriverio/webdriverio/pull/10690) Filtering spec files with use of cucumber compile ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-spec-reporter`
+  * [#9914](https://github.com/webdriverio/webdriverio/pull/9914) (@wdio/spec-reporter): propagate root suite hook errors ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10691](https://github.com/webdriverio/webdriverio/pull/10691) (@wdio/spec-reporter): recognise bundleId if existing ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-mocha-framework`, `wdio-reporter`, `wdio-utils`
+  * [#10692](https://github.com/webdriverio/webdriverio/pull/10692) (@wdio/mocha-framework): propagate mocha hook/spec function body to reporter ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.12.0 (2023-07-09)
 
 #### :rocket: New Feature
