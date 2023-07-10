@@ -35,7 +35,7 @@
     "@types/lodash.flattendeep": "^4.4.6",
     "@types/lodash.pickby": "^4.6.6",
     "@types/lodash.union": "^4.6.6",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.4.1",
     "@types/recursive-readdir": "^2.2.0",
     "@wdio/config": "7.31.1",
     "@wdio/logger": "7.26.0",
