@@ -116,6 +116,10 @@ export default class CucumberReporter {
             error.stack = result.message
         }
 
+        if (result.status === Status.FAILED) {
+            this.failedCount++
+        }
+
         const payload = buildStepPayload(uri, feature, scenario, step as PickleStep, {
             type: 'hook',
             state: result.status,
