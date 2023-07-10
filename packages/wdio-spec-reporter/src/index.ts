@@ -321,7 +321,7 @@ export default class SpecReporter extends WDIOReporter {
             const suiteIndent = this.indent(suite.uid)
 
             // Display file path of spec
-            if (!specFileReferences.includes(suite.file)) {
+            if (suite.file && !specFileReferences.includes(suite.file)) {
                 output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
                 specFileReferences.push(suite.file)
             }
@@ -485,6 +485,30 @@ export default class SpecReporter extends WDIOReporter {
 
                 this._orderedSuites.push(suite)
             }
+        }
+
+        /**
+         * ensure we include root suite hook errors
+         */
+        const rootSuite = this.currentSuites[0]
+        if (rootSuite) {
+            const baseRootSuite = {
+                ...rootSuite,
+                type: 'suite',
+                title: '(root)',
+                fullTitle: '(root)',
+                suites: []
+            }
+            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
+            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: beforeAllHooks,
+                hooksAndTests: beforeAllHooks
+            }))
+            this._orderedSuites.push(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: afterAllHooks,
+                hooksAndTests: afterAllHooks
+            }))
         }
 
         return this._orderedSuites

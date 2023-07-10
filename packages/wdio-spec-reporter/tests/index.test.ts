@@ -546,6 +546,30 @@ describe('SpecReporter', () => {
         it('should return no suites', () => {
             expect(tmpReporter.getOrderedSuites().length).toBe(0)
         })
+
+        it('should propagate root suite hook errors', () => {
+            tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
+            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } } as any
+            tmpReporter.currentSuites = [{
+                hooks: [{
+                    type: 'hook',
+                    title: '"before all" hook in "{root}"',
+                    state: 'failed'
+                }, {
+                    type: 'hook',
+                    title: '"after all" hook in "{root}"',
+                    state: undefined
+                }, {
+                    type: 'hook',
+                    title: '"after all" hook in "{root}"',
+                    state: 'failed'
+                }]
+            }] as any
+            const result = tmpReporter.getOrderedSuites()
+            expect(result.length).toBe(4)
+            expect(result[0].hooks.length).toBe(1)
+            expect(result[3].hooks.length).toBe(1)
+        })
     })
 
     describe('indent', () => {
