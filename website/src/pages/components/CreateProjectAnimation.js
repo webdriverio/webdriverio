@@ -49,4 +49,9 @@ export function CreateMacOSProjectAnimation () {
     )
 }
 
-export default () => {}
+/**
+ * this should be removed once we move the `components` directory out of `pages`
+ */
+export default () => {
+    return <></>
+}
