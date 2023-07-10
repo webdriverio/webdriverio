@@ -442,6 +442,48 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
+    it('can run when filtering by tag at example level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runExample' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by cucumber tag-expression', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall and @tagAtLine' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
     it('can set a default language for feature files', async () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
