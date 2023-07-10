@@ -48,3 +48,5 @@ export function CreateMacOSProjectAnimation () {
         </BrowserOnly>
     )
 }
+
+export default () => {}
