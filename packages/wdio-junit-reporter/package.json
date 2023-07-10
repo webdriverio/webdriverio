@@ -1,6 +1,6 @@
 {
   "name": "@wdio/junit-reporter",
-  "version": "8.12.1",
+  "version": "8.12.2",
   "description": "A WebdriverIO reporter that creates Jenkins compatible XML based JUnit reports",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-junit-reporter",
@@ -31,7 +31,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.12.1",
+    "@wdio/reporter": "8.12.2",
     "@wdio/types": "8.10.4",
     "json-stringify-safe": "^5.0.1",
     "junit-report-builder": "^3.0.0"
