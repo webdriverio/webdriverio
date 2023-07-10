@@ -30,6 +30,7 @@ describe('runHook', () => {
             'cid',
             0
         )
+        expect(hookFunction.mock.calls[0][0].toString()).toBe('hookFn')
     })
 })
 
@@ -46,6 +47,7 @@ describe('runSpec', () => {
             'cid',
             0
         )
+        expect(testFunction.mock.calls[0][0].toString()).toBe('test title')
     })
 })
 

@@ -7,6 +7,7 @@ export interface Hook {
     fullTitle?: string
     pending?: boolean
     file?: string
+    body?: string
     duration?: number
     cid: string
     specs?: string[]
@@ -21,6 +22,8 @@ export default class HookStats extends RunnableStats {
     cid: string
     title: string
     parent: string
+    // Mocha only
+    body?: string
     errors?: Error[]
     error?: Error
     state?: 'failed' | 'passed'
@@ -33,6 +36,7 @@ export default class HookStats extends RunnableStats {
         this.title = runner.title
         this.parent = runner.parent
         this.currentTest = runner.currentTest
+        this.body = runner.body
     }
 
     complete (errors?: Error[]) {
