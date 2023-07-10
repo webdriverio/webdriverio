@@ -430,7 +430,7 @@ describe('selector strategies helper', () => {
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of listbox in case of role selector', () => {
         const element = findStrategy('[role=listbox]')
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist[aria-multiselectable="true"],datalist[aria-multiselectable="false"]')
+        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist')
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of rowgroup in case of role selector', () => {
