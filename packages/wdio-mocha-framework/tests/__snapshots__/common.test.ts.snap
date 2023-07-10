@@ -21,6 +21,7 @@ exports[`formatMessage > should format an error message 1`] = `
 
 exports[`formatMessage > should format an error message with timeout error 1`] = `
 {
+  "body": undefined,
   "duration": undefined,
   "error": {
     "actual": undefined,
@@ -40,6 +41,7 @@ exports[`formatMessage > should format an error message with timeout error 1`] =
 
 exports[`formatMessage > should format payload 1`] = `
 {
+  "body": undefined,
   "context": "some context",
   "currentTest": "current test",
   "duration": undefined,
