@@ -56,7 +56,7 @@ await client.deleteSession()
 To connect to the WebDriver Bidi protocol you have to send along a `webSocketUrl` flag to tell the browser driver to opt-in to the protocol:
 
 ```js
-import WebDriver from './packages/webdriver/build/index.js'
+import WebDriver from 'webdriver'
 
 const browser = await WebDriver.newSession({
     capabilities: {
