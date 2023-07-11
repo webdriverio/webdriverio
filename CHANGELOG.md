@@ -19,6 +19,20 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.32.1 (2023-07-11)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10712](https://github.com/webdriverio/webdriverio/pull/10712) [v7] Fix tests  ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10602](https://github.com/webdriverio/webdriverio/pull/10602) [browserstack-service] [v7] added beforeAll and afterAll hook mappings for WDIO mocha and jasmine ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 1
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.32.0 (2023-06-22)
 
 #### :bug: Bug Fix
