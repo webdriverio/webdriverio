@@ -20,8 +20,9 @@ import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors,
-    hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState.js'
+    hookStart, hookFailed,
+    testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart
+} from './__fixtures__/testState.js'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
 } from './__fixtures__/command.js'
@@ -399,7 +400,7 @@ describe('Pending tests', () => {
     })
 })
 
-describe('Hook start', () => {
+describe('Hook reporting', () => {
     let outputDir: any
 
     beforeEach(() => {
@@ -410,36 +411,77 @@ describe('Hook start', () => {
         clean(outputDir)
     })
 
-    for (const hookFirst of [true, false]) {
-        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst ? 'first' : 'second'}`, () => {
-            const reporter = new AllureReporter({ outputDir })
-            const runnerEvent = runnerStart()
+    it('should report failed all hook', () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
 
-            delete runnerEvent.capabilities.browserName
-            delete runnerEvent.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
-            reporter.onRunnerStart(runnerEvent)
-            reporter.onSuiteStart(suiteStart())
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
-            if (hookFirst) {
-                reporter.onHookStart(hookStartWithCurrentTest())
-                reporter.onTestStart(testStart())
-            } else {
-                reporter.onTestStart(testStart())
-                reporter.onHookStart(hookStartWithCurrentTest())
-            }
+        const { results } = getResults(outputDir)
 
-            reporter.onTestFail(testFailed())
-            reporter.onSuiteEnd(suiteEnd())
-            reporter.onRunnerEnd(runnerEnd())
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(results[0].status).toEqual(Status.BROKEN)
+    })
 
-            const { results } = getResults(outputDir)
+    it('should report failed before each hook', () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
 
-            expect(results).toHaveLength(1)
-            expect(results[0].name).toEqual('should can do something')
-            expect(results[0].status).toEqual(Status.FAILED)
-        })
-    }
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onHookStart(eachHookStart())
+        reporter.onHookEnd(eachHookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(2)
+
+        const testCaseStep = results.find((tc => tc.name === 'My Login application'))
+        expect(testCaseStep).toBeDefined()
+        expect(testCaseStep.status).toEqual(Status.BROKEN)
+
+        const hookCase = results.find((tc => tc.name === '"before each" hook'))
+        expect(hookCase).toBeDefined()
+        expect(hookCase.status).toEqual(Status.BROKEN)
+    })
+
+    it('should report failed before each hook with disableMochaHooks', () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onHookStart(eachHookStart())
+        reporter.onHookEnd(eachHookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.FAILED)
+        expect(results[0].steps[0].name).toEqual('"before each" hook')
+        expect(results[0].steps[0].status).toEqual(Status.FAILED)
+    })
 })
 
 const assertionResults: any = {
