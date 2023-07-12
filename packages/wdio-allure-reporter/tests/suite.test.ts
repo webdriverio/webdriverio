@@ -448,12 +448,15 @@ describe('Hook reporting', () => {
         reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
-
         expect(results).toHaveLength(2)
-        expect(results[0].name).toEqual('My Login application')
-        expect(results[0].status).toEqual(Status.BROKEN)
-        expect(results[1].name).toEqual('"before each" hook')
-        expect(results[1].status).toEqual(Status.BROKEN)
+
+        const testCaseStep = results.find((tc => tc.name === 'My Login application'))
+        expect(testCaseStep).toBeDefined()
+        expect(testCaseStep.status).toEqual(Status.BROKEN)
+
+        const hookCase = results.find((tc => tc.name === '"before each" hook'))
+        expect(hookCase).toBeDefined()
+        expect(hookCase.status).toEqual(Status.BROKEN)
     })
 
     it('should report failed before each hook with disableMochaHooks', () => {
