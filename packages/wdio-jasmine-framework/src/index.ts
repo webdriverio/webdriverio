@@ -223,8 +223,7 @@ class JasmineAdapter {
                 this._jrunner.addRequires(this._jasmineOpts.requires)
             }
             if (Array.isArray(this._jasmineOpts.helpers)) {
-                // @ts-ignore outdated types
-                this._jrunner.addHelperFiles(this._jasmineOpts.helpers)
+                this._jrunner.addMatchingHelperFiles(this._jasmineOpts.helpers)
             }
             // @ts-ignore outdated types
             await this._jrunner.loadRequires()
