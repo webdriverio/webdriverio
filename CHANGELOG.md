@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.0 (2023-07-14)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `webdriver`
+  * [#10728](https://github.com/webdriverio/webdriverio/pull/10728) (@wdio/browser-runner): Further improvements to mocking in browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.12.3 (2023-07-14)
 
 #### :bug: Bug Fix
