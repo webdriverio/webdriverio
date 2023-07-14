@@ -39,6 +39,10 @@ export default async function downloadSpec () {
         workflow_run && workflow_run.head_branch === MAIN_BRANCH
     ))
 
+    if (cddlBuilds.length === 0) {
+        return false
+    }
+
     const { data } = await api.rest.actions.downloadArtifact({
         owner,
         repo,
@@ -75,5 +79,5 @@ export default async function downloadSpec () {
 
     await Promise.all(promiseChain)
     await fsp.unlink(zipPath)
-
+    return true
 }

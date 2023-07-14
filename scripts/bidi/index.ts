@@ -21,7 +21,11 @@ if (!process.env.GITHUB_AUTH) {
     process.exit(0)
 }
 
-await downloadSpec()
+const hasNewSpec = await downloadSpec()
+if (!hasNewSpec) {
+    console.log('No new spec, exiting!')
+    process.exit(0)
+}
 
 const cddlTypes = ['local', 'remote']
 const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
