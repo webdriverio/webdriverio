@@ -43,3 +43,9 @@ class WebDriver {
 }
 
 module.exports = WebDriver
+exports.command = (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) => {
+    return async function protocolCommand(this: unknown, ...args: unknown[]) {
+        const commandESM = await import('../command.js')
+        return commandESM.default(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
+    }
+}
