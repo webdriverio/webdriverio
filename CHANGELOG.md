@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.12.3 (2023-07-14)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#10727](https://github.com/webdriverio/webdriverio/pull/10727) (@wdio/jasmine-framework): fix matcher ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#10675](https://github.com/webdriverio/webdriverio/pull/10675) Allure report is missing steps, links data when the afterEach() hook is present is the suite #10185 ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.12.1 (2023-07-10)
 
 #### :bug: Bug Fix
