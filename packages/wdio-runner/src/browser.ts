@@ -81,7 +81,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
-        const timeout = (this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT) * 2
+        const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
 
         /**
          * start tests

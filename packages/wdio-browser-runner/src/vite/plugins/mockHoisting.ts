@@ -11,16 +11,16 @@ import type { Plugin } from 'vite'
 import type { MockHandler } from '../mock.js'
 
 const log = logger('@wdio/browser-runner:mockHoisting')
-const FILES_TO_IGNORE = [
-    '@vite/client', 'vite/dist/client', '/webdriverio/build/', '/@wdio/', '__vite-',
-    '/webdriverio/node_modules/', '/webdriverio/packages/', 'virtual:wdio', '?html-proxy',
-    '/.vite/deps/@testing-library_vue.js'
+const INTERNALS_TO_IGNORE = [
+    '@vite/client', 'vite/dist/client', '/webdriverio/build/', '/@wdio/', '/webdriverio/node_modules/',
+    'virtual:wdio', '?html-proxy', '/__fixtures__/', '/__mocks__/'
 ]
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
 export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     let spec: string | null = null
+    let isTestDependency = false
     const sessionMocks = new Set<string>()
 
     return [{
@@ -75,7 +75,16 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         name: 'wdio:mockHoisting',
         enforce: 'post',
         transform(code, id) {
-            if (FILES_TO_IGNORE.find((f) => id.includes(f))) {
+            const isSpecFile = id === spec
+            if (isSpecFile) {
+                isTestDependency = true
+            }
+
+            /**
+             * only transform files that are loaded as part of the test and are not
+             * Vite or WebdriverIO internals
+             */
+            if (!isTestDependency || INTERNALS_TO_IGNORE.find((f) => id.includes(f))) {
                 return { code }
             }
 
@@ -89,6 +98,8 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             } catch (err) {
                 return { code }
             }
+
+            log.trace(`Transform file for mocking: ${id}`)
 
             let importIndex = 0
             let mockFunctionName: string
@@ -138,7 +149,17 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
 
                     const newImportIdentifier = `__wdio_import${importIndex++}`
-                    if (id !== spec) {
+
+                    /**
+                     * assign imports outside of spec files into custom import identifier, e.g.
+                     *
+                     *   from:
+                     *      import { foo } from 'bar'
+                     *
+                     *   to:
+                     *      import * as __wdio_import0 from 'bar'
+                     */
+                    if (!isSpecFile) {
                         const newNode = b.importDeclaration(
                             [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
                             b.literal(source)
@@ -147,7 +168,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
 
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
-                    const mockImport = id === spec
+                    const mockImport = isSpecFile
+                        /**
+                         * within spec files we transform import declarations into import expresssions, e.g.
+                         *     from: import { foo } from 'bar'
+                         *     to:   const { foo } = await wdioImport('bar', await import('bar'))
+                         *
+                         * in order to hoist `mock(...)` calls and have them run first
+                         */
                         ? b.variableDeclaration('const', [
                             b.variableDeclarator(
                                 isNamespaceImport
@@ -181,6 +209,17 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                 )
                             )
                         ])
+                        /**
+                         * outside of spec files we transform import declarations so that the imported module gets
+                         * wrapped within `wdioImport`, e.g.:
+                         *
+                         *   from:
+                         *      import { foo } from 'bar'
+                         *
+                         *   to:
+                         *      import { foo as __wdio_import0 } from 'bar'
+                         *      const { foo } = await wdioImport('bar', __wdio_import0)
+                         */
                         : b.variableDeclaration('const', [
                             b.variableDeclarator(
                                 dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
@@ -203,54 +242,55 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     path.replace(mockImport)
                     this.traverse(path)
                 },
-                visitExpressionStatement: function (path) {
-                    if (id !== spec) {
-                        return this.traverse(path)
-                    }
-
-                    const exp = path.value as types.namedTypes.ExpressionStatement
-                    if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
-                        return this.traverse(path)
-                    }
-
-                    const callExp = exp.expression as types.namedTypes.CallExpression
-                    const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
-                    const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
-
-                    if (!isMockCall && !isUnmockCall) {
-                        return this.traverse(path)
-                    }
-
-                    /**
-                     * hoist unmock calls
-                     */
-                    if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
-                        mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
-                    } else if (isMockCall) {
-                        /**
-                         * if only one mock argument is set, we take the fixture from the automock directory
-                         */
-                        const mockCall = exp.expression as types.namedTypes.CallExpression
-                        if (mockCall.arguments.length === 1) {
-                            /**
-                             * enable manual mock
-                             */
-                            mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
-                        } else {
-                            if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
-                                sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
-                            }
-
-                            /**
-                             * hoist mock calls
-                             */
-                            mockCalls.push(exp)
+                /**
+                 * only run the following visitor if we deal with a spec file
+                 */
+                ...(isSpecFile ? {
+                    visitExpressionStatement: function (path) {
+                        const exp = path.value as types.namedTypes.ExpressionStatement
+                        if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
+                            return this.traverse(path)
                         }
-                    }
 
-                    path.prune()
-                    this.traverse(path)
-                }
+                        const callExp = exp.expression as types.namedTypes.CallExpression
+                        const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
+                        const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
+
+                        if (!isMockCall && !isUnmockCall) {
+                            return this.traverse(path)
+                        }
+
+                        /**
+                         * hoist unmock calls
+                         */
+                        if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
+                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                        } else if (isMockCall) {
+                            /**
+                             * if only one mock argument is set, we take the fixture from the automock directory
+                             */
+                            const mockCall = exp.expression as types.namedTypes.CallExpression
+                            if (mockCall.arguments.length === 1) {
+                                /**
+                                 * enable manual mock
+                                 */
+                                mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
+                            } else {
+                                if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
+                                    sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
+                                }
+
+                                /**
+                                 * hoist mock calls
+                                 */
+                                mockCalls.push(exp)
+                            }
+                        }
+
+                        path.prune()
+                        this.traverse(path)
+                    }
+                } : {})
             })
 
             ast.program.body.unshift(...mockCalls.map((mc) => {
@@ -284,6 +324,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
                     if (specParam) {
                         mockHandler.resetMocks()
+                        isTestDependency = false
                         spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
                     }
 
