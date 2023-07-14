@@ -68,10 +68,7 @@ describe('Lit Component testing', () => {
         expect(namespacedModule).toBe('some value')
     })
 
-    /**
-     * fails in CI on MacOS
-     */
-    it.skip('should allow to manual mock namespaces deps', async () => {
+    it('should allow to manual mock namespaces deps', async () => {
         expect(someExport).toBe('foobarloo')
         expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default'])
     })
