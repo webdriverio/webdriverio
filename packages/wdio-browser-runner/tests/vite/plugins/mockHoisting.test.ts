@@ -70,12 +70,12 @@ test('transforms test file properly for mocking', () => {
 
 test('transforms any other imported file properly for mocking', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
-    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : '/sometest.ts'
+    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
     const serverA = {
-        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl: `/foo?spec=${testfilePath}` }, {}, vi.fn()) }
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl: `/foo?spec=/${testfilePath}` }, {}, vi.fn()) }
     }
     ;(postPlugin.configureServer as Function)(serverA)()
-    ;(postPlugin.transform as Function)(TESTFILE, testfilePath)
+    ;(postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)
     const originalUrl = '/some/other/dependency.js'
     const serverB = {
         middlewares: { use: (_: never, cb: Function) => cb({ originalUrl }, {}, vi.fn()) }
