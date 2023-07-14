@@ -35,7 +35,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
 
     try {
         const resolvedMock = await factory(() => (
-            import(mockLocalFile ? `/@mock${mockPath}` : `/node_modules/.vite/deps/${mockPath.replace('/', '_')}.js?import`)
+            import(mockLocalFile ? `/@mock${mockPath}` : `/node_modules/.vite/deps/${mockPath.replace('/', '_')}.js`)
         ))
         socket.send(JSON.stringify(<SocketMessage>{
             type: MESSAGE_TYPES.mockRequest,
