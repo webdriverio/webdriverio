@@ -13,7 +13,7 @@ import type { MockHandler } from '../mock.js'
 const log = logger('@wdio/browser-runner:mockHoisting')
 const INTERNALS_TO_IGNORE = [
     '@vite/client', 'vite/dist/client', '/webdriverio/build/', '/@wdio/', '/webdriverio/node_modules/',
-    'virtual:wdio', '?html-proxy', '/__fixtures__/', '/__mocks__/'
+    'virtual:wdio', '?html-proxy', '/__fixtures__/', '/__mocks__/', '/.vite/deps/@testing-library_vue.js'
 ]
 
 const b = types.builders
