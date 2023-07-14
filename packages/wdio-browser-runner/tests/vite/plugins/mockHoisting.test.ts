@@ -46,9 +46,9 @@ test('exposes correct format', () => {
     }])
 })
 
-test('does not transform if file is not within spec', () => {
+test('does not transform if files that user should not be able to mock', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
-    expect((postPlugin.transform as Function)('foobar', 'barforr')).toEqual({ code: 'foobar' })
+    expect((postPlugin.transform as Function)('foobar', '@vite/client')).toEqual({ code: 'foobar' })
 })
 
 test('transforms test file properly for mocking', () => {
