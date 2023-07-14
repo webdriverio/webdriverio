@@ -1,16 +1,129 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`returns mock file 1`] = `
-"export const foo = window.__wdioMockFactories__['mocked']['foo'];
-export const bar = window.__wdioMockFactories__['mocked']['bar'];
-export default window.__wdioMockFactories__['mocked'].default;"
+"export const foo = window.__wdioMockCache__.get('mocked')['foo'];
+export const bar = window.__wdioMockCache__.get('mocked')['bar'];
+export default window.__wdioMockCache__.get('mocked').default;"
 `;
 
-exports[`returns mock for prebundled dep 1`] = `"export default window.__wdioMockFactories__['algoliasearch/lite'].default;"`;
+exports[`returns mock for prebundled dep 1`] = `"export default window.__wdioMockCache__.get('algoliasearch/lite').default;"`;
 
 exports[`returns mock for relative file import 1`] = `
-"export const HEADING = window.__wdioMockFactories__['/path/to/project/constants']['HEADING'];
-export default window.__wdioMockFactories__['/path/to/project/constants'];"
+"export const HEADING = window.__wdioMockCache__.get('/path/to/project/constants')['HEADING'];
+export default window.__wdioMockCache__.get('/path/to/project/constants');"
+`;
+
+exports[`transforms any other imported file properly for mocking 1`] = `
+PrintResult {
+  "code": "import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
+import * as __wdio_import0 from \\"react\\";
+
+const {
+    default: React,
+    FC: FC
+} = wdioImport(\\"react\\", __wdio_import0);
+
+import * as __wdio_import1 from \\"@wdio/globals\\";
+
+const {
+    expect: expect,
+    $: $
+} = wdioImport(\\"@wdio/globals\\", __wdio_import1);
+
+import * as __wdio_import2 from \\"lit\\";
+
+const {
+    html: html,
+    render: render
+} = wdioImport(\\"lit\\", __wdio_import2);
+
+import * as __wdio_import3 from \\"@testing-library/jest-dom/matchers\\";
+const matchers = wdioImport(\\"@testing-library/jest-dom/matchers\\", __wdio_import3);
+
+import 'something'
+
+import * as __wdio_import4 from \\"someModule\\";
+
+const {
+    default: defaultExport,
+    namedExportValue: namedExportValue
+} = wdioImport(\\"someModule\\", __wdio_import4);
+
+import * as __wdio_import5 from \\"./components/LitComponent.ts\\";
+
+const {
+    SimpleGreeting: SimpleGreeting
+} = wdioImport(\\"./components/LitComponent.ts\\", __wdio_import5);
+
+const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+})
+
+mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}))
+mock('foobar')
+
+foobar('hello')
+
+describe('Some test', () => {
+    it('should tests something', async () => {
+        // ...
+    })
+})
+",
+  "map": {
+    "mappings": "AAGA,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;;;;;;;;;;;;;;;;;;;;;;;;AAIvE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;;;;;;;;;;;;;;AAMjB,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;AACnE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE;IACvD,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;IAChC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE;QACH,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,EAAE,CAAC,CAAC,CAAC;IAClC;AACJ,CAAC;;AAED,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,CAAC;IAC3B,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC;IACT,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE;QACnC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC;IAC1E;AACJ,CAAC,CAAC;AACF,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;AAEb,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;AAEd,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;IACxB,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;QACrC,CAAC,EAAE,CAAC,CAAC;IACT,CAAC;AACL,CAAC",
+    "names": [],
+    "sourcesContent": [
+      "/* eslint-disable */
+import React, { FC } from 'react'
+import { expect, $ } from '@wdio/globals'
+import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
+import { html, render } from 'lit'
+import * as matchers from '@testing-library/jest-dom/matchers'
+
+import 'something'
+
+import defaultExport, { namedExportValue } from 'someModule'
+
+import { SimpleGreeting } from './components/LitComponent.ts'
+
+const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+})
+
+mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}))
+mock('foobar')
+
+foobar('hello')
+
+describe('Some test', () => {
+    it('should tests something', async () => {
+        // ...
+    })
+})
+",
+    ],
+    "version": 3,
+  },
+}
 `;
 
 exports[`transforms test file properly for mocking 1`] = `
@@ -34,28 +147,36 @@ await mock('graphql-request', () => ({
 const {
     default: React,
     FC: FC
-} = await import(\\"react\\");
+} = wdioImport(\\"react\\", await import(\\"react\\"));
 
 const {
     expect: expect,
     $: $
-} = await import(\\"@wdio/globals\\");
+} = wdioImport(\\"@wdio/globals\\", await import(\\"@wdio/globals\\"));
 
 const {
     html: html,
     render: render
-} = await import(\\"lit\\");
+} = wdioImport(\\"lit\\", await import(\\"lit\\"));
 
-const matchers = await import(\\"@testing-library/jest-dom/matchers\\");
+const matchers = wdioImport(
+    \\"@testing-library/jest-dom/matchers\\",
+    await import(\\"@testing-library/jest-dom/matchers\\")
+);
+
+import 'something'
 
 const {
     default: defaultExport,
     namedExportValue: namedExportValue
-} = await import(\\"someModule\\");
+} = wdioImport(\\"someModule\\", await import(\\"someModule\\"));
 
 const {
     SimpleGreeting: SimpleGreeting
-} = await import(\\"./components/LitComponent.ts\\");
+} = wdioImport(
+    \\"./components/LitComponent.ts\\",
+    await import(\\"./components/LitComponent.ts\\")
+);
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 
@@ -66,7 +187,7 @@ describe('Some test', () => {
 })
 ",
   "map": {
-    "mappings": "AAGA,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;MASvE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE;IACvD,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;IAChC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE;QACH,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,EAAE,CAAC,CAAC,CAAC;IAClC;AACJ,CAAC;;MAED,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,CAAC;IAC3B,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC;IACT,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE;QACnC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC;IAC1E;AACJ,CAAC,CAAC;;;;;;;;;;;;;;;;;MAnBU,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;;;;;;;;;;AAMnB,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;;AAkBnE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;IACxB,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;QACrC,CAAC,EAAE,CAAC,CAAC;IACT,CAAC;AACL,CAAC",
+    "mappings": "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",
     "names": [],
     "sourcesContent": [
       "/* eslint-disable */
@@ -75,6 +196,8 @@ import { expect, $ } from '@wdio/globals'
 import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 import * as matchers from '@testing-library/jest-dom/matchers'
+
+import 'something'
 
 import defaultExport, { namedExportValue } from 'someModule'
 

@@ -46,9 +46,9 @@ test('exposes correct format', () => {
     }])
 })
 
-test('does not transform if file is not within spec', () => {
+test('does not transform if files that user should not be able to mock', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
-    expect((postPlugin.transform as Function)('foobar', 'barforr')).toEqual({ code: 'foobar' })
+    expect((postPlugin.transform as Function)('foobar', '@vite/client')).toEqual({ code: 'foobar' })
 })
 
 test('transforms test file properly for mocking', () => {
@@ -66,6 +66,27 @@ test('transforms test file properly for mocking', () => {
 
     expect(newCode).toMatchSnapshot()
     expect(mockHandler.resetMocks).toBeCalledTimes(1)
+})
+
+test('transforms any other imported file properly for mocking', () => {
+    const postPlugin = mockHoisting(mockHandler).pop()!
+    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
+    const serverA = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl: `/foo?spec=/${testfilePath}` }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(serverA)()
+    ;(postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)
+    const originalUrl = '/some/other/dependency.js'
+    const serverB = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(serverB)()
+    const newCode = (postPlugin.transform as Function)(TESTFILE, originalUrl)
+
+    delete newCode.map.file
+    delete newCode.map.sources
+
+    expect(newCode).toMatchSnapshot()
 })
 
 test('returns original file', async () => {

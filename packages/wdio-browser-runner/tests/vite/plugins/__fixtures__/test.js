@@ -5,6 +5,8 @@ import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 import * as matchers from '@testing-library/jest-dom/matchers'
 
+import 'something'
+
 import defaultExport, { namedExportValue } from 'someModule'
 
 import { SimpleGreeting } from './components/LitComponent.ts'

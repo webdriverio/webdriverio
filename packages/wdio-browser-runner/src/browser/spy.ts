@@ -19,7 +19,6 @@ const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you 
 const socket = window.__wdioSocket__
 const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
-window.__wdioMockFactories__ = []
 export async function mock (path: string, factory?: MockFactoryWithHelper) {
     /**
      * mock calls without factory parameter should get removed from the source code
@@ -43,7 +42,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
             value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
         }))
 
-        window.__wdioMockFactories__[mockPath] = resolvedMock
+        window.__wdioMockCache__.set(mockPath, resolvedMock)
         return new Promise((resolve) => mockResolver.set(mockPath, resolve))
     } catch (err: unknown) {
         throw new Error(ERROR_MESSAGE + '\n' + (err as Error).stack)

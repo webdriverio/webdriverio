@@ -71,7 +71,6 @@ describe('BrowserRunner', () => {
             framework: 'mocha'
         } as any)
         await runner.initialise()
-        expect(runner['_config'].baseUrl).toBe('http://localhost:1234')
         expect(fs.rm).toBeCalledWith(
             path.join('/foo/bar', 'coverage'),
             { recursive: true }
@@ -87,7 +86,7 @@ describe('BrowserRunner', () => {
 
         const on = vi.fn()
         vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on } as any)
-        const worker = runner.run({ caps: { browserName: 'chrome' }, command: 'run', args: {} } as any)
+        const worker = await runner.run({ caps: { browserName: 'chrome' }, command: 'run', args: {} } as any)
         expect(worker).toBeDefined()
         expect(LocalRunner.prototype.run).toBeCalledWith({
             args: { baseUrl: 'http://localhost:1234' },

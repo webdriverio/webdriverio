@@ -11,11 +11,17 @@ import type { Plugin } from 'vite'
 import type { MockHandler } from '../mock.js'
 
 const log = logger('@wdio/browser-runner:mockHoisting')
+const INTERNALS_TO_IGNORE = [
+    '@vite/client', 'vite/dist/client', '/webdriverio/build/', '/@wdio/', '/webdriverio/node_modules/',
+    'virtual:wdio', '?html-proxy', '/__fixtures__/', '/__mocks__/', '/.vite/deps/@testing-library_vue.js'
+]
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
 export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     let spec: string | null = null
+    let isTestDependency = false
+    const sessionMocks = new Set<string>()
 
     return [{
         name: 'wdio:mockHoisting:pre',
@@ -52,13 +58,13 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             if (mockedMod) {
                 const newCode = mockedMod.namedExports.map((ne) => {
                     if (ne === 'default') {
-                        return /*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'].default;`
+                        return /*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}').default;`
                     }
-                    return /*js*/`export const ${ne} = window.__wdioMockFactories__['${mockedMod.path}']['${ne}'];`
+                    return /*js*/`export const ${ne} = window.__wdioMockCache__.get('${mockedMod.path}')['${ne}'];`
                 })
 
                 if (!mockedMod.namedExports.includes('default')) {
-                    newCode.push(/*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'];`)
+                    newCode.push(/*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}');`)
                 }
 
                 log.debug(`Resolve mock for module "${mockedMod.path}"`)
@@ -69,18 +75,33 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         name: 'wdio:mockHoisting',
         enforce: 'post',
         transform(code, id) {
+            const isSpecFile = id === spec
+            if (isSpecFile) {
+                isTestDependency = true
+            }
+
             /**
-             * only transform when spec file is transformed
+             * only transform files that are loaded as part of the test and are not
+             * Vite or WebdriverIO internals
              */
-            if (id !== spec) {
+            if (!isTestDependency || INTERNALS_TO_IGNORE.find((f) => id.includes(f))) {
                 return { code }
             }
 
-            const ast = parse(code, {
-                parser: typescriptParser,
-                sourceFileName: id,
-                sourceRoot: path.dirname(id)
-            }) as types.namedTypes.File
+            let ast: types.namedTypes.File
+            try {
+                ast = parse(code, {
+                    parser: typescriptParser,
+                    sourceFileName: id,
+                    sourceRoot: path.dirname(id)
+                })
+            } catch (err) {
+                return { code }
+            }
+
+            log.trace(`Transform file for mocking: ${id}`)
+
+            let importIndex = 0
             let mockFunctionName: string
             let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
@@ -100,6 +121,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 visitImportDeclaration: function (path) {
                     const dec = path.value as types.namedTypes.ImportDeclaration
                     const source = dec.source.value!
+
+                    if (!dec.specifiers || dec.specifiers.length === 0) {
+                        return this.traverse(path)
+                    }
+
                     /**
                      * get name of mock function variable
                      */
@@ -122,72 +148,149 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         return this.traverse(path)
                     }
 
-                    const newNode = b.variableDeclaration('const', [
-                        b.variableDeclarator(
-                            (dec.specifiers?.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString())
-                                /**
-                                 * we deal with a ImportNamespaceSpecifier, e.g.:
-                                 * import * as foo from 'bar'
-                                 */
-                                ? dec.specifiers[0].local as types.namedTypes.Identifier
-                                /**
-                                 * we deal with default or named import, e.g.
-                                 * import foo from 'bar'
-                                 * or
-                                 * import { foo } from 'bar'
-                                 */
-                                : b.objectPattern(dec.specifiers!.map((s: types.namedTypes.ImportSpecifier) => {
-                                    if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
-                                        return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
-                                    }
-                                    return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
-                                })),
-                            b.awaitExpression(b.importExpression(b.literal(source)))
-                        )
-                    ])
-                    path.replace(newNode)
-                    this.traverse(path)
-                },
-                visitExpressionStatement: function (path) {
-                    const exp = path.value as types.namedTypes.ExpressionStatement
-                    if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
-                        return this.traverse(path)
-                    }
-
-                    const callExp = exp.expression as types.namedTypes.CallExpression
-                    const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
-                    const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
-
-                    if (!isMockCall && !isUnmockCall) {
-                        return this.traverse(path)
-                    }
+                    const newImportIdentifier = `__wdio_import${importIndex++}`
 
                     /**
-                     * hoist unmock calls
+                     * assign imports outside of spec files into custom import identifier, e.g.
+                     *
+                     *   from:
+                     *      import { foo } from 'bar'
+                     *
+                     *   to:
+                     *      import * as __wdio_import0 from 'bar'
                      */
-                    if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
-                        mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
-                    } else if (isMockCall) {
-                        /**
-                         * if only one mock argument is set, we take the fixture from the automock directory
-                         */
-                        const mockCall = exp.expression as types.namedTypes.CallExpression
-                        if (mockCall.arguments.length === 1) {
-                            /**
-                             * enable manual mock
-                             */
-                            mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
-                        } else {
-                            /**
-                             * hoist mock calls
-                             */
-                            mockCalls.push(exp)
-                        }
+                    if (!isSpecFile) {
+                        const newNode = b.importDeclaration(
+                            [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
+                            b.literal(source)
+                        )
+                        path.insertBefore(newNode)
                     }
 
-                    path.prune()
+                    const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
+                    const mockImport = isSpecFile
+                        /**
+                         * within spec files we transform import declarations into import expresssions, e.g.
+                         *     from: import { foo } from 'bar'
+                         *     to:   const { foo } = await wdioImport('bar', await import('bar'))
+                         *
+                         * in order to hoist `mock(...)` calls and have them run first
+                         */
+                        ? b.variableDeclaration('const', [
+                            b.variableDeclarator(
+                                isNamespaceImport
+                                    /**
+                                     * we deal with a ImportNamespaceSpecifier, e.g.:
+                                     * import * as foo from 'bar'
+                                     */
+                                    ? dec.specifiers[0].local as types.namedTypes.Identifier
+                                    /**
+                                     * we deal with default or named import, e.g.
+                                     * import foo from 'bar'
+                                     * or
+                                     * import { foo } from 'bar'
+                                     */
+                                    : b.objectPattern(dec.specifiers.map((s: types.namedTypes.ImportSpecifier) => {
+                                        if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
+                                            return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
+                                        }
+                                        return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
+                                    })),
+                                b.callExpression(
+                                    /**
+                                     * wrap imports into a custom function that allows us to replace the actual
+                                     * module with the mocked module
+                                     */
+                                    b.identifier('wdioImport'),
+                                    [
+                                        b.literal(source),
+                                        b.awaitExpression(b.importExpression(b.literal(source)))
+                                    ]
+                                )
+                            )
+                        ])
+                        /**
+                         * outside of spec files we transform import declarations so that the imported module gets
+                         * wrapped within `wdioImport`, e.g.:
+                         *
+                         *   from:
+                         *      import { foo } from 'bar'
+                         *
+                         *   to:
+                         *      import { foo as __wdio_import0 } from 'bar'
+                         *      const { foo } = await wdioImport('bar', __wdio_import0)
+                         */
+                        : b.variableDeclaration('const', [
+                            b.variableDeclarator(
+                                dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
+                                    ? b.identifier(dec.specifiers[0].local!.name as string)
+                                    : b.objectPattern(dec.specifiers.map((s: types.namedTypes.ImportSpecifier) => {
+                                        if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
+                                            return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
+                                        }
+                                        return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
+                                    })),
+                                b.callExpression(
+                                    b.identifier('wdioImport'),
+                                    [
+                                        b.literal(source),
+                                        b.identifier(newImportIdentifier)
+                                    ]
+                                )
+                            )
+                        ])
+                    path.replace(mockImport)
                     this.traverse(path)
-                }
+                },
+                /**
+                 * only run the following visitor if we deal with a spec file
+                 */
+                ...(isSpecFile ? {
+                    visitExpressionStatement: function (path) {
+                        const exp = path.value as types.namedTypes.ExpressionStatement
+                        if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
+                            return this.traverse(path)
+                        }
+
+                        const callExp = exp.expression as types.namedTypes.CallExpression
+                        const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
+                        const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
+
+                        if (!isMockCall && !isUnmockCall) {
+                            return this.traverse(path)
+                        }
+
+                        /**
+                         * hoist unmock calls
+                         */
+                        if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
+                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                        } else if (isMockCall) {
+                            /**
+                             * if only one mock argument is set, we take the fixture from the automock directory
+                             */
+                            const mockCall = exp.expression as types.namedTypes.CallExpression
+                            if (mockCall.arguments.length === 1) {
+                                /**
+                                 * enable manual mock
+                                 */
+                                mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
+                            } else {
+                                if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
+                                    sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
+                                }
+
+                                /**
+                                 * hoist mock calls
+                                 */
+                                mockCalls.push(exp)
+                            }
+                        }
+
+                        path.prune()
+                        this.traverse(path)
+                    }
+                } : {})
             })
 
             ast.program.body.unshift(...mockCalls.map((mc) => {
@@ -199,10 +302,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return mc
             }))
 
-            const newCode = print(ast, {
-                sourceMapName: id
-            })
-            return newCode
+            try {
+                const newCode = print(ast, {
+                    sourceMapName: id
+                })
+                return newCode
+            } catch (err) {
+                return { code }
+            }
         },
         configureServer(server) {
             return () => {
@@ -217,6 +324,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
                     if (specParam) {
                         mockHandler.resetMocks()
+                        isTestDependency = false
                         spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
                     }
 

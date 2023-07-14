@@ -18,7 +18,7 @@ declare global {
         __wdioEvents__: any[]
         __wdioSocket__: WebSocket
         __wdioConnectPromise__: Promise<WebSocket>
-        __wdioMockFactories__: Record<string, any>
+        __wdioMockCache__: Map<string, any>
     }
 }
 
