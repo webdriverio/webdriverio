@@ -68,6 +68,21 @@ test('transforms test file properly for mocking', () => {
     expect(mockHandler.resetMocks).toBeCalledTimes(1)
 })
 
+test('transforms any other imported file properly for mocking', () => {
+    const postPlugin = mockHoisting(mockHandler).pop()!
+    const originalUrl = '/some/other/dependency.js'
+    const server = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(server)()
+    const newCode = (postPlugin.transform as Function)(TESTFILE, originalUrl)
+
+    delete newCode.map.file
+    delete newCode.map.sources
+
+    expect(newCode).toMatchSnapshot()
+})
+
 test('returns original file', async () => {
     const prePlugin = mockHoisting(mockHandler).shift()!
     expect(await (prePlugin.load as Function)(

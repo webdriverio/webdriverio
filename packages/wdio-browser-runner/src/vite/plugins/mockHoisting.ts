@@ -89,6 +89,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return { code }
             }
 
+            let importIndex = 0
             let mockFunctionName: string
             let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
@@ -108,6 +109,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 visitImportDeclaration: function (path) {
                     const dec = path.value as types.namedTypes.ImportDeclaration
                     const source = dec.source.value!
+
+                    if (!dec.specifiers || dec.specifiers.length === 0) {
+                        return this.traverse(path)
+                    }
+
                     /**
                      * get name of mock function variable
                      */
@@ -130,40 +136,70 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         return this.traverse(path)
                     }
 
-                    const newNode = b.variableDeclaration('const', [
-                        b.variableDeclarator(
-                            (dec.specifiers?.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString())
-                                /**
-                                 * we deal with a ImportNamespaceSpecifier, e.g.:
-                                 * import * as foo from 'bar'
-                                 */
-                                ? dec.specifiers[0].local as types.namedTypes.Identifier
-                                /**
-                                 * we deal with default or named import, e.g.
-                                 * import foo from 'bar'
-                                 * or
-                                 * import { foo } from 'bar'
-                                 */
-                                : b.objectPattern(dec.specifiers!.map((s: types.namedTypes.ImportSpecifier) => {
-                                    if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
-                                        return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
-                                    }
-                                    return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
-                                })),
-                            b.callExpression(
-                                /**
-                                 * wrap imports into a custom function that allows us to replace the actual
-                                 * module with the mocked module
-                                 */
-                                b.identifier('wdioImport'),
-                                [
-                                    b.literal(source),
-                                    b.awaitExpression(b.importExpression(b.literal(source)))
-                                ]
-                            )
+                    const newImportIdentifier = `__wdio_import${importIndex++}`
+                    if (id !== spec) {
+                        const newNode = b.importDeclaration(
+                            [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
+                            b.literal(source)
                         )
-                    ])
-                    path.replace(newNode)
+                        path.insertBefore(newNode)
+                    }
+
+                    const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
+                    const mockImport = id === spec
+                        ? b.variableDeclaration('const', [
+                            b.variableDeclarator(
+                                isNamespaceImport
+                                    /**
+                                     * we deal with a ImportNamespaceSpecifier, e.g.:
+                                     * import * as foo from 'bar'
+                                     */
+                                    ? dec.specifiers[0].local as types.namedTypes.Identifier
+                                    /**
+                                     * we deal with default or named import, e.g.
+                                     * import foo from 'bar'
+                                     * or
+                                     * import { foo } from 'bar'
+                                     */
+                                    : b.objectPattern(dec.specifiers.map((s: types.namedTypes.ImportSpecifier) => {
+                                        if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
+                                            return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
+                                        }
+                                        return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
+                                    })),
+                                b.callExpression(
+                                    /**
+                                     * wrap imports into a custom function that allows us to replace the actual
+                                     * module with the mocked module
+                                     */
+                                    b.identifier('wdioImport'),
+                                    [
+                                        b.literal(source),
+                                        b.awaitExpression(b.importExpression(b.literal(source)))
+                                    ]
+                                )
+                            )
+                        ])
+                        : b.variableDeclaration('const', [
+                            b.variableDeclarator(
+                                dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
+                                    ? b.identifier(dec.specifiers[0].local!.name as string)
+                                    : b.objectPattern(dec.specifiers.map((s: types.namedTypes.ImportSpecifier) => {
+                                        if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
+                                            return b.property('init', b.identifier('default'), b.identifier(s.local!.name as string))
+                                        }
+                                        return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
+                                    })),
+                                b.callExpression(
+                                    b.identifier('wdioImport'),
+                                    [
+                                        b.literal(source),
+                                        b.identifier(newImportIdentifier)
+                                    ]
+                                )
+                            )
+                        ])
+                    path.replace(mockImport)
                     this.traverse(path)
                 },
                 visitExpressionStatement: function (path) {
