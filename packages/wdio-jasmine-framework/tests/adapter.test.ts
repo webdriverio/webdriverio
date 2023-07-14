@@ -70,7 +70,22 @@ test('comes with a factory', async () => {
     )
     const result = await instance.run()
     expect(result).toBe(0)
-    expect(globalThis.jasmine.addMatchers).toBe(globalThis.jasmine.addAsyncMatchers)
+
+    globalThis.jasmine.addAsyncMatchers = vi.fn()
+    globalThis.jasmine.addMatchers({
+        testMatcher: function testMatcher(/*matcherUtils*/) {
+            return {
+                compare: function compare(/*actual, expected*/) {
+                    return { pass: true, message: 'Just good vibes.' }
+                }
+            }
+        }
+    })
+    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    const testMatcher = vi.mocked(globalThis.jasmine.addAsyncMatchers).mock.calls[0][0].testMatcher
+    const { compare, negativeCompare } = testMatcher({} as any)
+    expect(compare.constructor.name).toBe('AsyncFunction')
+    expect(negativeCompare?.constructor.name).toBe('AsyncFunction')
 })
 
 test('should properly set up jasmine', async () => {

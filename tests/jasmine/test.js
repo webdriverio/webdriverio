@@ -56,6 +56,7 @@ describe('Jasmine smoke test', () => {
             const customMatcher = expect(1).testMatcher
             expect(customMatcher).toBeDefined()
             expect(customMatcher).toBeInstanceOf(Function)
+            expect(1).testMatcher()
         })
     })
 })
