@@ -37,7 +37,7 @@ jobs:
       - name: Dependency Check
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: npm run test:component
       - name: Interop Tests
         run: |
           npm i chromedriver --detect_chromedriver_version
@@ -63,7 +63,7 @@ jobs:
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: npm run test:component
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests

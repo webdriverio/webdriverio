@@ -12,6 +12,7 @@ import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from '.
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
+const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 interface TestState {
@@ -80,7 +81,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
-        const timeout = this._config.mochaOpts!.timeout
+        const timeout = (this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT) * 2
 
         /**
          * start tests
