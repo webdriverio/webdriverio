@@ -2,6 +2,8 @@ const assert = require('node:assert')
 const chromedriver = require('chromedriver')
 const WebDriver = require('../../packages/webdriver')
 
+assert.equal(typeof WebDriver.command, 'function')
+
 ;(async () => {
     await chromedriver.start(['--port=4444'])
     const client = await WebDriver.newSession({
