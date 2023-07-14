@@ -11,11 +11,16 @@ import type { Plugin } from 'vite'
 import type { MockHandler } from '../mock.js'
 
 const log = logger('@wdio/browser-runner:mockHoisting')
+const FILES_TO_IGNORE = [
+    '@vite/client', 'vite/dist/client', '/webdriverio/build/', '/@wdio/', '__vite-',
+    '/webdriverio/node_modules/', '/webdriverio/packages/', 'virtual:wdio', '?html-proxy'
+]
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
 export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     let spec: string | null = null
+    const sessionMocks = new Set<string>()
 
     return [{
         name: 'wdio:mockHoisting:pre',
@@ -52,13 +57,13 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             if (mockedMod) {
                 const newCode = mockedMod.namedExports.map((ne) => {
                     if (ne === 'default') {
-                        return /*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'].default;`
+                        return /*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}').default;`
                     }
-                    return /*js*/`export const ${ne} = window.__wdioMockFactories__['${mockedMod.path}']['${ne}'];`
+                    return /*js*/`export const ${ne} = window.__wdioMockCache__.get('${mockedMod.path}')['${ne}'];`
                 })
 
                 if (!mockedMod.namedExports.includes('default')) {
-                    newCode.push(/*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'];`)
+                    newCode.push(/*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}');`)
                 }
 
                 log.debug(`Resolve mock for module "${mockedMod.path}"`)
@@ -69,18 +74,21 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         name: 'wdio:mockHoisting',
         enforce: 'post',
         transform(code, id) {
-            /**
-             * only transform when spec file is transformed
-             */
-            if (id !== spec) {
+            if (FILES_TO_IGNORE.find((f) => id.includes(f))) {
                 return { code }
             }
 
-            const ast = parse(code, {
-                parser: typescriptParser,
-                sourceFileName: id,
-                sourceRoot: path.dirname(id)
-            }) as types.namedTypes.File
+            let ast: types.namedTypes.File
+            try {
+                ast = parse(code, {
+                    parser: typescriptParser,
+                    sourceFileName: id,
+                    sourceRoot: path.dirname(id)
+                })
+            } catch (err) {
+                return { code }
+            }
+
             let mockFunctionName: string
             let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
@@ -142,13 +150,27 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                     }
                                     return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
                                 })),
-                            b.awaitExpression(b.importExpression(b.literal(source)))
+                            b.callExpression(
+                                /**
+                                 * wrap imports into a custom function that allows us to replace the actual
+                                 * module with the mocked module
+                                 */
+                                b.identifier('wdioImport'),
+                                [
+                                    b.literal(source),
+                                    b.awaitExpression(b.importExpression(b.literal(source)))
+                                ]
+                            )
                         )
                     ])
                     path.replace(newNode)
                     this.traverse(path)
                 },
                 visitExpressionStatement: function (path) {
+                    if (id !== spec) {
+                        return this.traverse(path)
+                    }
+
                     const exp = path.value as types.namedTypes.ExpressionStatement
                     if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
                         return this.traverse(path)
@@ -178,6 +200,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                              */
                             mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
                         } else {
+                            if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
+                                sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
+                            }
+
                             /**
                              * hoist mock calls
                              */
@@ -199,10 +225,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return mc
             }))
 
-            const newCode = print(ast, {
-                sourceMapName: id
-            })
-            return newCode
+            try {
+                const newCode = print(ast, {
+                    sourceMapName: id
+                })
+                return newCode
+            } catch (err) {
+                return { code }
+            }
         },
         configureServer(server) {
             return () => {

@@ -56,6 +56,15 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
+            <script type="module">
+                window.__wdioMockCache__ = new Map()
+                window.wdioImport = function (modName, mod) {
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+                    return mod
+                }
+            </script>
             <script type="module" src="/node_modules/mocha/mocha.js"></script>
             ${sourceMapScript}
             <script type="module">

@@ -34,7 +34,7 @@ export default class LocalRunner {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, args, ...workerOptions }: RunArgs) {
+    async run ({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
