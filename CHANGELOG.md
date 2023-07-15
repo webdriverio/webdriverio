@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.1 (2023-07-15)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#10731](https://github.com/webdriverio/webdriverio/pull/10731) (webdriver): re-export command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.13.0 (2023-07-14)
 
 #### :bug: Bug Fix
