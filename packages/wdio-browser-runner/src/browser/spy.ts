@@ -19,12 +19,12 @@ const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you 
 const socket = window.__wdioSocket__
 const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
-export async function mock (path: string, factory?: MockFactoryWithHelper) {
+export async function mock (path: string, factory?: MockFactoryWithHelper, resolvedMockParam?: any) {
     /**
      * mock calls without factory parameter should get removed from the source code
      * by the mock hoisting plugin
      */
-    if (!factory) {
+    if (!factory || typeof factory !== 'function') {
         return
     }
 
@@ -34,7 +34,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
         : path
 
     try {
-        const resolvedMock = await factory(() => (
+        const resolvedMock = await factory(() => resolvedMockParam || (
             import(mockLocalFile ? `/@mock${mockPath}` : `/node_modules/.vite/deps/${mockPath.replace('/', '_')}.js`)
         ))
         socket.send(JSON.stringify(<SocketMessage>{

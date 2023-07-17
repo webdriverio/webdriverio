@@ -18,10 +18,11 @@ const INTERNALS_TO_IGNORE = [
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
-export function mockHoisting(mockHandler: MockHandler): Plugin[] {
+export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[] {
     let spec: string | null = null
     let isTestDependency = false
     const sessionMocks = new Set<string>()
+    const importMap = new Map<string, string>()
 
     return [{
         name: 'wdio:mockHoisting:pre',
@@ -106,46 +107,95 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
 
-            /**
-             * rewrite import statements into variable declarations, e.g. from
-             *
-             *     import React, { RC } from 'react'
-             *
-             * to
-             *
-             *     var { default: React, RC: RC } = await import("react")
-             *
-             * so we can hoist the mock call
-             */
             visit(ast, {
+                /**
+                 * find function name for mock and unmock calls
+                 */
                 visitImportDeclaration: function (path) {
                     const dec = path.value as types.namedTypes.ImportDeclaration
                     const source = dec.source.value!
 
-                    if (!dec.specifiers || dec.specifiers.length === 0) {
+                    if (!dec.specifiers || dec.specifiers.length === 0 || source !== '@wdio/browser-runner') {
                         return this.traverse(path)
                     }
 
                     /**
                      * get name of mock function variable
                      */
-                    if (source === '@wdio/browser-runner') {
-                        const mockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
-                            .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
-                            .find((s) => s.imported.name === 'mock')
-                        if (mockSpecifier && mockSpecifier.local) {
-                            mockFunctionName = mockSpecifier.local.name as string
+                    const mockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
+                        .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
+                        .find((s) => s.imported.name === 'mock')
+                    if (mockSpecifier && mockSpecifier.local) {
+                        mockFunctionName = mockSpecifier.local.name as string
+                    }
+
+                    const unmockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
+                        .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
+                        .find((s) => s.imported.name === 'unmock')
+                    if (unmockSpecifier && unmockSpecifier.local) {
+                        unmockFunctionName = unmockSpecifier.local.name as string
+                    }
+                    mockCalls.push(dec)
+                    path.prune()
+                    return this.traverse(path)
+                },
+                /**
+                 * detect which modules are supposed to be mocked
+                 */
+                ...(isSpecFile ? {
+                    visitExpressionStatement: function (path) {
+                        const exp = path.value as types.namedTypes.ExpressionStatement
+                        if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
+                            return this.traverse(path)
                         }
 
-                        const unmockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
-                            .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
-                            .find((s) => s.imported.name === 'unmock')
-                        if (unmockSpecifier && unmockSpecifier.local) {
-                            unmockFunctionName = unmockSpecifier.local.name as string
+                        const callExp = exp.expression as types.namedTypes.CallExpression
+                        const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
+                        const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
+
+                        if (!isMockCall && !isUnmockCall) {
+                            return this.traverse(path)
                         }
-                        mockCalls.push(dec)
+
+                        /**
+                         * hoist unmock calls
+                         */
+                        if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
+                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                        } else if (isMockCall) {
+                            /**
+                             * if only one mock argument is set, we take the fixture from the automock directory
+                             */
+                            const mockCall = exp.expression as types.namedTypes.CallExpression
+                            if (mockCall.arguments.length === 1) {
+                                /**
+                                 * enable manual mock
+                                 */
+                                mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
+                            } else {
+                                if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
+                                    sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
+                                }
+
+                                /**
+                                 * hoist mock calls
+                                 */
+                                mockCalls.push(exp)
+                            }
+                        }
+
                         path.prune()
-                        return this.traverse(path)
+                        this.traverse(path)
+                    }
+                } : {})
+            })
+            visit(ast, {
+                visitImportDeclaration: function (nodePath) {
+                    const dec = nodePath.value as types.namedTypes.ImportDeclaration
+                    const source = dec.source.value as string
+
+                    if (!dec.specifiers || dec.specifiers.length === 0) {
+                        return this.traverse(nodePath)
                     }
 
                     const newImportIdentifier = `__wdio_import${importIndex++}`
@@ -159,16 +209,26 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                      *   to:
                      *      import * as __wdio_import0 from 'bar'
                      */
-                    if (!isSpecFile) {
+                    const isMockedModule = (
+                        // matches if a dependency is mocked
+                        sessionMocks.has(source) ||
+                        // matches if a file is mocked
+                        (
+                            source.startsWith('.') &&
+                            [...sessionMocks.values()].find((m) => path.resolve(path.dirname(id), source) === path.resolve(rootDir, m))
+                        )
+                    )
+                    if (!isSpecFile || isMockedModule) {
+                        importMap.set(source, newImportIdentifier)
                         const newNode = b.importDeclaration(
                             [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
                             b.literal(source)
                         )
-                        path.insertBefore(newNode)
+                        nodePath.insertBefore(newNode)
                     }
 
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
-                    const mockImport = isSpecFile
+                    const mockImport = isSpecFile && !isMockedModule
                         /**
                          * within spec files we transform import declarations into import expresssions, e.g.
                          *     from: import { foo } from 'bar'
@@ -239,64 +299,20 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                 )
                             )
                         ])
-                    path.replace(mockImport)
-                    this.traverse(path)
-                },
-                /**
-                 * only run the following visitor if we deal with a spec file
-                 */
-                ...(isSpecFile ? {
-                    visitExpressionStatement: function (path) {
-                        const exp = path.value as types.namedTypes.ExpressionStatement
-                        if (exp.expression.type !== types.namedTypes.CallExpression.toString()) {
-                            return this.traverse(path)
-                        }
-
-                        const callExp = exp.expression as types.namedTypes.CallExpression
-                        const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
-                        const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
-
-                        if (!isMockCall && !isUnmockCall) {
-                            return this.traverse(path)
-                        }
-
-                        /**
-                         * hoist unmock calls
-                         */
-                        if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
-                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
-                        } else if (isMockCall) {
-                            /**
-                             * if only one mock argument is set, we take the fixture from the automock directory
-                             */
-                            const mockCall = exp.expression as types.namedTypes.CallExpression
-                            if (mockCall.arguments.length === 1) {
-                                /**
-                                 * enable manual mock
-                                 */
-                                mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
-                            } else {
-                                if ((exp.expression as types.namedTypes.CallExpression).arguments.length) {
-                                    sessionMocks.add(((exp.expression as types.namedTypes.CallExpression).arguments[0] as types.namedTypes.Literal).value as string)
-                                }
-
-                                /**
-                                 * hoist mock calls
-                                 */
-                                mockCalls.push(exp)
-                            }
-                        }
-
-                        path.prune()
-                        this.traverse(path)
-                    }
-                } : {})
+                    nodePath.replace(mockImport)
+                    this.traverse(nodePath)
+                }
             })
 
             ast.program.body.unshift(...mockCalls.map((mc) => {
                 const exp = mc as types.namedTypes.ExpressionStatement
                 if (exp.expression && exp.expression.type === types.namedTypes.CallExpression.toString()) {
-                    return b.expressionStatement(b.awaitExpression(exp.expression))
+                    const importExpression = exp.expression as types.namedTypes.CallExpression
+                    const mockedModule = (importExpression.arguments[0] as types.namedTypes.Literal).value as string
+                    if (importMap.has(mockedModule)) {
+                        importExpression.arguments.push(b.identifier(importMap.get(mockedModule)!))
+                    }
+                    return b.expressionStatement(b.awaitExpression(importExpression))
                 }
 
                 return mc

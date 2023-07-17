@@ -61,11 +61,13 @@ export class ViteServer extends EventEmitter {
         this.#options = options
         this.#config = config
         this.#mockHandler = new MockHandler(options, config)
+
+        const root = options.rootDir || config.rootDir || process.cwd()
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
-            root: options.rootDir || process.cwd(),
+            root,
             plugins: [
                 testrunner(options),
-                mockHoisting(this.#mockHandler)
+                mockHoisting(this.#mockHandler, root)
             ]
         })
 
