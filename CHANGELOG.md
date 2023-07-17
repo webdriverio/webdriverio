@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.3 (2023-07-17)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#10752](https://github.com/webdriverio/webdriverio/pull/10752) (@wdio/browser-runner): ignore null error ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.13.2 (2023-07-17)
 
 #### :bug: Bug Fix
