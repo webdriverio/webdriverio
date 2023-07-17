@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.2 (2023-07-17)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-concise-reporter`
+  * [#10733](https://github.com/webdriverio/webdriverio/pull/10733) (@wdio/browser-runner): elevate errors happening during test setup ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10732](https://github.com/webdriverio/webdriverio/pull/10732) doc: Update WhyWebdriverIO.md ([@Naedri](https://github.com/Naedri))
+
+#### Committers: 2
+- Adrien JALLAIS ([@Naedri](https://github.com/Naedri))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.13.1 (2023-07-15)
 
 #### :bug: Bug Fix
