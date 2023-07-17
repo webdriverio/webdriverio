@@ -45,7 +45,8 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
         window.__wdioMockCache__.set(mockPath, resolvedMock)
         return new Promise((resolve) => mockResolver.set(mockPath, resolve))
     } catch (err: unknown) {
-        throw new Error(ERROR_MESSAGE + '\n' + (err as Error).stack)
+        const error = err as Error
+        throw new Error(`${ERROR_MESSAGE}\n${error.message}: ${error.stack}`)
     }
 }
 
