@@ -127,6 +127,10 @@ class _TestReporter extends WDIOReporter {
     }
 
     async onHookEnd(hookStats: HookStats) {
+        if (!this.needToSendData('hook', 'end')) {
+            return
+        }
+
         const identifier = this.getHookIdentifier(hookStats)
         if (_TestReporter._tests[identifier]) {
             _TestReporter._tests[identifier].finishedAt = (new Date()).toISOString()
