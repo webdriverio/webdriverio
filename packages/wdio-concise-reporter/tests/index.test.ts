@@ -108,15 +108,19 @@ describe('ConciseReporter', () => {
         it('should return failing count', () => {
             tmpReporter['_stateCounts'].failed = 0
             let result = tmpReporter.getCountDisplay()
-            expect(result).toBe('All went well !!')
+            expect(result).toBe('❌ Failed to setup tests, no tests found')
+
+            tmpReporter.counts.tests = 1
+            result = tmpReporter.getCountDisplay()
+            expect(result).toBe('✅ All went well!')
 
             tmpReporter['_stateCounts'].failed = 1
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe('Test failed (1):')
+            expect(result).toBe('❌ Test failed (1):')
 
             tmpReporter['_stateCounts'].failed = 2
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe('Tests failed (2):')
+            expect(result).toBe('❌ Tests failed (2):')
         })
     })
 
