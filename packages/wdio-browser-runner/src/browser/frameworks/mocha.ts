@@ -58,6 +58,10 @@ export class MochaFramework extends HTMLElement {
         return ['minified']
     }
 
+    get spec () {
+        return this.#spec
+    }
+
     connectedCallback() {
         this.#root.appendChild(template.content.cloneNode(true))
         this.#root.querySelector('.btnCollapseExpand')?.addEventListener('click', () => {
