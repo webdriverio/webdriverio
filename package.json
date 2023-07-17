@@ -107,7 +107,7 @@
     "ejs-lint": "^2.0.0",
     "eslint": "^8.44.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-unicorn": "^47.0.0",
+    "eslint-plugin-unicorn": "^48.0.0",
     "eslint-plugin-wdio": "^8.8.7",
     "husky": "^8.0.3",
     "inquirer": "^9.2.7",
