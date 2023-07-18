@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.6 (2023-07-18)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#10764](https://github.com/webdriverio/webdriverio/pull/10764) (@wdio/browser-runner): be more strict about transforming files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.13.5 (2023-07-18)
 
 #### :bug: Bug Fix
