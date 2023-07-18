@@ -143,6 +143,14 @@ export class MochaFramework extends HTMLElement {
             })
         })
 
+        /**
+         * remove loader animation
+         */
+        const spinner = this.#root.querySelector('.lds-ring')
+        if (spinner) {
+            spinner.remove()
+        }
+
         const runner = mocha.run(async (failures) => {
             await this.#onFinish(failures)
             for (const teardownScript of globalTeardownScripts) {
@@ -233,6 +241,43 @@ template.innerHTML = /*html*/`
         background-size: 30px;
         background-position: 15px 20px;
     }
+    .lds-ring {
+        display: inline-block;
+        position: absolute;
+        top: calc(50% - 40px);
+        left: calc(50% - 40px);
+        width: 80px;
+        height: 80px;
+    }
+    .lds-ring div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border: 4px solid #EA5907;
+        border-radius: 50%;
+        animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: #EA5907 transparent transparent transparent;
+    }
+    .lds-ring div:nth-child(1) {
+        animation-delay: -0.45s;
+    }
+    .lds-ring div:nth-child(2) {
+        animation-delay: -0.3s;
+    }
+    .lds-ring div:nth-child(3) {
+        animation-delay: -0.15s;
+    }
+    @keyframes lds-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
     .reporter.minified {
         width: 65px;
     }
@@ -288,6 +333,7 @@ template.innerHTML = /*html*/`
 </style>
 <div class="reporter">
     <div id="mocha"></div>
+    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
     <button class="btnCollapseExpand">
         <svg width="50" height="40" viewBox="2 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#fff" d="M13.11 29.113c7.243 0 13.113-5.871 13.113-13.113S20.353 2.887 13.11 2.887C5.868 2.887-.003 8.758-.003 16S5.868 29.113 13.11 29.113zm0-25.177c6.652 0 12.064 5.412 12.064 12.064S19.762 28.064 13.11 28.064C6.457 28.064 1.046 22.652 1.046 16S6.457 3.936 13.11 3.936z"/>
