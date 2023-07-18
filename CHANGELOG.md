@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.4 (2023-07-18)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#10753](https://github.com/webdriverio/webdriverio/pull/10753) (@wdio/browser-runner): more import optimizations ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10758](https://github.com/webdriverio/webdriverio/pull/10758) (@wdio/browser-runner): show loading animation ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10757](https://github.com/webdriverio/webdriverio/pull/10757) (@wdio/browser-runner): automatically open in devtools when in watch mode ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#10755](https://github.com/webdriverio/webdriverio/pull/10755) Update action.ts example ([@MotorMike](https://github.com/MotorMike))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mike Nicholls ([@MotorMike](https://github.com/MotorMike))
+
+
 ## v8.13.3 (2023-07-17)
 
 #### :bug: Bug Fix
