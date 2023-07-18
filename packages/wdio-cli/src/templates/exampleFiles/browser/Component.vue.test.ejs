@@ -1,14 +1,14 @@
 <%
-const harnessImport = installTestingLibrary
+const harnessImport = answers.installTestingLibrary
     ? `import { render, fireEvent } from '@testing-library/vue'`
     : `import { createApp } from 'vue'`
-const renderCommand = installTestingLibrary
+const renderCommand = answers.installTestingLibrary
     ? `render(ExampleComponent, { props: { msg: 'WebdriverIO Component Testing' } })`
     : `createApp(ExampleComponent, { msg: 'WebdriverIO Component Testing' }).mount(container)`
 %>
 import { $, expect } from '@wdio/globals'
 <%- harnessImport %>
-<% if (installTestingLibrary) { %>
+<% if (answers.installTestingLibrary) { %>
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 <% } %>
@@ -16,7 +16,7 @@ import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
-    <% if (installTestingLibrary) { %>
+    <% if (answers.installTestingLibrary) { %>
     it('should test component with Testing Library', async () => {
         // The render method returns a collection of utilities to query your component.
         const { getByText } = render(ExampleComponent, {
@@ -32,7 +32,7 @@ describe('Vue Component Testing', () => {
         expect(getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container<%- isUsingTypeScript ? `: Element` : '' %>
+    let container<%- answers.isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')

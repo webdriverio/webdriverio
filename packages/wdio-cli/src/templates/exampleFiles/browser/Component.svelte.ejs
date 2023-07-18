@@ -19,7 +19,7 @@ const increment = () => {
             count is {count}
         </button>
         <p>
-            Edit <code>src/Component.test.tsx</code> and save to test HMR
+            Edit <code>src/Component.test.<%- answers.isUsingTypeScript ? `ts` : 'js' %></code> and save to test HMR
         </p>
     </div>
 
