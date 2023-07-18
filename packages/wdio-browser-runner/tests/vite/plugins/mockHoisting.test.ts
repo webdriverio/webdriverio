@@ -82,6 +82,7 @@ test('transforms any other imported file properly for mocking', () => {
     }
     ;(postPlugin.configureServer as Function)(serverB)()
     const newCode = (postPlugin.transform as Function)(TESTFILE, originalUrl)
+    newCode.code = newCode.code.replace('C:/', '') // fix for Windows
 
     delete newCode.map.file
     delete newCode.map.sources

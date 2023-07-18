@@ -209,7 +209,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
 
                     const wdioImportModuleIdentifier = source.startsWith('.')
-                        ? path.resolve(path.dirname(id), source).slice(0, path.extname(source).length * -1)
+                        ? url.pathToFileURL(path.resolve(path.dirname(id), source).slice(0, path.extname(source).length * -1)).pathname
                         : source
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
                     const mockImport = isSpecFile && !isMockedModule
