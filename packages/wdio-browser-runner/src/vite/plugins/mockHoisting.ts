@@ -49,25 +49,31 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             }
 
             /**
-             * only transform files that are loaded as part of the test and are not
-             * Vite or WebdriverIO internals
+             * only transform files:
              */
-            if (!isTestDependency || INTERNALS_TO_IGNORE.find((f) => id.includes(f))) {
+            if (
+                // where loading was inititated through the test file
+                !isTestDependency ||
+                // are not Vite or WebdriverIO internals
+                INTERNALS_TO_IGNORE.find((f) => id.includes(f)) ||
+                // when the spec file is actually mocking any dependencies
+                (!isSpecFile && sessionMocks.size === 0)
+            ) {
                 return { code }
             }
 
             let ast: types.namedTypes.File
+            const start = Date.now()
             try {
                 ast = parse(code, {
                     parser: typescriptParser,
                     sourceFileName: id,
                     sourceRoot: path.dirname(id)
                 })
+                log.trace(`Parsed file for mocking: ${id} in ${Date.now() - start}ms`)
             } catch (err) {
                 return { code }
             }
-
-            log.trace(`Transform file for mocking: ${id}`)
 
             let importIndex = 0
             let mockFunctionName: string
@@ -311,8 +317,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
             try {
                 const newCode = print(ast, { sourceMapName: id })
+                log.trace(`Transformed file for mocking: ${id} in ${Date.now() - start}ms`)
                 return newCode
-            } catch (err) {
+            } catch (err: any) {
+                log.trace(`Failed to transformed file (${id}) for mocking: ${(err as Error).stack}`)
                 return { code }
             }
         },
