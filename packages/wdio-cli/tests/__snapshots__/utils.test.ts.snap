@@ -136,13 +136,25 @@ exports[`setupTypeScript 1`] = `
     \\"compilerOptions\\": {
         \\"moduleResolution\\": \\"node\\",
         \\"module\\": \\"ESNext\\",
+        \\"target\\": \\"es2022\\",
         \\"types\\": [
             \\"node\\",
             \\"@wdio/globals/types\\",
             \\"expect-webdriverio\\",
             \\"foo\\"
         ],
-        \\"target\\": \\"es2022\\"
-    }
+        \\"skipLibCheck\\": true,
+        \\"noEmit\\": true,
+        \\"allowImportingTsExtensions\\": true,
+        \\"resolveJsonModule\\": true,
+        \\"isolatedModules\\": true,
+        \\"strict\\": true,
+        \\"noUnusedLocals\\": true,
+        \\"noUnusedParameters\\": true,
+        \\"noFallthroughCasesInSwitch\\": true
+    },
+    \\"include\\": [
+        \\"src\\"
+    ]
 }"
 `;

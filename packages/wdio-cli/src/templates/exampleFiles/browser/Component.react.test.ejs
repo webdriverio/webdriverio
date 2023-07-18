@@ -1,8 +1,8 @@
 <%
-const harnessImport = installTestingLibrary
+const harnessImport = answers.installTestingLibrary
     ? `import { render, screen, fireEvent } from '@testing-library/react'`
     : `import { createRoot } from 'react-dom/client'`
-const renderCommand = installTestingLibrary
+const renderCommand = answers.installTestingLibrary
     ? `render(<ExampleComponent />)`
     : `const root = createRoot(container)
         root.render(<ExampleComponent />)`
@@ -10,14 +10,14 @@ const renderCommand = installTestingLibrary
 import React from 'react'
 import { expect, $ } from '@wdio/globals'
 <%- harnessImport %>
-<% if (installTestingLibrary) { %>
+<% if (answers.installTestingLibrary) { %>
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 <% } %>
 import ExampleComponent from './Component'
 
 describe('React Component Tests', () => {
-    <% if (installTestingLibrary) { %>
+    <% if (answers.installTestingLibrary) { %>
     it('should test component with Testing Library', async () => {
         render(<ExampleComponent />)
         const component = screen.getByText(/count is 0/i)
@@ -29,7 +29,7 @@ describe('React Component Tests', () => {
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container<%- isUsingTypeScript ? `: Element` : '' %>
+    let container<%- answers.isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')

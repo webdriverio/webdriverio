@@ -396,9 +396,7 @@ export async function generateTestFiles(answers: ParsedAnswers) {
 const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid']
 export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
     const isUsingFramework = typeof answers.preset === 'string'
-    const preset = isUsingFramework
-        ? answers.preset || 'lit'
-        : ''
+    const preset = getPreset(answers)
     const tplRootDir = path.join(TEMPLATE_ROOT_DIR, 'browser')
     await fs.mkdir(answers.destSpecRootPath, { recursive: true })
 
@@ -406,7 +404,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
      * render css file
      */
     if (isUsingFramework) {
-        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), answers)
+        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), { answers })
         await fs.writeFile(path.join(answers.destSpecRootPath, 'Component.css'), renderedCss)
     }
 
@@ -419,7 +417,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
         : testExt
     if (preset) {
         const componentOutFileName = `Component.${fileExt}`
-        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), answers)
+        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), { answers })
         await fs.writeFile(path.join(answers.destSpecRootPath, componentOutFileName), renderedComponent)
     }
 
@@ -427,7 +425,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
      * render test file
      */
     const componentFileName = preset ? `Component.${preset}.test.ejs` : 'standalone.test.ejs'
-    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), answers)
+    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), { answers })
     await fs.writeFile(path.join(answers.destSpecRootPath, `Component.test.${testExt}`), renderedTest)
 }
 
@@ -706,6 +704,14 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     }
 
     /**
+     * add dependency for Lit testing
+     */
+    const preset = getPreset(parsedAnswers)
+    if (preset === 'lit') {
+        parsedAnswers.packagesToInstall.push('lit')
+    }
+
+    /**
      * add helper for React rendering when not using Testing Library
      */
     if (presetPackage.short === 'react') {
@@ -789,13 +795,56 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     ]
 
     if (!parsedAnswers.hasRootTSConfig) {
+        const preset = getPreset(parsedAnswers)
         const config = {
             compilerOptions: {
+                // compiler
                 moduleResolution: 'node',
                 module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
-                types,
                 target: 'es2022',
-            }
+                types,
+                skipLibCheck: true,
+                // bundler
+                noEmit: true,
+                allowImportingTsExtensions: true,
+                resolveJsonModule: true,
+                isolatedModules: true,
+                // linting
+                strict: true,
+                noUnusedLocals: true,
+                noUnusedParameters: true,
+                noFallthroughCasesInSwitch: true,
+                ...Object.assign(
+                    preset === 'lit'
+                        ? {
+                            experimentalDecorators: true,
+                            useDefineForClassFields: false
+                        }
+                        : {},
+                    preset === 'react'
+                        ? {
+                            jsx: 'react-jsx'
+                        }
+                        : {},
+                    preset === 'preact'
+                        ? {
+                            jsx: 'react-jsx',
+                            jsxImportSource: 'preact'
+                        }
+                        : {},
+                    preset === 'solid'
+                        ? {
+                            jsx: 'preserve',
+                            jsxImportSource: 'solid-js'
+                        }
+                        : {}
+                )
+            },
+            include: preset === 'svelte'
+                ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+                : preset === 'vue'
+                    ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+                    : ['src']
         }
         await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
         await fs.writeFile(
@@ -805,6 +854,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     console.log(chalk.green.bold('✔ Success!\n'))
+}
+
+function getPreset (parsedAnswers: ParsedAnswers) {
+    const isUsingFramework = typeof parsedAnswers.preset === 'string'
+    return isUsingFramework ? (parsedAnswers.preset || 'lit') : ''
 }
 
 /**
