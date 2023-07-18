@@ -240,17 +240,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                         }
                                         return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
                                     })),
-                                b.callExpression(
-                                    /**
-                                     * wrap imports into a custom function that allows us to replace the actual
-                                     * module with the mocked module
-                                     */
-                                    b.identifier('wdioImport'),
-                                    [
-                                        b.literal(wdioImportModuleIdentifier),
-                                        b.awaitExpression(b.importExpression(b.literal(source)))
-                                    ]
-                                )
+                                b.awaitExpression(b.importExpression(b.literal(source)))
                             )
                         ])
                         /**
