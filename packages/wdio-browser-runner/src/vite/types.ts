@@ -12,8 +12,6 @@ export type SocketMessageValue = {
     [MESSAGE_TYPES.commandResponseMessage]: CommandResponseEvent
     [MESSAGE_TYPES.hookTriggerMessage]: HookTriggerEvent
     [MESSAGE_TYPES.hookResultMessage]: HookResultEvent
-    [MESSAGE_TYPES.mockRequest]: MockRequestEvent
-    [MESSAGE_TYPES.mockResponse]: MockResponseEvent
 }
 
 export type SocketMessagePayload<T extends MESSAGE_TYPES> = T extends any

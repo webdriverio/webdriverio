@@ -27,10 +27,6 @@ export class MockHandler {
         return this.#mocks
     }
 
-    addMock (mock: MockRequestEvent) {
-        this.#mocks.set(mock.path, mock)
-    }
-
     unmock (moduleName: string) {
         this.#unmocked.push(moduleName)
     }

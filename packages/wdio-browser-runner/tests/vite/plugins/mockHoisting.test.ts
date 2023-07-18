@@ -82,35 +82,10 @@ test('transforms any other imported file properly for mocking', () => {
     }
     ;(postPlugin.configureServer as Function)(serverB)()
     const newCode = (postPlugin.transform as Function)(TESTFILE, originalUrl)
+    newCode.code = newCode.code.replace('C:/', '').replace('D:/', '') // fix for Windows
 
     delete newCode.map.file
     delete newCode.map.sources
 
     expect(newCode).toMatchSnapshot()
-})
-
-test('returns original file', async () => {
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(
-        `/@mock${os.platform() === 'win32' ? '/' : ''}${fixturePath}`
-    )).toBe(TESTFILE)
-})
-
-test('returns mock file', async () => {
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)('foobar')).toMatchSnapshot()
-})
-
-test('returns mock for prebundled dep', async () => {
-    vi.mocked(mockHandler.mocks.get).mockReturnValue()
-    const id = '/path/to/project/node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e7'
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
-})
-
-test('returns mock for relative file import', async () => {
-    vi.mocked(mockHandler.mocks.get).mockReturnValue()
-    const id = '/path/to/project/constants.ts'
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
 })
