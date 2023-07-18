@@ -10,8 +10,7 @@ import { someExport, namedExports } from '@testing-library/user-event'
 import { SimpleGreeting } from './components/LitComponent.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
-mock('./components/constants.ts', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('./components/constants.ts', async (mod) => {
     return {
         GREETING: mod.GREETING + ' Sir'
     }
@@ -24,8 +23,7 @@ mock('graphql-request', () => ({
     }
 }))
 
-mock('@testing-library/user-event', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('@testing-library/user-event', async (mod) => {
     return {
         someExport: 'foobarloo',
         namedExports: Object.keys(mod)
