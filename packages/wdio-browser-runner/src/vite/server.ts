@@ -21,7 +21,7 @@ import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { MESSAGE_TYPES, DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
 import type {
     ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage,
-    HookResultEvent, SocketMessagePayload
+    HookResultEvent
 } from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
@@ -67,7 +67,7 @@ export class ViteServer extends EventEmitter {
             root,
             plugins: [
                 testrunner(options),
-                mockHoisting(this.#mockHandler, root)
+                mockHoisting(this.#mockHandler)
             ]
         })
 
@@ -161,13 +161,6 @@ export class ViteServer extends EventEmitter {
                 }
                 if (payload.type === MESSAGE_TYPES.commandRequestMessage) {
                     return this.#handleCommand(ws, payload.value)
-                }
-                if (payload.type === MESSAGE_TYPES.mockRequest) {
-                    this.#mockHandler.addMock(payload.value)
-                    return ws.send(JSON.stringify(<SocketMessagePayload<MESSAGE_TYPES.mockResponse>>{
-                        type: MESSAGE_TYPES.mockResponse,
-                        value: payload.value
-                    }))
                 }
 
                 throw new Error(`Unknown socket message ${JSON.stringify(payload)}`)

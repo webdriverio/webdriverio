@@ -1,8 +1,6 @@
 import type { MaybeMocked } from '@vitest/spy'
 
-import { MESSAGE_TYPES } from '../constants.js'
 import type { MockFactoryWithHelper } from '../types'
-import type { SocketMessage, SocketMessagePayload } from '../vite/types'
 
 /**
  * re-export mock module
@@ -16,10 +14,7 @@ function resolveUrl(path: string) {
 }
 
 const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you are using the "mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://webdriver.io/docs/component-testing/mocking'
-const socket = window.__wdioSocket__
-const mockResolver = new Map<string, (value: unknown) => void>()
-const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
-export async function mock (path: string, factory?: MockFactoryWithHelper, resolvedMockParam?: any) {
+export async function mock (path: string, factory?: MockFactoryWithHelper) {
     /**
      * mock calls without factory parameter should get removed from the source code
      * by the mock hoisting plugin
@@ -28,22 +23,20 @@ export async function mock (path: string, factory?: MockFactoryWithHelper, resol
         return
     }
 
+    /**
+     * parameter is added by hoisting plugin if factory comes with a parameter
+     */
+    const actualImport = arguments[2]
+
     const mockLocalFile = path.startsWith('/') || path.startsWith('./') || path.startsWith('../')
     const mockPath = mockLocalFile
-        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname
+        // use absolute path for local files without extension
+        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname.replace(/\.[^/.]+$/, '')
         : path
 
     try {
-        const resolvedMock = await factory(() => resolvedMockParam || (
-            import(mockLocalFile ? `/@mock${mockPath}` : `/node_modules/.vite/deps/${mockPath.replace('/', '_')}.js`)
-        ))
-        socket.send(JSON.stringify(<SocketMessage>{
-            type: MESSAGE_TYPES.mockRequest,
-            value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
-        }))
-
+        const resolvedMock = await factory(actualImport)
         window.__wdioMockCache__.set(mockPath, resolvedMock)
-        return new Promise((resolve) => mockResolver.set(mockPath, resolve))
     } catch (err: unknown) {
         const error = err as Error
         throw new Error(`${ERROR_MESSAGE}\n${error.message}: ${error.stack}`)
@@ -54,19 +47,6 @@ export async function mock (path: string, factory?: MockFactoryWithHelper, resol
 export function unmock(moduleName: string) {
     // NO-OP: call gets removed by recast
 }
-
-socket.addEventListener('message', (ev) => {
-    try {
-        const { type, value } = JSON.parse(ev.data) as SocketMessagePayload<MESSAGE_TYPES.mockResponse>
-        const resolver = mockResolver.get(value.path)
-        if (type !== MESSAGE_TYPES.mockResponse || !resolver) {
-            return
-        }
-        return resolver(null)
-    } catch {
-        // ignore
-    }
-})
 
 /**
  * utility helper for type conversions

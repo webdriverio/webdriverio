@@ -18,7 +18,7 @@ const INTERNALS_TO_IGNORE = [
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
-export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[] {
+export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     let spec: string | null = null
     let isTestDependency = false
     const sessionMocks = new Set<string>()
@@ -37,39 +37,6 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                     log.error(`Failed to read file (${id}) for mocking: ${(err as Error).message}`)
                     return ''
                 }
-            }
-
-            const mocks = [...mockHandler.mocks.values()]
-            const preBundledDepName = path.basename(id).split('?')[0]
-            const mockedMod = (
-                // mocked file
-                mockHandler.mocks.get(os.platform() === 'win32' ? `/${id}` : id) ||
-                // mocked dependency
-                mockHandler.mocks.get(path.basename(id, path.extname(id))) ||
-                // pre-bundled deps e.g. /node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e
-                mocks.find((mock) => `${mock.path.replace('/', '_')}.js` === preBundledDepName) ||
-                // relative file imports ignoring file extension, e.g. `mock('../../constants.ts', () => { ... })`
-                mocks.find((mock) => {
-                    const mockFileExtLength = path.extname(mock.path).length
-                    const toCompare = mockFileExtLength > 0 ? mock.path.slice(0, -mockFileExtLength) : mock.path
-                    // compare without file extension as we don't know if users use them or not
-                    return toCompare === id.slice(0, -path.extname(id).length)
-                })
-            )
-            if (mockedMod) {
-                const newCode = mockedMod.namedExports.map((ne) => {
-                    if (ne === 'default') {
-                        return /*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}').default;`
-                    }
-                    return /*js*/`export const ${ne} = window.__wdioMockCache__.get('${mockedMod.path}')['${ne}'];`
-                })
-
-                if (!mockedMod.namedExports.includes('default')) {
-                    newCode.push(/*js*/`export default window.__wdioMockCache__.get('${mockedMod.path}');`)
-                }
-
-                log.debug(`Resolve mock for module "${mockedMod.path}"`)
-                return newCode.join('\n')
             }
         }
     }, {
@@ -190,6 +157,9 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                 } : {})
             })
             visit(ast, {
+                /**
+                 * rewrite import statements
+                 */
                 visitImportDeclaration: function (nodePath) {
                     const dec = nodePath.value as types.namedTypes.ImportDeclaration
                     const source = dec.source.value as string
@@ -199,9 +169,30 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                     }
 
                     const newImportIdentifier = `__wdio_import${importIndex++}`
+                    const isMockedModule = Boolean(
+                        // matches if a dependency is mocked
+                        sessionMocks.has(source) ||
+                        // matches if a relative file is mocked
+                        (
+                            source.startsWith('.') &&
+                            [...sessionMocks.values()].find((m) => {
+                                const fileImportPath = path.resolve(path.dirname(id), source)
+                                const testMockPath = path.resolve(path.dirname(spec || '/'), m)
+                                return fileImportPath.slice(0, path.extname(fileImportPath).length * -1) === testMockPath.slice(0, path.extname(testMockPath).length * -1)
+                            })
+                        )
+                    )
 
                     /**
-                     * assign imports outside of spec files into custom import identifier, e.g.
+                     * add to import map if module is mocked and imported in the test file
+                     */
+                    if (isMockedModule && isSpecFile) {
+                        importMap.set(source, newImportIdentifier)
+                    }
+
+                    /**
+                     * Assign imports outside of spec files or when module gets mocked
+                     * into custom import identifier, e.g.
                      *
                      *   from:
                      *      import { foo } from 'bar'
@@ -209,17 +200,7 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                      *   to:
                      *      import * as __wdio_import0 from 'bar'
                      */
-                    const isMockedModule = (
-                        // matches if a dependency is mocked
-                        sessionMocks.has(source) ||
-                        // matches if a file is mocked
-                        (
-                            source.startsWith('.') &&
-                            [...sessionMocks.values()].find((m) => path.resolve(path.dirname(id), source) === path.resolve(rootDir, m))
-                        )
-                    )
                     if (!isSpecFile || isMockedModule) {
-                        importMap.set(source, newImportIdentifier)
                         const newNode = b.importDeclaration(
                             [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
                             b.literal(source)
@@ -227,6 +208,9 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                         nodePath.insertBefore(newNode)
                     }
 
+                    const wdioImportModuleIdentifier = source.startsWith('.')
+                        ? path.resolve(path.dirname(id), source).slice(0, path.extname(source).length * -1)
+                        : source
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
                     const mockImport = isSpecFile && !isMockedModule
                         /**
@@ -263,7 +247,7 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                                      */
                                     b.identifier('wdioImport'),
                                     [
-                                        b.literal(source),
+                                        b.literal(wdioImportModuleIdentifier),
                                         b.awaitExpression(b.importExpression(b.literal(source)))
                                     ]
                                 )
@@ -293,7 +277,7 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
                                 b.callExpression(
                                     b.identifier('wdioImport'),
                                     [
-                                        b.literal(source),
+                                        b.literal(wdioImportModuleIdentifier),
                                         b.identifier(newImportIdentifier)
                                     ]
                                 )
@@ -307,21 +291,36 @@ export function mockHoisting(mockHandler: MockHandler, rootDir: string): Plugin[
             ast.program.body.unshift(...mockCalls.map((mc) => {
                 const exp = mc as types.namedTypes.ExpressionStatement
                 if (exp.expression && exp.expression.type === types.namedTypes.CallExpression.toString()) {
-                    const importExpression = exp.expression as types.namedTypes.CallExpression
-                    const mockedModule = (importExpression.arguments[0] as types.namedTypes.Literal).value as string
+                    const mockCallExpression = exp.expression as types.namedTypes.CallExpression
+                    const mockedModule = (mockCallExpression.arguments[0] as types.namedTypes.Literal).value as string
+                    const mockFactory = (mockCallExpression.arguments[1] as types.namedTypes.FunctionExpression)
+
+                    /**
+                     * add actual module as 3rd parameter to the mock call if imported in the same test file
+                     */
                     if (importMap.has(mockedModule)) {
-                        importExpression.arguments.push(b.identifier(importMap.get(mockedModule)!))
+                        mockCallExpression.arguments.push(b.identifier(importMap.get(mockedModule)!))
+                    } else if (mockFactory.params.length > 0) {
+                        /**
+                         * `importMap` only has an entry if the module is imported in the same test file.
+                         * However if the user mocks a dependency of a different dependency we need to add
+                         * the import manually if the users wants to access the original module.
+                         */
+                        const newImportIdentifier = `__wdio_import${importIndex++}`
+                        ast.program.body.unshift(b.importDeclaration(
+                            [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
+                            b.literal(mockedModule)
+                        ))
+                        mockCallExpression.arguments.push(b.identifier(newImportIdentifier))
                     }
-                    return b.expressionStatement(b.awaitExpression(importExpression))
+                    return b.expressionStatement(b.awaitExpression(mockCallExpression))
                 }
 
                 return mc
             }))
 
             try {
-                const newCode = print(ast, {
-                    sourceMapName: id
-                })
+                const newCode = print(ast, { sourceMapName: id })
                 return newCode
             } catch (err) {
                 return { code }
