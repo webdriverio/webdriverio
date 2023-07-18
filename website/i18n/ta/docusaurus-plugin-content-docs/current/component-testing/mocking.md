@@ -214,16 +214,15 @@ export const bar = () => 'bar';
 export default () => 'baz';
 ```
 
-உங்கள் டெஸ்டில் `origModuleFactory` செயல்பாட்டை அழைப்பதன் மூலம் அசல் தொகுதியை அணுகலாம்:
+The original module will be passed into the mock factory which you can use to e.g. partially mock a dependency:
 
 ```js
 import { mock, fn } from '@wdio/browser-runner'
 import defaultExport, { bar, foo } from './foo-bar-baz.js';
 
-mock('./foo-bar-baz.js', async (origModuleFactory) => {
-    const originalModule = await origModuleFactory()
-
-    //Mock the default export and named export 'foo'
+mock('./foo-bar-baz.js', async (originalModule) => {
+    // Mock the default export and named export 'foo'
+    // and propagate named export from the original module
     return {
         __esModule: true,
         ...originalModule,
