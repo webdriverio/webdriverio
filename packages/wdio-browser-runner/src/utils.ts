@@ -2,7 +2,7 @@ import util from 'node:util'
 
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 import type { CoverageSummary } from 'istanbul-lib-coverage'
 
 import { COVERAGE_FACTORS, GLOBAL_TRESHOLD_REPORTING, FILE_TRESHOLD_REPORTING } from './constants.js'
@@ -51,6 +51,37 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
     }
 
     log.error(`Headless mode not supported for browser "${capability.browserName}"`)
+    return caps
+}
+
+/**
+ * Open with devtools open when in watch mode
+ */
+export function adjustWindowInWatchMode (config: Options.Testrunner, caps: Capabilities.RemoteCapability): Capabilities.RemoteCapability {
+    if (!config.watch) {
+        return caps
+    }
+
+    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+    if (config.watch && capability.browserName === 'chrome') {
+        return deepmerge(capability, {
+            'goog:chromeOptions': {
+                args: ['auto-open-devtools-for-tabs', 'window-size=1600,1200'],
+                prefs: {
+                    devtools: {
+                        preferences: {
+                            'panel-selectedTab': '"console"'
+                        }
+                    }
+                }
+            }
+        })
+    }
+    /**
+     * TODO: add support for other browsers (if possible)
+     * } else if (...) { }
+     */
+
     return caps
 }
 

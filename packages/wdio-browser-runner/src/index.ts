@@ -20,7 +20,7 @@ import {
     FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER,
     DEFAULT_REPORTS_DIRECTORY
 } from './constants.js'
-import { makeHeadless, getCoverageByFactor } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
@@ -80,6 +80,8 @@ export default class BrowserRunner extends LocalRunner {
 
     async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
+        runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
+
         const server = new ViteServer(this.#options, this.#config)
 
         try {
