@@ -78,6 +78,7 @@
     "@wdio/utils": "8.13.13",
     "archiver": "^5.0.0",
     "aria-query": "^5.0.0",
+    "chrome-launcher": "^1.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools-protocol": "^0.0.1170846",
