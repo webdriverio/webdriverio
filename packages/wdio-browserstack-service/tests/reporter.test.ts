@@ -37,6 +37,11 @@ describe('test-reporter', () => {
         state: 'pending'
     }
 
+    const hookStats = {
+        ...testStats,
+        type: 'hook'
+    }
+
     beforeEach(() => {
         (log.debug as jest.Mock).mockClear()
     })
@@ -309,4 +314,60 @@ describe('test-reporter', () => {
         })
     })
 
+    describe('onHookEnd', function () {
+        let reporter: TestReporter
+        const requestQueueHandler = RequestQueueHandler.getInstance()
+        let uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
+        uploadEventDataSpy.mockImplementation()
+        jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
+        let hookEndStats = { ...hookStats }
+
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            reporter['_observability'] = true
+            reporter.onRunnerStart(runnerConfig as any)
+            hookEndStats = { ...hookStats }
+        })
+
+        afterEach(() => {
+            uploadEventDataSpy.mockClear()
+        })
+
+        describe('mocha', () => {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'mocha'
+            })
+
+            it ("uploadEventData shouldn't get called", async () => {
+                await reporter.onHookEnd(hookEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(0)
+            })
+        })
+
+        describe('jasmine', function () {
+            beforeEach(() => {
+                // @ts-ignore
+                reporter['_config'].framework = 'jasmine'
+                hookEndStats.state = 'passed'
+                reporter['_suites'] = ([{
+                    title: 'suite'
+                }] as any)
+            })
+
+            it('uploadEventData called for passed tests', async () => {
+                hookEndStats.state = 'passed'
+                await reporter.onHookEnd(hookEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
+            })
+
+            it('uploadEventData called for failed tests', async () => {
+                hookEndStats.state = 'failed'
+                await reporter.onTestEnd(hookEndStats as any)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
+            })
+
+        })
+    })
 })
