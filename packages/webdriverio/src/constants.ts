@@ -436,3 +436,10 @@ export const Key = {
     Command: UNICODE_CHARACTERS.Command,
     ZenkakuHankaku: UNICODE_CHARACTERS.ZenkakuHankaku
 } as const
+
+export const SUPPORTED_BROWSERNAMES = {
+    chrome: ['chrome', 'googlechrome', 'chromium', 'chromium-browser'],
+    firefox: ['firefox', 'ff', 'mozilla', 'mozilla firefox'],
+    edge: ['edge', 'microsoftedge', 'msedge'],
+    safari: ['safari']
+}

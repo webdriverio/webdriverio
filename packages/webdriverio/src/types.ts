@@ -11,6 +11,8 @@ import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
 import type { Matches } from './utils/interception/types.js'
 
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
+
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 

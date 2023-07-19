@@ -8,19 +8,16 @@ import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
-import detectBackend from './utils/detectBackend.js'
+import detectBackend from './driver/detectBackend.js'
+import { getProtocolDriver } from './driver/index.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
-import {
-    getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
-    updateCapabilities
-} from './utils/index.js'
-import type { AttachOptions } from './types.js'
+import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
+import type { AttachOptions, RemoteOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
 export * from './types.js'
 export * from './utils/interception/types.js'
 
-export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 
@@ -44,7 +41,6 @@ export const remote = async function(
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
-    const automationProtocol = await getAutomationProtocol(config)
     const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
         /**
          * overwrite instance options with default values of the protocol
@@ -57,21 +53,17 @@ export const remote = async function(
             client = remoteModifier(client, options)
         }
 
-        options.automationProtocol = automationProtocol
         return client
     }
 
+    const { Driver, options } = await getProtocolDriver({ ...params, ...config })
     const prototype = getPrototype('browser')
-    const ProtocolDriver = (await import(automationProtocol)).default
-
-    params = Object.assign({}, detectBackend(params), params)
-    updateCapabilities(params, automationProtocol)
-    const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand) as WebdriverIO.Browser
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
      */
-    if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
+    if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
         instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
             origAddCommand(name, fn, attachToElement)
@@ -98,9 +90,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     } as Options.WebdriverIO
 
     const prototype = getPrototype('browser')
-    const automationProtocol = await getAutomationProtocol(params)
-    const ProtocolDriver = (await import(automationProtocol)).default
-    return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
+    const { Driver } = await getProtocolDriver(params)
+    // @ts-expect-error ToDo(Christian): fix type
+    return Driver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
 
 /**

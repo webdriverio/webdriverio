@@ -5,8 +5,8 @@ import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
-import detectBackend from '../src/utils/detectBackend.js'
-import type { RemoteOptions } from '../src/index.js'
+import detectBackend from '../src/driver/detectBackend.js'
+import type { RemoteOptions } from '../src/types.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
 import * as cjsExport from '../src/cjs/index.js'
 

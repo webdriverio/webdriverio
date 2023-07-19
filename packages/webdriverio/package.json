@@ -67,6 +67,8 @@
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
+    "@puppeteer/browsers": "^1.4.5",
+    "@testim/chrome-version": "^1.1.3",
     "@types/node": "^20.1.0",
     "@wdio/config": "8.13.13",
     "@wdio/logger": "8.11.0",
@@ -78,19 +80,23 @@
     "aria-query": "^5.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "8.13.13",
     "devtools-protocol": "^0.0.1170846",
+    "decamelize": "^6.0.0",
+    "edgedriver": "^5.2.2",
+    "geckodriver": "^4.0.5",
+    "get-port": "^7.0.0",
     "grapheme-splitter": "^1.0.2",
     "import-meta-resolve": "^3.0.0",
     "is-plain-obj": "^4.1.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "^9.0.0",
-    "puppeteer-core": "20.3.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
+    "safaridriver": "^0.0.6",
     "serialize-error": "^8.0.0",
-    "webdriver": "8.13.13"
+    "wait-port": "^1.0.4",
+    "webdriver": "8.13.1"
   }
 }

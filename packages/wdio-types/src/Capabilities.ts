@@ -144,7 +144,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIOVSCodeServiceOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIODriverOptions, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific

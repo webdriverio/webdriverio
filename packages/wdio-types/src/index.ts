@@ -27,6 +27,7 @@ declare global {
         interface Config extends Options.Testrunner {}
         interface HookFunctionExtension {}
         interface WDIODevtoolsOptions {}
+        interface WDIODriverOptions {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
     }
