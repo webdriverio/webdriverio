@@ -158,6 +158,12 @@ Does your company use WebdriverIO? Ask your manager or marketing team if your co
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/gold-sponsor.svg?avatarHeight=36&width=600"></a>
 
+### 🥈 Silver Sponsor
+
+<p align="center">
+    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" alt="Lambdatest" /></a>
+</p>
+
 ## :page_facing_up: License
 
 [MIT](/LICENSE-MIT)
