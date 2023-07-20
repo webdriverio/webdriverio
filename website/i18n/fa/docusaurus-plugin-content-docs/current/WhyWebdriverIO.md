@@ -22,7 +22,7 @@ WebdriverIO یک فریمورک اتوماسیون پیشرو است، برای 
 
 WebdriverIO از قدرت پروتکل [WebDriver](https://w3c.github.io/webdriver/) و [WebDriver-BiDi](https://github.com/w3c/webdriver-bidi) استفاده می کند که توسط همه سازنده های مرورگر مدرن و توسعه یافته پشتیبانی می شود و یک تیت واقعی بین مرورگرهای مختلف را تضمین می کند. در حالی که سایر ابزارهای اتوماسیون از شما می‌خواهند موتورهای مرورگر اصلاح‌شده‌ای را دانلود کنید که توسط کاربران واقعی استفاده نمی‌شوند یا رفتار کاربر را با تزریق جاوا اسکریپت تقلید کنند، WebdriverIO بر یک استاندارد مشترک توافق شده برای اتوماسیون متکی است که [آزمایش شده است](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) و سازگاری را برای دهه‌های آینده تضمین می‌کند.
 
-علاوه بر این WebdriverIO همچنین از پروتکل های اتوماسیون جایگزین و اختصاصی مانند [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) برای اشکال زدایی و بررسی درونی پشتیبانی می کند. این موضوع به کاربر این امکان را می دهد که به طور یکپارچه بین دستورات معمولی مبتنی بر WebDriver و تعاملات قدرمتند مرورگر از طریق [Puppeteer](https://pptr.dev/)حرکت کند.
+Furthermore WebdriverIO has also support for alternative, proprietary automation protocols like [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) for debugging and introspection purposes. این موضوع به کاربر این امکان را می دهد که به طور یکپارچه بین دستورات معمولی مبتنی بر WebDriver و تعاملات قدرمتند مرورگر از طریق [Puppeteer](https://pptr.dev/)حرکت کند.
 
 در مورد تفاوت های بین استانداردهای اتوماسیون در بخش [پروتکل های اتوماسیون](automationProtocols) بیشتر بخوانید.
 
@@ -30,4 +30,4 @@ WebdriverIO از قدرت پروتکل [WebDriver](https://w3c.github.io/webdriv
 
 در مقایسه با بسیاری از ابزارهای اتوماسیون در اکوسیستم، WebdriverIO یک پروژه واقعاً متن باز است که با حاکمیت باز اجرا می شود و متعلق به یک نهاد غیرانتفاعی به نام [OpenJS Foundation](https://openjsf.org/)است. این موضوع از نظر قانونی پروژه را ملزم به رشد و هدایت به نفع همه شرکت کنندگان می کند. تیم پروژه برای صداقت و همکاری ارزش قائل است و بر اساس منافع پولی هدایت نمی شود.
 
-این موضوع باعث می شود که پروژه در نحوه توسعه و روند ادامه آن مستقل باشد. این استقلال به ما امکان می دهد تا در [ کانال عمومی](https://discord.webdriver.io) خود، پشتیبانی 24 ساعته و 7 روزه رایگان ارائه دهیم، زیرا جامعه ای پایدار ایجاد می کنیم که از یکدیگر پشتیبانی می کند و از یکدیگر یاد می گیرد. در نهایت، فرصت‌های زیادی را به افرادی که در این پروژه مشارکت می‌کنند و با آن درگیر هستند، به دلیل حاکمیت باز [](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md) ارائه می‌دهد.
+این موضوع باعث می شود که پروژه در نحوه توسعه و روند ادامه آن مستقل باشد. It allows us to provide free 24/7 support in our [community channel](https://discord.webdriver.io) as we build a sustainable community that supports and learns from each other. در نهایت، فرصت‌های زیادی را به افرادی که در این پروژه مشارکت می‌کنند و با آن درگیر هستند، به دلیل حاکمیت باز [](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md) ارائه می‌دهد.
