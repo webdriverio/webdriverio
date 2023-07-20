@@ -69,8 +69,8 @@ export async function getProtocolDriver (options: RemoteOptions) {
         return { Driver: WebDriver, options }
     }
 
-    const connectionDetails = await startWebDriver(options)
-    Object.assign(options, detectBackend(connectionDetails))
+    const { port, hostname } = await startWebDriver(options)
+    Object.assign(options, { port, hostname })
     return { Driver: WebDriver, options }
 }
 
@@ -94,6 +94,9 @@ export async function startWebDriver (options: RemoteOptions) {
 
     const port = await getPort()
     if (SUPPORTED_BROWSERNAMES.chrome.includes(caps.browserName.toLowerCase())) {
+        /**
+         * Chrome
+         */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as ChromedriverOptions)
         const cacheDir = chromedriverOptions.cacheDir || path.resolve(__dirname, '..', '..', '.chrome')
         const exist = await fs.access(cacheDir).then(() => true, () => false)
@@ -126,6 +129,9 @@ export async function startWebDriver (options: RemoteOptions) {
         driverProcess = cp.spawn(chromedriverBinaryPath, driverParams)
         driver = `ChromeDriver v${buildId} with params ${driverParams.join(' ')}`
     } else if (SUPPORTED_BROWSERNAMES.safari.includes(caps.browserName.toLowerCase())) {
+        /**
+         * Safari
+         */
         driver = 'SafariDriver'
         driverProcess = startSafaridriver({
             ...(caps['wdio:safaridriverOptions'] || {}),
@@ -137,13 +143,19 @@ export async function startWebDriver (options: RemoteOptions) {
          */
         options.headers = deepmerge({ Host: 'localhost' }, (options.headers || {}))
     } else if (SUPPORTED_BROWSERNAMES.firefox.includes(caps.browserName.toLowerCase())) {
+        /**
+         * Firefox
+         */
         driver = 'GeckoDriver'
         driverProcess = await startGeckodriver({
             ...(caps['wdio:geckodriverOptions'] || {}),
             port
         })
     } else if (SUPPORTED_BROWSERNAMES.edge.includes(caps.browserName.toLowerCase())) {
-        const edgedriverOptions = caps['wdio:chromedriverOptions'] || ({} as ChromedriverOptions)
+        /**
+         * Microsoft Edge
+         */
+        const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as ChromedriverOptions)
         edgedriverOptions.allowedOrigins = ['*']
         edgedriverOptions.allowedIps = ['']
         driver = 'EdgeDriver'

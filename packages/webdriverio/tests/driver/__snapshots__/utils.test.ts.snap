@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`driver utils > should parse params 1`] = `
+[
+  "--base-url=foobar",
+  "--silent",
+  "--allowed-ips=123",
+  "--allowed-ips=321",
+]
+`;

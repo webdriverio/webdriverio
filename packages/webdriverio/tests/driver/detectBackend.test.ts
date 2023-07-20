@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import detectBackend from '../../src/utils/detectBackend.js'
+import detectBackend from '../../src/driver/detectBackend.js'
 
 describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
