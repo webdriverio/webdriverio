@@ -77,6 +77,11 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
+                type: 'doc',
+                docId: 'sponsor',
+                label: 'Sponsor',
+                position: 'left'
+            }, {
                 label: 'v8',
                 position: 'right',
                 to: '/versions'
