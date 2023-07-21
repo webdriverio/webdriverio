@@ -158,8 +158,8 @@ module.exports = {
                     label: 'Sponsor',
                     to: 'docs/sponsor',
                 }, {
-                    label: 'Donate to WebdriverIO',
-                    href: 'https://opencollective.com/webdriverio',
+                    label: 'Team',
+                    href: 'https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md',
                 }, {
                     label: 'YouTube',
                     href: youtubeUrl,
