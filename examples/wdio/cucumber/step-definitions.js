@@ -27,7 +27,7 @@ When(/^I add the following groceries$/, async (table) => {
     }
 })
 
-Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, async (selector, width, height) => {
+Then(/^should the element "([^"]*)" be (\d+(?:\.\d+)?)px wide and (\d+(?:\.\d+)?)px high$/, async (selector, width, height) => {
     var elemSize = await $(selector).getSize()
     expect(elemSize.width).toBe(width)
     expect(elemSize.height).toBe(height)
