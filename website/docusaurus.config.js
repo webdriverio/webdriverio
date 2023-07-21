@@ -77,6 +77,11 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
+                type: 'doc',
+                docId: 'sponsor',
+                label: 'Sponsor',
+                position: 'left'
+            }, {
                 label: 'v8',
                 position: 'right',
                 to: '/versions'
@@ -150,11 +155,11 @@ module.exports = {
                     label: 'Blog',
                     to: 'blog',
                 }, {
-                    label: 'Tidelift Subscription',
-                    to: '/docs/enterprise/',
+                    label: 'Sponsor',
+                    to: 'docs/sponsor',
                 }, {
-                    label: 'Donate to WebdriverIO',
-                    href: 'https://opencollective.com/webdriverio',
+                    label: 'Team',
+                    href: 'https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md',
                 }, {
                     label: 'YouTube',
                     href: youtubeUrl,
