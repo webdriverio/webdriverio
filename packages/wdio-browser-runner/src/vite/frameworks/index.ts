@@ -6,6 +6,6 @@ import { isNuxtFramework, optimizeForNuxt } from './nuxt.js'
 export default async function updateViteConfig (viteConfig: Partial<InlineConfig>, options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
     const isNuxt = await isNuxtFramework(config.rootDir || process.cwd())
     if (isNuxt) {
-        optimizeForNuxt(viteConfig, options, config)
+        await optimizeForNuxt(viteConfig, options, config)
     }
 }
