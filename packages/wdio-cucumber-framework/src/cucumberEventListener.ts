@@ -18,7 +18,7 @@ import path from 'path'
 const log = logger('CucumberEventListener')
 
 export default class CucumberEventListener extends EventEmitter {
-    private _cwd: string
+    #cwd = process.cwd()
     private _gherkinDocEvents: GherkinDocument[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
