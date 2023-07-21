@@ -445,7 +445,7 @@ export default class CucumberEventListener extends EventEmitter {
              */
             .filter(([, fakeId]) => {
                 const pickle = { ...this._scenarios.find(s => s.id === fakeId) } as Pickle
-                pickle.uri = path.relative(this._cwd, pickle.uri)
+                pickle.uri = path.relative(this.#cwd, pickle.uri)
                 return this._pickleFilter.matches({
                     gherkinDocument,
                     pickle
