@@ -1,28 +1,31 @@
-import type { Browser } from 'webdriverio'
+import path from 'node:path'
+import { describe, expect, test, vi } from 'vitest'
 
 import {
     sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
     isBrowserSupported, setUnsupportedCommand, getLighthouseDriver
-} from '../src/utils'
-import { RequestPayload } from '../src/handler/network'
+} from '../src/utils.js'
+import type { RequestPayload } from '../src/handler/network.js'
 
-const expect = global.expect as any as jest.Expect
-
-jest.mock('fs', () => ({
-    readFileSync: jest.fn().mockReturnValue('1234\nsomepath'),
-    existsSync: jest.fn()
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('fs', () => ({
+    readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
+    existsSync: vi.fn()
 }))
 
-jest.mock('lighthouse/lighthouse-core/gather/connections/cri', () => class ChromeProtocol {
-    public _runJsonCommand = jest.fn().mockReturnValue(['foobar'])
-    public _connectToSocket = jest.fn()
-    public _sendCommandMock = jest.fn()
+vi.mock('lighthouse/lighthouse-core/gather/connections/cri.js', () => ({
+    default: class ChromeProtocol {
+        public _runJsonCommand = vi.fn().mockReturnValue(['foobar'])
+        public _connectToSocket = vi.fn()
+        public _sendCommandMock = vi.fn()
+        public on = vi.fn()
 
-    sendCommand (...args) {
-        this._sendCommandMock(...args)
-        return { sessionId: 'session 321' }
+        sendCommand (...args: any) {
+            this._sendCommandMock(...args)
+            return { sessionId: 'session 321' }
+        }
     }
-})
+}))
 
 test('sumByKey', () => {
     expect(sumByKey([{
@@ -35,8 +38,8 @@ test('sumByKey', () => {
 })
 
 test('setUnsupportedCommand', () => {
-    const browser = { addCommand: jest.fn() }
-    setUnsupportedCommand(browser as unknown as Browser<'async'>)
+    const browser = { addCommand: vi.fn() }
+    setUnsupportedCommand(browser as unknown as WebdriverIO.Browser)
     expect(browser.addCommand).toHaveBeenCalledWith('cdp', expect.any(Function))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()
@@ -56,7 +59,7 @@ describe('isBrowserVersionLower', () => {
         const versionProps = ['browserVersion', 'browser_version', 'version']
         let browserVersion = 63
         versionProps.forEach(prop => {
-            const caps = {}
+            const caps = {} as any
             caps[prop] = browserVersion
             expect(isBrowserVersionLower(caps, 63)).toBe(false)
             browserVersion++
@@ -122,9 +125,9 @@ describe('isBrowserSupported', () => {
 
 describe('getLighthouseDriver', () => {
     test('should return a driver w/o creating new session', async () => {
-        const urlMock = jest.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
+        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
         const session = {
-            connection: jest.fn().mockReturnValue({ url: urlMock })
+            connection: vi.fn().mockReturnValue({ url: urlMock })
         }
         const target = { _targetId: 'foobar321' }
         const driver = await getLighthouseDriver(session as any, target as any)
@@ -134,15 +137,15 @@ describe('getLighthouseDriver', () => {
     })
 
     test('should create a new session', async () => {
-        const urlMock = jest.fn().mockReturnValue('ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
+        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
         const session = {
-            connection: jest.fn().mockReturnValue({ url: urlMock })
+            connection: vi.fn().mockReturnValue({ url: urlMock })
         }
         const target = { _targetId: 'foobar321' }
         const driver = await getLighthouseDriver(session as any, target as any)
         // @ts-expect-error
-        driver.connection.sendCommand('foobar')
+        driver._connection.sendCommand('foobar')
         // @ts-expect-error
-        expect(driver.connection._sendCommandMock.mock.calls).toMatchSnapshot()
+        expect(driver._connection._sendCommandMock.mock.calls).toMatchSnapshot()
     })
 })

@@ -1,19 +1,33 @@
 {
   "name": "webdriver",
-  "version": "7.20.2",
+  "version": "8.13.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
   "license": "MIT",
-  "main": "./build",
-  "engines": {
-    "node": ">=12.0.0"
+  "main": "./build/cjs/index.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
+    "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
+  "engines": {
+    "node": "^16.13 || >=18"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/webdriver"
   },
   "keywords": [
     "webdriver"
@@ -21,18 +35,17 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "devDependencies": {
-    "@types/lodash.merge": "^4.6.6"
-  },
   "dependencies": {
-    "@types/node": "^17.0.4",
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/protocols": "7.20.2",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
-    "got": "^11.0.2",
-    "ky": "^0.30.0",
-    "lodash.merge": "^4.6.1"
+    "@types/node": "^20.1.0",
+    "@types/ws": "^8.5.3",
+    "@wdio/config": "8.12.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/protocols": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
+    "deepmerge-ts": "^5.0.0",
+    "got": "^ 12.6.1",
+    "ky": "^0.33.0",
+    "ws": "^8.8.0"
   }
 }

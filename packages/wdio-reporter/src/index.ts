@@ -1,17 +1,20 @@
-import fs from 'fs'
-import type { WriteStream } from 'fs'
-import { createWriteStream, ensureDirSync } from 'fs-extra'
-import { EventEmitter } from 'events'
+import fs from 'node:fs'
+import type { WriteStream } from 'node:fs'
+import { EventEmitter } from 'node:events'
+import logger from '@wdio/logger'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent } from './utils'
-import SuiteStats, { Suite } from './stats/suite'
-import HookStats, { Hook } from './stats/hook'
-import TestStats, { Test } from './stats/test'
-import RunnerStats from './stats/runner'
-import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
+import { getErrorsFromEvent } from './utils.js'
+import type { Suite } from './stats/suite.js'
+import SuiteStats from './stats/suite.js'
+import type { Hook } from './stats/hook.js'
+import HookStats from './stats/hook.js'
+import TestStats, { Test } from './stats/test.js'
+import RunnerStats from './stats/runner.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 
 type CustomWriteStream = { write: (content: any) => boolean }
+const log = logger('WDIOReporter')
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -39,12 +42,16 @@ export default class WDIOReporter extends EventEmitter {
 
         // ensure the report directory exists
         if (this.options.outputDir) {
-            ensureDirSync(this.options.outputDir)
+            try {
+                fs.mkdirSync(this.options.outputDir, { recursive: true })
+            } catch (err: any) {
+                log.error(`Couldn't create output dir: ${err.stack}`)
+            }
         }
 
         this.outputStream = (this.options.stdout || !this.options.logFile) && this.options.writeStream
             ? this.options.writeStream as CustomWriteStream
-            : createWriteStream(this.options.logFile!)
+            : fs.createWriteStream(this.options.logFile!)
 
         let currentTest: TestStats
 

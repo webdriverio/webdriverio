@@ -5,6 +5,12 @@ title: Driver Binaries
 
 To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
+:::tip
+
+If you are looking to set up mobile and other UI platforms, have a look into our [Appium Setup](appium) guide.
+
+:::
+
 ## Chromedriver
 
 To automate Chrome you can download Chromedriver directly on the [project website](http://chromedriver.chromium.org/downloads) or through the NPM package:

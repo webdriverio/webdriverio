@@ -21,6 +21,6 @@
  * @type property
  *
  */
-export default function getTagName (this: WebdriverIO.Element) {
+export function getTagName (this: WebdriverIO.Element) {
     return this.getElementTagName(this.elementId)
 }

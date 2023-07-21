@@ -1,15 +1,19 @@
-// @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach } from 'vitest'
 
-const got = gotMock as any as jest.Mock
+// @ts-ignore mocked (original defined in webdriver package)
+import got from 'got'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForDisplayed', () => {
     const timeout = 1000
-    let browser
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -19,50 +23,50 @@ describe('waitForDisplayed', () => {
         })
     })
 
-    test('should call waitUntil', async () => {
-        const cb = jest.fn()
+    it('should call waitUntil', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
-            waitUntil: jest.fn().mockImplementation(cb),
+            waitUntil: vi.fn().mockImplementation(cb),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        }
+        } as any as WebdriverIO.Element
 
         await elem.waitForDisplayed({ timeout })
         expect(cb).toBeCalled()
-        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
+        expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
 
-    test('should call isDisplayed and return true immediately if true', async () => {
+    it('should call isDisplayed and return true immediately if true', async () => {
         const elem = await browser.$('#foo')
         const result = await elem.waitForDisplayed({ timeout })
 
         expect(result).toBe(true)
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
-    test('should call isDisplayed and return true if eventually true', async () => {
+    it('should call isDisplayed and return true if eventually true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn()
+            isDisplayed: vi.fn()
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
             options: { waitforTimeout: 50, waitforInterval: 5 },
-        }
+        } as any as WebdriverIO.Element
 
         const result = await elem.waitForDisplayed({ timeout })
         expect(result).toBe(true)
     })
 
-    test('should call isDisplayed and return false', async () => {
+    it('should call isDisplayed and return false', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -71,9 +75,9 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn(() => false),
+            isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        }
+        } as any as WebdriverIO.Element
 
         try {
             await elem.waitForDisplayed({ timeout })
@@ -82,16 +86,16 @@ describe('waitForDisplayed', () => {
         }
     })
 
-    test('should not call isDisplayed and return false if never found', async () => {
+    it('should not call isDisplayed and return false if never found', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
-            parent: { $: jest.fn(() => { return elem}) },
+            parent: { $: vi.fn(() => { return elem}) },
             waitForDisplayed: tmpElem.waitForDisplayed,
             waitUntil: tmpElem.waitUntil,
             isDisplayed: tmpElem.isDisplayed,
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        }
+        } as any as WebdriverIO.Element
 
         try {
             await elem.waitForDisplayed({ timeout })
@@ -100,23 +104,23 @@ describe('waitForDisplayed', () => {
         }
     })
 
-    test('should do reverse', async () => {
-        const cb = jest.fn()
+    it('should do reverse', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
-            waitUntil: jest.fn().mockImplementation(cb),
-            isDisplayed: jest.fn(() => true),
+            waitUntil: vi.fn().mockImplementation(cb),
+            isDisplayed: vi.fn(() => true),
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        }
+        } as any as WebdriverIO.Element
 
         await elem.waitForDisplayed({ reverse: true })
-        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
+        expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
 
-    test('should call isDisplayed and return false with custom error', async () => {
+    it('should call isDisplayed and return false with custom error', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -125,9 +129,9 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn(() => false),
+            isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500 },
-        }
+        } as any as WebdriverIO.Element
 
         try {
             await elem.waitForDisplayed({ timeout, timeoutMsg: 'Element foo never displayed' })

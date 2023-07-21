@@ -1,16 +1,21 @@
-import fs from 'fs'
+import type { SpyInstance } from 'vitest'
+import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
-import * as utils from '../../../src/utils'
+import { remote } from '../../../src/index.js'
+import * as utils from '../../../src/utils/index.js'
 
-jest.mock('fs')
+vi.mock('fs')
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveRecordingScreen', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: jest.SpyInstance
-    let assertDirectoryExistsSpy: jest.SpyInstance
-    let writeFileSyncSpy: jest.SpyInstance
+    let getAbsoluteFilepathSpy: SpyInstance
+    let assertDirectoryExistsSpy: SpyInstance
+    let writeFileSyncSpy: SpyInstance
 
     beforeEach(async () => {
         browser = await remote({
@@ -20,12 +25,12 @@ describe('saveRecordingScreen', () => {
                 // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.11.1'
-            }
+            } as any
         })
 
-        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
-        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
@@ -46,8 +51,8 @@ describe('saveRecordingScreen', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/appium/stop_recording_screen')
         expect(video.toString()).toBe('some screenshot')
 

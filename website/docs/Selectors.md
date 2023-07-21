@@ -3,13 +3,40 @@ id: selectors
 title: Selectors
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle). The following selector types are supported:
+The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+
+While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+
+```html
+<button
+  id="main"
+  class="btn btn-large"
+  name="submission"
+  role="button"
+  data-testid="submit"
+>
+  Submit
+</button>
+```
+
+We __do__ and __do not__ recommend the following selectors:
+
+| Selector | Recommended | Notes |
+| -------- | ----------- | ----- |
+| `$('button')` | 🚨 Never | Worst - too generic, no context. |
+| `$('.btn.btn-large')` | 🚨 Never | Bad. Coupled to styling. Highly subject to change. |
+| `$('#main')` | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
+| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write. |
+| `$('button[name="submission"]')` | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics. |
+| `$('button[data-testid="submit"]')` | ✅ Good | Requires additional attribute, not connected to a11y. |
+| `$('aria/Submit')` or `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page. |
 
 ## CSS Query Selector
 
-```js
-const elem = await $('h2.subheading a')
-elem.click()
+If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L7-L8
 ```
 
 ## Link Text
@@ -18,16 +45,14 @@ To get an anchor element with a specific text in it, query the text starting wit
 
 For example:
 
-```html
-<a href="https://webdriver.io">WebdriverIO</a>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L3
 ```
 
 You can query this element by calling:
 
-```js
-const link = await $('=WebdriverIO')
-console.log(await link.getText()) // outputs: "WebdriverIO"
-console.log(await link.getAttribute('href')) // outputs: "https://webdriver.io"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L16-L18
 ```
 
 ## Partial Link Text
@@ -35,15 +60,10 @@ console.log(await link.getAttribute('href')) // outputs: "https://webdriver.io"
 To find a anchor element whose visible text partially matches your search value,
 query it by using `*=` in front of the query string (e.g. `*=driver`).
 
-```html
-<a href="https://webdriver.io">WebdriverIO</a>
-```
+You can query the element from the example above by also calling:
 
-You can query this element by calling:
-
-```js
-const link = await $('*=driver')
-console.log(await link.getText()) // outputs: "WebdriverIO"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L24-L26
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
@@ -60,45 +80,32 @@ The same technique can be applied to elements as well.
 
 For example, here's a query for a level 1 heading with the text "Welcome to my Page":
 
-```html
-<h1 alt="welcome-to-my-page">Welcome to my Page</h1>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L2
 ```
 
 You can query this element by calling:
 
-```js
-const header = await $('h1=Welcome to my Page')
-console.log(await header.getText()) // outputs: "Welcome to my Page"
-console.log(await header.getTagName()) // outputs: "h1"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
 ```
 
 Or using query partial text:
 
-```js
-const header = await $('h1*=Welcome')
-console.log(await header.getText()) // outputs: "Welcome to my Page"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
 ```
 
 The same works for `id` and `class` names:
 
-```html
-<i class="someElem" id="elem">WebdriverIO is the best</i>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L4
 ```
 
 You can query this element by calling:
 
-```js
-const classNameAndText = await $('.someElem=WebdriverIO is the best')
-console.log(await classNameAndText.getText()) // outputs: "WebdriverIO is the best"
-
-const idAndText = await $('#elem=WebdriverIO is the best')
-console.log(await idAndText.getText()) // outputs: "WebdriverIO is the best"
-
-const classNameAndPartialText = await $('.someElem*=WebdriverIO')
-console.log(await classNameAndPartialText.getText()) // outputs: "WebdriverIO is the best"
-
-const idAndPartialText = await $('#elem*=WebdriverIO')
-console.log(await idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
@@ -113,28 +120,26 @@ const elem = await $('header').$('h1*=Welcome')
 
 To query an element with a specific tag name, use `<tag>` or `<tag />`.
 
-```html
-<my-element>WebdriverIO is the best</my-element>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L5
 ```
 
 You can query this element by calling:
 
-```js
-const classNameAndText = await $('<my-element />')
-console.log(await classNameAndText.getText()) // outputs: "WebdriverIO is the best"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L61-L62
 ```
 
 ## Name Attribute
 
 For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
 
-```html
-<input name="username" value="foobar" />
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L6
 ```
 
-```js
-const classNameAndText = await $('[name="username"]')
-console.log(await classNameAndText.getValue()) // outputs: "foobar"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L68-L69
 ```
 
 __Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
@@ -145,42 +150,92 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 
 An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
 
-```html
-<html>
-    <body>
-        <p>foobar</p>
-        <p>barfoo</p>
-    </body>
-</html>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/xpath.html
 ```
 
 You can query the second paragraph by calling:
 
-```js
-const paragraph = await $('//body/p[2]')
-console.log(await paragraph.getText()) // outputs: "barfoo"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L75-L76
 ```
 
 You can use xPath to also traverse up and down the DOM tree:
 
-```js
-const parent = await paragraph.$('..')
-console.log(await parent.getTagName()) // outputs: "body"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L78-L79
+```
+
+## Accessibility Name Selector
+
+Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+
+:::info
+
+You can read more about this selector in our [release blog post](/blog/2022/09/05/accessibility-selector)
+
+:::
+
+### Fetch by `aria-label`
+
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L1
+```
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L86-L87
+```
+
+### Fetch by `aria-labelledby`
+
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L2-L3
+```
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L93-L94
+```
+
+### Fetch by content
+
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L4
+```
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L100-L101
+```
+
+### Fetch by title
+
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L5
+```
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L107-L108
+```
+
+### Fetch by `alt` property
+
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L6
+```
+
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L114-L115
 ```
 
 ## ARIA - Role Attribute
 
 For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
 
-```html
-<button>Click me</button>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L13
 ```
 
-```js
-const button = await $('[role=button]')
-
-// perform click on button element
-console.log(await button.click())
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L131-L132
 ```
 
 ## ID Attribute
@@ -196,7 +251,7 @@ Current supported selector syntaxes for ID are:
 const button = await $('#someid')
 //xpath locator
 const button = await $('//*[@id="someid"]')
-//id strategy 
+//id strategy
 // Note: works only in Appium or similar frameworks which supports locator strategy "ID"
 const button = await $('id=resource-id/iosname')
 ```
@@ -207,20 +262,14 @@ You can also use JavaScript functions to fetch elements using web native APIs. O
 
 Given the following HTML structure:
 
-```html
-<html>
-    <body>
-        <p id="elem">foobar</p>
-        <p>barfoo</p>
-    </body>
-</html>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/js.html
 ```
 
 You can query the sibling element of `#elem` as follows:
 
-```js
-const elem = await $('#elem') // or $(() => document.getElementById('elem'))
-await elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L139-L143
 ```
 
 ## Deep Selectors
@@ -233,9 +282,8 @@ Given we have an application with the following structure:
 
 With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
 
-```js
-const button = await $('>>>.dropdown-item:not([hidden])')
-console.log(await button.getText()) // outputs: "Open downloads folder"
+```js reference useHTTPS
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L147-L149
 ```
 
 ## Mobile Selectors

@@ -1,14 +1,12 @@
 declare module "css-value" {
-    declare const cssValue: {
-        (rgb: string): CSSValue[]
-    }
+    function cssValue(rgb: string): cssValue.CSSValue[]
 
     namespace cssValue {
         interface CSSValue {
             type: string
             string: string
             unit: string
-            value: any
+            value: string | number
         }
     }
 

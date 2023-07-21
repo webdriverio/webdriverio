@@ -42,6 +42,11 @@ export interface AllureReporterOptions {
     * @default false
     */
     addConsoleLogs?: boolean
+    /**
+    * Set this option to display the environment variables in the report.
+    * Note that setting this does not modify the actual environment variables.
+    */
+    reportedEnvironmentVars?: Record<string, string>
 }
 
 export interface AddLabelEventArgs {
@@ -53,6 +58,10 @@ export interface AddStoryEventArgs {
     storyName: string
 }
 
+export interface AddAllureIdEventArgs {
+    id: string
+}
+
 export interface AddFeatureEventArgs {
     featureName: string
 }
@@ -61,17 +70,44 @@ export interface AddSeverityEventArgs {
     severity: string
 }
 
+export interface AddEpicEventArgs {
+    epicName: string
+}
+
+export interface AddSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddParentSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddSubSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddOwnerEventArgs {
+    owner: string
+}
+
+export interface AddTagEventArgs {
+    tag: string
+}
+
+export interface AddLinkEventArgs {
+    url: string
+    name?: string
+    type?: string
+}
+
 export interface AddIssueEventArgs {
     issue: string
+    linkName?: string
 }
 
 export interface AddTestIdEventArgs {
     testId: string
-}
-
-export interface AddEnvironmentEventArgs {
-    name: string
-    value: string
+    linkName?: string
 }
 
 export enum TYPE {
@@ -105,4 +141,10 @@ export interface Attachment {
     addAttachment(attachment: Attachment): void;
     end(status: Status, error: Error, timestamp?: number): void;
     toXML(): string;
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends AllureReporterOptions { }
+    }
 }

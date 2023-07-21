@@ -1,10 +1,12 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 import type { ElementReference } from '@wdio/protocols'
 
-import { ELEMENT_KEY } from '../constants'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import { ELEMENT_KEY } from '../constants.js'
+import { getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
+
+type FrameIdParameter = { id: null | number | ElementReference }
 
 /**
  * The Switch To Frame command is used to select the current top-level browsing context
@@ -17,7 +19,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  */
 export default async function switchToFrame (
     this: DevToolsDriver,
-    { id }: { id: string }
+    { id }: FrameIdParameter
 ) {
     const page = this.getPageHandle(true) as unknown as Frame
 
@@ -43,12 +45,11 @@ export default async function switchToFrame (
     /**
      * switch frame by element ID
      */
-    const idAsElementReference = id as unknown as ElementReference
-    if (typeof idAsElementReference[ELEMENT_KEY] === 'string') {
-        const elementHandle = await this.elementStore.get(idAsElementReference[ELEMENT_KEY])
+    if (typeof id === 'object' && typeof (id as ElementReference)[ELEMENT_KEY] === 'string') {
+        const elementHandle = await this.elementStore.get(id[ELEMENT_KEY])
 
         if (!elementHandle) {
-            throw getStaleElementError(id)
+            throw getStaleElementError(id[ELEMENT_KEY])
         }
 
         const contentFrame = await elementHandle.contentFrame()
@@ -58,7 +59,7 @@ export default async function switchToFrame (
         }
 
         this.currentFrame = contentFrame as unknown as Page
-        return { id: idAsElementReference[ELEMENT_KEY] }
+        return { id: id[ELEMENT_KEY] }
     }
 
     /**
@@ -68,7 +69,7 @@ export default async function switchToFrame (
         /**
          * `page` has `frames` method while `frame` has `childFrames` method
          */
-        let getFrames = (page as unknown as Page).frames || page.childFrames
+        const getFrames = (page as unknown as Page).frames || page.childFrames
         const childFrames = await getFrames.apply(page)
         const childFrame = childFrames[id]
 

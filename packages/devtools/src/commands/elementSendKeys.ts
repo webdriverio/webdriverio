@@ -1,9 +1,9 @@
-import path from 'path'
+import path from 'node:path'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
-import type { KeyInput } from 'puppeteer-core'
+import type { ElementHandle, KeyInput } from 'puppeteer-core'
 
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Element Send Keys command scrolls into view the form control element and then sends
@@ -20,7 +20,7 @@ export default async function elementSendKeys (
     this: DevToolsDriver,
     { elementId, text }: { elementId: string, text: string }
 ) {
-    const elementHandle = await this.elementStore.get(elementId)
+    const elementHandle = await this.elementStore.get(elementId) as any as ElementHandle<HTMLInputElement>
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)

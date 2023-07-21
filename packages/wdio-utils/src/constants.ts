@@ -78,4 +78,4 @@ export const UNICODE_CHARACTERS = {
     'Meta': '\uE03D',
     'ZenkakuHankaku': '\uE040',
     'Zenkaku_Hankaku': '\uE040'
-}
+} as const

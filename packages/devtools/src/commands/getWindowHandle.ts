@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Window Handle command returns the window handle for the current top-level browsing context.

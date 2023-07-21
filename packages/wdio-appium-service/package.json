@@ -1,17 +1,17 @@
 {
   "name": "@wdio/appium-service",
-  "version": "7.20.1",
+  "version": "8.13.4",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-appium-service"
   },
   "keywords": [
     "webdriver",
@@ -25,19 +25,22 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {
-    "@types/fs-extra": "^9.0.4",
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "fs-extra": "^10.0.0",
-    "param-case": "^3.0.0"
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/config": "8.12.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "import-meta-resolve": "^3.0.0",
+    "param-case": "^3.0.4",
+    "webdriverio": "8.13.4"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

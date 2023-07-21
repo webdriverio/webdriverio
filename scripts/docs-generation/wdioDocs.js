@@ -1,10 +1,13 @@
-const fs = require('fs')
-const path = require('path')
-const markdox = require('markdox')
-const { promisify } = require('util')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import markdox from 'markdox'
+import { promisify } from 'node:util'
 
-const formatter = require('../utils/formatter')
-const compiler = require('../utils/compiler')
+import formatter from '../utils/formatter.js'
+import compiler from '../utils/compiler.js'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -18,21 +21,26 @@ const processDocs = promisify(markdox.process)
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateWdioDocs = async (sidebars) => {
+export async function generateWdioDocs (sidebars) {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
-        browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
-        element: fs.readdirSync(path.join(COMMAND_DIR, 'element')),
-        mock: fs.readdirSync(path.join(COMMAND_DIR, 'mock'))
+        browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
+        element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
+        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))]
     }
 
-    for (const [scope, files] of Object.entries(COMMANDS)) {
+    const apiDocs = []
+    for (const [scope, [id, files]] of Object.entries(COMMANDS)) {
         /**
          * add scope to sidebar
          */
-        sidebars.api.push({
+        apiDocs.push({
             type: 'category',
             label: scope,
+            link: {
+                type: 'doc',
+                id
+            },
             items: []
         })
 
@@ -45,11 +53,20 @@ exports.generateWdioDocs = async (sidebars) => {
             const filepath = path.join(COMMAND_DIR, scope, file)
             const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
+            // eslint-disable-next-line no-undef
+            globalThis.path = path
             await processDocs(filepath, options)
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
-            sidebars.api[sidebars.api.length - 1].items
+            apiDocs[apiDocs.length - 1].items
                 .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
+
+    /**
+     * Have API intro page first, then protocol commands, then these and lastly
+     * general API docs
+     */
+    const [api, protocol, ...rest] = sidebars.api
+    sidebars.api = [api, protocol, ...apiDocs, ...rest]
 }

@@ -1,6 +1,6 @@
 /**
  *
- * Clear a `<textarea>` or text `<input>` element’s value. Make sure you can interact with the
+ * Clear the value of an input or textarea element. Make sure you can interact with the
  * element before using this command. You can't clear an input element that is disabled or in
  * readonly mode.
  *
@@ -24,7 +24,6 @@
  * @type action
  *
  */
-
-export default function clearValue (this: WebdriverIO.Element) {
+export function clearValue (this: WebdriverIO.Element) {
     return this.elementClear(this.elementId)
 }

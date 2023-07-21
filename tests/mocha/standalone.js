@@ -1,5 +1,5 @@
-import assert from 'assert'
-import { remote, attach, multiremote } from '../../packages/webdriverio'
+import assert from 'node:assert'
+import { remote, attach, multiremote } from '../../packages/webdriverio/build/index.js'
 
 function sleep (ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))

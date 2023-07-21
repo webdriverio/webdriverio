@@ -1,0 +1,86 @@
+.yt-lite {
+    margin-bottom: 20px;
+}
+
+.lty-playbtn {
+    cursor: pointer;
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    border: 2px solid #fff;
+    background-color: rgba(255, 255, 255, .2);
+    transition: background-color border;
+}
+
+
+@media (max-width: 600px) {
+    .lty-playbtn {
+        width: 100px;
+        height: 100px;
+    }
+
+    body .lty-playbtn:after {
+        height: 50px;
+        border-width: 25px 0 25px 45px;
+    }
+}
+
+.lty-playbtn:after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate3d(-45%, -50%, 0);
+    border: 0;
+    background: transparent;
+    box-sizing: border-box;
+    width: 0;
+    height: 100px;
+    border-color: transparent transparent transparent #FFFFFF;
+    transition: 100ms all ease;
+    cursor: pointer;
+    border-style: solid;
+    border-width: 50px 0 50px 90px;
+}
+.yt-lite:hover .lty-playbtn {
+    background-color: rgba(234, 89, 7, .5);
+    border: 2px solid #EA5907;
+}
+
+.yt-lite {
+  position: relative;
+  display: block;
+  contain: content;
+  background-position: 50%;
+  background-size: cover;
+  cursor: pointer;
+}
+.yt-lite::after {
+  content: "";
+  display: block;
+  padding-bottom: var(--aspect-ratio);
+}
+.yt-lite > iframe {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.yt-lite > .lty-playbtn {
+  z-index: 1;
+  opacity: 0.8;
+  transition: all 0.2s cubic-bezier(0, 0, 0.2, 1);
+}
+.yt-lite.lyt-activated {
+  cursor: unset;
+}
+.yt-lite.lyt-activated::before,
+.yt-lite.lyt-activated > .lty-playbtn {
+  opacity: 0;
+  pointer-events: none;
+}

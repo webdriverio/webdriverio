@@ -1,6 +1,6 @@
-import Interception from '.'
-import { ERROR_REASON } from '../../constants'
-import type { Matches, MockResponseParams, MockOverwrite } from './types'
+import Interception from './index.js'
+import { ERROR_REASON } from '../../constants.js'
+import type { Matches, MockResponseParams, MockOverwrite } from './types.js'
 
 /**
  * Network interception class based on a WebDriver compliant endpoint.
@@ -17,6 +17,13 @@ export default class WebDriverInterception extends Interception {
         }
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
+    }
+
+    on() {
+        throw new Error('Not implemented')
+
+        // eslint-disable-next-line no-unreachable
+        return this
     }
 
     /**
@@ -40,8 +47,8 @@ export default class WebDriverInterception extends Interception {
      * Does everything that `mock.clear()` does, and also
      * removes any mocked return values or implementations.
      */
-    restore () {
-        return this.browser.call(
+    async restore () {
+        await this.browser.call(
             async () => this.browser.clearMockCalls(this.mockId as string, true))
     }
 

@@ -1,4 +1,4 @@
-import { validateUrl } from '../../utils'
+import { validateUrl } from '../../utils/index.js'
 
 /**
  *
@@ -36,7 +36,7 @@ import { validateUrl } from '../../utils'
  * @type protocol
  *
  */
-export default function url (
+export async function url (
     this: WebdriverIO.Browser,
     path: string
 ) {
@@ -46,6 +46,14 @@ export default function url (
 
     if (typeof this.options.baseUrl === 'string' && this.options.baseUrl) {
         path = (new URL(path, this.options.baseUrl)).href
+    }
+
+    if (this.isBidi) {
+        const { contexts } = await this.browsingContextGetTree({})
+        return this.browsingContextNavigate({
+            context: contexts[0].context,
+            url: path
+        })
     }
 
     return this.navigateTo(validateUrl(path))

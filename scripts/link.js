@@ -3,8 +3,11 @@
  * This script initialises the playground by linking all package into the /test directory
  */
 
-const path = require('path')
-const shell = require('shelljs')
+import url from 'node:url'
+import path from 'node:path'
+import shell from 'shelljs'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const packagesDir = path.join(__dirname, '..', 'packages')
 const nodeModulesDir = path.join(__dirname, '..', 'packages', 'node_modules')

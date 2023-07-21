@@ -1,11 +1,10 @@
-import path from 'path'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
-import { sendFailureMessage } from './utils'
-
 const log = logger('@wdio/runner')
+const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
  * BaseReporter
@@ -13,21 +12,25 @@ const log = logger('@wdio/runner')
  * to all these reporters
  */
 export default class BaseReporter {
-    private _reporters: Reporters.ReporterInstance[]
+    private _reporters: Reporters.ReporterInstance[] = []
+    private listeners: ((ev: any) => void)[] = []
 
     constructor(
         private _config: Options.Testrunner,
         private _cid: string,
         public caps: Capabilities.RemoteCapability
-    ) {
-        // ensure all properties are set before initializing the reporters
-        this._reporters = this._config.reporters!.map(this.initReporter.bind(this))
+    ) {}
+
+    async initReporters () {
+        this._reporters = await Promise.all(
+            this._config.reporters!.map(this._loadReporter.bind(this))
+        )
     }
 
     /**
      * emit events to all registered reporter and wdio launcer
      *
-     * @param  {String} e       event name
+     * @param  {string} e       event name
      * @param  {object} payload event payload
      */
     emit (e: string, payload: any) {
@@ -36,14 +39,33 @@ export default class BaseReporter {
         /**
          * Send failure message (only once) in case of test or hook failure
          */
-        sendFailureMessage(e, payload)
+        const isTestError = e === 'test:fail'
+        const isHookError = (
+            e === 'hook:end' &&
+            payload.error &&
+            mochaAllHooks.some(hook => payload.title.startsWith(hook))
+        )
+        if (isTestError || isHookError) {
+            this.#emitData({
+                origin: 'reporter',
+                name: 'printFailureMessage',
+                content: payload
+            })
+        }
 
         this._reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
+    onMessage (listener: (ev: any) => void) {
+        this.listeners.push(listener)
+    }
+
     getLogFile (name: string) {
         // clone the config to avoid changing original properties
-        let options = Object.assign({}, this._config) as any
+        const options = Object.assign({}, this._config) as Omit<Options.Testrunner, 'capabilities'> & {
+            cid: string
+            capabilities: Capabilities.RemoteCapability
+        }
         let filename = `wdio-${this._cid}-${name}-reporter.log`
 
         const reporterOptions = this._config.reporters!.find((reporter) => (
@@ -52,9 +74,9 @@ export default class BaseReporter {
                 reporter[0] === name ||
                 typeof reporter[0] === 'function' && reporter[0].name === name
             )
-        )) as { outputFileFormat?: Function }[]
+        ))
 
-        if (reporterOptions) {
+        if (reporterOptions && Array.isArray(reporterOptions)) {
             const fileformat = reporterOptions[1].outputFileFormat
 
             options.cid = this._cid
@@ -82,12 +104,24 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content: unknown) => process.send!({
+            write: /* istanbul ignore next */ (content: unknown) => this.#emitData({
                 origin: 'reporter',
                 name: reporter,
                 content
             })
         }
+    }
+
+    /**
+     * emit data either through process or listener
+     */
+    #emitData (payload: any) {
+        if (typeof process.send === 'function') {
+            return process.send!(payload)
+        }
+
+        this.listeners.forEach((fn) => fn(payload))
+        return true
     }
 
     /**
@@ -124,7 +158,7 @@ export default class BaseReporter {
     /**
      * initialise reporters
      */
-    initReporter (reporter: Reporters.ReporterEntry) {
+    private async _loadReporter (reporter: Reporters.ReporterEntry) {
         let ReporterClass: Reporters.ReporterClass
         let options: Partial<Reporters.Options> = {}
 
@@ -140,8 +174,8 @@ export default class BaseReporter {
          * check if reporter was passed in from a file, e.g.
          *
          * ```js
-         * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
-         * exports.config
+         * import MyCustomReporter from '/some/path/MyCustomReporter.js'
+         * export const config = {
          *     //...
          *     reporters: [
          *         MyCustomReporter, // or
@@ -166,7 +200,7 @@ export default class BaseReporter {
          * check if reporter is a node package, e.g. wdio-dot reporter
          *
          * ```js
-         * exports.config
+         * export const config = {
          *     //...
          *     reporters: [
          *         'dot', // or
@@ -177,7 +211,7 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = initialisePlugin(reporter, 'reporter').default as Reporters.ReporterClass
+            ReporterClass = (await initialisePlugin(reporter, 'reporter')).default as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, reporter)
                 : typeof options.logFile === 'string'

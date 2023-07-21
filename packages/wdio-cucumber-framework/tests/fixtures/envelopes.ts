@@ -1,4 +1,4 @@
-import {
+import type {
     GherkinDocument, Source, SourceMediaType, TestRunStarted, Pickle,
     TestCase, TestCaseStarted, TestStepStarted, TestStepFinished,
     TestCaseFinished, TestRunFinished

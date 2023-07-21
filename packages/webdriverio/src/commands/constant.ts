@@ -1,4 +1,4 @@
-import { TouchAction, TouchActions } from '../types'
+import type { TouchAction, TouchActions } from '../types.js'
 
 /**
  * Constants around commands
@@ -44,9 +44,15 @@ export const formatArgs = function (
             formattedAction.options.element = actionElement
         }
 
-        if (formattedAction.options && typeof action.x === 'number' && isFinite(action.x)) formattedAction.options.x = action.x
-        if (formattedAction.options && typeof action.y === 'number' && isFinite(action.y)) formattedAction.options.y = action.y
-        if (formattedAction.options && action.ms) formattedAction.options.ms = action.ms
+        if (formattedAction.options && typeof action.x === 'number' && isFinite(action.x)) {
+            formattedAction.options.x = action.x
+        }
+        if (formattedAction.options && typeof action.y === 'number' && isFinite(action.y)) {
+            formattedAction.options.y = action.y
+        }
+        if (formattedAction.options && action.ms) {
+            formattedAction.options.ms = action.ms
+        }
 
         /**
          * remove options property if empty

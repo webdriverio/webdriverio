@@ -1,11 +1,13 @@
-import type Interception from '../../utils/interception/index'
-import DevtoolsNetworkInterception from '../../utils/interception/devtools'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver'
-import { getBrowserObject } from '../../utils'
-import type { Mock } from '../../types'
-import type { MockFilterOptions } from '../../utils/interception/types'
+import type Interception from '../../utils/interception/index.js'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
+import { getBrowserObject } from '../../utils/index.js'
+import type { Mock } from '../../types.js'
+import type { MockFilterOptions } from '../../utils/interception/types.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
 export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+export const CDP_SESSIONS: Record<string, CDPSession> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
@@ -23,9 +25,10 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  *
  * :::info
  *
- * Note that using the `mock` command requires support for Chrome DevTools protocol and e.g.
- * can not be used when running automated tests in the cloud. Find out more in the
- * [Automation Protocols](/docs/automationProtocols) section.
+ * Note that using the `mock` command requires support for Chrome DevTools protocol.
+ * That support is given if you run tests locally in Chromium based browser or if
+ * you use a Selenium Grid v4 or higher. This command can __not__ be used when running
+ * automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
  *
  * :::
  *
@@ -112,7 +115,7 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  * @type utility
  *
  */
-export default async function mock (
+export async function mock (
     this: WebdriverIO.Browser,
     url: string | RegExp,
     filterOptions?: MockFilterOptions
@@ -157,7 +160,7 @@ export default async function mock (
             page = pages[0]
         }
 
-        const client = await page.target().createCDPSession()
+        const client = CDP_SESSIONS[handle] = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
             patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
         })

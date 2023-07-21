@@ -1,4 +1,5 @@
-import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
+import type { SuiteStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
 import type { Capabilities, Reporters } from '@wdio/types'
@@ -10,10 +11,8 @@ export default class ConciseReporter extends WDIOReporter {
     private _stateCounts = { failed: 0 }
 
     constructor(options: Reporters.Options) {
-        /**
-        * make Concise reporter to write to output stream by default
-        */
-        super(Object.assign(options, { stdout: true }))
+        // write to output stream by default
+        super(Object.assign({ stdout: true }, options))
     }
 
     onSuiteStart (suite: SuiteStats): void {
@@ -33,9 +32,9 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-    * Print the Concise report to the screen
-    * @param  {Object} runner Wdio runner
-    */
+     * Print the Concise report to the screen
+     * @param  {Object} runner Wdio runner
+     */
     printReport(runner: RunnerStats): void {
         const header = chalk.yellow('========= Your concise report ==========')
 
@@ -49,21 +48,22 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-    * Get the display for failing tests
-    * @return {String} Count display
-    */
+     * Get the display for failing tests
+     * @return {String} Count display
+     */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
-
         return failedTestsCount > 0
-            ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
-            : 'All went well !!'
+            ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
+            : this.counts.tests === 0
+                ? '❌ Failed to setup tests, no tests found'
+                : '✅ All went well!'
     }
 
     /**
-    * Get display for failed tests, e.g. stack trace
-    * @return {Array} Stack trace output
-    */
+     * Get display for failed tests, e.g. stack trace
+     * @return {Array} Stack trace output
+     */
     getFailureDisplay () {
         const output: string[] = []
 
@@ -105,12 +105,12 @@ export default class ConciseReporter extends WDIOReporter {
     getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
-        const version = caps.version || caps.platformVersion || caps.browser_version
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
 
         // mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
 
             return `${device} on ${platform} ${version} ${executing}`.trim()

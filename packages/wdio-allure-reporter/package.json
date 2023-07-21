@@ -1,18 +1,14 @@
 {
   "name": "@wdio/allure-reporter",
-  "version": "7.20.0",
+  "version": "8.12.3",
   "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
   "author": "Boris Osipov <osipov.boris@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-allure-reporter",
   "license": "MIT",
-  "main": "./build/index",
-  "engines": {
-    "node": ">=12.0.0"
-  },
-  "types": "./build/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-allure-reporter"
   },
   "keywords": [
     "webdriver",
@@ -23,16 +19,32 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {
-    "@types/node": "^17.0.4",
-    "@wdio/reporter": "7.20.0",
-    "@wdio/types": "7.20.0",
-    "allure-js-commons": "^1.3.2",
-    "csv-stringify": "^6.0.4",
-    "strip-ansi": "^6.0.0"
+  "type": "module",
+  "main": "./cjs/common/api.js",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./cjs/common/api.js"
+      },
+      "./cjs/common/api.js"
+    ],
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "typeScriptVersion": "3.8.3",
+  "engines": {
+    "node": "^16.13 || >=18"
+  },
+  "dependencies": {
+    "@types/node": "^20.1.0",
+    "@wdio/reporter": "8.12.2",
+    "@wdio/types": "8.10.4",
+    "allure-js-commons": "^2.0.0",
+    "csv-stringify": "^6.0.4",
+    "strip-ansi": "^7.1.0"
   },
   "publishConfig": {
     "access": "public"

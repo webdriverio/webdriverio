@@ -1,5 +1,5 @@
-import { CucumberOptions } from './types'
-import { Pickle, PickleStep } from '@cucumber/messages'
+import type { Pickle, PickleStep } from '@cucumber/messages'
+import type { CucumberOptions } from './types.js'
 
 export const DEFAULT_TIMEOUT = 60000
 

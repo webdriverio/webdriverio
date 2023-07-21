@@ -4,8 +4,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-if (process.env.NODE_ENV == null) {
+if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = 'test'
 }
 
-require('../build').run()
+/**
+ * use IIFE to allow running this within CJS and ESM context
+ */
+(async () => {
+    const cli = await import('../build/index.js')
+    return cli.run()
+})()

@@ -1,17 +1,15 @@
-import { performance, PerformanceObserver } from 'perf_hooks'
-import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import { performance, PerformanceObserver } from 'node:perf_hooks'
 
+import ip from 'ip'
+import type { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { makeCapabilityFactory } from './utils'
-import type { SauceServiceConfig } from './types'
+import { makeCapabilityFactory } from './utils.js'
+import type { SauceServiceConfig } from './types.js'
+import path from 'node:path'
 
-const SC_RELAY_DEPCRECATION_WARNING = [
-    'The "scRelay" option is depcrecated and will be removed',
-    'with the upcoming versions of @wdio/sauce-service. Please',
-    'remove the option as tests should work identically without it.'
-].join(' ')
 const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
@@ -24,7 +22,8 @@ export default class SauceLauncher implements Services.ServiceInstance {
         private _capabilities: unknown,
         private _config: Options.Testrunner
     ) {
-        this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
+        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
+        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
     }
 
     /**
@@ -48,24 +47,19 @@ export default class SauceLauncher implements Services.ServiceInstance {
         const sauceConnectOpts: SauceConnectOptions = {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
-            ...this._options.sauceConnectOpts
+            ...this._options.sauceConnectOpts,
+            noSslBumpDomains: `127.0.0.1,localhost,${ip.address()}` + (
+                this._options.sauceConnectOpts?.noSslBumpDomains
+                    ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
+                    : ''
+            ),
+            logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
+            ...(!this._options.sauceConnectOpts?.logfile && this._config.outputDir
+                ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
+                : {}
+            )
         }
-
-        let endpointConfigurations = {}
-        if (this._options.scRelay) {
-            log.warn(SC_RELAY_DEPCRECATION_WARNING)
-
-            const scRelayPort = sauceConnectOpts.sePort || 4445
-            sauceConnectOpts.sePort = scRelayPort
-            endpointConfigurations = {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: scRelayPort
-            }
-        }
-
-        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier, endpointConfigurations)
-
+        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier)
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
                 prepareCapability(capability as Capabilities.DesiredCapabilities)
@@ -86,10 +80,12 @@ export default class SauceLauncher implements Services.ServiceInstance {
         })
         obs.observe({ entryTypes: ['measure'] })
 
+        log.info('Starting Sauce Connect Tunnel')
         performance.mark('sauceConnectStart')
         this._sauceConnectProcess = await this.startTunnel(sauceConnectOpts)
         performance.mark('sauceConnectEnd')
-        performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
+        const bootimeMeasure = performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
+        log.info(`Started Sauce Connect Tunnel within ${bootimeMeasure.duration}ms`)
     }
 
     async startTunnel (sauceConnectOpts: SauceConnectOptions, retryCount = 0): Promise<SauceConnectInstance> {

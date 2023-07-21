@@ -30,6 +30,6 @@
  * @type state
  *
  */
-export default function isEnabled (this: WebdriverIO.Element) {
+export function isEnabled (this: WebdriverIO.Element) {
     return this.isElementEnabled(this.elementId)
 }

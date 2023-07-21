@@ -1,8 +1,11 @@
-const fs = require('fs')
-const path = require('path')
-const { downloadFromGitHub } = require('../utils')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import { downloadFromGitHub } from '../utils/index.js'
 
-exports.downloadAwesomeResources = async function () {
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+export async function downloadAwesomeResources () {
     const basePath = path.join(__dirname, '..', '..')
     const newDocsPath = path.join(basePath, 'website', 'community', 'Resources.md')
     const content = await downloadFromGitHub('https://raw.githubusercontent.com/webdriverio-community/awesome-webdriverio', 'main')

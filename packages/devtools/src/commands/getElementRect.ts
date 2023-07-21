@@ -1,6 +1,6 @@
-import command from '../scripts/getElementRect'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/getElementRect.js'
+import { getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Element Rect command returns the dimensions and coordinates of the given web element.

@@ -1,11 +1,11 @@
-import { performance, PerformanceObserver } from 'perf_hooks'
-import { promisify } from 'util'
+import { performance, PerformanceObserver } from 'node:perf_hooks'
+import { promisify } from 'node:util'
 
 import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
-import { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types'
+import type { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types.js'
 
 const log = logger('@wdio/testingbot-service')
 
@@ -22,7 +22,10 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
             return
         }
 
-        const tbTunnelIdentifier = this.options.tbTunnelOpts?.tunnelIdentifier || `TB-tunnel-${Math.random().toString().slice(2)}`
+        const tbTunnelIdentifier = (
+            this.options.tbTunnelOpts?.tunnelIdentifier ||
+            `TB-tunnel-${Math.random().toString().slice(2)}`
+        )
 
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,

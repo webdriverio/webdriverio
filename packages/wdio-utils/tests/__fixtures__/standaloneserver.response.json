@@ -10,7 +10,6 @@
     "moz:processID": 84417,
     "moz:profile": "/var/folders/0q/l4qj1n6s2glggtljc87l6h540000gn/T/rust_mozprofile.z2Scxa1ZKfol",
     "moz:shutdownTimeout": 60000,
-    "moz:useNonSpecCompliantPointerOrigin": false,
     "moz:webdriverClick": true,
     "pageLoadStrategy": "normal",
     "platformName": "mac",

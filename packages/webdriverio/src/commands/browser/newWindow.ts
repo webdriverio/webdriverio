@@ -1,7 +1,7 @@
 import { sleep } from '@wdio/utils'
 
-import newWindowHelper from '../../scripts/newWindow'
-import type { NewWindowOptions } from '../../types'
+import newWindowHelper from '../../scripts/newWindow.js'
+import type { NewWindowOptions } from '../../types.js'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
@@ -32,7 +32,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
     });
  * </example>
  *
- * @param {String}  url      website URL to open
+ * @param {string}  url      website URL to open
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {String=}           options.windowName     name of the new window
  * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
@@ -43,7 +43,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @alias browser.newWindow
  * @type window
  */
-export default async function newWindow (
+export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
     { windowName = '', windowFeatures = '' }: NewWindowOptions = {}
@@ -63,7 +63,13 @@ export default async function newWindow (
     }
 
     const tabsBefore = await this.getWindowHandles()
-    await this.execute(newWindowHelper, url, windowName, windowFeatures)
+
+    if (this.isBidi) {
+        const { context } = await this.browsingContextCreate({ type: 'window' })
+        await this.browsingContextNavigate({ context, url })
+    } else {
+        await this.execute(newWindowHelper, url, windowName, windowFeatures)
+    }
 
     /**
      * if tests are run in DevTools there might be a delay until

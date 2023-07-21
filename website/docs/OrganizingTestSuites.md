@@ -17,7 +17,7 @@ If you run your own WebDriver grid, you may (for example) have more capacity for
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     // set maxInstance for all browser
     maxInstances: 10,
@@ -38,17 +38,17 @@ exports.config = {
 
 If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.
 
-Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
+Similar to the [page object concept](pageobjects), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
 
 Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
 
 ```js
 // wdio.dev.config.js
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
-exports.config = merge(wdioConf.config, {
+export const config = deepmerge(wdioConf.config, {
     capabilities: [
         // more caps defined here
         // ...
@@ -61,18 +61,18 @@ exports.config = merge(wdioConf.config, {
 }, { clone: false })
 
 // add an additional reporter
-exports.config.reporters.push('allure')
+config.reporters.push('allure')
 ```
 
 ## Grouping Test Specs In Suites
 
-You can easily group test specs in suites and run single specific suites instead of all of them.
+You can group test specs in suites and run single specific suites instead of all of them.
 
 First, define your suites in your WDIO config:
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // define all tests
     specs: ['./test/specs/**/*.spec.js'],
     // ...
@@ -106,7 +106,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
 
-To group tests to run in a single instance, simply define them as an array within the specs definition.
+To group tests to run in a single instance, define them as an array within the specs definition.
 
 ```json
     "specs": [
@@ -135,12 +135,29 @@ It is also possible to group specs defined in suites, so you can now also define
 ```
 and in this case all of the tests of the "end2end" suite would be run in a single instance.
 
+When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
+
+```json
+  "suites": {
+    end2end: ["./test/specs/test_*.js"]
+  },
+```
+
+This will run the files matching the pattern above in the following order:
+
+```
+  [
+      "./test/specs/test_checkout.js",
+      "./test/specs/test_login.js",
+      "./test/specs/test_product_order.js"
+  ]
+```
 
 ## Run Selected Tests
 
 In some cases, you may wish to only execute a single test (or subset of tests) of your suites.
 
-With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run.
+With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run. The path is resolved relative from your current working directory.
 
 For example, to run only your login test:
 
@@ -166,6 +183,8 @@ Note that each test file is running in a single test runner process. Since we do
 
 This feature will help you to accomplish the same goal.
 
+When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
+
 ## Exclude Selected Tests
 
 When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber).
@@ -187,6 +206,8 @@ Or, exclude a spec file when filtering using a suite:
 ```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
+
+When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
 
 ## Run Suites and Test Specs
 
@@ -227,4 +248,74 @@ This is helpful with large test suites when you already know that your build wil
 
 The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
 
-Please see [Options Page](Options.md) for additional information on the bail configuration.
+Please see [Options Page](configuration) for additional information on the bail configuration.
+## Run options hierarchy
+
+When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
+
+> CLI `--spec` argument > capability `specs` pattern > config `specs` pattern
+> CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
+
+If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+
+### Using capability-defined spec patterns
+
+When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+
+For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
+
+Your config file may define the pattern as such, for non-specific device tests:
+
+```js
+{
+    specs: ['tests/general/**/*.js']
+}
+```
+
+but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
+
+```json
+{
+  "platformName": "Android",
+  "specs": [
+    "tests/android/**/*.js"
+  ]
+}
+```
+
+```json
+{
+  "platformName": "iOS",
+  "specs": [
+    "tests/ios/**/*.js"
+  ]
+}
+```
+
+If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
+
+```js
+//wdio.conf.js
+export const config = {
+    "specs": [
+        "tests/general/**/*.js"
+    ],
+    "capabilities": [
+        {
+            platformName: "Android",
+            specs: ["tests/android/**/*.js"],
+            //...
+        },
+        {
+            platformName: "iOS",
+            specs: ["tests/ios/**/*.js"],
+            //...
+        },
+        {
+            platformName: "Chrome",
+            //config level specs will be used
+        }
+    ]
+}
+```
+

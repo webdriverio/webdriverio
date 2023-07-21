@@ -1,20 +1,23 @@
-import { EventEmitter } from 'events'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
 
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import Protocols from '@wdio/protocols'
+import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
-import commandWrapper from '../src/command'
-import { BaseClient } from '../src/types'
+// @ts-expect-error mock feature
+import RequestMock, { thenMock } from '../src/request/node.js'
+import commandWrapper from '../src/command.js'
+import type { BaseClient } from '../src/types.js'
 
-/**
- * workaround as typescript compiler uses expect-webdriverio as global
- */
-const expect: jest.Expect = global.expect as unknown as jest.Expect
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('got')
 
+const log = logger('webdriver')
 const commandPath = '/session/:sessionId/element/:elementId/element'
 const commandMethod = 'POST'
-const commandEndpoint: Protocols.CommandEndpoint = {
+const commandEndpoint: CommandEndpoint = {
     command: 'findElementFromElement',
     ref: 'https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element',
     description: '',
@@ -45,15 +48,19 @@ const commandEndpoint: Protocols.CommandEndpoint = {
     }]
 }
 
-jest.mock('../src/request/node', () => jest.fn().mockImplementation(
-    () => ({
-        makeRequest: jest.fn().mockReturnValue({
-            then: jest.fn().mockImplementation(
-                (then) => then)
-        }),
-        on: jest.fn(),
-    })
-))
+vi.mock('../src/request/node', () => {
+    const thenMock = vi.fn().mockResolvedValue({ value: 15 })
+    return {
+        thenMock,
+        default: vi.fn().mockReturnValue({
+            makeRequest: () => ({
+                then: thenMock,
+                catch: vi.fn()
+            }),
+            on: vi.fn()
+        })
+    }
+})
 
 class FakeClient extends EventEmitter {
     isW3C = false
@@ -62,34 +69,40 @@ class FakeClient extends EventEmitter {
     isMobile = false
     isIOS = false
     isSauce = false
+    isFirefox = false
+    isDevTools = false
+    isBidi = false
     isSeleniumStandalone = false
     sessionId = '123'
     capabilities = {}
     requestedCapabilities = {}
     options = {
         logLevel: 'warn' as Options.WebDriverLogTypes
-    }
+    } as any
 }
 
 const scope: BaseClient = new FakeClient()
 type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
-    it('should fail if wrong arguments are passed in', () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        expect(commandFn)
+    it('should fail if wrong arguments are passed in', async () => {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
+        await expect(commandFn)
+            .rejects
             .toThrow(/Wrong parameters applied for findElementFromElement/)
     })
 
-    it('should fail if arguments are malformed', () => {
+    it('should fail if arguments are malformed', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        expect(() => commandFn.call(scope, '123', 123, '123'))
+        await expect(() => commandFn.call(scope, '123', 123, '123'))
+            .rejects
             .toThrow(/Malformed type for "using" parameter of command/)
     })
 
-    it('should fail if not required param has wrong type', () => {
+    it('should fail if not required param has wrong type', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        expect(() => commandFn.call(scope, '123', '123', '123', 'foobar'))
+        await expect(() => commandFn.call(scope, '123', '123', '123', 'foobar'))
+            .rejects
             .toThrow(/Malformed type for "customParam" parameter of command/)
     })
 
@@ -97,79 +110,101 @@ describe('command wrapper', () => {
         expect.assertions(1)
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
 
-        try {
-            commandFn.call(scope, '123', '123', '123', 234, () => {})
-        } catch (err: any) {
-            expect(err.message).toContain('Actual: (function)[]')
-        }
+        await expect(commandFn.call(scope, '123', '123', '123', 234, () => {}))
+            .rejects
+            .toThrow(/Actual: \(function\)\[\]/)
     })
 
-    it('should do a proper request', () => {
+    it('should do a proper request', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
-        expect(requestMock.mock.calls).toHaveLength(1)
-        expect(resultFunction({ value: 14 })).toBe(14)
+        await commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
+        const callback = thenMock.mock.calls[0][0]
+        expect(callback({ value: 14 })).toBe(14)
+        vi.mocked(thenMock).mockClear()
 
-        const [method, endpoint, { using, value }] = requestMock.mock.calls[0]
-        expect(method).toBe('POST')
-        expect(endpoint).toBe('/session/:sessionId/element/123/element')
-        expect(using).toBe('css selector')
-        expect(value).toBe('#body')
-        requestMock.mockClear()
+        expect(RequestMock).toHaveBeenCalledWith(
+            'POST',
+            '/session/:sessionId/element/123/element',
+            {
+                using: 'css selector',
+                value: '#body'
+            },
+            false
+        )
+        vi.mocked(RequestMock).mockClear()
     })
 
-    it('should do a proper request with non required params', () => {
+    it('should do a proper request with non required params', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
-        expect(requestMock.mock.calls).toHaveLength(1)
-        expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
-
-        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
-        expect(method).toBe('POST')
-        expect(endpoint).toBe('/session/:sessionId/element/123/element')
-        expect(using).toBe('css selector')
-        expect(value).toBe('#body')
-        expect(customParam).toBe(123)
-        requestMock.mockClear()
+        await commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
+        expect(RequestMock).toHaveBeenCalledWith(
+            'POST',
+            '/session/:sessionId/element/123/element',
+            {
+                using: 'css selector',
+                value: '#body',
+                customParam: 123
+            },
+            false
+        )
+        vi.mocked(RequestMock).mockClear()
     })
 
-    it('should encode uri parameters', () => {
+    it('should encode uri parameters', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
-        const [, endpoint] = requestMock.mock.calls[0]
-        expect(endpoint).toBe('/session/:sessionId/element/%2Fpath/element')
-        requestMock.mockClear()
+        expect(RequestMock).toHaveBeenCalledWith(
+            'POST',
+            '/session/:sessionId/element/%2Fpath/element',
+            expect.anything(),
+            false
+        )
+        vi.mocked(RequestMock).mockClear()
     })
 
-    it('should double encode uri parameters if using selenium', () => {
+    it('should double encode uri parameters if using selenium', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
-        const requestMock = require('../src/request/node')
-        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
-        const [, endpoint] = requestMock.mock.calls[0]
-        expect(endpoint).toBe('/session/:sessionId/element/%252Fpath/element')
-        requestMock.mockClear()
+        expect(RequestMock).toHaveBeenCalledWith(
+            'POST',
+            '/session/:sessionId/element/%252Fpath/element',
+            expect.anything(),
+            false
+        )
+        vi.mocked(RequestMock).mockClear()
+    })
+})
+
+describe('Bidi support', () => {
+    it('it propagates command to middleware', async () => {
+        (scope as any).eventMiddleware = { send: vi.fn() }
+        const commandFn = commandWrapper('POST', 'sendCommand', {
+            command: 'send',
+            required: true,
+            parameters: [{ type: 'object', name: 'params' }]
+        } as any)
+        await commandFn.call(scope, { params: 'foobar' })
+        expect((scope as any).eventMiddleware.send).toHaveBeenCalledTimes(1)
+        expect((scope as any).eventMiddleware.send).toHaveBeenCalledWith({ params: 'foobar' })
     })
 })
 
 describe('command wrapper result log', () => {
-    const log = logger('webdriver')
-    jest.spyOn(log, 'info').mockImplementation((string) => string)
-
-    function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
+    async function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope)
-        expect(requestMock.mock.calls).toHaveLength(1)
+        await commandFn.call(scope)
+        expect(RequestMock).toHaveBeenCalledTimes(1)
+        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), false)
 
-        requestMock.mockClear()
-        ;(log.info as jest.Mock).mockClear()
+        const callback = thenMock.mock.calls[0][0]
 
-        return resultFunction
+        vi.mocked(RequestMock).mockClear()
+        vi.mocked(thenMock).mockClear()
+        vi.mocked(log.info).mockClear()
+
+        return callback
     }
 
     const takeScreenshotCmd = {
@@ -177,6 +212,17 @@ describe('command wrapper result log', () => {
         method: 'GET',
         endpoint: {
             command: 'takeScreenshot',
+            ref: 'https://foobar.com',
+            parameters: [],
+            description: ''
+        }
+    }
+
+    const deleteSessionCmd = {
+        path: '/foobar',
+        method: 'POST',
+        endpoint: {
+            command: 'deleteSession',
             ref: 'https://foobar.com',
             parameters: [],
             description: ''
@@ -225,7 +271,7 @@ describe('command wrapper result log', () => {
         title: 'do nothing to values with length less then 65',
         command: { ...takeScreenshotCmd },
         value: 'f'.repeat(64),
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'not truncate long string value',
         command: {
@@ -236,40 +282,71 @@ describe('command wrapper result log', () => {
             }
         },
         value: 'f'.repeat(66),
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: array',
         command: { ...takeScreenshotCmd },
         value: [],
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: object',
         command: { ...takeScreenshotCmd },
         value: {},
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: number',
         command: { ...takeScreenshotCmd },
         value: 3,
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: boolean',
         command: { ...takeScreenshotCmd },
         value: false,
-        get log() { return this.value }
+        get log () { return this.value }
     }]
 
+    logger.clearLogger = vi.fn()
+    const clearLoggerSpy = vi.spyOn(logger, 'clearLogger')
+
+    beforeEach(() => {
+        delete process.env.WDIO_WORKER_ID
+        vi.clearAllMocks()
+    })
+
     for (const scenario of scenarios) {
-        it(`should ${scenario.title} for ${scenario.command.endpoint.command}`, () => {
-            const resultFunction = getRequestCallback(scenario.command.method, scenario.command.path, scenario.command.endpoint) as unknown as mockResponse
+        it(`should ${scenario.title} for ${scenario.command.endpoint.command}`, async () => {
+            const resultFunction = await getRequestCallback(
+                scenario.command.method,
+                scenario.command.path,
+                scenario.command.endpoint
+            ) as unknown as mockResponse
+
             resultFunction({ value: scenario.value })
-            expect((log.info as jest.Mock).mock.calls[0][1]).toBe(scenario.log)
+            expect(vi.mocked(log.info).mock.calls[0][1]).toBe(scenario.log)
+            expect(clearLoggerSpy).not.toHaveBeenCalled()
         })
     }
 
-    it('should be no result in log if there is value in response', () => {
-        const resultFunction = getRequestCallback(takeScreenshotCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
+    it('should be no result in log if there is value in response', async () => {
+        process.env.WDIO_WORKER_ID = '0-0'
+        const resultFunction = await getRequestCallback(
+            deleteSessionCmd.method,
+            takeScreenshotCmd.path,
+            takeScreenshotCmd.endpoint
+        ) as unknown as mockResponse
         resultFunction({})
-        expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
+        expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
+        expect(clearLoggerSpy).not.toHaveBeenCalled()
+    })
+
+    it('should call clearLogger on deleteSession cmd', async () => {
+        const resultFunction = await getRequestCallback(
+            deleteSessionCmd.method,
+            deleteSessionCmd.path,
+            deleteSessionCmd.endpoint
+        ) as unknown as mockResponse
+        resultFunction({})
+        expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
+        expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
     })
 })

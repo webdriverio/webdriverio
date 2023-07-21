@@ -1,6 +1,6 @@
-import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElement, getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants.js'
+import { findElement, getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Find Element From Element command is used to find an element from a web element

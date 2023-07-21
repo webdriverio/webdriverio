@@ -1,11 +1,14 @@
-const path = require('path')
-const { config } = require('../../helpers/config')
+import url from 'node:url'
+import path from 'node:path'
+import { config as baseConfig } from '../../helpers/config.js'
 
-const reporterConfig = Object.assign({}, config, {
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+const reporterConfig = Object.assign({}, baseConfig, {
     framework: 'cucumber',
     reporters: [['smoke-test', { foo: 'bar' }]]
 })
 
 reporterConfig.cucumberOpts.require = [path.join(__dirname, 'reporter.given.js')]
 
-exports.config = reporterConfig
+export const config = reporterConfig

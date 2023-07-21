@@ -1,8 +1,10 @@
-const path = require('path')
+import path from 'node:path'
+import { createRequire } from 'node:module'
 
+const require = createRequire(import.meta.url)
 const { customFields } = require('../../website/docusaurus.config.js')
 
-module.exports = function (docfile) {
+export default function (docfile) {
     const javadoc = docfile.javadoc[0]
 
     let type = (javadoc.ctx && javadoc.ctx.type)
@@ -10,13 +12,13 @@ module.exports = function (docfile) {
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
-    let paramStr = []
-    let propertyTags = []
-    let paramTags = []
-    let returnTags = []
-    let throwsTags = []
-    let fires = []
-    let listens = []
+    const paramStr = []
+    const propertyTags = []
+    const paramTags = []
+    const returnTags = []
+    const throwsTags = []
+    const fires = []
+    const listens = []
     let tagDeprecated = false
     let tagSee = ''
     let tagVersion = ''
@@ -24,8 +26,10 @@ module.exports = function (docfile) {
     let tagType = ''
 
     for (const tag of javadoc.tags) {
-        if (tag.type == 'param') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        if (tag.type === 'param') {
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
@@ -33,39 +37,47 @@ module.exports = function (docfile) {
 
             paramTags.push(tag)
             paramStr.push(tag.name)
-        } else if (tag.type == 'property') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        } else if (tag.type === 'property') {
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             propertyTags.push(tag)
-        } else if (tag.type == 'return' || tag.type == 'returns') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        } else if (tag.type === 'return' || tag.type === 'returns') {
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             returnTags.push(tag)
-        } else if (tag.type == 'throws') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        } else if (tag.type === 'throws') {
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             throwsTags.push(tag)
-        } else if (tag.type == 'fires') {
+        } else if (tag.type === 'fires') {
             fires.push(tag.string)
-        } else if (tag.type == 'listens') {
+        } else if (tag.type === 'listens') {
             listens.push(tag.string)
-        } else if (tag.type == 'namespace') {
+        } else if (tag.type === 'namespace') {
             type = 'namespace'
-        } else if (tag.type == 'method') {
+        } else if (tag.type === 'method') {
             type = 'method'
-        } else if (tag.type == 'class') {
+        } else if (tag.type === 'class') {
             type = 'class'
-        } else if (tag.type == 'function') {
+        } else if (tag.type === 'function') {
             type = 'function'
-        } else if (tag.type == 'event') {
+        } else if (tag.type === 'event') {
             type = 'event'
-        } else if (tag.type == 'see') {
+        } else if (tag.type === 'see') {
             tagSee = tag.url ? tag.url : tag.local
-        } else if (tag.type == 'version') {
+        } else if (tag.type === 'version') {
             tagVersion = tag.string
-        } else if (tag.type == 'deprecated') {
+        } else if (tag.type === 'deprecated') {
             tagDeprecated = true
-        } else if (tag.type == 'author') {
+        } else if (tag.type === 'author') {
             tagAuthor = tag.string
-        } else if (tag.type == 'type') {
-            tagType = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        } else if (tag.type === 'type') {
+            tagType = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
         }
     }
 
@@ -97,7 +109,7 @@ module.exports = function (docfile) {
         example.forEach(function(line) {
             ++currentLine
 
-            var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
+            const checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
             if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
 
                 if (exampleCodeLine.length) {
@@ -106,7 +118,7 @@ module.exports = function (docfile) {
                      * remove filename expression in first line
                      */
                     exampleFilename = exampleCodeLine.shift().trim().substr(1)
-                    var code = exampleCodeLine.join('\n')
+                    const code = exampleCodeLine.join('\n')
 
                     /**
                      * add example
@@ -142,6 +154,10 @@ module.exports = function (docfile) {
          */
         description = description.substr(0, description.indexOf('<example>'))
     }
+
+    const exampleReferences = javadoc.tags
+        .filter((tag) => tag.type === 'example' && typeof tag.string === 'string')
+        .map((tag) => tag.string)
 
     /**
      * format param strings, from
@@ -185,6 +201,7 @@ module.exports = function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
+        exampleReferences,
         customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,

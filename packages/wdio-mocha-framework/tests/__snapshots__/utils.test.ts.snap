@@ -1,0 +1,53 @@
+// Vitest Snapshot v1
+
+exports[`formatMessage > should do nothing if no error or params are given 1`] = `
+{
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage > should format an error message 1`] = `
+{
+  "error": {
+    "actual": undefined,
+    "expected": undefined,
+    "message": "uups",
+    "name": "Error",
+    "type": "Error",
+  },
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage > should format an error message with timeout error 1`] = `
+{
+  "duration": undefined,
+  "error": {
+    "actual": undefined,
+    "expected": undefined,
+    "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts).",
+    "name": "Error",
+    "type": "Error",
+  },
+  "file": undefined,
+  "fullTitle": "parentfoo.barfoo",
+  "parent": "parentfoo",
+  "pending": false,
+  "title": "barfoo",
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage > should format payload 1`] = `
+{
+  "context": "some context",
+  "currentTest": "current test",
+  "duration": undefined,
+  "file": "/foo/bar.test.js",
+  "fullTitle": "parentfoo.barfoo",
+  "parent": "parentfoo",
+  "pending": false,
+  "title": "barfoo",
+  "type": "foobar",
+}
+`;

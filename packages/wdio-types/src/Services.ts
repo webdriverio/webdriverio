@@ -1,17 +1,22 @@
-import { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
-import { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
-import { Suite, Test, TestResult } from './Frameworks'
+import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
+import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
+import type { Suite, Test, TestResult } from './Frameworks.js'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
-    shutdown(): Promise<void>
+    shutdown(): Promise<boolean>
+    closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
     run(args: any): NodeJS.EventEmitter
     workerPool: any
+    browserPool: any
 }
 
 export interface RunnerClass {
-    new(configFile: string, config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>): RunnerInstance
+    new(
+        options: WebdriverIO.BrowserRunnerOptions,
+        config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>
+    ): RunnerInstance
 }
 
 export interface RunnerPlugin extends RunnerClass {
@@ -82,7 +87,22 @@ export interface HookFunctions {
     onPrepare?(
         config: TestrunnerOptions,
         capabilities: RemoteCapabilities
-    ): void;
+    ): unknown | Promise<unknown>
+
+    /**
+     * Gets executed after all workers got shut down and the process is about to exit. An error
+     * thrown in the onComplete hook will result in the test run failing.
+     * @param exitCode      runner exit code: 0 - success, 1 - fail
+     * @param config        wdio configuration object
+     * @param capabilities  list of capabilities details
+     * @param results       test results
+     */
+    onComplete?(
+        exitCode: number,
+        config: Omit<TestrunnerOptions, 'capabilities'>,
+        capabilities: RemoteCapabilities,
+        results: any // Results
+    ): unknown | Promise<unknown>
 
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
@@ -99,46 +119,21 @@ export interface HookFunctions {
         specs: string[],
         args: TestrunnerOptions,
         execArgv: string[]
-    ): void;
+    ): unknown | Promise<unknown>
 
     /**
      * Gets executed just after a worker process has exited.
-     * @param  {String} cid      capability id (e.g 0-0)
-     * @param  {Number} exitCode 0 - success, 1 - fail
-     * @param  {[type]} specs    specs to be run in the worker process
-     * @param  {Number} retries  number of retries used
+     * @param  {string} cid      capability id (e.g 0-0)
+     * @param  {number} exitCode 0 - success, 1 - fail
+     * @param  {object} specs    specs to be run in the worker process
+     * @param  {number} retries  number of retries used
      */
-     onWorkerEnd?(
+    onWorkerEnd?(
         cid: string,
         exitCode: number,
         specs: string[],
         retries: number,
-    ): void;
-
-    /**
-     * Gets executed after all workers got shut down and the process is about to exit. An error
-     * thrown in the onComplete hook will result in the test run failing.
-     * @param exitCode      runner exit code
-     * @param config        wdio configuration object
-     * @param capabilities  list of capabilities details
-     * @param results       test results
-     */
-    onComplete?(
-        exitCode: number,
-        config: Omit<TestrunnerOptions, 'capabilities'>,
-        capabilities: RemoteCapabilities,
-        results: any // Results
-    ): void;
-
-    /**
-     * Gets executed when a refresh happens.
-     * @param oldSessionId session id of old session
-     * @param newSessionId session id of new session
-     */
-    onReload?(
-        oldSessionId: string,
-        newSessionId: string
-    ): void;
+    ): unknown | Promise<unknown>
 
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -151,25 +146,20 @@ export interface HookFunctions {
         capabilities: RemoteCapability,
         specs: string[],
         browser: any // BrowserObject
-    ): void;
+    ): unknown | Promise<unknown>
 
     /**
-     * Runs before a WebdriverIO command gets executed.
-     * @param commandName command name
-     * @param args        arguments that command would receive
+     * Gets executed after all tests are done. You still have access to all global variables from
+     * the test.
+     * @param result        number of total failing tests
+     * @param capabilities  list of capabilities details
+     * @param specs         list of spec file paths that are to be run
      */
-    beforeCommand?(
-        commandName: string,
-        args: any[]
-    ): void;
-
-    /**
-     * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
-     * @param test      details to current running test (represents step in Cucumber)
-     * @param context   context to current running test (represents World object in Cucumber)
-     */
-    beforeHook?(test: any, context: any): void;
+    after?(
+        result: number,
+        capabilities: RemoteCapability,
+        specs: string[]
+    ): unknown | Promise<unknown>
 
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
@@ -184,38 +174,68 @@ export interface HookFunctions {
         capabilities: RemoteCapability,
         specs: string[],
         cid: string
-    ): void;
+    ): unknown | Promise<unknown>
+
+    /**
+     * Gets executed right after terminating the webdriver session.
+     * @param config        wdio configuration object
+     * @param capabilities  list of capabilities details
+     * @param specs         list of spec file paths that are to be run
+     */
+    afterSession?(
+        config: TestrunnerOptions,
+        capabilities: RemoteCapability,
+        specs: string[]
+    ): unknown | Promise<unknown>
+
+    /**
+     * Gets executed when a refresh happens.
+     * @param oldSessionId session id of old session
+     * @param newSessionId session id of new session
+     */
+    onReload?(
+        oldSessionId: string,
+        newSessionId: string
+    ): unknown | Promise<unknown>
 
     /**
      * Hook that gets executed before the suite starts.
      * @param suite suite details
      */
-    beforeSuite?(suite: Suite): void;
-
-    /**
-     * Function to be executed before a test (in Mocha/Jasmine only)
-     * @param {Object} test    test object
-     * @param {Object} context scope object the test was executed with
-     */
-    beforeTest?(test: Test, context: any): void;
-
-    /**
-     * Function to be executed after a test (in Mocha/Jasmine only)
-     * @param {Object}  test             test object
-     * @param {Object}  context          scope object the test was executed with
-     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
-     * @param {Any}     result.result    return object of test function
-     * @param {Number}  result.duration  duration of test
-     * @param {Boolean} result.passed    true if test has passed, otherwise false
-     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
-     */
-    afterTest?(test: Test, context: any, result: TestResult): void;
+    beforeSuite?(suite: Suite): unknown | Promise<unknown>
 
     /**
      * Hook that gets executed after the suite has ended
      * @param suite suite details
      */
-    afterSuite?(suite: Suite): void;
+    afterSuite?(suite: Suite): unknown | Promise<unknown>
+
+    /**
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {object} test    test object
+     * @param {object} context scope object the test was executed with
+     */
+    beforeTest?(test: Test, context: any): unknown | Promise<unknown>
+
+    /**
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {object}  test             test object
+     * @param {object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {*}       result.result    return object of test function
+     * @param {number}  result.duration  duration of test
+     * @param {boolean} result.passed    true if test has passed, otherwise false
+     * @param {object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     */
+    afterTest?(test: Test, context: any, result: TestResult): unknown | Promise<unknown>
+
+    /**
+     * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
+     * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
+     */
+    beforeHook?(test: any, context: any): unknown | Promise<unknown>
 
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
@@ -224,20 +244,17 @@ export interface HookFunctions {
      * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
      */
-    afterHook?(test: Test, context: any, result: TestResult): void;
+    afterHook?(test: Test, context: any, result: TestResult): unknown | Promise<unknown>
 
     /**
-     * Gets executed after all tests are done. You still have access to all global variables from
-     * the test.
-     * @param result        number of total failing tests
-     * @param capabilities  list of capabilities details
-     * @param specs         list of spec file paths that are to be run
+     * Runs before a WebdriverIO command gets executed.
+     * @param commandName command name
+     * @param args        arguments that command would receive
      */
-    after?(
-        result: number,
-        capabilities: RemoteCapability,
-        specs: string[]
-    ): void;
+    beforeCommand?(
+        commandName: string,
+        args: any[]
+    ): unknown | Promise<unknown>
 
     /**
      * Runs after a WebdriverIO command gets executed
@@ -251,17 +268,5 @@ export interface HookFunctions {
         args: any[],
         result: any,
         error?: Error
-    ): void;
-
-    /**
-     * Gets executed right after terminating the webdriver session.
-     * @param config        wdio configuration object
-     * @param capabilities  list of capabilities details
-     * @param specs         list of spec file paths that are to be run
-     */
-    afterSession?(
-        config: TestrunnerOptions,
-        capabilities: RemoteCapability,
-        specs: string[]
-    ): void;
+    ): unknown | Promise<unknown>
 }

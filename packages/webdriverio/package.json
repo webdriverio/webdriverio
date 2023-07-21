@@ -1,20 +1,20 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "7.20.2",
+  "version": "8.13.4",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
-  "main": "./build/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/webdriverio"
   },
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "tags": [
     "webdriver",
@@ -44,43 +44,53 @@
     "cucumber",
     "testingbot"
   ],
+  "main": "./build/cjs/index.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@types/archiver": "^5.1.0",
-    "@types/fs-extra": "^9.0.2",
+    "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
-    "@types/lodash.isobject": "^3.0.6",
-    "@types/lodash.isplainobject": "^4.0.6",
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
-    "@types/aria-query": "^5.0.0",
-    "@types/node": "^17.0.4",
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/protocols": "7.20.2",
-    "@wdio/repl": "7.20.0",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
+    "@types/node": "^20.1.0",
+    "@wdio/config": "8.12.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/protocols": "8.11.0",
+    "@wdio/repl": "8.10.1",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
     "archiver": "^5.0.0",
     "aria-query": "^5.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "7.20.2",
-    "devtools-protocol": "^0.0.1010518",
-    "fs-extra": "^10.0.0",
+    "devtools": "8.12.1",
+    "devtools-protocol": "^0.0.1170846",
     "grapheme-splitter": "^1.0.2",
+    "import-meta-resolve": "^3.0.0",
+    "is-plain-obj": "^4.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "lodash.isobject": "^3.0.2",
-    "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
-    "minimatch": "^5.0.0",
-    "puppeteer-core": "^13.1.3",
+    "minimatch": "^9.0.0",
+    "puppeteer-core": "20.3.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^8.0.0",
-    "webdriver": "7.20.2"
+    "webdriver": "8.13.1"
   }
 }

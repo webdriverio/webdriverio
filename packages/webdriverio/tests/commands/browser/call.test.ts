@@ -1,4 +1,7 @@
-import { remote } from '../../../src'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
 
 describe('call command', () => {
     let browser: WebdriverIO.Browser
@@ -13,21 +16,23 @@ describe('call command', () => {
     })
 
     it('should call a fn and return result', async () => {
-        const callFn = jest.fn(() => Promise.resolve(true))
+        const callFn = vi.fn(() => Promise.resolve(true))
         const result = await browser.call(callFn)
         expect(callFn).toBeCalled()
         expect(result).toEqual(true)
     })
 
-    it('should not fail if nothing is applied', () => {
+    it('should not fail if nothing is applied', async () => {
         // @ts-ignore test invalid param
-        expect(() => browser.call())
+        await expect(() => browser.call())
+            .rejects
             .toThrow(/needs to be a function/)
     })
 
-    it('should fail if parameter is not a function', () => {
+    it('should fail if parameter is not a function', async () => {
         // @ts-ignore test invalid param
-        expect(() => browser.call(123))
+        await expect(() => browser.call(123))
+            .rejects
             .toThrow(/needs to be a function/)
     })
 })

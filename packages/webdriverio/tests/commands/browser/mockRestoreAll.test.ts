@@ -1,17 +1,21 @@
-import { remote } from '../../../src'
+import path from 'node:path'
+import { expect, describe, it, vi } from 'vitest'
+import { remote } from '../../../src/index.js'
 // @ts-expect-error mock feature
-import { getMockCalls } from '../../../src/commands/browser/mock'
+import { getMockCalls } from '../../../src/commands/browser/mock.js'
 
-jest.mock('../../../src/commands/browser/mock', () => {
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks
     const SESSION_MOCKS: Record<string, any> = {}
     SESSION_MOCKS['foobar'] = new Set()
-    SESSION_MOCKS['foobar'].add({ restore: jest.fn(bumpCall) })
-    SESSION_MOCKS['foobar'].add({ restore: jest.fn(bumpCall) })
+    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
+    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
     SESSION_MOCKS['barfoo'] = new Set()
-    SESSION_MOCKS['barfoo'].add({ restore: jest.fn(bumpCall) })
-    return { SESSION_MOCKS, getMockCalls: () => clearedMocks }
+    SESSION_MOCKS['barfoo'].add({ restore: vi.fn(bumpCall) })
+    return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
 })
 
 describe('mockClearAll', () => {

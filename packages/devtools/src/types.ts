@@ -1,9 +1,9 @@
-import { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 
 import type { Options, Capabilities } from '@wdio/types'
-import type { ProtocolCommandsAsync } from '@wdio/protocols'
-import { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
-
+import type { ProtocolCommands } from '@wdio/protocols'
+import type { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
+import type { EventEmitter as PuppeteerEventEmitter } from 'puppeteer-core/lib/esm/puppeteer/common/EventEmitter.js'
 export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODevtoolsOptions {}
 
 export interface WDIODevtoolsOptions {
@@ -40,4 +40,16 @@ export interface BaseClient extends EventEmitter {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommandsAsync {}
+export interface Client extends BaseClient, ProtocolCommands {}
+
+/**
+ * Interface keeping together information allowing to remove active listener from emitter.
+ */
+export interface ActiveListener {
+    /** Event Emitter object emitting to the handler. */
+    emitter: PuppeteerEventEmitter
+    /** Name of the event the handler is attached to. */
+    eventName: string
+    /** Event function handler, bound to the context of its class instance. */
+    boundHandler: (...args: any[]) => any
+}

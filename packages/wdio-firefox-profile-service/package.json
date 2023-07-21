@@ -1,17 +1,17 @@
 {
   "name": "@wdio/firefox-profile-service",
-  "version": "7.20.0",
+  "version": "8.10.4",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-firefox-profile-service"
   },
   "keywords": [
     "webdriver",
@@ -28,15 +28,18 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {
-    "@wdio/types": "7.20.0",
-    "firefox-profile": "^4.0.0"
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/types": "8.10.4",
+    "firefox-profile": "^4.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

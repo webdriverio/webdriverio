@@ -1,7 +1,10 @@
-const fs = require('fs')
-const path = require('path')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
 
-exports.copyContributingDocs = async function () {
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+export async function copyContributingDocs () {
     const basePath = path.join(__dirname, '..', '..')
     const docsPath = path.join(basePath, 'CONTRIBUTING.md')
     const newDocsPath = path.join(basePath, 'website', 'docs', 'Contribute.md')

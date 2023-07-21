@@ -1,28 +1,45 @@
-import AppiumLauncher from '../src/launcher'
-import childProcess from 'child_process'
-import fs from 'fs-extra'
-import path from 'path'
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import type { ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
+
+import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
+import { resolve } from 'import-meta-resolve'
 import type { Capabilities, Options } from '@wdio/types'
 
-jest.mock('child_process', () => ({
-    spawn: jest.fn(),
+import AppiumLauncher from '../src/launcher.js'
+
+vi.mock('node:fs', () => ({
+    default: {
+        createWriteStream: vi.fn()
+    }
 }))
-jest.mock('fs-extra', () => ({
-    createWriteStream: jest.fn(),
-    ensureFileSync: jest.fn(),
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn(),
+        access: vi.fn().mockResolvedValue(true),
+    }
+}))
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('child_process', () => ({ spawn: vi.fn() }))
+vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
+    url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
 }))
 
 class MockProcess {
     removeListener() {}
     kill() {}
     stdout = {
-        pipe: jest.fn(),
+        pipe: vi.fn(),
         on: (event: string, callback: Function) =>{
             callback('[Appium] Welcome to Appium v1.11.1')
-            callback('[Appium] Appium REST http interface listener started on localhost:4723')
+            callback('[Appium] Appium REST http interface listener started on 127.0.0.1:4723')
         } }
     stderr = {
-        pipe: jest.fn(), once: jest.fn()
+        pipe: vi.fn(), once: vi.fn()
     }
 }
 
@@ -39,19 +56,19 @@ class MockFailingProcess extends MockProcess {
         }
     }
     stdout = {
-        pipe: jest.fn(),
-        on: jest.fn()
+        pipe: vi.fn(),
+        on: vi.fn()
     }
 }
 
 class MockCustomFailingProcess extends MockFailingProcess {
-    stderr = { pipe: jest.fn(), once: jest.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
+    stderr = { pipe: vi.fn(), once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
 }
 
-jest.mock('../src/utils', () => {
-    const { formatCliArgs } = jest.requireActual('../src/utils')
+vi.mock('../src/utils', async () => {
+    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
     return {
-        getFilePath: jest.fn().mockReturnValue('/some/file/path'),
+        getFilePath: vi.fn().mockReturnValue('/some/file/path'),
         formatCliArgs
     }
 })
@@ -60,14 +77,11 @@ const isWindows = process.platform === 'win32'
 
 describe('Appium launcher', () => {
     const originalPlatform = process.platform
-    const consoleSpy = jest.spyOn(global.console, 'error')
-    //@ts-ignore spyOn private function
-    const getAppiumCommandSpy = jest.spyOn<any>(AppiumLauncher, '_getAppiumCommand')
+    const consoleSpy = vi.spyOn(global.console, 'error')
 
     beforeEach(() => {
-        getAppiumCommandSpy.mockReturnValue('/appium/command/path')
-        ;(childProcess.spawn as jest.Mock).mockClear()
-        ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockProcess() as unknown as childProcess.ChildProcess)
+        vi.mocked(spawn).mockClear()
+        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as ChildProcess)
     })
 
     describe('onPrepare', () => {
@@ -84,12 +98,32 @@ describe('Appium launcher', () => {
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
             if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar'
+                    ],
+                    expect.any(Object)
+                )
             } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar'
+                    ],
+                    expect.any(Object)
+                )
             }
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/')
         })
@@ -107,11 +141,11 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
-            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.hostname).toBe('127.0.0.1')
             expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserA.path).toBe('/')
             expect(capabilities.browserB.protocol).toBe('http')
-            expect(capabilities.browserB.hostname).toBe('localhost')
+            expect(capabilities.browserB.hostname).toBe('127.0.0.1')
             expect(capabilities.browserB.port).toBe(4723)
             expect(capabilities.browserB.path).toBe('/')
         })
@@ -127,10 +161,10 @@ describe('Appium launcher', () => {
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_redirectLogStream'] = jest.fn()
+            launcher['_redirectLogStream'] = vi.fn()
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
-            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.hostname).toBe('127.0.0.1')
             expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserA.path).toBe('/')
             expect(capabilities.browserB.protocol).toBeUndefined()
@@ -147,19 +181,14 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = jest.fn().mockImplementation(
+            launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
-            if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
-            } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
-            }
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/')
         })
@@ -172,20 +201,14 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = jest.fn().mockImplementation(
+            launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
-            if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
-            } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
-            }
-
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(4321)
             expect(capabilities[0].path).toBe('/foo/bar')
         })
@@ -202,7 +225,18 @@ describe('Appium launcher', () => {
             }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(launcher['_command']).toBe('cmd')
+            expect(spawn).toBeCalledWith(
+                'cmd',
+                [
+                    '/c',
+                    'path/to/my_custom_appium',
+                    '--base-path',
+                    '/',
+                    '--foo',
+                    'bar'
+                ],
+                expect.any(Object)
+            )
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
@@ -217,8 +251,6 @@ describe('Appium launcher', () => {
                 args: { foo: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
-
-            expect(launcher['_command']).toBe('path/to/my_custom_appium')
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
@@ -229,13 +261,36 @@ describe('Appium launcher', () => {
 
             const launcher = new AppiumLauncher({
                 logPath: './',
-                command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(launcher['_command']).toBe('path/to/my_custom_appium')
-            expect(launcher['_appiumCliArgs']).toMatchSnapshot()
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        expect.any(String),
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '/foo/bar/appium',
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar'
+                    ],
+                    expect.any(Object)
+                )
+            }
+            expect(launcher['_appiumCliArgs'].slice(1)).toMatchSnapshot()
         })
 
         test('should set correct config properties when empty', async () => {
@@ -244,9 +299,27 @@ describe('Appium launcher', () => {
 
             expect(launcher['_logPath']).toBe(undefined)
             if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'node',
+                        expect.any(String),
+                        '--base-path',
+                        '/'
+                    ],
+                    expect.any(Object)
+                )
             } else {
-                expect(launcher['_command']).toBe('node')
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '/foo/bar/appium',
+                        '--base-path',
+                        '/'
+                    ],
+                    expect.any(Object)
+                )
             }
         })
 
@@ -257,7 +330,7 @@ describe('Appium launcher', () => {
 
         test('should fail if Appium exits', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockFailingProcess(1) as unknown as childProcess.ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 1)')
@@ -266,7 +339,7 @@ describe('Appium launcher', () => {
 
         test('should fail and error message if Appium already runs', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockFailingProcess(2) as unknown as childProcess.ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
@@ -276,7 +349,7 @@ describe('Appium launcher', () => {
 
         test('should fail with Appium error message', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockCustomFailingProcess(2) as unknown as childProcess.ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
@@ -288,7 +361,7 @@ describe('Appium launcher', () => {
         test('should call process.kill', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
-            launcher['_process']!.kill = jest.fn()
+            launcher['_process']!.kill = vi.fn()
             launcher.onComplete()
             expect(launcher['_process']!.kill).toBeCalled()
         })
@@ -304,7 +377,7 @@ describe('Appium launcher', () => {
     describe('_redirectLogStream', () => {
         test('should not write output to file', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            launcher['_redirectLogStream'] = jest.fn()
+            launcher['_redirectLogStream'] = vi.fn()
             await launcher.onPrepare()
             expect(launcher['_redirectLogStream']).not.toBeCalled()
         })
@@ -313,26 +386,20 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
             await launcher.onPrepare()
 
-            expect((fs.createWriteStream as jest.Mock).mock.calls[0][0]).toBe('/some/file/path')
+            expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
         })
     })
 
     describe('_getAppiumCommand', () => {
-
-        beforeEach(() => {
-            getAppiumCommandSpy.mockRestore()
+        test('should return path to dependency', async () => {
+            await expect(AppiumLauncher['_getAppiumCommand']('appium')).resolves.toMatch(/appium$/)
         })
 
-        test('should return path to dependency', () => {
-
-            expect(AppiumLauncher['_getAppiumCommand']('fs-extra'))
-                .toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
-        })
-        test('should be appium by default', () => {
-            expect(() => AppiumLauncher['_getAppiumCommand']())
-                .toThrow("Cannot find module 'appium' from 'packages/wdio-appium-service/src/launcher.ts'")
+        test('should throw if appium is not installed', async () => {
+            vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
+            await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
         })
     })
 

@@ -1,17 +1,17 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "7.20.2",
+  "version": "8.13.4",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
   "license": "MIT",
-  "main": "./build",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-browserstack-service"
   },
   "keywords": [
     "webdriverio",
@@ -22,19 +22,34 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^17.0.4",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "browserstack-local": "^1.4.5",
-    "got": "^11.0.2",
-    "webdriverio": "7.20.2"
+    "@types/gitconfiglocal": "^2.0.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/reporter": "8.12.2",
+    "@wdio/types": "8.10.4",
+    "browserstack-local": "^1.5.1",
+    "csv-writer": "^1.6.0",
+    "form-data": "^4.0.0",
+    "git-repo-info": "^2.1.1",
+    "gitconfiglocal": "^2.1.0",
+    "got": "^ 12.6.1",
+    "uuid": "^9.0.0",
+    "webdriverio": "8.13.4"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

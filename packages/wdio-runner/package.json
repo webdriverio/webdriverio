@@ -1,17 +1,17 @@
 {
   "name": "@wdio/runner",
-  "version": "7.20.2",
+  "version": "8.13.4",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-runner"
   },
   "keywords": [
     "webdriver",
@@ -21,15 +21,25 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
-    "deepmerge": "^4.0.0",
+    "@types/node": "^20.1.0",
+    "@wdio/config": "8.12.1",
+    "@wdio/globals": "8.13.4",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
+    "deepmerge-ts": "^5.0.0",
+    "expect-webdriverio": "^4.2.5",
     "gaze": "^1.1.2",
-    "webdriver": "7.20.2",
-    "webdriverio": "7.20.2"
+    "webdriver": "8.13.1",
+    "webdriverio": "8.13.4"
   },
   "publishConfig": {
     "access": "public"

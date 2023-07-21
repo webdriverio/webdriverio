@@ -1,9 +1,9 @@
 WDIO Firefox Profile Service
 ============================
 
-You want to run your Firefox browser with a specific extension or need to set couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `firefox_profile` property in your desired capabilities. This requires to build that profile and convert it into `base64`. This service for the [wdio testrunner](https://webdriver.io/docs/clioptions) takes the work of compiling the profile out of your hand and let's you define your desired options comfortable from the `wdio.conf.js` file.
+You want to run your Firefox browser with a specific extension or need to set couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `firefox_profile` property in your desired capabilities. This requires building that profile and converting it into `base64`. This service for the [wdio testrunner](https://webdriver.io/docs/clioptions) takes the work of compiling the profile out of your hand and lets you define your desired options comfortably from the `wdio.conf.js` file.
 
-To find all possible options just open [about:config](about:config) in your Firefox browser or go to [mozillaZine](http://kb.mozillazine.org/About:config_entries) website to find the whole documentation about each setting. In Addition to that you can define compiled (as `*.xpi`) Firefox extensions that should get installed before the test starts.
+To find all possible options open [about:config](about:config) in your Firefox browser or go to [mozillaZine](http://kb.mozillazine.org/About:config_entries) website to find the whole documentation about each setting. In Addition to that, you can define compiled (as `*.xpi`) Firefox extensions that should get installed before the test starts.
 
 ## Installation
 
@@ -21,7 +21,7 @@ Setup your profile by adding the `firefox-profile` service to your service list.
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     services: [
         ['firefox-profile', {
@@ -38,13 +38,13 @@ exports.config
 };
 ```
 
-If you have built a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': false` as profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
+If you have built a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': `false` as a profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
 
 To use custom unsigned extensions you will also need to use [Firefox Developer Edition](https://www.mozilla.org/en-GB/firefox/developer/) since the regular Firefox 48 and newer [do not allow this](https://wiki.mozilla.org/Add-ons/Extension_Signing#Timeline).
 
 ## Options
 
-Contains all settings as key value pair. You can find all available settings on the `about:config` page.
+Contains all settings as key-value pair. You can find all available settings on the `about:config` page.
 
 ### extensions
 
@@ -62,12 +62,12 @@ Default: `null`
 
 ### proxy
 
-Set network proxy settings. The parameter `proxy` is a hash which structure depends on the value of mandatory `proxyType` key, which takes one of the following string values:
+Set network proxy settings. The parameter `proxy` is a hash whose structure depends on the value of the mandatory `proxyType` key, which takes one of the following string values:
 
  * `direct` - direct connection (no proxy)
  * `system` - use operating system proxy settings
- * `pac` - use automatic proxy configuration set based on the value of `autoconfigUrl` key
- * `manual` - manual proxy settings defined separately for different protocols using values from following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
+ * `pac` - use an automatic proxy configuration set based on the value of `autoconfigUrl` key
+ * `manual` - manual proxy settings defined separately for different protocols using values from the following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
 
 Type: `Object`<br />
 Default: `null`<br />
@@ -76,7 +76,7 @@ Example:
 - Automatic Proxy:
     ```js
     // wdio.conf.js
-    exports.config
+    export const config = {
         // ...
         services: [
             ['firefox-profile', {
@@ -93,7 +93,7 @@ Example:
 - Manual HTTP Proxy:
     ```js
     // wdio.conf.js
-    exports.config
+    export const config = {
         // ...
         services: [
             ['firefox-profile', {
@@ -110,7 +110,7 @@ Example:
 - Manual HTTP and HTTPS Proxy:
     ```js
     // wdio.conf.js
-    exports.config
+    export const config = {
         // ...
         services: [
             ['firefox-profile', {

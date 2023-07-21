@@ -1,15 +1,28 @@
-import path from 'path'
+import path from 'node:path'
 
-import { isFunctionAsync } from '@wdio/utils'
 import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
+import type TagExpressionParser from '@cucumber/tag-expressions'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import { compile } from '@cucumber/gherkin'
+import { IdGenerator } from '@cucumber/messages'
 
-import * as Cucumber from '@cucumber/cucumber'
-import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
-import { Capabilities } from '@wdio/types'
+import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
+import type { World } from '@cucumber/cucumber'
+import type {
+    TableRow,
+    TableCell,
+    PickleStep,
+    TestStep,
+    Feature,
+    Pickle,
+    TestStepResultStatus,
+    GherkinDocument
+} from '@cucumber/messages'
 
-import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants'
-import { TestHookDefinitionConfig } from './types'
+import type { Capabilities } from '@wdio/types'
+import type { ReporterStep } from './constants.js'
+import type { TestHookDefinitionConfig } from './types.js'
 
 const log = logger('@wdio/cucumber-framework:utils')
 
@@ -43,7 +56,7 @@ export function createStepArgument ({ argument }: PickleStep) {
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }: any) {
-    let content = { ...payload }
+    const content = { ...payload }
 
     /**
      * need to convert Error to plain object, otherwise it is lost on process.send
@@ -130,10 +143,10 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
         options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: Cucumber.World, ...args: any) {
+                const userHookAsyncFn = async function (this: World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
-                const userHookFn = function (this: Cucumber.World, ...args: any) {
+                const userHookFn = function (this: World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
@@ -149,7 +162,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * @param {*} testCase
  */
 export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip\((.*)\)$/
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {
@@ -176,7 +189,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
     return !(pickle && pickle.tags && pickle.tags
         .map(p => p.name?.match(skipTag))
         .filter(Boolean)
-        .map(m => parse(m![1]))
+        .map(m => parse(m![1] ?? ''))
         .find((filter: Capabilities.Capabilities) => Object.keys(filter)
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
@@ -189,7 +202,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
 export function getRule(feature: Feature, scenarioId: string){
     const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
     const rule = rules.find((rule) => {
-        let scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
+        const scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
         if (scenarioRule) {
             return rule
         }
@@ -230,4 +243,15 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
         }
         return step
     })
+}
+
+export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
+
+    if (!doc.feature) {
+        return false
+    }
+
+    const pickles = compile(doc, '', IdGenerator.uuid())
+    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
+    return tags.some((tag) => tagParser.evaluate(tag))
 }

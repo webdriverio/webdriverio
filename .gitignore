@@ -64,11 +64,15 @@ tests/typings/**/dist
 .changelog
 
 **/build
+packages/**/cjs/
+!packages/**/src/cjs/
+!packages/**/cjs/package.json
 /*.js
+/*.mjs
 /*.ts
 devtools.d.ts
 !.eslintrc.js
-!jest.config.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
@@ -78,14 +82,19 @@ website/sidebars.json
 website/yarn.lock
 website/sidebars.json
 website/node_modules
-website/i18n/*
 website/docs/api/**/*.md
+!website/docs/api/Environment.md
+!website/docs/api/Globals.md
+!website/docs/api/Modules.md
+!website/docs/api/Browser.md
+!website/docs/api/Element.md
+!website/docs/api/Mock.md
+!website/docs/api/Protocols.md
 website/docs/docs/**/*.md
 website/docs/_*.md
 
 # Editor files
 .idea
-.vscode
 !.vscode/extensions.json
 .*.swp
 .history
@@ -96,3 +105,5 @@ tests/.retry_succeeded
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md
+scripts/bidi/cddl
+browserstack.err

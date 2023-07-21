@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * Get the computed WAI-ARIA role of an element.

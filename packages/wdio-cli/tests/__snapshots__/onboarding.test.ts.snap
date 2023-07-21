@@ -1,0 +1,432 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`onboarding templates > Svelte > with testing-library 1`] = `
+"
+import { $, expect } from '@wdio/globals'
+import { render, fireEvent } from '@testing-library/svelte'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+import ExampleComponent from './Component.svelte'
+import './Component.css'
+
+describe('Svelte Component Testing', () => {
+    
+    it('should test component with Testing Library', async () => {
+        const { getByText } = render(ExampleComponent)
+
+        const component = getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(ExampleComponent)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > Svelte > without testing-library 1`] = `
+"
+import { $, expect } from '@wdio/globals'
+
+
+import ExampleComponent from './Component.svelte'
+import './Component.css'
+
+describe('Svelte Component Testing', () => {
+    
+    let container: Element
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        new ExampleComponent({ target: container, props: {} })
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > Vue > with testing-library 1`] = `
+"
+import { $, expect } from '@wdio/globals'
+import { render, fireEvent } from '@testing-library/vue'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+import ExampleComponent from './Component.vue'
+import './Component.css'
+
+describe('Vue Component Testing', () => {
+    
+    it('should test component with Testing Library', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const { getByText } = render(ExampleComponent, {
+            props: { msg: 'WebdriverIO Component Testing' }
+        })
+
+        const component = getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(ExampleComponent, { props: { msg: 'WebdriverIO Component Testing' } })
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > Vue > without testing-library 1`] = `
+"
+import { $, expect } from '@wdio/globals'
+import { createApp } from 'vue'
+
+import ExampleComponent from './Component.vue'
+import './Component.css'
+
+describe('Vue Component Testing', () => {
+    
+    let container: Element
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        container.setAttribute('id', 'app')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        createApp(ExampleComponent, { msg: 'WebdriverIO Component Testing' }).mount(container)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > lit > without testing-library 1`] = `
+"import { html, render } from 'lit'
+import { $, expect } from '@wdio/globals'
+
+import './Component.js'
+import './Component.css'
+
+describe('Lit component testing', () => {
+    it('should increment value on click', async () => {
+        render(
+            html\`<my-element id=\\"root\\">WebdriverIO Component Testing</my-element>\`,
+            document.body
+        )
+
+        const button = await $('my-element').$('>>>button')
+        await expect(button).toHaveText('count is 0')
+
+        await button.click()
+        await button.click()
+
+        await expect(button).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > preact > with testing-library 1`] = `
+"
+import { expect, $ } from '@wdio/globals'
+import { h } from 'preact'
+import { render, screen, fireEvent } from '@testing-library/preact'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+import ExampleComponent from './Component'
+
+describe('Preact Component Tests', () => {
+    
+    it('should test component with Testing Library', async () => {
+        render(<ExampleComponent />)
+        const component = screen.getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(<ExampleComponent />)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > preact > without testing-library 1`] = `
+"
+import { expect, $ } from '@wdio/globals'
+import { h, render } from 'preact'
+import htm from 'https://esm.sh/htm'
+
+// Initialize htm with Preact
+const html = htm.bind(h);
+
+import ExampleComponent from './Component'
+
+describe('Preact Component Tests', () => {
+    
+    let container: Element
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(html\`<\${ExampleComponent} />\`, container)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > react > with testing-library 1`] = `
+"
+import React from 'react'
+import { expect, $ } from '@wdio/globals'
+import { render, screen, fireEvent } from '@testing-library/react'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+import ExampleComponent from './Component'
+
+describe('React Component Tests', () => {
+    
+    it('should test component with Testing Library', async () => {
+        render(<ExampleComponent />)
+        const component = screen.getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(<ExampleComponent />)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > react > without testing-library 1`] = `
+"
+import React from 'react'
+import { expect, $ } from '@wdio/globals'
+import { createRoot } from 'react-dom/client'
+
+import ExampleComponent from './Component'
+
+describe('React Component Tests', () => {
+    
+    let container: Element
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        const root = createRoot(container)
+        root.render(<ExampleComponent />)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > solid > with testing-library 1`] = `
+"
+import { expect, $ } from '@wdio/globals'
+import { cleanup, render, screen, fireEvent } from 'solid-testing-library'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+import ExampleComponent from './Component'
+
+describe('Preact Component Tests', () => {
+    
+    afterEach(cleanup)
+
+    it('should test component with Testing Library', async () => {
+        render(() => <ExampleComponent />)
+        const component = screen.getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(() => <ExampleComponent />)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;
+
+exports[`onboarding templates > solid > without testing-library 1`] = `
+"
+import { expect, $ } from '@wdio/globals'
+import { render } from 'solid-js/web'
+
+import ExampleComponent from './Component'
+
+describe('Preact Component Tests', () => {
+    
+    let container: Element
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    
+
+    it('should test component with WebdriverIO', async () => {
+        render(<ExampleComponent />, container)
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})
+"
+`;

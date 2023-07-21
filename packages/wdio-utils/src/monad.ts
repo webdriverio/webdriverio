@@ -1,9 +1,9 @@
 import type { Clients } from '@wdio/types'
 
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
 
-import { commandCallStructure, overwriteElementCommands } from './utils'
+import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser () {},
@@ -32,7 +32,11 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * WebDriver monad
      */
-    function unit (this: void, sessionId: string, commandWrapper?: Function) {
+    function unit (this: void, sessionId: string, commandWrapper?: Function, eventMiddleware?: { socket: Partial<EventEmitter> }) {
+        if (eventMiddleware) {
+            prototype.eventMiddleware = eventMiddleware
+        }
+
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -66,7 +70,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          */
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
-        propertiesObject['__propertiesObject__'] = { value: propertiesObjectWithoutPuppeteer }
+        propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
 
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
@@ -106,7 +110,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
         /**
          * overwriteCommand
-         * @param  {String}   name              command name to be overwritten
+         * @param  {string}   name              command name to be overwritten
          * @param  {Function} func              function to replace original command with;
          *                                      takes original function as first argument.
          * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
@@ -114,7 +118,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * @param  {Object=}  instances         multiremote instances
          */
         client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: Clients.Multiremote | Clients.Browser) {
-            let customCommand = typeof commandWrapper === 'function'
+            const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
@@ -145,7 +149,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
     /**
      * Enhance monad prototype with function
-     * @param  {String}   name          name of function to attach to prototype
+     * @param  {string}   name          name of function to attach to prototype
      * @param  {Function} func          function to be added to prototype
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
@@ -167,8 +171,15 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             /**
              * always transform result into promise
              */
-            Promise.resolve(result).then((res) => {
-                log.info('RESULT', res)
+            Promise.resolve(result).then((res: unknown) => {
+                let resultLog = res
+                if (res instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${(res as { elementId: string }).elementId}>`
+                } else if (res instanceof SCOPE_TYPES.browser) {
+                    resultLog = 'WebdriverIO.Browser'
+                }
+
+                log.info('RESULT', resultLog)
                 this.emit('result', { name, result: res })
             }).catch(() => {})
 
@@ -179,9 +190,16 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * register event emitter
      */
-    for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
+    for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
             eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
+
+            if (prototype.eventMiddleware) {
+                if (typeof prototype.eventMiddleware[eventCommand as keyof EventEmitter] === 'function') {
+                    prototype.eventMiddleware.socket[eventCommand as keyof EventEmitter]!(...args as [never, any])
+                }
+            }
+
             return this
         }
     }

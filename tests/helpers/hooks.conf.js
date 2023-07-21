@@ -1,6 +1,6 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     before () {
         global.WDIO_SERVICE_TEST_IT_DURATION = 0
         global.WDIO_SERVICE_TEST_IT_PASSES = 0
@@ -13,14 +13,14 @@ exports.config = Object.assign({}, config, {
             throw new Error('wdio beforeTest error: ' + test.title)
         }
     },
-    afterTest (test, context, { error, duration, passed }) {
+    async afterTest (test, context, { error, duration, passed }) {
         let throwError = false
         if (global.WDIO_SERVICE_TEST_IT_DURATION === 0) {
             throwError = true
         }
 
         global.WDIO_SERVICE_TEST_IT_DURATION += duration
-        if (!error && passed === true && browser.pause(2) === undefined) {
+        if (!error && passed === true && await browser.pause(2) === undefined) {
             global.WDIO_SERVICE_TEST_IT_PASSES++
         }
 

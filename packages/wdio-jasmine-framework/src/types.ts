@@ -1,7 +1,8 @@
 export interface ReporterOptions {
     cid: string
     specs: string[]
-    cleanStack?: boolean
+    cleanStack?: boolean,
+    jasmineOpts: JasmineOpts
 }
 
 export interface ParentSuite {
@@ -15,7 +16,8 @@ export interface SuiteEvent extends jasmine.SuiteResult {
     start: Date,
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
-    error?: jasmine.FailedExpectation
+    error?: jasmine.FailedExpectation,
+    filename?: string
 }
 
 export interface TestEvent extends jasmine.SpecResult {
@@ -23,7 +25,8 @@ export interface TestEvent extends jasmine.SpecResult {
     start: Date,
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
-    error?: jasmine.FailedExpectation
+    error?: jasmine.FailedExpectation,
+    filename?: string
 }
 
 export interface ResultHandlerPayload {

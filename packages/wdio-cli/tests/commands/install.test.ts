@@ -1,25 +1,34 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
-import fs from 'fs-extra'
-import * as installCmd from '../../src/commands/install'
-import * as configCmd from '../../src/commands/config'
-import * as utils from '../../src/utils'
+import { yargs } from 'yargs'
 import yarnInstall from 'yarn-install'
 
-jest.mock('yarn-install')
-jest.mock('fs-extra')
+import * as installCmd from '../../src/commands/install.js'
+import * as configCmd from '../../src/commands/config.js'
+import * as utils from '../../src/utils.js'
 
-let findInConfigMock: jest.SpyInstance
+vi.mock('yargs')
+vi.mock('yarn-install')
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue({}),
+        readFile: vi.fn().mockResolvedValue({}),
+        writeFile: vi.fn().mockResolvedValue({})
+    }
+}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const findInConfigMock = vi.spyOn(utils, 'findInConfig')
 
 describe('Command: install', () => {
     beforeEach(() => {
-        jest.spyOn(console, 'log')
-        jest.spyOn(process, 'exit').mockImplementation((code?: number): never => code as never)
-        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve() as any)
-        jest.spyOn(utils, 'addServiceDeps')
-        jest.spyOn(utils, 'replaceConfig').mockReturnValueOnce({ foo: 123 } as any)
-
-        findInConfigMock = jest.spyOn(utils, 'findInConfig')
+        vi.spyOn(console, 'log')
+        vi.spyOn(process, 'exit').mockImplementation((code?: number): never => code as never)
+        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve() as any)
+        vi.spyOn(utils, 'addServiceDeps')
+        vi.spyOn(utils, 'replaceConfig').mockReturnValueOnce({ foo: 123 } as any)
     })
 
     it('it should properly build command', () => {
@@ -45,18 +54,22 @@ describe('Command: install', () => {
     })
 
     it('should prompt missing configuration', async () => {
-        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
-        ;(fs.existsSync as jest.Mock).mockReturnValue(false)
+        vi.spyOn(configCmd, 'formatConfigFilePaths').mockReturnValue({ fullPath: '/absolute/path/to/wdio.conf.js', fullPathNoExtension: '/absolute/path/to/wdio.conf' } as any)
+        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
+        vi.mocked(fs.access).mockRejectedValue(new Error('Doesn\'t exist'))
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
-        expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith('install', `Cannot install packages without a WebdriverIO configuration.
-You can create one by running 'wdio config'`, undefined)
+        expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith(
+            'install',
+            '/absolute/path/to/wdio.conf',
+            undefined
+        )
     })
 
     it('should verify if configuration already has desired installation', async () => {
         findInConfigMock.mockReturnValue(['chromedriver'])
-        ;(fs.existsSync as jest.Mock).mockReturnValue(true)
+        vi.mocked(fs.access).mockResolvedValue()
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
@@ -65,26 +78,26 @@ You can create one by running 'wdio config'`, undefined)
 
     it('should correctly install packages', async () => {
         findInConfigMock.mockReturnValue([''])
-        ;(fs.existsSync as jest.Mock).mockReturnValue(true)
-        ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
+        vi.mocked(fs.access).mockResolvedValue()
+        vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
+        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
-        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(fs.writeFile).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
         expect(process.exit).toHaveBeenCalledWith(0)
     })
 
     it('should fail if config could not be updated', async () => {
         findInConfigMock.mockReturnValue([''])
-        ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
-        ;(utils.replaceConfig as jest.Mock).mockRestore()
-        jest.spyOn(utils, 'replaceConfig').mockReturnValue('')
+        vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
+        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
+        vi.mocked(utils.replaceConfig).mockRestore()
+        vi.spyOn(utils, 'replaceConfig').mockReturnValue('')
 
         const err = await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
             .catch((err: Error) => err) as Error
@@ -94,25 +107,25 @@ You can create one by running 'wdio config'`, undefined)
 
     it('allows for custom config location', async () => {
         findInConfigMock.mockReturnValue([''])
-        ;(fs.existsSync as jest.Mock).mockReturnValue(true)
-        ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
+        vi.mocked(fs.access).mockResolvedValue()
+        vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
+        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './path/to/wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
-        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(fs.writeFile).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
         expect(process.exit).toHaveBeenCalledWith(0)
     })
 
     it('should exit if there is an error while installing', async () => {
         findInConfigMock.mockReturnValue([''])
-        ;(fs.existsSync as jest.Mock).mockReturnValue(true)
-        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 1, stderr: 'test error' }))
-        jest.spyOn(console, 'error')
+        vi.mocked(fs.access).mockResolvedValue()
+        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 1, stderr: 'test error' } as any))
+        vi.spyOn(console, 'error')
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
@@ -121,15 +134,15 @@ You can create one by running 'wdio config'`, undefined)
     })
 
     afterEach(() => {
-        (console.log as jest.Mock).mockClear()
-        ;(process.exit as any as jest.Mock).mockClear()
-        ;(fs.readFileSync as jest.Mock).mockClear()
-        ;(fs.existsSync as jest.Mock).mockClear()
-        ;(fs.writeFileSync as jest.Mock).mockClear()
+        vi.mocked(console.log).mockClear()
+        vi.mocked(process.exit).mockClear()
+        vi.mocked(fs.readFile).mockClear()
+        vi.mocked(fs.access).mockClear()
+        vi.mocked(fs.writeFile).mockClear()
 
-        ;(utils.findInConfig as jest.Mock).mockClear()
-        ;(utils.addServiceDeps as jest.Mock).mockClear()
-        ;(utils.replaceConfig as jest.Mock).mockClear()
-        ;(configCmd.missingConfigurationPrompt as jest.Mock).mockClear()
+        vi.mocked(utils.findInConfig).mockClear()
+        vi.mocked(utils.addServiceDeps).mockClear()
+        vi.mocked(utils.replaceConfig).mockClear()
+        vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
     })
 })

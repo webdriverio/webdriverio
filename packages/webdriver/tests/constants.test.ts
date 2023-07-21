@@ -1,4 +1,5 @@
-import { DEFAULTS } from '../src/constants'
+import { test, expect } from 'vitest'
+import { DEFAULTS } from '../src/constants.js'
 
 test('should do correct type check for "path"', () => {
     // @ts-expect-error test invalid param

@@ -1,6 +1,6 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
-import type DevToolsDriver from '../devtoolsdriver'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Switch to Parent Frame command sets the current browsing context for future commands

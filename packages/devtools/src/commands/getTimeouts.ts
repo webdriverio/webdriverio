@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Timeouts command gets timeout durations associated with the current session.

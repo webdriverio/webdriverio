@@ -4,29 +4,31 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "cd ../ && npm run docs:generate && cd website && docusaurus start",
+    "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
-    "clear": "docusaurus clear"
+    "clear": "docusaurus clear",
+    "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-beta.15",
-    "@docusaurus/plugin-client-redirects": "^2.0.0-beta.15",
-    "@docusaurus/plugin-google-analytics": "^2.0.0-beta.15",
-    "@docusaurus/plugin-ideal-image": "^2.0.0-beta.15",
-    "@docusaurus/plugin-pwa": "^2.0.0-beta.15",
-    "@docusaurus/preset-classic": "^2.0.0-beta.15",
-    "@docusaurus/remark-plugin-npm2yarn": "^2.0.0-beta.15",
-    "@docusaurus/theme-search-algolia": "^2.0.0-beta.15",
+    "@docusaurus/core": "2.2.0",
+    "@docusaurus/plugin-client-redirects": "2.2.0",
+    "@docusaurus/plugin-google-analytics": "2.2.0",
+    "@docusaurus/plugin-ideal-image": "2.2.0",
+    "@docusaurus/plugin-pwa": "2.2.0",
+    "@docusaurus/preset-classic": "2.2.0",
+    "@docusaurus/remark-plugin-npm2yarn": "2.2.0",
+    "@docusaurus/theme-search-algolia": "2.2.0",
     "@mdx-js/react": "^1.6.22",
-    "@saucelabs/theme-github-codeblock": "^0.1.1",
-    "clsx": "^1.1.1",
+    "clsx": "^1.2.1",
+    "docusaurus-theme-github-codeblock": "^1.1.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "workbox-routing": "^6.4.2",
-    "workbox-strategies": "^6.4.2"
+    "react-lite-youtube-embed": "^2.3.52",
+    "workbox-routing": "^6.5.4",
+    "workbox-strategies": "^6.5.4"
   },
   "browserslist": {
     "production": [

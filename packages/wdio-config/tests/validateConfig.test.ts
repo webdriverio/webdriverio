@@ -1,4 +1,5 @@
-import { validateConfig } from '../src/utils'
+import { describe, it, expect } from 'vitest'
+import { validateConfig } from '../src/utils.js'
 
 describe('validateConfig', () => {
     it('should throw if required config is missing', () => {
@@ -31,7 +32,7 @@ describe('validateConfig', () => {
     })
 
     it('should check for types as function', () => {
-        const errorCheck = (type) => {
+        const errorCheck = (type: any) => {
             if (type instanceof Error) {
                 return
             }

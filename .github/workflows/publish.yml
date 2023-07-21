@@ -13,18 +13,19 @@ on:
           - minor
           - major
       distTag:
-        description: 'NPM tag (e.g. use "next" to release a test version)'
+        description: 'NPM tag (e.g. use "next --canary" to release a test version, add "--force-publish" to release all packages)'
         required: true
         default: 'latest'
 
 env:
   NPM_TOKEN: ${{secrets.NPM_TOKEN}}
 
+permissions: {}
 jobs:
   authorize:
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2.1.4
+      - uses: octokit/request-action@v2.1.9
         with:
           route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
           team: technical-steering-committee
@@ -32,6 +33,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
   release:
+    permissions:
+      contents: write
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
@@ -41,7 +44,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: NPM Setup
         run: |
           npm set registry "https://registry.npmjs.org/"
@@ -55,7 +58,7 @@ jobs:
         run: npm ci
       - name: Release
         run: |
-          npm run setup-full
+          npm run setup
           npm run generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           npm run pushReleaseTag

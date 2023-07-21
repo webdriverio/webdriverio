@@ -1,6 +1,6 @@
-import command from '../scripts/getElementTagName'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/getElementTagName.js'
+import { getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Element Tag Name command returns the qualified element name of the given web element.

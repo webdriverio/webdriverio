@@ -1,14 +1,14 @@
-import { basename, join, resolve } from 'path'
+import { basename, join, resolve } from 'node:path'
 import { paramCase } from 'param-case'
 
-import { ArgValue, KeyValueArgs } from './types'
+import type { ArgValue, KeyValueArgs } from './types.js'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 
 /**
  * Resolves the given path into a absolute path and appends the default filename as fallback when the provided path is a directory.
- * @param  {String} filePath         relative file or directory path
- * @param  {String} defaultFilename default file name when filePath is a directory
+ * @param  {string} filePath         relative file or directory path
+ * @param  {string} defaultFilename default file name when filePath is a directory
  * @return {String}                 absolute file path
  */
 export function getFilePath (filePath: string, defaultFilename: string): string {
@@ -30,7 +30,7 @@ export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
 
     const cliArgs = []
     for (const key in args) {
-        let value: ArgValue | ArgValue[] = args[key]
+        const value: ArgValue | ArgValue[] = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
             continue

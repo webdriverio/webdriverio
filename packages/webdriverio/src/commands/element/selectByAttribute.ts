@@ -1,4 +1,4 @@
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../utils/index.js'
 
 /**
  *
@@ -29,13 +29,13 @@ import { getElementFromResponse } from '../../utils'
  * </example>
  *
  * @alias element.selectByAttribute
- * @param {String} attribute     attribute of option element to get selected
+ * @param {string} attribute     attribute of option element to get selected
  * @param {String|Number} value  value of option element to get selected
  * @uses protocol/findElementFromElement, protocol/elementClick
  * @type action
  *
  */
-export default async function selectByAttribute (
+export async function selectByAttribute (
     this: WebdriverIO.Element,
     attribute: string,
     value: string | number

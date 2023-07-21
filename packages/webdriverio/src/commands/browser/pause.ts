@@ -15,11 +15,11 @@
  * </example>
  *
  * @alias browser.pause
- * @param {Number} milliseconds time in ms
+ * @param {number} milliseconds time in ms
  * @type utility
  *
  */
-export default function pause (
+export function pause (
     this: WebdriverIO.Browser,
     milliseconds = 1000
 ) {

@@ -1,17 +1,17 @@
 {
   "name": "@wdio/mocha-framework",
-  "version": "7.20.0",
+  "version": "8.12.1",
   "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-mocha-framework"
   },
   "keywords": [
     "webdriver",
@@ -21,19 +21,29 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {
-    "@types/mocha": "^9.0.0",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
-    "expect-webdriverio": "^3.0.0",
-    "mocha": "^10.0.0"
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./common": {
+      "import": "./build/common.js",
+      "types": "./build/common.d.ts"
+    },
+    "./package.json": "./package.json"
   },
-  "devDependencies": {
-    "@types/node": "^17.0.5"
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^20.1.0",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
+    "mocha": "^10.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

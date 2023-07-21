@@ -1,14 +1,12 @@
-import { isFunctionAsync } from '../utils'
-import { logHookError } from './errorHandler'
-import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
+import { logHookError } from './errorHandler.js'
+import { executeHooksWithArgs, executeAsync } from '../shim.js'
 
 import type {
     WrapperMethods,
     SpecFunction,
     BeforeHookParam,
-    AfterHookParam,
-    JasmineContext
-} from './types'
+    AfterHookParam
+} from './types.js'
 
 const STACKTRACE_FILTER = [
     'node_modules/webdriver/',
@@ -39,7 +37,7 @@ export const testFnWrapper = function (
         number
     ]
 ) {
-    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
+    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
 }
 
 /**
@@ -56,7 +54,7 @@ export const testFnWrapper = function (
  */
 export const testFrameworkFnWrapper = async function (
     this: unknown,
-    { executeHooksWithArgs, executeAsync, runSync }: WrapperMethods,
+    { executeHooksWithArgs, executeAsync }: WrapperMethods,
     type: string,
     { specFn, specFnArgs }: SpecFunction,
     { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
@@ -68,21 +66,12 @@ export const testFrameworkFnWrapper = async function (
     const beforeArgs = beforeFnArgs(this)
     await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
 
-    let promise
     let result
     let error
-    /**
-     * user wants handle async command using promises, no need to wrap in fiber context
-     */
-    if (isFunctionAsync(specFn) || !runSync) {
-        promise = executeAsync.call(this, specFn, retries, specFnArgs)
-    } else {
-        promise = new Promise(runSync.call(this, specFn, retries, specFnArgs))
-    }
 
     const testStart = Date.now()
     try {
-        result = await promise
+        result = await executeAsync.call(this, specFn, retries, specFnArgs)
     } catch (err: any) {
         if (err.stack) {
             err.stack = filterStackTrace(err.stack)
@@ -91,16 +80,7 @@ export const testFrameworkFnWrapper = async function (
         error = err
     }
     const duration = Date.now() - testStart
-    let afterArgs = afterFnArgs(this)
-
-    /**
-     * ensure errors are caught in Jasmine tests too
-     * (in Jasmine failing assertions are not causing the test to throw as
-     * oppose to other common assertion libraries like chai)
-     */
-    if (!error && afterArgs[0] && (afterArgs as [JasmineContext, unknown])[0].failedExpectations && (afterArgs as [JasmineContext, unknown])[0].failedExpectations.length) {
-        error = (afterArgs as [JasmineContext, unknown])[0].failedExpectations[0]
-    }
+    const afterArgs = afterFnArgs(this)
 
     afterArgs.push({
         retries,

@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 export interface StateCount {
     passed: number

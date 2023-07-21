@@ -1,4 +1,4 @@
-import { RunnerStats } from '@wdio/reporter'
+import type { RunnerStats } from '@wdio/reporter'
 
 const runner =  (): RunnerStats => ({
     type: 'runner',

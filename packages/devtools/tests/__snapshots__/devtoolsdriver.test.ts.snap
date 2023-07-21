@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`setTimeouts with all timeouts 1`] = `
 Map {
@@ -24,48 +24,95 @@ Map {
 }
 `;
 
-exports[`should rerun command if it was executed within navigation 1`] = `
-Array [
-  Array [
+exports[`should rerun command 3 times before attempting to wait for page load 1`] = `
+[
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 0,
     },
   ],
-  Array [
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 1,
     },
   ],
-  Array [
-    "result",
-    Object {
+  [
+    "command",
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
-      "result": Object {
+      "retries": 2,
+    },
+  ],
+]
+`;
+
+exports[`should rerun command if it was executed within navigation 1`] = `
+[
+  [
+    "command",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  [
+    "command",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "retries": 1,
+    },
+  ],
+  [
+    "result",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "result": {
         "value": null,
       },
       "retries": 1,
@@ -75,37 +122,37 @@ Array [
 `;
 
 exports[`should return proper result 1`] = `
-Array [
-  Array [
+[
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 0,
     },
   ],
-  Array [
+  [
     "result",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
-      "result": Object {
-        "value": Object {
+      "result": {
+        "value": {
           "elementId": "123",
           "text": "some text",
-          "value": Array [
+          "value": [
             "some value",
           ],
         },

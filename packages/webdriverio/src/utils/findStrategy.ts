@@ -1,8 +1,8 @@
-import fs from 'fs'
-import isPlainObject from 'lodash.isplainobject'
-import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
+import fs from 'node:fs'
+import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
+import { roleElements } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants'
+import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -33,9 +33,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
     // Use '-android datamatcher' or '-android viewmatcher' strategy if selector is a plain object (Android only)
-    if (isPlainObject(selector)) {
-        if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0)
+    if (typeof selector === 'object') {
+        if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0) {
             return '-android datamatcher'
+        }
         return '-android viewmatcher'
     }
 
@@ -70,6 +71,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // use shadow dom selector
     if (stringSelector.startsWith(DEEP_SELECTOR)) {
         return 'shadow'
+    }
+    // use aria selector
+    if (stringSelector.startsWith(ARIA_SELECTOR)) {
+        return 'aria'
     }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
@@ -122,7 +127,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     // user has specified locator strategy directly
     case 'directly': {
         const match = stringSelector.match(DIRECT_SELECTOR_REGEXP)
-        if (!match || !isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!match) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
         using = match[1]
@@ -152,6 +157,43 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         using = 'shadow'
         value = stringSelector.slice(DEEP_SELECTOR.length)
         break
+    case 'aria': {
+        const label = stringSelector.slice(ARIA_SELECTOR.length)
+        const conditions = [
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+            // element has direct aria label
+            // https://www.w3.org/TR/accname-1.1/#step2C
+            `.//*[@aria-label = "${label}"]`,
+            // inputs with a label
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@placeholder="${label}"]`,
+            `.//textarea[@placeholder="${label}"]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@aria-placeholder="${label}"]`,
+            `.//textarea[@aria-placeholder="${label}"]`,
+            // aria label is received by its title attribute
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//*[@title="${label}"]`,
+            // images with an alt tag
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//img[@alt="${label}"]`,
+            // aria label is received from element content
+            // https://www.w3.org/TR/accname-1.1/#step2G
+            `.//*[normalize-space(text()) = "${label}"]`
+        ]
+        using = 'xpath'
+        value = conditions.join(' | ')
+        break
+    }
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)
@@ -204,7 +246,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${stringSelector}'`)
         }
         const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
-        const conditions = []
+        const conditions: Array<string> = []
         const [
             tag,
             prefix, name,
@@ -222,10 +264,20 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
                     : `@${attrName}`
             )
         }
+        const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
         conditions.push(
-            partial ? `contains(., "${query}")` : `normalize-space() = "${query}"`
+            partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`
         )
-        value = `.//${tag || '*'}[${conditions.join(' and ')}]`
+        const getValue = () => `.//${tag || '*'}[${conditions.join(' and ')}]`
+        value = getValue()
+        if (!partial) {
+            conditions.pop()
+            conditions.push(
+                `not(${value})`,
+                `normalize-space() = "${query}"`
+            )
+            value = value + ' | ' + getValue()
+        }
         break
     }
     case '-image': {
@@ -239,7 +291,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             throw new Error(`InvalidSelectorMatch. Strategy 'role' has failed to match '${stringSelector}'`)
         }
         using = 'css selector'
-        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
+        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefinitionKey)
         break
     }
     }
@@ -247,12 +299,12 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     return { using, value }
 }
 
-const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
+const createRoleBaseXpathSelector = (role: ARIARoleDefinitionKey) => {
     const locatorArr: string[] = []
     roleElements.get(role)?.forEach((value: ARIARoleRelationConcept) => {
         let locator: string
-        let tagname: string, tagAttribute: string | undefined, tagAttributevalue: string | number | undefined
-        tagname = value.name
+        let tagAttribute: string | undefined, tagAttributevalue: string | number | undefined
+        const tagname: string = value.name
         if (value.attributes instanceof Array) {
             value.attributes.forEach((val: ARIARoleRelationConceptAttribute) => {
                 tagAttribute = val.name

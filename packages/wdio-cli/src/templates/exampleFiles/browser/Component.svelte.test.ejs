@@ -1,0 +1,56 @@
+<%
+const harnessImport = answers.installTestingLibrary
+    ? `import { render, fireEvent } from '@testing-library/svelte'`
+    : ``
+const renderCommand = answers.installTestingLibrary
+    ? `render(ExampleComponent)`
+    : `new ExampleComponent({ target: container, props: {} })`
+%>
+import { $, expect } from '@wdio/globals'
+<%- harnessImport %>
+<% if (answers.installTestingLibrary) { %>
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+<% } %>
+import ExampleComponent from './Component.svelte'
+import './Component.css'
+
+describe('Svelte Component Testing', () => {
+    <% if (answers.installTestingLibrary) { %>
+    it('should test component with Testing Library', async () => {
+        const { getByText } = render(ExampleComponent)
+
+        const component = getByText(/count is 0/i)
+        expect(component).toBeInTheDocument()
+
+        await fireEvent.click(component)
+        await fireEvent.click(component)
+
+        expect(getByText(/count is 2/i)).toBeInTheDocument()
+    })
+    <% } else { %>
+    let container<%- answers.isUsingTypeScript ? `: Element` : '' %>
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container?.remove()
+    })
+    <% } %>
+
+    it('should test component with WebdriverIO', async () => {
+        <%- renderCommand %>
+
+        const component = await $('button*=count is')
+        await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
+
+        await component.click()
+        await component.click()
+
+        await expect(component).toHaveText('count is 2')
+    })
+})

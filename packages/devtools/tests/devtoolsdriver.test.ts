@@ -1,32 +1,32 @@
-import DevToolsDriver from '../src/devtoolsdriver'
-import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import path from 'node:path'
+import { expect, test, vi, beforeEach } from 'vitest'
+import DevToolsDriver from '../src/devtoolsdriver.js'
+import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/common/Dialog.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 
-const expect = global.expect as unknown as jest.Expect
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
+vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 
-jest.mock('fs', () => ({
-    readdirSync: jest.fn().mockReturnValue([
-        '/foo/bar/click.js',
-        '/foo/bar/getAttribute.ts',
-        '/foo/bar/getAttribute.d.ts'
-    ])
+vi.mock('fs', () => ({
+    default: {
+        existsSync: vi.fn().mockReturnValue(false),
+        readdirSync: vi.fn().mockReturnValue([
+            '/foo/bar/click.js',
+            '/foo/bar/getAttribute.ts',
+            '/foo/bar/getAttribute.d.ts'
+        ])
+    }
 }))
 
-DevToolsDriver.requireCommand = jest.fn().mockImplementation((filePath) => {
-    if (filePath.includes('click')) {
-        return 'clickCommand'
-    }
-
-    if (filePath.includes('getAttribute')) {
-        return 'getAttributeCommand'
-    }
-
-    return {}
-})
+vi.mock('../src/commands/index.js', () => ({
+    click: 'clickCommand',
+    getAttribute: 'getAttributeCommand'
+}))
 
 let evaluateCommandCalls = 0
 const executionContext = {
-    evaluate: jest.fn()
+    evaluate: vi.fn()
 }
 
 const setNormalPageLoadBehavior = () => executionContext.evaluate.mockImplementation(() => Promise.resolve(++evaluateCommandCalls % 2 === 1
@@ -35,21 +35,21 @@ const setNormalPageLoadBehavior = () => executionContext.evaluate.mockImplementa
 ))
 
 const frame = {
-    executionContext: jest.fn().mockImplementation(() => Promise.resolve(executionContext))
+    executionContext: vi.fn().mockImplementation(() => Promise.resolve(executionContext))
 }
 
 const page = {
-    on: jest.fn(),
-    once: jest.fn(),
-    setDefaultTimeout: jest.fn(),
-    mainFrame: jest.fn(),
-    frames: jest.fn().mockReturnValue([frame])
+    on: vi.fn(),
+    once: vi.fn(),
+    setDefaultTimeout: vi.fn(),
+    mainFrame: vi.fn(),
+    frames: vi.fn().mockReturnValue([frame])
 }
 
 const browser = {
-    on: jest.fn(),
-    pages: jest.fn().mockImplementation(async () => {
-        page.mainFrame = jest.fn().mockImplementation(() => frame)
+    on: vi.fn(),
+    pages: vi.fn().mockImplementation(async () => {
+        page.mainFrame = vi.fn().mockImplementation(() => frame)
         ++evaluateCommandCalls
         setNormalPageLoadBehavior()
         return [page]
@@ -86,7 +86,6 @@ beforeEach(() => {
     page.mainFrame.mockImplementation(() => frame)
     executionContext.evaluate.mockClear()
     setNormalPageLoadBehavior()
-    ;(DevToolsDriver.requireCommand as jest.Mock).mockClear()
     driver = new DevToolsDriver(browser as any, [page as any])
     driver.timeouts.set('pageLoad', 100)
 })
@@ -107,14 +106,14 @@ test('should throw if command is called that is not implemented', () => {
         ref: 'https://foobar.com',
         parameters: []
     })
-    expect(command).toThrow('Command "click" is not yet implemented')
+    expect(command).toThrow('Command "click" is not supported using the Devtools protocol.')
 })
 
 test('should return proper result', async () => {
-    driver.commands.elementClick = (...args: any[]) => new Promise(
-        (resolve) => setTimeout(() => resolve(...args), 100))
+    driver.commands.elementClick = (...args: any[]) => new Promise<any>(
+        (resolve) => setTimeout(() => resolve.apply(null, args), 100))
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const command = driver.register(commandMock)
 
     const errorMsg = await command.call({ emit } as any).catch((e) => e.message)
@@ -139,73 +138,89 @@ test('should throw if command throws', async () => {
 
     const command = driver.register(commandMock)
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const errorMsg3 = await command.call({ emit } as any, '123', 'some text', ['some value'])
         .catch((e) => e.message)
     await expect(errorMsg3).toEqual('foobar')
 })
 
 test('should rerun command if it was executed within navigation', async () => {
-    expect.assertions(4)
+    expect.assertions(3)
     let wasCommandCalled = false
-    driver.commands.elementClick = jest.fn().mockImplementation(
-        () => new Promise(
-            (resolve, reject) => setTimeout(
-                () => {
-                    if (!wasCommandCalled) {
-                        wasCommandCalled = true
-                        reject(new Error('foobar most likely because of a navigation'))
-                    }
+    driver.commands.elementClick = vi.fn().mockImplementation(
+        () => new Promise((resolve, reject) => setTimeout(
+            () => {
+                if (!wasCommandCalled) {
+                    wasCommandCalled = true
+                    reject(new Error('foobar most likely because of a navigation'))
+                }
 
-                    resolve(null)
-                },
-                100
-            )
+                resolve(null)
+            },
+            100)
         )
     )
+
     const command = driver.register(commandMock)
 
-    setTimeout(() => {
-        expect(page.once).toBeCalledWith('load', expect.any(Function))
-        page.once.mock.calls.pop().pop()()
-    }, 150)
+    const emit = vi.fn()
 
-    const emit = jest.fn()
     const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
+
     expect(driver.commands.elementClick).toBeCalledTimes(2)
     expect(result).toBe(null)
     expect(emit.mock.calls).toMatchSnapshot()
 })
 
+test('should rerun command 3 times before attempting to wait for page load', async () => {
+    expect.assertions(3)
+
+    driver.commands.elementClick = vi.fn().mockImplementation(
+        () => new Promise((resolve, reject) => setTimeout(
+            () => {
+                reject(new Error('foobar most likely because of a navigation'))
+            },
+            100)
+        )
+    )
+
+    const command = driver.register(commandMock)
+
+    const emit = vi.fn()
+
+    const result = await command.call({ emit } as any, '123', 'some text', ['some value']).catch((err) => err.message)
+
+    expect(driver.commands.elementClick).toBeCalledTimes(3)
+    expect(result).toBe('page load timeout')
+    expect(emit.mock.calls).toMatchSnapshot()
+})
+
 test('throws error if navigation takes too long', async () => {
     driver.timeouts.set('pageLoad', 150)
-    let wasCommandCalled = false
-    driver.commands.elementClick = jest.fn().mockImplementation(
+
+    driver.commands.elementClick = vi.fn().mockImplementation(
         () => new Promise(
             (resolve, reject) => setTimeout(
                 () => {
-                    if (!wasCommandCalled) {
-                        wasCommandCalled = true
-                        reject(new Error('foobar most likely because of a navigation'))
-                    }
-
-                    resolve(null)
+                    reject(new Error('foobar most likely because of a navigation'))
                 },
                 100
             )
         )
     )
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const command = driver.register(commandMock)
     const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
         .catch((err) => err.message)
+
+    expect(page.once).toBeCalledWith('load', expect.any(Function))
     expect(result).toBe('page load timeout')
 })
 
 test('should wait for page load to be complete before executing the command', async () => {
     executionContext.evaluate.mockReset()
-    executionContext.evaluate = jest.fn()
+    executionContext.evaluate = vi.fn()
         .mockResolvedValueOnce('1')
         .mockResolvedValueOnce('loading')
         .mockResolvedValueOnce('1')
@@ -216,21 +231,21 @@ test('should wait for page load to be complete before executing the command', as
         .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
-        (resolve) => setTimeout(() => resolve(...args), 100))
+        (resolve) => setTimeout(() => resolve.apply(null, args), 100))
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const command = driver.register(commandMock)
     await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(8)
 })
 
 test('should use page from target if we are currently in a frame', async () => {
-    driver.getPageHandle = jest.fn().mockReturnValue(frame)
-    executionContext.evaluate = jest.fn().mockReturnValueOnce('complete')
+    driver.getPageHandle = vi.fn().mockReturnValue(frame)
+    executionContext.evaluate = vi.fn().mockReturnValueOnce('complete')
 
     driver.commands.elementClick = () => Promise.resolve(null)
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const command = driver.register(commandMock)
     await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(browser.pages).toBeCalledTimes(1)
@@ -238,16 +253,16 @@ test('should use page from target if we are currently in a frame', async () => {
 
 test('should rerun command if no execution context could be found', async () => {
     executionContext.evaluate.mockReset()
-    executionContext.evaluate = jest.fn()
+    executionContext.evaluate = vi.fn()
         .mockRejectedValueOnce(new Error('ups'))
         .mockRejectedValueOnce(new Error('ups'))
         .mockResolvedValueOnce('1')
         .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
-        (resolve) => setTimeout(() => resolve(...args), 100))
+        (resolve) => setTimeout(() => resolve.apply(null, args), 100))
 
-    const emit = jest.fn()
+    const emit = vi.fn()
     const command = driver.register(commandMock)
     await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(4)
@@ -257,19 +272,19 @@ test('should throw if execution context can not be established', async () => {
     expect.assertions(1)
 
     executionContext.evaluate.mockReset()
-    executionContext.evaluate = jest.fn()
+    executionContext.evaluate = vi.fn()
         .mockImplementation(() => new Promise(
             (resolve, reject) => setTimeout(
                 () => reject(new Error('ups')), 100)))
 
     driver.timeouts.set('pageLoad', 200)
     driver.commands.elementClick = (...args: any[]) => new Promise(
-        (resolve) => setTimeout(() => resolve(...args), 100))
+        (resolve) => setTimeout(() => resolve.apply(null, args), 100))
 
     const command = driver.register(commandMock)
 
     try {
-        const emit = jest.fn()
+        const emit = vi.fn()
         await command.call({ emit } as any, '123', 'some text', ['some value'])
     } catch (err: any) {
         expect(err.message).toBe('ups')
@@ -283,18 +298,18 @@ test('dialogHandler', () => {
 })
 
 test('framenavigatedHandler for main frame', () => {
-    driver.elementStore.clear = jest.fn()
+    driver.elementStore.clear = vi.fn()
 
-    const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue(null) }
+    const frameMock = { url: vi.fn().mockReturnValue('foobar'), parentFrame:vi.fn().mockReturnValue(null) }
     driver.framenavigatedHandler(frameMock as unknown as Frame)
     expect(driver.currentFrameUrl).toBe('foobar')
     expect(driver.elementStore.clear).toBeCalledTimes(1)
 })
 
 test('framenavigatedHandler for child frame', () => {
-    driver.elementStore.clear = jest.fn()
+    driver.elementStore.clear = vi.fn()
 
-    const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue({}) }
+    const frameMock = { url: vi.fn().mockReturnValue('foobar'), parentFrame:vi.fn().mockReturnValue({}) }
     driver.framenavigatedHandler(frameMock as unknown as Frame)
     expect(driver.currentFrameUrl).toBe('foobar')
     expect(driver.elementStore.clear).toBeCalledTimes(1)
@@ -302,8 +317,8 @@ test('framenavigatedHandler for child frame', () => {
 })
 
 test('setTimeouts with not value', () => {
-    driver.timeouts = { set: jest.fn(), get: jest.fn().mockReturnValue(123) } as any
-    driver.windows = { get: jest.fn().mockReturnValue(page) } as any
+    driver.timeouts = { set: vi.fn(), get: vi.fn().mockReturnValue(123) } as any
+    driver.windows = { get: vi.fn().mockReturnValue(page) } as any
     driver.setTimeouts()
     expect(page.setDefaultTimeout).toBeCalledTimes(2)
     expect(driver.timeouts.set).toBeCalledTimes(0)
@@ -331,7 +346,7 @@ test('setTimeouts with all timeouts', () => {
 })
 
 test('getPageHandle', () => {
-    driver.windows = { get: jest.fn().mockReturnValue('foobar') } as any
+    driver.windows = { get: vi.fn().mockReturnValue('foobar') } as any
     expect(driver.getPageHandle()).toBe('foobar')
 
     driver.currentFrame = 'barfoo' as any
@@ -339,7 +354,7 @@ test('getPageHandle', () => {
 
     expect(driver.getPageHandle(true)).toBe('barfoo')
 
-    driver.windows = { get: jest.fn().mockReturnValue(undefined) } as any
+    driver.windows = { get: vi.fn().mockReturnValue(undefined) } as any
     expect(() => driver.getPageHandle()).toThrow(/find page handle/)
 
     delete driver.currentWindowHandle
@@ -348,14 +363,14 @@ test('getPageHandle', () => {
 
 test('_targetCreatedHandler', async () => {
     expect(driver.windows.size).toBe(1)
-    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve(null)) } as any)
+    await driver['_targetCreatedHandler']({ page: vi.fn().mockReturnValue(Promise.resolve(null)) } as any)
     expect(driver.windows.size).toBe(1)
-    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any)
+    await driver['_targetCreatedHandler']({ page: vi.fn().mockReturnValue(Promise.resolve('foobar')) } as any)
     expect(driver.windows.size).toBe(2)
 })
 
 test('_targetDestroyedHandler', async () => {
-    const target = { page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any
+    const target = { page: vi.fn().mockReturnValue(Promise.resolve('foobar')) } as any
     await driver['_targetCreatedHandler'](target)
     expect(driver.windows.size).toBe(2)
     await driver['_targetDestroyedHandler'](target)

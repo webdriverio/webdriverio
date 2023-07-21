@@ -3,7 +3,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        __dirname + '/features/*.feature'
+        ['./features/my-feature.feature']
     ],
 
     /**

@@ -1,4 +1,4 @@
-import FormPage from '../pageobjects/form.page'
+import FormPage from '../pageobjects/form.page.js'
 
 describe('auth form', () => {
     it('should deny access with wrong creds', async () => {

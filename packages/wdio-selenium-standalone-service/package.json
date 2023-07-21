@@ -1,17 +1,17 @@
 {
   "name": "@wdio/selenium-standalone-service",
-  "version": "7.20.1",
+  "version": "8.12.1",
   "description": "A WebdriverIO service to start & stop Selenium Standalone",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service",
   "license": "MIT",
-  "main": "./build",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-seleniun-standalone-service"
   },
   "keywords": [
     "webdriver",
@@ -26,21 +26,24 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {
-    "@types/fs-extra": "^9.0.1",
-    "@types/node": "^17.0.4",
-    "@types/selenium-standalone": "^7.0.0",
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "fs-extra": "^10.0.0",
-    "selenium-standalone": "^8.0.3"
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@types/node": "^20.1.0",
+    "@wdio/config": "8.12.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "selenium-standalone": "^8.2.1"
+  },
+  "devDependencies": {
+    "@types/selenium-standalone": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

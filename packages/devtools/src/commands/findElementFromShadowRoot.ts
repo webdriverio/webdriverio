@@ -1,5 +1,5 @@
-import findElementFromElement from './findElementFromElement'
-import type DevToolsDriver from '../devtoolsdriver'
+import findElementFromElement from './findElementFromElement.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Find Element From Shadow Root command is used to find an element

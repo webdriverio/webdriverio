@@ -1,5 +1,6 @@
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 export interface SharedStoreServiceCapabilities extends Capabilities.Capabilities {
-    'wdio:sharedStoreServicePort': string
+    'wdio:sharedStoreServicePort': number
 }
+export type GetValueOptions = { timeout: Number } | undefined

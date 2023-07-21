@@ -1,10 +1,15 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
+import got from 'got'
+import { remote } from '../../../src/index.js'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-jest.mock('../../../src/scripts/isElementDisplayed', () => ({
+vi.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
     default: function () { return true }
 }))
@@ -21,13 +26,13 @@ describe('isDisplayed test', () => {
             }
         })
         elem = await browser.$('#foo')
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should allow to check if element is displayed', async () => {
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
-        expect(got.mock.calls[0][0].pathname)
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -38,13 +43,13 @@ describe('isDisplayed test', () => {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
                 mobileMode: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
-        got.mockClear()
+        vi.mocked(got).mockClear()
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
-        expect(got.mock.calls[0][0].pathname)
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -53,9 +58,9 @@ describe('isDisplayed test', () => {
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(2)
-        expect(got.mock.calls[0][0].pathname)
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -74,7 +79,7 @@ describe('isDisplayed test', () => {
                 browserName: 'safari',
                 // @ts-ignore mock feature
                 keepBrowserName: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
 
@@ -82,7 +87,7 @@ describe('isDisplayed test', () => {
 
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        got.setMockResponse([{ error: 'no such element', statusCode: 404 }])
+        vi.mocked(got).setMockResponse([{ error: 'no such element', statusCode: 404 }])
 
         expect(await elem.isDisplayed()).toBe(false)
     })
@@ -101,16 +106,16 @@ describe('isDisplayed test', () => {
                     browserName: 'safari',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][0].pathname)
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/execute/sync')
-            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -122,16 +127,16 @@ describe('isDisplayed test', () => {
                     browserName: 'safari technology preview',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][0].pathname)
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/execute/sync')
-            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -143,16 +148,16 @@ describe('isDisplayed test', () => {
                     browserName: 'MicrosoftEdge',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][0].pathname)
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/execute/sync')
-            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -164,16 +169,16 @@ describe('isDisplayed test', () => {
                     browserName: 'chrome',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][0].pathname)
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/execute/sync')
-            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -186,14 +191,14 @@ describe('isDisplayed test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
             browser.isDevTools = true
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][0].pathname)
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/execute/sync')
-            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })

@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get All Cookies command returns all cookies associated with the address

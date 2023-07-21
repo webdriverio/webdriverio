@@ -1,17 +1,32 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "7.19.4",
+  "version": "8.8.7",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
-  "main": "build/index.js",
+  "type": "module",
+  "main": "./cjs/index.js",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./cjs/index.js"
+      },
+      "./cjs/index.js"
+    ]
+  },
+  "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/eslint-plugin-wdio"
   },
   "keywords": [
     "eslint",
@@ -24,7 +39,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/estree": "^0.0.51",
+    "@types/estree": "^1.0.1",
     "eslint": "^8.10.0"
   }
 }

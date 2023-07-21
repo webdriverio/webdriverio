@@ -1,6 +1,6 @@
-import type { ChildProcess } from 'child_process'
+import type { ChildProcess } from 'node:child_process'
 
-import WDIORepl from './repl'
+import WDIORepl from './repl.js'
 
 interface Repl {
     childProcess: ChildProcess

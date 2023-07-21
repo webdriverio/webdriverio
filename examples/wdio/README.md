@@ -13,4 +13,6 @@ $ npm run test:cucumber
 $ npm run test:multiremote
 # test suite with custom reporter
 $ npm run test:customReporter
+# component tests
+$ npm run test:viteVue
 ```

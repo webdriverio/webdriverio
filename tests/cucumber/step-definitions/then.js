@@ -1,4 +1,4 @@
-import { Then } from '../../../packages/wdio-cucumber-framework'
+import { Then } from '../../../packages/wdio-cucumber-framework/build/index.js'
 
 Then(/^the title of the page should be:$/, async (expectedTitle) => {
     const actualTitle = await browser.getTitle()

@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { SESSION_MOCKS } from './mock'
+import { SESSION_MOCKS } from './mock.js'
 
 const log = logger('webdriverio:mockClearAll')
 
@@ -30,7 +30,7 @@ const log = logger('webdriverio:mockClearAll')
  *
  * @alias browser.mockClearAll
  */
-export default async function mockClearAll () {
+export async function mockClearAll () {
     for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
         log.trace(`Clearing mocks for ${handle}`)
         for (const mock of mocks) {

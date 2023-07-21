@@ -6,6 +6,13 @@ import type { Timeouts } from '@wdio/protocols'
  * behaviour as timeouts on script injection, document navigation, and element retrieval.
  * For more information and examples, see [timeouts guide](https://webdriver.io/docs/timeouts#selenium-timeouts).
  *
+ * :::info
+ *
+ * It is not recommended to set `implicit` timeouts as they impact WebdriverIO's behavior
+ * and can cause errors in certain commands, e.g. `waitForExist` with reverse flag.
+ *
+ * :::
+ *
  * <example>
     :setTimeout.js
     it('should change timeout duration for session with long code duration', async () => {
@@ -29,7 +36,7 @@ import type { Timeouts } from '@wdio/protocols'
  *
  */
 
-export default async function setTimeout(
+export async function setTimeout(
     this: WebdriverIO.Browser,
     timeouts: Partial<Timeouts>
 ): Promise<void> {

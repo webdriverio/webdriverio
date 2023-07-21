@@ -1,11 +1,5 @@
 import { capabilitiesEnvironmentDetector } from '@wdio/utils'
 import type { Capabilities, Options } from '@wdio/types'
-import type { AttachOptions } from 'webdriver'
-
-/**
- * these commands can be used outside test scope and may be used accidentally by user before browser session is started
- */
-const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
 
 /**
  * create `browser` object with capabilities and environment flags before session is started
@@ -17,11 +11,18 @@ export default class ProtocolStub {
             (options.capabilities || {}) as unknown as Capabilities.DesiredCapabilities
         )
 
-        const browser = addCommands({
+        const browser: any = {
+            options,
             capabilities,
+            requestedCapabilities: capabilities,
+            customCommands: [], // internally used to transfer custom commands to the actual protocol instance
+            overwrittenCommands: [], // internally used to transfer overwritten commands to the actual protocol instance
+            commandList: [],
             ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
-        })
+        }
 
+        browser.addCommand = (...args: any) => browser.customCommands.push(args)
+        browser.overwriteCommand = (...args: any) => browser.overwrittenCommands.push(args)
         return browser
     }
 
@@ -33,33 +34,18 @@ export default class ProtocolStub {
         throw new Error('Protocol Stub: Make sure to start webdriver or devtools session before reloading it.')
     }
 
-    static attachToSession (
-        options: AttachOptions,
-        modifier?: (...args: any[]) => any
-    ) {
+    static attachToSession (options: never, modifier?: Function) {
         if (options || !modifier) {
-            return ProtocolStub.newSession(options as any)
+            throw new Error('You are trying to attach to a protocol stub, this should never occur, please file an issue.')
         }
 
         /**
-         * MultiRemote
+         * MultiRemote is needed
          */
-        return addCommands(modifier({
+        return modifier({
             commandList: []
-        }))
+        })
     }
-}
-
-/**
- * provide better visibility to users that want to add / overwrite commands
- * before session is started
- * @param {object} browser
- */
-function addCommands (browser: Record<string, any>) {
-    WARN_ON_COMMANDS.forEach((commandName) => {
-        browser[commandName] = commandNotAvailable(commandName)
-    })
-    return browser
 }
 
 /**
@@ -83,12 +69,4 @@ function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
     }
 
     return capabilities
-}
-
-/**
- * warn user to avoid usage of command before browser session is started.
- * @param {string} commandName
- */
-function commandNotAvailable (commandName: string) {
-    return () => { throw new Error(`Unable to use '${commandName}' before browser session is started.`) }
 }

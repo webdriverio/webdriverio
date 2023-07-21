@@ -20,7 +20,9 @@ export default function collectMetaElements () {
     return metas.map(meta => {
         const getAttribute = (name: string) => {
             const attr = meta.attributes.getNamedItem(name)
-            if (!attr) return
+            if (!attr) {
+                return
+            }
             return attr.value
         }
 

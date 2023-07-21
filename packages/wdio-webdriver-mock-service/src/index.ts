@@ -1,12 +1,11 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
 import type { Services } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import WebDriverMock from './WebDriverMock'
+import WebDriverMock from './WebDriverMock.js'
 
-import { NO_SUCH_ELEMENT } from './constants'
-import { newSession, deleteSession } from './mocks/newSession'
+import { NO_SUCH_ELEMENT } from './constants.js'
+import { newSession, deleteSession } from './mocks/newSession.js'
 
 const ELEMENT_ID = '401c0039-3306-6a46-a98d-f5939870a249'
 const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
@@ -15,7 +14,7 @@ const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 const ELEM_PROP = 'element-6066-11e4-a52e-4f735466cecf'
 
 export default class WebdriverMockService implements Services.ServiceInstance {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _mock = new WebDriverMock()
 
     constructor () {
@@ -41,7 +40,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
     before (
         caps: unknown,
         specs: unknown,
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
 

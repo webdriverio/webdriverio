@@ -1,6 +1,6 @@
-import command from '../scripts/getElementText'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/getElementText.js'
+import { getStaleElementError } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Element Text command intends to return an element’s text \"as rendered\".

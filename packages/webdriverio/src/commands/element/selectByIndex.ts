@@ -1,4 +1,4 @@
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../utils/index.js'
 
 /**
  *
@@ -24,12 +24,12 @@ import { getElementFromResponse } from '../../utils'
  * </example>
  *
  * @alias element.selectByIndexs
- * @param {Number} index      option index
+ * @param {number} index      option index
  * @uses protocol/findElementsFromElement, protocol/elementClick
  * @type action
  *
  */
-export default async function selectByIndex (
+export async function selectByIndex (
     this: WebdriverIO.Element,
     index: number
 ) {

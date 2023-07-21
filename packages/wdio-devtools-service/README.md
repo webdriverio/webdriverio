@@ -7,7 +7,7 @@ With Chrome v63 and up the browser [started to support](https://developers.googl
 
 Since Firefox 86, [a subset of Chrome DevTools Protocol](https://firefox-source-docs.mozilla.org/remote/index.html) has been implemented by passing the capability `"moz:debuggerAddress": true`.
 
-_**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up (Microsoft Edge is not yet supported)!_
+**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up! Given that cloud vendors don't expose access to the Chrome DevTools Protocol this service also usually only works when running tests locally or through a [Selenium Grid](https://www.selenium.dev/documentation/grid/) v4 or higher.
 
 ## Installation
 
@@ -25,7 +25,7 @@ In order to use the service you just need to add the service to your service lis
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     services: ['devtools'],
     // ...
@@ -41,36 +41,36 @@ The `@wdio/devtools-service` offers you a variety of features that helps you to 
 The DevTools service allows you to capture performance data from every page load or page transition that was caused by a click. To enable it call `browser.enablePerformanceAudits(<options>)`. After you are done capturing all necessary performance data disable it to revert the throttling settings, e.g.:
 
 ```js
-const assert = require('assert')
+import assert from 'node:assert'
 
 describe('JSON.org page', () => {
-    before(() => {
-        browser.enablePerformanceAudits()
+    before(async () => {
+        await browser.enablePerformanceAudits()
     })
 
-    it('should load within performance budget', () => {
+    it('should load within performance budget', async () => {
         /**
          * this page load will take a bit longer as the DevTools service will
          * capture all metrics in the background
          */
-        browser.url('http://json.org')
+        await browser.url('http://json.org')
 
-        let metrics = browser.getMetrics()
+        let metrics = await browser.getMetrics()
         assert.ok(metrics.speedIndex < 1500) // check that speedIndex is below 1.5ms
 
-        let score = browser.getPerformanceScore() // get Lighthouse Performance score
+        let score = await browser.getPerformanceScore() // get Lighthouse Performance score
         assert.ok(score >= .99) // Lighthouse Performance score is at 99% or higher
 
         $('=Esperanto').click()
 
-        metrics = browser.getMetrics()
+        metrics = await browser.getMetrics()
         assert.ok(metrics.speedIndex < 1500)
-        score = browser.getPerformanceScore()
+        score = await browser.getPerformanceScore()
         assert.ok(score >= .99)
     })
 
-    after(() => {
-        browser.disablePerformanceAudits()
+    after(async () => {
+        await browser.disablePerformanceAudits()
     })
 })
 ```
@@ -78,8 +78,8 @@ describe('JSON.org page', () => {
 You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
 
 ```js
-browser.emulateDevice('iPhone X')
-browser.enablePerformanceAudits({
+await browser.emulateDevice('iPhone X')
+await browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cpuThrottling: 4,
     formFactor: 'mobile'
@@ -93,7 +93,7 @@ The following commands with their results are available:
 Get most common used performance metrics.
 
 ```js
-console.log(browser.getMetrics())
+console.log(await browser.getMetrics())
 /**
  * { timeToFirstByte: 566,
  *   serverResponseTime: 566,
@@ -118,7 +118,7 @@ console.log(browser.getMetrics())
 Get some useful diagnostics about the page load.
 
 ```js
-console.log(browser.getDiagnostics())
+console.log(await browser.getDiagnostics())
 /**
  * { numRequests: 8,
  *   numScripts: 0,
@@ -145,7 +145,7 @@ console.log(browser.getDiagnostics())
 Returns a list with a breakdown of all main thread task and their total duration.
 
 ```js
-console.log(browser.getMainThreadWorkBreakdown())
+console.log(await browser.getMainThreadWorkBreakdown())
 /**
  * [ { group: 'styleLayout', duration: 130.59099999999998 },
  *   { group: 'other', duration: 44.819 },
@@ -161,7 +161,7 @@ console.log(browser.getMainThreadWorkBreakdown())
 Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `interactive`, `maxPotentialFID` or `cumulativeLayoutShift`.
 
 ```js
-console.log(browser.getPerformanceScore())
+console.log(await browser.getPerformanceScore())
 /**
  * 0.897826278457836
  */
@@ -172,7 +172,7 @@ console.log(browser.getPerformanceScore())
 Enables auto performance audits for all page loads that are cause by calling the `url` command or clicking on a link or anything that causes a page load. You can pass in a config object to determine some throttling options. The default throttling profile is `Good 3G` network with a 4x CPU trottling.
 
 ```js
-browser.enablePerformanceAudits({
+await browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cpuThrottling: 4,
     cacheEnabled: true,
@@ -187,7 +187,7 @@ The following network throttling profiles are available: `offline`, `GPRS`, `Reg
 The service allows you to emulate a specific device type. If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent. To set a predefined device profile you can run:
 
 ```js
-browser.emulateDevice('iPhone X')
+await browser.emulateDevice('iPhone X')
 // or `browser.emulateDevice('iPhone X', true)` if you want to be in landscape mode
 ```
 
@@ -197,7 +197,7 @@ Available predefined device profiles are: `Blackberry PlayBook`, `BlackBerry Z30
 You can also define your own device profile by providing an object as parameter like in the following example:
 
 ```js
-browser.emulateDevice({
+await browser.emulateDevice({
     viewport: {
         width: 550, // <number> page width in pixels.
         height: 300, // <number> page height in pixels.
@@ -229,9 +229,9 @@ If you are not interested in one of these checks you can pass in a list of check
 
 ```js
 // open page first
-browser.url('https://webdriver.io')
+await browser.url('https://webdriver.io')
 // validate PWA
-const result = browser.checkPWA()
+const result = await browser.checkPWA()
 expect(result.passed).toBe(true)
 ```
 
@@ -256,7 +256,7 @@ services: [
 Then you have access to a command that calculates the ratio of covered code lines and branches for you to assert within your test:
 
 ```js
-const coverage = browser.getCoverageReport()
+const coverage = await browser.getCoverageReport()
 expect(coverage.lines.total).toBeAbove(0.9)
 expect(coverage.statements.total).toBeAbove(0.9)
 expect(coverage.functions.total).toBeAbove(0.9)
@@ -278,27 +278,27 @@ browser.cdp(<domain>, <command>, <arguments>)
 For example if you want to get the JavaScript coverage of your page you can do the following:
 
 ```js
-it('should take JS coverage', () => {
+it('should take JS coverage', async () => {
     /**
      * enable necessary domains
      */
-    browser.cdp('Profiler', 'enable')
-    browser.cdp('Debugger', 'enable')
+    await browser.cdp('Profiler', 'enable')
+    await browser.cdp('Debugger', 'enable')
 
     /**
      * start test coverage profiler
      */
-    browser.cdp('Profiler', 'startPreciseCoverage', {
+    await browser.cdp('Profiler', 'startPreciseCoverage', {
         callCount: true,
         detailed: true
     })
 
-    browser.url('http://google.com')
+    await browser.url('http://google.com')
 
     /**
      * capture test coverage
      */
-    const { result } = browser.cdp('Profiler', 'takePreciseCoverage')
+    const { result } = await browser.cdp('Profiler', 'takePreciseCoverage')
     const coverage = result.filter((res) => res.url !== '')
     console.log(coverage)
 })
@@ -309,9 +309,9 @@ it('should take JS coverage', () => {
 Helper method to get the nodeId of an element in the page. NodeIds are similar like WebDriver node ids an identifier for a node. It can be used as a parameter for other Chrome DevTools methods, e.g. `DOM.focus`.
 
 ```js
-const nodeId = browser.getNodeId('body')
+const nodeId = await browser.getNodeId('body')
 console.log(nodeId) // outputs: 4
-const nodeId = browser.getNodeIds('img')
+const nodeId = await browser.getNodeIds('img')
 console.log(nodeId) // outputs: [ 40, 41, 42, 43, 44, 45 ]
 ```
 
@@ -320,7 +320,7 @@ console.log(nodeId) // outputs: [ 40, 41, 42, 43, 44, 45 ]
 Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
 
 ```js
-browser.startTracing()
+await browser.startTracing()
 ```
 
 ### `endTracing` Command
@@ -328,7 +328,7 @@ browser.startTracing()
 Stop tracing the browser.
 
 ```js
-browser.endTracing()
+await browser.endTracing()
 ```
 
 ### `getTraceLogs` Command
@@ -336,11 +336,13 @@ browser.endTracing()
 Returns the tracelogs that was captured within the tracing period. You can use this command to store the trace logs on the file system to analyse the trace via Chrome DevTools interface.
 
 ```js
-browser.startTracing()
-browser.url('http://json.org')
-browser.endTracing()
+import fs from 'node:fs/promises'
 
-fs.writeFileSync('/path/to/tracelog.json', JSON.stringify(browser.getTraceLogs()))
+await browser.startTracing()
+await browser.url('http://json.org')
+await browser.endTracing()
+
+await fs.writeFile('/path/to/tracelog.json', JSON.stringify(browser.getTraceLogs()))
 ```
 
 ### `getPageWeight` Command
@@ -348,11 +350,11 @@ fs.writeFileSync('/path/to/tracelog.json', JSON.stringify(browser.getTraceLogs()
 Returns page weight information of the last page load.
 
 ```js
-browser.startTracing()
-browser.url('https://webdriver.io')
-browser.endTracing()
+await browser.startTracing()
+await browser.url('https://webdriver.io')
+await browser.endTracing()
 
-console.log(browser.getPageWeight())
+console.log(await browser.getPageWeight())
 // outputs:
 // { pageWeight: 2438485,
 //   transferred: 1139136,
@@ -373,7 +375,7 @@ console.log(browser.getPageWeight())
 The `cdp` command can be used to call the [`Page.setDownloadBehavior`](https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-setDownloadBehavior) command of Devtools Protocol to set the behavior when downloading a file. Make sure the `downloadPath` is an absolute path and the `browser.cdp()` call is made before the file is downloaded.
 
 ```js
-browser.cdp('Page', 'setDownloadBehavior', {
+await browser.cdp('Page', 'setDownloadBehavior', {
     behavior: 'allow',
     downloadPath: '/home/root/webdriverio-project/',
 });
@@ -386,32 +388,35 @@ The service uses Puppeteer for its automation under the hood. You can get access
 ```js
 describe('use Puppeteer', () => {
     it('by wrapping commands with call', () => {
-        browser.url('http://json.org')
+        await browser.url('http://json.org')
 
-        const puppeteer = browser.getPuppeteer()
-        const page = browser.call(() => puppeteer.pages())[0]
-        console.log(browser.call(() => page.title()))
-    })
-
-    it('by using async/await', async () => {
-        const puppeteer = browser.getPuppeteer()
-        const page = (await puppeteer.pages())[0]
-        console.log(await page.title())
+        const puppeteer = await browser.getPuppeteer()
+        const page = await browser.call(() => puppeteer.pages())[0]
+        console.log(await browser.call(() => page.title()))
     })
 })
 ```
 
 ### Event Listener
 
-In order to capture events in the browser you can register an event listener to a Chrome DevTools event like:
+In order to capture network events in the browser you can register an event listener to the Chrome DevTools.
+A full list of available [CDP Network Events](https://chromedevtools.github.io/devtools-protocol/tot/Network/).
 
 ```js
 it('should listen on network events', () => {
-    browser.cdp('Network', 'enable')
-    browser.on('Network.responseReceived', (params) => {
-        console.log(`Loaded ${params.response.url}`)
-    })
-    browser.url('https://www.google.com')
+    await browser.cdp('Network', 'enable')
+
+    await browser.on('Network.requestWillBeSent', (event) => {
+        console.log(`Request: ${event.request.method} ${event.request.url}`);
+    });
+    await browser.on('Network.responseReceived', (event) => {
+        console.log(`Response: ${event.response.status} ${event.response.url}`);
+    });
+    await browser.on('Network.loadingFailed', (event) => {
+        console.log(`Request failed: ${event.errorText}`);
+    });
+
+    await browser.url('https://www.google.com')
 })
 ```
 

@@ -1,7 +1,8 @@
-import { ELEMENT_KEY } from '../../constants'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 import type { ElementReference } from '@wdio/protocols'
 
-const ACTION_BUTTON = 0
+const ACTION_BUTTON = 0 as const
 
 const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
 
@@ -45,7 +46,7 @@ type ElementCoordinates = {
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
  */
-export default async function dragAndDrop (
+export async function dragAndDrop (
     this: WebdriverIO.Element,
     target: WebdriverIO.Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
@@ -87,11 +88,9 @@ export default async function dragAndDrop (
         await this.moveTo()
         await this.buttonDown(ACTION_BUTTON)
 
-        if (isMovingToElement) {
-            await moveToElement.moveTo()
-        } else {
-            await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
-        }
+        isMovingToElement
+            ? await moveToElement.moveTo()
+            : await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
 
         await sleep(duration)
         return this.buttonUp(ACTION_BUTTON)
@@ -109,16 +108,12 @@ export default async function dragAndDrop (
     /**
      * W3C way of handle the drag and drop action
      */
-    return this.performActions([{
-        type: 'pointer',
-        id: 'finger1',
-        parameters: { pointerType: 'mouse' },
-        actions: [
-            { type: 'pointerMove', duration: 0, origin, x: 0, y: 0 },
-            { type: 'pointerDown', button: ACTION_BUTTON },
-            { type: 'pause', duration: 10 }, // emulate human pause
-            { type: 'pointerMove', duration, origin: targetOrigin, x: targetX, y: targetY },
-            { type: 'pointerUp', button: ACTION_BUTTON }
-        ]
-    }]).then(() => this.releaseActions())
+    const browser = getBrowserObject(this)
+    return browser.action('pointer')
+        .move({ duration: 0, origin, x: 0, y: 0 })
+        .down({ button: ACTION_BUTTON })
+        .pause(10)
+        .move({ duration, origin: targetOrigin, x: targetX, y: targetY })
+        .up({ button: ACTION_BUTTON })
+        .perform()
 }

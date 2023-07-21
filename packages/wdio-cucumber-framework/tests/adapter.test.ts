@@ -1,50 +1,88 @@
-import path from 'path'
-import { setOptions } from 'expect-webdriverio'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
+import type * as Messages from '@cucumber/messages'
 
-import CucumberAdapter from '../src'
-import { setUserHookNames } from '../src/utils'
-import * as packageExports from '../src'
+import * as Utils from '../src/utils.js'
+import * as packageExports from '../src/index.js'
 
-jest.mock('../src/reporter', () => class CucumberReporter {
-    eventListener = {
-        getPickleIds: jest.fn().mockReturnValue(['8']),
-        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
+import CucumberAdapter from '../src/index.js'
+
+vi.mock('mockery')
+vi.mock('@wdio/utils')
+vi.mock('expect-webdriverio')
+vi.mock('@cucumber/cucumber')
+vi.mock('@cucumber/messages', async () => {
+    const module: typeof Messages = await vi.importActual('@cucumber/messages')
+
+    return {
+        IdGenerator: {
+            uuid: module.IdGenerator.uuid,
+            incrementing: vi.fn()
+        }
     }
 })
 
-jest.mock('../src/utils', () => ({
-    setUserHookNames: jest.fn()
+vi.mock('../src/reporter', () => ({
+    default: class CucumberReporter {
+        eventListener = {
+            getPickleIds: vi.fn().mockReturnValue(['8']),
+            getHookParams: vi.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
+        }
+    }
 }))
 
-jest.mock('@cucumber/gherkin-streams', () => ({
-    GherkinStreams: { fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths') }
+vi.mock('moduleA', () => {
+    global.MODULE_A_WAS_LOADED = true
+})
+vi.mock('moduleB', () => ({
+    default: function moduleB(opts: any) {
+        // @ts-ignore
+        global.MODULE_B_WAS_LOADED_WITH = opts
+    }
+}))
+
+vi.mock('../src/utils', async () => {
+
+    const module: typeof Utils = await vi.importActual('../src/utils')
+
+    return {
+        ...module,
+        setUserHookNames: vi.fn()
+    }
+})
+
+vi.mock('@cucumber/gherkin-streams', () => ({
+    GherkinStreams: { fromPaths: vi.fn().mockReturnValue('GherkinStreams.fromPaths') }
 }))
 
 declare global {
+    /* eslint-disable no-var */
     var MODULE_A_WAS_LOADED: boolean
     var MODULE_B_WAS_LOADED_WITH: any
     var MODULE_INLINE_WAS_LOADED: boolean
     var MODULE_C_WAS_LOADED: boolean
+    /* eslint-enable no-var */
 }
 
 describe('CucumberAdapter', () => {
     beforeEach(() => {
-        (Cucumber.PickleFilter as jest.Mock).mockClear()
-        ;(executeHooksWithArgs as jest.Mock).mockClear()
-        ;(Cucumber.Runtime as jest.Mock).mockClear()
-        ;(Cucumber.setDefinitionFunctionWrapper as jest.Mock).mockClear()
-        ;(mockery.enable as jest.Mock).mockClear()
-        ;(mockery.registerMock as jest.Mock).mockClear()
-        ;(mockery.disable as jest.Mock).mockClear()
-        ;(Cucumber.BeforeAll as jest.Mock).mockClear()
-        ;(Cucumber.AfterAll as jest.Mock).mockClear()
-        ;(Cucumber.Before as jest.Mock).mockClear()
-        ;(Cucumber.After as jest.Mock).mockClear()
-        ;(Cucumber.BeforeStep as jest.Mock).mockClear()
-        ;(Cucumber.AfterStep as jest.Mock).mockClear()
+        vi.mocked(Cucumber.PickleFilter).mockClear()
+        vi.mocked(executeHooksWithArgs).mockClear()
+        vi.mocked(Cucumber.Runtime).mockClear()
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mockClear()
+        vi.mocked(mockery.enable).mockClear()
+        vi.mocked(mockery.registerMock).mockClear()
+        vi.mocked(mockery.disable).mockClear()
+        vi.mocked(Cucumber.BeforeAll).mockClear()
+        vi.mocked(Cucumber.AfterAll).mockClear()
+        vi.mocked(Cucumber.Before).mockClear()
+        vi.mocked(Cucumber.After).mockClear()
+        vi.mocked(Cucumber.BeforeStep).mockClear()
+        vi.mocked(Cucumber.AfterStep).mockClear()
     })
 
     it('exports Cucumber exports', () => {
@@ -65,33 +103,28 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
-            waitforTimeout: 1,
-            waitforInterval: 2
+        const adapter = await CucumberAdapter.init!!('0-0', {
+            cucumberOpts: { names: 'FeatureA,FeatureB' }
         }, ['/foo/bar'], {}, {})
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
-        expect(setOptions).toBeCalledWith({
-            wait: 1,
-            interval: 2
-        })
         expect(adapter.hasTests()).toBe(true)
         expect(Cucumber.PickleFilter).toBeCalledWith({
             cwd: expect.any(String),
             featurePaths: ['/foo/bar'],
-            names: [],
+            names: ['FeatureA', 'FeatureB'],
             tagExpression: ''
         })
     })
 
     it('should trigger after hook if initiation fails', async () => {
-        (Cucumber.parseGherkinMessageStream as jest.Mock)
-            .mockRejectedValueOnce(new Error('boom'))
 
-        const err = await CucumberAdapter.init('0-0', {
+        vi.mocked(Cucumber.parseGherkinMessageStream)
+            .mockRejectedValueOnce(new Error('boom'))
+        const err = await CucumberAdapter.init!('0-0', {
             cucumberFeaturesWithLineNumbers: ['/bar/foo', '/foo/bar']
         }, ['/foo/bar'], {}, {})
-            .catch((err) => err)
+            .catch((err: any) => err)
         expect(err.message).toBe('boom')
         expect(executeHooksWithArgs).toBeCalledTimes(1)
         expect(Cucumber.PickleFilter).toBeCalledWith({
@@ -103,10 +136,10 @@ describe('CucumberAdapter', () => {
     })
 
     it('can run without errors', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.registerRequiredModules = jest.fn()
-        adapter.addWdioHooks = jest.fn()
-        adapter.loadSpecFiles = jest.fn()
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooks = vi.fn()
+        adapter.loadSpecFiles = vi.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
@@ -114,11 +147,11 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadSpecFiles).toBeCalledTimes(1)
-        expect(setUserHookNames).toBeCalledTimes(1)
+        expect(Utils.setUserHookNames).toBeCalledTimes(1)
     })
 
     it('can run with failing result', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { shouldFail: 123 }
         }, ['/foo/bar'], {}, {})
         const result = await adapter.run()
@@ -127,7 +160,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('can take cucumber report failure count', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 shouldFail: 123,
                 ignoreUndefinedDefinitions: true
@@ -140,15 +173,19 @@ describe('CucumberAdapter', () => {
     })
 
     it('should throw if there was a runtime error', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { shouldThrow: 'some error' }
         }, ['/foo/bar'], {}, {})
-        const err = await adapter.run().catch(err => err)
+        const err = await adapter.run().catch((err: any) => err)
         expect(err.message).toBe('some error')
     })
 
-    it('registerRequiredModules', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('registerRequiredModules', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 requireModule: [
                     'moduleA',
@@ -169,7 +206,11 @@ describe('CucumberAdapter', () => {
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(true)
     })
 
-    it('requiredFiles', async () => {
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('requiredFiles', async () => {
         /**
          * skip for windows which for some reasons only can find one entry, e.g.:
          * D:\\a\\webdriverio\\webdriverio\\packages\\wdio-cucumber-framework\\tests\\adapter.test.ts
@@ -177,7 +218,8 @@ describe('CucumberAdapter', () => {
         if (process.platform === 'win32') {
             return
         }
-        const adapter = await CucumberAdapter.init('0-0', {
+
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 require: [
                     __filename,
@@ -188,9 +230,13 @@ describe('CucumberAdapter', () => {
         expect(adapter.requiredFiles()).toHaveLength(4)
     })
 
-    it('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.requiredFiles = jest.fn().mockReturnValue([__dirname + '/__mocks__/moduleC.ts'])
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('loadSpecFiles', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
+        adapter.requiredFiles = vi.fn().mockReturnValue([__dirname + '/__mocks__/moduleC.ts'])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
         adapter.loadSpecFiles()
@@ -207,7 +253,7 @@ describe('CucumberAdapter', () => {
         }
         const cukeWorld = new CustomWorld()
 
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.addWdioHooks({
             beforeFeature: 'beforeFeature',
             afterFeature: 'afterFeature',
@@ -224,35 +270,41 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
-        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.AfterStep).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
-        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)()
+        // @ts-expect-error
+        vi.mocked(Cucumber.BeforeStep).mock.calls[0][0].bind(cukeWorld)()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario', cukeWorld])
-        ;(Cucumber.BeforeAll as jest.Mock).mock.calls[0][0]()
+        // @ts-expect-error
+        vi.mocked(Cucumber.BeforeAll).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeFeature', 'beforeFeature', ['uri', 'feature'])
-        ;(Cucumber.AfterAll as jest.Mock).mock.calls[0][0]()
+        // @ts-expect-error
+        vi.mocked(Cucumber.AfterAll).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterFeature', 'afterFeature', ['uri', 'feature'])
-        ;(Cucumber.Before as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.Before).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeScenario', 'beforeScenario', ['world', cukeWorld])
-        ;(Cucumber.After as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.After).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
     })
 
     it('wrapSteps', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
+        adapter.wrapStep = vi.fn()
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
-        ;(Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](jest.fn())
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](vi.fn())
         expect(adapter.wrapStep).toBeCalledWith(
             expect.any(Function),
             true,
@@ -264,24 +316,185 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapSteps does not wrap wdio hooks', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
+        adapter.wrapStep = vi.fn()
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
-        function wdioHookFn () { return 'foobar' }
+        function wdioHookFn() { return 'foobar' }
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
         expect(
-            (Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](wdioHookFn)()
+            vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
         ).toBe('foobar')
     })
 
     it('wrapStep', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         const wrappedStep = adapter.wrapStep('code', true, {}, '0-2', {}, () => 'hookParams')
         expect(testFnWrapper).toBeCalledTimes(0)
         wrappedStep('someWorld', 1, 2, 3)
-        expect((testFnWrapper as jest.Mock).mock.calls).toMatchSnapshot()
+        expect(vi.mocked(testFnWrapper).mock.calls).toMatchSnapshot()
+    })
+
+    it('can run when filtering by tag at Feature level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at root Scenario level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@run' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Rule level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Scenario within Rule', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runinrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by non-existent tag', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@notpresent' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(0)
+        expect(adapter._hasTests).toBe(false)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at example level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runExample' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by cucumber tag-expression', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall and @tagAtLine' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can set a default language for feature files', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { featureDefaultLanguage: 'da' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
     })
 })

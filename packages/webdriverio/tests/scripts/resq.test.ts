@@ -1,19 +1,19 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
-
-import { react$, react$$, waitToLoadReact } from '../../src/scripts/resq'
+import { it, expect, vi, beforeEach, describe, afterEach } from 'vitest'
+import { react$, react$$, waitToLoadReact } from '../../src/scripts/resq.js'
 
 class MockResq {
-    byProps = jest.fn().mockImplementation(() => new MockResq())
-    byState = jest.fn().mockImplementation(() => new MockResq())
+    byProps = vi.fn().mockImplementation(() => new MockResq())
+    byState = vi.fn().mockImplementation(() => new MockResq())
 }
 
 beforeEach(() => {
     (global.window as any).resq = {
-        resq$: jest.fn().mockImplementation(() => new MockResq()),
-        resq$$: jest.fn().mockImplementation(() => new MockResq()),
-        waitToLoadReact: jest.fn(),
+        resq$: vi.fn().mockImplementation(() => new MockResq()),
+        resq$$: vi.fn().mockImplementation(() => new MockResq()),
+        waitToLoadReact: vi.fn(),
     }
 })
 
@@ -36,7 +36,7 @@ describe('resq script', () => {
         })
 
         it('should return node object found', () => {
-            (global.window as any).resq.resq$ = jest.fn().mockImplementation(() => ([{
+            (global.window as any).resq.resq$ = vi.fn().mockImplementation(() => ([{
                 node: global.document.createElement('div')
             }]))
 
@@ -46,7 +46,7 @@ describe('resq script', () => {
         })
 
         it('should return the first node object for fragments', () => {
-            (global.window as any).resq.resq$ = jest.fn().mockImplementation(() => ([{
+            (global.window as any).resq.resq$ = vi.fn().mockImplementation(() => ([{
                 node: [global.document.createElement('div'), global.document.createElement('div')],
                 isFragment: true,
             }]))
@@ -75,7 +75,7 @@ describe('resq script', () => {
         })
 
         it('should return node objects found', () => {
-            (global.window as any).resq.resq$$ = jest.fn().mockImplementation(() => ([
+            (global.window as any).resq.resq$$ = vi.fn().mockImplementation(() => ([
                 { node: global.document.createElement('div') }
             ]))
 
@@ -85,7 +85,7 @@ describe('resq script', () => {
         })
 
         it('should return array node objects for fragments', () => {
-            (global.window as any).resq.resq$$ = jest.fn().mockImplementation(() => ([
+            (global.window as any).resq.resq$$ = vi.fn().mockImplementation(() => ([
                 {
                     node: [global.document.createElement('div'), global.document.createElement('div')],
                     isFragment: true,

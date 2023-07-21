@@ -1,5 +1,5 @@
-import { Rule } from 'eslint'
-import { isCommand } from '../utils/helpers'
+import type { Rule } from 'eslint'
+import { isCommand } from '../utils/helpers.js'
 
 const rule: Rule.RuleModule = {
     meta: {
@@ -7,7 +7,7 @@ const rule: Rule.RuleModule = {
         docs: {
             description: 'Disallow browser.debug() in tests',
             category: 'Possible Errors',
-            url: 'https://github.com/webdriverio/packages/eslint-plugin-wdio/docs/rules/no-debug.md',
+            url: 'https://github.com/webdriverio/webdriverio/blob/main/packages/eslint-plugin-wdio/docs/rules/no-debug.md',
             recommended: false,
         },
         messages: {

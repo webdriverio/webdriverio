@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BidiCore > send > fails if sending a message while not connected 1`] = `[Error: No connection to WebDriver Bidi was established]`;
+
+exports[`BidiCore > sendAsync > can send without getting an result 1`] = `
+[
+  [
+    "{\\"id\\":1,\\"method\\":\\"session.new\\",\\"params\\":{}}",
+  ],
+]
+`;
+
+exports[`BidiCore > sendAsync > fails if sending a message while not connected 1`] = `[Error: No connection to WebDriver Bidi was established]`;

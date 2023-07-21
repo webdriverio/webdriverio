@@ -1,5 +1,5 @@
-import command from '../scripts/getUrl'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/getUrl.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Current URL command returns the URL of the current top-level browsing context

@@ -1,7 +1,7 @@
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-import type { CustomStrategyFunction } from '../../types'
+import { getElement } from '../../utils/getElementObject.js'
+import { getBrowserObject } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
+import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
@@ -23,11 +23,11 @@ import type { CustomStrategyFunction } from '../../types'
  * </example>
  *
  * @alias custom$
- * @param {String} strategyName
- * @param {Any} strategyArguments
+ * @param {string} strategyName
+ * @param {*} strategyArguments
  * @return {Element}
  */
-async function custom$ (
+export async function custom$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: any[]
@@ -49,7 +49,7 @@ async function custom$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await this.execute(strategy, ...strategyArguments, this)
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script returns multiple elements
@@ -66,5 +66,3 @@ async function custom$ (
 
     throw Error('Your locator strategy script must return an element')
 }
-
-export default custom$

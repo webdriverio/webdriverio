@@ -19,7 +19,7 @@ To use the static server service, add `static-server` to your service array:
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     services: ['static-server'],
     // ...
@@ -39,7 +39,7 @@ Props:
 
 ``` javascript
  // wdio.conf.js
- exports.config
+ export const config = {
     // ...
     services: [
         ['static-server', {
@@ -74,9 +74,9 @@ Default: `[]`
 
 ``` javascript
 // wdio.conf.js
-const middleware = require('middleware-package')
+import middleware from 'middleware-package'
 
-exports.config
+export const config = {
     // ...
     services: [
         ['static-server', {

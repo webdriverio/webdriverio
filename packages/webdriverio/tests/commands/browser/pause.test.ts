@@ -1,9 +1,13 @@
+import path from 'node:path'
+import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-jest.useFakeTimers()
-jest.spyOn(global, 'setTimeout')
+vi.mock('got')
+vi.useFakeTimers()
+vi.spyOn(global, 'setTimeout')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('pause test', () => {
     let browser: WebdriverIO.Browser
@@ -30,6 +34,6 @@ describe('pause test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

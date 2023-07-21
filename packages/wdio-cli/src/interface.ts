@@ -1,11 +1,16 @@
-import chalk from 'chalk'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
+import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import { getRunnerName, HookError } from './utils'
+import type { HookError } from './utils.js'
+import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
+const EVENT_FILTER = [
+    'sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerHookResult',
+    'coverageMap'
+]
 
 interface TestError {
     type: string
@@ -59,7 +64,7 @@ export default class WDIOCLInterface extends EventEmitter {
          * `FORCE_COLOR=1` - forcibly enable colors
          * `FORCE_COLOR=0` - forcibly disable colors
          */
-        this.hasAnsiSupport = (chalk.supportsColor as chalk.ColorSupport).hasBasic
+        this.hasAnsiSupport = supportsColor && supportsColor.hasBasic
 
         this.totalWorkerCnt = totalWorkerCnt
         this._isWatchMode = _isWatchMode
@@ -233,15 +238,21 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.emit('job:start', event.content)
         }
 
-        if (!event.origin) {
-            return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
-        }
-
-        if (event.origin === 'worker' && event.name === 'error') {
-            return this.log(`[${event.cid}]`, chalk.white.bgRed.bold(' Error: '), event.content.message || event.content.stack || event.content)
+        if (event.name === 'error') {
+            return this.log(
+                `[${event.cid}]`,
+                chalk.white.bgRed.bold(' Error: '),
+                event.content ? (event.content.message || event.content.stack || event.content) : ''
+            )
         }
 
         if (event.origin !== 'reporter' && event.origin !== 'debugger') {
+            /**
+             * filter certain events though
+             */
+            if (EVENT_FILTER.includes(event.name)) {
+                return
+            }
             return this.log(event.cid, event.origin, event.name, event.content)
         }
 
@@ -254,9 +265,6 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         this._messages[event.origin][event.name].push(event.content)
-        if (this._isWatchMode) {
-            this.printReporters()
-        }
     }
 
     sigintTrigger() {
@@ -267,7 +275,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return false
         }
 
-        const isRunning = this._jobs.size !== 0
+        const isRunning = this._jobs.size !== 0 || this._isWatchMode
         const shutdownMessage = isRunning
             ? 'Ending WebDriver sessions gracefully ...\n' +
             '(press ctrl+c again to hard kill the runner)'
@@ -301,10 +309,6 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     finalise() {
-        if (this._isWatchMode) {
-            return
-        }
-
         this.printReporters()
         this.printSummary()
     }

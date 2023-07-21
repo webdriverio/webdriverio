@@ -1,17 +1,24 @@
 {
   "name": "@wdio/utils",
-  "version": "7.20.0",
+  "version": "8.12.1",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
   "license": "MIT",
-  "main": "./build/index",
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-utils"
   },
   "keywords": [
     "webdriverio",
@@ -23,12 +30,12 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "import-meta-resolve": "^3.0.0",
     "p-iteration": "^1.1.8"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

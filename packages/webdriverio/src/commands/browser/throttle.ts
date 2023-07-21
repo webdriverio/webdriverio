@@ -35,15 +35,15 @@
  *
  * @alias browser.throttle
  * @param {ThrottleOptions} params  parameters for throttling
- * @param {Boolean}        params.offline              True to emulate internet disconnection.
- * @param {Number}         params.latency              Minimum latency from request sent to response headers received (ms).
- * @param {Number}         params.downloadThroughput   Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
- * @param {Number}         params.uploadThroughput     Maximal aggregated upload throughput (bytes/sec). -1 disables upload throttling.
+ * @param {boolean}        params.offline              True to emulate internet disconnection.
+ * @param {number}         params.latency              Minimum latency from request sent to response headers received (ms).
+ * @param {number}         params.downloadThroughput   Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
+ * @param {number}         params.uploadThroughput     Maximal aggregated upload throughput (bytes/sec). -1 disables upload throttling.
  * @type utility
  *
  */
-import { getBrowserObject } from '../../utils'
-import type { ThrottleOptions } from '../../utils/interception/types'
+import { getBrowserObject } from '../../utils/index.js'
+import type { ThrottleOptions } from '../../utils/interception/types.js'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -110,7 +110,7 @@ const NETWORK_PRESETS = {
 
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
-export default async function throttle (
+export async function throttle (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
 ) {

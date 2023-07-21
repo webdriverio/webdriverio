@@ -1,17 +1,17 @@
 {
   "name": "@wdio/cucumber-framework",
-  "version": "7.20.2",
+  "version": "8.12.1",
   "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-cucumber-framework"
   },
   "keywords": [
     "webdriver",
@@ -21,28 +21,41 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/cjs/index.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "8.3.0",
-    "@cucumber/gherkin": "24.0.0",
-    "@cucumber/gherkin-streams": "^5.0.0",
-    "@cucumber/messages": "19.0.0",
-    "@types/is-glob": "^4.0.1",
-    "@types/long": "^4.0.1",
-    "@types/mockery": "^1.4.29",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
-    "expect-webdriverio": "^3.0.0",
-    "glob": "^8.0.3",
+    "@cucumber/cucumber": "8.11.1",
+    "@cucumber/gherkin": "26.2.0",
+    "@cucumber/gherkin-streams": "^5.0.1",
+    "@cucumber/messages": "22.0.0",
+    "@cucumber/tag-expressions": "5.0.1",
+    "@types/node": "^20.1.0",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
+    "glob": "^10.2.2",
     "is-glob": "^4.0.0",
-    "long": "^4.0.0",
     "mockery": "^2.1.0"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "devDependencies": {
+    "@types/is-glob": "^4.0.1",
+    "@types/mockery": "^1.4.29"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

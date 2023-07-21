@@ -1,7 +1,9 @@
-import path from 'path'
+import fs from 'node:fs/promises'
+import url from 'node:url'
+import path from 'node:path'
+import { resolve } from 'import-meta-resolve'
 
-const puppeteerPath = require.resolve('puppeteer-core')
-const puppeteerPkg = require(`${path.dirname(puppeteerPath)}/package.json`)
+let puppeteerVersion: string
 
 /**
  * The Status command returns information about whether a remote end is in a state
@@ -13,9 +15,20 @@ const puppeteerPkg = require(`${path.dirname(puppeteerPath)}/package.json`)
  * @return {Object} returning an object with the Puppeteer version being used
  */
 export default async function status () {
+    if (!puppeteerVersion) {
+        const puppeteerPath = await resolve('puppeteer-core', import.meta.url)
+        try {
+            const pkgJsonPath = path.resolve(url.fileURLToPath(puppeteerPath), '..', '..', '..', '..', 'package.json')
+            const pkgJson = JSON.parse((await fs.readFile(pkgJsonPath, 'utf-8')).toString())
+            puppeteerVersion = pkgJson.version
+        } catch (err) {
+            // ignore
+        }
+    }
+
     return {
         message: '',
         ready: true,
-        puppeteerVersion: puppeteerPkg.version
+        puppeteerVersion
     }
 }

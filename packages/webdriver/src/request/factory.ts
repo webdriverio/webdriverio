@@ -1,30 +1,35 @@
-import WebDriverRequest from './index'
-import type { URL as URLType } from 'url'
+import type { URL as URLType } from 'node:url'
+import type NodeJSRequest from './node.js'
+import type BrowserRequest from './browser.js'
 
+import type WebDriverRequest from './index.js'
+
+interface Request {
+    new (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand?: boolean): NodeJSRequest | BrowserRequest;
+}
+
+let EnvRequestLib: Request
 export default class RequestFactory {
-    static getInstance (
+    static async getInstance (
         method: string,
         endpoint: string,
         body?: Record<string, unknown>,
         isHubCommand: boolean = false
-    ): WebDriverRequest {
-        if (process?.versions?.node) {
-            const reqModule = require('./node')
-            // we either need to get the default export explicitly in the prod case, or implicitly
-            // in the case of jest mocking
-            const NodeJSRequest = reqModule.default || reqModule
-            return new NodeJSRequest(method, endpoint, body, isHubCommand)
+    ): Promise<WebDriverRequest> {
+        if (!EnvRequestLib) {
+            EnvRequestLib = process?.versions?.node
+                ? (await import('./node.js')).default
+                : (await import('./browser.js')).default
         }
 
-        const BrowserRequest = require('./browser').default
-        return new BrowserRequest(method, endpoint, body, isHubCommand)
+        return new EnvRequestLib(method, endpoint, body, isHubCommand)
     }
 }
 
 export class URLFactory {
-    static getInstance (uri: string): URLType {
+    static async getInstance (uri: string): Promise<URLType> {
         if (process?.versions?.node) {
-            const { URL } = require('url')
+            const { URL } = await import('node:url')
             return new URL(uri)
         }
         return new window.URL(uri) as URLType

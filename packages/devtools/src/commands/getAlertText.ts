@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Alert Text command returns the message of the current user prompt.

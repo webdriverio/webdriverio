@@ -1,5 +1,6 @@
-const fs = require('fs')
-const filename = browser.config.retryFilename
+import fs from 'node:fs'
+const filename = browser.options.retryFilename
+
 describe('fail on first run and succeed on second', function () {
     it(`pass if ${filename} exists, otherwise create it and fail`, function () {
         if (!fs.existsSync(filename)) {

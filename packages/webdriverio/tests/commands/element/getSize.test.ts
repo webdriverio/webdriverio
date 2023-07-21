@@ -1,10 +1,12 @@
+import path from 'node:path'
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
+import got from 'got'
+import { remote } from '../../../src/index.js'
 
-const got = gotMock as any as jest.Mock
-
-jest.setTimeout(3000)
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getSize test', () => {
     it('should allow to get the width and height of an element', async () => {
@@ -17,7 +19,7 @@ describe('getSize test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/rect')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -30,12 +32,12 @@ describe('getSize test', () => {
                 // @ts-ignore mock feature
                 jsonwpMode: true,
                 browserName: 'foobar'
-            }
+            } as any
         })
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/size')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -54,11 +56,12 @@ describe('getSize test', () => {
         expect(width).toBe(50)
         const height = await elem.getSize('height')
         expect(height).toBe(30)
+        // @ts-expect-error invalid param
         const invalid = await elem.getSize('foobar')
         expect(invalid).toEqual({ width: 50, height: 30 })
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

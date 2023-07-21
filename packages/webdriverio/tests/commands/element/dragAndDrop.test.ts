@@ -1,13 +1,17 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should throw when parameter are invalid', async () => {
@@ -19,16 +23,16 @@ describe('dragAndDrop', () => {
         })
 
         const elem = await browser.$('#foo')
-
-        // @ts-ignore uses expect-webdriverio
         expect.assertions(3)
         try {
+            // @ts-expect-error invalid param
             await elem.dragAndDrop()
         } catch (err: any) {
             expect(err.message).toContain('requires an WebdriverIO Element')
         }
 
         try {
+            // @ts-expect-error invalid param
             await elem.dragAndDrop('#myId')
         } catch (err: any) {
             expect(err.message).toContain('requires an WebdriverIO Element')

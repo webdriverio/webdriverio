@@ -1,17 +1,17 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "7.20.2",
+  "version": "8.13.4",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
   "license": "MIT",
-  "main": "./build",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-shared-store-service"
   },
   "keywords": [
     "webdriver",
@@ -22,16 +22,31 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/cjs/index.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./build/cjs/index.js"
+      },
+      "./build/cjs/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "got": "^11.0.2",
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "got": "^ 12.6.1",
     "polka": "^0.5.2",
-    "webdriverio": "7.20.2"
+    "webdriverio": "8.13.4"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

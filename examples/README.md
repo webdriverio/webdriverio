@@ -112,7 +112,7 @@ npm test
 
 # WDIO Testrunner Examples
 
-This directory contains examples for each framework for the wdio test runner. It also shows you how to run multiremote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
+This directory contains examples for each framework and variation for the wdio test runner. It also shows you how to run multiremote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
 
 ```sh
 cd ./examples/wdio
@@ -131,4 +131,6 @@ $ npm run test:cucumber
 $ npm run test:multiremote
 # test suite with custom reporter
 $ npm run test:customReporter
+# component tests
+$ npm run test:viteVue
 ```

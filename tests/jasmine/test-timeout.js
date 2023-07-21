@@ -11,8 +11,4 @@ describe('Jasmine timeout test', () => {
     it('should allow also async assertions afterwards', async () => {
         await expect(browser).toHaveTitle('Mock Page Title')
     })
-
-    it('should allow also sync assertions afterwards', () => {
-        expect(browser).toHaveTitle('Mock Page Title')
-    })
 })

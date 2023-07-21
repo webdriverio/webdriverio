@@ -8,14 +8,23 @@ title: <?= method.command ?>
 <? if (method.customEditUrl) { ?>custom_edit_url: <?= method.customEditUrl ?><? } ?>
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <? } else if (method.hasHeader) { ?>
 ## <?= method.command ?>
 <? } ?>
 
 <?- method.description ?>
+
+<? if (method.alternativeCommands && method.alternativeCommands.length) { ?>
+:::info
+
+This protocol command is embedded in the following convinient method<?- method.alternativeCommands.length > 1 ? 's' : '' ?>: <?-
+method.alternativeCommands
+    .map((command) => `[\`${command.split('/').pop()}\`](/docs/api/${command})`)
+    .join(', ')
+?>. It is recommended to use <?- method.alternativeCommands.length > 1 ? 'these commands' : 'this command' ?> instead.
+
+:::
+<? } ?>
 
 ##### Usage
 
@@ -32,54 +41,41 @@ import TabItem from '@theme/TabItem';
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    var paramKey = paramTag.types
+    var paramKey = Array.isArray(paramTag.types)
         ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join('|')
         : paramTag.type
     ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br /><span class="label labelWarning">optional</span><? }
     ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
-    ?> | <?= paramTag.description ?> |
+    ?> | <?- paramTag.description ?> |
 <? }) ?>
 <? } ?>
 
-<? if (method.examples.length) { ?>
-##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
-<Tabs
-  defaultValue="async"
-  className="runtime"
-  values={[
-    {label: 'Asynchronous Mode', value: 'async'},
-    {label: 'Synchronous Mode', value: 'sync'}
-  ]
-}>
-<TabItem value="async">
+<?
+const allExamples = [...method.examples, ...method.exampleReferences]
+if (method.examples.length || method.exampleReferences.length) { ?>
+##### Example<? if (allExamples.length > 1) { ?>s<? } ?>
+
+<? method.exampleReferences.forEach(function(ref) {
+    var filename = path.basename(ref.split('#')[0])
+    var ext = path.extname(filename).slice(1)
+?>
+```<?= ext ?> reference title="<?= filename ?>" useHTTPS
+<?= ref ?>
+```
+<? }); ?>
+
 <? method.examples.forEach(function(example) { ?>
 ```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
 <?- example.code ?>
 ```
 <? }); ?>
-</TabItem>
-<TabItem value="sync">
-<? method.examples.forEach(function(example) { ?>
-```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
-<?- example.code.replace(/\sasync\s/g, ' ').replace(/await\s/g, '') ?>
-```
-<? }); ?>
-
-:::caution
-    Synchronous Mode will depcrecated with Node.js v16. With an update to the
-    underlying Chromium version it became technically impossible to provide the
-    same synchronous behavior. We recommend to start transition to asynchronous
-    command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
-:::
-</TabItem>
-</Tabs>
 
 <? } ?>
 
 <? if (method.returns) { ?>
 ##### Returns
 
-- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?= method.returns.description ?>
+- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?- method.returns.description ?>
 <? } ?>
 
 <? if (method.throwsTags.length) { ?>

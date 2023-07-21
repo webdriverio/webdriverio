@@ -1,12 +1,18 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import type { CommandEndpoint } from '@wdio/protocols'
+import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
-import RequestFactory from './request/factory'
-import { WebDriverResponse } from './request'
-import { BaseClient } from './types'
+import RequestFactory from './request/factory.js'
+import type { BidiHandler } from './bidi/handler.js'
+import type { WebDriverResponse } from './request/index.js'
+import type { BaseClient } from './types.js'
 
 const log = logger('webdriver')
+const BIDI_COMMANDS = ['send', 'sendAsync'] as const
+
+interface BaseClientWithEventHandler extends BaseClient {
+    eventMiddleware: BidiHandler
+}
 
 export default function (
     method: string,
@@ -16,7 +22,8 @@ export default function (
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
+    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
+        const isBidiCommand = this.sessionId && this.eventMiddleware && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function'
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -34,7 +41,7 @@ export default function (
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        if (!isBidiCommand && args.length < minAllowedParams || args.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -51,6 +58,9 @@ export default function (
          * parameter type check
          */
         for (const [it, arg] of Object.entries(args)) {
+            if (isBidiCommand) {
+                break
+            }
             const i = parseInt(it, 10)
             const commandParam = commandParams[i]
 
@@ -88,20 +98,34 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = RequestFactory.getInstance(method, endpoint, body, isHubCommand)
+        /**
+         * Handle Bidi calls
+         */
+        if (isBidiCommand) {
+            log.info('BIDI COMMAND', commandCallStructure(command, args, true))
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](args[0]) as any
+        }
+
+        const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value != null) {
-                log.info('RESULT', /screenshot|recording/i.test(command)
-                    && typeof result.value === 'string' && result.value.length > 64
-                    ? `${result.value.substr(0, 61)}...` : result.value)
+            if (typeof result.value !== 'undefined') {
+                let resultLog = result.value
+
+                if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
+                    resultLog = `${result.value.slice(0, 61)}...`
+                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
+                    resultLog = `[${result.value.length} framework events captured]`
+                }
+
+                log.info('RESULT', resultLog)
             }
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession') {
+            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
                 logger.clearLogger()
             }
             return result.value

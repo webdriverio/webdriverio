@@ -1,17 +1,17 @@
 {
   "name": "@wdio/smoke-test-service",
-  "version": "7.19.0",
+  "version": "8.10.1",
   "description": "A WebdriverIO utility to smoke test services for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-smoke-test-service"
   },
   "keywords": [],
   "bugs": {
@@ -20,5 +20,14 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "./build/index.d.ts"
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@types/node": "^20.1.0"
+  }
 }

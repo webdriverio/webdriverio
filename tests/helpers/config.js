@@ -1,4 +1,11 @@
-exports.config = {
+import path from 'node:path'
+import url from 'node:url'
+import fs from 'node:fs/promises'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+let expectationResults = ''
+
+export const config = {
     /**
      * capabilities
      */
@@ -19,7 +26,6 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 10000,
-        require: ['ts-node/register'],
         grep: 'SKIPPED_GREP',
         invert: true
     },
@@ -28,12 +34,16 @@ exports.config = {
         defaultTimeoutInterval: 1000 * 60 * 3,
         grep: 'SKIPPED_GREP',
         invertGrep: true,
-        require: ['ts-node/register']
+        require: ['ts-node/esm'],
+        expectationResultHandler: (_, assertion) => {
+            expectationResults += `expect(${typeof assertion.expected}).${assertion.matcherName}(${typeof assertion.actual})\n`
+            return fs.writeFile(path.resolve(__dirname, 'expectationResults.log'), expectationResults)
+        }
     },
 
     cucumberOpts: {
         timeout: 5000,
-        requireModule: ['ts-node/register'],
+        requireModule: ['ts-node/esm'],
         require: ['./tests/cucumber/step-definitions/*.js']
-    },
+    }
 }

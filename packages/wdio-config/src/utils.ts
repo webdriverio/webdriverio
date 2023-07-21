@@ -1,9 +1,11 @@
-import path from 'path'
-import { canAccess } from '@wdio/utils'
+import url from 'node:url'
+import path from 'node:path'
 import logger from '@wdio/logger'
+import decamelize from 'decamelize'
+import { resolve } from 'import-meta-resolve'
 import type { Capabilities, Options } from '@wdio/types'
 
-import type { ModuleRequireService } from './types'
+import type { ModuleImportService } from './types.js'
 
 const log = logger('@wdio/config:utils')
 
@@ -93,74 +95,95 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
     return params
 }
 
-export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
+export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleImportService) {
+    if (!autoCompileConfig.autoCompile) {
+        return
+    }
+
     return (
-        autoCompileConfig.autoCompile &&
-        (
-            loadTypeScriptCompiler(
-                autoCompileConfig.tsNodeOpts,
-                autoCompileConfig.tsConfigPathsOpts,
-                requireService
-            )
-            ||
-            loadBabelCompiler(
-                autoCompileConfig.babelOpts,
-                requireService
-            )
+        await loadTypeScriptCompiler(autoCompileConfig) ||
+        await loadBabelCompiler(
+            autoCompileConfig.babelOpts,
+            requireService
         )
     )
 }
 
-export function validateTsConfigPaths(tsNodeOpts: any = {}) {
+export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCompileConfig) {
     /**
-    * Checks tsconfig.json path, throws error if it doesn't exist
-    */
-    if (tsNodeOpts?.project) {
-        const tsconfigPath = path.resolve(tsNodeOpts.project)
-        if (!canAccess(tsconfigPath)) {
-            throw new Error('Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?')
-        }
+     * don't auto compile within worker as it already was spawn with a loader
+     */
+    if (process.env.WDIO_WORKER_ID) {
+        return false
     }
-}
 
-export function loadTypeScriptCompiler (
-    tsNodeOpts: any = {},
-    tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
-    requireService: ModuleRequireService
-) {
     try {
-        validateTsConfigPaths(tsNodeOpts)
-        requireService.resolve('ts-node') as any
-        (requireService.require('ts-node') as any).register(tsNodeOpts)
-        log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
-
-        if (tsConfigPathsOpts) {
-            log.debug('Found \'tsconfig-paths\' options, register paths')
-            const tsConfigPaths = require('tsconfig-paths')
-            tsConfigPaths.register(tsConfigPathsOpts)
+        /**
+         * only for testing purposes
+         */
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_TSNODE_RESOLVE) {
+            throw new Error('test fail')
         }
-
+        await resolve('ts-node', import.meta.url)
+        process.env.WDIO_LOAD_TS_NODE = '1'
+        objectToEnv(autoCompileConfig.tsNodeOpts)
         return true
     } catch (err: any) {
+        log.debug(`Failed loading TS Node: ${err.message}`)
         return false
     }
 }
 
-export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleRequireService) {
-    try {
-        requireService.resolve('@babel/register') as any
+export function objectToEnv (params?: Record<string, any>) {
+    /**
+     * apply all config options as environment variables
+     */
+    for (const [key, value] of Object.entries(params || {})) {
+        const envKey = decamelize(key).toUpperCase()
+        if (Array.isArray(value)) {
+            process.env[envKey] = value.join(',')
+        } else if (typeof value === 'boolean' && value) {
+            process.env[envKey] = '1'
+        } else if (value instanceof RegExp) {
+            process.env[envKey] = value.toString()
+        } else if (typeof value === 'object') {
+            process.env[envKey] = JSON.stringify(value)
+        } else if (value && typeof value.toString === 'function') {
+            process.env[envKey] = value.toString()
+        }
+    }
+}
 
+export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {
+    try {
         /**
          * only for testing purposes
          */
-        if (process.env.JEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
             throw new Error('test fail')
         }
 
-        (requireService.require('@babel/register') as any)(babelOpts)
+        (await requireService.import('@babel/register') as any)(babelOpts)
         log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
         return true
     } catch (err: any) {
         return false
     }
+}
+
+export function makeRelativeToCWD (files: (string | string[])[] = []): (string | string[])[] {
+    const returnFiles: (string | string[])[] = []
+
+    for (const file of files) {
+        if (Array.isArray(file)) {
+            returnFiles.push(makeRelativeToCWD(file) as string[])
+            continue
+        }
+
+        returnFiles.push(file.startsWith('file:///')
+            ? url.fileURLToPath(file)
+            : path.resolve(process.cwd(), file))
+    }
+
+    return returnFiles
 }

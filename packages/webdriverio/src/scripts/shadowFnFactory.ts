@@ -1,6 +1,6 @@
 // generate a function that can be used to query shadowRoots
 export const shadowFnFactory = function(elementSelector: string, qsAll = false) {
-    const strFn = `
+    const strFn = /*js*/`
     (function() {
       // element has a shadowRoot property
       if (this.shadowRoot) {

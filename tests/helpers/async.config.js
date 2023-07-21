@@ -1,6 +1,6 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     runnerEnv: {
         WDIO_NO_SYNC_SUPPORT: true
     }

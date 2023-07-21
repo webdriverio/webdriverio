@@ -1,20 +1,29 @@
-import fs from 'fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import type { SpyInstance } from 'vitest'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
-import * as utils from '../../../src/utils'
+import got from 'got'
 
-const got = gotMock as any as jest.Mock
+vi.mocked(fs.access).mockResolvedValue()
 
-jest.mock('fs')
+import { remote } from '../../../src/index.js'
+import * as utils from '../../../src/utils/index.js'
+
+vi.mock('got')
+vi.mock('fs/promises')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
-    let getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
+    let getAbsoluteFilepathSpy: SpyInstance
+    let assertDirectoryExistsSpy: SpyInstance
+    const writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
-        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
-        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
+        vi.spyOn(fs, 'access').mockResolvedValue()
     })
 
     afterEach(() => {
@@ -43,8 +52,8 @@ describe('saveScreenshot', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(got.mock.calls[2][1].method).toBe('GET')
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][1]!.method).toBe('GET')
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/screenshot')
         expect(screenshot.toString()).toBe('some element screenshot')
 
@@ -64,14 +73,9 @@ describe('saveScreenshot', () => {
 
         const elem = await browser.$('#elem')
 
-        // no file
-        await expect(
-            elem.saveScreenshot()
-        ).rejects.toEqual(expectedError)
-
+        // @ts-expect-error wrong parameter
+        await expect(elem.saveScreenshot()).rejects.toEqual(expectedError)
         // wrong extension
-        await expect(
-            elem.saveScreenshot('./file.txt')
-        ).rejects.toEqual(expectedError)
+        await expect(elem.saveScreenshot('./file.txt')).rejects.toEqual(expectedError)
     })
 })

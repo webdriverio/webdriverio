@@ -1,56 +1,68 @@
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
-import fs from 'fs-extra'
-import * as runCmd from '../../src/commands/run'
-import * as configCmd from '../../src/commands/config'
+import { yargs } from 'yargs'
+import fs from 'node:fs/promises'
+import { execa } from 'execa'
+import * as runCmd from '../../src/commands/run.js'
+import * as configCmd from '../../src/commands/config.js'
 
-jest.mock('./../../src/launcher', () => class {
-    run() {
-        return {
-            then: jest.fn().mockReturnValue({
-                catch: jest.fn().mockReturnValue('launcher-mock')
-            })
+vi.mock('yargs')
+vi.mock('execa')
+vi.mock('node:child_process', () => ({
+    default: {
+        spawn: vi.fn()
+    }
+}))
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue(true),
+        readFile: vi.fn()
+    }
+}))
+vi.mock('./../../src/launcher', () => ({
+    default: class {
+        run() {
+            return {
+                then: vi.fn().mockReturnValue({
+                    catch: vi.fn().mockReturnValue('launcher-mock')
+                })
+            }
         }
     }
-})
-jest.mock('./../../src/watcher', () => class {
-    watch() {
-        return 'watching-test'
+}))
+vi.mock('./../../src/watcher', () => ({
+    default: class {
+        watch() {
+            return 'watching-test'
+        }
     }
-})
-
-jest.mock('fs-extra')
+}))
 
 describe('Command: run', () => {
-    const setEncodingMock = jest.fn()
-    const onMock = jest.fn((s, c) => c())
+    const setEncodingMock = vi.fn()
+    const onMock = vi.fn((s, c) => c())
 
     beforeEach(() => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => true)
-        ;(fs.existsSync as jest.Mock).mockClear()
-        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
+        vi.mocked(fs.access).mockClear()
+        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
-        jest.spyOn(console, 'error')
-        jest.spyOn(process, 'openStdin').mockImplementation(
+        vi.spyOn(console, 'error')
+        vi.spyOn(process, 'openStdin').mockImplementation(
             () => ({ setEncoding: setEncodingMock, on: onMock }) as any)
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => false)
-        await runCmd.handler({} as any)
-
+        vi.mocked(fs.access).mockRejectedValue('not found')
+        await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
-        expect((configCmd.missingConfigurationPrompt as jest.Mock).mock.calls[0][1])
-            .toContain('No WebdriverIO configuration found in "')
-
-        ;(fs.existsSync as jest.Mock).mockClear()
+        expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
+            .toContain('sample.conf')
     })
 
     it('should use local conf if nothing defined', async () => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => true)
         await runCmd.handler({ argv: {} } as any)
-        expect(fs.existsSync).toBeCalledTimes(2)
+        expect(fs.access).toBeCalledTimes(4)
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
@@ -89,10 +101,33 @@ describe('Command: run', () => {
         expect(yargs.help).toHaveBeenCalled()
     })
 
+    describe('launch', () => {
+        afterEach(() => {
+            vi.mocked(execa).mockClear()
+            delete process.env.NODE_OPTIONS
+        })
+
+        it('should restart process if esm loader if needed', async () => {
+            expect(execa).toBeCalledTimes(0)
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(execa).toBeCalledTimes(1)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
+                .toContain('--loader ts-node/esm/transpile-only')
+        })
+
+        it('should not restart if loader is already provided', async () => {
+            expect(execa).toBeCalledTimes(0)
+            process.env.NODE_OPTIONS = '--loader ts-node/esm'
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(execa).toBeCalledTimes(0)
+        })
+    })
+
     afterEach(() => {
-        (process.openStdin as jest.Mock).mockReset()
-        ;(console.error as any as jest.Mock).mockReset()
-        ;(fs.existsSync as jest.Mock).mockClear()
-        ;(configCmd.missingConfigurationPrompt as jest.Mock).mockClear()
+        vi.mocked(process.openStdin).mockReset()
+        vi.mocked(console.error).mockReset()
+        vi.mocked(fs.access).mockClear()
+        vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
     })
 })

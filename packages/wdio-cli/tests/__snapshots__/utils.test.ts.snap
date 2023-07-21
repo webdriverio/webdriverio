@@ -1,8 +1,42 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`getCapabilities should return driver with capabilities for android 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getAnswers 1`] = `
+{
+  "backend": "On my local machine",
+  "baseUrl": "http://localhost",
+  "framework": "@wdio/mocha-framework$--$mocha",
+  "generateTestFiles": true,
+  "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
+  "npmInstall": true,
+  "plugins": [],
+  "reporters": [
+    "@wdio/spec-reporter$--$spec",
+  ],
+  "runner": "@wdio/local-runner$--$local$--$e2e",
+  "services": [
+    "wdio-chromedriver-service$--$chromedriver",
+  ],
+  "usePageObjects": true,
+}
+`;
+
+exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
+{
+  "capabilities": {
+    "acceptInsecureCerts": true,
+    "browserName": "chrome",
+    "goog:chromeOptions": {
+      "args": [
+        "window-size=8000,1200",
+      ],
+    },
+  },
+}
+`;
+
+exports[`getCapabilities > should return driver with capabilities for android 1`] = `
+{
+  "capabilities": {
     "app": "foo.apk",
     "automationName": "UiAutomator2",
     "deviceName": "Test",
@@ -13,9 +47,9 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for android 2`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for android 2`] = `
+{
+  "capabilities": {
     "automationName": "UiAutomator2",
     "browserName": "Chrome",
     "deviceName": "Test",
@@ -26,17 +60,17 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for desktop 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for desktop 1`] = `
+{
+  "capabilities": {
     "browserName": "chrome",
   },
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for ios 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for ios 1`] = `
+{
+  "capabilities": {
     "app": "foo.app",
     "automationName": "XCUITest",
     "deviceName": "fooName",
@@ -47,9 +81,9 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for ios 2`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for ios 2`] = `
+{
+  "capabilities": {
     "automationName": "XCUITest",
     "browserName": "Safari",
     "deviceName": "iPhone Simulator",
@@ -58,4 +92,69 @@ Object {
     "udid": undefined,
   },
 }
+`;
+
+exports[`getCapabilities > should through capability not found 1`] = `"No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file."`;
+
+exports[`getCapabilities > should throw capability not provided 1`] = `"Please provide index/named property of capability to use from the capabilities array/object in wdio config file"`;
+
+exports[`getCapabilities > should throw config not found error 1`] = `"Config File not found: ./test.js"`;
+
+exports[`getCapabilities > should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;
+
+exports[`npmInstall 1`] = `
+{
+  "deps": [
+    "foo$--$bar",
+    "bar$--$foo",
+    "@testing-library/vue",
+    "@testing-library/jest-dom",
+    "@types/jasmine",
+  ],
+  "dev": true,
+  "respectNpm5": false,
+}
+`;
+
+exports[`setup Babel 1`] = `
+"module.exports = {
+    \\"presets\\": [
+        [
+            \\"@babel/preset-env\\",
+            {
+                \\"targets\\": {
+                    \\"node\\": 18
+                }
+            }
+        ]
+    ]
+}"
+`;
+
+exports[`setupTypeScript 1`] = `
+"{
+    \\"compilerOptions\\": {
+        \\"moduleResolution\\": \\"node\\",
+        \\"module\\": \\"ESNext\\",
+        \\"target\\": \\"es2022\\",
+        \\"types\\": [
+            \\"node\\",
+            \\"@wdio/globals/types\\",
+            \\"expect-webdriverio\\",
+            \\"foo\\"
+        ],
+        \\"skipLibCheck\\": true,
+        \\"noEmit\\": true,
+        \\"allowImportingTsExtensions\\": true,
+        \\"resolveJsonModule\\": true,
+        \\"isolatedModules\\": true,
+        \\"strict\\": true,
+        \\"noUnusedLocals\\": true,
+        \\"noUnusedParameters\\": true,
+        \\"noFallthroughCasesInSwitch\\": true
+    },
+    \\"include\\": [
+        \\"src\\"
+    ]
+}"
 `;

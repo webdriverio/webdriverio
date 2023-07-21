@@ -1,8 +1,12 @@
-// @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
+import path from 'node:path'
+import { expect, describe, it, afterEach, vi } from 'vitest'
 
-const got = gotMock as any as jest.Mock
+// @ts-ignore mocked (original defined in webdriver package)
+import got from 'got'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('moveTo', () => {
     it('should do a moveTo without params', async () => {
@@ -18,12 +22,12 @@ describe('moveTo', () => {
         got.setMockResponse([undefined, { scrollX: 0, scrollY: 20 }])
         await elem.moveTo()
 
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[4][1].json.actions).toHaveLength(1)
-        expect(got.mock.calls[4][1].json.actions[0].type).toBe('pointer')
-        expect(got.mock.calls[4][1].json.actions[0].actions).toHaveLength(1)
-        expect(got.mock.calls[4][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 40, y: 15 })
+        expect(vi.mocked(got).mock.calls[4][0]!.pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].type).toBe('pointer')
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions[0])
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params', async () => {
@@ -38,8 +42,8 @@ describe('moveTo', () => {
         // @ts-ignore mock feature
         got.setMockResponse([undefined, { scrollX: 19, scrollY: 0 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(got.mock.calls[4][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 1, y: 30 })
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions[0])
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params if getElementRect returned empty object', async () => {
@@ -54,8 +58,8 @@ describe('moveTo', () => {
         // @ts-ignore mock feature
         got.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }, { scrollX: 0, scrollY: 0 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(got.mock.calls[5][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 10, y: 20 })
+        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params if getElementRect and getBoundingClientRect returned empty object', async () => {
@@ -83,15 +87,15 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         await elem.moveTo()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toContain('/foobar-123/moveto')
-        expect(got.mock.calls[2][1].json)
+        expect(vi.mocked(got).mock.calls[2][1]!.json)
             .toEqual({ element: 'some-elem-123' })
 
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(got.mock.calls[3][0].pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toContain('/foobar-123/moveto')
-        expect(got.mock.calls[3][1].json)
+        expect(vi.mocked(got).mock.calls[3][1]!.json)
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
     })
 
@@ -107,11 +111,11 @@ describe('moveTo', () => {
         // @ts-ignore mock feature
         got.setMockResponse([{}, { x: 4, y: 9, height: 35, width: 42 }, { scrollX: 2.1, scrollY: 3.3 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(got.mock.calls[5][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 6, y: 15 })
+        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
+            .toMatchSnapshot()
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

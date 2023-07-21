@@ -1,20 +1,23 @@
-import merge from 'lodash.merge'
+import { deepmergeCustom } from 'deepmerge-ts'
+
 import logger from '@wdio/logger'
+import type { Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
+    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
-import Protocols from '@wdio/protocols'
-import { Options, Capabilities } from '@wdio/types'
-
-import RequestFactory from './request/factory'
-import { WebDriverResponse } from './request'
-import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
-import { VALID_CAPS, REG_EXPS } from './constants'
-import type { Client, JSONWPCommandError, SessionFlags } from './types'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
+import type { Options, Capabilities } from '@wdio/types'
+
+import RequestFactory from './request/factory.js'
+import command from './command.js'
+import { REG_EXPS } from './constants.js'
+import type { WebDriverResponse } from './request/index.js'
+import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
+const deepmerge = deepmergeCustom({ mergeArrays: false })
 
 const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
@@ -29,12 +32,12 @@ const BROWSER_DRIVER_ERRORS = [
 export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
-     * JSONWireProtocol and WebDriver protoocol, e.g.
+     * JSONWireProtocol and WebDriver protocol, e.g.
      */
     if (params.capabilities) {
         const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
         const invalidWebDriverCaps = Object.keys(params.capabilities)
-            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
         /**
          * if there are vendor extensions, e.g. sauce:options or appium:app
@@ -46,7 +49,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
                 `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
                 'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
                 'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
-                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out ' +
                 'to your vendor support team if you have further questions.'
             )
         }
@@ -68,7 +71,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = RequestFactory.getInstance(
+    const sessionRequest = await RequestFactory.getInstance(
         'POST',
         '/session',
         {
@@ -88,7 +91,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save actual receveived session details
+     * save actual received session details
      */
     params.capabilities = response.value.capabilities || response.value
 
@@ -97,7 +100,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
 
 /**
  * check if WebDriver requests was successful
- * @param  {Number}  statusCode status code of request
+ * @param  {number}  statusCode status code of request
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
@@ -119,7 +122,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
             body.value.message === 'An element could not be located on the page using the given search parameters.' ||
-            // Internet Explorter
+            // Internet Explorer
             body.value.message.toLowerCase().startsWith('unable to find element')
         )
     ) {
@@ -168,19 +171,23 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
-    const ProtocolCommands: Protocols.Protocol = merge(
+    const ProtocolCommands: Protocol = deepmerge(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge({}, JsonWProtocol, WebDriverProtocol)
+            ? deepmerge(JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
+        /**
+         * enable Bidi protocol for W3C sessions
+         */
+        isW3C ? WebDriverBidiProtocol : {},
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? deepmerge(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */
@@ -197,7 +204,8 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * only apply special commands when running tests using
          * Selenium Grid or Selenium Standalone server
          */
-        isSeleniumStandalone ? SeleniumProtocol : {}
+        isSeleniumStandalone ? SeleniumProtocol : {},
+        {} as Protocol
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -214,7 +222,7 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
  * @param  {Object} body body object
  * @return {Object} error
  */
-export function getErrorFromResponseBody (body: any) {
+export function getErrorFromResponseBody (body: any, requestOptions: any) {
     if (!body) {
         return new Error('Response has empty body')
     }
@@ -227,14 +235,26 @@ export function getErrorFromResponseBody (body: any) {
         return new Error('Unknown error')
     }
 
-    return new CustomRequestError(body)
+    return new CustomRequestError(body, requestOptions)
 }
 
 //Exporting for testability
 export class CustomRequestError extends Error {
-    constructor(body: WebDriverResponse) {
+    constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        super(errorObj.message || errorObj.class || 'unknown error')
+        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+
+        /**
+         * improve error message for Chrome and Safari on invalid selectors
+         */
+        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
+            errorMessage = (
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
+                'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
+            )
+        }
+
+        super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
@@ -253,7 +273,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -262,7 +282,8 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
-        isSeleniumStandalone: { value: isSeleniumStandalone }
+        isSeleniumStandalone: { value: isSeleniumStandalone },
+        isBidi: { value: isBidi }
     }
 }
 
@@ -274,13 +295,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  */
 export function setupDirectConnect(client: Client) {
     const capabilities = client.capabilities as Capabilities.DesiredCapabilities
-    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
-    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
-    let directConnectPath = capabilities.directConnectPath
-    if (!(directConnectPath || directConnectPath === '')) {
-        directConnectPath = capabilities['appium:directConnectPath']
-    }
-    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
+    const directConnectProtocol = capabilities['appium:directConnectProtocol']
+    const directConnectHost = capabilities['appium:directConnectHost']
+    const directConnectPath = capabilities['appium:directConnectPath']
+    const directConnectPort = capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +

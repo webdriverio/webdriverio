@@ -1,12 +1,15 @@
-const shell = require('shelljs')
-const path = require('path')
+import path from 'node:path'
+import url from 'node:url'
+import shell from 'shelljs'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 /**
  * fetch all sub package names from the package directory
  * @param   {string[]} ignorePackages  a list of packages to be ignored
  * @returns {string[]}                 a list of sub packages
  */
-const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirname, '..', '..', 'packages')).filter((pkg) => (
+export const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirname, '..', '..', 'packages')).filter((pkg) => (
     /**
      * ignore node_modules directory that is created by the link script to test the
      * wdio test runner
@@ -18,7 +21,7 @@ const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirname, '.
     !ignorePackages.includes(pkg)
 ))
 
-function buildPreface(id, title, titleSuffix, editUrl) {
+export function buildPreface(id, title, titleSuffix, editUrl) {
     return [
         '---',
         `id: ${id}`,
@@ -29,5 +32,3 @@ function buildPreface(id, title, titleSuffix, editUrl) {
         'import TabItem from \'@theme/TabItem\';\n'
     ]
 }
-
-module.exports = { getSubPackages, buildPreface }

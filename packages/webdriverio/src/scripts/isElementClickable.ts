@@ -84,7 +84,7 @@ export default function isElementClickable (elem: HTMLElement) {
         // getOverlappingElements of every element with shadowRoot
         let shadowElementsFromPoint: HTMLElement[] = []
         for (let i = 0; i < elemsWithShadowRoot.length; ++i) {
-            let shadowElement = elemsWithShadowRoot[i]
+            const shadowElement = elemsWithShadowRoot[i]
             shadowElementsFromPoint = shadowElementsFromPoint.concat(
                 getOverlappingElements(elem, (shadowElement as HTMLElement).shadowRoot as any) as any
             )

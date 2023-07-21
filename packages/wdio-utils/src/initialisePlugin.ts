@@ -1,7 +1,7 @@
-import path from 'path'
-import { Services } from '@wdio/types'
+import path from 'node:path'
+import type { Services } from '@wdio/types'
 
-import { safeRequire } from './utils'
+import { safeImport } from './utils.js'
 
 /**
  * initialise WebdriverIO compliant plugins like reporter or services in the following way:
@@ -9,12 +9,12 @@ import { safeRequire } from './utils'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name: string, type?: string): Services.ServicePlugin | Services.RunnerPlugin {
+export default async function initialisePlugin (name: string, type?: string): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
     /**
      * directly import packages that are scoped or start with an absolute path
      */
     if (name[0] === '@' || path.isAbsolute(name)) {
-        const service = safeRequire(name)
+        const service = await safeImport(name)
 
         if (service) {
             return service
@@ -28,7 +28,7 @@ export default function initialisePlugin (name: string, type?: string): Services
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
+    const scopedPlugin = await safeImport(`@wdio/${name.toLowerCase()}-${type}`)
     if (scopedPlugin) {
         return scopedPlugin
     }
@@ -36,7 +36,7 @@ export default function initialisePlugin (name: string, type?: string): Services
     /**
      * check for old type of
      */
-    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
+    const plugin = await safeImport(`wdio-${name.toLowerCase()}-${type}`)
     if (plugin) {
         return plugin
     }

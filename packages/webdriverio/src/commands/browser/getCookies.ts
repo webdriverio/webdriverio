@@ -25,12 +25,12 @@
  * </example>
  *
  * @alias browser.getCookies
- * @param {String[]=|String=}   names  names of requested cookies (if omitted, all cookies will be returned)
- * @return {WebDriver.Cookie[]}        requested cookies if existing
+ * @param {String[]|String}       names  names of requested cookies (if omitted, all cookies will be returned)
+ * @return {WebDriverCookie[]}          requested cookies if existing
  * @uses webdriver/getAllCookies
  *
  */
-export default async function getCookies(
+export async function getCookies(
     this: WebdriverIO.Browser,
     names?: string | string[]
 ) {

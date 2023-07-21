@@ -1,30 +1,94 @@
 import React from 'react'
+import Link from '@docusaurus/Link'
+import Translate, { translate } from '@docusaurus/Translate'
 
 export const features = [{
-    title: 'Extendable',
+    icon: '🌎',
+    title: translate({
+        id: 'features.realEnvironments',
+        message: 'Test in Real Environments'
+    }),
     description: (
-        <>
-            Adding helper functions, or more complicated sets and combinations
-            of existing commands is <strong>simple</strong> and really <strong>useful</strong>.
-        </>
-    ),
-}, {
-    title: 'Compatible',
-    description: (
-        <>
-            WebdriverIO can be run on the <a href="https://w3c.github.io/webdriver/"><strong>WebDriver Protocol</strong></a> for
-            true cross-browser testing as well as <a href="https://chromedevtools.github.io/devtools-protocol/"><strong>Chrome DevTools Protocol</strong></a> for
-            Chromium based automation using <a href="https://pptr.dev/">Puppeteer</a>.
-        </>
+        <Translate>
+            WebdriverIO allows you to test in actual browser or mobile devices used by your users.
+        </Translate>
     ),
 },
 {
-    title: 'Feature Rich',
+    icon: '🔩',
+    title: translate({
+        id: 'features.versatile',
+        message: 'Versatile and Feature Rich'
+    }),
     description: (
-        <>
-            The huge variety of community plugins allows you to easily integrate
-            and extend your setup to fulfill your requirements.
-        </>
+        <Translate>
+            Use WebdriverIO for full e2e or unit and component testing in the browser.
+        </Translate>
+    ),
+}, {
+    icon: '💤',
+    title: translate({
+        id: 'features.autoWait',
+        message: 'Auto Wait'
+    }),
+    description: (
+        <Translate>
+            WebdriverIO automatically waits for elements to appear before interacting with them.
+        </Translate>
+    ),
+}, {
+    icon: '📒',
+    title: translate({
+        id: 'features.standards',
+        message: 'Based on Web Standards'
+    }),
+    description: (
+        <Translate
+            id="homepage.features.crossBrowser"
+            values={{
+                webdriverLink: (
+                    <Link to="https://w3c.github.io/webdriver/">WebDriver</Link>
+                ),
+                bidiLink: (
+                    <Link to="https://w3c.github.io/webdriver-bidi/">WebDriver Bidi</Link>
+                )
+            }}>
+            {'Cross browser support via automation through {webdriverLink} and {bidiLink}.'}
+        </Translate>
+    ),
+}, {
+    icon: '📱',
+    title: translate({
+        id: 'features.mobileSupport',
+        message: 'Native Mobile Support'
+    }),
+    description: (
+        <Translate
+            id="homepage.features.mobile"
+            values={{
+                appiumLink: (
+                    <Link to="https://appium.io/">Appium</Link>
+                )
+            }}>
+            {'Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}.'}
+        </Translate>
+    ),
+}, {
+    icon: '🫂',
+    title: translate({
+        id: 'features.community',
+        message: 'Committed Community'
+    }),
+    description: (
+        <Translate
+            id="homepage.features.support"
+            values={{
+                supportChannelLink: (
+                    <Link to="https://discord.webdriver.io">support channel</Link>
+                )
+            }}>
+            {'Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins.'}
+        </Translate>
     ),
 }]
 
@@ -55,15 +119,19 @@ export const logos = [{
     img: 'sap.png',
     alt: 'SAP',
     url: 'https://www.sap.com/'
+}, {
+    img: 'salesforce.png',
+    alt: 'Salesforce',
+    url: 'https://engineering.salesforce.com/'
+}, {
+    img: 'hilton.png',
+    alt: 'Hilton',
+    url: 'https://www.hilton.com/'
 },
 /**
  * Page 2
  */
 {
-    img: 'hilton.png',
-    alt: 'Hilton',
-    url: 'https://www.hilton.com/'
-}, {
     img: 'schwab.png',
     alt: 'Charles Schwab',
     url: 'https://www.schwab.com/'
@@ -140,27 +208,25 @@ expect(pwaCheckResult.passed).toBe(true)
 `
 
 export const SetupExample = `
-$ npm install --save-dev @wdio/cli
-$ npx wdio config --yes
-$ npx wdio run
+$ npm init wdio@latest ./
 `
 
-export const ReactIntegration = `
-await browser.url('https://ahfarmer.github.io/calculator/');
-const appWrapper = await browser.$('div#root')
+export const ComponentTestingExample = `
+import { $, expect } from '@wdio/globals'
+import { render } from '@testing-library/vue'
+import HelloWorld from '../../src/components/HelloWorld.vue'
 
-await browser.react$('t', {
-    props: { name: '7' }
-}).click()
-await browser.react$('t', {
-    props: { name: 'x' }
-}).click()
-await browser.react$('t', {
-    props: { name: '6' }
-}).click()
-await browser.react$('t', {
-    props: { name: '=' }
-}).click()
+describe('Vue Component Testing', () => {
+    it('increments value on click', async () => {
+        const { getByText } = render(HelloWorld)
+        const btn = getByText('count is 0')
 
-// prints "42"
-console.log(await $('.component-display').getText());`
+        // transform into WebdriverIO element
+        const button = await $(btn)
+        await button.click()
+        await button.click()
+
+        getByText('count is 2')
+        await expect($('button=count is 2')).toExist()
+    })
+})`

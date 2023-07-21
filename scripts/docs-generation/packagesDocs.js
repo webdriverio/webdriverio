@@ -1,9 +1,11 @@
-const fs = require('fs')
-const path = require('path')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
 
-const { IGNORED_SUBPACKAGES_FOR_DOCS } = require('../constants')
-const { getSubPackages, buildPreface } = require('../utils/helpers')
+import { IGNORED_SUBPACKAGES_FOR_DOCS } from '../protocols.js'
+import { getSubPackages, buildPreface } from '../utils/helpers.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = {
     reporter: ['Reporter', 'Reporter'],
     service: ['Services', 'Service']
@@ -13,11 +15,13 @@ const plugins = {
  * Generate docs for reporter and services
  * @param {object} sidebars website/sidebars
  */
-exports.generateReportersAndServicesDocs = (sidebars) => {
+export function generateReportersAndServicesDocs (sidebars) {
     const packages = getSubPackages(IGNORED_SUBPACKAGES_FOR_DOCS)
 
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
+
+        const items = []
         for (const pkg of pkgs) {
             const name = pkg.split('-').slice(1, -1)
             const id = `${name.join('-')}-${type}`
@@ -27,14 +31,15 @@ exports.generateReportersAndServicesDocs = (sidebars) => {
             const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
             fs.writeFileSync(path.join(__dirname, '..', '..', 'website', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
-            if (!sidebars.docs[namePlural]) {
-                sidebars.docs[namePlural] = []
-            }
-
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${pkg}`)
-
-            sidebars.docs[namePlural].push(id)
+            items.push(id)
         }
+
+        sidebars.docs.push({
+            type: 'category',
+            label: namePlural,
+            items
+        })
     }
 }

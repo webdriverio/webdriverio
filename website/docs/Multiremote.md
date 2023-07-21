@@ -51,7 +51,7 @@ import { multiremote } from 'webdriverio'
     await elem.click()
 
     // only click with one browser (Firefox)
-    await elem.myFirefoxBrowser.click()
+    await elem.getInstance('myFirefoxBrowser').click()
 })()
 ```
 
@@ -60,7 +60,7 @@ import { multiremote } from 'webdriverio'
 In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
 
 ```js
-exports.config
+export const config = {
     // ...
     capabilities: {
         myChromeBrowser: {
@@ -83,7 +83,7 @@ This will create two WebDriver sessions with Chrome and Firefox. Instead of just
 You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capabilities.
 
 ```js
-exports.config
+export const config = {
     // ...
     user: process.env.BROWSERSTACK_USERNAME,
     key: process.env.BROWSERSTACK_ACCESS_KEY,
@@ -137,11 +137,12 @@ Sometimes it is necessary to do different things in each browser in order to tes
 When using the WDIO testrunner, it registers the browser names with their instances to the global scope:
 
 ```js
-myChromeBrowser.$('#message').setValue('Hi, I am Chrome')
-myChromeBrowser.$('#send').click()
+const myChromeBrowser = browser.getInstance('myChromeBrowser')
+await myChromeBrowser.$('#message').setValue('Hi, I am Chrome')
+await myChromeBrowser.$('#send').click()
 
 // wait until messages arrive
-$('.messages').waitForExist()
+await $('.messages').waitForExist()
 // check if one of the messages contain the Chrome message
 assert.true(
     (
@@ -181,7 +182,7 @@ Cucumber file:
 Step definition file:
 ```js
 When(/^User (.) types a message into the chat/, async (userId) => {
-    await browser[`user${userId}`].$('#message').setValue('Hi, I am Chrome')
-    await browser[`user${userId}`].$('#send').click()
+    await browser.getInstance(`user${userId}`).$('#message').setValue('Hi, I am Chrome')
+    await browser.getInstance(`user${userId}`).$('#send').click()
 })
 ```

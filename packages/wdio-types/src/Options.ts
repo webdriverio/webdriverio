@@ -1,28 +1,27 @@
-import * as http from 'http'
-import * as https from 'https'
-import type { RegisterOptions } from './Compiler'
-import type { URL } from 'url'
+import type http from 'node:http'
+import type https from 'node:https'
+import type { URL } from 'node:url'
 
-import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
-import { Hooks, ServiceEntry } from './Services'
-import { ReporterEntry } from './Reporters'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities.js'
+import type { Hooks, ServiceEntry } from './Services.js'
+import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
-export type Agents = {http?: any, https?: any}
+export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
+export type Agents = { http?: any, https?: any }
 
 export interface RequestLibOptions {
-    agent?: Agents | null
+    agent?: Agents
     followRedirect?: boolean
-    headers?: Record<string, unknown>
+    headers?: Record<string, string | string[] | undefined>
     https?: Record<string, unknown>
     json?: Record<string, unknown>
-    method?: string
-    responseType?: string
-    retry?: number
-    searchParams?: Record<string, unknown>
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+    responseType?: 'json' | 'buffer' | 'text'
+    retry?: { limit: number }
+    searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     throwHttpErrors?: boolean
-    timeout?: number
+    timeout?: { response: number }
     url?: URL
     path?: string
     username?: string
@@ -223,7 +222,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * @example
      * ```js
      * // wdio.conf.js
-     * exports.config
+     * export const config = {
      *   // ...
      *   capabilities: {
      *     browserName: 'safari',
@@ -236,7 +235,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * @example
      * ```
      * // wdio.conf.js
-     * exports.config
+     * export const config = {
      *   // ...
      *   capabilities: {
      *     browserA: {
@@ -297,7 +296,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * @example
      * ```js
      * // wdio.conf.js
-     * exports.config
+     * export const config = {
      *   // ...
      *   capabilities: [{
      *     browserName: 'safari',
@@ -314,7 +313,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * @example
      * ```
      * // wdio.conf.js
-     * exports.config
+     * export const config = {
      *   // ...
      *   capabilities: {
      *     browserA: {
@@ -333,9 +332,16 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     capabilities: RemoteCapabilities
     /**
-     * Type of runner (currently only "local" is supported)
+     * Type of runner
+     * - local: every spec file group is spawned in its own local process
+     *   running an independant browser session
+     * - browser: all spec files are run within the browser
      */
-    runner?: 'local'
+    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
+    /**
+     * Project root directory path.
+     */
+    rootDir?: string
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of
@@ -350,7 +356,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * An object describing various of suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
-    suites?: Record<string, string[]>
+    suites?: Record<string, string[] | string[][]>
     /**
      * Maximum number of total parallel running workers.
      */
@@ -359,6 +365,21 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * Maximum number of total parallel running workers per capability.
      */
     maxInstancesPerCapability?: number
+    /**
+     * Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the
+     * global environment. If you set to `false`, you should import from
+     * `@wdio/globals`, e.g.:
+     *
+     * ```ts
+     * import { browser, $, $$, expect } from '@wdio/globals'
+     * ```
+     *
+     * Note: WebdriverIO doesn't handle injection of test framework specific
+     * globals.
+     *
+     * @default true
+     */
+    injectGlobals?: boolean
     /**
      * If you want your test run to stop after a specific number of test failures, use bail.
      * (It defaults to 0, which runs all tests no matter what.) Note: Please be aware that
@@ -375,7 +396,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     specFileRetriesDelay?: number
     /**
-     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred?: boolean
     /**
@@ -446,9 +467,88 @@ export interface TSConfigPathsOptions {
 
 export interface AutoCompileConfig {
     autoCompile?: boolean
-    tsNodeOpts?: RegisterOptions
     babelOpts?: Record<string, any>
-    tsConfigPathsOpts?: TSConfigPathsOptions
+    tsNodeOpts?: TSNodeOptions
+}
+
+export interface TSNodeOptions {
+    /**
+     * Path to tsconfig file.
+     */
+    project?: string
+    /**
+     * Skip project config resolution and loading
+     */
+    skipProject?: boolean
+    /**
+     * JSON object to merge with compiler options
+     */
+    compilerOptions?: Record<string, any>
+    /**
+     * Use TypeScript's faster transpileModule
+     */
+    transpileOnly?: boolean
+    /**
+     * Opposite of --transpileOnly
+     */
+    typeCheck?: boolean
+    /**
+     * Use TypeScript's compiler host API
+     */
+    compilerHost?: boolean
+    /**
+     * Load files, include and exclude from tsconfig.json on startup.
+     * This may avoid certain typechecking failures. See Missing types for details.
+     */
+    files?: boolean
+    /**
+     * Ignore TypeScript warnings by diagnostic code
+     */
+    ignoreDiagnostics?: string[]
+    /**
+     * Override the path patterns to skip compilation
+     */
+    ignore?: RegExp
+    /**
+     * Skip ignore checks
+     */
+    skipIgnore?: boolean
+    /**
+     * Specify a custom TypeScript compiler
+     */
+    compiler?: string
+    /**
+     * Re-order file extensions so that TypeScript imports are preferred
+     */
+    preferTsExts?: boolean
+    /**
+     * Logs TypeScript errors to stderr instead of throwing exceptions
+     */
+    logError?: boolean
+    /**
+     * Use pretty diagnostic formatter
+     */
+    pretty?: boolean
+    /**
+     * Behave as if invoked in this working directory
+     */
+    cwd?: string
+    /**
+     * Emit output files into `.ts-node` directory. Requires `--compilerHost`
+     */
+    emit?: boolean
+    /**
+     * Scope compiler to files within `scopeDir`. Anything outside this directory is ignored.
+     */
+    scope?: boolean
+    /**
+     * Directory within which compiler is limited when `scope` is enabled.
+     */
+    scopeDir?: string
+    /**
+     * Disable top-level await in REPL. Equivalent to node's `--no-experimental-repl-await`
+     */
+    noExperimentalReplAwait?: boolean
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

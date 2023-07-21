@@ -1,0 +1,13 @@
+👋 Welcome to the "WebdriverIO Development Environment" in GitHub Codespaces!
+
+🛠️  Your environment is fully setup with all the required software, so you can start making changes to the package files and test them.
+
+🚀 Once the process in the terminals finish, following environments are available for you:
+    - Preview of the documentation page:
+        Open the port forwarded URL labeled with "Preview of the Documentation Page".
+
+    - Code Coverage Overview:
+        Open the port forwarded URL labeled with "Code Coverage Overview".
+
+ℹ️  For more information, navigate to https://webdriver.io/docs/contribute
+

@@ -1,22 +1,23 @@
 {
   "name": "@wdio/types",
-  "version": "7.20.0",
+  "version": "8.10.4",
   "description": "Utility package providing type information for a variety of WebdriverIO interfaces",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types",
   "license": "MIT",
-  "main": "./build/index.js",
+  "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
     ".": "./build/index.js",
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-types"
   },
   "keywords": [
     "webdriver",
@@ -29,10 +30,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^17.0.4",
-    "got": "^11.8.1"
-  },
-  "peerDependencies": {
-    "typescript": "^4.6.2"
+    "@types/node": "^20.1.0"
   }
 }

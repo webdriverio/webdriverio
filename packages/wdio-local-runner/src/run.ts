@@ -2,9 +2,9 @@ import exitHook from 'async-exit-hook'
 
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
-
-import { SHUTDOWN_TIMEOUT } from './constants'
 import type { Workers } from '@wdio/types'
+
+import { SHUTDOWN_TIMEOUT } from './constants.js'
 
 const log = logger('@wdio/local-runner')
 
@@ -16,6 +16,16 @@ interface RunnerInterface extends NodeJS.EventEmitter {
     [key: string]: any
 }
 
+/**
+ * send ready event to testrunner to start receive command messages
+ */
+if (typeof process.send === 'function') {
+    process.send(<Workers.WorkerMessage>{
+        name: 'ready',
+        origin: 'worker'
+    })
+}
+
 export const runner = new Runner() as unknown as RunnerInterface
 runner.on('exit', process.exit.bind(process))
 runner.on('error', ({ name, message, stack }) => process.send!({
@@ -25,7 +35,7 @@ runner.on('error', ({ name, message, stack }) => process.send!({
 }))
 
 process.on('message', (m: Workers.WorkerCommand) => {
-    if (!m || !m.command) {
+    if (!m || !m.command || !runner[m.command]) {
         return
     }
 
@@ -33,7 +43,7 @@ process.on('message', (m: Workers.WorkerCommand) => {
     runner[m.command](m).then(
         (result: any) => process.send!({
             origin: 'worker',
-            name: 'finisedCommand',
+            name: 'finishedCommand',
             content: {
                 command: m.command,
                 result

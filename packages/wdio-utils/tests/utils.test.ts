@@ -1,11 +1,14 @@
-import fs from 'fs'
+import type { MockedFunction } from 'vitest'
+import { vi, describe, it, expect } from 'vitest'
+import path from 'node:path'
+import fs from 'node:fs'
 
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, canAccess,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
-} from '../src/utils'
+} from '../src/utils.js'
 
-jest.mock('fs')
+vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 
 describe('utils', () => {
     it('commandCallStructure', () => {
@@ -50,12 +53,15 @@ describe('utils', () => {
         expect(transformCommandLogResult({ script: 'return foobar' })).toEqual({ script: 'return foobar' })
         expect(transformCommandLogResult({ script: 'return (function isElementDisplayed(element) {\n...' }))
             .toEqual({ script: 'isElementDisplayed(...) [50 bytes]' })
+
+        expect(transformCommandLogResult({ script: '!function(t,e){"object"==typeof exports&&"object"==typeof mod...' }))
+            .toEqual({ script: '<minified function> [64 bytes]' })
     })
 
     describe('overwriteElementCommands', () => {
         it('should overwrite command', function () {
             const context = {}
-            const origFnMock: (arg: any) => void = jest.fn(() => 1)
+            const origFnMock: (arg: any) => void = vi.fn(() => 1)
             const propertiesObject = {
                 foo: { value: origFnMock },
                 __elementOverrides__: {
@@ -65,15 +71,15 @@ describe('utils', () => {
             overwriteElementCommands.call(context, propertiesObject)
             expect(propertiesObject.foo.value(5))
                 .toEqual([1, 5])
-            expect((origFnMock as jest.Mock).mock.calls.length)
+            expect((origFnMock as MockedFunction<any>).mock.calls.length)
                 .toBe(1)
-            expect((origFnMock as jest.Mock).mock.instances[0])
+            expect((origFnMock as MockedFunction<any>).mock.instances[0])
                 .toBe(propertiesObject.foo)
         })
 
         it('should support rebinding when invoking original fn', function () {
             const context = {}
-            const origFnMock: (arg: any) => void = jest.fn(() => 1)
+            const origFnMock: (arg: any) => void = vi.fn(() => 1)
             const origFnContext = {}
             const propertiesObject = {
                 foo: { value: origFnMock },
@@ -84,9 +90,9 @@ describe('utils', () => {
             overwriteElementCommands.call(context, propertiesObject)
             expect(propertiesObject.foo.value(5))
                 .toEqual([1, 5])
-            expect((origFnMock as jest.Mock).mock.calls.length)
+            expect((origFnMock as MockedFunction<any>).mock.calls.length)
                 .toBe(1)
-            expect((origFnMock as jest.Mock).mock.instances[0])
+            expect((origFnMock as MockedFunction<any>).mock.instances[0])
                 .toBe(origFnContext)
         })
 
@@ -106,7 +112,7 @@ describe('utils', () => {
 
         it('should throw if there is no command to be propertiesObject', function () {
             const propertiesObject = { __elementOverrides__: { value: {
-                foo: jest.fn()
+                foo: vi.fn()
             } } }
             expect(() => overwriteElementCommands.call(null, propertiesObject))
                 .toThrow('overwriteCommand: no command to be overwritten: foo')
@@ -114,7 +120,7 @@ describe('utils', () => {
 
         it('should throw on attempt to overwrite not a function', function () {
             const propertiesObject = { foo: 'bar', __elementOverrides__: { value: {
-                foo: jest.fn()
+                foo: vi.fn()
             } } }
             expect(() => overwriteElementCommands.call(null, propertiesObject))
                 .toThrow('overwriteCommand: only functions can be overwritten, command: foo')

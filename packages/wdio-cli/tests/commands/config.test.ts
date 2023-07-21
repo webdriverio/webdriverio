@@ -1,316 +1,184 @@
-// @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
-import fs from 'fs-extra'
-import yarnInstall from 'yarn-install'
+import os from 'node:os'
+import path from 'node:path'
+import fs from 'node:fs/promises'
+
+import { vi, test, expect, afterEach, beforeEach } from 'vitest'
 import inquirer from 'inquirer'
-import pkg from '../../package.json'
 
-import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
-import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
-import path from 'path'
+import {
+    handler, builder, parseAnswers, missingConfigurationPrompt, runConfigCommand,
+    canAccessConfigPath
+} from '../../src/commands/config.js'
+import {
+    getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig,
+    createWDIOScript, runAppiumInstaller
+} from '../../src/utils.js'
 
-jest.mock('../../src/utils', () => ({
-    addServiceDeps: jest.fn(),
-    convertPackageHashToObject: jest.fn().mockImplementation(jest.requireActual('../../src/utils').convertPackageHashToObject),
-    renderConfigurationFile: jest.fn(),
-    hasFile: jest.fn().mockReturnValue(false),
-    hasPackage: jest.fn().mockReturnValue(false),
-    getAnswers: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getAnswers),
-    generateTestFiles: jest.fn(),
-    getPathForFileGeneration: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getPathForFileGeneration),
+const consoleLog = console.log.bind(console)
+beforeEach(() => {
+    console.log = vi.fn()
+})
+afterEach(() => {
+    console.log = consoleLog
+})
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockRejectedValue('Yay')
+    }
+}))
+vi.mock('inquirer')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../src/utils.js', () => ({
+    convertPackageHashToObject: vi.fn((param) => ({ short: param })),
+    getAnswers: vi.fn(),
+    getPathForFileGeneration: vi.fn().mockReturnValue({}),
+    getProjectProps: vi.fn().mockResolvedValue({
+        path: '/foo/bar',
+        esmSupported: true,
+        packageJson: {
+            name: 'my-module'
+        }
+    }),
+    getProjectRoot: vi.fn().mockReturnValue('/foo/bar'),
+    createPackageJSON: vi.fn(),
+    setupTypeScript: vi.fn(),
+    setupBabel: vi.fn(),
+    npmInstall: vi.fn(),
+    createWDIOConfig: vi.fn(),
+    createWDIOScript: vi.fn(),
+    runAppiumInstaller: vi.fn()
 }))
 
-jest.mock('fs')
-
-jest.mock('../../package.json', () => {
-    const pkg = jest.requireActual('../../package.json')
-    pkg.setFetchSpec = (fetchSpec: string) => {
-        pkg._requested = { fetchSpec }
-    }
-    pkg.clearFetchSpec = () => {
-        delete pkg._requested
-    }
-    return pkg
-})
-
-const errorLogSpy = jest.spyOn(console, 'error')
-const consoleLogSpy = jest.spyOn(console, 'log')
-
-const args = {
-    framework: '@wdio/mocha-framework$--$mocha',
-    reporters: [
-        '@wdio/spec-reporter$--$spec'
-    ],
-    plugins: [
-        'wdio-wait-for$--$wait-for'
-    ],
-    services: [
-        '@wdio/sauce-service$--$sauce'
-    ],
-    isUsingTypeScript: false,
-    npmInstall: true
-}
-
-beforeEach(() => {
-    (yarnInstall as any as jest.Mock).mockClear()
-    ;(yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
-    errorLogSpy.mockClear()
-    consoleLogSpy.mockClear()
-
-    delete process.env.WDIO_TEST_THROW_RESOLVE
-})
-
-afterEach(() => {
-    errorLogSpy.mockReset()
-})
-
-test('should create config file', async () => {
-
-    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-    // @ts-expect-error
-    fs.promises = { writeFile: jest.fn()
-        .mockReturnValue(Promise.resolve('')) }
-    const result = await handler({} as any)
-    delete result.parsedAnswers.destPageObjectRootPath
-    delete result.parsedAnswers.destSpecRootPath
-    const fileName = `${path.basename(path.dirname(result.parsedAnswers.tsConfigFilePath))}/${path.basename(result.parsedAnswers.tsConfigFilePath)}`
-    result.parsedAnswers.tsConfigFilePath = fileName
-    expect(result).toMatchSnapshot()
-    expect(addServiceDeps).toBeCalledTimes(1)
-    expect(convertPackageHashToObject).toBeCalledTimes(5)
-    expect(renderConfigurationFile).toBeCalledTimes(1)
-    expect(generateTestFiles).toBeCalledTimes(0)
-    expect(getPathForFileGeneration).toBeCalledTimes(1)
-    expect(errorLogSpy).toHaveBeenCalledTimes(0)
-    expect(yarnInstall).toHaveBeenCalledWith({
-        deps: expect.any(Object),
-        dev: true,
-        respectNpm5: true
-    })
-})
-
-test('it should properly build command', () => {
+test('builder', () => {
+    const yargs = {} as any
+    yargs.options = vi.fn().mockReturnValue(yargs)
+    yargs.epilogue = vi.fn().mockReturnValue(yargs)
+    yargs.help = vi.fn().mockReturnValue(yargs)
     builder(yargs)
-    expect(yargs.options).toHaveBeenCalled()
-    expect(yargs.epilogue).toHaveBeenCalled()
-    expect(yargs.help).toHaveBeenCalled()
+    expect(yargs.options).toBeCalledTimes(1)
+    expect(yargs.options).toBeCalledWith(expect.any(Object))
+    expect(yargs.epilogue).toBeCalledTimes(1)
+    expect(yargs.help).toBeCalledTimes(1)
 })
 
-test('should throw error if creating config file fails', async () => {
-    (renderConfigurationFile as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('boom!')))
-    const err = await handler({} as any).catch((err) => err)
-    expect(err.message).toContain('Error: boom!')
-})
-
-test('it should install with yarn when flag is passed', async () => {
-    await handler({ yarn: true, yes: false } as any)
-
-    expect(yarnInstall).toHaveBeenCalledWith({
-        deps: expect.any(Object),
-        dev: true,
-        respectNpm5: false
-    })
-})
-
-describe('install compliant NPM tag packages', () => {
-    // @ts-expect-error
-    const setFetchSpec = (fetchSpec) => pkg.setFetchSpec(fetchSpec)
-    const args = {
-        framework: '@wdio/mocha-framework$--$mocha',
-        reporters: [],
-        plugins: [],
-        services: [
-            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
-        ],
-        generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
+test('parseAnswers', async () => {
+    // skip for Windows
+    if (os.platform() === 'win32') {
+        return
     }
 
-    test('it should install tagged version if cli is tagged with beta', async () => {
-        setFetchSpec('beta');
-        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-        // @ts-expect-error
-        fs.promises = { writeFile: jest.fn()
-            .mockReturnValue(Promise.resolve('')) }
-        await handler({} as any)
-
-        expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: 'On my local machine',
+        specs: '/tmp/foobar/specs',
+        pages: '/tmp/foobar/pageobjects',
+        generateTestFiles: true,
+        usePageObjects: true,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        reporters: [
+            '@wdio/spec-reporter$--$spec'
+        ],
+        plugins: [
+            'wdio-wait-for$--$wait-for'
+        ],
+        services: [
+            '@wdio/sauce-service$--$sauce'
+        ],
+        npmInstall: true
     })
-
-    test('it should install tagged version if cli is tagged with next', async () => {
-        setFetchSpec('next');
-        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-        // @ts-expect-error
-        fs.promises = { writeFile: jest.fn()
-            .mockReturnValue(Promise.resolve('')) }
-        await handler({} as any)
-
-        expect(consoleLogSpy.mock.calls).toMatchSnapshot()
-    })
-
-    test('it should install tagged version if cli is tagged with latest', async () => {
-        setFetchSpec('latest');
-        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-        // @ts-expect-error
-        fs.promises = { writeFile: jest.fn()
-            .mockReturnValue(Promise.resolve('')) }
-        await handler({} as any)
-
-        expect(consoleLogSpy.mock.calls).toMatchSnapshot()
-    })
-
-    test('it should not install tagged version if cli is tagged with a specific version', async () => {
-        setFetchSpec('7.0.8');
-        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-        // @ts-expect-error
-        fs.promises = { writeFile: jest.fn()
-            .mockReturnValue(Promise.resolve('')) }
-        await handler({} as any)
-
-        expect(consoleLogSpy.mock.calls).toMatchSnapshot()
-    })
-
-    afterEach(() => {
-        // @ts-expect-error
-        pkg.clearFetchSpec()
-    })
+    const parsedAnswers = await parseAnswers(true)
+    expect(parsedAnswers).toMatchSnapshot()
 })
 
-test('prints TypeScript setup message', async () => {
-    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        framework: '@wdio/mocha-framework$--$mocha',
-        reporters: [],
-        plugins: [],
-        services: [
-            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
-        ],
-        generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
-    }))
-    await handler({} as any)
-    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+test('runConfigCommand', async () => {
+    await runConfigCommand({ projectRootDir: '/foo/bar' } as any, true, 'next')
+    expect(createPackageJSON).toBeCalledTimes(1)
+    expect(setupTypeScript).toBeCalledTimes(1)
+    expect(setupBabel).toBeCalledTimes(1)
+    expect(npmInstall).toBeCalledTimes(1)
+    expect(createWDIOConfig).toBeCalledTimes(1)
+    expect(createWDIOScript).toBeCalledTimes(1)
+    expect(runAppiumInstaller).toBeCalledTimes(1)
+    expect(vi.mocked(console.log).mock.calls).toMatchSnapshot()
 })
 
-test('prints TypeScript setup message with ts-node installed', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        framework: '@wdio/mocha-framework$--$mocha',
-        reporters: [],
-        plugins: [],
-        services: [
-            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
-        ],
-        generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
-    }))
-
-    const config = {
-        compilerOptions: {
-            moduleResolution: 'node',
-            types: [
-                'node',
-                'webdriverio/async',
-                '@wdio/mocha-framework',
-                'expect-webdriverio'
-            ],
-            target: 'es2019',
-        }
+test('handler', async () => {
+    // skip for Windows
+    if (os.platform() === 'win32') {
+        return
     }
-
-    expect(fs.promises.writeFile).toBeCalledWith(
-        path.join(process.cwd(), 'test', 'tsconfig.json'),
-        JSON.stringify(config, null, 4))
-
-    // @ts-expect-error
-    fs.promises = { writeFile: jest.fn()
-        .mockReturnValue(Promise.resolve('')) }
-    await handler({} as any)
-    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
-})
-
-test('should setup Babel if not existing', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: 'On my local machine',
+        generateTestFiles: false,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
         reporters: [],
         plugins: [],
-        services: [
-            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
-        ],
-        generateTestFiles: false,
-        isUsingCompiler: 'Babel (https://babeljs.io/)',
+        services: [],
         npmInstall: true
-    }))
-    // @ts-expect-error
-    fs.promises = { writeFile: jest.fn()
-        .mockReturnValue(Promise.resolve('')) }
-    await handler({} as any)
-    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+    })
+    const runConfigCmd = vi.fn()
+    expect(await handler({} as any, runConfigCmd)).toMatchSnapshot()
+    expect(runConfigCmd).toBeCalledTimes(1)
 })
 
-test('should not install @babel/register if existing', async () => {
-    delete process.env.WDIO_TEST_THROW_RESOLVE
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+test('missingConfigurationPrompt does not init wizard if user does not want to', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: 'On my local machine',
+        generateTestFiles: false,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
         reporters: [],
         plugins: [],
-        services: [
-            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
-        ],
-        generateTestFiles: false,
-        isUsingCompiler: 'Babel (https://babeljs.io/)',
+        services: [],
         npmInstall: true
-    }))
-    await handler({} as any)
-    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+    })
+    const runConfigCmd = vi.fn()
+    vi.mocked(inquirer.prompt).mockResolvedValue({})
+    await missingConfigurationPrompt('config', 'foobar', true, runConfigCmd)
+    expect(runConfigCmd).toBeCalledTimes(0)
 })
 
-test('should not install npm packages when npmInstall is false', async () => {
-    const ans = { ...args, npmInstall: false };
-    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(ans))
-    await handler({} as any)
-    expect(consoleLogSpy).toMatchSnapshot()
-    expect(yarnInstall).not.toHaveBeenCalled()
+test('missingConfigurationPrompt does run config if user agrees', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: 'On my local machine',
+        generateTestFiles: false,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        reporters: [],
+        plugins: [],
+        services: [],
+        npmInstall: true
+    })
+    const runConfigCmd = vi.fn()
+
+    vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
+    await missingConfigurationPrompt('config', 'foobar', true, runConfigCmd)
+    expect(runConfigCmd).toBeCalledTimes(1)
 })
 
-describe('missingConfigurationPromp', () => {
-    it('should prompt user', async () => {
-        (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt('run', 'foobar', false, jest.fn())
-        expect((inquirer.prompt as any as jest.Mock)).toHaveBeenCalled()
-    })
-
-    it('should call function to initalize configuration helper', async () => {
-        const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'foobar', false, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(false, false, true)
-    })
-
-    it('should pass "yarn" flag to runConfig', async () => {
-        const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'test message', true, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(true, false, true)
-    })
-
-    it('should throw if error occurs', async () => {
-        const runConfig = jest.fn().mockImplementation(Promise.reject)
-
-        try {
-            await missingConfigurationPrompt('test', 'foobar', false, runConfig)
-        } catch (error) {
-            expect(error).toBeTruthy()
-        }
-    })
-
-    afterEach(() => {
-        (inquirer.prompt as any as jest.Mock).mockClear()
-    })
+test('canAccessConfigPath', async () => {
+    vi.mocked(fs.access)
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockRejectedValueOnce(new Error('not found'))
+        .mockResolvedValue('Yay' as any)
+    expect(await canAccessConfigPath('/foo/bar')).toBe(true)
+    expect(fs.access).toBeCalledWith('/foo/bar.js')
+    expect(fs.access).toBeCalledWith('/foo/bar.ts')
+    expect(fs.access).toBeCalledWith('/foo/bar.mjs')
+    expect(fs.access).toBeCalledWith('/foo/bar.mts')
 })

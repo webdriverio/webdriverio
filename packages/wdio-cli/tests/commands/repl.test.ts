@@ -1,21 +1,27 @@
+import path from 'node:path'
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
+import { yargs } from 'yargs'
 import { remote } from 'webdriverio'
 
-import { handler, builder } from '../../src/commands/repl'
+import { handler, builder } from '../../src/commands/repl.js'
 
-jest.mock('@wdio/utils', () => {
+vi.mock('@wdio/utils', () => {
     let syncSupport = false
 
     return {
-        setSyncSupport: (val: boolean) => (syncSupport = val),
-        get hasWdioSyncSupport () {
-            return syncSupport
+        default: {
+            setSyncSupport: (val: boolean) => (syncSupport = val),
+            get hasWdioSyncSupport () {
+                return syncSupport
+            }
         }
     }
 })
 
-jest.mock('repl')
+vi.mock('repl')
+vi.mock('yargs')
+vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
@@ -44,7 +50,7 @@ describe('repl commandDir', () => {
 
 describe('Command: repl', () => {
     beforeEach(() => {
-        (remote as jest.Mock).mockClear()
+        vi.mocked(remote).mockClear()
     })
 
     it('should attach global variables', async () => {
@@ -52,6 +58,7 @@ describe('Command: repl', () => {
 
         expect(global.$).not.toBeUndefined()
         expect(global.$$).not.toBeUndefined()
+        // @ts-expect-error
         expect(global.browser).not.toBeUndefined()
     })
 

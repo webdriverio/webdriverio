@@ -1,17 +1,24 @@
 {
   "name": "@wdio/config",
-  "version": "7.20.1",
+  "version": "8.12.1",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
   "license": "MIT",
-  "main": "./build/index",
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-config"
   },
   "keywords": [
     "webdriver",
@@ -21,19 +28,21 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "types": "./build/index.d.ts",
   "dependencies": {
-    "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
-    "deepmerge": "^4.0.0",
-    "glob": "^8.0.3"
+    "@wdio/logger": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
+    "decamelize": "^6.0.0",
+    "deepmerge-ts": "^5.0.0",
+    "glob": "^10.2.2",
+    "import-meta-resolve": "^3.0.0",
+    "read-pkg-up": "^9.1.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "minimatch": "^5.0.0",
-    "tsconfig-paths": "^3.9.0"
+    "minimatch": "^9.0.0",
+    "tsconfig-paths": "^4.1.0"
   }
 }

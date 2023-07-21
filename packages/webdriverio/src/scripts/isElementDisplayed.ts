@@ -58,10 +58,11 @@ export default function isElementDisplayed (element: Element): boolean {
             let node: ParentNode = targetNode;
             node && node !== (targetNode as Node).ownerDocument;
             node = (node as HTMLElement).parentNode as ParentNode
-        )
+        ) {
             if (predicate(node)) {
                 return node
             }
+        }
 
         return null
     }
@@ -71,10 +72,11 @@ export default function isElementDisplayed (element: Element): boolean {
             let element: HTMLElement | ParentNode = targetElement;
             element && element !== targetElement.ownerDocument;
             element = parentElementForElement(element as HTMLElement) as HTMLElement
-        )
+        ) {
             if (predicate(element)) {
                 return element
             }
+        }
 
         return null
     }
@@ -89,12 +91,12 @@ export default function isElementDisplayed (element: Element): boolean {
         // if document-fragment, skip it and use element.host instead. This happens
         // when the element is inside a shadow root.
         // window.getComputedStyle errors on document-fragment.
-        if (element instanceof DocumentFragment) {
+        if (element instanceof window.ShadowRoot) {
             element = element.host
         }
 
-        let computedStyle = window.getComputedStyle(element as Element)
-        let computedStyleProperty = computedStyle.getPropertyValue(property)
+        const computedStyle = window.getComputedStyle(element as Element)
+        const computedStyleProperty = computedStyle.getPropertyValue(property)
         if (computedStyleProperty && computedStyleProperty !== 'inherit') {
             return computedStyleProperty
         }
@@ -108,23 +110,23 @@ export default function isElementDisplayed (element: Element): boolean {
         // I think all important non-inheritable properties (width, height, etc.)
         // for our purposes here are specially resolved, so this may not be an issue.
         // Specification is here: https://drafts.csswg.org/cssom/#resolved-values
-        let parentElement = parentElementForElement(element as Element) as ParentNode
+        const parentElement = parentElementForElement(element as Element) as ParentNode
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
     function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
-        let boundingBox = element.getBoundingClientRect()
+        const boundingBox = element.getBoundingClientRect()
         if (boundingBox.width > 0 && boundingBox.height > 0) {
             return true
         }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
         if (element.tagName.toUpperCase() === 'PATH' && boundingBox.width + boundingBox.height > 0) {
-            let strokeWidth = cascadedStylePropertyForElement(element, 'stroke-width')
+            const strokeWidth = cascadedStylePropertyForElement(element, 'stroke-width')
             return !!strokeWidth && (parseInt(strokeWidth, 10) > 0)
         }
 
-        let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
+        const cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
         if (cascadedOverflow === 'hidden') {
             return false
         }
@@ -145,7 +147,7 @@ export default function isElementDisplayed (element: Element): boolean {
     }
 
     function elementOverflowsContainer(element: Element) {
-        let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
+        const cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
         if (cascadedOverflow !== 'hidden') {
             return false
         }
@@ -219,7 +221,7 @@ export default function isElementDisplayed (element: Element): boolean {
     case 'OPTGROUP':
     case 'OPTION': {
         // Option/optgroup are considered shown if the containing <select> is shown.
-        let enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e: Element) => e.tagName.toUpperCase() === 'SELECT')
+        const enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e: Element) => e.tagName.toUpperCase() === 'SELECT')
         return isElementDisplayed(enclosingSelectElement as Element)
     }
     case 'INPUT':
@@ -239,10 +241,10 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
-    let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
+    const hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
         return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
     })
-    let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
+    const hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
         return cascadedStylePropertyForElement(e, 'display') === 'none'
     })
     if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone) {

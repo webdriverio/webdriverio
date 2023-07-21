@@ -1,5 +1,5 @@
-import { DEFAULT_WIDTH, DEFAULT_HEIGHT } from '../constants'
-import type DevToolsDriver from '../devtoolsdriver'
+import { DEFAULT_WIDTH, DEFAULT_HEIGHT } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Window Rect command returns the size and position on the screen of the operating system window

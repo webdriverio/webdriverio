@@ -1,15 +1,15 @@
 import type { Capabilities } from '@wdio/types'
 
-import refetchElement from './utils/refetchElement'
-import implicitWait from './utils/implicitWait'
-import { getBrowserObject } from './utils'
-import { ELEMENT_KEY } from './constants'
+import refetchElement from './utils/refetchElement.js'
+import implicitWait from './utils/implicitWait.js'
+import { getBrowserObject } from './utils/index.js'
+import { ELEMENT_KEY } from './constants.js'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
  * that wasn't found on the page and automatically waits for it
  *
- * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
+ * @param  {Function} fn  command shim
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
     return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {

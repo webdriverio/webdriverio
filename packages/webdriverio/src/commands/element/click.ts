@@ -1,15 +1,17 @@
-import logger from '@wdio/logger'
-
-import { ClickOptions } from '../../types'
-
-const log = logger('webdriverio/click')
+import { getBrowserObject } from '../../utils/index.js'
+import type { ClickOptions } from '../../types.js'
+import type { Button } from '../../utils/actions/index.js'
 
 /**
  *
  * Click on an element.
  *
- * Note: This issues a WebDriver `click` command for the selected element, which generally scrolls to and then clicks the
- * selected element. However, if you have fixed-position elements (such as a fixed header or footer) that cover up the
+ * This issues a WebDriver `click` command for the selected element , which generally scrolls to and then clicks the
+ * selected element when no options are passed. When options object is passed it uses action class instead of webdriver click which
+ * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
+ * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
+ *
+ * Note: If you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
  * be received by your fixed (overlaying) element. In these cased the following error is thrown:
  *
@@ -64,6 +66,10 @@ const log = logger('webdriverio/click')
         const myButton = await $('#myButton')
         await myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button (from the center of element)
     })
+    it('should skip sending releaseAction command that cause unexpected alert closure', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 2, x: 30, y: 40, skipRelease:true }) // skips sending releaseActions
+    })
  * </example>
  *
  * @alias element.click
@@ -73,8 +79,9 @@ const log = logger('webdriverio/click')
  * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
+ * @param {number=}           options.skipRelease         Boolean (optional)
  */
-export default async function click (
+export async function click(
     this: WebdriverIO.Element,
     options?: ClickOptions
 ) {
@@ -86,10 +93,11 @@ export default async function click (
         throw new TypeError('Options must be an object')
     }
 
-    let {
-        button = 0,
+    let button = (options.button || 0) as Button
+    const {
         x: xoffset = 0,
-        y: yoffset = 0
+        y: yoffset = 0,
+        skipRelease = false
     } = options || {}
 
     if (
@@ -100,13 +108,13 @@ export default async function click (
         throw new TypeError('Coordinates must be integers')
     }
 
-    if (button === 'left') {
+    if (options.button === 'left') {
         button = 0
     }
-    if (button === 'middle') {
+    if (options.button === 'middle') {
         button = 1
     }
-    if (button === 'right') {
+    if (options.button === 'right') {
         button = 2
     }
     if (![0, 1, 2].includes(button as number)) {
@@ -114,33 +122,18 @@ export default async function click (
     }
 
     if (this.isW3C) {
-        await this.performActions([{
-            type: 'pointer',
-            id: 'pointer1',
-            parameters: {
-                pointerType: 'mouse'
-            },
-            actions: [{
-                type: 'pointerMove',
+        const browser = getBrowserObject(this)
+        await browser.action('pointer', {
+            parameters: { pointerType: 'mouse' }
+        })
+            .move({
                 origin: this,
                 x: xoffset,
                 y: yoffset
-            }, {
-                type: 'pointerDown',
-                button
-            }, {
-                type: 'pointerUp',
-                button
-            }]
-        }])
-        const err = await this.releaseActions().then(
-            () => null,
-            (err) => err)
-
-        if (err) {
-            log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`)
-        }
-
+            })
+            .down({ button })
+            .up({ button })
+            .perform(skipRelease)
         return
     }
 

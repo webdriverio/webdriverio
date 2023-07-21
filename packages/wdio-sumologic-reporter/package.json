@@ -1,17 +1,17 @@
 {
   "name": "@wdio/sumologic-reporter",
-  "version": "7.20.0",
+  "version": "8.12.2",
   "description": "A WebdriverIO reporter that sends test results to Sumologic for data analyses",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-sumologic-service"
   },
   "keywords": [
     "webdriver",
@@ -21,21 +21,27 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/dateformat": "^5.0.0",
-    "@types/json-stringify-safe": "^5.0.0",
-    "@wdio/logger": "7.19.0",
-    "@wdio/reporter": "7.20.0",
-    "@wdio/types": "7.20.0",
+    "@wdio/logger": "8.11.0",
+    "@wdio/reporter": "8.12.2",
+    "@wdio/types": "8.10.4",
     "dateformat": "4.5.1",
-    "got": "^11.0.2",
+    "got": "^ 12.6.1",
     "json-stringify-safe": "^5.0.1"
   },
-  "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+  "devDependencies": {
+    "@types/dateformat": "^5.0.0",
+    "@types/json-stringify-safe": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

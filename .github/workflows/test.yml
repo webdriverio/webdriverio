@@ -6,14 +6,21 @@ on:
   push:
     branches:
       - main
+      - v7
+      - '!l10n_main'
   pull_request:
+    branches-ignore:
+      - 'l10n_main'
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
 
 jobs:
   linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [16.x, 18.x]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -21,66 +28,91 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
-        if: ${{ matrix.node-version == '16.x' }}
         run: npm run test:depcheck
-      - name: Lint / Typings / Unit / Smoke Tests
-        run: ./node_modules/.bin/run-s test:eslint test:typings test:coverage test:smoke
+      - name: Lint / Typings / Unit / Smoke / Component Tests
+        run: npm run test
+      - name: Interop Tests
+        run: |
+          npm i chromedriver --detect_chromedriver_version
+          npm run test:e2e:cjs
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: logs
+          path: e2e/browser-runner/logs
   e2e-windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
-      - name: Lint / Dependencies / Unit / Smoke Tests
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
+      - name: Setup Chrome Browser
+        uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
-        uses: nick-invision/retry@v2
+        uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
       - name: E2E Edge Launch Tests
-        uses: nick-invision/retry@v2
+        run: npm run test:e2e:edge
+      - uses: actions/upload-artifact@v3
+        if: failure()
         with:
-          timeout_minutes: 20
-          max_attempts: 3
-          command: npm run test:e2e:edge
+          name: logs
+          path: |
+            e2e/wdio/*.log
+            e2e/*.log
+            e2e/browser-runner/logs
   e2e-mac:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: Install Dependencies
         run: npm ci
+        env:
+          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests
-        uses: nick-invision/retry@v2
+        uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
-      # Setting up Firefox is currently not possible
-      # see https://github.com/browser-actions/setup-firefox/issues/233
-      #
+      - name: Safari Component Tests
+        run: npm run test:component
+      # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
       # - name: Setup Firefox
       #   uses: browser-actions/setup-firefox@latest
       #   with:
-      #     firefox-version: latest-devedition
+      #     firefox-version: latest
       # - run: |
       #     export FIREFOX_BINARY=$(which firefox)
       #     echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
-      # - run: echo "Run Firefox tests using $FIREFOX_BINARY"
       # - name: E2E Firefox Launch Tests
       #   run: npm run test:e2e:firefox
       - name: E2E Connection Test

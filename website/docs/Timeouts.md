@@ -51,7 +51,7 @@ WebdriverIO provides multiple commands to wait on elements to reach a certain st
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     waitforTimeout: 5000,
     // ...
@@ -94,11 +94,19 @@ it('should login into the application', () => {
 
 In Cucumber, the timeout applies to a single step definition. However, if you want to increase the timeout because your test takes longer than the default value, you need to set it in the framework options.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'}
+  ]
+}>
+<TabItem value="mocha">
+
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'mocha',
     mochaOpts: {
@@ -107,10 +115,13 @@ exports.config = {
     // ...
 }
 ```
-<!--Jasmine-->
+
+</TabItem>
+<TabItem value="jasmine">
+
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'jasmine',
     jasmineOpts: {
@@ -119,10 +130,13 @@ exports.config = {
     // ...
 }
 ```
-<!--Cucumber-->
+
+</TabItem>
+<TabItem value="cucumber">
+
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'cucumber',
     cucumberOpts: {
@@ -131,4 +145,6 @@ exports.config = {
     // ...
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>

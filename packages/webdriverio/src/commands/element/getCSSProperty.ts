@@ -1,5 +1,5 @@
 import cssShorthandProps from 'css-shorthand-properties'
-import { parseCSS } from '../../utils'
+import { parseCSS } from '../../utils/index.js'
 
 /**
  *
@@ -66,11 +66,11 @@ import { parseCSS } from '../../utils'
  * </example>
  *
  * @alias element.getCSSProperty
- * @param  {String}      cssProperty css property name
+ * @param  {string}      cssProperty css property name
  * @return {CSSProperty}             The specified css of the element
  *
  */
-export default async function getCSSProperty (
+export async function getCSSProperty (
     this: WebdriverIO.Element,
     cssProperty: string
 ) {

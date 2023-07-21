@@ -1,13 +1,21 @@
-import { URL } from 'url'
-import { Capabilities, Options } from '@wdio/types'
+import path from 'node:path'
+import { URL } from 'node:url'
+import type { MockedFunction } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { transformCommandLogResult } from '@wdio/utils'
+import type { Capabilities, Options } from '@wdio/types'
+
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
     getTimeoutError,
     setupDirectConnect
-} from '../src/utils'
-import type { Client } from '../src/types'
+} from '../src/utils.js'
+import type { Client } from '../src/types.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@wdio/utils')
+vi.mock('got')
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -102,18 +110,18 @@ describe('utils', () => {
 
     it('getErrorFromResponseBody', () => {
         const emptyBodyError = new Error('Response has empty body')
-        expect(getErrorFromResponseBody('')).toEqual(emptyBodyError)
-        expect(getErrorFromResponseBody(null)).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody('', {})).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody(null, {})).toEqual(emptyBodyError)
 
         const unknownError = new Error('unknown error')
-        expect(getErrorFromResponseBody({})).toEqual(unknownError)
+        expect(getErrorFromResponseBody({}, {})).toEqual(unknownError)
 
         const nonWebDriverError = new Error('expected')
         const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected')).toEqual(nonWebDriverError)
-        expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
+        expect(getErrorFromResponseBody('expected', {})).toEqual(nonWebDriverError)
+        expect(getErrorFromResponseBody({ value: { message: 'expected' } }, {}))
             .toEqual(expectedError)
-        expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
+        expect(getErrorFromResponseBody({ value: { class: 'expected' } }, {}))
             .toEqual(expectedError)
 
         const ieError = new Error('Command not found: POST /some/command')
@@ -122,7 +130,7 @@ describe('utils', () => {
             message: 'Command not found: POST /some/command',
             error: 'unknown method',
             name: 'Protocol Error'
-        })).toEqual(ieError)
+        }, {})).toEqual(ieError)
     })
 
     it('CustomRequestError', function () {
@@ -132,64 +140,72 @@ describe('utils', () => {
                 error: 'foo',
                 message: 'bar'
             }
-        })
+        }, {})
         expect(error.name).toBe('foo')
         expect(error.message).toBe('bar')
 
         //Chrome
-        error = new CustomRequestError({ value: { message: 'stale element reference' } })
+        error = new CustomRequestError({ value: { message: 'stale element reference' } }, {})
         expect(error.name).toBe('stale element reference')
         expect(error.message).toBe('stale element reference')
         expect(error.stack).toMatch('stale element reference')
         expect(error.stack).toMatch('stale element reference')
 
-        error = new CustomRequestError({ value: { message: 'message' } } )
+        error = new CustomRequestError({ value: { message: 'message' } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('message')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('message')
 
-        error = new CustomRequestError({ value: { class: 'class' } } )
+        error = new CustomRequestError({ value: { class: 'class' } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('class')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('class')
 
-        error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
+        error = new CustomRequestError({ value: { name: 'Protocol Error' } }, {})
         expect(error.name).toBe('Protocol Error')
         expect(error.message).toBe('unknown error')
         expect(error.stack).toMatch('Protocol Error')
         expect(error.stack).toMatch('unknown error')
 
-        error = new CustomRequestError({ value: { } } )
+        error = new CustomRequestError({ value: { } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('unknown error')
+
+        error = new CustomRequestError(
+            { value: { error: 'invalid selector' } },
+            { using: 'css selector', value: '!!' }
+        )
+        expect(error.message).toMatchSnapshot()
     })
 
     describe('setupDirectConnect', () => {
-
         class TestClient implements Client {
-            sessionId: string
-            capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
-            requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
-            options: Options.WebDriver
+            // @ts-expect-error
+            sessionId?: string
+            // @ts-expect-error
+            requestedCapabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
 
-            constructor(capabilities, options) {
+            constructor(
+                public capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities,
+                public options: Options.WebDriver
+            ) {
                 this.capabilities = capabilities
                 this.options = options
             }
         }
 
         it('should do nothing if params contain no direct connect caps', function () {
-            const client = new TestClient({ platformName: 'baz' }, { hostname: 'bar' }) as Client
+            const client = new TestClient({ platformName: 'baz' }, { hostname: 'bar' } as any) as Client
             setupDirectConnect(client)
             expect(client.options.hostname).toEqual('bar')
         })
 
         it('should do nothing if params contain incomplete direct connect caps', function () {
-            const client = new TestClient({ platformName: 'baz', directConnectHost: 'baz' }, { hostname: 'bar' }) as Client
+            const client = new TestClient({ platformName: 'baz', 'appium:directConnectHost': 'baz' }, { hostname: 'bar' } as any) as Client
             setupDirectConnect(client)
             expect(client.options.hostname).toEqual('bar')
         })
@@ -197,16 +213,16 @@ describe('utils', () => {
         it('should update connection params if caps contain all direct connect fields', function () {
             const client = new TestClient({
                 platformName: 'baz',
-                directConnectProtocol: 'https',
-                directConnectHost: 'bar',
-                directConnectPort: 4321,
-                directConnectPath: '/'
+                'appium:directConnectProtocol': 'https',
+                'appium:directConnectHost': 'bar',
+                'appium:directConnectPort': 4321,
+                'appium:directConnectPath': '/'
             }, {
                 protocol: 'http',
                 hostname: 'foo',
                 port: 1234,
                 path: ''
-            }) as Client
+            } as any) as Client
             setupDirectConnect(client)
             expect(client.options.protocol).toBe('https')
             expect(client.options.hostname).toBe('bar')
@@ -217,16 +233,16 @@ describe('utils', () => {
         it('should update connection params even if path is empty string', function () {
             const client = new TestClient({
                 platformName: 'baz',
-                directConnectProtocol: 'https',
-                directConnectHost: 'bar',
-                directConnectPort: 4321,
-                directConnectPath: ''
+                'appium:directConnectProtocol': 'https',
+                'appium:directConnectHost': 'bar',
+                'appium:directConnectPort': 4321,
+                'appium:directConnectPath': ''
             }, {
                 protocol: 'http',
                 hostname: 'foo',
                 port: 1234,
                 path: ''
-            }) as Client
+            } as any) as Client
             setupDirectConnect(client)
             expect(client.options.protocol).toBe('https')
             expect(client.options.hostname).toBe('bar')
@@ -323,7 +339,7 @@ describe('utils', () => {
         })
 
         it('should handle sessionRequest error', async () => {
-            let error = await startWebDriverSession({
+            const error = await startWebDriverSession({
                 logLevel: 'warn',
                 capabilities: {}
             }).catch((err) => err)
@@ -404,7 +420,7 @@ describe('utils', () => {
             })
 
             it('command args with base64 script', async () => {
-                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Script[base64]>"')
+                (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Script[base64]>"')
 
                 const err = new Error('Timeout')
                 const cmdArgs = { script: Buffer.from('script').toString('base64') }
@@ -430,7 +446,7 @@ describe('utils', () => {
             })
 
             it('command args with base64 screenshot', async () => {
-                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Screenshot[base64]>"')
+                (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Screenshot[base64]>"')
 
                 const err = new Error('Timeout')
                 const cmdArgs = { file: Buffer.from('screen').toString('base64') }

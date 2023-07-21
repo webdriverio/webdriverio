@@ -1,20 +1,22 @@
 /* eslint-disable no-console */
-import fs from 'fs-extra'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import yarnInstall from 'yarn-install'
+import type { Argv } from 'yargs'
 
 import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
     convertPackageHashToObject
-} from '../utils'
-import { missingConfigurationPrompt } from './config'
-import { InstallCommandArguments, SupportedPackage } from '../types'
-import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
-import yargs from 'yargs'
+} from '../utils.js'
+import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
+import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
+import type { InstallCommandArguments, SupportedPackage } from '../types.js'
 
 const supportedInstallations = {
+    runner: SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
     plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
     reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) => convertPackageHashToObject(value)),
@@ -40,7 +42,7 @@ export const cmdArgs = {
     },
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)
@@ -81,20 +83,18 @@ export async function handler(argv: InstallCommandArguments) {
         return
     }
 
-    const localConfPath = path.join(process.cwd(), config)
-    if (!fs.existsSync(localConfPath)) {
+    const wdioConf = await formatConfigFilePaths(config)
+    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    if (!confAccess) {
         try {
-            const promptMessage = `Cannot install packages without a WebdriverIO configuration.
-You can create one by running 'wdio config'`
-
-            await missingConfigurationPrompt('install', promptMessage, yarn)
+            await missingConfigurationPrompt('install', wdioConf.fullPathNoExtension, yarn)
         } catch {
             process.exit(1)
             return
         }
     }
 
-    const configFile = fs.readFileSync(localConfPath, { encoding: 'utf-8' })
+    const configFile = await fs.readFile(wdioConf.fullPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -121,10 +121,10 @@ You can create one by running 'wdio config'`
     const newConfig = replaceConfig(configFile, type, name)
 
     if (!newConfig) {
-        throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
+        throw new Error(`Couldn't find "${type}" property in ${path.basename(wdioConf.fullPath)}`)
     }
 
-    fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
+    await fs.writeFile(wdioConf.fullPath, newConfig, { encoding: 'utf-8' })
     console.log('Your wdio.conf.js file has been updated.')
 
     process.exit(0)

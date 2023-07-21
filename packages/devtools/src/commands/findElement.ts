@@ -1,6 +1,6 @@
-import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElement as findElementUtil } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants.js'
+import { findElement as findElementUtil } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Find Element command is used to find an element in the current browsing context

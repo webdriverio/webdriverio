@@ -1,12 +1,16 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import path from 'node:path'
+
 import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import fs from 'fs-extra'
-import * as SeleniumStandalone from 'selenium-standalone'
+import SeleniumStandalone from 'selenium-standalone'
+import type { StartOpts, InstallOpts } from 'selenium-standalone'
 
-import { getFilePath, hasCapsWithSupportedBrowser } from './utils'
-import type { SeleniumStandaloneOptions } from './types'
+import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
+import type { SeleniumStandaloneOptions } from './types.js'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
 const log = logger('@wdio/selenium-standalone-service')
@@ -18,8 +22,8 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
-type SeleniumStartArgs = Partial<import('selenium-standalone').StartOpts>
-type SeleniumInstallArgs = Partial<import('selenium-standalone').InstallOpts>
+type SeleniumStartArgs = Partial<StartOpts>
+type SeleniumInstallArgs = Partial<InstallOpts>
 type BrowserDrivers = {
     chrome?: string | boolean
     firefox?: string | boolean
@@ -123,7 +127,7 @@ export default class SeleniumStandaloneLauncher {
         this.process = await start
 
         if (typeof this._config.outputDir === 'string') {
-            this._redirectLogStream()
+            await this._redirectLogStream()
         }
 
         if (this.watchMode) {
@@ -140,11 +144,11 @@ export default class SeleniumStandaloneLauncher {
         }
     }
 
-    _redirectLogStream(): void {
+    async _redirectLogStream() {
         const logFile = getFilePath(this._config.outputDir!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        fs.ensureFileSync(logFile)
+        await fsp.mkdir(path.dirname(logFile), { recursive: true })
 
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this.process.stdout?.pipe(logStream)

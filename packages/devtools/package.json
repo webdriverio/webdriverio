@@ -1,19 +1,17 @@
 {
   "name": "devtools",
-  "version": "7.20.2",
+  "version": "8.12.1",
   "description": "A Chrome DevTools protocol binding that maps WebDriver commands into Chrome DevTools commands using Puppeteer",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/devtools",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
-  "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/devtools"
   },
   "keywords": [
     "devtoolsdriver"
@@ -21,22 +19,42 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "main": "./build/cjs/index.js",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./build/index.d.ts",
+        "default": "./build/index.js"
+      },
+      "require": {
+        "types": "./build/index.d.ts",
+        "default": "./build/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^17.0.4",
-    "@types/ua-parser-js": "^0.7.33",
-    "@wdio/config": "7.20.1",
-    "@wdio/logger": "7.19.0",
-    "@wdio/protocols": "7.20.2",
-    "@wdio/types": "7.20.0",
-    "@wdio/utils": "7.20.0",
+    "@types/node": "^20.1.0",
+    "@wdio/config": "8.12.1",
+    "@wdio/logger": "8.11.0",
+    "@wdio/protocols": "8.11.0",
+    "@wdio/types": "8.10.4",
+    "@wdio/utils": "8.12.1",
     "chrome-launcher": "^0.15.0",
-    "edge-paths": "^2.1.0",
-    "puppeteer-core": "^13.1.3",
+    "edge-paths": "^3.0.5",
+    "import-meta-resolve": "^3.0.0",
+    "puppeteer-core": "20.3.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.1",
-    "uuid": "^8.0.0"
+    "uuid": "^9.0.0",
+    "which": "^3.0.0"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.0"
+    "@types/ua-parser-js": "^0.7.33",
+    "@types/uuid": "^9.0.0"
   }
 }

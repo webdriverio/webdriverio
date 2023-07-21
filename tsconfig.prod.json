@@ -1,29 +1,29 @@
 {
-  "extends": "@tsconfig/node12/tsconfig.json",
+  "extends": "@tsconfig/node18/tsconfig.json",
 
   "compilerOptions": {
+    "outDir": "./build",
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
     "removeComments": false,
     "strictFunctionTypes": false,
+    "experimentalDecorators": true,
     "esModuleInterop": true,
-    "lib": ["dom", "es2019"],
-    "types": [
-      "node",
-      "jest"
-    ]
+    "moduleResolution": "Node",
+    "module": "ESNext",
+    "lib": ["dom", "es2021"],
+    "types": ["node"]
   },
 
   "exclude": [
     "node_modules",
+    "__mocks__",
     "packages/**/node_modules",
     "**/*.spec.ts",
-    "e2e/**/*",
     "coverage",
     "examples",
-    "jest.config.js",
     "/*.js"
   ]
 }

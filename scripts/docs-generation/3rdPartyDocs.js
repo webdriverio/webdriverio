@@ -1,22 +1,34 @@
-const fs = require('fs-extra')
-const path = require('path')
-const urljoin = require('url-join')
+import fs from 'node:fs/promises'
+import url from 'node:url'
+import path from 'node:path'
+import urljoin from 'url-join'
 
-const { downloadFromGitHub } = require('../utils')
-const { buildPreface } = require('../utils/helpers')
-const reporters3rdParty = require('./3rd-party/reporters.json')
-const services3rdParty = require('./3rd-party/services.json')
-const api3rdParty = require('./3rd-party/api.json')
+import { downloadFromGitHub } from '../utils/index.js'
+import { buildPreface } from '../utils/helpers.js'
 
+import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
+import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
+import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = [{
-    category: 'docs', namePlural: 'Reporter', nameSingular: 'Reporter', packages3rdParty: reporters3rdParty
+    category: 'docs',
+    namePlural: 'Reporter',
+    nameSingular: 'Reporter',
+    packages3rdParty: reporters3rdParty
 }, {
-    category: 'docs', namePlural: 'Services', nameSingular: 'Service', packages3rdParty: services3rdParty
+    category: 'docs',
+    namePlural: 'Services',
+    nameSingular: 'Service',
+    packages3rdParty: services3rdParty
 }, {
-    category: 'api', namePlural: 'Testrunner', nameSingular: '', packages3rdParty: api3rdParty
+    category: 'api',
+    namePlural: 'Testrunner',
+    nameSingular: '',
+    packages3rdParty: api3rdParty
 }]
 
-const githubReadme = '/README.md'
+const githubReadme = 'README.md'
 
 const readmeHeaderLines = 9
 const readmeHeaders = ['===', '# ']
@@ -29,12 +41,14 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
  * Generate docs for 3rd party reporters and services
  * @param {object} sidebars website/sidebars
  */
-exports.generate3rdPartyDocs = async (sidebars) => {
+export async function generate3rdPartyDocs (sidebars) {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
-        await fs.ensureDir(categoryDir)
+        await fs.mkdir(categoryDir, { recursive: true })
+        const sidebar = sidebars[category]
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
+        const items = []
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'main' } of packages3rdParty) {
             const readme = locations
                 ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
                     .then((readmes) => readmes.join('\n'))
@@ -50,17 +64,13 @@ exports.generate3rdPartyDocs = async (sidebars) => {
                 return
             }
 
-            if (!sidebars[category][namePlural]) {
-                sidebars[category][namePlural] = []
-            }
-
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
-
-            sidebars[category][namePlural].push(
-                category === 'api' ? `${category}/${id}` : id
-            )
+            items.push(category === 'api' ? `${category}/${id}` : id)
         }
+
+        const section = sidebar.find((s) => s.label === namePlural)
+        section.items.push(...items)
     }
 }
 

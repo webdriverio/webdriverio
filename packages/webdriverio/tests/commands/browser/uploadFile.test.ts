@@ -1,8 +1,19 @@
-import path from 'path'
-import archiver from 'archiver'
-import { remote } from '../../../src'
+import { expect, describe, it, afterEach, vi } from 'vitest'
 
-jest.mock('fs')
+import path from 'node:path'
+import archiver from 'archiver'
+import { remote } from '../../../src/index.js'
+
+vi.mock('node:fs', () => ({
+    default: {
+        createReadStream: vi.fn(),
+        existsSync: vi.fn()
+    }
+}))
+vi.mock('got')
+vi.mock('archiver')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('uploadFile', () => {
     it('should throw if browser does not support it', async function () {
@@ -25,6 +36,7 @@ describe('uploadFile', () => {
             }
         })
 
+        // @ts-expect-error wrong parameter
         await expect(browser.uploadFile(123)).rejects.toEqual(
             new Error('number or type of arguments don\'t agree with uploadFile command'))
     })
@@ -36,7 +48,7 @@ describe('uploadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.file = jest.fn().mockReturnValue(Promise.resolve())
+        browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
         const archiverMock = archiver('zip')
         browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
@@ -51,14 +63,14 @@ describe('uploadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.file = jest.fn().mockReturnValue(Promise.resolve())
+        browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
-        let commandError = null
+        let commandError: Error | null = null
         const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
             .catch((e: Error) => (commandError = e))
-        expect((archiverMock.on as jest.Mock).mock.calls[0][0]).toBe('error')
-        ;(archiverMock.on as jest.Mock).mock.calls[0][1](new Error('boom'))
+        expect(vi.mocked(archiverMock.on).mock.calls[0][0]).toBe('error')
+        vi.mocked(archiverMock.on).mock.calls[0][1](new Error('boom'))
 
         await command
         expect(commandError).toEqual(new Error('boom'))
@@ -71,16 +83,16 @@ describe('uploadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.file = jest.fn().mockReturnValue(Promise.resolve('/some/local/path'))
+        browser.file = vi.fn().mockReturnValue(Promise.resolve('/some/local/path'))
 
         const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-        expect((archiverMock.on as jest.Mock).mock.calls[1][0]).toBe('data')
-        expect((archiverMock.on as jest.Mock).mock.calls[2][0]).toBe('end')
+        expect(vi.mocked(archiverMock.on).mock.calls[1][0]).toBe('data')
+        expect(vi.mocked(archiverMock.on).mock.calls[2][0]).toBe('end')
 
-        ;(archiverMock.on as jest.Mock).mock.calls[1][1](Buffer.alloc(10))
-        ;(archiverMock.on as jest.Mock).mock.calls[1][1](Buffer.alloc(33))
-        ;(archiverMock.on as jest.Mock).mock.calls[2][1]()
+        vi.mocked(archiverMock.on).mock.calls[1][1](Buffer.alloc(10))
+        vi.mocked(archiverMock.on).mock.calls[1][1](Buffer.alloc(33))
+        vi.mocked(archiverMock.on).mock.calls[2][1]()
 
         const localPath = await command
         expect(browser.file).toBeCalledWith('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
@@ -89,8 +101,8 @@ describe('uploadFile', () => {
 
     afterEach(() => {
         const archiverMock = archiver('zip')
-        ;(archiverMock.on as jest.Mock).mockClear()
-        ;(archiverMock.append as jest.Mock).mockClear()
-        ;(archiverMock.finalize as jest.Mock).mockClear()
+        vi.mocked(archiverMock.on).mockClear()
+        vi.mocked(archiverMock.append).mockClear()
+        vi.mocked(archiverMock.finalize).mockClear()
     })
 })

@@ -1,6 +1,12 @@
-// @ts-ignore mocked (original defined in webdriver package)
+import path from 'node:path'
+import { expect, describe, it, vi } from 'vitest'
+// @ts-expect-error
 import got from 'got'
-import { remote } from '../../../src'
+
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
@@ -12,11 +18,11 @@ describe('isEnabled test', () => {
         })
 
         await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
-        expect(got.mock.calls[1][0].pathname)
+        expect((vi.mocked(got).mock.calls[1][0] as any).pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(got.mock.calls[1][1].json.script)
+        expect((vi.mocked(got).mock.calls[1][1] as any).json.script)
             .toBe('return ((a, b, c) => a + b + c).apply(null, arguments)')
-        expect(got.mock.calls[1][1].json.args)
+        expect((vi.mocked(got).mock.calls[1][1] as any).json.args)
             .toEqual([1, 2, 3])
     })
 
@@ -40,7 +46,9 @@ describe('isEnabled test', () => {
             }
         })
 
-        expect(() => browser.execute(null)).toThrow()
-        expect(() => browser.execute(1234)).toThrow()
+        // @ts-expect-error
+        await expect(() => browser.execute(null)).rejects.toThrow()
+        // @ts-expect-error
+        await expect(() => browser.execute(1234)).rejects.toThrow()
     })
 })

@@ -1,10 +1,12 @@
-import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input'
+import type { KeyInput } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
+import { _keyDefinitions } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
+import type { Keyboard, Mouse } from 'puppeteer-core/lib/esm/puppeteer/common/Input.js'
 
-import getElementRect from './getElementRect'
-import { ELEMENT_KEY } from '../constants'
-import { sleep } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
+import getElementRect from './getElementRect.js'
+import getWindowRect from './getWindowRect.js'
+import { ELEMENT_KEY, UNICODE_CHARACTERS } from '../constants.js'
+import { sleep } from '../utils.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 const KEY = 'key'
 const POINTER = 'pointer'
@@ -15,6 +17,8 @@ interface Action {
     value?: string
     x?: number
     y?: number
+    deltaX?: number
+    deltaY?: number
     button?: number
     origin?: any
 }
@@ -81,13 +85,20 @@ export default async function performActions(
                  * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!keyDefinitions[singleAction.value as unknown as KeyInput]) {
+                const [key] = (Object.entries(UNICODE_CHARACTERS)
+                    .find(([, charValue]) => charValue === singleAction.value) || []) as [KeyInput | undefined, never]
+                const pptrKey = key && _keyDefinitions[key]
+                    ? key
+                    : _keyDefinitions[singleAction.value as unknown as KeyInput]
+                        ? singleAction.value as KeyInput
+                        : undefined
+                if (!pptrKey) {
                     await page.keyboard.sendCharacter(singleAction.value as unknown as KeyInput)
                     skipChars.push(singleAction.value)
                     continue
                 }
 
-                await keyboardFn(singleAction.value)
+                await keyboardFn(pptrKey)
                 continue
             }
             continue
@@ -130,8 +141,9 @@ export default async function performActions(
 
                 const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
                 const keyboardFn = (page.mouse[cmd as keyof Mouse] as Function).bind(page.mouse)
-                let { x, y, duration, button, origin } = singleAction
+                const { duration, button, origin } = singleAction
 
+                let { x, y } = singleAction
                 if (cmd === 'move') {
                     /**
                      * set location relative from last position if origin is set to pointer
@@ -176,6 +188,30 @@ export default async function performActions(
                     await sleep(duration)
                 }
                 continue
+            }
+            continue
+        }
+
+        if (action.type === 'wheel') {
+            for (const singleAction of action.actions) {
+                const deltaX = singleAction.deltaX || 0
+                const deltaY = singleAction.deltaY || 0
+
+                if (singleAction.origin) {
+                    const windowSize = await getWindowRect.call(this)
+                    const location = await getElementRect.call(this, { elementId: singleAction.origin[ELEMENT_KEY] })
+                    await page.mouse.wheel({
+                        deltaX: location.x + deltaX,
+                        deltaY: location.y - windowSize.height + deltaY
+                    })
+                } else if (singleAction.x || singleAction.y) {
+                    await page.mouse.wheel({
+                        deltaX: (singleAction.x || 0) + deltaX,
+                        deltaY: (singleAction.y || 0) + deltaY
+                    })
+                } else {
+                    await page.mouse.wheel({ deltaX, deltaY })
+                }
             }
             continue
         }

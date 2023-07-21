@@ -3,9 +3,6 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
 
 Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
@@ -71,7 +68,7 @@ To use DevTools as your automation protocol switch the `automationProtocol` flag
 <TabItem value="testrunner">
 
 ```js title="wdio.conf.js"
-exports.config = {
+export const config = {
     // ...
     automationProtocol: 'devtools'
     // ...
@@ -117,41 +114,39 @@ We recommend wrapping your Puppeteer calls within the `call` command, so that al
 <TabItem value="standalone">
 
 ```js
-const { remote } = require('webdriverio')
+import { remote } from 'webdriverio'
 
-(async () => {
-    const browser = await remote({
-        automationProtocol: 'devtools',
-        capabilities: {
-            browserName: 'chrome'
-        }
-    })
+const browser = await remote({
+    automationProtocol: 'devtools',
+    capabilities: {
+        browserName: 'chrome'
+    }
+})
 
-    // WebDriver command
-    await browser.url('https://webdriver.io')
+// WebDriver command
+await browser.url('https://webdriver.io')
 
-    // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
-    const puppeteer = await browser.getPuppeteer()
+// get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
+const puppeteer = await browser.getPuppeteer()
 
-    // switch to Puppeteer to intercept requests
-    const page = (await puppeteer.pages())[0]
-    await page.setRequestInterception(true)
-    page.on('request', interceptedRequest => {
-        if (interceptedRequest.url().endsWith('webdriverio.png')) {
-            return interceptedRequest.continue({
-                url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
-            })
-        }
+// switch to Puppeteer to intercept requests
+const page = (await puppeteer.pages())[0]
+await page.setRequestInterception(true)
+page.on('request', interceptedRequest => {
+    if (interceptedRequest.url().endsWith('webdriverio.png')) {
+        return interceptedRequest.continue({
+            url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
+        })
+    }
 
-        interceptedRequest.continue()
-    })
+    interceptedRequest.continue()
+})
 
-    // continue with WebDriver commands
-    await browser.refresh()
-    await browser.pause(2000)
+// continue with WebDriver commands
+await browser.refresh()
+await browser.pause(2000)
 
-    await browser.deleteSession()
-})()
+await browser.deleteSession()
 ```
 
 </TabItem>

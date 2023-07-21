@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scrollIntoView test > desktop > scrolls by default the element to the top 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 15,
+          "deltaY": 20,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action1",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
+exports[`scrollIntoView test > desktop > scrolls element using scroll into view options 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": -260,
+          "deltaY": -365,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action4",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
+exports[`scrollIntoView test > desktop > scrolls element when using boolean scroll options 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 15,
+          "deltaY": 20,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action2",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
+exports[`scrollIntoView test > desktop > scrolls element when using boolean scroll options 2`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 15,
+          "deltaY": 20,
+          "duration": 200,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action3",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;

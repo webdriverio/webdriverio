@@ -1,6 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-import { EventEmitter } from 'events'
+import fs from 'node:fs'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
 import { transformAsync as babelTransform } from '@babel/core'
 import babelPluginIstanbul from 'babel-plugin-istanbul'
 import libCoverage from 'istanbul-lib-coverage'
@@ -9,10 +9,10 @@ import reports from 'istanbul-reports'
 
 import logger from '@wdio/logger'
 
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
-import type { CoverageReporterOptions, Coverage } from '../types'
+import type { CoverageReporterOptions, Coverage } from '../types.js'
 
 const log = logger('@wdio/devtools-service:CoverageGatherer')
 
@@ -196,7 +196,7 @@ export default class CoverageGatherer extends EventEmitter {
             // values can be nested/flat/pkg. Defaults to 'pkg'
             defaultSummarizer: 'nested',
             coverageMap,
-            sourceFinder: (source) => {
+            sourceFinder: (source: string) => {
                 const f = fs.readFileSync(path.join(this._coverageLogDir, 'files', source.replace(process.cwd(), '')))
                 return f.toString('utf8')
             }

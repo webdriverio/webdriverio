@@ -1,11 +1,12 @@
+import { types as nodeUtilTypes } from 'node:util'
+import type { AssertionError } from 'node:assert'
+
 import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
-import RunnableStats from './runnable'
-import { Argument } from '../types'
-import { pad, color, colorLines } from '../utils'
-import { AssertionError } from 'assert'
-import { types as nodeUtilTypes } from 'util'
+import RunnableStats from './runnable.js'
+import { pad, color, colorLines } from '../utils.js'
+import type { Argument } from '../types.js'
 
 const maxStringLength = 2048
 
@@ -16,6 +17,7 @@ export interface Test {
     fullTitle: string
     pending: boolean
     file?: string
+    body?: string
     duration?: number
     cid: string
     specs: string[]
@@ -63,6 +65,7 @@ export default class TestStats extends RunnableStats {
     pendingReason?: string
     errors?: Error[]
     error?: Error
+    body?: string
 
     constructor(test: Test) {
         super('test')
@@ -73,7 +76,9 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
         this.retries = test.retries
-        this.parent= test.parent
+        this.parent = test.parent
+        // Mocha only
+        this.body = test.body
 
         /**
          * initial test state is pending

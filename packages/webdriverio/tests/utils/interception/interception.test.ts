@@ -1,16 +1,18 @@
-import NetworkInterception from '../../../src/utils/interception'
-import Timer from '../../../src/utils/Timer'
+import { test, expect, vi } from 'vitest'
+import NetworkInterception from '../../../src/utils/interception/index.js'
+import Timer from '../../../src/utils/Timer.js'
 
 const browserMock = {
-    call: jest.fn((cb) => cb()),
+    call: vi.fn((cb) => cb()),
     options: {
         waitforTimeout: 123,
         waitforInterval: 321
     }
 }
 
-jest.mock('../../../src/utils/Timer',
-    () => jest.fn().mockReturnValue(Promise.resolve()))
+vi.mock('../../../src/utils/Timer', () => ({
+    default: vi.fn().mockReturnValue(Promise.resolve())
+}))
 
 test('should use default interval and timeout if invalid', () => {
     // @ts-expect-error
@@ -18,7 +20,7 @@ test('should use default interval and timeout if invalid', () => {
     mock.waitForResponse()
     expect(Timer).toBeCalledWith(321, 123, expect.any(Function), true)
 
-    ;(Timer as jest.Mock).mockClear()
+    vi.mocked(Timer).mockClear()
     mock.waitForResponse({
         // @ts-ignore test invalid parameter
         timeout: 'foo',
@@ -27,7 +29,7 @@ test('should use default interval and timeout if invalid', () => {
     })
     expect(Timer).toBeCalledWith(321, 123, expect.any(Function), true)
 
-    ;(Timer as jest.Mock).mockClear()
+    vi.mocked(Timer).mockClear()
     mock.waitForResponse({
         timeout: 111,
         interval: 444
@@ -38,18 +40,18 @@ test('should use default interval and timeout if invalid', () => {
 test('allows custom error message', async () => {
     // @ts-expect-error
     const mock = new NetworkInterception('**/foo', { method: 'post' }, browserMock)
-    ;(Timer as jest.Mock).mockReturnValue(Promise.reject(new Error('timeout')))
+    vi.mocked(Timer).mockRejectedValue(new Error('timeout'))
     let err = await mock.waitForResponse({
         timeoutMsg: 'uups'
     }).catch((err: Error) => err)
     expect(err.message).toBe('uups')
 
-    ;(Timer as jest.Mock).mockClear()
+    vi.mocked(Timer).mockClear()
     err = await mock.waitForResponse().catch((err: Error) => err)
     expect(err.message).toContain('waitForResponse timed out after')
 
-    ;(Timer as jest.Mock).mockClear()
-    ;(Timer as jest.Mock).mockReturnValue(Promise.reject(new Error('bug')))
+    vi.mocked(Timer).mockClear()
+    vi.mocked(Timer).mockRejectedValue(new Error('bug'))
     err = await mock.waitForResponse().catch((err: Error) => err)
     expect(err.message).toBe('waitForResponse failed with the following reason: bug')
 })

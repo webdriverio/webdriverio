@@ -1,7 +1,7 @@
-import { enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types'
+import { enhanceElementsArray } from '../../utils/index.js'
+import { getElements } from '../../utils/getElementObject.js'
+import { ELEMENT_KEY } from '../../constants.js'
+import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types.js'
 
 /**
  *
@@ -22,11 +22,11 @@ import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } fr
  * </example>
  *
  * @alias custom$$
- * @param {String} strategyName
- * @param {Any} strategyArguments
+ * @param {string} strategyName
+ * @param {*} strategyArguments
  * @return {ElementArray}
  */
-export default async function custom$$ (
+export async function custom$$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]
@@ -52,5 +52,5 @@ export default async function custom$$ (
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
     const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
+    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }

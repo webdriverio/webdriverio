@@ -1,16 +1,24 @@
-import got, { Response } from 'got'
-import logger from '@wdio/logger'
+import type { RequestError } from 'got'
+import got from 'got'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
+import type { GetValueOptions } from './types'
 
-const log = logger('@wdio/shared-store-service')
+let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
+const baseUrlPromise = new Promise<string>((resolve) => {
+    baseUrlResolve = resolve
+})
 
-const WAIT_INTERVAL = 100
-const pendingValues = new Map<string, any>()
-let waitTimeout: NodeJS.Timer
-
-let baseUrl: string | undefined
-export const setPort = (port: string) => { baseUrl = `http://localhost:${port}` }
+let isBaseUrlReady = false
+export const setPort = (port: number) => {
+    /**
+     * if someone calls `setValue` in `onPrepare` we don't have a base url
+     * set as the launcher is called after user hooks. In this case we need
+     * to wait until it is set and flush all messages.
+     */
+    baseUrlResolve(`http://localhost:${port}`)
+    isBaseUrlReady = true
+}
 
 /**
  * make a request to the server to get a value from the store
@@ -18,7 +26,8 @@ export const setPort = (port: string) => { baseUrl = `http://localhost:${port}` 
  * @returns {*}
  */
 export const getValue = async (key: string): Promise<string | number | boolean | JsonObject | JsonArray | null | undefined> => {
-    const res = await got.post(`${baseUrl}/get`, { json: { key }, responseType: 'json' }).catch(errHandler)
+    const baseUrl = await baseUrlPromise
+    const res = await got.get(`${baseUrl}/${key}`, { responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 
@@ -28,40 +37,48 @@ export const getValue = async (key: string): Promise<string | number | boolean |
  * @param {*}       value `store[key]` value (plain object)
  */
 export const setValue = async (key: string, value: JsonCompatible | JsonPrimitive) => {
-    /**
-     * if someone calls `setValue` in `onPrepare` we don't have a base url
-     * set as the launcher is called after user hooks. In this case we need
-     * to wait until it is set and flush all messages.
-     */
-    if (baseUrl) {
-        return got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
-    }
+    const setPromise = baseUrlPromise.then((baseUrl) => {
+        return got.post(`${baseUrl}/`, { json: { key, value } }).catch(errHandler)
+    })
 
-    log.info('Shared store server not yet started, collecting value')
-    pendingValues.set(key, value)
-
-    if (waitTimeout) {
-        return
-    }
-
-    log.info('Check shared store server to start')
-    waitTimeout = setInterval(async () => {
-        if (!baseUrl) {
-            return
-        }
-
-        log.info(`Shared store server started, flushing ${pendingValues.size} values`)
-        clearInterval(waitTimeout)
-        await Promise.all([...pendingValues.entries()].map(async ([key, value]) => {
-            await got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
-            pendingValues.delete(key)
-        })).then(
-            () => log.info('All pending values were successfully stored'),
-            (err) => log.error(`Failed to store all values: ${err.stack}`)
-        )
-    }, WAIT_INTERVAL)
+    return isBaseUrlReady ? setPromise : Promise.resolve()
 }
 
-const errHandler = (err: Response<Error>) => {
-    log.warn(err.statusCode, err.statusMessage, err.url, err.body)
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const setResourcePool = async (key: string, value: JsonArray) => {
+    const setPromise = baseUrlPromise.then((baseUrl) => {
+        return got.post(`${baseUrl}/pool`, { json: { key, value } }).catch(errHandler)
+    })
+
+    return isBaseUrlReady ? setPromise : Promise.resolve()
+}
+
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const getValueFromPool = async (key: string, options?: GetValueOptions) => {
+    const baseUrl = await baseUrlPromise
+    const res = await got.get(`${baseUrl}/pool/${key}${typeof options?.timeout === 'number' ? `?timeout=${options.timeout}` : '' }`, { responseType: 'json' }).catch(errHandler)
+    return res?.body ? (res.body as JsonObject).value : undefined
+}
+
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCompatible) => {
+    const baseUrl = await baseUrlPromise
+    const res = await got.post(`${baseUrl}/pool/${key}`, { json: { value }, responseType: 'json' }).catch(errHandler)
+    return res?.body ? (res.body as JsonObject).value : undefined
+}
+
+const errHandler = (err: RequestError) => {
+    throw new Error(`${err.response?.body || 'Shared store server threw an error'}`)
 }

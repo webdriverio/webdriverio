@@ -1,5 +1,5 @@
 /**
- * The browser method  `addCommand` helps you to write your own set of commands. You can write your command in a synchronous way or in an asynchronous way.
+ * The browser method  `addCommand` helps you to write your own set of commands.
  *
  * :::info
  *
@@ -28,7 +28,7 @@
     })
  * </example>
  * @alias browser.addCommand
- * @param {String} name name of the custom command
+ * @param {string} name name of the custom command
  * @param {Function} callback  function to be called
  * @param {Boolean=} elementScope extend the Element object instead of the Browser object
  * @type utility

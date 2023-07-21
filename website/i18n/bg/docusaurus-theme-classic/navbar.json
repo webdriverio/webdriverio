@@ -1,0 +1,26 @@
+{
+  "item.label.Docs": {
+    "message": "Документация",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.API": {
+    "message": "API",
+    "description": "Navbar item with label API"
+  },
+  "item.label.Blog": {
+    "message": "Блог",
+    "description": "Navbar item with label Blog"
+  },
+  "item.label.Contribute": {
+    "message": "Принос",
+    "description": "Navbar item with label Contribute"
+  },
+  "item.label.Community": {
+    "message": "Общност",
+    "description": "Navbar item with label Community"
+  },
+  "item.label.v8": {
+    "message": "v8",
+    "description": "Navbar item with label v8"
+  }
+}

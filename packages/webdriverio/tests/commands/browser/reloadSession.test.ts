@@ -1,6 +1,12 @@
+import path from 'node:path'
+import { expect, describe, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('reloadSession test', () => {
     const scenarios = [{
@@ -31,14 +37,14 @@ describe('reloadSession test', () => {
     scenarios.forEach(scenario => {
         it(scenario.name, async () => {
             const oldSessionId = got.getSessionId()
-            const hook = jest.fn()
+            const hook = vi.fn()
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
                     // @ts-ignore mock feature
                     jsonwpMode: scenario.jsonwpMode,
                     browserName: 'foobar'
-                },
+                } as any,
                 onReload: [hook]
             })
 
@@ -57,24 +63,25 @@ describe('reloadSession test', () => {
     })
 
     it('should be ok even if deleteSession throws an exception (JSONWP)', async () => {
-        let scenario = {
+        const scenario = {
             sessionIdMock: 'foobar-234',
             requestMock: [{}, {}],
             newSessionId: 'foobar-234',
             jsonwpMode: true
         }
 
-        const hook = jest.fn()
+        const hook = vi.fn()
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 // @ts-ignore mock feature
                 jsonwpMode: scenario.jsonwpMode,
                 browserName: 'foobar'
-            },
+            } as any,
             onReload: [hook]
         })
 
+        // @ts-expect-error
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
         got.setSessionId(scenario.sessionIdMock)
@@ -89,24 +96,25 @@ describe('reloadSession test', () => {
     })
 
     it('should be ok even if deleteSession throws an exception (non-JSONWP)', async () => {
-        let scenario = {
+        const scenario = {
             sessionIdMock: 'ignored if jsonwpMode is false',
             requestMock: [{}, {}],
             newSessionId: undefined,
             jsonwpMode: false
         }
 
-        const hook = jest.fn()
+        const hook = vi.fn()
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 // @ts-ignore mock feature
                 jsonwpMode: scenario.jsonwpMode,
                 browserName: 'foobar'
-            },
+            } as any,
             onReload: [hook]
         })
 
+        // @ts-expect-error
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
         got.setSessionId(scenario.sessionIdMock)
@@ -123,25 +131,25 @@ describe('reloadSession test', () => {
     it('should disconnect puppeteer session if active', async () => {
 
         const clientMock = {
-            send: jest.fn(),
-            on: jest.fn()
+            send: vi.fn(),
+            on: vi.fn()
         }
 
         const pageMock = {
-            target: jest.fn().mockReturnValue({
-                createCDPSession: jest.fn().mockReturnValue(Promise.resolve(clientMock))
+            target: vi.fn().mockReturnValue({
+                createCDPSession: vi.fn().mockReturnValue(Promise.resolve(clientMock))
             }),
-            evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
+            evaluate: vi.fn().mockReturnValue(Promise.resolve(true))
         }
 
         const puppeteerMock = {
-            pages: jest.fn().mockReturnValue([pageMock]),
-            isConnected: jest.fn().mockReturnValue(true),
-            disconnect: jest.fn()
+            pages: vi.fn().mockReturnValue([pageMock]),
+            isConnected: vi.fn().mockReturnValue(true),
+            disconnect: vi.fn()
         }
-        const hook = jest.fn()
+        const hook = vi.fn()
 
-        let browser = await remote({
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 // @ts-ignore mock feature
@@ -149,6 +157,7 @@ describe('reloadSession test', () => {
             },
             onReload: [hook]
         })
+        // @ts-expect-error
         browser.puppeteer = puppeteerMock
         await browser.mock('/foobar')
         await browser.reloadSession()

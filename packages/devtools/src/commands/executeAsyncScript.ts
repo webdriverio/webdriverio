@@ -1,7 +1,7 @@
-import command from '../scripts/executeAsyncScript'
-import { transformExecuteArgs, transformExecuteResult } from '../utils'
-import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/executeAsyncScript.js'
+import { transformExecuteArgs, transformExecuteResult } from '../utils.js'
+import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Execute Async Script command causes JavaScript to execute as an anonymous function.

@@ -1,8 +1,14 @@
+import path from 'node:path'
+import { expect, test, beforeEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import puppeteer from 'puppeteer-core'
 
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('puppeteer-core')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 // @ts-ignore mock feature
 const cdpSession = new puppeteer.CDPSessionMock()
@@ -19,10 +25,13 @@ test('should fail if wrong params applied', async () => {
         }
     })
 
-    let err = await browser.throttle().catch((err: Error) => err)
+    // @ts-expect-error wrong parameter
+    let err: Error = await browser.throttle().catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
+    // @ts-expect-error wrong parameter
     err = await browser.throttle(123).catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
+    // @ts-expect-error wrong parameter
     err = await browser.throttle('FOOBAR').catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
 })
@@ -60,6 +69,7 @@ test('should allow to send objects as param', async () => {
         }
     })
 
+    // @ts-expect-error wrong parameter
     await browser.throttle({ foo: 'bar' })
     expect(cdpSession.send).toBeCalledWith(
         'Network.emulateNetworkConditions',

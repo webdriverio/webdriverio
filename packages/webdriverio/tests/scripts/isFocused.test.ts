@@ -1,11 +1,11 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
-
-import isFocused from '../../src/scripts/isFocused'
+import { it, expect, describe } from 'vitest'
+import isFocused from '../../src/scripts/isFocused.js'
 
 describe('isFocused script', () => {
     it('should check if elem is active', () => {
-        expect(isFocused(global.document.activeElement)).toEqual(true)
+        expect(isFocused(global.document.activeElement!)).toEqual(true)
     })
 })

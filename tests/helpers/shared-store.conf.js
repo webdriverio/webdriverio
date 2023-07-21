@@ -1,8 +1,9 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
-    beforeSuite () {
-        browser.sharedStore.set(browser.sessionId, browser.capabilities)
+export const config = Object.assign({}, baseConfig, {
+    async beforeSuite () {
+        await browser.sharedStore.setResourcePool('test-resource-pool', [1, 2, 3])
+        await browser.sharedStore.set(browser.sessionId, browser.capabilities)
     },
-    services: [...config.services, 'shared-store']
+    services: [...baseConfig.services, 'shared-store']
 })

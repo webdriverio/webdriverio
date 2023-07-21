@@ -1,6 +1,6 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     async beforeCommand () {
         await browser.pause(100)
     },

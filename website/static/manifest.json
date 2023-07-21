@@ -2,7 +2,7 @@
   "name": "WebdriverIO",
   "short_name": "WebdriverIO",
   "theme_color": "#ea5a07",
-  "background_color": "#efefef",
+  "background_color": "#dfdfdf",
   "display": "standalone",
   "scope": "./",
   "start_url": "./index.html",
