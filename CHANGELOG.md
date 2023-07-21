@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.32.2 (2023-07-21)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#10751](https://github.com/webdriverio/webdriverio/pull/10751) Fix error in onHookEnd in reporter for Mocha ([@sriteja777](https://github.com/sriteja777))
+
+#### Committers: 1
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.32.1 (2023-07-11)
 
 #### :bug: Bug Fix
