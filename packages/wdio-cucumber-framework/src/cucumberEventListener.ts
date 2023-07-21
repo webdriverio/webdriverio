@@ -31,7 +31,6 @@ export default class CucumberEventListener extends EventEmitter {
 
     constructor (eventBroadcaster: EventEmitter, private _pickleFilter: InstanceType<typeof PickleFilter>) {
         super()
-        this._cwd = process.cwd()
         let results: TestStepResult[] = []
         eventBroadcaster.on('envelope', (envelope: Envelope) => {
             if (envelope.gherkinDocument) {
