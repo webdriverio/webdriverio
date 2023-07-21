@@ -155,8 +155,8 @@ module.exports = {
                     label: 'Blog',
                     to: 'blog',
                 }, {
-                    label: 'Tidelift Subscription',
-                    to: '/docs/enterprise/',
+                    label: 'Sponsor',
+                    to: 'docs/sponsor',
                 }, {
                     label: 'Donate to WebdriverIO',
                     href: 'https://opencollective.com/webdriverio',

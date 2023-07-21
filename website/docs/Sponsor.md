@@ -6,7 +6,7 @@ title: Become a WebdriverIO Sponsor
 WebdriverIO is an MIT licensed open source project and completely free to use. The tremendous amount of effort needed to maintain such a large ecosystem and develop new features for the project is only made sustainable thanks to the generous financial backing of our sponsors.
 
 ## How to Sponsor​
-Sponsorships can be done via [GitHub Sponsors](https://github.com/sponsors/webdriverio), [Tidelift](https://www.tidelift.com/subscription/pkg/npm-webdriverio?utm_source=npm-webdriverio&utm_medium=github_sponsor_button) or [OpenCollective](https://opencollective.com/webdriverio). Invoices can be obtained via GitHub's payment system. Both monthly-recurring sponsorships and one-time donations are accepted. Recurring sponsorships are entitled to logo placements as specified in Sponsorship Tiers.
+Sponsorships can be done via [GitHub Sponsors](https://github.com/sponsors/webdriverio), [Tidelift](enterprise) or [OpenCollective](https://opencollective.com/webdriverio). Invoices can be obtained via GitHub's payment system. Both monthly-recurring sponsorships and one-time donations are accepted. Recurring sponsorships are entitled to logo placements as specified in Sponsorship Tiers.
 
 If you have questions regarding tiers, payment logistics, or sponsor exposure data, please reach out to [sponsor@webdriver.io](mailto:sponsor@webdriver.io).
 
@@ -40,4 +40,9 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 
 ### 🥈 Silver
 
-[![Lambdatest](https://raw.githubusercontent.com/webdriverio/webdriverio/main/.github/sponsors/LambdaTest_Black_Logo.svg)](https://www.lambdatest.com/)
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/lambdatest_black.svg"
+    darkImageSrc="/img/sponsors/lambdatest_white.svg"
+    alt="Lambdatest"
+    link="https://www.lambdatest.com/"
+/>
