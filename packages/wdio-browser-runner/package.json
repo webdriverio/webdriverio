@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "8.13.7",
+  "version": "8.13.8",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
