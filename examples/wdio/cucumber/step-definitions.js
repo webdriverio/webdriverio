@@ -32,7 +32,7 @@ Then(/^should the element "([^"]*)" be (\d+(?:\.\d+)?)px wide and (\d+(?:\.\d+)?
     const elemSize = await $(selector).getSize()
     expect(elemSize.width).toBe(Number(width))
     expect(elemSize.height).toBe(Number(height))
-
+})
 
 Then(/^should the title of the page be "([^"]*)"$/, async (expectedTitle) => {
     await expect(browser).toHaveTitle(expectedTitle)
