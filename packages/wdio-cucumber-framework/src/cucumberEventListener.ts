@@ -10,10 +10,12 @@ import type { Capabilities } from '@wdio/types'
 import { HookParams } from './types'
 import { addKeywordToStep, filterPickles, getRule } from './utils'
 import { ReporterScenario } from './constants'
+import path from 'node:path'
 
 const log = logger('CucumberEventListener')
 
 export default class CucumberEventListener extends EventEmitter {
+    #cwd = process.cwd()
     private _gherkinDocEvents: GherkinDocument[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
@@ -438,10 +440,14 @@ export default class CucumberEventListener extends EventEmitter {
             /**
              * match based on Cucumber pickle filter
              */
-            .filter(([, fakeId]) => this._pickleFilter.matches({
-                gherkinDocument,
-                pickle: this._scenarios.find(s => s.id === fakeId) as Pickle
-            }))
+            .filter(([, fakeId]) => {
+                const pickle = { ...this._scenarios.find(s => s.id === fakeId) } as Pickle
+                pickle.uri = path.relative(this.#cwd, pickle.uri)
+                return this._pickleFilter.matches({
+                    gherkinDocument,
+                    pickle
+                })
+            })
             .map(([id]) => id)
     }
 }
