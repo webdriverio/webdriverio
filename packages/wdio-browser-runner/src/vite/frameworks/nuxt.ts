@@ -30,34 +30,33 @@ export async function optimizeForNuxt (viteConfig: Partial<InlineConfig>, option
     }
 
     globalThis.defineNuxtConfig = (opts: unknown) => opts
-    try {
-        const nuxtConfig = (await import(nuxtConfigPath)).default
-        const Unimport = (await import('unimport/unplugin')).default
-        const { scanDirExports } = await import('unimport')
-        const { loadNuxt } = await import('nuxt')
-        const nuxt = await loadNuxt(nuxtConfig)
-        const composablesDirs: string[] = []
+    const nuxtConfig = (await import(nuxtConfigPath)).default
+    const Unimport = (await import('unimport/unplugin')).default
+    const { scanDirExports } = await import('unimport')
+    const { loadNuxt } = await import('nuxt')
+    const nuxt = await loadNuxt(nuxtConfig)
 
-        for (const layer of nuxt._layers) {
-            composablesDirs.push(path.resolve(layer.config.srcDir, 'composables'))
-            composablesDirs.push(path.resolve(layer.config.srcDir, 'utils'))
-            for (const dir of (layer.config.imports?.dirs ?? [])) {
-                if (!dir) {
-                    continue
-                }
-                composablesDirs.push(path.resolve(layer.config.srcDir, dir))
-            }
-
-            const composableImports = await scanDirExports(composablesDirs)
-            viteConfig.plugins?.push(Unimport.vite({
-                presets: ['vue'],
-                imports: composableImports
-            }))
-        }
-
-    } catch (err) {
-        log.error(`Failed to optimize Vite config for Nuxt: ${(err as Error).stack}`)
+    if (nuxt.options.imports?.autoImport === false) {
+        return
     }
+
+    const composablesDirs: string[] = []
+    for (const layer of nuxt.options._layers) {
+        composablesDirs.push(path.resolve(layer.config.srcDir, 'composables'))
+        composablesDirs.push(path.resolve(layer.config.srcDir, 'utils'))
+        for (const dir of (layer.config.imports?.dirs ?? [])) {
+            if (!dir) {
+                continue
+            }
+            composablesDirs.push(path.resolve(layer.config.srcDir, dir))
+        }
+    }
+    const composableImports = await scanDirExports(composablesDirs)
+    viteConfig.plugins?.push(Unimport.vite({
+        presets: ['vue'],
+        imports: composableImports
+    }))
+    log.info(`Optimized Vite config for Nuxt project with config at ${nuxtConfigPath}`)
 }
 
 async function getNuxtConfig (rootDir: string) {

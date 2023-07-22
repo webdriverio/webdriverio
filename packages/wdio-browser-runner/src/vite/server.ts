@@ -133,7 +133,11 @@ export class ViteServer extends EventEmitter {
         /**
          * make adjustments based on detected frontend frameworks
          */
-        updateViteConfig(this.#viteConfig, this.#options, this.#config)
+        try {
+            await updateViteConfig(this.#viteConfig, this.#options, this.#config)
+        } catch (err) {
+            log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
+        }
 
         /**
          * initialize Vite

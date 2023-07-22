@@ -19,14 +19,16 @@ vi.mock('unimport', () => ({
 
 vi.mock('nuxt', () => ({
     loadNuxt: vi.fn().mockResolvedValue({
-        _layers: [{
-            config: {
-                srcDir: '/foo/bar',
-                imports: {
-                    dirs: ['foobar']
+        options: {
+            _layers: [{
+                config: {
+                    srcDir: '/foo/bar',
+                    imports: {
+                        dirs: ['foobar']
+                    }
                 }
-            }
-        }]
+            }]
+        }
     })
 }))
 
