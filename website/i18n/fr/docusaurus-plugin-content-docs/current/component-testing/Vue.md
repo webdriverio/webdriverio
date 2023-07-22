@@ -26,6 +26,12 @@ Si vous utilisez déjà [Vite](https://vitejs.dev/) comme serveur de développem
 
 :::
 
+:::info
+
+If you are using [Nuxt](https://nuxt.com/) WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
+
+:::
+
 Le préréglage React nécessite que `@vitejs/plugin-react` soit installé. Nous recommandons également d'utiliser [Bibliothèque de test](https://testing-library.com/) pour afficher le composant dans la page de test. Vous devrez donc installer les dépendances supplémentaires suivantes :
 
 ```sh npm2yarn
