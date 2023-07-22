@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.7 (2023-07-22)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#10773](https://github.com/webdriverio/webdriverio/pull/10773) (@wdio/browser-runner): support Nuxt auto-import ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10771](https://github.com/webdriverio/webdriverio/pull/10771) (docs): add a sponsors page ([@christian-bromann](https://github.com/christian-bromann))
+* [#10768](https://github.com/webdriverio/webdriverio/pull/10768) Fix WhyWebDriverIO.md typos ([@AsyncBanana](https://github.com/AsyncBanana))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jacob Jackson ([@AsyncBanana](https://github.com/AsyncBanana))
+
+
 ## v8.13.6 (2023-07-18)
 
 #### :bug: Bug Fix
