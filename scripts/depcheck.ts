@@ -26,7 +26,7 @@ EventEmitter.defaultMaxListeners = packages.length + 3
 const ROOT_DIR = path.join(__dirname, '..')
 
 const IGNORE_PACKAGES: IgnoredPackages = {
-    'wdio-browser-runner': ['virtual:wdio', 'mocha'],
+    'wdio-browser-runner': ['virtual:wdio', 'mocha', 'nuxt', 'unimport', 'unimport/unplugin']
 }
 
 const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
