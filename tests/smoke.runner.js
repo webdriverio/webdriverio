@@ -301,6 +301,42 @@ const cucumberTestrunner = async () => {
 }
 
 /**
+ * Cucumber wdio testrunner -- run single scenario by line number
+ */
+const cucumberTestrunnerByLineNumber = async () => {
+    const logFile = path.join(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
+    await fs.rm(logFile, { force: true })
+    await launch(
+        'cucumberTestrunnerByLineNumber',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: [path.resolve(__dirname, 'cucumber', 'test.feature:10')],
+            cucumberOpts: {
+                tagExpression: '(not @SKIPPED_TAG)',
+                scenarioLevelReporter: false
+            },
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]]
+        }
+    )
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('Sync Execution'),
+        'scenario not executed in feature by line number'
+    )
+    assert.ok(
+        !specLogs.includes('Retry Check'),
+        'extra scenarios not filtered out by line number'
+    )
+}
+
+/**
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
@@ -625,6 +661,7 @@ const nonGlobalTestrunner = async () => {
         sharedStoreServiceTest,
         mochaSpecGrouping,
         cucumberTestrunner,
+        cucumberTestrunnerByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
         standaloneTest,
