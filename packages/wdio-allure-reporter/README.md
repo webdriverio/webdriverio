@@ -172,7 +172,7 @@ The results can be consumed by any of the [reporting tools](https://docs.qameta.
 Install the [Allure command-line tool](https://www.npmjs.com/package/allure-commandline), and process the results directory:
 
 ```sh
-allure generate [allure_output_dir] && allure open
+allure serve [allure_output_dir] && allure open
 ```
 
 This will generate a report (by default in `./allure-report`), and open it in your browser.
