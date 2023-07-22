@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.9 (2023-07-22)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#10775](https://github.com/webdriverio/webdriverio/pull/10775) (@wdio/browser-runner): improve Nuxt optimization process ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#10772](https://github.com/webdriverio/webdriverio/pull/10772) Dev/issue 7735 ([@hammzj](https://github.com/hammzj))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+
+
 ## v8.13.7 (2023-07-22)
 
 #### :nail_care: Polish
