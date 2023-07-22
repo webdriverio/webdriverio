@@ -13,7 +13,6 @@ import { createServer } from 'vite'
 import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
 
-import updateViteConfig from './frameworks/index.js'
 import { testrunner } from './plugins/testrunner.js'
 import { mockHoisting } from './plugins/mockHoisting.js'
 import { userfriendlyImport } from './utils.js'
@@ -129,15 +128,6 @@ export class ViteServer extends EventEmitter {
          */
         this.#wss = new WebSocketServer({ port: wssPort })
         this.#wss.on('connection', this.#onConnect.bind(this))
-
-        /**
-         * make adjustments based on detected frontend frameworks
-         */
-        try {
-            await updateViteConfig(this.#viteConfig, this.#options, this.#config)
-        } catch (err) {
-            log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
-        }
 
         /**
          * initialize Vite

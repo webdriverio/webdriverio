@@ -1,7 +1,7 @@
-import type { InlineConfig } from 'vite'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
+import type { InlineConfig } from 'vite'
 
 import { hasFile } from './utils.js'
 
@@ -21,27 +21,19 @@ export async function isNuxtFramework (rootDir: string) {
     ).filter(Boolean).length > 0
 }
 
-export async function optimizeForNuxt (viteConfig: Partial<InlineConfig>, options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
-    const rootDir = config.rootDir || process.cwd()
-    const nuxtConfigPath = await getNuxtConfig(rootDir)
-
-    if (!nuxtConfigPath) {
-        throw new Error('No Nuxt project found!')
-    }
-
-    globalThis.defineNuxtConfig = (opts: unknown) => opts
-    const nuxtConfig = (await import(nuxtConfigPath)).default
+export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
     const Unimport = (await import('unimport/unplugin')).default
     const { scanDirExports } = await import('unimport')
-    const { loadNuxt } = await import('nuxt')
-    const nuxt = await loadNuxt(nuxtConfig)
+    const { loadNuxtConfig } = await import('@nuxt/kit')
+    const rootDir = config.rootDir || process.cwd()
+    const nuxtOptions = await loadNuxtConfig({ rootDir })
 
-    if (nuxt.options.imports?.autoImport === false) {
+    if (nuxtOptions.imports?.autoImport === false) {
         return
     }
 
     const composablesDirs: string[] = []
-    for (const layer of nuxt.options._layers) {
+    for (const layer of nuxtOptions._layers) {
         composablesDirs.push(path.resolve(layer.config.srcDir, 'composables'))
         composablesDirs.push(path.resolve(layer.config.srcDir, 'utils'))
         for (const dir of (layer.config.imports?.dirs ?? [])) {
@@ -52,11 +44,17 @@ export async function optimizeForNuxt (viteConfig: Partial<InlineConfig>, option
         }
     }
     const composableImports = await scanDirExports(composablesDirs)
-    viteConfig.plugins?.push(Unimport.vite({
+    options.viteConfig = options.viteConfig || {}
+    const viteConfig = (options.viteConfig || {}) as InlineConfig
+    if (!Array.isArray(viteConfig.plugins)) {
+        viteConfig.plugins = []
+    }
+
+    viteConfig.plugins.push(Unimport.vite({
         presets: ['vue'],
         imports: composableImports
     }))
-    log.info(`Optimized Vite config for Nuxt project with config at ${nuxtConfigPath}`)
+    log.info(`Optimized Vite config for Nuxt project at ${rootDir}`)
 }
 
 async function getNuxtConfig (rootDir: string) {

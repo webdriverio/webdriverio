@@ -20,6 +20,7 @@ import {
     FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER,
     DEFAULT_REPORTS_DIRECTORY
 } from './constants.js'
+import updateViteConfig from './vite/frameworks/index.js'
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
@@ -73,6 +74,15 @@ export default class BrowserRunner extends LocalRunner {
             if (reportsDirectoryExist) {
                 await fs.rm(this.#reportsDirectory, { recursive: true })
             }
+        }
+
+        /**
+         * make adjustments based on detected frontend frameworks
+         */
+        try {
+            await updateViteConfig(this.#options, this.#config)
+        } catch (err) {
+            log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
         }
 
         await super.initialise()
