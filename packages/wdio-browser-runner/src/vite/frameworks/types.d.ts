@@ -1,3 +1,3 @@
 declare module 'unimport/unplugin'
 declare module 'unimport'
-declare module 'nuxt'
+declare module '@nuxt/kit'

@@ -17,18 +17,16 @@ vi.mock('unimport', () => ({
     scanDirExports: vi.fn().mockResolvedValue(['some', 'imports'])
 }))
 
-vi.mock('nuxt', () => ({
-    loadNuxt: vi.fn().mockResolvedValue({
-        options: {
-            _layers: [{
-                config: {
-                    srcDir: '/foo/bar',
-                    imports: {
-                        dirs: ['foobar']
-                    }
+vi.mock('@nuxt/kit', () => ({
+    loadNuxtConfig: vi.fn().mockResolvedValue({
+        _layers: [{
+            config: {
+                srcDir: '/foo/bar',
+                imports: {
+                    dirs: ['foobar']
                 }
-            }]
-        }
+            }
+        }]
     })
 }))
 
@@ -46,10 +44,10 @@ test('isNuxtFramework', async () => {
 })
 
 test('optimizeForNuxt', async () => {
-    const viteConfig = { plugins: [] }
+    const options: any = {}
     vi.mocked(hasFile).mockResolvedValueOnce(true)
-    await optimizeForNuxt(viteConfig, {} as any, { rootDir } as any)
-    expect(viteConfig.plugins).toEqual(['the right plugin'])
+    await optimizeForNuxt(options, { rootDir } as any)
+    expect(options.viteConfig.plugins).toEqual(['the right plugin'])
     expect(unimport.vite).toBeCalledWith({
         imports: ['some', 'imports'],
         presets: ['vue']
