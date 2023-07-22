@@ -26,6 +26,12 @@ If you are already using [Vite](https://vitejs.dev/) as development server you c
 
 :::
 
+:::info
+
+If you are using [Nuxt](https://nuxt.com/) WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
+
+:::
+
 The Vue preset requires `@vitejs/plugin-vue` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
 
 ```sh npm2yarn
