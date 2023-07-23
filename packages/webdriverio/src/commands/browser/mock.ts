@@ -66,7 +66,7 @@ export const CDP_SESSIONS: Record<string, CDPSession> = {}
         })
 
         // mock an endpoint with a fixed fixture
-        mock.respond([{
+        todoMock.respond([{
             title: 'Injected Todo',
             order: null,
             completed: false,
@@ -74,7 +74,7 @@ export const CDP_SESSIONS: Record<string, CDPSession> = {}
         }])
 
         // respond with different status code or header
-        mock.respond([{
+        todoMock.respond([{
             title: 'Injected Todo',
             order: null,
             completed: false,
