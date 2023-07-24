@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "^9.2.0",
-    "@octokit/rest": "^19.0.13",
+    "@octokit/rest": "^20.0.1",
     "@preact/preset-vite": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^2.4.2",
     "@tsconfig/node18": "^18.2.0",
