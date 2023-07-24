@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { createRequire } from 'node:module'
 
 import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
@@ -113,12 +115,13 @@ export const SUPPORTED_PACKAGES = {
         // put chromedriver first as it is the default option
         { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
         { name: 'geckodriver', value: 'wdio-geckodriver-service$--$geckodriver' },
-        { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         { name: 'safaridriver', value: 'wdio-safaridriver-service$--$safaridriver' },
+        { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         // internal
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
+        { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
@@ -220,7 +223,23 @@ function isBrowserRunner (answers: Questionnair) {
 }
 
 function getTestingPurpose (answers: Questionnair) {
-    return convertPackageHashToObject(answers.runner).purpose
+    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
+}
+
+async function isNuxtProject () {
+    const pathOptions = [
+        path.join(process.cwd(), 'nuxt.config.js'),
+        path.join(process.cwd(), 'nuxt.config.ts'),
+        path.join(process.cwd(), 'nuxt.config.mjs'),
+        path.join(process.cwd(), 'nuxt.config.mts')
+    ]
+    return (
+        await Promise.all(
+            pathOptions.map((o) => fs.access(o).then(() => true, () => false))
+        ).then(
+            (res) => res.filter(Boolean)
+        )
+    ).length > 0
 }
 
 function getBrowserDriver (browserName: 'chrome' | 'firefox' | 'safari' | 'microsoftedge') {
@@ -228,16 +247,22 @@ function getBrowserDriver (browserName: 'chrome' | 'firefox' | 'safari' | 'micro
     return SUPPORTED_PACKAGES.service.find((svc) => svc.name === driverName)?.value
 }
 
-function selectDefaultService (serviceName: string) {
+function selectDefaultService (serviceNames: string | string[]) {
+    serviceNames = Array.isArray(serviceNames) ? serviceNames : [serviceNames]
     return [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
-        ({ name }) => name === serviceName)?.value]
+        ({ name }) => serviceNames.includes(name))?.value]
 }
 
-function prioServiceOrderFor (serviceName: string) {
-    const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === serviceName)
-    return SUPPORTED_PACKAGES.service.slice(index)
-        .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+function prioServiceOrderFor (serviceNamesParam: string | string[]) {
+    const serviceNames = Array.isArray(serviceNamesParam) ? serviceNamesParam : [serviceNamesParam]
+    let services = Object.create(SUPPORTED_PACKAGES.service) as ({ name: string, value: string}[])
+    for (const serviceName of serviceNames) {
+        const index = services.findIndex(({ name }) => name === serviceName)
+        services = [services[index], ...services.slice(0, index), ...services.slice(index + 1)]
+    }
+
+    return services
 }
 
 export const QUESTIONNAIRE = [{
@@ -511,7 +536,7 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: (answers: Questionnair) => {
+    choices: async (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
             return prioServiceOrderFor('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
@@ -524,17 +549,20 @@ export const QUESTIONNAIRE = [{
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
         } else if (getTestingPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
+        } else if (getTestingPurpose(answers) === 'e2e' && await isNuxtProject()) {
+            return prioServiceOrderFor('nuxt')
         }
         return SUPPORTED_PACKAGES.service
     },
-    // @ts-ignore
-    default: (answers: Questionnair) => {
+    default: async (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
             return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return selectDefaultService('sauce')
         } else if (answers.browserEnvironment && answers.browserEnvironment.length) {
-            return answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
+            const defaultServices = answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
+            defaultServices.push(selectDefaultService('nuxt')[0])
+            return defaultServices
         } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
         } else if (getTestingPurpose(answers) === 'vscode') {
