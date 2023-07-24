@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.12 (2023-07-24)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10798](https://github.com/webdriverio/webdriverio/pull/10798) (webdriverio): fix Action types ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.13.11 (2023-07-24)
 
 #### :nail_care: Polish
