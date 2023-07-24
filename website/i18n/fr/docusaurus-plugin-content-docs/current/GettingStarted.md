@@ -99,6 +99,18 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
+## Install CLI Manually
+
+You can also add the CLI package to your project manually via:
+
+```sh
+npm i --save-dev @wdio/cli
+npx wdio --version # prints e.g. `8.13.10`
+
+# run configuration wizard
+npx wdio config
+```
+
 ## Lancer un test
 
 Vous pouvez démarrer votre suite de tests en utilisant la commande `run` et en pointant vers la configuration WebdriverIO que vous venez de créer :
