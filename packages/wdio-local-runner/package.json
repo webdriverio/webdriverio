@@ -1,6 +1,6 @@
 {
   "name": "@wdio/local-runner",
-  "version": "7.32.2",
+  "version": "7.32.3",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner",
@@ -26,7 +26,7 @@
     "@types/stream-buffers": "^3.0.3",
     "@wdio/logger": "7.26.0",
     "@wdio/repl": "7.30.2",
-    "@wdio/runner": "7.32.2",
+    "@wdio/runner": "7.32.3",
     "@wdio/types": "7.30.2",
     "async-exit-hook": "^2.0.1",
     "split2": "^4.0.0",

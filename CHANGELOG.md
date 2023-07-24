@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.32.3 (2023-07-24)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#10792](https://github.com/webdriverio/webdriverio/pull/10792) add:v7 changes based on #10772 ([@hammzj](https://github.com/hammzj))
+
+#### Committers: 1
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+
+
 ## v7.32.2 (2023-07-21)
 
 #### :nail_care: Polish
