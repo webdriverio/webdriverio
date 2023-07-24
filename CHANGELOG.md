@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.10 (2023-07-24)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#10777](https://github.com/webdriverio/webdriverio/pull/10777) (@wdio/cli) add Nuxt service to wizard and docs ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#10776](https://github.com/webdriverio/webdriverio/pull/10776) Update mock.ts ([@diwakar-jha3110](https://github.com/diwakar-jha3110))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diwakar Kumar Jha ([@diwakar-jha3110](https://github.com/diwakar-jha3110))
+
+
 ## v8.13.9 (2023-07-22)
 
 #### :bug: Bug Fix
