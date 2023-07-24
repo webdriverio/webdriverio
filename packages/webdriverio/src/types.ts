@@ -370,7 +370,7 @@ interface KeyActionEntity {
 
 export interface Action {
     id: string
-    actions: (NoneActionEntity & PointerActionEntity & KeyActionEntity)[]
+    actions: (NoneActionEntity | PointerActionEntity | KeyActionEntity)[]
     type?: 'pointer' | 'key'
     parameters?: {
         pointerType: 'mouse' | 'pen' | 'touch'
