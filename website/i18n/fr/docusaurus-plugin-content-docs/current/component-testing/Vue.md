@@ -28,7 +28,7 @@ Si vous utilisez déjà [Vite](https://vitejs.dev/) comme serveur de développem
 
 :::info
 
-If you are using [Nuxt](https://nuxt.com/) WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
+If you are using [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
 
 :::
 
