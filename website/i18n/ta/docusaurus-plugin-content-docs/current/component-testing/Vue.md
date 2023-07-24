@@ -7,9 +7,7 @@ title: Vue.js
 
 ## செட்அப்
 
-உங்கள் Vue.js திட்டத்தில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் </a>instructions
-
- வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் முன்னமைவாக `vue` ஐத் தேர்ந்தெடுக்கவும், எ.கா.:</p> 
+உங்கள் Vue.js திட்டத்தில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் </a>instructions வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் முன்னமைவாக `vue` ஐத் தேர்ந்தெடுக்கவும், எ.கா.:</p> 
 
 
 
@@ -28,12 +26,6 @@ export const config = {
 :::info
 
 நீங்கள் ஏற்கனவே [Vite](https://vitejs.dev/) டெவலப்மென்ட் சர்வராகப் பயன்படுத்துகிறீர்கள் என்றால், உங்கள் WebdriverIO கட்டமைப்பிற்குள் `vite.config.ts` இல் உங்கள் கட்டமைப்பை மீண்டும் பயன்படுத்தலாம். மேலும் தகவலுக்கு, `viteConfig` இன் [runner options](/docs/runner#runner-options)ஐப் பார்க்கவும்.
-
-:::  
-
-:::info
-
-If you are using [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
 
 :::  
 
@@ -119,3 +111,62 @@ describe('Vue Component Testing', () => {
 
 
 Vue.js க்கான WebdriverIO காம்போனென்ட் டெஸ்ட் தொகுப்பின் முழு உதாரணத்தையும் எங்களின் [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite) இல் காணலாம்.
+
+
+
+## Testing Vue Components in Nuxt
+
+If you are using the web framework [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature and makes testing your Vue components and Nuxt pages easy. However any [Nuxt modules](https://nuxt.com/modules) that you might define in your config and requires context to the Nuxt application can not be supported.
+
+__Reasons for that are:__
+
+- WebdriverIO can't initiate a Nuxt application soley in a browser environment
+- Having component tests depend too much on the Nuxt environment creates complexity and we recommend to run these tests as e2e tests
+
+:::info
+
+WebdriverIO also provides a service for running e2e tests on Nuxt applications, see [`webdriverio-community/wdio-nuxt-service`](https://github.com/webdriverio-community/wdio-nuxt-service) for information.
+
+:::  
+
+For example, given my application uses the [Supabase](https://nuxt.com/modules/supabase) module plugin:
+
+
+
+```js title=""
+export default defineNuxtConfig({
+  modules: [
+    "@nuxtjs/supabase",
+    // ...
+  ],
+  // ...
+});
+```
+
+
+and you create an instance of Supabase somewhere in your composables, e.g.:
+
+
+
+```ts
+const superbase = useSupabaseClient()
+```
+
+
+the test will fail due to:
+
+
+
+```
+ReferenceError: useSupabaseClient is not defined
+```
+
+
+Here, we recommend to either mock out the whole module that uses the `useSupabaseClient` function or create a global variable that mocks this function, e.g.:
+
+
+
+```ts
+import { fn } from '@wdio/browser-runner'
+globalThis.useSupabaseClient = fn().mockReturnValue({})
+```
