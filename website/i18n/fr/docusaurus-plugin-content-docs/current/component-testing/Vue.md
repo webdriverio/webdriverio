@@ -26,12 +26,6 @@ Si vous utilisez déjà [Vite](https://vitejs.dev/) comme serveur de développem
 
 :::
 
-:::info
-
-If you are using [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature.
-
-:::
-
 Le préréglage React nécessite que `@vitejs/plugin-react` soit installé. Nous recommandons également d'utiliser [Bibliothèque de test](https://testing-library.com/) pour afficher le composant dans la page de test. Vous devrez donc installer les dépendances supplémentaires suivantes :
 
 ```sh npm2yarn
@@ -100,3 +94,48 @@ describe('Vue Component Testing', () => {
 ```
 
 Vous pouvez trouver un exemple complet d'une suite de tests de composants WebdriverIO pour Lit dans notre référentiel [exemples](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
+
+## Testing Vue Components in Nuxt
+
+If you are using the web framework [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature and makes testing your Vue components and Nuxt pages easy. However any [Nuxt modules](https://nuxt.com/modules) that you might define in your config and requires context to the Nuxt application can not be supported.
+
+__Reasons for that are:__
+- WebdriverIO can't initiate a Nuxt application soley in a browser environment
+- Having component tests depend too much on the Nuxt environment creates complexity and we recommend to run these tests as e2e tests
+
+:::info
+
+WebdriverIO also provides a service for running e2e tests on Nuxt applications, see [`webdriverio-community/wdio-nuxt-service`](https://github.com/webdriverio-community/wdio-nuxt-service) for information.
+
+:::
+
+For example, given my application uses the [Supabase](https://nuxt.com/modules/supabase) module plugin:
+
+```js title=""
+export default defineNuxtConfig({
+  modules: [
+    "@nuxtjs/supabase",
+    // ...
+  ],
+  // ...
+});
+```
+
+and you create an instance of Supabase somewhere in your composables, e.g.:
+
+```ts
+const superbase = useSupabaseClient()
+```
+
+the test will fail due to:
+
+```
+ReferenceError: useSupabaseClient is not defined
+```
+
+Here, we recommend to either mock out the whole module that uses the `useSupabaseClient` function or create a global variable that mocks this function, e.g.:
+
+```ts
+import { fn } from '@wdio/browser-runner'
+globalThis.useSupabaseClient = fn().mockReturnValue({})
+```
