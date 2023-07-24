@@ -464,35 +464,37 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
         const ignoredQuestions = ['e2eEnvironment']
         const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
-        const answers = filterdQuestionaire.reduce((answers, question) => Object.assign(
-            answers,
-            question.when && !question.when(answers)
-                /**
-                 * set nothing if question doesn't apply
-                 */
-                ? {}
-                : {
-                    [question.name]: typeof question.default !== 'undefined'
+        const answers = {} as Questionnair
+        for (const question of filterdQuestionaire) {
+            /**
+             * set nothing if question doesn't apply
+             */
+            if (question.when && !question.when(answers)) {
+                continue
+            }
+
+            Object.assign(answers, {
+                [question.name]: typeof question.default !== 'undefined'
+                    /**
+                     * set default value if existing
+                     */
+                    ? typeof question.default === 'function'
+                        ? await question.default(answers)
+                        : await question.default
+                    : question.choices && question.choices.length
                         /**
-                         * set default value if existing
+                         * pick first choice, select value if it exists
                          */
-                        ? typeof question.default === 'function'
-                            ? question.default(answers)
-                            : question.default
-                        : question.choices && question.choices.length
-                            /**
-                             * pick first choice, select value if it exists
-                             */
-                            ? typeof question.choices === 'function'
+                        ? typeof question.choices === 'function'
+                            ? (question.choices(answers)[0] as any as { value: any }).value
                                 ? (question.choices(answers)[0] as any as { value: any }).value
-                                    ? (question.choices(answers)[0] as any as { value: any }).value
-                                    : question.choices(answers)[0]
-                                : (question.choices[0] as { value: any }).value
-                                    ? (question.choices[0] as { value: any }).value
-                                    : question.choices[0]
-                            : {}
-                }
-        ), {} as Questionnair)
+                                : question.choices(answers)[0]
+                            : (question.choices[0] as { value: any }).value
+                                ? (question.choices[0] as { value: any }).value
+                                : question.choices[0]
+                        : {}
+            })
+        }
         /**
          * some questions have async defaults
          */

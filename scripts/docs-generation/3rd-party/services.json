@@ -30,6 +30,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
   },
   {
+    "packageName": "wdio-nuxt-service",
+    "title": "WDIO Nuxt Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
+  },
+  {
     "packageName": "wdio-intercept-service",
     "title": "Intercept",
     "githubUrl": "https://github.com/webdriverio-community/wdio-intercept-service",
