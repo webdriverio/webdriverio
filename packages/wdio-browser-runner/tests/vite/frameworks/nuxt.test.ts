@@ -26,7 +26,10 @@ vi.mock('@nuxt/kit', () => ({
                     dirs: ['foobar']
                 }
             }
-        }]
+        }],
+        alias: {
+            '~': '/foo/bar'
+        }
     })
 }))
 
@@ -52,4 +55,5 @@ test('optimizeForNuxt', async () => {
         imports: ['some', 'imports'],
         presets: ['vue']
     })
+    expect(options.viteConfig.resolve.alias).toEqual({ '~': '/foo/bar' })
 })

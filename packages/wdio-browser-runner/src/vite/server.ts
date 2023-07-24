@@ -113,14 +113,15 @@ export class ViteServer extends EventEmitter {
          * merge custom `viteConfig` last into the object
          */
         if (this.#options.viteConfig) {
-            const configToMerge = typeof this.#options.viteConfig === 'string'
+            const { plugins, ...configToMerge } = typeof this.#options.viteConfig === 'string'
                 ? (
                     await import(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig))
-                ).default
+                ).default as InlineConfig
                 : typeof this.#options.viteConfig === 'function'
                     ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)
                     : this.#options.viteConfig
             this.#viteConfig = deepmerge(this.#viteConfig, configToMerge)
+            this.#viteConfig.plugins = [...(plugins || []), ...this.#viteConfig.plugins!]
         }
 
         /**

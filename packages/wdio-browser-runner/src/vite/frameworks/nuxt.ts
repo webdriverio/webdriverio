@@ -44,7 +44,15 @@ export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions
         }
     }
     const composableImports = await scanDirExports(composablesDirs)
-    options.viteConfig = options.viteConfig || {}
+    options.viteConfig = (options.viteConfig || {}) as InlineConfig
+
+    /**
+     * propagate "alias" config
+     */
+    options.viteConfig.resolve = Object.assign(options.viteConfig.resolve || {}, {
+        alias: nuxtOptions.alias || {}
+    })
+
     const viteConfig = (options.viteConfig || {}) as InlineConfig
     if (!Array.isArray(viteConfig.plugins)) {
         viteConfig.plugins = []
