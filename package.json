@@ -78,7 +78,7 @@
     "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
-    "@typescript-eslint/utils": "^5.14.0",
+    "@typescript-eslint/utils": "^6.2.0",
     "aws-sdk": "^2.1127.0",
     "camelcase": "^6.3.0",
     "cheerio": "^1.0.0-rc.10",
