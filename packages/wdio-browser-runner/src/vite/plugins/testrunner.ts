@@ -94,8 +94,10 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === resolvedVirtualModuleId) {
                 return /*js*/`
+                    import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
+                    export const wrappedFn = (...args) => fn()(...args)
                 `
             }
         },

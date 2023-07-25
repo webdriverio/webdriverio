@@ -3,6 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
+import type { InlineConfig } from 'vite'
 
 import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
@@ -13,6 +14,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
+    const alias = (options.viteConfig as InlineConfig).resolve?.alias || {}
 
     let vueDeps = ''
     if (options.preset === 'vue') {
@@ -57,8 +59,15 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <script type="module">
+                const alias = ${JSON.stringify(alias)}
                 window.__wdioMockCache__ = new Map()
                 window.wdioImport = function (modName, mod) {
+                    for (const [aliasName, aliasPath] of Object.entries(alias)) {
+                        if (modName.slice(0, aliasName.length) === aliasName) {
+                            modName = modName.replace(aliasName, aliasPath)
+                        }
+                    }
+
                     if (window.__wdioMockCache__.get(modName)) {
                         return window.__wdioMockCache__.get(modName)
                     }

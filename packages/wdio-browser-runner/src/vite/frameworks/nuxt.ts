@@ -1,5 +1,7 @@
+import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
+import { resolve } from 'import-meta-resolve'
 import type { Options } from '@wdio/types'
 import type { InlineConfig } from 'vite'
 
@@ -23,7 +25,7 @@ export async function isNuxtFramework (rootDir: string) {
 
 export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
     const Unimport = (await import('unimport/unplugin')).default
-    const { scanDirExports } = await import('unimport')
+    const { scanDirExports, scanExports } = await import('unimport')
     const { loadNuxtConfig } = await import('@nuxt/kit')
     const rootDir = config.rootDir || process.cwd()
     const nuxtOptions = await loadNuxtConfig({ rootDir })
@@ -32,6 +34,7 @@ export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions
         return
     }
 
+    const nuxtDepPath = await resolve('nuxt', import.meta.url)
     const composablesDirs: string[] = []
     for (const layer of nuxtOptions._layers) {
         composablesDirs.push(path.resolve(layer.config.srcDir, 'composables'))
@@ -43,7 +46,23 @@ export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions
             composablesDirs.push(path.resolve(layer.config.srcDir, dir))
         }
     }
-    const composableImports = await scanDirExports(composablesDirs)
+    const composableImports = await Promise.all([
+        scanDirExports([
+            ...composablesDirs,
+            path.resolve(path.dirname(url.fileURLToPath(nuxtDepPath)), 'app', 'components')
+        ]),
+        scanExports(path.resolve(path.dirname(url.fileURLToPath(nuxtDepPath)), 'app', 'composables', 'index.js'))
+    ]).then((scannedExports) => scannedExports.flat().map((ci) => {
+        /**
+         * auto mock nuxt composables as they can't be loaded within the browser
+         */
+        if (ci.from.includes('/nuxt/dist/app/composables')) {
+            ci.from = 'virtual:wdio'
+            ci.name = 'wrappedFn'
+        }
+        return ci
+    }))
+
     options.viteConfig = (options.viteConfig || {}) as InlineConfig
 
     /**

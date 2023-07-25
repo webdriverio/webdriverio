@@ -53,7 +53,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
              */
             if (
                 // where loading was inititated through the test file
-                !isTestDependency ||
+                (!isTestDependency && (
+                    // however when files are inlined they will be loaded when parsing file under test
+                    // in this case we want to transform them, but make sure we exclude these paths
+                    id.includes('/node_modules/') || id.includes('/?cid=') || id.startsWith('virtual:'))
+                ) ||
                 // are not Vite or WebdriverIO internals
                 INTERNALS_TO_IGNORE.find((f) => id.includes(f)) ||
                 // when the spec file is actually mocking any dependencies
@@ -214,7 +218,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         nodePath.insertBefore(newNode)
                     }
 
-                    const wdioImportModuleIdentifier = source.startsWith('.')
+                    const wdioImportModuleIdentifier = source.startsWith('.') || source.startsWith('/')
                         ? url.pathToFileURL(path.resolve(path.dirname(id), source).slice(0, path.extname(source).length * -1)).pathname
                         : source
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
