@@ -8,6 +8,7 @@ import { SevereServiceError } from '../packages/node_modules/webdriverio/build/i
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
+const parallelMultiRemoteBaseConfig = path.resolve(__dirname, 'helpers', 'parallel-multiremote-config.js')
 const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
 
 import launch from './helpers/launch.js'
@@ -477,6 +478,17 @@ const multiremote = async () => {
 }
 
 /**
+ * parallel multiremote wdio testrunner tests
+ */
+const parallelMultiremote = async () => {
+    console.log(parallelMultiRemoteBaseConfig)
+    await launch('parallelMultiremote', parallelMultiRemoteBaseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
+    })
+}
+
+/**
  * specfile-level retries (fail)
  */
 const retryFail = async () => {
@@ -656,6 +668,7 @@ const nonGlobalTestrunner = async () => {
         mochaTestrunner,
         jasmineTestrunner,
         multiremote,
+        parallelMultiremote,
         wdioHooks,
         cjsTestrunner,
         sharedStoreServiceTest,

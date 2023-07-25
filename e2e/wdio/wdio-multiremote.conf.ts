@@ -1,0 +1,49 @@
+import url from 'node:url'
+import path from 'node:path'
+import { config as baseConfig } from './wdio.conf.js'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+export const config = {
+    ...baseConfig,
+
+    /**
+     * Sauce specific config
+     */
+    specs: [path.resolve(__dirname, 'headless', 'multiremoteTest.e2e.ts')],
+    exclude: [],
+    capabilities: [
+        {
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: 'stable',
+                    'wdio:devtoolsOptions': { headless: true, dumpio: true }
+                }
+            },
+            browserB: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: 'stable',
+                    'wdio:devtoolsOptions': { headless: true, dumpio: true }
+                }
+            },
+        },
+        {
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: 'stable',
+                    'wdio:devtoolsOptions': { headless: true, dumpio: true }
+                }
+            },
+            browserB: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: 'stable',
+                    'wdio:devtoolsOptions': { headless: true, dumpio: true }
+                }
+            },
+        }
+    ]
+}

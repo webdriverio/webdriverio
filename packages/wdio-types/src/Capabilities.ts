@@ -91,7 +91,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[];
 
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
