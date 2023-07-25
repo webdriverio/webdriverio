@@ -264,6 +264,17 @@ wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 
 _**Hinweis:** Mocha filtert die Tests, nachdem der WDIO-Test-Runner die Browser Sessions erstellt hat, sodass möglicherweise mehrere Browser erzeugt, aber nicht tatsächlich ausgeführt werden._
 
+## Exclude Specific Tests with MochaOpts
+
+You can also filter which specific `suite|describe` and/or `it|test` you want to exclude by passing a mocha specific argument: `--mochaOpts.invert` to the wdio CLI. `--mochaOpts.invert` performs opposite of `--mochaOpts.grep`
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+wdio wdio.conf.js --spec ./test/specs/e2e/login.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+```
+
+_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+
 ## Stoppen Sie den Testlauf nach einem Fehler
 
 Mit der Option `bail` können Sie WebdriverIO anweisen, den Testlauf zu beenden, nachdem der erste Test fehlgeschlagen ist.
