@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
+
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 
-enum SupportedAutomationProtocols {
+export enum SupportedAutomationProtocols {
     webdriver = 'webdriver',
     devtools = 'devtools',
     stub = './protocol-stub.js'
@@ -45,6 +46,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     automationProtocol: {
         type: 'string',
+        default: SupportedAutomationProtocols.webdriver,
         validate: (param: Options.SupportedProtocols) => {
             /**
              * path when proxy is used for browser testing
@@ -436,10 +438,3 @@ export const Key = {
     Command: UNICODE_CHARACTERS.Command,
     ZenkakuHankaku: UNICODE_CHARACTERS.ZenkakuHankaku
 } as const
-
-export const SUPPORTED_BROWSERNAMES = {
-    chrome: ['chrome', 'googlechrome', 'chromium', 'chromium-browser'],
-    firefox: ['firefox', 'ff', 'mozilla', 'mozilla firefox'],
-    edge: ['edge', 'microsoftedge', 'msedge'],
-    safari: ['safari']
-}

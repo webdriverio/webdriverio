@@ -50,7 +50,7 @@ Running a headless browser means to run a browser instance without window or UI.
     {label: 'Chrome', value: 'chrome'},
  {label: 'Firefox', value: 'firefox'},
  {label: 'Microsoft Edge', value: 'msedge'},
- {label: 'Safari Edge', value: 'safari'},
+ {label: 'Safari', value: 'safari'},
  ]
 }>
 <TabItem value="chrome">
@@ -102,7 +102,7 @@ If you like to test a browser version that is not yet released as stable, e.g. C
     {label: 'Chrome', value: 'chrome'},
  {label: 'Firefox', value: 'firefox'},
  {label: 'Microsoft Edge', value: 'msedge'},
- {label: 'Safari Edge', value: 'safari'},
+ {label: 'Safari', value: 'safari'},
  ]
 }>
 <TabItem value="chrome">

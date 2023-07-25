@@ -1,3 +1,4 @@
+import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
@@ -12,6 +13,7 @@ const BIDI_COMMANDS = ['send', 'sendAsync'] as const
 
 interface BaseClientWithEventHandler extends BaseClient {
     eventMiddleware: BidiHandler
+    _driverProcess?: ChildProcess
 }
 
 export default function (
@@ -125,8 +127,21 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
-                logger.clearLogger()
+            if (command === 'deleteSession') {
+                /**
+                 * kill driver process if there is one
+                 */
+                if (this._driverProcess) {
+                    log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
+                    this._driverProcess.kill()
+                }
+
+                /**
+                 * clear logger stream if session has been terminated
+                 */
+                if (!process.env.WDIO_WORKER_ID) {
+                    logger.clearLogger()
+                }
             }
             return result.value
         })

@@ -1,28 +1,24 @@
 import fs from 'node:fs/promises'
-import url from 'node:url'
-import path from 'node:path'
-import cp from 'node:child_process'
+import os from 'node:os'
+import cp, { type ChildProcess } from 'node:child_process'
 
 import getPort from 'get-port'
 import waitPort from 'wait-port'
 import logger from '@wdio/logger'
-import WebDriver from 'webdriver'
 import { deepmerge } from 'deepmerge-ts'
+import type { Options } from '@wdio/types'
 
 import { start as startSafaridriver, type SafaridriverOptions } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
 import { start as startEdgedriver, type EdgedriverParameters } from 'edgedriver'
-import { install, computeExecutablePath, Browser, type InstallOptions } from '@puppeteer/browsers'
+import { install, computeExecutablePath, Browser, getInstalledBrowsers, type InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import detectBackend from './detectBackend.js'
-import { parseParams, setupChrome } from './utils.js'
+import { parseParams, setupChrome, definesRemoteDriver } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
-import type { RemoteOptions } from '../types'
 
 const log = logger('webdriver')
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODriverOptions {}
 export type ChromedriverOptions = InstallOptions & Omit<EdgedriverParameters, 'port'>
@@ -34,48 +30,16 @@ export interface WDIODriverOptions {
     'wdio:edgedriverOptions'?: Omit<EdgedriverParameters, 'port'>
 }
 
-export async function getProtocolDriver (options: RemoteOptions) {
+export async function startWebDriver (options: Options.WebDriver) {
     /**
-     * return `devtools` if explicitly set
+     * if any of the connection parameter are set, don't start any driver
      */
-    if (options.automationProtocol === 'devtools') {
-        try {
-            const DevTools = await import('devtools')
-            log.info('Starting session using Chrome DevTools as automation protocol and Puppeteer as driver')
-            return { Driver: DevTools.default, options }
-        } catch (err: unknown) {
-            throw new Error(
-                'Failed to import "devtools" as automation protocol driver!\n' +
-                'Make sure to have it installed as dependency (`npm i devtools`)!\n' +
-                `Error: ${(err as Error).message}`
-            )
-        }
+    if (definesRemoteDriver(options)) {
+        log.info(`Connecting to existing driver at ${options.protocol}://${options.hostname}:${options.port}${options.path}`)
+        return
     }
 
-    /**
-     * update connection parameters if we are running in a cloud
-     */
-    if (typeof options.user === 'string' && typeof options.key === 'string') {
-        Object.assign(options, detectBackend(options))
-    }
-
-    /**
-     * No need to start any driver if user has defined some sort of connection parameters.
-     * In this case we assume that the user has already started a driver.
-     * Note: we ignore "path" and "protocol" here as this is usually not used by users
-     */
-    if (options.hostname || options.port) {
-        log.info(`Connecting to ${options.hostname}:${options.port}`)
-        return { Driver: WebDriver, options }
-    }
-
-    const { port, hostname } = await startWebDriver(options)
-    Object.assign(options, { port, hostname })
-    return { Driver: WebDriver, options }
-}
-
-export async function startWebDriver (options: RemoteOptions) {
-    let driverProcess: cp.ChildProcess
+    let driverProcess: ChildProcess
     let driver = ''
     const start = Date.now()
     const caps: ExtendedCapabilities = (options.capabilities as Capabilities.W3CCapabilities).alwaysMatch || options.capabilities as Capabilities.Capabilities
@@ -98,22 +62,28 @@ export async function startWebDriver (options: RemoteOptions) {
          * Chrome
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as ChromedriverOptions)
-        const cacheDir = chromedriverOptions.cacheDir || path.resolve(__dirname, '..', '..', '.chrome')
+        const cacheDir = chromedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         const exist = await fs.access(cacheDir).then(() => true, () => false)
         if (!exist) {
             await fs.mkdir(cacheDir, { recursive: true })
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
-        log.info(`Downloading Chromedriver v${buildId}`)
-        await install({
-            ...chromedriverOptions,
-            cacheDir,
-            platform,
-            buildId,
-            browser: Browser.CHROMEDRIVER,
-            downloadProgressCallback: () => {}
-        })
+        const hasChromedriverInstalled = (await getInstalledBrowsers({ cacheDir })).find((ib) => ib.buildId === buildId)
+        if (!hasChromedriverInstalled) {
+            log.info(`Downloading Chromedriver v${buildId}`)
+            await install({
+                ...chromedriverOptions,
+                cacheDir,
+                platform,
+                buildId,
+                browser: Browser.CHROMEDRIVER,
+                downloadProgressCallback: () => {}
+            })
+        } else {
+            log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
+        }
+
         const chromedriverBinaryPath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
             buildId,
@@ -146,20 +116,18 @@ export async function startWebDriver (options: RemoteOptions) {
         /**
          * Firefox
          */
+        const geckodriverOptions = caps['wdio:geckodriverOptions'] || ({} as GeckodriverParameters)
+        const cacheDir = geckodriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({
-            ...(caps['wdio:geckodriverOptions'] || {}),
-            port
-        })
+        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
     } else if (SUPPORTED_BROWSERNAMES.edge.includes(caps.browserName.toLowerCase())) {
         /**
          * Microsoft Edge
          */
-        const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as ChromedriverOptions)
-        edgedriverOptions.allowedOrigins = ['*']
-        edgedriverOptions.allowedIps = ['']
+        const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
+        const cacheDir = edgedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, port })
+        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port })
 
         /**
          * Microsoft Edge is very particular when it comes to browser names
@@ -173,6 +141,9 @@ export async function startWebDriver (options: RemoteOptions) {
     }
 
     await waitPort({ port, output: 'silent' })
+
+    options.hostname = '0.0.0.0'
+    options.port = port
     log.info(`Started ${driver} in ${Date.now() - start}ms on port ${port}`)
-    return { port, hostname: '0.0.0.0', driverProcess }
+    return driverProcess
 }

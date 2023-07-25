@@ -8,7 +8,9 @@ import {
     computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
 import type { EdgedriverParameters } from 'edgedriver'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
+
+import { DEFAULTS } from '../constants.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -87,4 +89,18 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
     await install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, buildId, platform }
+}
+
+/**
+ * helper method to determine if we need to start a browser driver
+ * which is: whenever the user has set connection options that differ from
+ * the default, or a port is set
+ */
+export function definesRemoteDriver (options: Options.WebDriver) {
+    return (
+        options.protocol !== DEFAULTS.protocol.default ||
+        options.hostname !== DEFAULTS.hostname.default ||
+        options.port,
+        options.path !== DEFAULTS.path.default
+    )
 }
