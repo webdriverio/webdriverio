@@ -56,14 +56,14 @@ export class ViteServer extends EventEmitter {
         return this.#viteConfig
     }
 
-    constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
+    constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner, optimizations: InlineConfig) {
         super()
         this.#options = options
         this.#config = config
         this.#mockHandler = new MockHandler(options, config)
 
         const root = options.rootDir || config.rootDir || process.cwd()
-        this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
+        this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, optimizations, {
             root,
             plugins: [
                 testrunner(options),

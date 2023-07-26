@@ -14,6 +14,7 @@ import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage, WorkerCoverageMapMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
+import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
 import {
@@ -34,6 +35,7 @@ export default class BrowserRunner extends LocalRunner {
     #servers: Set<ViteServer> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
+    #viteOptimizations: InlineConfig = {}
 
     #mapStore = libSourceMap.createSourceMapStore()
     private _coverageMaps: CoverageMap[] = []
@@ -80,7 +82,7 @@ export default class BrowserRunner extends LocalRunner {
          * make adjustments based on detected frontend frameworks
          */
         try {
-            await updateViteConfig(this.#options, this.#config)
+            this.#viteOptimizations = await updateViteConfig(this.#options, this.#config)
         } catch (err) {
             log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
         }
@@ -92,7 +94,7 @@ export default class BrowserRunner extends LocalRunner {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 
-        const server = new ViteServer(this.#options, this.#config)
+        const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
 
         try {
             await server.start()
