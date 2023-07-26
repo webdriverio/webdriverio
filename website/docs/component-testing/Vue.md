@@ -109,7 +109,26 @@ WebdriverIO also provides a service for running e2e tests on Nuxt applications, 
 
 :::
 
-For example, given my application uses the [Supabase](https://nuxt.com/modules/supabase) module plugin:
+### Mocking built-in composables
+
+In case your component uses a native Nuxt composable, e.g. [`useNuxtData`](https://nuxt.com/docs/api/composables/use-nuxt-data), WebdriverIO will automatically mock these functions and allows you to modify their behavior or assert against them, e.g.:
+
+```ts
+import { mocked } from '@wdio/browser-runner'
+
+// e.g. your component uses calls `useNuxtData` the following way
+// `const { data: posts } = useNuxtData('posts')`
+// in your test you can assert against it
+expect(useNuxtData).toBeCalledWith('posts')
+// and change their behavior
+mocked(useNuxtData).mockReturnValue({
+    data: [...]
+})
+```
+
+### Handling 3rd party composables
+
+All [3rd party modules](https://nuxt.com/modules) that can supercharge your Nuxt project can't automatically get mocked. In those cases you need to manually mock them, e.g. given your application uses the [Supabase](https://nuxt.com/modules/supabase) module plugin:
 
 ```js title=""
 export default defineNuxtConfig({
