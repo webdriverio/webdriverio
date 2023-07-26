@@ -107,3 +107,4 @@ website/docs/Contribute.md
 website/community/Resources.md
 scripts/bidi/cddl
 browserstack.err
+e2e/tailwind.config.js
