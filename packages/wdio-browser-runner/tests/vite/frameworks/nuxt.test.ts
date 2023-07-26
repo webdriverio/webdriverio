@@ -14,7 +14,24 @@ vi.mock('unimport/unplugin', () => ({
 }))
 
 vi.mock('unimport', () => ({
-    scanDirExports: vi.fn().mockResolvedValue(['some', 'imports'])
+    scanDirExports: vi.fn().mockResolvedValue([{
+        from: '/foo/bar',
+        name: 'foobar',
+        as: 'foobar'
+    }, {
+        from: '/node_modules/nuxt/dist/app/composables/foo',
+        name: 'barfoo',
+        as: 'barfoo'
+    }]),
+    scanExports: vi.fn().mockResolvedValue([{
+        from: '/foo/bar/loo',
+        name: 'foobarloo',
+        as: 'foobarloo'
+    }])
+}))
+
+vi.mock('import-meta-resolve', () => ({
+    resolve: vi.fn().mockResolvedValue(url.pathToFileURL('/foo/bar'))
 }))
 
 vi.mock('@nuxt/kit', () => ({
@@ -52,7 +69,19 @@ test('optimizeForNuxt', async () => {
     await optimizeForNuxt(options, { rootDir } as any)
     expect(options.viteConfig.plugins).toEqual(['the right plugin'])
     expect(unimport.vite).toBeCalledWith({
-        imports: ['some', 'imports'],
+        imports: [{
+            from: '/foo/bar',
+            name: 'foobar',
+            as: 'foobar'
+        }, {
+            from: 'virtual:wdio',
+            name: 'wrappedFn',
+            as: 'barfoo'
+        }, {
+            from: '/foo/bar/loo',
+            name: 'foobarloo',
+            as: 'foobarloo'
+        }],
         presets: ['vue']
     })
     expect(options.viteConfig.resolve.alias).toEqual({ '~': '/foo/bar' })

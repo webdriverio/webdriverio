@@ -14,7 +14,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
-    const alias = (options.viteConfig as InlineConfig).resolve?.alias || {}
+    const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
 
     let vueDeps = ''
     if (options.preset === 'vue') {

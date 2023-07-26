@@ -8,8 +8,15 @@ exports[`getTemplate > renders template correctly 1`] = `
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
             <script type=\\"module\\">
+                const alias = {}
                 window.__wdioMockCache__ = new Map()
                 window.wdioImport = function (modName, mod) {
+                    for (const [aliasName, aliasPath] of Object.entries(alias)) {
+                        if (modName.slice(0, aliasName.length) === aliasName) {
+                            modName = modName.replace(aliasName, aliasPath)
+                        }
+                    }
+
                     if (window.__wdioMockCache__.get(modName)) {
                         return window.__wdioMockCache__.get(modName)
                     }
