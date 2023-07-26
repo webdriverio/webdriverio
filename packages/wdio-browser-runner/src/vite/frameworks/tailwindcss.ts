@@ -14,7 +14,6 @@ export function isUsingTailwindCSS (rootDir: string) {
         hasFileByExtensions(path.join(rootDir, 'tailwind.config')),
         hasFileByExtensions(path.join(rootDir, 'postcss.config'))
     ]).then(([hasTailwindConfig, hasPostCSSConfig]) => {
-        console.log(hasTailwindConfig, !hasPostCSSConfig)
         return hasTailwindConfig && !hasPostCSSConfig
     })
 }
