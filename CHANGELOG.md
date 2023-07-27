@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.13.13 (2023-07-27)
+
+#### :bug: Bug Fix
+* `wdio-globals`
+  * [#10804](https://github.com/webdriverio/webdriverio/pull/10804) (@wdio/globals): fix getPuppeteer() ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`, `wdio-utils`
+  * [#10802](https://github.com/webdriverio/webdriverio/pull/10802) (@wdio/browser-runner): respect alias when it comes to mocking ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10801](https://github.com/webdriverio/webdriverio/pull/10801) Update OrganizingTestSuites.md ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+* [#10799](https://github.com/webdriverio/webdriverio/pull/10799) Update OrganizingTestSuites.md --> added exclude specific test with m… ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+
+#### Committers: 3
+- Bhanu Agarwal ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+
+
 ## v8.13.12 (2023-07-24)
 
 #### :bug: Bug Fix
