@@ -68,7 +68,7 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO از [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) در بطن خود استفاده می کند، بنابراین تمام دستورات API آنها نیز برای استفاده پشتیبانی می شوند.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### دستورات سفارشی
 
