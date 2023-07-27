@@ -20,4 +20,10 @@ describe('Vue Component Testing', () => {
         getByText('Times clicked: 2')
         await expect($('p=Times clicked: 2')).toExist()
     })
+
+    it('should support tailwindcss', async () => {
+        const { getByText } = render(Component)
+        const elem = await $(getByText('Times clicked: 0'))
+        await expect(elem).toHaveStyle({ color: 'rgba(217,119,6,1)' })
+    })
 })

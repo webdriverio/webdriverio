@@ -1,4 +1,4 @@
-import iterators from 'p-iteration'
+import * as iterators from './pIteration.js'
 import logger from '@wdio/logger'
 import type { Clients } from '@wdio/types'
 
