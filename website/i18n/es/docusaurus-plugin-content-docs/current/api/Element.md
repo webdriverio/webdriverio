@@ -68,7 +68,7 @@ Puede llamar directamente a métodos Array en la cadena de elementos, por ejempl
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO usa [`p-iteración`](https://www.npmjs.com/package/p-iteration#api) bajo la capa, por lo que todos los comandos de su API también son compatibles para estos casos de uso.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### Comandos personalizados
 
