@@ -1,5 +1,5 @@
 import { describe, it } from 'mocha'
-import * as puppeteer from 'puppeteer-core'
+import { Browser } from 'puppeteer-core'
 
 import { browser } from '../../../packages/wdio-globals/build/index.js'
 
@@ -7,6 +7,6 @@ describe('WebdriverIO', () => {
     it('should provide access to Puppeteer', async () => {
         const puppeteerInstance = await browser.getPuppeteer()
 
-        expect(puppeteerInstance).toBeInstanceOf(puppeteer.Browser)
+        expect(puppeteerInstance).toBeInstanceOf(Browser)
     })
 })
