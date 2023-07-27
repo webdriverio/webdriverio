@@ -68,7 +68,7 @@ Vous pouvez appeler directement les méthodes Array sur la chaîne d'éléments,
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO utilise [`p-itération`](https://www.npmjs.com/package/p-iteration#api) afin que toutes les commandes de leur API soient également prises en charge pour ces cas d'utilisation.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### Commandes personnalisées
 
