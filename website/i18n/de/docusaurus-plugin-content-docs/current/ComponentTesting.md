@@ -11,6 +11,11 @@ Der Browser Runner verwendet [Vite](https://vitejs.dev/) , um eine Testseite zu 
 
 Der Vite-Server wird vom WebdriverIO-Testrunner gestartet und so konfiguriert, dass Sie alle Reporter und Dienste wie gewohnt bei normalen e2e-Tests verwenden können. Darüber hinaus initialisiert es eine [`Browser-Instanz`](/docs/api/browser) , die es Ihnen ermöglicht, auf die [WebdriverIO-API](/docs/api) zuzugreifen, um mit beliebigen Elementen auf der Seite zu interagieren. Ähnlich wie bei e2e-Tests können Sie auf die Browser API über die globale Variable `browser` zugreifen, oder Sie können diese aus `@wdio/globals` importieren, je nachdem, wie [`injectGlobals`](/docs/api/globals) gesetzt ist.
 
+WebdriverIO has built-in support for the following frameworks:
+
+- [__Nuxt__](https://nuxt.com/): WebdriverIO's testrunner detects a Nuxt application and automatically sets up your project composables and helps mock out the Nuxt backend, read more in the [Nuxt docs](/docs/component-testing/vue#testing-vue-components-in-nuxt)
+- [__TailwindCSS__](https://tailwindcss.com/): WebdriverIO's testrunner detects if you are using TailwindCSS and loads the environment properly into the test page
+
 ## Einrichten
 
 Um WebdriverIO für Unit- oder Komponententests im Browser einzurichten, initiieren Sie ein neues WebdriverIO-Projekt über:
