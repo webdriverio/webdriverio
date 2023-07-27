@@ -1,6 +1,4 @@
-import { describe, it } from 'mocha'
 import { Browser } from 'puppeteer-core'
-
 import { browser } from '../../../packages/wdio-globals/build/index.js'
 
 describe('WebdriverIO', () => {
