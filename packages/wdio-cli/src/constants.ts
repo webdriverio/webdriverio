@@ -561,7 +561,10 @@ export const QUESTIONNAIRE = [{
             return selectDefaultService('sauce')
         } else if (answers.browserEnvironment && answers.browserEnvironment.length) {
             const defaultServices = answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
-            defaultServices.push(selectDefaultService('nuxt')[0])
+            if (await isNuxtProject()) {
+                defaultServices.push(selectDefaultService('nuxt')[0])
+            }
+
             return defaultServices
         } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
