@@ -114,7 +114,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     env: ${JSON.stringify(p.env)},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '${p.cwd()}',
+                    cwd: () => ${JSON.stringify(p.cwd())},
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
