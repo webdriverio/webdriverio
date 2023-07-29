@@ -1,7 +1,7 @@
-import { describe, it } from 'mocha'
-
+// eslint-disable-next-line no-undef
 describe('WebdriverIO', () => {
 
+    // eslint-disable-next-line no-undef
     it('should support source maps when running TypeScript files', async () => {
         const location = getInvocationLocation()
 
