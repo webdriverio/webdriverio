@@ -21,7 +21,7 @@ import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 const log = logger('webdriver')
 
 export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODriverOptions {}
-export type ChromedriverOptions = InstallOptions & Omit<EdgedriverParameters, 'port'>
+export type ChromedriverOptions = InstallOptions & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 
 export interface WDIODriverOptions {
     'wdio:chromedriverOptions'?: ChromedriverOptions
@@ -93,18 +93,20 @@ export async function startWebDriver (options: Options.WebDriver) {
             { binary: executablePath },
             caps['goog:chromeOptions'] || {}
         )
-        chromedriverOptions.allowedOrigins = ['*']
-        chromedriverOptions.allowedIps = ['']
+        chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
+        chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['']
         const driverParams = parseParams({ port, ...chromedriverOptions })
         driverProcess = cp.spawn(chromedriverBinaryPath, driverParams)
         driver = `ChromeDriver v${buildId} with params ${driverParams.join(' ')}`
     } else if (SUPPORTED_BROWSERNAMES.safari.includes(caps.browserName.toLowerCase())) {
+        const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as SafaridriverOptions)
         /**
          * Safari
          */
         driver = 'SafariDriver'
         driverProcess = startSafaridriver({
-            ...(caps['wdio:safaridriverOptions'] || {}),
+            useTechnologyPreview: Boolean(caps.browserName.match(/preview/i)),
+            ...safaridriverOptions,
             port
         })
 

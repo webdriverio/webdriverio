@@ -157,5 +157,5 @@ export const SUPPORTED_BROWSERNAMES = {
     chrome: ['chrome', 'googlechrome', 'chromium', 'chromium-browser'],
     firefox: ['firefox', 'ff', 'mozilla', 'mozilla firefox'],
     edge: ['edge', 'microsoftedge', 'msedge'],
-    safari: ['safari']
+    safari: ['safari', 'safari technology preview']
 }
