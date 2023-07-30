@@ -66,9 +66,9 @@ function isChrome(capabilities?: Capabilities.DesiredCapabilities) {
 }
 
 /**
- * check if session is run by Chromedriver
+ * check if session is run by Geckodriver
  * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run by Chromedriver
+ * @return {Boolean}               true if run by Geckodriver
  */
 function isFirefox(capabilities?: Capabilities.DesiredCapabilities) {
     if (!capabilities) {

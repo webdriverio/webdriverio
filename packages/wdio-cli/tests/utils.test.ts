@@ -21,7 +21,6 @@ import {
     replaceConfig,
     addServiceDeps,
     convertPackageHashToObject,
-    validateServiceAnswers,
     getCapabilities,
     generateTestFiles,
     getPathForFileGeneration,
@@ -307,7 +306,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver'],
+    services: [],
     framework: 'mocha',
 }`
         expect(replaceConfig(fakeConfig, 'service', 'sauce')).toBe(
@@ -316,7 +315,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver','sauce'],
+    services: ['sauce'],
     framework: 'mocha',
 }`
         )
@@ -326,7 +325,7 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual(['appium'])
     })
 
@@ -335,26 +334,8 @@ describe('addServiceDeps', () => {
         // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
         cp.execSyncRes = '1.13.0'
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual([])
-    })
-
-    it('should add chromedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
-        expect(packages).toEqual(['chromedriver'])
-    })
-
-    it('should add geckodriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-geckodriver-service', short: 'geckodriver' }], packages)
-        expect(packages).toEqual(['geckodriver'])
-    })
-
-    it('should add edgedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-edgedriver-service', short: 'edgedriver' }], packages)
-        expect(packages).toEqual(['msedgedriver'])
     })
 
     afterEach(() => {
@@ -376,13 +357,6 @@ describe('convertPackageHashToObject', () => {
             short: 'package-name'
         })
     })
-})
-
-test('validateServiceAnswers', () => {
-    expect(validateServiceAnswers(['wdio-chromedriver-service', '@wdio/selenium-standalone-service']))
-        .toContain('wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service')
-    expect(validateServiceAnswers(['@wdio/static-server-service', '@wdio/selenium-standalone-service']))
-        .toBe(true)
 })
 
 describe('getCapabilities', () => {
@@ -757,14 +731,12 @@ test('getDefaultFiles', async () => {
 
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
-        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service', 'wdio-geckodriver-service'],
+        ['webdriverio', '@wdio/spec-reporter'],
         '8.0.0-alpha.249+4bc237701',
         'latest'
     )).toEqual([
         'webdriverio@^8.0.0-alpha.249',
-        '@wdio/spec-reporter@^8.0.0-alpha.249',
-        'wdio-chromedriver-service',
-        'wdio-geckodriver-service'
+        '@wdio/spec-reporter@^8.0.0-alpha.249'
     ])
 })
 

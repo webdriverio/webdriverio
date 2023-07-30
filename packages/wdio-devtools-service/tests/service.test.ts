@@ -38,7 +38,6 @@ vi.mock('../src/auditor', () => {
 })
 
 vi.mock('../src/utils', async () => {
-    const { isBrowserSupported } = await vi.importActual('../src/utils.js') as any
     let wasCalled = false
 
     return {
@@ -49,7 +48,6 @@ vi.mock('../src/utils', async () => {
             }
             throw new Error('boom')
         }),
-        isBrowserSupported,
         setUnsupportedCommand: vi.fn(),
         getLighthouseDriver: vi.fn()
     }
@@ -86,46 +84,6 @@ beforeEach(() => {
 
     sessionMock.send.mockClear()
     vi.mocked(log.error).mockClear()
-})
-
-test('beforeSession', () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, {})
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 85 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '85' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 62 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '62' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 65 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '65' })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox' })
-    expect(service['_isSupported']).toBe(true)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 86 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '86' })
-    expect(service['_isSupported']).toBe(true)
 })
 
 test('if not supported by browser', async () => {

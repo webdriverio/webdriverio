@@ -101,7 +101,6 @@
     "cddl2ts": "^0.2.1",
     "chalk": "^5.3.0",
     "cheerio": "^1.0.0-rc.12",
-    "chromedriver": "^114.0.2",
     "copyfiles": "^2.4.1",
     "depcheck": "^1.4.3",
     "ejs": "^3.1.9",

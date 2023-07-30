@@ -23,8 +23,8 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import {
-    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg,
-    COMPILER_OPTIONS, TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
+    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, COMPILER_OPTIONS,
+    TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
 } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
 
@@ -204,29 +204,6 @@ export function replaceConfig(config: string, type: string, name: string) {
 
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * Automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install.
-     * Also, set `DETECT_CHROMEDRIVER_VERSION` flag to have package install the right driver version.
-     */
-    if (names.some(({ short }) => short === 'chromedriver')) {
-        process.env.DETECT_CHROMEDRIVER_VERSION = '1'
-        packages.push('chromedriver')
-    }
-
-    /**
-     * automatically install latest Geckodriver if `wdio-geckodriver-service` was selected for install
-     */
-    if (names.some(({ short }) => short === 'geckodriver')) {
-        packages.push('geckodriver')
-    }
-
-    /**
-     * automatically install latest EdgeDriver if `wdio-edgedriver-service` was selected for install
-     */
-    if (names.some(({ short }) => short === 'edgedriver')) {
-        packages.push('msedgedriver')
-    }
-
-    /**
      * install Appium if it is not installed globally if `@wdio/appium-service`
      * was selected for install
      */
@@ -252,24 +229,6 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
 export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
     const [p, short, purpose] = pkg.split(hash)
     return { package: p, short, purpose }
-}
-
-export const validateServiceAnswers = (answers: string[]): Boolean | string => {
-    let result: boolean | string = true
-
-    Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
-        const exists = answers.some(answer => answer.includes(name))
-
-        const hasExclusive = services.some(service =>
-            answers.some(answer => answer.includes(service))
-        )
-
-        if (exists && hasExclusive) {
-            result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
-        }
-    })
-
-    return result
 }
 
 export async function getCapabilities(arg: ReplCommandArguments) {

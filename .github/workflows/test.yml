@@ -28,8 +28,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
-        env:
-          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup
         env:
@@ -39,9 +37,7 @@ jobs:
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
       - name: Interop Tests
-        run: |
-          npm i chromedriver --detect_chromedriver_version
-          npm run test:e2e:cjs
+        run: npm run test:e2e:cjs
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -56,8 +52,6 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
-        env:
-          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup
         env:
@@ -91,8 +85,6 @@ jobs:
           node-version: 18.x
       - name: Install Dependencies
         run: npm ci
-        env:
-          DETECT_CHROMEDRIVER_VERSION: true
       - name: Bootstrap Packages
         run: npm run setup
         env:
