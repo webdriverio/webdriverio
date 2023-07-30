@@ -61,7 +61,7 @@ exports[`getTemplate > renders template correctly 1`] = `
                     env: {\\"some\\":\\"env\\"},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '/some/cwd',
+                    cwd: () => \\"/some/cwd\\",
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
