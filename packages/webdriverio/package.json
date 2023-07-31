@@ -77,7 +77,6 @@
     "@wdio/utils": "8.13.13",
     "archiver": "^5.0.0",
     "aria-query": "^5.0.0",
-    "chrome-launcher": "^1.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools-protocol": "^0.0.1170846",
@@ -89,11 +88,20 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "^9.0.0",
+    "puppeteer-core": "^20.9.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^8.0.0",
     "wait-port": "^1.0.4",
     "webdriver": "8.13.1"
+  },
+  "peerDependencies": {
+    "devtools": "8.13.13"
+  },
+  "peerDependenciesMeta": {
+    "devtools": {
+      "optional": true
+    }
   }
 }
