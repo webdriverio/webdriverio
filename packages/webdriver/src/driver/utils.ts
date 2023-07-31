@@ -46,6 +46,16 @@ export function getBuildIdByPath(chromePath?: string) {
     return versionString.split(' ').pop()?.trim()
 }
 
+let lastTimeCalled = Date.now()
+export const downloadProgressCallback = (artifact: string, downloadedBytes: number, totalBytes: number) => {
+    if (Date.now() - lastTimeCalled < 1000) {
+        return
+    }
+    const percentage = ((downloadedBytes / totalBytes) * 100).toFixed(2)
+    log.info(`Downloading ${artifact} ${percentage}%`)
+    lastTimeCalled = Date.now()
+}
+
 export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
@@ -78,14 +88,14 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
         platform,
         buildId,
         browser: Browser.CHROME,
-        downloadProgressCallback: () => {}
+        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chrome', downloadedBytes, totalBytes)
     }
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
         throw new Error(`Couldn't find a matching Chrome browser for tag "${buildId}" on platform "${platform}"`)
     }
 
-    log.info(`Downloading Chrome v${buildId}`)
+    log.info(`Setting up Chrome v${buildId}`)
     await install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, buildId, platform }
@@ -96,7 +106,7 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
  * which is: whenever the user has set connection options that differ from
  * the default, or a port is set
  */
-export function definesRemoteDriver (options: Options.WebDriver) {
+export function definesRemoteDriver(options: Options.WebDriver) {
     return Boolean(
         (options.protocol && options.protocol !== DEFAULTS.protocol.default) ||
         (options.hostname && options.hostname !== DEFAULTS.hostname.default) ||

@@ -133,7 +133,23 @@ export default function (
                  */
                 if (this._driverProcess) {
                     log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
-                    this._driverProcess.kill()
+                    const killedSuccessfully = this._driverProcess.kill('SIGKILL')
+                    if (!killedSuccessfully) {
+                        log.warn('Failed to kill driver process, manully clean-up might be required')
+                    }
+                    this._driverProcess = undefined
+
+                    setTimeout(() => {
+                        /**
+                         * clear up potential leaked TLS Socket handles
+                         * see https://github.com/puppeteer/puppeteer/pull/10667
+                         */
+                        for (const handle of process._getActiveHandles()) {
+                            if (handle.servername && handle.servername.includes('edgedl.me')) {
+                                handle.destroy()
+                            }
+                        }
+                    }, 10)
                 }
 
                 /**

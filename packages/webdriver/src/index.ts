@@ -44,7 +44,7 @@ export default class WebDriver {
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const driverPrototype: Record<string, PropertyDescriptor> = {
-            _driverProcess: { value: driverProcess, configurable: false, writable: false }
+            _driverProcess: { value: driverProcess, configurable: false, writable: true }
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...driverPrototype }

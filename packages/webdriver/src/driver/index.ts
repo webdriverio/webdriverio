@@ -11,11 +11,11 @@ import type { Options } from '@wdio/types'
 import { start as startSafaridriver, type SafaridriverOptions } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
 import { start as startEdgedriver, type EdgedriverParameters } from 'edgedriver'
-import { install, computeExecutablePath, Browser, getInstalledBrowsers, type InstallOptions } from '@puppeteer/browsers'
+import { install, computeExecutablePath, Browser, type InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupChrome, definesRemoteDriver } from './utils.js'
+import { parseParams, setupChrome, definesRemoteDriver, downloadProgressCallback } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 const log = logger('webdriver')
@@ -78,7 +78,12 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
-        const hasChromedriverInstalled = (await getInstalledBrowsers({ cacheDir })).find((ib) => ib.buildId === buildId)
+        const chromedriverBinaryPath = computeExecutablePath({
+            browser: Browser.CHROMEDRIVER,
+            buildId,
+            cacheDir
+        })
+        const hasChromedriverInstalled = await fs.access(chromedriverBinaryPath).then(() => true, () => false)
         if (!hasChromedriverInstalled) {
             log.info(`Downloading Chromedriver v${buildId}`)
             await install({
@@ -87,17 +92,11 @@ export async function startWebDriver (options: Options.WebDriver) {
                 platform,
                 buildId,
                 browser: Browser.CHROMEDRIVER,
-                downloadProgressCallback: () => {}
+                downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chrome', downloadedBytes, totalBytes)
             })
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
         }
-
-        const chromedriverBinaryPath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId,
-            cacheDir
-        })
         caps['goog:chromeOptions'] = deepmerge(
             { binary: executablePath },
             caps['goog:chromeOptions'] || {}
