@@ -164,7 +164,7 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fs.access).toBeCalledTimes(1)
+        expect(fs.access).toBeCalledTimes(2)
         expect(fs.mkdir).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
