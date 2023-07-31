@@ -44,6 +44,10 @@ describe('scripts run in standalone mode', () => {
         it('can attach to a session', async () => {
             const remoteBrowser = await remote({
                 automationProtocol: 'webdriver',
+                protocol: 'http',
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
                 capabilities: {
                     browserName: 'chrome'
                 }
@@ -60,11 +64,17 @@ describe('scripts run in standalone mode', () => {
         before(async () => {
             remoteBrowser = await multiremote({
                 foo: {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
                     capabilities: {
                         browserName: 'chrome'
                     }
                 },
                 bar: {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
                     capabilities: {
                         browserName: 'chrome'
                     }
