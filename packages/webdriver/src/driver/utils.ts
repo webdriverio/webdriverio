@@ -97,10 +97,10 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
  * the default, or a port is set
  */
 export function definesRemoteDriver (options: Options.WebDriver) {
-    return (
-        options.protocol !== DEFAULTS.protocol.default ||
-        options.hostname !== DEFAULTS.hostname.default ||
-        options.port,
-        options.path !== DEFAULTS.path.default
+    return Boolean(
+        (options.protocol && options.protocol !== DEFAULTS.protocol.default) ||
+        (options.hostname && options.hostname !== DEFAULTS.hostname.default) ||
+        Boolean(options.port) ||
+        (options.path && options.path !== DEFAULTS.path.default)
     )
 }

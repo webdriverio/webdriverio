@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src/index.js'
 import Auditor from '../src/auditor.js'
+import { setUnsupportedCommand } from '../src/utils.js'
 
 import logger from '@wdio/logger'
 
@@ -88,11 +89,14 @@ beforeEach(() => {
 
 test('if not supported by browser', async () => {
     const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_isSupported'] = false
+    service['_browser'] = {
+        addCommand: vi.fn(),
+        getPuppeteer: vi.fn(() => Promise.reject(new Error('ups')))
+    } as any
 
     await service._setupHandler()
-    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(0)
+    expect(setUnsupportedCommand).toBeCalledTimes(1)
+    expect(vi.mocked(service['_browser']!.addCommand!).mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
@@ -102,7 +106,6 @@ test('if supported by browser', async () => {
         }
     })
     service['_browser'] = browser
-    service['_isSupported'] = true
     await service._setupHandler()
     expect(service['_session']?.send).toBeCalledWith('Network.enable')
     expect(service['_session']?.send).toBeCalledWith('Runtime.enable')

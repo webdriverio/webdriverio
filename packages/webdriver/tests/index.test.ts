@@ -11,9 +11,11 @@ import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 import { initCount } from '../src/bidi/core.js'
 import type { Client } from '../src/types.js'
 
+vi.mock('geckodriver', () => ({ start: vi.fn() }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fs')
+vi.mock('wait-port')
 vi.mock('ws')
 vi.mock('got')
 
@@ -305,10 +307,10 @@ describe('WebDriver', () => {
         })
 
         it('should apply default connection details', () => {
-            const client = WebDriver.attachToSession({ sessionId: '123' })
+            const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('localhost')
-            expect(client.options.port).toBe(4444)
+            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
 

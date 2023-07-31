@@ -32,6 +32,15 @@ export interface WDIODriverOptions {
 
 export async function startWebDriver (options: Options.WebDriver) {
     /**
+     * in case we are running unit tests, just return
+     */
+    if (process.env.VITEST_WORKER_ID) {
+        options.hostname = '0.0.0.0'
+        options.port = 4321
+        return
+    }
+
+    /**
      * if any of the connection parameter are set, don't start any driver
      */
     if (definesRemoteDriver(options)) {

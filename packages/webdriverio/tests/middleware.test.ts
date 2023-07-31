@@ -35,7 +35,7 @@ describe('middleware', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'chrome'
             },
             waitforInterval: 20,
             waitforTimeout: 100

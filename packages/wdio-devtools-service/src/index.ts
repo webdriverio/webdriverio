@@ -212,13 +212,16 @@ export default class DevToolsService implements Services.ServiceInstance {
 
     async _setupHandler () {
         if (!this._browser) {
-            return setUnsupportedCommand(this._browser as WebdriverIO.Browser)
+            return
         }
 
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await (this._browser as WebdriverIO.Browser).getPuppeteer() as any as PuppeteerBrowser
+        this._puppeteer = await (this._browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as any as PuppeteerBrowser
+        if (!this._puppeteer) {
+            return setUnsupportedCommand(this._browser as WebdriverIO.Browser)
+        }
 
         /* istanbul ignore next */
         if (!this._puppeteer) {
