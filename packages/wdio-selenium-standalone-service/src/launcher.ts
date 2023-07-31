@@ -56,7 +56,7 @@ export default class SeleniumStandaloneLauncher {
          */
         console.log(
             // yellow bg and red fg
-            '\x1b[43m\x1b[31m', 'DEPRECATION WARNING', '\x1b[0m',
+            '\x1b[43m\x1b[37m', '⚠️ DEPRECATION WARNING', '\x1b[0m',
             'There is no need to use the "@wdio/selenium-standalone-service" package anymore. ' +
             'You can safely remove it from your WebdriverIO config!\n\n' +
             'For more information, check out: https://webdriver.io/blog/2023/07/31/driver-management'

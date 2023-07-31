@@ -60,8 +60,6 @@ jobs:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
-      - name: Setup Chrome Browser
-        uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
