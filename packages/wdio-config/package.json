@@ -36,7 +36,7 @@
     "deepmerge-ts": "^5.0.0",
     "glob": "^10.2.2",
     "import-meta-resolve": "^3.0.0",
-    "read-pkg-up": "^9.1.0"
+    "read-pkg-up": "^10.0.0"
   },
   "publishConfig": {
     "access": "public"
