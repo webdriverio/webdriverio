@@ -16,15 +16,18 @@ export async function getProtocolDriver (options: RemoteOptions) {
     /**
      * return `devtools` if explicitly set
      */
-    if (options.automationProtocol === SupportedAutomationProtocols.devtools) {
+    if (options.automationProtocol === SupportedAutomationProtocols.devtools || options.automationProtocol?.startsWith('/@fs/')) {
         try {
-            const DevTools = await import('devtools')
+            const DevTools = await import(options.automationProtocol)
             log.info('Starting session using Chrome DevTools as automation protocol and Puppeteer as driver')
             return { Driver: DevTools.default, options }
         } catch (err: unknown) {
             throw new Error(
-                'Failed to import "devtools" as automation protocol driver!\n' +
-                'Make sure to have it installed as dependency (`npm i devtools`)!\n' +
+                `Failed to import "${options.automationProtocol}" as automation protocol driver!\n` +
+                (options.automationProtocol === SupportedAutomationProtocols.devtools
+                    ? 'Make sure to have it installed as dependency (`npm i devtools`)!\n'
+                    : ''
+                ) +
                 `Error: ${(err as Error).message}`
             )
         }
