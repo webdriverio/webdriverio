@@ -12,8 +12,6 @@ describe('waitForClickable', () => {
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
-            hostname: 'localhost',
-            port: 4321,
             capabilities: {
                 browserName: 'foobar'
             }

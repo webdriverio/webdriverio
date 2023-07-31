@@ -71,7 +71,8 @@ export async function initialiseInstance (
             port: caps.port || config.port,
             path: caps.path || config.path
         }
-        return attach({ ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>)
+        const params = { ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>
+        return attach({ ...params, options: params })
     }
 
     if (!isMultiremote) {
