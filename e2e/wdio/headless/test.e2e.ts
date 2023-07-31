@@ -1,4 +1,3 @@
-
 import type { Capabilities } from '../../../packages/wdio-types'
 
 const SCROLL_MARGIN_TRESHOLD = 25

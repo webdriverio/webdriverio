@@ -37,6 +37,7 @@
     "@testing-library/svelte": "^4.0.3",
     "@testing-library/user-event": "^14.4.3",
     "@testing-library/vue": "^7.0.0",
+    "@types/mocha": "^10.0.1",
     "@types/testing-library__jest-dom": "^5.14.8",
     "babel-plugin-transform-hook-names": "^1.0.2",
     "cross-env": "^7.0.3",
