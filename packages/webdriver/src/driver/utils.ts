@@ -1,3 +1,6 @@
+import os from 'node:os'
+import fs from 'node:fs'
+import path from 'node:path'
 import cp from 'node:child_process'
 
 import decamelize from 'decamelize'
@@ -41,7 +44,16 @@ export function getLocalChromePath() {
 export function getBuildIdByPath(chromePath?: string) {
     if (!chromePath) {
         return
+    } else if (os.platform() === 'win32') {
+        const versionPath = path.dirname(chromePath)
+        const contents = fs.readdirSync(versionPath)
+        const versions = contents.filter(a => /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/g.test(a))
+
+        // returning oldest in case there is an updated version and chrome still hasn't relaunched
+        const oldest = versions.sort((a: string, b: string) => a > b ? -1 : 1)[0]
+        return oldest
     }
+
     const versionString = cp.execSync(`"${chromePath}" --version`).toString()
     return versionString.split(' ').pop()?.trim()
 }

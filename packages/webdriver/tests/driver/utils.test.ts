@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getChromePath } from 'chrome-launcher'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
@@ -6,6 +7,29 @@ import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome } from '
 
 vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')
+}))
+
+vi.mock('node:os', () => ({
+    default: {
+        tmpdir: vi.fn().mockReturnValue('/tmp'),
+        platform: vi.fn().mockReturnValue('darwin')
+    }
+}))
+
+vi.mock('node:fs', () => ({
+    default: {
+        readdirSync: vi.fn().mockReturnValue([
+            '114.0.5735.199',
+            '115.0.5790.110',
+            'chrome.exe',
+            'chrome.VisualElementsManifest.xml',
+            'chrome_proxy.exe',
+            'master_preferences',
+            'new_chrome.exe',
+            'new_chrome_proxy.exe',
+            'SetupMetrics'
+        ])
+    }
 }))
 
 vi.mock('node:child_process', () => ({
@@ -39,6 +63,9 @@ describe('driver utils', () => {
     it('getBuildIdByPath', () => {
         expect(getBuildIdByPath()).toBe(undefined)
         expect(getBuildIdByPath('/foo/bar')).toBe('115.0.5790.98')
+
+        vi.mocked(os.platform).mockReturnValueOnce('win32')
+        expect(getBuildIdByPath('/foo/bar')).toBe('115.0.5790.110')
     })
 
     describe('setupChrome', () => {
