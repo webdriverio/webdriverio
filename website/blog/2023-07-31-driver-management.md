@@ -32,7 +32,7 @@ Testing Chrome locally is now more convenient than ever. You can define a browse
 ```js
 {
     browserName: 'chrome',
-    browserVersion: '116.0.5793.0' // or 'stable', 'dev' or 'canary'
+    browserVersion: '116.0.5793.0' // or 'stable', 'beta', 'dev' or 'canary'
 }
 ```
 
