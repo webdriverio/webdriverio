@@ -20,7 +20,6 @@ export const config = {
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
 
-    maxInstances: os.platform() === 'win32' ? 1 : 10,
     services: [[DevtoolsService, {}]],
 
     /**

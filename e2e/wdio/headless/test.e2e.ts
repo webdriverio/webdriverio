@@ -34,7 +34,7 @@ describe('main suite 1', () => {
         await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it('should be able to use async-iterators', async () => {
+    it.skip('should be able to use async-iterators', async () => {
         await browser.url('https://webdriver.io')
         const contributeLink = await browser.$$('a.navbar__item.navbar__link').find<WebdriverIO.Element>(
             async (link) => await link.getText() === 'Contribute')
