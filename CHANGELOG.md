@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.14.2 (2023-08-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10841](https://github.com/webdriverio/webdriverio/pull/10841) fix(webdriverio): updated devtools peer dependency to 8.14.0 ([@jan-molak](https://github.com/jan-molak))
+
+#### :memo: Documentation
+* [#10842](https://github.com/webdriverio/webdriverio/pull/10842) Mention 'beta' channel ([@mathiasbynens](https://github.com/mathiasbynens))
+
+#### Committers: 2
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Mathias Bynens ([@mathiasbynens](https://github.com/mathiasbynens))
+
+
 ## v8.14.0 (2023-08-01)
 
 #### :rocket: New Feature
