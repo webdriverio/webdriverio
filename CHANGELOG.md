@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.14.0 (2023-08-01)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-devtools-service`, `wdio-runner`, `wdio-selenium-standalone-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#10767](https://github.com/webdriverio/webdriverio/pull/10767) (webdriverio): manage browser drivers ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10816](https://github.com/webdriverio/webdriverio/pull/10816) (@wdio/cli): corrected TypeScript loading ([@jan-molak](https://github.com/jan-molak))
+* `wdio-browser-runner`
+  * [#10815](https://github.com/webdriverio/webdriverio/pull/10815) Fix invalid unicode escape error on Windows ([@yishn](https://github.com/yishn))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Yichuan Shen ([@yishn](https://github.com/yishn))
+
+
 ## v8.13.14 (2023-07-28)
 
 #### :bug: Bug Fix

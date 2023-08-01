@@ -1,6 +1,6 @@
 {
   "name": "@wdio/testingbot-service",
-  "version": "8.13.13",
+  "version": "8.14.0",
   "description": "A WebdriverIO service that provides a better integration into TestingBot",
   "author": "Jochen Delabie <info@testingbot.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service",
@@ -31,10 +31,10 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "8.11.0",
-    "@wdio/types": "8.10.4",
+    "@wdio/types": "8.14.0",
     "got": "^ 12.6.1",
     "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "8.13.13"
+    "webdriverio": "8.14.0"
   },
   "devDependencies": {
     "@types/node": "^20.1.0"
