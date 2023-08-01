@@ -155,6 +155,12 @@ Type: `Boolean`<br /> Default: `true`
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -209,7 +215,7 @@ Type: `String`<br /> Default: `us`
 
 ### specs
 
-تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. همه مسیرها از مسیر فایل پیکربندی به صورت نسبی دیده می شوند.
+تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
