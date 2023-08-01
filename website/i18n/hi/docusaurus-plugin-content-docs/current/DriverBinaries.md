@@ -3,7 +3,15 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-वेबड्राइवर प्रोटोकॉल के आधार पर ऑटोमेशन चलाने के लिए आपको ब्राउज़र ड्राइवरों को सेट अप करने की आवश्यकता होती है जो ऑटोमेशन कमांड का अनुवाद करते हैं और उन्हें ब्राउज़र में निष्पादित करने में सक्षम होते हैं। निम्नलिखित वर्णन करता है कि आप प्रत्येक ड्राइवर को व्यक्तिगत रूप से कैसे सेट अप कर सकते हैं। आप [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) रीडमे में सभी ड्राइवरों के साथ एक सूची पा सकते हैं।
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+
+:::warn
+
+With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
+
+:::
+
+निम्नलिखित वर्णन करता है कि आप प्रत्येक ड्राइवर को व्यक्तिगत रूप से कैसे सेट अप कर सकते हैं। आप [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) रीडमे में सभी ड्राइवरों के साथ एक सूची पा सकते हैं।
 
 :::tip
 
