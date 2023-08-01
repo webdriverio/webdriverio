@@ -17,6 +17,8 @@ To automate a browser, you need to set up a browser driver that translates WebDr
     </div>
 </div>
 
+<br />
+
 __But fear not!__ With the release of WebdriverIO version v8.14.0, and onwards, all driver management hassles are now a thing of the past 🙌. The WebdriverIO team has been hard at work, taking over the maintenance of [`geckodriver`](https://www.npmjs.com/package/geckodriver), [`edgedriver`](https://www.npmjs.com/package/edgedriver) and [`safaridriver`](https://www.npmjs.com/package/safaridriver) packages. This means smoother and more seamless browser automation experiences for you.
 
 ## Say Goodbye to Driver Services
@@ -33,6 +35,8 @@ Testing Chrome locally is now more convenient than ever. You can define a browse
     browserVersion: '116.0.5793.0' // or 'stable', 'dev' or 'canary'
 }
 ```
+
+This has been made possible through Google's effort on [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) which offers reliable downloads for browser automation. It's now built into WebdriverIO and guarantees consistent, reproducible results across repeated test runs.
 
 ## Effortless Testing on Microsoft Edge and Safari
 
