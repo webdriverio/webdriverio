@@ -93,7 +93,7 @@
     "webdriver": "8.14.0"
   },
   "peerDependencies": {
-    "devtools": "8.13.13"
+    "devtools": "^8.14.0"
   },
   "peerDependenciesMeta": {
     "devtools": {
