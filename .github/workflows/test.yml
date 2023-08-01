@@ -66,7 +66,7 @@ jobs:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
-      - name: E2E Edge Launch Tests
+      - name: E2E Launch Tests
         run: |
           npm run test:e2e:edge
           npm run test:e2e:webdriver

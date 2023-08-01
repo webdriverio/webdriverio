@@ -92,7 +92,7 @@ export async function startWebDriver (options: Options.WebDriver) {
                 platform,
                 buildId,
                 browser: Browser.CHROMEDRIVER,
-                downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chrome', downloadedBytes, totalBytes)
+                downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
             })
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
