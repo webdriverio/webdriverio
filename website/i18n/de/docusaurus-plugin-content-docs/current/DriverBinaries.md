@@ -3,7 +3,15 @@ id: driverbinaries
 title: Browser Treiber
 ---
 
-Um die Automatisierung basierend auf dem WebDriver-Protokoll auszuführen, müssen Sie Browsertreiber einrichten, die die Automatisierungsbefehle übersetzen und im Browser ausführen können. Im Folgenden wird beschrieben, wie Sie jeden Treiber einzeln einrichten können. Eine Liste mit allen Treibern finden Sie in der [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+
+:::warn
+
+With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
+
+:::
+
+Im Folgenden wird beschrieben, wie Sie jeden Treiber einzeln einrichten können. Eine Liste mit allen Treibern finden Sie in der [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
 :::tip
 
