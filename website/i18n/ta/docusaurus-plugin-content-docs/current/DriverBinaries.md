@@ -3,7 +3,15 @@ id: driverbinaries
 title: டிரைவர் பைனரிஸ்
 ---
 
-WebDriver நெறிமுறையின் அடிப்படையில் ஆட்டோமேஷனை இயக்க, தானியங்கு கட்டளைகளை மொழிபெயர்க்கும் பிரௌசர் டிரைவர்களை நீங்கள் அமைக்க வேண்டும் மற்றும் அவற்றைப் பிரௌசரில் செயல்படுத்த வேண்டும். ஒவ்வொரு டிரைவரையும் தனித்தனியாக எவ்வாறு அமைக்கலாம் என்பதை பின்வருவது விவரிக்கிறது. [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README இல் அனைத்து டிரைவர் பட்டியலைக் காணலாம்.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+
+:::warn
+
+With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
+
+:::
+
+ஒவ்வொரு டிரைவரையும் தனித்தனியாக எவ்வாறு அமைக்கலாம் என்பதை பின்வருவது விவரிக்கிறது. [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README இல் அனைத்து டிரைவர் பட்டியலைக் காணலாம்.
 
 :::tip
 
