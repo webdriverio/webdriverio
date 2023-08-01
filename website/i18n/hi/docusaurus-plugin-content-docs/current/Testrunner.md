@@ -156,17 +156,17 @@ wdio install service sauce --config="./path/to/wdio.conf.js"
 sauce
 testingbot
 firefox-profile
-selenium-standalone
 devtools
 browserstack
 appium
-chromedriver
 intercept
 zafira-listener
 reportportal
 docker
 wiremock
 lambdatest
+vite
+nuxt
 ```
 
 #### समर्थित पत्रकारों की सूची
