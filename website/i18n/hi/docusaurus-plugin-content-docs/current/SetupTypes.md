@@ -50,7 +50,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 स्टैंडअलोन मोड में WebdriverIO का उपयोग करना अभी भी आपको सभी प्रोटोकॉल कमांड तक पहुंच प्रदान करता है लेकिन अतिरिक्त कमांड का एक सुपर सेट प्रदान करता है जो ब्राउज़र के साथ उच्च स्तर की सहभागिता प्रदान करता है। यह आपको एक नई ऑटोमेशन लाइब्रेरी बनाने के लिए इस ऑटोमेशन टूल को अपने (परीक्षण) प्रोजेक्ट में एकीकृत करने की अनुमति देता है। लोकप्रिय उदाहरणों में शामिल हैं [Spectron](https://www.electronjs.org/spectron) या [CodeceptJS](http://codecept.io)। आप सामग्री के लिए वेब को परिमार्जन करने के लिए सादा नोड स्क्रिप्ट भी लिख सकते हैं (या कुछ और जिसके लिए एक चल रहे ब्राउज़र की आवश्यकता होती है)।
 
-यदि कोई विशिष्ट विकल्प सेट नहीं किया गया है तो WebdriverIO `http://localhost:4444/` पर एक ब्राउज़र ड्राइवर खोजने का प्रयास करेगा और स्वचालित रूप से Chrome DevTools प्रोटोकॉल और Puppeteer को ऑटोमेशन इंजन के रूप में स्विच करता है यदि ऐसा ड्राइवर नहीं मिल पाता है। यदि आप वेबड्राइवर के आधार पर चलाना पसंद करते हैं तो आपको या तो उस ड्राइवर को मैन्युअल रूप से या स्क्रिप्ट या [एनपीएम पैकेज](https://www.npmjs.com/package/chromedriver)के माध्यम से शुरू करना होगा।
+If no specific options are set WebdriverIO will always attempt to download at setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome it might also install [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) depending on whether it can find a browser on the machine.
 
 `webdriverio` पैकेज इंटरफेस पर अधिक जानकारी के लिए, [मॉड्यूल API](/docs/api/modules)देखें।
 
