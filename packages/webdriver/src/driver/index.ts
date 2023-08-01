@@ -1,5 +1,7 @@
-import fs from 'node:fs/promises'
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import os from 'node:os'
+import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
 import getPort from 'get-port'
@@ -72,9 +74,9 @@ export async function startWebDriver (options: Options.WebDriver) {
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as ChromedriverOptions)
         const cacheDir = chromedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
-        const exist = await fs.access(cacheDir).then(() => true, () => false)
+        const exist = await fsp.access(cacheDir).then(() => true, () => false)
         if (!exist) {
-            await fs.mkdir(cacheDir, { recursive: true })
+            await fsp.mkdir(cacheDir, { recursive: true })
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
@@ -83,7 +85,7 @@ export async function startWebDriver (options: Options.WebDriver) {
             buildId,
             cacheDir
         })
-        const hasChromedriverInstalled = await fs.access(chromedriverBinaryPath).then(() => true, () => false)
+        const hasChromedriverInstalled = await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
         if (!hasChromedriverInstalled) {
             log.info(`Downloading Chromedriver v${buildId}`)
             await install({
@@ -148,6 +150,13 @@ export async function startWebDriver (options: Options.WebDriver) {
             `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +
             Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)
         )
+    }
+
+    if (options.outputDir) {
+        const logFile = path.resolve(options.outputDir, `wdio-${driver.split(' ').shift()?.toLowerCase()}-${port}.log`)
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
+        driverProcess.stdout?.pipe(logStream)
+        driverProcess.stderr?.pipe(logStream)
     }
 
     await waitPort({ port, output: 'silent' })
