@@ -155,6 +155,12 @@ Aktiviere [Appium direct connection feature](https://appiumpro.com/editions/86-c
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -209,7 +215,7 @@ Die folgenden Optionen (einschließlich der oben aufgeführten) sind nur für di
 
 ### specs
 
-Definieren Sie Test Dateien für die Testausführung. Sie können entweder ein Glob-Muster angeben, um mehrere Dateien gleichzeitig zu finden, oder ein Glob und eine Reihe von Pfaden in einem Array einschließen, um sie in einem einzelnen Worker-Prozessen auszuführen. Alle Pfade werden relativ zum Pfad der Konfigurationsdatei gesehen.
+Definieren Sie Test Dateien für die Testausführung. Sie können entweder ein Glob-Muster angeben, um mehrere Dateien gleichzeitig zu finden, oder ein Glob und eine Reihe von Pfaden in einem Array einschließen, um sie in einem einzelnen Worker-Prozessen auszuführen. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
