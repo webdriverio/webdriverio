@@ -34,6 +34,15 @@ Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo pu
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - y mucho más...
 
+### WebdriverIO Capabilities to manage browser driver options
+
+WebdriverIO manages installing and running browser driver for you. In order to propagate options to the driver you can use the following custom capabilities:
+
+- `wdio:chromedriverOptions`: manage Chromedriver options (see `chromedriver --help` for more information)
+- `wdio:safaridriverOptions`: manage Safaridriver [options](https://github.com/webdriverio-community/node-safaridriver#options)
+- `wdio:geckodriverOptions`: manage Geckodriver [options](https://github.com/webdriverio-community/node-geckodriver#options)
+- `wdio:edgedriverOptions`: manage Edgedriver [options](https://github.com/webdriverio-community/node-edgedriver#options)
+
 Eche un vistazo a WebdriverIO [definición de TypeScript de capacidad](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) para encontrar capacidades específicas para su prueba. Nota: no todos son válidos y es posible que el proveedor no lo admita.
 
 ## Capacidades especiales para Casos de Uso Específico
@@ -107,17 +116,19 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 }>
 <TabItem value="chrome">
 
+When testing on Chrome, WebdriverIO will automatically download the desired browser version and driver for you based on the defined `browserVersion`, e.g.:
+
 ```ts
 {
     browserName: 'chrome',
-    'goog:chromeOptions': {
-        bin: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
-    }
+    browserVersion: 'stable' // or 'dev', 'canary', 'beta'
 }
 ```
 
 </TabItem>
 <TabItem value="firefox">
+
+When testing on Firefox, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
     browserName: 'firefox',
@@ -129,6 +140,8 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 </TabItem>
 <TabItem value="msedge">
 
+When testing on Micrsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+
 ```ts
     browserName: 'msedge',
     'ms:edgeOptions': {
@@ -139,11 +152,10 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 </TabItem>
 <TabItem value="safari">
 
+When testing on Safari, make sure you have the [Safari Technology Preview](https://developer.apple.com/safari/technology-preview/) installed on your machine. You can point WebdriverIO to that version via:
+
 ```ts
-    browserName: 'msedge',
-    'ms:edgeOptions': {
-        browserName: 'Safari Technology Preview'
-    }
+    browserName: 'safari technology preview'
 ```
 
 </TabItem>
