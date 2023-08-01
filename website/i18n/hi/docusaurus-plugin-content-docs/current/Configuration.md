@@ -155,6 +155,12 @@ Type: `Boolean`<br /> Default: `true`
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -209,7 +215,7 @@ Type: `String`<br /> Default: `us`
 
 ### specs
 
-परीक्षण निष्पादन के लिए विशिष्टताओं को परिभाषित करें। आप या तो एक बार में एक से अधिक फ़ाइलों से मिलान करने के लिए एक ग्लोब पैटर्न निर्दिष्ट कर सकते हैं या एक ग्लोब या पथों के सेट को एक एकल वर्कर प्रक्रिया में चलाने के लिए सरणी में व्रेप कर सकते हैं। सभी पथ कॉन्फ़िग फ़ाइल पथ से संबंधित के रूप में देखे जाते हैं।
+परीक्षण निष्पादन के लिए विशिष्टताओं को परिभाषित करें। आप या तो एक बार में एक से अधिक फ़ाइलों से मिलान करने के लिए एक ग्लोब पैटर्न निर्दिष्ट कर सकते हैं या एक ग्लोब या पथों के सेट को एक एकल वर्कर प्रक्रिया में चलाने के लिए सरणी में व्रेप कर सकते हैं। All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
