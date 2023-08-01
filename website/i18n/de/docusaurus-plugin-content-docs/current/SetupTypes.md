@@ -50,7 +50,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Die Verwendung von WebdriverIO im Standalone-Modus gibt Ihnen weiterhin Zugriff auf alle Protokollbefehle, bietet jedoch einen zusätzlichen Satz an Befehlen, die eine vereinfachte Interaktion mit dem Browser ermöglichen. Damit können Sie WebdriverIO in Ihr eigenes (Test-)Projekt integrieren, um z.B. eine neue Automatisierungsbibliothek zu erstellen. Beliebte Beispiele sind [Spectron](https://www.electronjs.org/spectron) oder [CodeceptJS](http://codecept.io). Sie können auch einfache NodeJS-Skripte schreiben, um das Web nach Inhalten zu durchsuchen (oder alles andere, was einen Browser erfordert).
 
-Wenn keine spezifischen Optionen gesetzt sind, versucht WebdriverIO, einen Browsertreiber auf `http://localhost:4444/` zu finden und wechselt automatisch zum Chrome DevTools-Protokoll und Puppeteer als Automatisierungs-Engine, wenn ein solcher Treiber nicht gefunden werden kann. Wenn Sie basierend auf WebDriver laufen möchten, müssen Sie diesen Treiber entweder manuell, über ein Skript oder als [NPM-Paket](https://www.npmjs.com/package/chromedriver)starten.
+If no specific options are set WebdriverIO will always attempt to download at setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome it might also install [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) depending on whether it can find a browser on the machine.
 
 Weitere Informationen zu den `webdriverio` Paketschnittstellen finden Sie unter [Modules API](/docs/api/modules).
 
