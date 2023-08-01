@@ -459,7 +459,6 @@ test('filter should skip holes in arrays', async () => {
         return typeof num === 'number'
     })
     expect(count).toBe(6)
-    console.log(numbers)
     expect(numbers).toEqual([0, 1, 2, 5])
 })
 

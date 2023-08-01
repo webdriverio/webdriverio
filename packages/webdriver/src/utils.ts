@@ -319,7 +319,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
-            '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file as the service might had problems to start the driver.'
+            '\nIt seems like the service failed to start or is rejecting any connections.'
     }
 
     if (err.message === 'unhandled request') {

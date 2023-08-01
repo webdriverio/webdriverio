@@ -22,7 +22,5 @@ RUN if [[ $(dpkg --print-architecture) == "amd64" ]]; then \
 RUN npm i -g \
 		http-server \
 		diff-so-fancy \
-		chromedriver@105 \
-		geckodriver
 
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt

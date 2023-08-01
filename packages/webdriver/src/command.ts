@@ -1,3 +1,4 @@
+import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
@@ -12,6 +13,7 @@ const BIDI_COMMANDS = ['send', 'sendAsync'] as const
 
 interface BaseClientWithEventHandler extends BaseClient {
     eventMiddleware: BidiHandler
+    _driverProcess?: ChildProcess
 }
 
 export default function (
@@ -125,8 +127,37 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
-                logger.clearLogger()
+            if (command === 'deleteSession') {
+                /**
+                 * kill driver process if there is one
+                 */
+                if (this._driverProcess) {
+                    log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
+                    const killedSuccessfully = this._driverProcess.kill('SIGKILL')
+                    if (!killedSuccessfully) {
+                        log.warn('Failed to kill driver process, manully clean-up might be required')
+                    }
+                    this._driverProcess = undefined
+
+                    setTimeout(() => {
+                        /**
+                         * clear up potential leaked TLS Socket handles
+                         * see https://github.com/puppeteer/puppeteer/pull/10667
+                         */
+                        for (const handle of process._getActiveHandles()) {
+                            if (handle.servername && handle.servername.includes('edgedl.me')) {
+                                handle.destroy()
+                            }
+                        }
+                    }, 10)
+                }
+
+                /**
+                 * clear logger stream if session has been terminated
+                 */
+                if (!process.env.WDIO_WORKER_ID) {
+                    logger.clearLogger()
+                }
             }
             return result.value
         })

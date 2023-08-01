@@ -13,9 +13,7 @@ exports[`getAnswers 1`] = `
     "@wdio/spec-reporter$--$spec",
   ],
   "runner": "@wdio/local-runner$--$local$--$e2e",
-  "services": [
-    "wdio-chromedriver-service$--$chromedriver",
-  ],
+  "services": [],
   "usePageObjects": true,
 }
 `;

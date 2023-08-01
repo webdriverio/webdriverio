@@ -158,7 +158,7 @@ export default class Runner extends EventEmitter {
         /**
          * report sessionId and target connection information to worker
          */
-        const { protocol, hostname, port, path, queryParams, automationProtocol } = browser.options
+        const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
         process.send!(<SessionStartedMessage>{
@@ -167,7 +167,8 @@ export default class Runner extends EventEmitter {
             content: {
                 automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
                 capabilities: browser.capabilities,
-                injectGlobals: this._config.injectGlobals
+                injectGlobals: this._config.injectGlobals,
+                headers
             }
         })
 

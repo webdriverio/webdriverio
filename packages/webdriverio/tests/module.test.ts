@@ -1,12 +1,11 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
 import path from 'node:path'
-import http from 'node:http'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import type { RemoteOptions } from '../src/index.js'
+import type { RemoteOptions } from '../src/types.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
 import * as cjsExport from '../src/cjs/index.js'
 
@@ -115,7 +114,6 @@ describe('WebdriverIO module interface', () => {
             }
             const browser = await remote(options)
             expect(browser.sessionId).toBe('foobar-123')
-            expect(detectBackend).toBeCalledWith(options)
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 
@@ -134,30 +132,12 @@ describe('WebdriverIO module interface', () => {
 
         it('should try to detect the backend', async () => {
             await remote({
+                automationProtocol: 'webdriver',
                 user: 'foo',
                 key: 'bar',
                 capabilities: {}
             })
             expect(detectBackend).toBeCalled()
-        })
-
-        it('should properly detect automation protocol', async () => {
-            const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
-            expect(devtoolsBrowser.isDevTools).toBe(true)
-
-            // @ts-ignore mock feature
-            http.setResonse({ statusCode: 200 })
-            const webdriverBrowser = await remote({ capabilities: { browserName: 'chrome' } })
-            // @ts-ignore mock feature
-            expect(webdriverBrowser.isWebDriver).toBe(true)
-
-            const anotherWebdriverBrowser = await remote({
-                path: '/',
-                capabilities: { browserName: 'chrome' }
-            })
-
-            // @ts-ignore mock feature
-            expect(anotherWebdriverBrowser.isWebDriver).toBe(true)
         })
 
         it('should attach custom locators to the strategies', async () => {
@@ -238,11 +218,13 @@ describe('WebdriverIO module interface', () => {
         it('should attach custom locators to the strategies', async () => {
             const driver = await multiremote({
                 browserA: {
+                    automationProtocol: 'webdriver',
                     // @ts-ignore mock feature
                     test_multiremote: true,
                     capabilities: { browserName: 'chrome' }
                 },
                 browserB: {
+                    automationProtocol: 'webdriver',
                     // @ts-ignore mock feature
                     test_multiremote: true,
                     capabilities: { browserName: 'firefox' }
@@ -259,9 +241,9 @@ describe('WebdriverIO module interface', () => {
             expect.assertions(1)
             const driver = await multiremote({
                 // @ts-ignore mock feature
-                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserA: { automationProtocol: 'webdriver', test_multiremote: true, capabilities: { browserName: 'chrome' } },
                 // @ts-ignore mock feature
-                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+                browserB: { automationProtocol: 'webdriver', test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
 
             try {

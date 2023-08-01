@@ -2,20 +2,13 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 
-import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
+import { detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types.js'
 
 const require = createRequire(import.meta.url)
 export const pkg = require('../package.json')
 
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
-
-export const EXCLUSIVE_SERVICES = {
-    'wdio-chromedriver-service': {
-        services: ['@wdio/selenium-standalone-service'],
-        message: '@wdio/selenium-standalone-service already includes chromedriver'
-    }
-}
 
 export const CONFIG_HELPER_INTRO = `
 ===============================
@@ -111,26 +104,19 @@ export const SUPPORTED_PACKAGES = {
         { name: 'angular-component-harnesses', value: '@badisi/wdio-harness$--$harness' }
     ],
     service: [
-        // inquirerjs shows list as its orderer in array
-        // put chromedriver first as it is the default option
-        { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
-        { name: 'geckodriver', value: 'wdio-geckodriver-service$--$geckodriver' },
-        { name: 'safaridriver', value: 'wdio-safaridriver-service$--$safaridriver' },
-        { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
-        // internal
-        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        // internal or community driver services
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
+        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
+        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
-        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
@@ -212,10 +198,10 @@ export const MOBILE_ENVIRONMENTS = [
 ]
 
 export const BROWSER_ENVIRONMENTS = [
-    { name: 'Chrome', value: 'chrome', driver: 'chromedriver' },
-    { name: 'Firefox', value: 'firefox', driver: 'geckodriver' },
-    { name: 'Safari', value: 'safari', driver: 'safaridriver' },
-    { name: 'Microsoft Edge', value: 'MicrosoftEdge', driver: 'edgedriver' }
+    { name: 'Chrome', value: 'chrome' },
+    { name: 'Firefox', value: 'firefox' },
+    { name: 'Safari', value: 'safari' },
+    { name: 'Microsoft Edge', value: 'MicrosoftEdge' }
 ]
 
 function isBrowserRunner (answers: Questionnair) {
@@ -240,11 +226,6 @@ async function isNuxtProject () {
             (res) => res.filter(Boolean)
         )
     ).length > 0
-}
-
-function getBrowserDriver (browserName: 'chrome' | 'firefox' | 'safari' | 'microsoftedge') {
-    const driverName = BROWSER_ENVIRONMENTS.find((browser) => browser.value === browserName)?.driver
-    return SUPPORTED_PACKAGES.service.find((svc) => svc.name === driverName)?.value
 }
 
 function selectDefaultService (serviceNames: string | string[]) {
@@ -559,13 +540,6 @@ export const QUESTIONNAIRE = [{
             return selectDefaultService('browserstack')
         } else if (answers.backend === BACKEND_CHOICES[2]) {
             return selectDefaultService('sauce')
-        } else if (answers.browserEnvironment && answers.browserEnvironment.length) {
-            const defaultServices = answers.browserEnvironment.map((browserName) => getBrowserDriver(browserName))
-            if (await isNuxtProject()) {
-                defaultServices.push(selectDefaultService('nuxt')[0])
-            }
-
-            return defaultServices
         } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
             return selectDefaultService('appium')
         } else if (getTestingPurpose(answers) === 'vscode') {
@@ -573,9 +547,8 @@ export const QUESTIONNAIRE = [{
         } else if (getTestingPurpose(answers) === 'electron') {
             return selectDefaultService('electron')
         }
-        return selectDefaultService('chromedriver')
-    },
-    validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
+        return []
+    }
 }, {
     type: 'input',
     name: 'outputDir',

@@ -1,5 +1,4 @@
 const assert = require('node:assert')
-const chromedriver = require('chromedriver')
 const WebDriver = require('../../packages/webdriver')
 const command = require('../../packages/webdriver').command
 
@@ -7,7 +6,6 @@ assert.equal(typeof WebDriver.command, 'function')
 assert.equal(typeof command, 'function')
 
 ;(async () => {
-    await chromedriver.start(['--port=4444'])
     const client = await WebDriver.newSession({
         capabilities: {
             browserName: 'chrome',
@@ -21,12 +19,10 @@ assert.equal(typeof command, 'function')
 })().then(
     () => {
         console.log('WebDriver CJS Test Passed!')
-        chromedriver.stop()
         process.exit(0)
     },
     (err) => {
         console.log('WebDriver CJS Test Failed!', err)
-        chromedriver.stop()
         process.exit(1)
     }
 )
