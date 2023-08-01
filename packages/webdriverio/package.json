@@ -90,7 +90,7 @@
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^8.0.0",
-    "webdriver": "8.13.1"
+    "webdriver": "8.14.0"
   },
   "peerDependencies": {
     "devtools": "8.13.13"
