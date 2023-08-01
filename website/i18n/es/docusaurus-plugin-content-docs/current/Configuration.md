@@ -155,6 +155,12 @@ Si habilita [la función de conexión directa del Appium](https://appiumpro.com/
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -209,7 +215,7 @@ Las siguientes opciones (incluidas las mencionadas arriba) se definen sólo para
 
 ### specs
 
-Definir las especificaciones para la ejecución de pruebas. Puede especificar un patrón de glob para que coincida con varios archivos a la vez o envolver un glob o un conjunto de rutas en un array para ejecutarlos dentro de un proceso de un solo worker. Todas las rutas son vistas como relativas desde la ruta del archivo de configuración.
+Definir las especificaciones para la ejecución de pruebas. Puede especificar un patrón de glob para que coincida con varios archivos a la vez o envolver un glob o un conjunto de rutas en un array para ejecutarlos dentro de un proceso de un solo worker. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
