@@ -71,7 +71,7 @@ vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 })
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        access: vi.fn().mockResolvedValue({}),
+        access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
@@ -748,6 +748,7 @@ test('getProjectRoot', () => {
 })
 
 test('hasBabelConfig', async () => {
+    vi.mocked(fs.access).mockResolvedValue({})
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
