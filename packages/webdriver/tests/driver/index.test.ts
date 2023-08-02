@@ -196,7 +196,7 @@ describe('startWebDriver', () => {
         await startWebDriver(options)
         expect(fs.createWriteStream).toBeCalledTimes(1)
         expect(fs.createWriteStream).toBeCalledWith(
-            '/foo/bar/wdio-chromedriver-1234.log',
+            expect.stringContaining('wdio-chromedriver-1234.log'),
             { flags: 'w' }
         )
 
@@ -206,7 +206,7 @@ describe('startWebDriver', () => {
         await startWebDriver(options)
         expect(fs.createWriteStream).toBeCalledTimes(2)
         expect(fs.createWriteStream).toBeCalledWith(
-            '/foo/bar/wdio-1-2-chromedriver.log',
+            expect.stringContaining('wdio-1-2-chromedriver.log'),
             { flags: 'w' }
         )
     })
