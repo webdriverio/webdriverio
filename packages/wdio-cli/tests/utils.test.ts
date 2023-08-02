@@ -41,7 +41,7 @@ import {
     runAppiumInstaller
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
-import { COMPILER_OPTION_ANSWERS, COMPILER_OPTIONS } from '../src/constants.js'
+import { CompilerOptions } from '../src/constants.js'
 import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
@@ -719,13 +719,13 @@ describe('getPathForFileGeneration', () => {
 
 test('getDefaultFiles', async () => {
     const files = '/foo/bar'
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[0] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Babel } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1], preset: 'vite-plugin-solid$--$solid' } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS, preset: 'vite-plugin-solid$--$solid' } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.tsx'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[2] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Nil } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
@@ -755,16 +755,16 @@ test('hasBabelConfig', async () => {
 
 test('detectCompiler', async () => {
     vi.mocked(fs.access).mockResolvedValue({} as any)
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.babel)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Babel)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.nil)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Nil)
     vi.mocked(fs.access).mockImplementation((path) => {
         if (path.toString().includes('tsconfig')) {
             return Promise.resolve({} as any)
         }
         return Promise.reject(new Error('ouch'))
     })
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.ts)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.TS)
 })
 
 test('getAnswers', async () => {

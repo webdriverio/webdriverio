@@ -5,7 +5,7 @@ import util from 'node:util'
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
-import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS, SUPPORTED_PACKAGES, CONFIG_HELPER_SUCCESS_MESSAGE } from '../constants.js'
+import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES, CONFIG_HELPER_SUCCESS_MESSAGE } from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
@@ -91,7 +91,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
              */
             : path.resolve(projectRootDir, `tsconfig.${runnerPackage.short === 'local' ? 'e2e' : 'wdio'}.json`)
     const parsedPaths = getPathForFileGeneration(answers, projectRootDir)
-    const isUsingTypeScript = answers.isUsingCompiler === COMPILER_OPTIONS.ts
+    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
     const wdioConfigFilename = `wdio.conf.${isUsingTypeScript ? 'ts' : 'js'}`
     const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
 
@@ -114,7 +114,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
-        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        isUsingBabel: answers.isUsingCompiler === CompilerOptions.Babel,
         esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',
