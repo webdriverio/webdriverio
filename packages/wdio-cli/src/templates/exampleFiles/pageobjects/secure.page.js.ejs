@@ -1,5 +1,6 @@
-<%- answers.isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
-
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { $ } from '@wdio/globals'`
+    : `const { $ } = require('@wdio/globals')` %>
 <%- answers.isUsingTypeScript || answers.esmSupport
     ? `import Page from './page${answers.esmSupport ? '.js' : ''}';`
     : "const Page = require('./page');" %>

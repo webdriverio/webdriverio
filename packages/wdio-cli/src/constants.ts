@@ -49,17 +49,11 @@ export const IOS_CONFIG = {
     deviceName: 'iPhone Simulator'
 }
 
-export const COMPILER_OPTION_ANSWERS = [
-    'Babel (https://babeljs.io/)',
-    'TypeScript (https://www.typescriptlang.org/)',
-    'No!'
-] as const
-
-export const COMPILER_OPTIONS = {
-    babel: COMPILER_OPTION_ANSWERS[0],
-    ts: COMPILER_OPTION_ANSWERS[1],
-    nil: COMPILER_OPTION_ANSWERS[2]
-} as const
+export enum CompilerOptions {
+    Babel = 'Babel (https://babeljs.io/)',
+    TS = 'TypeScript (https://www.typescriptlang.org/)',
+    Nil = 'No!'
+}
 
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
@@ -147,7 +141,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' }
     ]
-} as const
+}
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'Lit (https://lit.dev/)', value: '$--$' },
@@ -167,25 +161,25 @@ export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
     solid: 'solid-testing-library'
 }
 
-export const BACKEND_CHOICES = [
-    'On my local machine',
-    'In the cloud using Experitest',
-    'In the cloud using Sauce Labs',
-    'In the cloud using BrowserStack',
-    'In the cloud using Testingbot or LambdaTest or a different service',
-    'I have my own Selenium cloud'
-] as const
+export enum BackendChoice {
+    Local = 'On my local machine',
+    Experitest = 'In the cloud using Experitest',
+    Saucelabs = 'In the cloud using Sauce Labs',
+    Browserstack = 'In the cloud using BrowserStack',
+    OtherVendors = 'In the cloud using Testingbot or LambdaTest or a different service',
+    Grid = 'I have my own Selenium cloud'
+}
 
-export const PROTOCOL_OPTIONS = [
-    'https',
-    'http'
-] as const
+enum ProtocolOptions {
+    HTTPS = 'https',
+    HTTP = 'http'
+}
 
-export const REGION_OPTION = [
-    'us',
-    'eu',
-    'apac'
-] as const
+export enum RegionOptions {
+    US = 'us',
+    EU = 'eu',
+    APAC = 'apac'
+}
 
 export const E2E_ENVIRONMENTS = [
     { name: 'Web - web applications in the browser', value: 'web' },
@@ -212,27 +206,26 @@ function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
 }
 
-async function isNuxtProject () {
-    const pathOptions = [
+export const isNuxtProject = await Promise.all(
+    [
         path.join(process.cwd(), 'nuxt.config.js'),
         path.join(process.cwd(), 'nuxt.config.ts'),
         path.join(process.cwd(), 'nuxt.config.mjs'),
         path.join(process.cwd(), 'nuxt.config.mts')
-    ]
-    return (
-        await Promise.all(
-            pathOptions.map((o) => fs.access(o).then(() => true, () => false))
-        ).then(
-            (res) => res.filter(Boolean)
-        )
-    ).length > 0
-}
+    ].map(
+        (p) => fs.access(p).then(() => true, () => false)
+    )
+).then(
+    (res) => res.some(Boolean),
+    () => false
+)
 
 function selectDefaultService (serviceNames: string | string[]) {
     serviceNames = Array.isArray(serviceNames) ? serviceNames : [serviceNames]
-    return [SUPPORTED_PACKAGES.service.find(
+    return SUPPORTED_PACKAGES.service
         /* istanbul ignore next */
-        ({ name }) => serviceNames.includes(name))?.value]
+        .filter(({ name }) => serviceNames.includes(name))
+        .map(({ value }) => value)
 }
 
 function prioServiceOrderFor (serviceNamesParam: string | string[]) {
@@ -281,7 +274,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
-    choices: BACKEND_CHOICES,
+    choices: Object.values(BackendChoice),
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
     type: 'list',
@@ -289,10 +282,7 @@ export const QUESTIONNAIRE = [{
     message: 'Which environment you would like to automate?',
     choices: E2E_ENVIRONMENTS,
     default: 'web',
-    when: /* istanbul ignore next */ (answers: Questionnair) => (
-        getTestingPurpose(answers) === 'e2e' &&
-        answers.backend === BACKEND_CHOICES[0]
-    )
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
     type: 'list',
     name: 'mobileEnvironment',
@@ -328,28 +318,30 @@ export const QUESTIONNAIRE = [{
     name: 'expEnvAccessKey',
     message: 'Access key from Experitest Cloud',
     default: 'EXPERITEST_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Experitest
 }, {
     type: 'input',
     name: 'expEnvHostname',
     message: 'Environment variable for cloud url',
     default: 'example.experitest.com',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Experitest
 }, {
     type: 'input',
     name: 'expEnvPort',
     message: 'Environment variable for port',
     default: '443',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Experitest
 }, {
     type: 'list',
     name: 'expEnvProtocol',
     message: 'Choose a protocol for environment variable',
-    default: 'https',
-    choices: PROTOCOL_OPTIONS,
-    when: /* istanbul ignore next */ (answers: Questionnair) => {
-        return answers.backend === BACKEND_CHOICES[1] && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
-    }
+    default: ProtocolOptions.HTTPS,
+    choices: Object.values(ProtocolOptions),
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        answers.backend === BackendChoice.Experitest &&
+        answers.expEnvPort !== '80' &&
+        answers.expEnvPort !== '443'
+    )
 }, {
     type: 'input',
     name: 'env_user',
@@ -373,31 +365,43 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[3]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Browserstack
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[3]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Browserstack
 }, {
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Saucelabs
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Saucelabs
 }, {
     type: 'list',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
-    choices: REGION_OPTION,
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
+    choices: Object.values(RegionOptions),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Saucelabs
+}, {
+    type: 'confirm',
+    name: 'useSauceConnect',
+    message: (
+        'Are you testing a local application and need Sauce Connect to be set-up?\n' +
+        'Read more on Sauce Connect at: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy'
+    ),
+    default: isNuxtProject,
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        answers.backend === BackendChoice.Saucelabs &&
+        !isNuxtProject
+    )
 }, {
     type: 'input',
     name: 'hostname',
@@ -433,7 +437,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Do you want to use a compiler?',
-    choices: COMPILER_OPTION_ANSWERS,
+    choices: Object.values(CompilerOptions),
     default: /* istanbul ignore next */ (answers: Questionnair) => detectCompiler(answers)
 }, {
     type: 'confirm',
@@ -517,37 +521,48 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: async (answers: Questionnair) => {
-        if (answers.backend === BACKEND_CHOICES[3]) {
-            return prioServiceOrderFor('browserstack')
-        } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return prioServiceOrderFor('sauce')
-        } else if (answers.e2eEnvironment === 'mobile') {
-            return prioServiceOrderFor('appium')
-        } else if (getTestingPurpose(answers) === 'vscode') {
+    choices: (answers: Questionnair) => {
+        const services: string[] = []
+        if (answers.backend === BackendChoice.Browserstack) {
+            services.push('browserstack')
+        } else if (answers.backend === BackendChoice.Saucelabs) {
+            services.push('sauce')
+        }
+        if (answers.e2eEnvironment === 'mobile') {
+            services.push('appium')
+        }
+        if (getTestingPurpose(answers) === 'e2e' && isNuxtProject) {
+            services.push('nuxt')
+        }
+
+        if (getTestingPurpose(answers) === 'vscode') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'vscode')]
         } else if (getTestingPurpose(answers) === 'electron') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
         } else if (getTestingPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
-        } else if (getTestingPurpose(answers) === 'e2e' && await isNuxtProject()) {
-            return prioServiceOrderFor('nuxt')
         }
-        return SUPPORTED_PACKAGES.service
+        return prioServiceOrderFor(services)
     },
-    default: async (answers: Questionnair) => {
-        if (answers.backend === BACKEND_CHOICES[3]) {
-            return selectDefaultService('browserstack')
-        } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return selectDefaultService('sauce')
-        } else if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
-            return selectDefaultService('appium')
-        } else if (getTestingPurpose(answers) === 'vscode') {
-            return selectDefaultService('vscode')
-        } else if (getTestingPurpose(answers) === 'electron') {
-            return selectDefaultService('electron')
+    default: (answers: Questionnair) => {
+        const defaultServices: string[] = []
+        if (answers.backend === BackendChoice.Browserstack) {
+            defaultServices.push('browserstack')
+        } else if (answers.backend === BackendChoice.Saucelabs) {
+            defaultServices.push('sauce')
         }
-        return []
+        if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
+            defaultServices.push('appium')
+        }
+        if (getTestingPurpose(answers) === 'vscode') {
+            defaultServices.push('vscode')
+        } else if (getTestingPurpose(answers) === 'electron') {
+            defaultServices.push('electron')
+        }
+        if (isNuxtProject) {
+            defaultServices.push('nuxt')
+        }
+        return selectDefaultService(defaultServices)
     }
 }, {
     type: 'input',
@@ -579,7 +594,9 @@ export const QUESTIONNAIRE = [{
         // mobile testing with Appium
         answers.e2eEnvironment !== 'mobile' &&
         // nor for VS Code, Electron or MacOS testing
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
+        // nor for Nuxt projects
+        !isNuxtProject
     )
 }, {
     type: 'confirm',

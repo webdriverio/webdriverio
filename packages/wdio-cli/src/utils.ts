@@ -23,7 +23,7 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import {
-    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, COMPILER_OPTIONS,
+    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, CompilerOptions,
     TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
 } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
@@ -322,10 +322,10 @@ export async function detectCompiler(answers: Questionnair) {
     const root = getProjectRoot(answers, projectProps)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
     return (await hasBabelConfig(root))
-        ? COMPILER_OPTIONS.babel // default to Babel
+        ? CompilerOptions.Babel // default to Babel
         : rootTSConfigExist
-            ? COMPILER_OPTIONS.ts // default to TypeScript
-            : COMPILER_OPTIONS.nil // default to no compiler
+            ? CompilerOptions.TS // default to TypeScript
+            : CompilerOptions.Nil // default to no compiler
 }
 
 /**

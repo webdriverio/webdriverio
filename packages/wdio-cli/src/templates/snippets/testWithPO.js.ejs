@@ -1,6 +1,6 @@
-/**
- * test with page objects
- */
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { expect } from '@wdio/globals'`
+    : `const { expect } = require('@wdio/globals')` %>
 <%- answers.isUsingTypeScript || answers.esmSupport
     ? `import LoginPage from '${answers.relativePath}/login.page${answers.esmSupport ? '.js' : ''}'`
     : `const LoginPage = require('${answers.relativePath}/login.page')` %>

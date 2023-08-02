@@ -1,13 +1,13 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants.js'
+import type { BackendChoice, RegionOptions, CompilerOptions } from './constants.js'
 
 export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
     appPath?: string
-    backend?: typeof BACKEND_CHOICES[number]
+    backend?: BackendChoice
     hostname?: string
     port?: string
     path?: string
@@ -19,14 +19,15 @@ export interface Questionnair {
     env_user?: string
     // eslint-disable-next-line
     env_key?: string
-    region?: typeof REGION_OPTION[number]
+    region?: RegionOptions
+    useSauceConnect?: boolean
     framework: string
     specs?: string
     stepDefinitions?: string
     generateTestFiles: boolean
     usePageObjects?: boolean
     pages?: string
-    isUsingCompiler: typeof COMPILER_OPTION_ANSWERS[number]
+    isUsingCompiler: CompilerOptions
     reporters: string[]
     services: string[]
     plugins: string[]

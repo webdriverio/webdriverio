@@ -5,7 +5,9 @@ capabilities: [{<%
         'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%
     }
     if (answers.browserEnvironment && answers.browserEnvironment.length) { %>
-        <%- answers.browserEnvironment.map((browserName) => `browserName: '${browserName}'`).join('\n    }, {\n        ') %><%
+        <%- answers.browserEnvironment.map((browserName) => {
+            return `browserName: '${browserName}'`
+        }).join('\n    }, {\n        ') %><%
     } else if (answers.mobileEnvironment === 'android') { %>
         // capabilities for local Appium web tests on an Android Emulator
         platformName: 'Android',
