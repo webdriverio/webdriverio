@@ -1,6 +1,7 @@
-/**
- * test without page objects
- */
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { expect, browser, $ } from '@wdio/globals'`
+    : `const { expect, browser, $ } = require('@wdio/globals')` %>
+
 describe('My Login application', () => {
     it('should login with valid credentials', async () => {
         await browser.url(`https://the-internet.herokuapp.com/login`)

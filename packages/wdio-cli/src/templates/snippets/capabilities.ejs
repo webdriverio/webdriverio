@@ -6,15 +6,7 @@ capabilities: [{<%
     }
     if (answers.browserEnvironment && answers.browserEnvironment.length) { %>
         <%- answers.browserEnvironment.map((browserName) => {
-            let cap = `browserName: '${browserName}'`
-            // add required platform capabilities for Sauce Labs
-            if (answers.backend.includes('Sauce Labs')) {
-                cap += [
-                    `platformName: 'Windows 11'`,
-                    `browserVersion: 'latest'`
-                ].join(',\n        ')
-            }
-            return cap
+            return `browserName: '${browserName}'`
         }).join('\n    }, {\n        ') %><%
     } else if (answers.mobileEnvironment === 'android') { %>
         // capabilities for local Appium web tests on an Android Emulator

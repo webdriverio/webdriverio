@@ -206,7 +206,7 @@ function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
 }
 
-const isNuxtProject = await Promise.all(
+export const isNuxtProject = await Promise.all(
     [
         path.join(process.cwd(), 'nuxt.config.js'),
         path.join(process.cwd(), 'nuxt.config.ts'),
