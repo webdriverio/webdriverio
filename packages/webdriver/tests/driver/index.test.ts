@@ -1,5 +1,6 @@
-import fs from 'node:fs/promises'
+import fsp from 'node:fs/promises'
 import cp from 'node:child_process'
+import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
@@ -16,9 +17,18 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 
+vi.mock('node:fs', () => ({
+    default: {
+        createWriteStream: vi.fn()
+    }
+}))
+
 vi.mock('node:child_process', () => ({
     default: {
-        spawn: vi.fn().mockReturnValue('cp'),
+        spawn: vi.fn().mockReturnValue({
+            stdout: { pipe: vi.fn() },
+            stderr: { pipe: vi.fn() }
+        }),
         execSync: vi.fn().mockReturnValue(Buffer.from('115.0.5790.98'))
     }
 }))
@@ -148,7 +158,8 @@ describe('startWebDriver', () => {
                 'wdio:chromedriverOptions': { foo: 'bar' }
             } as any
         }
-        await expect(startWebDriver(options)).resolves.toBe('cp')
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
             hostname: '0.0.0.0',
             port: 1234,
@@ -164,12 +175,39 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fs.access).toBeCalledTimes(2)
-        expect(fs.mkdir).toBeCalledTimes(1)
+        expect(fsp.access).toBeCalledTimes(2)
+        expect(fsp.mkdir).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
+        )
+    })
+
+    it('should pipe logs into a file', async () => {
+        const options: any = {
+            outputDir: '/foo/bar',
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+
+        await startWebDriver(options)
+        expect(fs.createWriteStream).toBeCalledTimes(1)
+        expect(fs.createWriteStream).toBeCalledWith(
+            '/foo/bar/wdio-chromedriver-1234.log',
+            { flags: 'w' }
+        )
+
+        process.env.WDIO_WORKER_ID = '1-2'
+        delete options.hostname
+        delete options.port
+        await startWebDriver(options)
+        expect(fs.createWriteStream).toBeCalledTimes(2)
+        expect(fs.createWriteStream).toBeCalledWith(
+            '/foo/bar/wdio-1-2-chromedriver.log',
+            { flags: 'w' }
         )
     })
 })
