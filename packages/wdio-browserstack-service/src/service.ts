@@ -16,6 +16,20 @@ import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
 import CrashReporter from './crash-reporter.js'
+import logPatcher from './logPatcher.js'
+import { consoleHolder } from './constants.js'
+
+const BSTestOpsPatcher = new logPatcher({})
+// @ts-ignore
+// eslint-disable-next-line no-global-assign
+console = {}
+Object.keys(consoleHolder).forEach(method => {
+    // @ts-ignore
+    console[method] = (...args) => {
+        // @ts-ignore
+        BSTestOpsPatcher[method](...args)
+    }
+})
 
 const log = logger('@wdio/browserstack-service')
 
@@ -97,6 +111,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._observability && this._browser) {
+            const BSTestOpsPatcher = new logPatcher({})
+            // @ts-ignore
+            // eslint-disable-next-line no-global-assign
+            console = {}
+            Object.keys(consoleHolder).forEach(method => {
+                // @ts-ignore
+                console[method] = (...args) => {
+                    // @ts-ignore
+                    BSTestOpsPatcher[method](...args)
+                }
+            })
             try {
                 this._insightsHandler = new InsightsHandler(
                     this._browser,

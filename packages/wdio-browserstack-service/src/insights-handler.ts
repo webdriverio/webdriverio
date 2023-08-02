@@ -34,6 +34,7 @@ class _InsightsHandler {
     private _gitConfigPath?: string
     private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
+    private _currentTest: any = {}
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
@@ -48,6 +49,13 @@ class _InsightsHandler {
             sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+
+        this.registerListeners()
+    }
+
+    registerListeners() {
+        process.removeAllListeners(`bs:addLog:${process.pid}`)
+        process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
 
     setSuiteFile(filename: string) {
@@ -140,12 +148,16 @@ class _InsightsHandler {
     }
 
     async beforeTest (test: Frameworks.Test) {
+        const uuid = uuidv4()
+        this._currentTest = {
+            test, uuid
+        }
         if (this._framework !== 'mocha') {
             return
         }
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
-            uuid: uuidv4(),
+            uuid,
             startedAt: (new Date()).toISOString()
         }
         await this.sendTestRunEvent(test, 'TestRunStarted')
@@ -168,12 +180,16 @@ class _InsightsHandler {
       */
 
     async beforeScenario (world: ITestCaseHookParameter) {
+        const uuid = uuidv4()
+        this._currentTest = {
+            uuid
+        }
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
         const testMetaData: TestMeta = {
-            uuid: uuidv4(),
+            uuid: uuid,
             startedAt: (new Date()).toISOString()
         }
 
@@ -262,6 +278,38 @@ class _InsightsHandler {
     /**
      * misc methods
      */
+
+    appendTestItemLog = async (log: any) => {
+        try {
+            // if (this.current_hook && !this.current_hook.markedStatus) {
+            //     log.hook_run_uuid = this.current_hook.hookAnalyticsId;
+            // }
+
+            if ( this._currentTest) {
+                if (this._framework === 'mocha' || this._framework === 'cucumber') {
+                    log.test_run_uuid = this._currentTest.uuid
+                } else if (this._framework === 'jasmine') {
+                    const identifier = this.getIdentifier(this._currentTest.test)
+                    const testMeta = TestReporter.getTests()[identifier]
+                    if (testMeta) {
+                        log.test_run_uuid = testMeta.uuid
+                    }
+                }
+            }
+            if (log.hook_run_uuid || log.test_run_uuid) {
+                const req = this._requestQueueHandler.add({
+                    event_type: 'LogCreated',
+                    logs: [log]
+                })
+                if (req.proceed && req.data) {
+                    await uploadEventData(req.data, req.url)
+                }
+            }
+        } catch (error) {
+            log.debug(`Exception in uploading log data to Observability with error : ${error}`)
+        }
+    }
+
     async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         if (commandType === 'client:beforeCommand') {
