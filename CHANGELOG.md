@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.14.3 (2023-08-02)
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#10852](https://github.com/webdriverio/webdriverio/pull/10852) (webdriver): better identify driver logs through worker ids ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#10851](https://github.com/webdriverio/webdriverio/pull/10851) (@wdio/cli): improve configuration wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.14.2 (2023-08-01)
 
 #### :bug: Bug Fix

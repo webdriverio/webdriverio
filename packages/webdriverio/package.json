@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "8.14.2",
+  "version": "8.14.3",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -90,7 +90,7 @@
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^8.0.0",
-    "webdriver": "8.14.0"
+    "webdriver": "8.14.3"
   },
   "peerDependencies": {
     "devtools": "^8.14.0"
