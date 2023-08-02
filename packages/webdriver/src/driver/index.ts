@@ -153,7 +153,11 @@ export async function startWebDriver (options: Options.WebDriver) {
     }
 
     if (options.outputDir) {
-        const logFile = path.resolve(options.outputDir, `wdio-${driver.split(' ').shift()?.toLowerCase()}-${port}.log`)
+        const logIdentifier = driver.split(' ').shift()?.toLowerCase()
+        const logFileName = process.env.WDIO_WORKER_ID
+            ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
+            : `wdio-${logIdentifier}-${port}.log`
+        const logFile = path.resolve(options.outputDir, logFileName)
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         driverProcess.stdout?.pipe(logStream)
         driverProcess.stderr?.pipe(logStream)
