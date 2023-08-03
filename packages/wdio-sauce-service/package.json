@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sauce-service",
-  "version": "8.14.3",
+  "version": "8.14.5",
   "description": "WebdriverIO service that provides a better integration into Sauce Labs",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service",
