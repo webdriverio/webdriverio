@@ -230,7 +230,7 @@ function selectDefaultService (serviceNames: string | string[]) {
 
 function prioServiceOrderFor (serviceNamesParam: string | string[]) {
     const serviceNames = Array.isArray(serviceNamesParam) ? serviceNamesParam : [serviceNamesParam]
-    let services = Object.create(SUPPORTED_PACKAGES.service) as ({ name: string, value: string}[])
+    let services = SUPPORTED_PACKAGES.service
     for (const serviceName of serviceNames) {
         const index = services.findIndex(({ name }) => name === serviceName)
         services = [services[index], ...services.slice(0, index), ...services.slice(index + 1)]
