@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import ip from 'ip'
-import type { SauceLabsOptions, Job } from 'saucelabs'
-import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
+import SauceLabs from 'saucelabs'
+import type { SauceLabsOptions, Job } from 'saucelabs'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 
 import { isRDC, ansiRegex } from './utils.js'
@@ -43,7 +42,7 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * gather information about runner
      */
-    beforeSession (config: Options.Testrunner, __: never, ___: never, cid: string) {
+    beforeSession (_: Options.Testrunner, __: never, ___: never, cid: string) {
         this._cid = cid
 
         /**
@@ -59,16 +58,9 @@ export default class SauceService implements Services.ServiceInstance {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
         }
-
-        /**
-         * update baseUrl if localhost so it can be reached by Sauce Connect
-         */
-        if (config.baseUrl && config.baseUrl.includes('localhost')) {
-            config.baseUrl = config.baseUrl.replace(/(localhost|127\.0\.0\.1)/, ip.address())
-        }
     }
 
-    before (caps: unknown, specs: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    before (_: unknown, __: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
