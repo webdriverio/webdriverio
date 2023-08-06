@@ -504,7 +504,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         adapter['_jrunner']!.addRequires = vi.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner']!.addHelperFiles = vi.fn()
+        adapter['_jrunner']!.addMatchingHelperFiles = vi.fn()
         // @ts-ignore outdated types
         adapter['_jrunner']!.loadRequires = vi.fn()
         adapter['_jrunner']!.loadHelpers = vi.fn()
@@ -517,7 +517,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
+        expect(adapter['_jrunner']!.addMatchingHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
         expect(adapter['_hasTests']).toBe(false)
     })
 
