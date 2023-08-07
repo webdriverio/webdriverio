@@ -299,3 +299,24 @@ Proyecto de plantillas para ejecutar pruebas de appium en dispositivos Roku real
     - TypeScript
     - Captura de pantalla en caso de falla
     - Pruebas de ejemplo usando un canal de ejemplo Roku
+
+## [krishnapollu/wdio-cucumber-poc](https://github.com/krishnapollu/wdio-cucumber-poc)
+
+PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha tests
+
+- Framework:
+    - Cucumber (v8)
+    - WebdriverIO (v8)
+    - Mocha (v8)
+
+- Features:
+    - Cucumber based E2E Tests
+    - Mocha based Data Driven Tests
+    - Web only Tests - in Local as well as cloud platforms
+    - Mobile Only tests - local as well as remote cloud emulators (or devices)
+    - Web + Mobile Tests - Multiremote - local as well as cloud platforms
+    - Multiple Reports integrated including Allure
+    - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
+    - Github workflow to run the test and upload the allure report
+ 
+      
