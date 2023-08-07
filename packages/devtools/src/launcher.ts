@@ -88,7 +88,10 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     ]
 
     if(devtoolsOptions.defaultViewport !== null) {
-        chromeFlags.push(`--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`, `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`)
+        chromeFlags.push(
+            `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
+            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
+        )
     }
     
     if (typeof deviceMetrics.pixelRatio === 'number') {
