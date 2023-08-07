@@ -42,7 +42,7 @@
     "@cucumber/gherkin": "26.2.0",
     "@cucumber/gherkin-streams": "^5.0.1",
     "@cucumber/messages": "22.0.0",
-    "@cucumber/tag-expressions": "5.0.1",
+    "@cucumber/tag-expressions": "5.0.2",
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.11.0",
     "@wdio/types": "8.14.0",
