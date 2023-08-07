@@ -87,7 +87,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         ...chromeOptionsArgs
     ]
 
-    if(devtoolsOptions.defaultViewport !== null) {
+    if (devtoolsOptions.defaultViewport !== null) {
         chromeFlags.push(
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
