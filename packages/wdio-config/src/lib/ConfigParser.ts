@@ -37,7 +37,8 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 }
 
 export default class ConfigParser {
-    #ignoreSpec = false
+    // This below ignoreSpecs flag is used to ignore all other specs except any specific spec name given in CLI
+    #ignoreSpecs = false
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
@@ -65,9 +66,9 @@ export default class ConfigParser {
          */
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
-            this.#ignoreSpec = true
+            this.#ignoreSpecs = true
         }
-        this.merge(_initialConfig, this.#ignoreSpec)
+        this.merge(_initialConfig, this.#ignoreSpecs)
     }
 
     /**
@@ -205,13 +206,11 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (!ignoreSpecs) {
-            if (spec.length > 0) {
-                this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
-            }
-            if (exclude.length > 0) {
-                this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
-            }
+        if (!ignoreSpecs && spec.length > 0) {
+            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
+        }
+        if (!ignoreSpecs && exclude.length > 0) {
+            this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
     }
 

@@ -181,7 +181,7 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            :file)
+            : file)
     }
 
     return returnFiles
