@@ -89,7 +89,7 @@
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^8.0.0",
+    "serialize-error": "^11.0.1",
     "webdriver": "8.14.3"
   },
   "peerDependencies": {
