@@ -80,10 +80,6 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     }) || {}
     const chromeFlags = [
         ...defaultFlags,
-        ...[
-            `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
-            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
-        ],
         ...(headless ? [
             '--headless',
             '--no-sandbox'
@@ -91,6 +87,10 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         ...chromeOptionsArgs
     ]
 
+    if(devtoolsOptions.defaultViewport !== null) {
+        chromeFlags.push(`--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`, `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`)
+    }
+    
     if (typeof deviceMetrics.pixelRatio === 'number') {
         chromeFlags.push(`--device-scale-factor=${deviceMetrics.pixelRatio}`)
     }
