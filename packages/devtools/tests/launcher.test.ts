@@ -746,10 +746,9 @@ test('launch Chrome with defaultViewPort as null', async () => {
         browserName: 'chrome',
         'wdio:devtoolsOptions': { defaultViewport: null }
     })
-
-    expect(puppeteer.launch).toBeCalledWith(
+    expect(launchChromeBrowser).toBeCalledWith(
         expect.objectContaining({
-            args: expect.not.arrayContaining(
+            chromeFlags: expect.not.arrayContaining(
                 ['--window-size=1200,900', '--window-position=0,0']
             )
         })
