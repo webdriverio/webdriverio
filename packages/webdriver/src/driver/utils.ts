@@ -95,7 +95,8 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
      */
     const tag = caps.browserVersion || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROME, platform, tag)
-    const installOptions: InstallOptions = {
+    const installOptions: InstallOptions & { unpack?: true } = {
+        unpack: true,
         cacheDir,
         platform,
         buildId,
