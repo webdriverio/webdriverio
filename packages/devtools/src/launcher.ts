@@ -78,7 +78,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
         touch: devtoolsOptions.defaultViewport.isMobile
     }) || {}
-    const windowFlags = devtoolsOptions.defaultViewport !== null ? 
+    const windowFlags = devtoolsOptions.defaultViewport !== null ?
         [`--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`, `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`] : []
     const chromeFlags = [
         ...defaultFlags,
