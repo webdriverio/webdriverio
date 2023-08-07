@@ -44,7 +44,7 @@
     "@wdio/protocols": "8.11.0",
     "@wdio/types": "8.14.0",
     "@wdio/utils": "8.14.0",
-    "chrome-launcher": "^0.15.0",
+    "chrome-launcher": "^1.0.0",
     "edge-paths": "^3.0.5",
     "import-meta-resolve": "^3.0.0",
     "puppeteer-core": "20.3.0",
