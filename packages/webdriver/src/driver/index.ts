@@ -94,6 +94,7 @@ export async function startWebDriver (options: Options.WebDriver) {
                 platform,
                 buildId,
                 browser: Browser.CHROMEDRIVER,
+                unpack: true,
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
             })
         } else {
