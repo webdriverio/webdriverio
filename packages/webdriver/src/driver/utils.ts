@@ -121,20 +121,23 @@ export async function setupChromedriver(chromedriverOptions: InstallOptions, cac
         buildId,
         cacheDir
     })
-    const hasChromedriverInstalled = await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
-    if (!hasChromedriverInstalled) {
-        const installOptions: InstallOptions & { unpack?: true } = {
-            ...chromedriverOptions,
-            cacheDir,
-            platform,
-            buildId,
-            browser: Browser.CHROMEDRIVER,
-            unpack: true,
-            downloadProgressCallback: (downloadedBytes: number, totalBytes: number) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
-        }
+    async function hasChromedriverInstalled(chromedriverBinaryPath: string) {
+        return await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
+    }
+    // Check if specified Chromedriver version is installed
+    const installOptions: InstallOptions & { unpack?: true } = {
+        ...chromedriverOptions,
+        cacheDir,
+        platform,
+        buildId,
+        browser: Browser.CHROMEDRIVER,
+        unpack: true,
+        downloadProgressCallback: (downloadedBytes: number, totalBytes: number) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+    }
+    if (!(await hasChromedriverInstalled(chromedriverBinaryPath))) {
         // Check if specified version of Chromedriver is available for download
         const isCombinationAvailable = await canDownload(installOptions)
-        // If chromedriver is not installed and there is no specified version to download, install the latest stable version
+        // If specified chromedriver version is not installed and there is no specified version to download, work with the latest stable version
         if (!isCombinationAvailable){
             const stableChromedriverBuildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, ChromeReleaseChannel.STABLE)
             installOptions.buildId = stableChromedriverBuildId
@@ -143,11 +146,14 @@ export async function setupChromedriver(chromedriverOptions: InstallOptions, cac
                 buildId: stableChromedriverBuildId,
                 cacheDir
             })
+            // Check if stable version already installed
+            if (!(await hasChromedriverInstalled(chromedriverBinaryPath))) {
+                log.info(`Downloading Chromedriver v${installOptions.buildId}`)
+                await install(installOptions)
+            }
         }
-        log.info(`Downloading Chromedriver v${installOptions.buildId}`)
-        await install(installOptions)
     } else {
-        log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
+        log.info(`Using Chromedriver v${installOptions.buildId || buildId} from cache directory ${cacheDir}`)
     }
     return chromedriverBinaryPath
 }
