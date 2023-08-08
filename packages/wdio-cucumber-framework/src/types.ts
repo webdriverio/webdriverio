@@ -133,8 +133,16 @@ export interface HookParams {
     step?: PickleStep | TestStep
 }
 
+export interface HookOptions {
+    name?: string,
+    tags?: string[],
+    hookType?: string,
+    body: string
+}
+
 export interface StepDefinitionOptions {
-    retry: number
+    retry: number,
+    _wdioOptions?: HookOptions
 }
 
 export interface HookFunctionExtension {
