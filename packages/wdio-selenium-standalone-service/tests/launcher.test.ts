@@ -79,8 +79,7 @@ describe('Selenium standalone launcher', () => {
                 browserA: {
                     port: 1234,
                     capabilities: {
-                        browserName: 'chrome',
-                        acceptInsecureCerts: true
+                        browserName: 'chrome'
                     }
                 },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
@@ -107,8 +106,7 @@ describe('Selenium standalone launcher', () => {
             const capabilities: any = {
                 browserA: {
                     capabilities: {
-                        browserName: 'chrome',
-                        acceptInsecureCerts: true
+                        browserName: 'chrome'
                     }
                 },
                 browserB: {

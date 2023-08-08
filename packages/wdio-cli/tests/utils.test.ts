@@ -414,7 +414,6 @@ describe('getCapabilities', () => {
             {
                 maxInstances: 5,
                 browserName: 'chrome',
-                acceptInsecureCerts: true,
                 'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
         ])
