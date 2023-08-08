@@ -43,8 +43,6 @@ WebdriverIO manages installing and running browser driver for you. In order to p
 - `wdio:geckodriverOptions`: manage Geckodriver [options](https://github.com/webdriverio-community/node-geckodriver#options)
 - `wdio:edgedriverOptions`: manage Edgedriver [options](https://github.com/webdriverio-community/node-edgedriver#options)
 
-अपने परीक्षण के लिए विशिष्ट क्षमताओं को खोजने के लिए WebdriverIOs [क्षमता TypeScript परिभाषा](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) पर एक नज़र डालें। ध्यान दें: ये सभी अभी भी मान्य नहीं हैं और हो सकता है कि अब प्रदाता द्वारा समर्थित न हों।
-
 ## विशिष्ट उपयोग मामलों के लिए विशेष क्षमताएं
 
 यह उदाहरणों की एक सूची है जो दिखाती है कि एक निश्चित उपयोग के मामले को प्राप्त करने के लिए किन क्षमताओं को लागू करने की आवश्यकता है।
