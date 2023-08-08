@@ -29,9 +29,20 @@ export const NOOP = function () {}
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [
     'beforeTestRunHookDefinitionConfigs',
     'beforeTestCaseHookDefinitionConfigs',
+    'beforeTestStepHookDefinitionConfigs',
     'afterTestCaseHookDefinitionConfigs',
     'afterTestRunHookDefinitionConfigs',
+    'afterTestStepHookDefinitionConfigs'
 ] as const
+
+export const CUCUMBER_HOOK_MAPPINGS: Record<string, string> = {
+    'beforeTestRunHookDefinitionConfigs': 'BEFORE_FEATURE_HOOK',
+    'beforeTestCaseHookDefinitionConfigs': 'BEFORE_SCENARIO_HOOK',
+    'beforeTestStepHookDefinitionConfigs': 'BEFORE_STEP_HOOK',
+    'afterTestCaseHookDefinitionConfigs': 'AFTER_FEATURE_HOOK',
+    'afterTestRunHookDefinitionConfigs': 'AFTER_SCENARIO_HOOK',
+    'afterTestStepHookDefinitionConfigs': 'AFTER_STEP_HOOK'
+}
 
 /**
  * The pickle step needs to have a keyword for the reporters, otherwise reporters like

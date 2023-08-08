@@ -3,7 +3,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
 import type TagExpressionParser from '@cucumber/tag-expressions'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import { CUCUMBER_HOOK_DEFINITION_TYPES, CUCUMBER_HOOK_MAPPINGS } from './constants.js'
 import { compile } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 
@@ -90,6 +90,10 @@ export function getFeatureId (uri: string, feature: Feature) {
     return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
 }
 
+export function getHookType(hookName: string): string {
+    return CUCUMBER_HOOK_MAPPINGS[hookName]
+}
+
 /**
  * Builds test title from step keyword and text
  * @param {string} keyword
@@ -150,6 +154,18 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
                     return hookFn.apply(this, args)
                 }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+                if (!testRunHookDefinition.options) {
+                    testRunHookDefinition.options = {}
+                }
+                if (!testRunHookDefinition.options.wrapperOptions) {
+                    testRunHookDefinition.options.wrapperOptions = {}
+                }
+                testRunHookDefinition.options.wrapperOptions._wdioOptions = {
+                    name: testRunHookDefinition.options.name,
+                    tags: testRunHookDefinition.options.tags,
+                    body: hookFn.toString(),
+                    hookType: getHookType(hookName),
+                }
             }
         })
     })
