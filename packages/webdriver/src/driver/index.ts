@@ -13,11 +13,13 @@ import type { Options } from '@wdio/types'
 import { start as startSafaridriver, type SafaridriverOptions } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
 import { start as startEdgedriver, type EdgedriverParameters } from 'edgedriver'
-import { install, computeExecutablePath, Browser, type InstallOptions } from '@puppeteer/browsers'
+import {
+    type InstallOptions
+} from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupChrome, definesRemoteDriver, downloadProgressCallback } from './utils.js'
+import { parseParams, setupChrome, setupChromedriver, definesRemoteDriver } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 const log = logger('webdriver')
@@ -80,26 +82,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
-        const chromedriverBinaryPath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId,
-            cacheDir
-        })
-        const hasChromedriverInstalled = await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
-        if (!hasChromedriverInstalled) {
-            log.info(`Downloading Chromedriver v${buildId}`)
-            await install({
-                ...chromedriverOptions,
-                cacheDir,
-                platform,
-                buildId,
-                browser: Browser.CHROMEDRIVER,
-                unpack: true,
-                downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
-            })
-        } else {
-            log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
-        }
+        const chromedriverBinaryPath = await setupChromedriver(chromedriverOptions, cacheDir, platform, buildId)
         caps['goog:chromeOptions'] = deepmerge(
             { binary: executablePath },
             caps['goog:chromeOptions'] || {}

@@ -8,12 +8,13 @@ import logger from '@wdio/logger'
 import { getChromePath } from 'chrome-launcher'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions
+    computeExecutablePath, type InstallOptions, type BrowserPlatform
 } from '@puppeteer/browsers'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Capabilities, Options } from '@wdio/types'
 
 import { DEFAULTS } from '../constants.js'
+import fsp from 'node:fs/promises'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -112,6 +113,49 @@ export async function setupChrome(caps: Capabilities.Capabilities, cacheDir: str
     await install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, buildId, platform }
+}
+
+export async function setupChromedriver(chromedriverOptions: InstallOptions, cacheDir: string, platform: BrowserPlatform, buildId: string){
+    let chromedriverBinaryPath = computeExecutablePath({
+        browser: Browser.CHROMEDRIVER,
+        buildId,
+        cacheDir
+    })
+    async function hasChromedriverInstalled(chromedriverBinaryPath: string) {
+        return await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
+    }
+    // Check if specified Chromedriver version is installed
+    const installOptions: InstallOptions & { unpack?: true } = {
+        ...chromedriverOptions,
+        cacheDir,
+        platform,
+        buildId,
+        browser: Browser.CHROMEDRIVER,
+        unpack: true,
+        downloadProgressCallback: (downloadedBytes: number, totalBytes: number) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+    }
+    if (!(await hasChromedriverInstalled(chromedriverBinaryPath))) {
+        // Check if specified version of Chromedriver is available for download
+        const isCombinationAvailable = await canDownload(installOptions)
+        // If specified chromedriver version is not installed and there is no specified version to download, work with the latest stable version
+        if (!isCombinationAvailable){
+            const stableChromedriverBuildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, ChromeReleaseChannel.STABLE)
+            installOptions.buildId = stableChromedriverBuildId
+            chromedriverBinaryPath = computeExecutablePath({
+                browser: Browser.CHROMEDRIVER,
+                buildId: stableChromedriverBuildId,
+                cacheDir
+            })
+            // Check if stable version already installed
+            if (!(await hasChromedriverInstalled(chromedriverBinaryPath))) {
+                log.info(`Downloading Chromedriver v${installOptions.buildId}`)
+                await install(installOptions)
+            }
+        }
+    } else {
+        log.info(`Using Chromedriver v${installOptions.buildId || buildId} from cache directory ${cacheDir}`)
+    }
+    return chromedriverBinaryPath
 }
 
 /**
