@@ -457,11 +457,7 @@ class CucumberAdapter {
              */
             const isStep = !fn.name.startsWith('userHook')
 
-            if (!isStep) {
-                // Only wrap in case of hook
-                return wrapStep(fn, isStep, config, cid, options, getHookParams)
-            }
-            return fn
+            return wrapStep(fn, isStep, config, cid, options, getHookParams)
         })
     }
 
@@ -487,17 +483,6 @@ class CucumberAdapter {
             const hookParams = getHookParams()
             const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
 
-            let stepArg = hookParams?.step
-            if (!isStep) {
-                stepArg = {
-                    ...stepArg,
-                    name: options._wdioOptions?.name,
-                    tags: options._wdioOptions?.tags,
-                    hookType: options._wdioOptions?.hookType,
-                    body: options._wdioOptions?.body
-                }
-            }
-
             /**
              * wrap user step/hook with wdio before/after hooks
              */
@@ -506,7 +491,7 @@ class CucumberAdapter {
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn: beforeFn as Function[], beforeFnArgs: (context) => [stepArg, context] },
+                { beforeFn: beforeFn as Function[], beforeFnArgs: (context) => [hookParams?.step, context] },
                 { afterFn: afterFn as Function[], afterFnArgs: (context) => [hookParams?.step, context] },
                 cid,
                 retryTest)
