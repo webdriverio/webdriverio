@@ -89,7 +89,7 @@ const mochaAsyncTestrunner = async () => {
         'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            spec: ['../mocha/test-async.ts']
+            spec: ['./tests/mocha/test-async.ts']
         }
     )
     assert.strictEqual(skippedSpecs, 0)

@@ -37,8 +37,6 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 }
 
 export default class ConfigParser {
-    // This below ignoreSpecs flag is used to ignore all other specs except any specific spec name given in CLI
-    #ignoreSpecs = false
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
@@ -66,9 +64,8 @@ export default class ConfigParser {
          */
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
-            this.#ignoreSpecs = true
         }
-        this.merge(_initialConfig, this.#ignoreSpecs)
+        this.merge(_initialConfig)
     }
 
     /**
@@ -167,7 +164,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    private merge(object: MergeConfig = {}, ignoreSpecs = false) {
+    private merge(object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -206,10 +203,10 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (!ignoreSpecs && spec.length > 0) {
+        if (spec.length > 0) {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
-        if (!ignoreSpecs && exclude.length > 0) {
+        if (exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
     }
