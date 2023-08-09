@@ -180,6 +180,12 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
             continue
         }
 
+        /**
+         * If the provided path of the spec in the CLI is only a spec file name,
+         * then return the spec file path without the current working directory (CWD) path. This allows for running that particular spec.
+         * In the second case, if the given path of the spec in the CLI is the full path of the spec file,
+         * then return the spec path along with the CWD path to locate the relevant file.
+         */
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
             : (file.includes('/'))
