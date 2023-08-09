@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
+import got from 'got'
 import getPort from 'get-port'
 import waitPort from 'wait-port'
 import logger from '@wdio/logger'
@@ -88,7 +89,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         const hasChromedriverInstalled = await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
         if (!hasChromedriverInstalled) {
             log.info(`Downloading Chromedriver v${buildId}`)
-            await install({
+            const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
                 ...chromedriverOptions,
                 cacheDir,
                 platform,
@@ -96,6 +97,16 @@ export async function startWebDriver (options: Options.WebDriver) {
                 browser: Browser.CHROMEDRIVER,
                 unpack: true,
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+            }
+            await install({ ...chromedriverInstallOpts, buildId }).catch(async (err) => {
+                log.warn(`Couldn't download Chromedriver v${buildId}: ${err.message}, trying to find known good version...`)
+                const majorVersion = buildId.split('.')[0]
+                const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
+                const knownGoodVersion = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
+                if (!knownGoodVersion) {
+                    throw new Error(`Couldn't find known good version for Chromedriver v${majorVersion}`)
+                }
+                return install({ ...chromedriverInstallOpts, buildId: knownGoodVersion.version })
             })
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
