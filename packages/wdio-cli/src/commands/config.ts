@@ -5,7 +5,10 @@ import util from 'node:util'
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
-import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES, CONFIG_HELPER_SUCCESS_MESSAGE, isNuxtProject } from '../constants.js'
+import {
+    CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
+    CONFIG_HELPER_SUCCESS_MESSAGE, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION
+} from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
@@ -179,20 +182,15 @@ export async function formatConfigFilePaths(config: string) {
 /**
  * Helper utility used in `run` and `install` command to check whether a config file currently exists
  * @param configPath the file path to the WDIO config file
+ * @returns {string} the path to the config file that exists, otherwise undefined
  */
 export async function canAccessConfigPath(configPath: string) {
-    return await fs.access(`${configPath}.js`).then(
-        () => true,
-        () => fs.access(`${configPath}.ts`).then(
-            () => true,
-            () => fs.access(`${configPath}.mjs`).then(
-                () => true,
-                () => fs.access(`${configPath}.mts`).then(
-                    () => true,
-                    () => false
-                )
-            )
-        )
+    return Promise.all(SUPPORTED_CONFIG_FILE_EXTENSION.map(async (supportedExtension) => {
+        const configPathWithExtension = `${configPath}.${supportedExtension}`
+        return fs.access(configPathWithExtension).then(() => configPathWithExtension, () => undefined)
+    })).then(
+        (configFilePaths) => configFilePaths.find(Boolean),
+        () => undefined
     )
 }
 

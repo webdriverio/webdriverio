@@ -37,8 +37,7 @@ export const cmdArgs = {
         default: false
     },
     config: {
-        desc: 'Location of your WDIO configuration',
-        default: './wdio.conf.js',
+        desc: 'Location of your WDIO configuration (default: wdio.conf.(js|ts|cjs|mjs))',
     },
 } as const
 
@@ -83,18 +82,22 @@ export async function handler(argv: InstallCommandArguments) {
         return
     }
 
-    const wdioConf = await formatConfigFilePaths(config)
-    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
-    if (!confAccess) {
+    const defaultPath = path.resolve(process.cwd(), 'wdio.conf')
+    const wdioConfPathWithNoExtension = config
+        ? (await formatConfigFilePaths(config)).fullPathNoExtension
+        : defaultPath
+    const wdioConfPath = await canAccessConfigPath(wdioConfPathWithNoExtension)
+    if (!wdioConfPath) {
         try {
-            await missingConfigurationPrompt('install', wdioConf.fullPathNoExtension, yarn)
+            await missingConfigurationPrompt('install', defaultPath, yarn)
+            return handler(argv)
         } catch {
             process.exit(1)
             return
         }
     }
 
-    const configFile = await fs.readFile(wdioConf.fullPath, { encoding: 'utf-8' })
+    const configFile = await fs.readFile(wdioConfPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -121,10 +124,10 @@ export async function handler(argv: InstallCommandArguments) {
     const newConfig = replaceConfig(configFile, type, name)
 
     if (!newConfig) {
-        throw new Error(`Couldn't find "${type}" property in ${path.basename(wdioConf.fullPath)}`)
+        throw new Error(`Couldn't find "${type}" property in ${path.basename(wdioConfPath)}`)
     }
 
-    await fs.writeFile(wdioConf.fullPath, newConfig, { encoding: 'utf-8' })
+    await fs.writeFile(wdioConfPath, newConfig, { encoding: 'utf-8' })
     console.log('Your wdio.conf.js file has been updated.')
 
     process.exit(0)
