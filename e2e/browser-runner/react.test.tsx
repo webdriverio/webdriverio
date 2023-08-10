@@ -1,4 +1,3 @@
-// @ts-expect-error resolved by vite
 import { expect } from '@wdio/globals'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
