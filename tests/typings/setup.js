@@ -33,7 +33,6 @@ const packages = {
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
     '@wdio/protocols': 'packages/wdio-protocols',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
-    '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
     '@wdio/static-server-service': 'packages/wdio-static-server-service',
     '@wdio/sumologic-reporter': 'packages/wdio-sumologic-reporter',
