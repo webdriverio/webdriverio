@@ -184,6 +184,39 @@ describe('startWebDriver', () => {
         )
     })
 
+    it('should start chrome driver with capitalized Chrome browserName', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'Chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: '0.0.0.0',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    binary: expect.any(String)
+                },
+                'wdio:chromedriverOptions': {
+                    allowedIps: [''],
+                    allowedOrigins: ['*'],
+                    'foo': 'bar',
+                },
+            }
+        })
+        expect(fsp.access).toBeCalledTimes(2)
+        expect(fsp.mkdir).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledWith(
+            '/foo/bar/executable',
+            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
+        )
+    })
+
     it('should pipe logs into a file', async () => {
         const options: any = {
             outputDir: '/foo/bar',
