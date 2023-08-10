@@ -157,7 +157,10 @@ export async function startWebDriver (options: Options.WebDriver) {
         const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
         const cacheDir = edgedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port })
+        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
+            log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
+            return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
+        })
 
         /**
          * Microsoft Edge is very particular when it comes to browser names
