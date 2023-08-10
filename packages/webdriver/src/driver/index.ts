@@ -72,6 +72,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * Chrome
          */
+        caps.browserName = 'chrome'
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as ChromedriverOptions)
         const cacheDir = chromedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         const exist = await fsp.access(cacheDir).then(() => true, () => false)
