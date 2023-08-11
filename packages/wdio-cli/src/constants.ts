@@ -16,6 +16,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 🤖 Successfully setup project at %s 🎉
 
