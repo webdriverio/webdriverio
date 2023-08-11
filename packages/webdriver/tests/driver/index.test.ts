@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver } from 'edgedriver'
+import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/driver/index.js'
 
@@ -29,7 +30,7 @@ vi.mock('node:child_process', () => ({
             stdout: { pipe: vi.fn() },
             stderr: { pipe: vi.fn() }
         }),
-        execSync: vi.fn().mockReturnValue(Buffer.from('115.0.5790.98'))
+        execSync: vi.fn().mockReturnValue(Buffer.from('115.0.5790.171'))
     }
 }))
 
@@ -43,14 +44,14 @@ vi.mock('wait-port', () => ({ default: vi.fn() }))
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
 vi.mock('@puppeteer/browsers', () => ({
-    Browser: { CHROME: 'chrome' },
+    Browser: { CHROME: 'chrome', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn().mockReturnValue('mac_arm'),
-    resolveBuildId: vi.fn().mockReturnValue('115.0.5790.98'),
+    resolveBuildId: vi.fn().mockReturnValue('115.0.5790.171'),
     canDownload: vi.fn().mockResolvedValue(true),
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     getInstalledBrowsers: vi.fn().mockResolvedValue([]),
-    install: vi.fn()
+    install: vi.fn().mockResolvedValue({})
 }))
 
 vi.mock('../../src/driver/detectBackend.js', () => ({
@@ -63,6 +64,7 @@ describe('startWebDriver', () => {
     const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
+        vi.mocked(install).mockClear()
     })
 
     afterEach(() => {
@@ -182,6 +184,34 @@ describe('startWebDriver', () => {
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
         )
+    })
+
+    it('should find last known good version for chromedriver', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                browserVersion: '115.0.5790.171',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        vi.mocked(install)
+            .mockResolvedValueOnce({} as any)
+            .mockRejectedValueOnce(new Error('boom'))
+            .mockResolvedValue({} as any)
+        await startWebDriver(options)
+        expect(install).toBeCalledTimes(3)
+        expect(install).toBeCalledWith(expect.objectContaining({
+            buildId: '115.0.5790.171',
+            browser: 'chrome'
+        }))
+        expect(install).toBeCalledWith(expect.objectContaining({
+            buildId: '115.0.5790.171',
+            browser: 'chromedriver'
+        }))
+        expect(install).toBeCalledWith(expect.objectContaining({
+            buildId: '115.0.5790.170',
+            browser: 'chromedriver'
+        }))
     })
 
     it('should pipe logs into a file', async () => {
