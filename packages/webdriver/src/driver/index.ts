@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
+import got from 'got'
 import getPort from 'get-port'
 import waitPort from 'wait-port'
 import logger from '@wdio/logger'
@@ -80,15 +81,16 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
-        const chromedriverBinaryPath = computeExecutablePath({
+        let chromedriverBinaryPath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
             buildId,
             cacheDir
         })
+        let loggedBuildId = buildId
         const hasChromedriverInstalled = await fsp.access(chromedriverBinaryPath).then(() => true, () => false)
         if (!hasChromedriverInstalled) {
             log.info(`Downloading Chromedriver v${buildId}`)
-            await install({
+            const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
                 ...chromedriverOptions,
                 cacheDir,
                 platform,
@@ -96,7 +98,30 @@ export async function startWebDriver (options: Options.WebDriver) {
                 browser: Browser.CHROMEDRIVER,
                 unpack: true,
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
-            })
+            }
+
+            try {
+                await install({ ...chromedriverInstallOpts, buildId })
+            } catch (err) {
+                /**
+                 * in case we detect a Chrome browser installed for which there is no Chromedriver available
+                 * we are falling back to the latest known good version
+                 */
+                log.warn(`Couldn't download Chromedriver v${buildId}: ${(err as Error).message}, trying to find known good version...`)
+                const majorVersion = buildId.split('.')[0]
+                const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
+                const knownGoodVersion = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
+                if (!knownGoodVersion) {
+                    throw new Error(`Couldn't find known good version for Chromedriver v${majorVersion}`)
+                }
+                loggedBuildId = knownGoodVersion.version
+                await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+                chromedriverBinaryPath = computeExecutablePath({
+                    browser: Browser.CHROMEDRIVER,
+                    buildId: loggedBuildId,
+                    cacheDir
+                })
+            }
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
         }
@@ -108,7 +133,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['']
         const driverParams = parseParams({ port, ...chromedriverOptions })
         driverProcess = cp.spawn(chromedriverBinaryPath, driverParams)
-        driver = `ChromeDriver v${buildId} with params ${driverParams.join(' ')}`
+        driver = `Chromedriver v${loggedBuildId} with params ${driverParams.join(' ')}`
     } else if (SUPPORTED_BROWSERNAMES.safari.includes(caps.browserName.toLowerCase())) {
         const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as SafaridriverOptions)
         /**
@@ -140,7 +165,10 @@ export async function startWebDriver (options: Options.WebDriver) {
         const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
         const cacheDir = edgedriverOptions.cacheDir || options.cacheDir || os.tmpdir()
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port })
+        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
+            log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
+            return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
+        })
 
         /**
          * Microsoft Edge is very particular when it comes to browser names
