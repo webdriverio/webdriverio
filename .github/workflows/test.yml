@@ -48,7 +48,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: ubuntu-logs
+          name: ubuntu-logs-${{ matrix.node-version }}
           path: |
             e2e/wdio/*.log
             e2e/*.log
