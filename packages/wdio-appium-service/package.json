@@ -34,7 +34,7 @@
     "param-case": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0"
+    "@types/node": "^20.4.10"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

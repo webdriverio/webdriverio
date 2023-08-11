@@ -28,7 +28,7 @@
   "dependencies": {
     "@babel/core": "^7.12.10",
     "@tracerbench/trace-event": "^7.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.4.10",
     "@wdio/logger": "7.26.0",
     "@wdio/types": "7.30.2",
     "babel-plugin-istanbul": "^6.0.0",
