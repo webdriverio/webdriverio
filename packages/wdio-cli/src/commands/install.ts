@@ -89,7 +89,7 @@ export async function handler(argv: InstallCommandArguments) {
     const wdioConfPath = await canAccessConfigPath(wdioConfPathWithNoExtension)
     if (!wdioConfPath) {
         try {
-            await missingConfigurationPrompt('install', defaultPath, yarn)
+            await missingConfigurationPrompt('install', wdioConfPathWithNoExtension, yarn)
             return handler(argv)
         } catch {
             process.exit(1)
