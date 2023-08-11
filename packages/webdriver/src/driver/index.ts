@@ -81,7 +81,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         const { executablePath, buildId, platform } = await setupChrome(caps, cacheDir)
-        const chromedriverBinaryPath = computeExecutablePath({
+        let chromedriverBinaryPath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
             buildId,
             cacheDir
@@ -116,6 +116,11 @@ export async function startWebDriver (options: Options.WebDriver) {
                 }
                 loggedBuildId = knownGoodVersion.version
                 await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+                chromedriverBinaryPath = computeExecutablePath({
+                    browser: Browser.CHROMEDRIVER,
+                    buildId: loggedBuildId,
+                    cacheDir
+                })
             }
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
