@@ -61,7 +61,7 @@ describe('FileSystemPathService', () => {
             vi.mocked(globSync).mockReturnValue(['glob result'])
             const svc = new FileSystemPathService()
             expect(svc.glob('globtrotter', '/foo/bar')).toEqual(['glob result'])
-            expect(globSync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar' })
+            expect(globSync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar', matchBase: true })
         })
         it('should process file name with []', function () {
             vi.mocked(globSync).mockReturnValue([])
