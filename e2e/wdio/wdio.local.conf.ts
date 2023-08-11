@@ -26,7 +26,7 @@ export const config: Options.Testrunner = {
     }, {
         browserName: 'edge',
         'ms:edgeOptions': {
-            args: ['--headless']
+            args: ['headless', 'disable-gpu']
         }
     }, {
         browserName: 'firefox',
