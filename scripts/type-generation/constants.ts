@@ -1,7 +1,12 @@
-export const paramTypeMap = {
+export const paramTypeMap: Record<string, { name: string, type: string, requiresImport?: boolean }[]> = {
     createWindow: [{
         name: 'type',
         type: "'tab' | 'window'"
+    }],
+    deleteSession: [{
+        name: 'deleteSessionOpts',
+        type: 'DeleteSessionOpts',
+        requiresImport: true
     }]
 }
 

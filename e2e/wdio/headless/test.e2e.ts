@@ -131,4 +131,9 @@ describe('main suite 1', () => {
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
     })
 
+    it('can reload a session', async () => {
+        const sessionId = browser.sessionId
+        await browser.reloadSession()
+        expect(browser.sessionId).not.toBe(sessionId)
+    })
 })
