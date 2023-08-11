@@ -24,11 +24,6 @@ export const config: Options.Testrunner = {
             args: ['headless', 'disable-gpu']
         }
     }, {
-        browserName: 'edge',
-        'ms:edgeOptions': {
-            args: ['--headless']
-        }
-    }, {
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['-headless']
@@ -52,5 +47,14 @@ export const config: Options.Testrunner = {
 if (os.platform() === 'darwin') {
     (config.capabilities as Capabilities.Capabilities[]).push({
         browserName: 'safari'
+    })
+}
+
+if (['darwin', 'win32'].includes(os.platform())) {
+    (config.capabilities as Capabilities.Capabilities[]).push({
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            args: ['--headless', '--disable-gpu']
+        }
     })
 }
