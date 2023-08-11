@@ -1,4 +1,3 @@
-import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -17,6 +16,7 @@ export const config = {
      */
     capabilities: [{
         browserName: 'chrome',
+        browserVersion: 'stable',
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
 

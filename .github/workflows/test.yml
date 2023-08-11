@@ -40,11 +40,19 @@ jobs:
         run: npm run test:e2e:cjs
       - name: E2E Launch Tests
         run: npm run test:e2e:webdriver
+      # - name: 🐛 Debug Build
+      #   uses: stateful/vscode-server-action@v1
+      #   if: failure()
+      #   with:
+      #     timeout: '30000'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: logs
-          path: e2e/browser-runner/logs
+          name: ubuntu-logs-${{ matrix.node-version }}
+          path: |
+            e2e/wdio/*.log
+            e2e/*.log
+            e2e/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -70,10 +78,15 @@ jobs:
         run: |
           npm run test:e2e:edge
           npm run test:e2e:webdriver
+      # - name: 🐛 Debug Build
+      #   uses: stateful/vscode-server-action@v1
+      #   if: failure()
+      #   with:
+      #     timeout: '30000'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: logs
+          name: windows-logs
           path: |
             e2e/wdio/*.log
             e2e/*.log
@@ -113,3 +126,16 @@ jobs:
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: macos-logs
+          path: |
+            e2e/wdio/*.log
+            e2e/*.log
+            e2e/browser-runner/logs
+      # - name: 🐛 Debug Build
+      #   uses: stateful/vscode-server-action@v1
+      #   if: failure()
+      #   with:
+      #     timeout: '30000'

@@ -41,7 +41,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize',
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize', 'got',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'chrome-launcher', 'wait-port'
 ]
 
