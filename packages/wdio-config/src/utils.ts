@@ -182,7 +182,10 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            : path.resolve(process.cwd(), file))
+            : file.includes('/')
+                ? path.resolve(process.cwd(), file)
+                : file
+        )
     }
 
     return returnFiles
