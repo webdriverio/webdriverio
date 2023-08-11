@@ -490,7 +490,7 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        if (!this._state.currentAllureTestOrStep || this._isMultiremote) {
+        if (!this._state.currentStep || this._isMultiremote) {
             return
         }
 
@@ -503,7 +503,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!disableWebdriverStepsReporting) {
             this.attachJSON('Response', commandResult)
-            this._endTest(AllureStatus.PASSED)
+            this.endStep(AllureStatus.PASSED)
         }
     }
 
