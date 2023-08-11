@@ -113,9 +113,9 @@ jobs:
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
-      - name: 🐛 Debug Build
-        uses: stateful/vscode-server-action@v1
-        if: failure()
-        with:
-          machineName: myMachine # optional, default: GitHub workflow run ID
-          timeout: '30000'       # optional, default: 30000 (30 seconds)
+      # - name: 🐛 Debug Build
+      #   uses: stateful/vscode-server-action@v1
+      #   if: failure()
+      #   with:
+      #     machineName: myMachine # optional, default: GitHub workflow run ID
+      #     timeout: '30000'       # optional, default: 30000 (30 seconds)

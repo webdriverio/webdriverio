@@ -99,12 +99,15 @@ export async function startWebDriver (options: Options.WebDriver) {
                 unpack: true,
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
             }
-            await install({ ...chromedriverInstallOpts, buildId }).catch(async (err) => {
+
+            try {
+                await install({ ...chromedriverInstallOpts, buildId })
+            } catch (err) {
                 /**
                  * in case we detect a Chrome browser installed for which there is no Chromedriver available
                  * we are falling back to the latest known good version
                  */
-                log.warn(`Couldn't download Chromedriver v${buildId}: ${err.message}, trying to find known good version...`)
+                log.warn(`Couldn't download Chromedriver v${buildId}: ${(err as Error).message}, trying to find known good version...`)
                 const majorVersion = buildId.split('.')[0]
                 const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
                 const knownGoodVersion = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
@@ -112,8 +115,8 @@ export async function startWebDriver (options: Options.WebDriver) {
                     throw new Error(`Couldn't find known good version for Chromedriver v${majorVersion}`)
                 }
                 loggedBuildId = knownGoodVersion.version
-                return install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
-            })
+                await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+            }
         } else {
             log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
         }
