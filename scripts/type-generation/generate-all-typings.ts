@@ -52,12 +52,17 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p, idx) => {
-                const paramType =
+                const hasCustomType = (
                     paramTypeMap[command as keyof typeof paramTypeMap] &&
                     paramTypeMap[command as keyof typeof paramTypeMap][idx] &&
                     paramTypeMap[command as keyof typeof paramTypeMap][idx].name === p.name
-                        ? paramTypeMap[command as keyof typeof paramTypeMap][idx].type
-                        : p.type.toLowerCase()
+                )
+                const paramType = hasCustomType
+                    ? paramTypeMap[command as keyof typeof paramTypeMap][idx].type
+                    : p.type.toLowerCase()
+                if (hasCustomType && Boolean(paramTypeMap[command as keyof typeof paramTypeMap][idx].requiresImport)) {
+                    customTypes.add(paramType)
+                }
                 return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
             })
             const varsAndParams = vars.concat(params)

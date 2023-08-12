@@ -37,8 +37,8 @@ export default class WebDriver {
         }
 
         log.info('Initiate new session using the WebDriver protocol')
-        const requestedCapabilities = { ...params.capabilities }
         const driverProcess = await startWebDriver(params)
+        const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
