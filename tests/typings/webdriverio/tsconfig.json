@@ -9,7 +9,6 @@
       "@wdio/appium-service",
       "@wdio/browserstack-service",
       "@wdio/devtools-service",
-      "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",
       "@wdio/static-server-service",

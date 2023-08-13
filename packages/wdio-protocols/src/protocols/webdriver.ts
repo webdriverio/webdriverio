@@ -28,7 +28,13 @@ export default {
             description:
                 'The Delete Session command closes any top-level browsing contexts associated with the current session, terminates the connection, and finally closes the current session.',
             ref: 'https://w3c.github.io/webdriver/#dfn-delete-session',
-            parameters: [],
+            parameters: [{
+                name: 'deleteSessionOpts',
+                type: 'object',
+                description:
+                    'Object containing options for the deleteSession command, e.g. `{ shutdownDriver: boolean }`',
+                required: false,
+            }],
         },
     },
     '/status': {

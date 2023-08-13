@@ -176,7 +176,7 @@ test('canAccessConfigPath', async () => {
         .mockRejectedValueOnce(new Error('not found'))
         .mockRejectedValueOnce(new Error('not found'))
         .mockResolvedValue('Yay' as any)
-    expect(await canAccessConfigPath('/foo/bar')).toBe(true)
+    expect(await canAccessConfigPath('/foo/bar')).toBe('/foo/bar.mts')
     expect(fs.access).toBeCalledWith('/foo/bar.js')
     expect(fs.access).toBeCalledWith('/foo/bar.ts')
     expect(fs.access).toBeCalledWith('/foo/bar.mjs')

@@ -56,21 +56,6 @@ const config: WebdriverIO.Config = {
                 type: 'foo'
             }
         }],
-        ['selenium-standalone', {
-            logs: 'string',
-            installArgs: {
-                version: ''
-            },
-            args: {
-                basePath: ''
-            },
-            skipSeleniumInstall: true,
-            drivers: {
-                chrome: 'yes',
-                // @ts-expect-error test wrong parameter
-                brave: 'no'
-            }
-        }],
         // @ts-expect-error test wrong parameter
         ['crossbrowsertesting', {
             cbtTunnel: 'true',

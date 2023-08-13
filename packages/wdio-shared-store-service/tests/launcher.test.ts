@@ -19,7 +19,7 @@ const storeLauncher = new SharedStoreLauncher()
 
 describe('SharedStoreService', () => {
     it('onPrepare', async () => {
-        const capabilities = [{ browserName: 'chrome', acceptInsecureCerts: true }] as SharedStoreServiceCapabilities[]
+        const capabilities = [{ browserName: 'chrome' }] as SharedStoreServiceCapabilities[]
         await storeLauncher.onPrepare(null as never, capabilities)
         expect(setPort).toBeCalledWith(3000)
     })

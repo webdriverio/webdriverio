@@ -72,7 +72,13 @@ export default {
             command: 'deleteSession',
             description: 'Delete the session.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionid',
-            parameters: [],
+            parameters: [{
+                name: 'deleteSessionOpts',
+                type: 'object',
+                description:
+                    'Object containing options for the deleteSession command, e.g. `{ shutdownDriver: boolean }`',
+                required: false,
+            }],
         },
     },
     '/session/:sessionId/timeouts': {
