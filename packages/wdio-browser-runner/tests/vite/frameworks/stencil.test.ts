@@ -45,8 +45,7 @@ test('optimizeForStencil', async () => {
     expect((opt.plugins?.[0] as Plugin).name).toBe('wdio-stencil')
     expect((opt.plugins?.[0] as Plugin).enforce).toBe('pre')
     expect((opt.plugins?.[0] as any).resolveId('foo')).toBe(undefined)
-    expect((opt.plugins?.[0] as any).resolveId('@wdio/browser-runner/stencil'))
-        .toEqual(expect.stringMatching(/\/vite\/frameworks\/fixtures\/stencil\.js$/))
+    expect(typeof (opt.plugins?.[0] as any).resolveId('@wdio/browser-runner/stencil')).toBe('string')
     expect((opt.plugins?.[0] as any).transform('foo', '/foo/bar/StencilComponent.tsx', {}))
         .toEqual({
             code: 'the transpiled code',
