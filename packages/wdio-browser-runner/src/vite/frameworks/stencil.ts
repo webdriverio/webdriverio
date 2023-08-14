@@ -8,7 +8,7 @@ import { hasFileByExtensions } from '../utils.js'
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export function isUsingStencilJS (rootDir: string, options: WebdriverIO.BrowserRunnerOptions) {
-    return options.preset === 'stencil' || hasFileByExtensions(path.join(rootDir, 'stencil.config'))
+    return Boolean(options.preset === 'stencil' || hasFileByExtensions(path.join(rootDir, 'stencil.config')))
 }
 
 export async function optimizeForStencil (rootDir: string) {
