@@ -34,7 +34,7 @@ export const config = {
                 capabilities: {
                     browserName: 'chrome',
                     browserVersion: 'stable',
-                    'wdio:devtoolsOptions': { headless: true, dumpio: true }
+                    'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
                 }
             },
             browserB: {
