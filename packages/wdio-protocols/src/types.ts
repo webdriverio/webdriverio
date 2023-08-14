@@ -28,6 +28,14 @@ export interface RectReturn {
     height: number
 }
 
+export interface DeleteSessionOpts {
+    /**
+     * if set to `false` the driver process remains alive after calling deleteSession
+     * @default true
+     */
+    shutdownDriver?: boolean
+}
+
 // appium protocol
 export interface StringsReturn {
     [key: string]: string

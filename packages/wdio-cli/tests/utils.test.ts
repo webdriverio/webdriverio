@@ -21,7 +21,6 @@ import {
     replaceConfig,
     addServiceDeps,
     convertPackageHashToObject,
-    validateServiceAnswers,
     getCapabilities,
     generateTestFiles,
     getPathForFileGeneration,
@@ -42,7 +41,7 @@ import {
     runAppiumInstaller
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
-import { COMPILER_OPTION_ANSWERS, COMPILER_OPTIONS } from '../src/constants.js'
+import { CompilerOptions } from '../src/constants.js'
 import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
@@ -72,7 +71,7 @@ vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 })
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        access: vi.fn().mockResolvedValue({}),
+        access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
@@ -307,7 +306,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver'],
+    services: [],
     framework: 'mocha',
 }`
         expect(replaceConfig(fakeConfig, 'service', 'sauce')).toBe(
@@ -316,7 +315,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver','sauce'],
+    services: ['sauce'],
     framework: 'mocha',
 }`
         )
@@ -326,7 +325,7 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual(['appium'])
     })
 
@@ -335,26 +334,8 @@ describe('addServiceDeps', () => {
         // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
         cp.execSyncRes = '1.13.0'
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual([])
-    })
-
-    it('should add chromedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
-        expect(packages).toEqual(['chromedriver'])
-    })
-
-    it('should add geckodriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-geckodriver-service', short: 'geckodriver' }], packages)
-        expect(packages).toEqual(['geckodriver'])
-    })
-
-    it('should add edgedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-edgedriver-service', short: 'edgedriver' }], packages)
-        expect(packages).toEqual(['msedgedriver'])
     })
 
     afterEach(() => {
@@ -376,13 +357,6 @@ describe('convertPackageHashToObject', () => {
             short: 'package-name'
         })
     })
-})
-
-test('validateServiceAnswers', () => {
-    expect(validateServiceAnswers(['wdio-chromedriver-service', '@wdio/selenium-standalone-service']))
-        .toContain('wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service')
-    expect(validateServiceAnswers(['@wdio/static-server-service', '@wdio/selenium-standalone-service']))
-        .toBe(true)
 })
 
 describe('getCapabilities', () => {
@@ -440,7 +414,6 @@ describe('getCapabilities', () => {
             {
                 maxInstances: 5,
                 browserName: 'chrome',
-                acceptInsecureCerts: true,
                 'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
         ])
@@ -745,26 +718,24 @@ describe('getPathForFileGeneration', () => {
 
 test('getDefaultFiles', async () => {
     const files = '/foo/bar'
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[0] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Babel } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1], preset: 'vite-plugin-solid$--$solid' } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS, preset: 'vite-plugin-solid$--$solid' } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.tsx'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[2] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Nil } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
-        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service', 'wdio-geckodriver-service'],
+        ['webdriverio', '@wdio/spec-reporter'],
         '8.0.0-alpha.249+4bc237701',
         'latest'
     )).toEqual([
         'webdriverio@^8.0.0-alpha.249',
-        '@wdio/spec-reporter@^8.0.0-alpha.249',
-        'wdio-chromedriver-service',
-        'wdio-geckodriver-service'
+        '@wdio/spec-reporter@^8.0.0-alpha.249'
     ])
 })
 
@@ -776,6 +747,7 @@ test('getProjectRoot', () => {
 })
 
 test('hasBabelConfig', async () => {
+    vi.mocked(fs.access).mockResolvedValue({})
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
@@ -783,16 +755,16 @@ test('hasBabelConfig', async () => {
 
 test('detectCompiler', async () => {
     vi.mocked(fs.access).mockResolvedValue({} as any)
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.babel)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Babel)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.nil)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Nil)
     vi.mocked(fs.access).mockImplementation((path) => {
         if (path.toString().includes('tsconfig')) {
             return Promise.resolve({} as any)
         }
         return Promise.reject(new Error('ouch'))
     })
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.ts)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.TS)
 })
 
 test('getAnswers', async () => {

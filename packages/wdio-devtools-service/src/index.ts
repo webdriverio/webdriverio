@@ -14,8 +14,8 @@ import TraceGatherer from './gatherer/trace.js'
 import CoverageGatherer from './gatherer/coverage.js'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 import DevtoolsGatherer from './gatherer/devtools.js'
-import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils.js'
-import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants.js'
+import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
+import { NETWORK_STATES, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants.js'
 import type {
     DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions,
     DeviceDescription, Device, PWAAudits, GathererDriver
@@ -36,7 +36,6 @@ function isCDPSessionOnMessageObject(
 }
 
 export default class DevToolsService implements Services.ServiceInstance {
-    private _isSupported = false
     private _shouldRunPerformanceAudits = false
 
     private _puppeteer?: PuppeteerBrowser
@@ -58,20 +57,12 @@ export default class DevToolsService implements Services.ServiceInstance {
 
     constructor (private _options: DevtoolsConfig) {}
 
-    beforeSession (_: unknown, caps: Capabilities.Capabilities) {
-        if (!isBrowserSupported(caps)) {
-            return log.error(UNSUPPORTED_ERROR_MESSAGE)
-        }
-        this._isSupported = true
-    }
-
     before (
         caps: Capabilities.RemoteCapability,
         specs: string[],
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
-        this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
         return this._setupHandler()
     }
 
@@ -220,14 +211,17 @@ export default class DevToolsService implements Services.ServiceInstance {
     }
 
     async _setupHandler () {
-        if (!this._isSupported || !this._browser) {
-            return setUnsupportedCommand(this._browser as WebdriverIO.Browser)
+        if (!this._browser) {
+            return
         }
 
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await (this._browser as WebdriverIO.Browser).getPuppeteer() as any as PuppeteerBrowser
+        this._puppeteer = await (this._browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as any as PuppeteerBrowser
+        if (!this._puppeteer) {
+            return setUnsupportedCommand(this._browser as WebdriverIO.Browser)
+        }
 
         /* istanbul ignore next */
         if (!this._puppeteer) {

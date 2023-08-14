@@ -5,7 +5,10 @@ import util from 'node:util'
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
-import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS, SUPPORTED_PACKAGES, CONFIG_HELPER_SUCCESS_MESSAGE } from '../constants.js'
+import {
+    CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
+    CONFIG_HELPER_SUCCESS_MESSAGE, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION
+} from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
@@ -91,7 +94,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
              */
             : path.resolve(projectRootDir, `tsconfig.${runnerPackage.short === 'local' ? 'e2e' : 'wdio'}.json`)
     const parsedPaths = getPathForFileGeneration(answers, projectRootDir)
-    const isUsingTypeScript = answers.isUsingCompiler === COMPILER_OPTIONS.ts
+    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
     const wdioConfigFilename = `wdio.conf.${isUsingTypeScript ? 'ts' : 'js'}`
     const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
 
@@ -102,6 +105,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
             installTestingLibrary: false
         }),
         ...answers,
+        useSauceConnect: isNuxtProject || answers.useSauceConnect,
         rawAnswers: answers,
         runner: runnerPackage.short as 'local' | 'browser',
         preset: presetPackage.short,
@@ -114,7 +118,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
-        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        isUsingBabel: answers.isUsingCompiler === CompilerOptions.Babel,
         esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',
@@ -178,20 +182,15 @@ export async function formatConfigFilePaths(config: string) {
 /**
  * Helper utility used in `run` and `install` command to check whether a config file currently exists
  * @param configPath the file path to the WDIO config file
+ * @returns {string} the path to the config file that exists, otherwise undefined
  */
 export async function canAccessConfigPath(configPath: string) {
-    return await fs.access(`${configPath}.js`).then(
-        () => true,
-        () => fs.access(`${configPath}.ts`).then(
-            () => true,
-            () => fs.access(`${configPath}.mjs`).then(
-                () => true,
-                () => fs.access(`${configPath}.mts`).then(
-                    () => true,
-                    () => false
-                )
-            )
-        )
+    return Promise.all(SUPPORTED_CONFIG_FILE_EXTENSION.map(async (supportedExtension) => {
+        const configPathWithExtension = `${configPath}.${supportedExtension}`
+        return fs.access(configPathWithExtension).then(() => configPathWithExtension, () => undefined)
+    })).then(
+        (configFilePaths) => configFilePaths.find(Boolean),
+        () => undefined
     )
 }
 

@@ -32,7 +32,7 @@ exports[`attach Puppeteer > should pass for Chrome 1`] = `
 [
   [
     {
-      "browserURL": "http://localhost:1234",
+      "browserURL": "http://0.0.0.0:1234",
       "defaultViewport": null,
     },
   ],
@@ -43,7 +43,7 @@ exports[`attach Puppeteer > should pass for Edge 1`] = `
 [
   [
     {
-      "browserURL": "http://localhost:1234",
+      "browserURL": "http://0.0.0.0:1234",
       "defaultViewport": null,
     },
   ],

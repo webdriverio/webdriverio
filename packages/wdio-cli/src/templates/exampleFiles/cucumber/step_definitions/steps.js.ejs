@@ -1,6 +1,9 @@
 <%- answers.isUsingTypeScript || answers.esmSupport
     ? "import { Given, When, Then } from '@wdio/cucumber-framework';"
     : "const { Given, When, Then } = require('@wdio/cucumber-framework');" %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { expect, $ } from '@wdio/globals'`
+    : `const { expect, $ } = require('@wdio/globals')` %>
 <%
 /**
  * step definition without page objects

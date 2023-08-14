@@ -192,7 +192,7 @@ describe('Bidi support', () => {
 })
 
 describe('command wrapper result log', () => {
-    async function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
+    async function getRequestCallback (method: string, path: string, endpoint: CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
         await commandFn.call(scope)
         expect(RequestMock).toHaveBeenCalledTimes(1)

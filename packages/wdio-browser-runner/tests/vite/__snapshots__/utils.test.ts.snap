@@ -7,9 +7,26 @@ exports[`getTemplate > renders template correctly 1`] = `
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
+            
             <script type=\\"module\\">
+                const alias = {}
                 window.__wdioMockCache__ = new Map()
                 window.wdioImport = function (modName, mod) {
+                    /**
+                     * attempt to resolve direct import
+                     */
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+
+                    /**
+                     * if above fails, check if we have an alias for it
+                     */
+                    for (const [aliasName, aliasPath] of Object.entries(alias)) {
+                        if (modName.slice(0, aliasName.length) === aliasName) {
+                            modName = modName.replace(aliasName, aliasPath)
+                        }
+                    }
                     if (window.__wdioMockCache__.get(modName)) {
                         return window.__wdioMockCache__.get(modName)
                     }
@@ -44,7 +61,7 @@ exports[`getTemplate > renders template correctly 1`] = `
                     env: {\\"some\\":\\"env\\"},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '/some/cwd',
+                    cwd: () => \\"/some/cwd\\",
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>

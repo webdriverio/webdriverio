@@ -47,6 +47,7 @@ exports[`handler 1`] = `
     "tsConfigFilePath": "/foo/bar/tsconfig.json",
     "tsProject": "./tsconfig.json",
     "usePageObjects": false,
+    "useSauceConnect": undefined,
     "wdioConfigPath": "/foo/bar/wdio.conf.ts",
   },
   "success": true,
@@ -114,6 +115,7 @@ exports[`parseAnswers 1`] = `
   "tsConfigFilePath": "/foo/bar/tsconfig.json",
   "tsProject": "./tsconfig.json",
   "usePageObjects": true,
+  "useSauceConnect": undefined,
   "wdioConfigPath": "/foo/bar/wdio.conf.ts",
 }
 `;

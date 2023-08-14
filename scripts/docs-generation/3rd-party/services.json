@@ -1,29 +1,5 @@
 [
   {
-    "packageName": "wdio-chromedriver-service",
-    "title": "ChromeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
-  },
-  {
-    "packageName": "wdio-geckodriver-service",
-    "title": "Geckodriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
-  },
-  {
-    "packageName": "wdio-safaridriver-service",
-    "title": "SafariDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-safaridriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-safaridriver-service"
-  },
-  {
-    "packageName": "wdio-edgedriver-service",
-    "title": "EdgeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
-  },
-  {
     "packageName": "wdio-vscode-service",
     "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",

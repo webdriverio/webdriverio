@@ -11,7 +11,12 @@ import { Launcher as cjsLauncher, run as cjsRun } from '../src/cjs/index.js'
 
 const caps: WebDriver.DesiredCapabilities = { maxInstances: 1, browserName: 'chrome' }
 
-vi.mock('node:fs/promises')
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockRejectedValue(new Error('ENOENT')),
+        mkdir: vi.fn()
+    }
+}))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

@@ -13,9 +13,7 @@ exports[`getAnswers 1`] = `
     "@wdio/spec-reporter$--$spec",
   ],
   "runner": "@wdio/local-runner$--$local$--$e2e",
-  "services": [
-    "wdio-chromedriver-service$--$chromedriver",
-  ],
+  "services": [],
   "usePageObjects": true,
 }
 `;
@@ -23,7 +21,6 @@ exports[`getAnswers 1`] = `
 exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
 {
   "capabilities": {
-    "acceptInsecureCerts": true,
     "browserName": "chrome",
     "goog:chromeOptions": {
       "args": [

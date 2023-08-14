@@ -21,6 +21,123 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.14.6 (2023-08-13)
+
+#### :bug: Bug Fix
+* `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#10923](https://github.com/webdriverio/webdriverio/pull/10923) (webdriverio): fix driver management when calling reloadSession ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#10913](https://github.com/webdriverio/webdriverio/pull/10913) (@wdio/cli): make install command detect config file better ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-jasmine-framework`
+  * [#10864](https://github.com/webdriverio/webdriverio/pull/10864) (@wdio/jasmine-framework): switch to addMatchingHelperFiles ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`
+  * [#10921](https://github.com/webdriverio/webdriverio/pull/10921) (@wdio/config): allow specifying a file name as spec parameter ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`
+  * [#10898](https://github.com/webdriverio/webdriverio/pull/10898) (bugfix): remove acceptInsecureCerts appearences ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#10914](https://github.com/webdriverio/webdriverio/pull/10914) [Bug]: Execution steps are missing in allure reports.  ([@BorisOsipov](https://github.com/BorisOsipov))
+* `wdio-browser-runner`, `wdio-config`, `webdriver`
+  * [#10902](https://github.com/webdriverio/webdriverio/pull/10902) (webdriver): find good known version when Chromedriver can't be installed with found `buildId` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#10906](https://github.com/webdriverio/webdriverio/pull/10906) Fix chrome browser name to lower case ([@HananArgov](https://github.com/HananArgov))
+  * [#10922](https://github.com/webdriverio/webdriverio/pull/10922) Bump @geckodriver from 4.1.3 to 4.2.0 ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `devtools`
+  * [#10883](https://github.com/webdriverio/webdriverio/pull/10883) Update launcher.ts to handle defaultViewport ([@mighty98](https://github.com/mighty98))
+* `wdio-cli`
+  * [#10858](https://github.com/webdriverio/webdriverio/pull/10858) [💡 Feature]: Make WebdriverIO load `.env` environments ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10889](https://github.com/webdriverio/webdriverio/pull/10889) Boilerplate project added to MD ([@krishnapollu](https://github.com/krishnapollu))
+
+#### :house: Internal
+* `wdio-selenium-standalone-service`
+  * [#10905](https://github.com/webdriverio/webdriverio/pull/10905) (@wdio/selenium-standalone-service): good bye 👋 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- KRISHNA S ([@krishnapollu](https://github.com/krishnapollu))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- [@mighty98](https://github.com/mighty98)
+
+
+## v8.14.3 (2023-08-02)
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#10852](https://github.com/webdriverio/webdriverio/pull/10852) (webdriver): better identify driver logs through worker ids ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#10851](https://github.com/webdriverio/webdriverio/pull/10851) (@wdio/cli): improve configuration wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.14.2 (2023-08-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10841](https://github.com/webdriverio/webdriverio/pull/10841) fix(webdriverio): updated devtools peer dependency to 8.14.0 ([@jan-molak](https://github.com/jan-molak))
+
+#### :memo: Documentation
+* [#10842](https://github.com/webdriverio/webdriverio/pull/10842) Mention 'beta' channel ([@mathiasbynens](https://github.com/mathiasbynens))
+
+#### Committers: 2
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Mathias Bynens ([@mathiasbynens](https://github.com/mathiasbynens))
+
+
+## v8.14.0 (2023-08-01)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-devtools-service`, `wdio-runner`, `wdio-selenium-standalone-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#10767](https://github.com/webdriverio/webdriverio/pull/10767) (webdriverio): manage browser drivers ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10816](https://github.com/webdriverio/webdriverio/pull/10816) (@wdio/cli): corrected TypeScript loading ([@jan-molak](https://github.com/jan-molak))
+* `wdio-browser-runner`
+  * [#10815](https://github.com/webdriverio/webdriverio/pull/10815) Fix invalid unicode escape error on Windows ([@yishn](https://github.com/yishn))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Yichuan Shen ([@yishn](https://github.com/yishn))
+
+
+## v8.13.14 (2023-07-28)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10813](https://github.com/webdriverio/webdriverio/pull/10813) (@wdio/cli): only add nuxt service if it is a nuxt project ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.13.13 (2023-07-27)
+
+#### :bug: Bug Fix
+* `wdio-globals`
+  * [#10804](https://github.com/webdriverio/webdriverio/pull/10804) (@wdio/globals): fix getPuppeteer() ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`, `wdio-utils`
+  * [#10802](https://github.com/webdriverio/webdriverio/pull/10802) (@wdio/browser-runner): respect alias when it comes to mocking ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#10801](https://github.com/webdriverio/webdriverio/pull/10801) Update OrganizingTestSuites.md ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+* [#10799](https://github.com/webdriverio/webdriverio/pull/10799) Update OrganizingTestSuites.md --> added exclude specific test with m… ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+
+#### Committers: 3
+- Bhanu Agarwal ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+
+
 ## v8.13.12 (2023-07-24)
 
 #### :bug: Bug Fix

@@ -1,5 +1,4 @@
 import type { EventEmitter } from 'node:events'
-import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { Protocol } from 'devtools-protocol'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
@@ -10,6 +9,8 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
 import type { Matches } from './utils/interception/types.js'
+
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -480,12 +481,10 @@ interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, '
 type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}
 
-export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities'>, Omit<WebDriverAttachOptions, 'capabilities'> {
-    options?: {
-        automationProtocol?: Options.SupportedProtocols,
-    }
-    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
-    requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
+export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
+    options: Options.WebdriverIO
+    capabilities: WebDriverAttachOptions['capabilities'],
+    requestedCapabilities?: WebDriverAttachOptions['capabilities'],
 }
 
 declare global {

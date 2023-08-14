@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "8.13.12",
+  "version": "8.14.6",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -68,17 +68,16 @@
   },
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/config": "8.12.1",
+    "@wdio/config": "8.14.6",
     "@wdio/logger": "8.11.0",
-    "@wdio/protocols": "8.11.0",
+    "@wdio/protocols": "8.14.6",
     "@wdio/repl": "8.10.1",
-    "@wdio/types": "8.10.4",
-    "@wdio/utils": "8.12.1",
+    "@wdio/types": "8.14.0",
+    "@wdio/utils": "8.14.0",
     "archiver": "^5.0.0",
     "aria-query": "^5.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "8.12.1",
     "devtools-protocol": "^0.0.1170846",
     "grapheme-splitter": "^1.0.2",
     "import-meta-resolve": "^3.0.0",
@@ -86,11 +85,19 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "^9.0.0",
-    "puppeteer-core": "20.3.0",
+    "puppeteer-core": "^20.9.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^8.0.0",
-    "webdriver": "8.13.1"
+    "serialize-error": "^11.0.1",
+    "webdriver": "8.14.6"
+  },
+  "peerDependencies": {
+    "devtools": "^8.14.0"
+  },
+  "peerDependenciesMeta": {
+    "devtools": {
+      "optional": true
+    }
   }
 }

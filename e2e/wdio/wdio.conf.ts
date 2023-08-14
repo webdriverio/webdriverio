@@ -16,6 +16,7 @@ export const config = {
      */
     capabilities: [{
         browserName: 'chrome',
+        browserVersion: 'stable',
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
 

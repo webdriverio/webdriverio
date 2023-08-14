@@ -62,7 +62,7 @@ describe('Command: run', () => {
 
     it('should use local conf if nothing defined', async () => {
         await runCmd.handler({ argv: {} } as any)
-        expect(fs.access).toBeCalledTimes(4)
+        expect(fs.access).toBeCalledTimes(6)
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {

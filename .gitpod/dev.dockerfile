@@ -12,4 +12,4 @@ RUN \
         microsoft-edge-dev
 
 RUN \
-    npm i -g http-server diff-so-fancy chromedriver@103 geckodriver
+    npm i -g http-server diff-so-fancy

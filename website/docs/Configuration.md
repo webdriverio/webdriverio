@@ -176,6 +176,13 @@ It does nothing if the response did not have proper keys while the flag is enabl
 Type: `Boolean`<br />
 Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br />
+Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO

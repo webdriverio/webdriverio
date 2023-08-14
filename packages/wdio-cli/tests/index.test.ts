@@ -7,6 +7,10 @@ import { run } from '../src/index.js'
 import { run as cjsRun } from '../src/cjs/index.js'
 import { handler } from '../src/commands/run.js'
 
+vi.mock('dotenv/config', () => {
+    process.env = { ...process.env, ...{ foo: 'bar' } }
+    return {}
+})
 vi.mock('yargs')
 vi.mock('yargs/helpers', () => ({ hideBin: vi.fn() }))
 vi.mock('./../src/commands/run', async () => ({
@@ -21,6 +25,10 @@ describe('index', () => {
         vi.mocked(handler).mockClear()
         vi.mocked(yargsMock.parse).mockClear()
         console.error = vi.fn()
+    })
+
+    it('should populate environment using dotenv/conifg', () => {
+        expect(process.env.foo).toBe('bar')
     })
 
     it('should call config if no known command is used', async () => {

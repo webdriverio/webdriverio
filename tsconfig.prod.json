@@ -14,7 +14,7 @@
     "moduleResolution": "Node",
     "module": "ESNext",
     "lib": ["dom", "es2021"],
-    "types": ["node"]
+    "types": ["node", "mocha"]
   },
 
   "exclude": [

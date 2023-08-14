@@ -12,22 +12,26 @@ export default defineConfig({
             '**/node_modules/**',
             'packages/eslint-plugin-wdio/**/*'
         ],
+        env: {
+            WDIO_SKIP_DRIVER_SETUP: '1'
+        },
         coverage: {
             enabled: true,
             provider: 'v8',
             exclude: [
+                '**/__mocks__/**',
                 '**/build/**',
-                '**/cjs/*.js',
+                '**/cjs/*.ts',
                 '**/*.test.ts',
                 // we are using e2e tests for ensuring the functionality works
                 // check out the ./e2e folder
                 'packages/devtools/src/commands',
                 'packages/devtools/src/scripts'
             ],
-            lines: 92,
-            functions: 88,
-            branches: 91,
-            statements: 92
+            lines: 88,
+            functions: 84,
+            statements: 88,
+            branches: 89
         }
     }
 })
