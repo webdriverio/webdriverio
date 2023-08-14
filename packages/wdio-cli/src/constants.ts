@@ -149,6 +149,7 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
     { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
+    { name: 'StencilJS (https://stenciljs.com/)', value: '$--$' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
     { name: 'Other', value: false }

@@ -20,6 +20,7 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
     vue: ['@vitejs/plugin-vue', 'default', undefined],
     svelte: ['@sveltejs/vite-plugin-svelte', 'svelte', undefined],
     solid: ['vite-plugin-solid', 'default', undefined],
+    stencil: undefined,
     lit: undefined
 }
 

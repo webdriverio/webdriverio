@@ -74,6 +74,7 @@
     "@cucumber/cucumber": "^9.3.0",
     "@octokit/rest": "^19.0.13",
     "@preact/preset-vite": "^2.5.0",
+    "@stencil/core": "^4.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.4.4",
     "@tsconfig/node18": "^18.2.0",
     "@types/archiver": "^5.3.2",

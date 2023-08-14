@@ -1,0 +1,16 @@
+import { render } from '@wdio/browser-runner/stencil'
+import { $, expect } from '@wdio/globals'
+
+import { Component } from './Component.js'
+
+describe('Lit component testing', () => {
+    it('should increment value on click', async () => {
+        await render({
+            components: [AppProfile],
+            template: () => (
+                <app-profile match={{ params: { name: 'stencil' } }}></app-profile>
+            )
+        })
+        await expect($('>>>.app-profile')).toHaveText('Hello! My name is Stencil.')
+    })
+})

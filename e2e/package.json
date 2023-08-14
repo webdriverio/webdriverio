@@ -20,6 +20,9 @@
     "test:browser:lit": "run-s test:browser:lit:*",
     "test:browser:lit:wdio": "cross-env WDIO_PRESET=lit node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec lit.test.js",
     "test:browser:lit:verifyCoverage": "run-s verifyCoverage",
+    "test:browser:stencil": "run-s test:browser:stencil:*",
+    "test:browser:stencil:wdio": "cross-env WDIO_PRESET=stencil node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec stencil.test.tsx",
+    "test:browser:stencil:verifyCoverage": "run-s verifyCoverage",
     "test:mocha": "node ../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
     "test:jasmine": "node ../packages/wdio-cli/bin/wdio.js ./jasmine/wdio.conf.js",
     "test:cucumber": "node ../packages/wdio-cli/bin/wdio.js ./cucumber/wdio.conf.js",
@@ -48,6 +51,8 @@
     "tailwindcss": "^3.3.3"
   },
   "dependencies": {
+    "@stencil-community/router": "^1.0.2",
+    "@stencil/core": "^4.0.4",
     "lit": "^2.8.0",
     "preact": "^10.16.0",
     "react": "^18.2.0",

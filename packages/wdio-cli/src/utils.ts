@@ -404,7 +404,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
     for (const file of files) {
         const renderedTpl = await renderFile(file, { answers })
-        const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
+        const isJSX = answers.preset && ['preact', 'react', 'stencil'].includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         const destPath = (
             file.endsWith('page.js.ejs')
@@ -670,6 +670,13 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     const preset = getPreset(parsedAnswers)
     if (preset === 'lit') {
         parsedAnswers.packagesToInstall.push('lit')
+    }
+
+    /**
+     * add dependency for Stencil testing
+     */
+    if (preset === 'stencil') {
+        parsedAnswers.packagesToInstall.push('@stencil/core')
     }
 
     /**
