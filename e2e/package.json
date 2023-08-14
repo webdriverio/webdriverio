@@ -52,7 +52,6 @@
   },
   "dependencies": {
     "@stencil-community/router": "^1.0.2",
-    "@stencil/core": "^4.0.4",
     "lit": "^2.8.0",
     "preact": "^10.16.0",
     "react": "^18.2.0",
