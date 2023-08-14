@@ -58,4 +58,13 @@ interface RenderOptions {
     strictBuild?: boolean;
 }
 
-export function render(opts: RenderOptions): void
+interface StencilEnvironment {
+    /**
+     * After changes have been made to a component, such as a update to a property or
+     * attribute, the test page does not automatically apply the changes. In order to
+     * wait for, and apply the update, call await `flushAll()`.
+     */
+    flushAll: () => void
+}
+
+export function render(opts: RenderOptions): StencilEnvironment

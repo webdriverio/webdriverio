@@ -5,7 +5,7 @@ import { AppProfile } from './components/StencilComponent.jsx'
 
 describe('Stencil Component Testing', () => {
     it('should render component correctly', async () => {
-        await render({
+        render({
             components: [AppProfile],
             template: () => (
                 <app-profile match={{ params: { name: 'stencil' } }}></app-profile>

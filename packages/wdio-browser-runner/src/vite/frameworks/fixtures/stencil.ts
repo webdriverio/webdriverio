@@ -13,14 +13,10 @@ import type {
     HostRef,
     LazyBundlesRuntimeData,
     NewSpecPageOptions,
-    SpecPage,
 } from '@stencil/core/internal'
 import {
     bootstrapLazy,
     flushAll,
-    flushLoadModule,
-    flushQueue,
-    getHostRef,
     insertVdomAnnotations,
     registerComponents,
     registerModule,
@@ -33,12 +29,21 @@ import {
     // @ts-expect-error
 } from '@stencil/core/internal/testing/index.js'
 
+interface StencilEnvironment {
+    /**
+     * After changes have been made to a component, such as a update to a property or
+     * attribute, the test page does not automatically apply the changes. In order to
+     * wait for, and apply the update, call await `flushAll()`.
+     */
+    flushAll: () => void
+}
+
 /**
  * Creates a new spec page for unit testing
  * @param opts the options to apply to the spec page that influence its configuration and operation
  * @returns the created spec page
  */
-export async function render(opts: NewSpecPageOptions): Promise<void> {
+export function render(opts: NewSpecPageOptions): StencilEnvironment {
     if (!opts) {
         throw new Error('NewSpecPageOptions required')
     }
@@ -71,21 +76,12 @@ export async function render(opts: NewSpecPageOptions): Promise<void> {
     const cmpTags = new Set<string>()
     const doc = win.document
 
-    const page: Omit<SpecPage, 'build'> = {
+    const page = {
         win: win,
         doc: doc,
         body: stage as any,
-        styles: styles as Map<string, string>,
-        setContent: (html) => {
-            const stage = document.createElement('div')
-            stage.innerHTML = html
-            document.body.appendChild(stage)
-            return flushAll()
-        },
-        waitForChanges: flushAll,
-        flushLoadModule: flushLoadModule,
-        flushQueue: flushQueue,
-    }
+        styles: styles as Map<string, string>
+    } as const
 
     const lazyBundles: LazyBundlesRuntimeData = opts.components.map((Cstr: ComponentTestingConstructor) => {
         // eslint-disable-next-line eqeqeq
@@ -117,40 +113,12 @@ export async function render(opts: NewSpecPageOptions): Promise<void> {
         return lazyBundleRuntimeMeta
     })
 
-    if (typeof opts.url === 'string') {
-        page.win.location.href = opts.url
-    }
-
     if (typeof opts.direction === 'string') {
         page.doc.documentElement.setAttribute('dir', opts.direction)
     }
 
     if (typeof opts.language === 'string') {
         page.doc.documentElement.setAttribute('lang', opts.language)
-    }
-
-    if (typeof opts.cookie === 'string') {
-        try {
-            page.doc.cookie = opts.cookie
-        } catch (e) {
-            // do nothing
-        }
-    }
-
-    if (typeof opts.referrer === 'string') {
-        try {
-            (page.doc as any).referrer = opts.referrer
-        } catch (e) {
-            // do nothing
-        }
-    }
-
-    if (typeof opts.userAgent === 'string') {
-        try {
-            (page.win.navigator as any).userAgent = opts.userAgent
-        } catch (e) {
-            // do nothing
-        }
     }
 
     bootstrapLazy(lazyBundles)
@@ -168,12 +136,6 @@ export async function render(opts: NewSpecPageOptions): Promise<void> {
             $hostElement$: page.body,
         }
         renderVdom(ref, opts.template())
-    } else if (typeof opts.html === 'string') {
-        // page.body.innerHTML = opts.html
-    }
-
-    if (opts.flushQueue !== false) {
-        await page.waitForChanges()
     }
 
     let rootComponent: any = null
@@ -193,27 +155,16 @@ export async function render(opts: NewSpecPageOptions): Promise<void> {
         },
     })
 
-    Object.defineProperty(page, 'rootInstance', {
-        get() {
-            const hostRef = getHostRef(page.root)
-            if (!hostRef) {
-                return hostRef.$lazyInstance$
-            }
-            return null
-        },
-    })
-
     if (opts.hydrateServerSide) {
         insertVdomAnnotations(doc, [])
     }
 
     if (opts.autoApplyChanges) {
         startAutoApplyChanges()
-        page.waitForChanges = () => {
-            console.error('waitForChanges() cannot be used manually if the "startAutoApplyChanges" option is enabled')
-            return Promise.resolve()
-        }
     }
+
+    flushAll()
+    return { flushAll }
 }
 
 /**
