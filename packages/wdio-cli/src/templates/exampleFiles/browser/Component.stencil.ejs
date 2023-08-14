@@ -1,12 +1,13 @@
-import { Component, Prop, h } from '@stencil/core'
-import { MatchResults } from '@stencil-community/router'
+import { Component, Prop, h, Fragment } from '@stencil/core'
 
 @Component({
-    tag: 'app-profile',
+    tag: 'my-element',
     shadow: true,
+    styleUrl: 'Component.css'
 })
-export class Component {
-    @Prop() match: MatchResults
+export class MyElement {
+    @Prop() count = 0
+    @Prop() docsHint = 'Click on the Vite and Lit logos to learn more'
 
     normalize(name: string): string {
         if (name) {
@@ -17,9 +18,26 @@ export class Component {
 
     render() {
         return (
-            <div class="app-profile">
-                <p>Hello! My name is {this.normalize(this.match?.params.name)}.</p>
-            </div>
+            <>
+                <div>
+                    <a href="https://webdriver.io/docs/component-testing" target="_blank">
+                        <img src="https://webdriver.io/assets/images/robot-3677788dd63849c56aa5cb3f332b12d5.svg" class="logo"
+                            alt="WebdriverIO logo" />
+                    </a>
+                </div>
+                <h1>
+                    <slot />
+                </h1>
+                <div class="card">
+                    <button onClick={() => { this.count++ }} part="button">
+                        count is {this.count}
+                    </button>
+                    <p>
+                        Edit <code>src/Component.test.tsx</code> and save to test HMR
+                    </p>
+                </div>
+                <p class="read-the-docs">{this.docsHint}</p>
+            </>
         )
     }
 }

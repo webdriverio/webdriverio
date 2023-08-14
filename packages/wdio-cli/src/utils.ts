@@ -352,7 +352,7 @@ export async function generateTestFiles(answers: ParsedAnswers) {
     return generateBrowserRunnerTestFiles(answers)
 }
 
-const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid']
+const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid', 'stencil']
 export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
     const isUsingFramework = typeof answers.preset === 'string'
     const preset = getPreset(answers)
@@ -404,7 +404,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
     for (const file of files) {
         const renderedTpl = await renderFile(file, { answers })
-        const isJSX = answers.preset && ['preact', 'react', 'stencil'].includes(answers.preset)
+        const isJSX = answers.preset && TSX_BASED_FRAMEWORKS.includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         const destPath = (
             file.endsWith('page.js.ejs')
@@ -804,6 +804,14 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                         ? {
                             jsx: 'preserve',
                             jsxImportSource: 'solid-js'
+                        }
+                        : {},
+                    preset === 'stencil'
+                        ? {
+                            experimentalDecorators: true,
+                            jsx: 'react',
+                            jsxFactory: 'h',
+                            jsxFragmentFactory: 'Fragment'
                         }
                         : {}
                 )
