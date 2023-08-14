@@ -60,7 +60,7 @@
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^8.0.0-rc.1",
+    "@cucumber/cucumber": "^9.4.0",
     "@octokit/rest": "^20.0.1",
     "@tsconfig/node12": "^1.0.9",
     "@types/archiver": "^5.3.1",
