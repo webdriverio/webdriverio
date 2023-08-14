@@ -652,7 +652,23 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
         return true
     }
 
+    if (framework === 'cucumber') {
+        return true
+    }
+
     return false
+}
+
+export function getFailureObject(error: string|Error) {
+    const stack = (error as Error).stack
+    const message = typeof error === 'string' ? error : error.message
+    const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
+
+    return {
+        failure: [{ backtrace: [backtrace] }],
+        failure_reason: removeAnsiColors(message.toString()),
+        failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
+    }
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

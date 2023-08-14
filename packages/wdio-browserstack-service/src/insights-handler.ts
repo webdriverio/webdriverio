@@ -2,14 +2,15 @@ import path from 'node:path'
 
 import type { Capabilities, Frameworks } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
+import logger from '@wdio/logger'
 
 import { v4 as uuidv4 } from 'uuid'
-import type { Pickle, ITestCaseHookParameter } from './cucumber-types.js'
+import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 import TestReporter from './reporter.js'
 
 import {
     frameworkSupportsHook,
-    getCloudProvider,
+    getCloudProvider, getFailureObject,
     getGitMetaData,
     getHookType,
     getScenarioExamples,
@@ -22,9 +23,18 @@ import {
     sleep,
     uploadEventData
 } from './util.js'
-import type { TestData, TestMeta, PlatformMeta, UploadType } from './types.js'
+import type {
+    TestData,
+    TestMeta,
+    PlatformMeta,
+    UploadType,
+    CurrentRunInfo,
+    StdLog
+} from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
+
+const log = logger('@wdio/browserstack-service')
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -34,8 +44,13 @@ class _InsightsHandler {
     private _gitConfigPath?: string
     private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
-    private _currentTest: any = {}
-    private _currentHook: any = {}
+    private _currentTest: CurrentRunInfo = {}
+    private _currentHook: CurrentRunInfo = {}
+    private _cucumberData: CucumberStore = {
+        stepsStarted: false,
+        scenariosStarted: false,
+        steps: []
+    }
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
@@ -80,31 +95,170 @@ class _InsightsHandler {
         }
     }
 
-    async beforeHook (test: Frameworks.Test, context: any) {
+    getCucumberHookType(test: CucumberHook|undefined) {
+        let hookType = null
+        if (!test) {
+            hookType = this._cucumberData.scenariosStarted ? 'AFTER_ALL' : 'BEFORE_ALL'
+        } else if (!this._cucumberData.stepsStarted) {
+            hookType = 'BEFORE_EACH'
+        } else if (this._cucumberData.steps?.length > 0) {
+            // beforeStep or afterStep
+        } else {
+            hookType = 'AFTER_EACH'
+        }
+        return hookType
+    }
+
+    getCucumberHookName(hookType: string|undefined): string {
+        switch (hookType) {
+        case 'BEFORE_EACH':
+        case 'AFTER_EACH':
+            return `${hookType} for ${this._cucumberData.scenario?.name}`
+        case 'BEFORE_ALL':
+        case 'AFTER_ALL':
+            return `${hookType} for ${this._cucumberData.feature?.name}`
+        }
+        return ''
+    }
+
+    getCucumberHookUniqueId(hookType: string, hook: CucumberHook|undefined): string|null {
+        switch (hookType) {
+        case 'BEFORE_EACH':
+        case 'AFTER_EACH':
+            return (hook as CucumberHook).hookId
+        case 'BEFORE_ALL':
+        case 'AFTER_ALL':
+            // Can only work for single beforeAll or afterAll
+            return `${hookType} for ${this.getCucumberFeatureUniqueId()}`
+        }
+        return null
+    }
+
+    getCucumberFeatureUniqueId() {
+        const { uri, feature } = this._cucumberData
+        return `${uri}:${feature?.name}`
+    }
+
+    setCurrentHook(hookDetails: CurrentRunInfo) {
+        if (hookDetails.finished) {
+            if (this._currentHook.uuid === hookDetails.uuid) {
+                this._currentHook.finished = true
+            }
+            return
+        }
+        this._currentHook = {
+            uuid: hookDetails.uuid,
+            finished: false
+        }
+    }
+
+    async sendScenarioObjectSkipped(scenario: Scenario, feature: Feature, uri: string) {
+        const testMetaData: TestMeta = {
+            uuid: uuidv4(),
+            startedAt: (new Date()).toISOString(),
+            finishedAt: (new Date()).toISOString(),
+            scenario: {
+                name: scenario.name
+            },
+            feature: {
+                path: uri,
+                name: feature.name,
+                description: feature.description
+            },
+            steps: scenario.steps.map((step: Step) => {
+                return {
+                    id: step.id,
+                    text: step.text,
+                    keyword: step.keyword,
+                    result: 'skipped',
+                }
+            }),
+        }
+        await this.sendTestRunEventForCucumber(null, 'TestRunSkipped', testMetaData)
+    }
+
+    async processCucumberHook(test: CucumberHook|undefined, params: CucumberHookParams, result?: Frameworks.TestResult) {
+        const hookType = this.getCucumberHookType(test)
+        if (!hookType) {
+            return
+        }
+
+        const { event, hookUUID } = params
+        const hookId = this.getCucumberHookUniqueId(hookType, test)
+        if (!hookId) {
+            return
+        }
+        if (event === 'before') {
+            this.setCurrentHook({ uuid: hookUUID })
+            const hookMetaData = {
+                uuid: hookUUID,
+                startedAt: (new Date()).toISOString(),
+                testRunId: this._currentTest.uuid,
+                hookType: hookType
+            }
+
+            this._tests[hookId] = hookMetaData
+            await this.sendHookRunEvent(hookMetaData, 'HookRunStarted')
+        } else {
+            this._tests[hookId].finishedAt = (new Date()).toISOString()
+            this.setCurrentHook({ uuid: this._tests[hookId].uuid, finished: true })
+            await this.sendHookRunEvent(this._tests[hookId], 'HookRunFinished', result)
+
+            if (hookType === 'BEFORE_ALL' && result && !result.passed) {
+                const { feature, uri } = this._cucumberData
+                if (!feature) {
+                    return
+                }
+                feature.children.map(async (childObj: FeatureChild) => {
+                    if (childObj.rule) {
+                        childObj.rule.children.map(async (scenarioObj: FeatureChild) => {
+                            if (scenarioObj.scenario) {
+                                await this.sendScenarioObjectSkipped(scenarioObj.scenario, feature, uri as string)
+                            }
+                        })
+                    } else if (childObj.scenario) {
+                        await this.sendScenarioObjectSkipped(childObj.scenario, feature, uri as string)
+                    }
+                })
+            }
+        }
+    }
+
+    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: any) {
         if (!frameworkSupportsHook('before', this._framework)) {
             return
         }
+        const hookUUID = uuidv4()
 
-        const fullTitle = getUniqueIdentifier(test, this._framework)
-
-        const hookId = uuidv4()
-        this._tests[fullTitle] = {
-            uuid: hookId,
-            startedAt: (new Date()).toISOString()
-        }
-        this._currentHook = {
-            uuid: hookId
-        }
-        this.attachHookData(context, hookId)
-        await this.sendTestRunEvent(test, 'HookRunStarted')
-    }
-
-    async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
-        if (!frameworkSupportsHook('after', this._framework)) {
+        if (this._framework === 'cucumber') {
+            test = test as CucumberHook|undefined
+            await this.processCucumberHook(test, { event: 'before', hookUUID })
             return
         }
 
+        test = test as Frameworks.Test
         const fullTitle = getUniqueIdentifier(test, this._framework)
+
+        this._tests[fullTitle] = {
+            uuid: hookUUID,
+            startedAt: (new Date()).toISOString()
+        }
+        this.setCurrentHook({ uuid: hookUUID })
+        this.attachHookData(context, hookUUID)
+        await this.sendTestRunEvent(test, 'HookRunStarted')
+    }
+
+    async afterHook (test: Frameworks.Test|CucumberHook|undefined, result: Frameworks.TestResult) {
+        if (!frameworkSupportsHook('after', this._framework)) {
+            return
+        }
+        if (this._framework === 'cucumber') {
+            await this.processCucumberHook(test as CucumberHook|undefined, { event: 'after' }, result)
+            return
+        }
+
+        test = test as Frameworks.Test
+        const fullTitle = getUniqueIdentifier(test as Frameworks.Test, this._framework)
         if (this._tests[fullTitle]) {
             this._tests[fullTitle].finishedAt = (new Date()).toISOString()
         } else {
@@ -112,10 +266,8 @@ class _InsightsHandler {
                 finishedAt: (new Date()).toISOString()
             }
         }
-        if (this._currentHook.uuid === this._tests[fullTitle].uuid) {
-            this._currentHook.finished = true
-        }
 
+        this.setCurrentHook({ uuid: this._tests[fullTitle].uuid, finished: true })
         await this.sendTestRunEvent(test, 'HookRunFinished', result)
 
         const hookType = getHookType(test.title)
@@ -155,6 +307,58 @@ class _InsightsHandler {
         }
     }
 
+    public async sendHookRunEvent(hookData: TestMeta, eventType: string, result?: Frameworks.TestResult) {
+        const { uri, feature } = this._cucumberData
+
+        const testData: TestData = {
+            uuid: hookData.uuid,
+            type: 'hook',
+            name: this.getCucumberHookName(hookData.hookType),
+            body: {
+                lang: 'webdriverio',
+                code: null
+            },
+            started_at: hookData.startedAt,
+            finished_at: hookData.finishedAt,
+            hook_type: hookData.hookType,
+            test_run_id: hookData.testRunId,
+            scope: feature?.name,
+            scopes: [feature?.name || ''],
+            file_name: uri ? path.relative(process.cwd(), uri) : undefined,
+            location: uri ? path.relative(process.cwd(), uri) : undefined,
+            vc_filepath: (this._gitConfigPath && uri) ? path.relative(this._gitConfigPath, uri) : undefined,
+            result: 'pending',
+            framework: this._framework
+        }
+
+        if (eventType === 'HookRunFinished' && result) {
+            testData.result = result.passed ? 'passed' : 'failed'
+            testData.retries = result.retries
+            testData.duration_in_ms = result.duration
+
+            if (!result.passed) {
+                Object.assign(testData, getFailureObject(result.error))
+            }
+        }
+
+        if (eventType === 'HookRunStarted') {
+            testData.integrations = {}
+            if (this._browser && this._platformMeta) {
+                const provider = getCloudProvider(this._browser)
+                testData.integrations[provider] = this.getIntegrationsObject()
+            }
+        }
+
+        const uploadData: UploadType = {
+            event_type: eventType,
+            hook_run: testData
+        }
+        const req = this._requestQueueHandler.add(uploadData)
+        if (req.proceed && req.data) {
+            await uploadEventData(req.data, req.url)
+        }
+    }
+
     async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
         this._currentTest = {
@@ -187,11 +391,20 @@ class _InsightsHandler {
       * Cucumber Only
       */
 
+    async beforeFeature(uri: string, feature: Feature) {
+        this._cucumberData.scenariosStarted = false
+        this._cucumberData.feature = feature
+        this._cucumberData.uri = uri
+    }
+
     async beforeScenario (world: ITestCaseHookParameter) {
         const uuid = uuidv4()
         this._currentTest = {
             uuid
         }
+        this._cucumberData.scenario = world.pickle
+        this._cucumberData.scenariosStarted = true
+        this._cucumberData.stepsStarted = false
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
@@ -220,10 +433,13 @@ class _InsightsHandler {
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
+        this._cucumberData.scenario = undefined
         await this.sendTestRunEventForCucumber(world, 'TestRunFinished')
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+        this._cucumberData.stepsStarted = true
+        this._cucumberData.steps.push(step)
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
         const testMetaData = this._tests[uniqueId] || { steps: [] }
 
@@ -242,6 +458,8 @@ class _InsightsHandler {
     }
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+        this._cucumberData.steps.pop()
+
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
         const testMetaData = this._tests[uniqueId] || { steps: [] }
 
@@ -287,34 +505,38 @@ class _InsightsHandler {
      * misc methods
      */
 
-    appendTestItemLog = async (log: any) => {
+    appendTestItemLog = async (stdLog: StdLog) => {
         try {
-            if (this._currentHook && !this._currentHook.finished) {
-                if (this._framework === 'mocha') {
-                    log.hook_run_uuid = this._currentHook.uuid
-                }
-            } else if (this._currentTest) {
+            if (this._currentHook.uuid && !this._currentHook.finished) {
                 if (this._framework === 'mocha' || this._framework === 'cucumber') {
-                    log.test_run_uuid = this._currentTest.uuid
-                } else if (this._framework === 'jasmine') {
-                    const identifier = this.getIdentifier(this._currentTest.test)
+                    stdLog.hook_run_uuid = this._currentHook.uuid
+                }
+            } else if (this._currentTest.uuid) {
+                if (this._framework === 'mocha' || this._framework === 'cucumber') {
+                    stdLog.test_run_uuid = this._currentTest.uuid
+                } else if (this._framework === 'jasmine' && this._currentTest.test) {
+                    const identifier = getUniqueIdentifier(this._currentTest.test, this._framework)
                     const testMeta = TestReporter.getTests()[identifier]
                     if (testMeta) {
-                        log.test_run_uuid = testMeta.uuid
+                        stdLog.test_run_uuid = testMeta.uuid
                     }
                 }
             }
-            if (log.hook_run_uuid || log.test_run_uuid) {
-                const req = this._requestQueueHandler.add({
+            if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
+                await this.sendData({
                     event_type: 'LogCreated',
-                    logs: [log]
+                    logs: [stdLog]
                 })
-                if (req.proceed && req.data) {
-                    await uploadEventData(req.data, req.url)
-                }
             }
         } catch (error) {
             log.debug(`Exception in uploading log data to Observability with error : ${error}`)
+        }
+    }
+
+    async sendData(data: UploadType) {
+        const req = this._requestQueueHandler.add(data)
+        if (req.proceed && req.data) {
+            await uploadEventData(req.data, req.url)
         }
     }
 
@@ -549,14 +771,20 @@ class _InsightsHandler {
         return
     }
 
-    private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
-        const uniqueId = getUniqueIdentifierForCucumber(world)
-        const { feature, scenario, steps, uuid, startedAt, finishedAt } = this._tests[uniqueId] || {}
+    private async sendTestRunEventForCucumber (worldObj: ITestCaseHookParameter|null, eventType: string, testMetaData: TestMeta|null = null) {
+        const world: ITestCaseHookParameter = worldObj as ITestCaseHookParameter
+        const dataHub = testMetaData ? testMetaData : (this._tests[getUniqueIdentifierForCucumber((world as ITestCaseHookParameter))] || {})
+        const { feature, scenario, steps, uuid, startedAt, finishedAt } = dataHub
 
-        const examples = getScenarioExamples(world)
-        const fullNameWithExamples = examples
-            ? world.pickle.name + ' (' + examples.join(', ')  + ')'
-            : world.pickle.name
+        const examples = !testMetaData ? getScenarioExamples(world as ITestCaseHookParameter) : undefined
+        let fullNameWithExamples: string
+        if (!testMetaData) {
+            fullNameWithExamples = examples
+                ? world.pickle.name + ' (' + examples.join(', ')  + ')'
+                : world.pickle.name
+        } else {
+            fullNameWithExamples = scenario?.name || ''
+        }
 
         const testData: TestData = {
             uuid: uuid,
@@ -584,7 +812,7 @@ class _InsightsHandler {
             }
         }
 
-        if (eventType === 'TestRunStarted') {
+        if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
@@ -593,7 +821,7 @@ class _InsightsHandler {
         }
 
         /* istanbul ignore if */
-        if (world.result) {
+        if (world?.result) {
             let result = world.result.status.toLowerCase()
             if (result !== 'passed' && result !== 'failed') {
                 result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
@@ -617,8 +845,13 @@ class _InsightsHandler {
             }
         }
 
-        if (world.pickle) {
+        if (world?.pickle) {
             testData.tags = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
+        }
+
+        if (eventType === 'TestRunSkipped') {
+            testData.result = 'skipped'
+            eventType = 'TestRunFinished'
         }
 
         const uploadData: UploadType = {

@@ -11,7 +11,7 @@ import {
     isBrowserstackSession,
 } from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
-import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
+import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
@@ -159,14 +159,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async beforeHook (test: Frameworks.Test, context: any) {
+    async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
         if (this._config.framework !== 'cucumber') {
-            this._currentTest = test // not update currentTest when this is called for cucumber step
+            this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
         await this._insightsHandler?.beforeHook(test, context)
     }
 
-    async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
+    async afterHook (test: Frameworks.Test|CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 
@@ -238,6 +238,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
         await this._setAnnotation(`Feature: ${feature.name}`)
+        await this._insightsHandler?.beforeFeature(uri, feature)
     }
 
     /**
