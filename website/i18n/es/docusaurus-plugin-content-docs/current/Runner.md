@@ -63,6 +63,7 @@ Este corredor utiliza [Vite](https://vitejs.dev/) para compilar su código de pr
 - Vue.js
 - Svelte
 - SolidJS
+- Stencil
 
 Cada archivo de prueba / grupo de archivos de prueba se ejecuta dentro de una sola página, lo que significa que entre cada prueba la página se está recargando para garantizar el aislamiento entre pruebas.
 
