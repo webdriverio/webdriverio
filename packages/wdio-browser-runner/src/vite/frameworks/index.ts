@@ -19,7 +19,7 @@ export default async function updateViteConfig (options: WebdriverIO.BrowserRunn
         Object.assign(optimizations, await optimizeForTailwindCSS(rootDir))
     }
 
-    if (isUsingStencilJS(rootDir, options)) {
+    if (await isUsingStencilJS(rootDir, options)) {
         Object.assign(optimizations, await optimizeForStencil(rootDir))
     }
 

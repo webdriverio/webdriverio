@@ -9,8 +9,8 @@ import { hasFileByExtensions } from '../utils.js'
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const STENCIL_IMPORT = '@stencil/core'
 
-export function isUsingStencilJS (rootDir: string, options: WebdriverIO.BrowserRunnerOptions) {
-    return Boolean(options.preset === 'stencil' || hasFileByExtensions(path.join(rootDir, 'stencil.config')))
+export async function isUsingStencilJS (rootDir: string, options: WebdriverIO.BrowserRunnerOptions) {
+    return Boolean(options.preset === 'stencil' || await hasFileByExtensions(path.join(rootDir, 'stencil.config')))
 }
 
 export async function optimizeForStencil (rootDir: string) {
@@ -29,6 +29,7 @@ export async function optimizeForStencil (rootDir: string) {
         }
     }
 
+    stencilOptimizations.optimizeDeps?.include?.push('@stencil/core/internal/testing/index.js')
     return stencilOptimizations
 }
 
@@ -57,7 +58,7 @@ async function stencilVitePlugin (rootDir: string): Promise<Plugin> {
                 module: 'esm',
                 proxy: null,
                 sourceMap: 'inline',
-                style: null,
+                style: 'static',
                 styleImportData: 'queryparams',
                 target: 'es2018',
                 transformAliasedImportPaths: process.env.__STENCIL_TRANSPILE_PATHS__ === 'true',
@@ -67,8 +68,15 @@ async function stencilVitePlugin (rootDir: string): Promise<Plugin> {
             return {
                 ...transpiledCode,
                 code: transpiledCode.code
-                    // HTMLElement gets imported from StencilJS, but we need to use the one from the browser
-                    .replace('extends HTMLElement {', 'extends window.HTMLElement {')
+                    // HTMLElement gets imported from StencilJS but is undefined for some reasons
+                    .replace(
+                        'extends HTMLElement {',
+                        // replace it with the original one
+                        'extends window.HTMLElement {' +
+                        // and add a style setter so it won't throw when setting
+                        // style properties
+                        '\n\tstatic set style (ignore) {}\n'
+                    )
                     // make sure that components are exported properly
                     // StencilJS removes the export when componentExport is set to 'customelement'
                     .replace('\nconst', '\nexport const'),
