@@ -112,6 +112,10 @@ export const canAccess = vi.fn()
 export const sleep = vi.fn().mockImplementation(sleepOrig)
 export const UNICODE_CHARACTERS = UNICODE_CHARACTERS_ORIG
 
-export const startWebDriver = vi.fn()
+export const startWebDriver = vi.fn((params) => {
+    params.hostname = '0.0.0.0'
+    params.port = 4444
+    params.path = '/'
+})
 export const setupBrowser = vi.fn()
 export const setupDriver = vi.fn()

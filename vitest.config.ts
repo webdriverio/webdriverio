@@ -12,9 +12,6 @@ export default defineConfig({
             '**/node_modules/**',
             'packages/eslint-plugin-wdio/**/*'
         ],
-        env: {
-            WDIO_SKIP_DRIVER_SETUP: '1'
-        },
         coverage: {
             enabled: true,
             provider: 'v8',

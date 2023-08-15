@@ -18,6 +18,9 @@ export type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
 export type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
 
 interface DriverOptions {
+    /**
+     * directory where browser and driver should be stored
+     */
     cacheDir?: string
 }
 

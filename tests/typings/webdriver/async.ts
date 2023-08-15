@@ -23,19 +23,6 @@ import { expectType } from 'tsd'
                 platform: 'foo'
             }],
             browserName: 'foo'
-        },
-        'wdio:chromedriverOptions': {
-            cacheDir: '/foo/bar'
-        },
-        'wdio:safaridriverOptions': {
-            // @ts-expect-error no cacheDir in Safari
-            cacheDir: '/foo/bar'
-        }
-        'wdio:geckodriverOptions': {
-            cacheDir: '/foo/bar'
-        }
-        'wdio:edgedriverOptions': {
-            cacheDir: '/foo/bar'
         }
     })
 

@@ -147,20 +147,6 @@ const config: WebdriverIO.Config = {
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
-    }, {
-        'wdio:chromedriverOptions': {
-            cacheDir: '/foo/bar'
-        },
-        'wdio:safaridriverOptions': {
-            // @ts-expect-error no cacheDir in Safari
-            cacheDir: '/foo/bar'
-        }
-        'wdio:geckodriverOptions': {
-            cacheDir: '/foo/bar'
-        }
-        'wdio:edgedriverOptions': {
-            cacheDir: '/foo/bar'
-        }
     }] as WebDriver.DesiredCapabilities[],
 
     filesToWatch: [

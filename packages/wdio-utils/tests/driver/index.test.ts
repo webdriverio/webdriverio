@@ -61,14 +61,14 @@ vi.mock('../../src/driver/detectBackend.js', () => ({
 }))
 
 describe('startWebDriver', () => {
-    const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
+    const VITEST_WORKER_ID = process.env.VITEST_WORKER_ID
     beforeEach(() => {
-        delete process.env.WDIO_SKIP_DRIVER_SETUP
+        delete process.env.VITEST_WORKER_ID
         vi.mocked(install).mockClear()
     })
 
     afterEach(() => {
-        process.env.WDIO_SKIP_DRIVER_SETUP = WDIO_SKIP_DRIVER_SETUP
+        process.env.VITEST_WORKER_ID = VITEST_WORKER_ID
     })
 
     it('should start safari driver', async () => {
