@@ -50,7 +50,7 @@ if (os.platform() === 'darwin') {
     })
 }
 
-if (['darwin', 'win32'].includes(os.platform())) {
+if (['darwin'/*, 'win32'*/].includes(os.platform())) {
     (config.capabilities as Capabilities.Capabilities[]).push({
         browserName: 'edge',
         'ms:edgeOptions': {
