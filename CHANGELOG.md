@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.0 (2023-08-15)
+
+#### :rocket: New Feature
+* `wdio-appium-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-firefox-profile-service`, `wdio-runner`, `wdio-sauce-service`, `wdio-testingbot-service`, `wdio-types`
+  * [#10803](https://github.com/webdriverio/webdriverio/pull/10803) add parallel multiremote capability ([@ccharnkij](https://github.com/ccharnkij))
+* `wdio-browser-runner`, `wdio-cli`
+  * [#10927](https://github.com/webdriverio/webdriverio/pull/10927) (@wdio/browser-runner): add StencilJS component testing support ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-types`, `wdio-utils`, `webdriver`
+  * [#10952](https://github.com/webdriverio/webdriverio/pull/10952) (webdriver): improvements to driver management ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.14.6 (2023-08-13)
 
 #### :bug: Bug Fix
