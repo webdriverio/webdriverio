@@ -145,6 +145,7 @@ function Home() {
                                 <a href="/docs/component-testing/preact" className={styles.frameworkLogos}><img src="/img/icons/preact.png" alt="Preact" /></a>
                                 <a href="/docs/component-testing/solid" className={styles.frameworkLogos}><img src="/img/icons/solidjs.svg" alt="SolidJS" /></a>
                                 <a href="/docs/component-testing/lit" className={styles.frameworkLogos}><img src="/img/icons/lit.svg" alt="Lit" /></a>
+                                <a href="/docs/component-testing/stencil" className={styles.frameworkLogos}><img src="/img/icons/stencil.svg" alt="Stencil" /></a>
                             </div>
                         </>
                     }

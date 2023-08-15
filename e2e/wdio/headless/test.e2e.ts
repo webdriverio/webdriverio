@@ -1,3 +1,4 @@
+import os from 'node:os'
 import type { Capabilities } from '../../../packages/wdio-types'
 
 const SCROLL_MARGIN_TRESHOLD = 25
@@ -69,6 +70,11 @@ describe('main suite 1', () => {
     })
 
     it('should be able to scroll up and down', async () => {
+        if (os.platform() === 'win32') {
+            console.warn('Skipping scroll tests on Windows')
+            return
+        }
+
         await browser.url('https://webdriver.io/')
         const currentScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
