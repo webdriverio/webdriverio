@@ -98,6 +98,26 @@ describe('launcher', () => {
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
+        it('should start instances with parallel multiremote', () => {
+            launcher['_runSpecs'] = vi.fn()
+            launcher.isMultiremote = true
+            launcher.isParallelMultiremote = true
+            launcher['_runMode'](
+                { specs: ['./'], specFileRetries: 2 } as any,
+                [
+                    { foo: { capabilities: { browserName: 'chrome' } } },
+                    { foo: { capabilities: { browserName: 'chrome' } } }
+                ]
+            )
+
+            expect(launcher['_schedule']).toHaveLength(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][1].specs[0].retries).toBe(2)
+
+            expect(typeof launcher['_resolve']).toBe('function')
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
+        })
+
         it('should start instance with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = false

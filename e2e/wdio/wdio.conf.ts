@@ -10,6 +10,7 @@ export const config = {
      * specify test files
      */
     specs: [path.join(__dirname, 'headless', '*.e2e.ts')],
+    exclude: [path.join(__dirname, 'headless', 'multiremoteTest.e2e.ts')],
 
     /**
      * capabilities

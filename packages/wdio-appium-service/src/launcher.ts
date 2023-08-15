@@ -89,13 +89,32 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
 
         this._capabilities.forEach(
-            (cap) => !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
-                cap,
-                DEFAULT_CONNECTION,
-                'port' in this._args ? { port: this._args.port } : {},
-                { path: this._args.basePath },
-                { ...cap }
-            ))
+            (cap) => {
+                /**
+                 * Parallel Multiremote
+                 */
+                if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
+                    Object.values(cap).forEach(c => {
+                        const capa = (c.capabilities as Capabilities.W3CCapabilities).alwaysMatch || (c.capabilities as Capabilities.W3CCapabilities) || c
+                        !isCloudCapability(capa) && Object.assign(
+                            c,
+                            DEFAULT_CONNECTION,
+                            'port' in this._args ? { port: this._args.port } : {},
+                            { path: this._args.basePath },
+                            { ...c }
+                        )
+                    }
+                    )
+                } else {
+                    !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
+                        cap,
+                        DEFAULT_CONNECTION,
+                        'port' in this._args ? { port: this._args.port } : {},
+                        { path: this._args.basePath },
+                        { ...cap }
+                    )
+                }
+            })
     }
 
     async onPrepare() {

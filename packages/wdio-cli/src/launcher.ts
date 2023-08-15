@@ -38,6 +38,7 @@ export interface EndMessage {
 class Launcher {
     public configParser: ConfigParser
     public isMultiremote = false
+    public isParallelMultiremote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
 
@@ -74,7 +75,9 @@ class Launcher {
         this._args.autoCompileOpts = config.autoCompileOpts
 
         const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
-        this.isMultiremote = !Array.isArray(capabilities)
+        this.isParallelMultiremote = Array.isArray(capabilities) &&
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
+        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
 
         if (config.outputDir) {
             await fs.mkdir(path.join(config.outputDir), { recursive: true })
@@ -83,9 +86,19 @@ class Launcher {
 
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
+        /**
+         * For Parallel-Multiremote, only get the specs and excludes from the first object
+         */
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c: Capabilities.DesiredCapabilities) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .map((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (this.isParallelMultiremote) {
+                        const keys = Object.keys(c as Capabilities.MultiRemoteCapabilities)
+                        return this.configParser.getSpecs(((c as Capabilities.MultiRemoteCapabilities)[keys[0]].capabilities as Capabilities.DesiredCapabilities).specs,
+                            ((c as Capabilities.MultiRemoteCapabilities)[keys[0]].capabilities as Capabilities.DesiredCapabilities).exclude).length
+                    }
+                    return this.configParser.getSpecs((c as Capabilities.DesiredCapabilities).specs, (c as Capabilities.DesiredCapabilities).exclude).length
+                })
                 .reduce((a, b) => a + b, 0)
             : 1
 
@@ -183,7 +196,7 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this.isMultiremote) {
+        if (this.isMultiremote && !this.isParallelMultiremote) {
             /**
              * Multiremote mode
              */
@@ -196,19 +209,19 @@ class Launcher {
             })
         } else {
             /**
-             * Regular mode
+             * Regular mode & Parallel Multiremote
              */
-            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)[]) {
                 /**
                  * when using browser runner we only allow one session per browser
                  */
-                const availableInstances = config.runner === 'browser'
+                const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
                     : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
 
                 this._schedule.push({
                     cid: cid++,
-                    caps: capabilities as Capabilities.Capabilities,
+                    caps: capabilities as (Capabilities.Capabilities | Capabilities.MultiRemoteCapabilities),
                     specs: this._formatSpecs(capabilities, specFileRetries),
                     availableInstances,
                     runningInstances: 0
