@@ -29,6 +29,11 @@ export async function optimizeForStencil (rootDir: string) {
         }
     }
 
+    /**
+     * testing helper from the stencil core package is unfortunately exported as CJS
+     * module, in order to be able to use it in the browser we have to optimize it
+     * it to compile it to ESM
+     */
     stencilOptimizations.optimizeDeps?.include?.push('@stencil/core/internal/testing/index.js')
     return stencilOptimizations
 }

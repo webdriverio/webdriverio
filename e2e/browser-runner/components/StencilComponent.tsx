@@ -3,7 +3,6 @@ import { MatchResults } from '@stencil-community/router'
 
 @Component({
     tag: 'app-profile',
-    styleUrl: 'app-profile.css',
     shadow: true,
 })
 export class AppProfile {
