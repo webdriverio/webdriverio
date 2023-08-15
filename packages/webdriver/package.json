@@ -43,9 +43,6 @@
     "@wdio/protocols": "8.14.6",
     "@wdio/types": "8.14.0",
     "@wdio/utils": "8.14.0",
-    "decamelize": "^6.0.0",
-    "deepmerge-ts": "^5.1.0",
-    "get-port": "^7.0.0",
     "got": "^ 12.6.1",
     "ky": "^0.33.0",
     "ws": "^8.8.0"
