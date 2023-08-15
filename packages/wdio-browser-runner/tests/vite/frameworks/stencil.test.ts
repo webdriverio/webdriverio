@@ -46,9 +46,17 @@ test('optimizeForStencil', async () => {
     expect((opt.plugins?.[0] as Plugin).enforce).toBe('pre')
     expect((opt.plugins?.[0] as any).resolveId('foo')).toBe(undefined)
     expect(typeof (opt.plugins?.[0] as any).resolveId('@wdio/browser-runner/stencil')).toBe('string')
-    expect((opt.plugins?.[0] as any).transform('foo', '/foo/bar/StencilComponent.tsx', {}))
-        .toEqual({
-            code: 'the transpiled code',
-            inputFilePath: '/foo/bar/StencilComponent.tsx'
-        })
+    expect((opt.plugins?.[0] as any).transform(
+        "import { Component, Prop, h } from '@stencil/core'",
+        '/foo/bar/StencilComponent.tsx', {})
+    ).toEqual({
+        code: 'the transpiled code',
+        inputFilePath: '/foo/bar/StencilComponent.tsx'
+    })
+    expect((opt.plugins?.[0] as any).transform(
+        "import { Component, Prop, h } from 'something else'",
+        '/foo/bar/StencilComponent.tsx', {})
+    ).toEqual({
+        code: "import { Component, Prop, h } from 'something else'"
+    })
 })

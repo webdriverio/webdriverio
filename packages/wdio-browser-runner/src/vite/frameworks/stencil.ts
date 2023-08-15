@@ -1,11 +1,13 @@
 import path from 'node:path'
 import url from 'node:url'
 
+import { findStaticImports } from 'mlly'
 import type { InlineConfig, Plugin } from 'vite'
 
 import { hasFileByExtensions } from '../utils.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const STENCIL_IMPORT = '@stencil/core'
 
 export function isUsingStencilJS (rootDir: string, options: WebdriverIO.BrowserRunnerOptions) {
     return Boolean(options.preset === 'stencil' || hasFileByExtensions(path.join(rootDir, 'stencil.config')))
@@ -42,7 +44,8 @@ async function stencilVitePlugin (rootDir: string): Promise<Plugin> {
             }
         },
         transform: function (code, id) {
-            if (!id.includes('StencilComponent.tsx')) {
+            const usesStencil = findStaticImports(code).some((imp) => imp.specifier === STENCIL_IMPORT)
+            if (!usesStencil) {
                 return { code }
             }
 

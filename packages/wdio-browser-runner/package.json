@@ -52,6 +52,7 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-lib-source-maps": "^4.0.1",
     "istanbul-reports": "^3.1.5",
+    "mlly": "^1.4.0",
     "modern-node-polyfills": "^1.0.0",
     "recast": "^0.23.2",
     "serialize-error": "^11.0.0",
