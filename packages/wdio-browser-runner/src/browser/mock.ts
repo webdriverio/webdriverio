@@ -15,6 +15,7 @@ export const pathToFileURL = () => ''
 export const fileURLToPath = () => ''
 export const dirname = () => ''
 export const resolve = () => ''
+export const download = () => ''
 export const sep = '/'
 export const start = () => {}
 export const install = () => {}

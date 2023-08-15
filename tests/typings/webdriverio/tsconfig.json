@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
     "types": [
+      "@wdio/utils",
       "@wdio/globals/types",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
