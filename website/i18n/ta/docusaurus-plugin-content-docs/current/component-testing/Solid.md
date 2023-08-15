@@ -87,7 +87,7 @@ import { render } from 'solid-js/web'
 
 import App from './components/Component.jsx'
 
-describe('React Component Testing', () => {
+describe('Solid Component Testing', () => {
     /**
      * ensure we render the component for every test in a
      * new root container
