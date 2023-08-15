@@ -1,12 +1,11 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command.js'
-import { startWebDriver } from './driver/index.js'
 import { BidiHandler } from './bidi/handler.js'
 import { DEFAULTS } from './constants.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'

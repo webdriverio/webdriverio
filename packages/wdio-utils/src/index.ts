@@ -13,6 +13,8 @@ import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
 } from './envDetector.js'
+import { startWebDriver } from './driver/index.js'
+import { setupDriver, setupBrowser } from './driver/manager.js'
 import { UNICODE_CHARACTERS } from './constants.js'
 
 export {
@@ -28,6 +30,9 @@ export {
     safeImport,
     canAccess,
     sleep,
+    startWebDriver,
+    setupBrowser,
+    setupDriver,
 
     /**
      * runner shim

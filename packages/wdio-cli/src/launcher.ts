@@ -4,7 +4,7 @@ import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser } from '@wdio/config'
-import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
+import { initialisePlugin, initialiseLauncherService, sleep, setupDriver, setupBrowser } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
@@ -134,6 +134,14 @@ class Launcher {
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
+
+            /**
+             * pre-configure necessary driver for worker threads
+             */
+            await Promise.all([
+                setupDriver(config, caps),
+                setupBrowser(config, caps)
+            ])
 
             exitCode = await this._runMode(config, caps)
 
