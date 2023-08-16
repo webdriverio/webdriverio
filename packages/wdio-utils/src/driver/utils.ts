@@ -209,16 +209,20 @@ export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
 }
 
 /**
- * helper method to determine if we need to start a browser driver
- * which is: whenever the user has set connection options that differ from
- * the default, or a port is set
+ * helper method to determine if we need to setup a browser driver
+ * which is:
+ *   - whenever the user has set connection options that differ
+ *     from the default, or a port is set
+ *   - whenever the user defines `user` and `key` which later will
+ *     update the connection options
  */
-export function definesRemoteDriver(options: Pick<Options.WebDriver, 'protocol' | 'hostname' | 'port' | 'path'>) {
+export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'key' | 'protocol' | 'hostname' | 'port' | 'path'>) {
     return Boolean(
         (options.protocol && options.protocol !== DEFAULT_PROTOCOL) ||
         (options.hostname && options.hostname !== DEFAULT_HOSTNAME) ||
         Boolean(options.port) ||
-        (options.path && options.path !== DEFAULT_PATH)
+        (options.path && options.path !== DEFAULT_PATH) ||
+        Boolean(options.user && options.key)
     )
 }
 
