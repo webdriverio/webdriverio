@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.4 (2023-08-16)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#10959](https://github.com/webdriverio/webdriverio/pull/10959) (@wdio/utils): detect as remote session when user and key is defined ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.15.0 (2023-08-15)
 
 #### :rocket: New Feature
