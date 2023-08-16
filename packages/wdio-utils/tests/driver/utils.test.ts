@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getChromePath } from 'chrome-launcher'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 
-import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome } from '../../src/driver/utils.js'
+import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome, definesRemoteDriver } from '../../src/driver/utils.js'
 
 vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')
@@ -121,5 +121,16 @@ describe('driver utils', () => {
             })
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '1.2.3')
         })
+    })
+
+    it('definesRemoteDriver', () => {
+        expect(definesRemoteDriver({})).toBe(false)
+        expect(definesRemoteDriver({ hostname: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ port: 1 })).toBe(true)
+        expect(definesRemoteDriver({ path: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ protocol: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ user: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ key: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ user: 'foo', key: 'bar' })).toBe(true)
     })
 })
