@@ -17,15 +17,14 @@ export async function optimizeForStencil (rootDir: string) {
     const stencilConfig = await import(path.join(rootDir, 'stencil.config.ts')).catch(() => ({ config: {} }))
     const stencilPlugins = stencilConfig.config.plugins
     const stencilOptimizations: InlineConfig = {
-        plugins: [await stencilVitePlugin(rootDir)]
+        plugins: [await stencilVitePlugin(rootDir)],
+        optimizeDeps: { include: [] as string[] }
     }
 
     if (stencilPlugins) {
         const esbuildPlugin = stencilPlugins.find((plugin: any) => plugin.name === 'esbuild-plugin')
         if (esbuildPlugin) {
-            stencilOptimizations.optimizeDeps = {
-                include: esbuildPlugin.options.include
-            }
+            stencilOptimizations.optimizeDeps?.include?.push(...esbuildPlugin.options.include)
         }
     }
 
@@ -34,7 +33,9 @@ export async function optimizeForStencil (rootDir: string) {
      * module, in order to be able to use it in the browser we have to optimize it
      * it to compile it to ESM
      */
-    stencilOptimizations.optimizeDeps?.include?.push('@stencil/core/internal/testing/index.js')
+    stencilOptimizations.optimizeDeps?.include?.push(
+        '@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js'
+    )
     return stencilOptimizations
 }
 

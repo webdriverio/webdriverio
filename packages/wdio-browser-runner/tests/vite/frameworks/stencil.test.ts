@@ -38,7 +38,7 @@ test('optimizeForStencil', async () => {
     const opt = await optimizeForStencil('/foo/bar')
     expect(opt).toEqual({
         optimizeDeps: {
-            include: ['foo', 'bar', '@stencil/core/internal/testing/index.js']
+            include: ['foo', 'bar', '@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js']
         },
         plugins: [expect.any(Object)]
     })

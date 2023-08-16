@@ -29,7 +29,7 @@ export class MyElement {
                     <slot />
                 </h1>
                 <div class="card">
-                    <button onClick={() => { this.count++ }} part="button">
+                    <button onClick={() => { this.count = this.count + 1; }} part="button">
                         count is {this.count}
                     </button>
                     <p>
