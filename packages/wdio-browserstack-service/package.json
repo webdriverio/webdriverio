@@ -34,7 +34,8 @@
     "gitconfiglocal": "^2.1.0",
     "got": "^11.0.2",
     "uuid": "^8.3.2",
-    "webdriverio": "7.32.3"
+    "webdriverio": "7.32.3",
+    "winston-transport": "^4.5.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0"

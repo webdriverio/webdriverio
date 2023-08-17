@@ -15,9 +15,16 @@ import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import CrashReporter from './crash-reporter'
 import type { ITestCaseHookParameter } from './cucumber-types'
+import logPatcher from './logPatcher'
 
 import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants'
+import {
+    BROWSER_DESCRIPTION,
+    consoleHolder,
+    DATA_ENDPOINT,
+    DATA_EVENT_ENDPOINT,
+    DATA_SCREENSHOT_ENDPOINT
+} from './constants'
 import RequestQueueHandler from './request-handler'
 
 import PerformanceTester from './performance-tester'
@@ -637,7 +644,34 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
         return true
     }
 
+    if (framework === 'cucumber') {
+        return true
+    }
+
     return false
+}
+
+export function getFailureObject(error: string|Error) {
+    const stack = (error as Error).stack
+    const message = typeof error === 'string' ? error : error.message
+    const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
+
+    return {
+        failure: [{ backtrace: [backtrace] }],
+        failure_reason: removeAnsiColors(message.toString()),
+        failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
+    }
+}
+
+export function patchConsoleLogs() {
+    const BSTestOpsPatcher = new logPatcher({})
+    // eslint-disable-next-line no-global-assign
+    console = {} as typeof console
+    Object.keys(consoleHolder).forEach((method) => {
+        (console as any)[method] = (...args: unknown[]) => {
+            (BSTestOpsPatcher as any)[method](...args)
+        }
+    })
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

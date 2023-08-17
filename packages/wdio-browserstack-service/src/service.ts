@@ -6,7 +6,7 @@ import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './t
 import { DEFAULT_OPTIONS } from './constants'
 
 import got from 'got'
-import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
+import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types'
 
 import InsightsHandler from './insights-handler'
 import {
@@ -14,7 +14,7 @@ import {
     getBrowserCapabilities,
     isBrowserstackCapability,
     getParentSuiteName,
-    isBrowserstackSession
+    isBrowserstackSession, patchConsoleLogs
 } from './util'
 import TestReporter from './reporter'
 import PerformanceTester from './performance-tester'
@@ -100,6 +100,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability && this._browser) {
             try {
+                patchConsoleLogs()
                 this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
                 await this._insightsHandler.before()
 
@@ -142,12 +143,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._config.framework !== 'cucumber') this._currentTest = test // not update currentTest when this is called for cucumber step
+    async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
+        if (this._config.framework !== 'cucumber') this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         await this._insightsHandler?.beforeHook(test, context)
     }
 
-    async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
+    async afterHook (test: Frameworks.Test|CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 
@@ -219,6 +220,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
         await this._setAnnotation(`Feature: ${feature.name}`)
+        await this._insightsHandler?.beforeFeature(uri, feature)
     }
 
     /**
