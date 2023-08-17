@@ -117,7 +117,7 @@ Para Cucumber >=6 puede proporcionar la opción [`reintentar`](https://github.co
 Para definir una tasa de repetición para ciertas definiciones de pasos simplemente aplique una opción de reintento, como:
 
 ```js
-module.exports = function () {
+export default function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
@@ -138,8 +138,9 @@ Pero en cualquier prueba que involucre estado (como en un servidor o en una base
 
 Se crea una nueva instancia de `navegador` para cada específico, lo que hace que este sea un lugar ideal para enganchar y configurar cualquier otro estado (servidor, bases de datos). Las reintentos en este nivel significan que todo el proceso de configuración será simplemente repetido, como si fuera para un nuevo specfile.
 
-```js
-module.exports = function () {
+```js title="wdio.conf.js"
+export const config = {
+    // ...
     /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
