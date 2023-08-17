@@ -117,7 +117,7 @@ describe('my flaky app', () => {
 एक निश्चित कदम परिभाषा के लिए एक पुन: दौड़ दर को परिभाषित करने के लिए बस इसके लिए एक पुनः प्रयास विकल्प लागू करें, जैसे:
 
 ```js
-module.exports = function () {
+export default function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
@@ -138,8 +138,9 @@ Reruns को केवल आपकी स्टेप डेफिनिशन
 
 प्रत्येक विशिष्ट फ़ाइल के लिए एक नया `browser` उदाहरण बनाया गया है, जो इसे किसी भी अन्य राज्यों (सर्वर, डेटाबेस) को हुक और सेटअप करने के लिए एक आदर्श स्थान बनाता है। इस स्तर पर पुनर्प्रयास का मतलब है कि पूरी सेटअप प्रक्रिया को बस दोहराया जाएगा, जैसे कि यह एक नई युक्ति के लिए हो।
 
-```js
-module.exports = function () {
+```js title="wdio.conf.js"
+export const config = {
+    // ...
     /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
