@@ -117,7 +117,7 @@ For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucum
 To define a rerun rate for a certain step definitions just apply a retry option to it, like:
 
 ```js
-module.exports = function () {
+export default function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
@@ -138,8 +138,9 @@ But in any tests which involve state (such as on a server or in a database) the 
 
 A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
 
-```js
-module.exports = function () {
+```js title="wdio.conf.js"
+export const config = {
+    // ...
     /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
