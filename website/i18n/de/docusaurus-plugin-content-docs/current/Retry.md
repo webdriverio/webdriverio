@@ -117,7 +117,7 @@ Für Cucumber >=6 können Sie die Konfigurationsoption [`retry`](https://github.
 Um die Anzahl der Wiederholungen für eine bestimmte Schrittdefinition zu definieren, wenden Sie einfach die Wiederholungsoption darauf an, wie zum Beispiel:
 
 ```js
-module.exports = function () {
+export default function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
@@ -138,8 +138,9 @@ Aber bei allen Tests, die einen Status beinhalten (wie auf einem Server oder in 
 
 Für jede Test-Datei wird eine neue `browser` Session erstellt, was dies zu einem idealen Ort macht, um alle anderen Zustände (Server, Datenbanken) zu verknüpfen und einzurichten. Wiederholungen auf dieser Ebene bedeuten, dass der gesamte Setup-Prozess einfach wiederholt wird, als ob es sich um eine neue Spezifikationsdatei handeln würde.
 
-```js
-module.exports = function () {
+```js title="wdio.conf.js"
+export const config = {
+    // ...
     /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
