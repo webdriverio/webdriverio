@@ -84,5 +84,39 @@ describe('Stencil Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples).
+## Element Updates
+
+If you define properties or state in your Stencil component you have to manage when these changes should be applied to the component to be re-rendered. For that use the `flushAll` method that is returned from the `render` method, e.g.:
+
+```ts
+const { flushAll } = render({
+    components: [AppLogin],
+    template: () => <app-login />
+})
+
+// update component state via
+await $('...').click()
+
+flushAll()
+
+// assert after update
+await expect($('...')).toHaveElementClass('...')
+```
+
+If you prefer to apply changes automatically, set the `autoApplyChanges` flag, e.g.:
+
+```ts
+const { flushAll } = render({
+    components: [AppLogin],
+    template: () => <app-login />,
+    autoApplyChanges: true
+})
+// update component state and assert immediatelly
+await $('...').click()
+await expect($('...')).toHaveElementClass('...')
+```
+
+## Examples
+
+You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/stencil-component-starter).
 
