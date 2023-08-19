@@ -13,7 +13,7 @@ import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { getFilePath, formatCliArgs } from './utils.js'
+import { getFilePath, defragCliArgs, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
@@ -39,7 +39,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     ) {
         this._args = {
             basePath: DEFAULT_CONNECTION.path,
-            ...(this._options.args || {})
+            ...(defragCliArgs(this._options.args) || {})
         }
         this._logPath = _options.logPath || this._config?.outputDir
     }

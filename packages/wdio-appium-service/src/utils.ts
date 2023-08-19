@@ -1,7 +1,7 @@
 import { basename, join, resolve } from 'node:path'
 import { paramCase } from 'param-case'
 
-import type { ArgValue, KeyValueArgs } from './types.js'
+import type { ArgValue, KeyValueArgs, AppiumServerArguments } from './types.js'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 
@@ -21,6 +21,36 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
     }
 
     return absolutePath
+}
+
+export function defragCliArgs(args?: AppiumServerArguments | Array<string>) {
+    if (Array.isArray(args)) {
+        return args.reduce((acc: KeyValueArgs, currentItem, index, array) => {
+            const nextItem = array[index + 1]
+
+            if (
+                currentItem?.toString().startsWith('--') ||
+                currentItem?.toString().startsWith('-')
+            ) {
+                const [key, value] = (currentItem ?? '').toString().split('=')
+
+                if (value !== undefined) {
+                    acc[key.replace(/^-+/g, '')] = value
+                } else if (
+                    nextItem &&
+                    (nextItem?.toString().startsWith('--') ||
+                        nextItem?.toString().startsWith('-'))
+                ) {
+                    acc[key.replace(/^-+/g, '')] = true
+                } else {
+                    acc[key.replace(/^-+/g, '')] = nextItem
+                }
+            }
+            return acc
+        }, {})
+    }
+
+    return args
 }
 
 export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {

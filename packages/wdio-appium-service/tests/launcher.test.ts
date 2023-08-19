@@ -66,9 +66,10 @@ class MockCustomFailingProcess extends MockFailingProcess {
 }
 
 vi.mock('../src/utils', async () => {
-    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
+    const { defragCliArgs, formatCliArgs } = await vi.importActual('../src/utils.js') as any
     return {
         getFilePath: vi.fn().mockReturnValue('/some/file/path'),
+        defragCliArgs,
         formatCliArgs
     }
 })
@@ -210,7 +211,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+                args: ['--foo', 'bar', '--port', 1234]
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
