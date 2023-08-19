@@ -1,15 +1,20 @@
-import os from 'node:os'
+import os, { platform } from 'node:os'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
+import { mkdir, readdir, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import cp from 'node:child_process'
+import { promisify } from 'node:util'
+import stream from 'node:stream'
 
 import got from 'got'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import { getChromePath } from 'chrome-launcher'
+import type { BrowserPlatform
+} from '@puppeteer/browsers'
 import {
-    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
+    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, Cache,
     computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
@@ -21,6 +26,96 @@ import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAME
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
+
+import extractZip from 'extract-zip'
+// @ts-expect-error: This dependency comes from @puppeteer/browsers
+import tar from 'tar-fs'
+// @ts-expect-error: This dependency comes from @puppeteer/browsers
+import bzip from 'unbzip2-stream'
+
+import { coerce } from 'semver'
+
+const pipeline = promisify(stream.pipeline)
+const exec = promisify(cp.exec)
+
+export async function downloadFile(url: string, destinationPath: string, progressCallback: (downloadedBytes: number, totalBytes: number) => void
+) {
+    const downloadStream = got.stream(url)
+    const fileWriterStream = fs.createWriteStream(destinationPath)
+
+    progressCallback && downloadStream
+        .on('downloadProgress', ({ transferred, total }) =>
+            progressCallback(transferred, total))
+
+    return pipeline(downloadStream, fileWriterStream)
+}
+
+/**
+ * @internal
+ */
+export async function unpackArchive(archivePath: string, folderPath: string) {
+    if (archivePath.endsWith('.zip')) {
+        await extractZip(archivePath, { dir: folderPath })
+    } else if (archivePath.endsWith('.tar.bz2')) {
+        await extractTar(archivePath, folderPath)
+    } else if (archivePath.endsWith('.dmg')) {
+        await mkdir(folderPath, { recursive: true })
+        return await installDMG(archivePath, folderPath)
+    } else if (archivePath.endsWith('.msi')) {
+        await exec(`msiexec /quiet /i "${archivePath}" INSTALL_DIRECTORY_PATH="${folderPath}" TASKBAR_SHORTCUT=false DESKTOP_SHORTCUT=false INSTALL_MAINTENANCE_SERVICE=false`)
+    } else if (archivePath.endsWith('.exe')) {
+        await exec(`"${archivePath}" /S /InstallDirectoryPath="${folderPath}" /TaskbarShortcut=false /DesktopShortcut=false /StartMenuShortcut=false /PrivateBrowsingShortcut=false /MaintenanceService=false`)
+            .catch((err) => {
+                console.log(err)
+            })
+    } else {
+        throw new Error(`Unsupported archive format: ${archivePath}`)
+    }
+}
+
+/**
+ * @internal
+ */
+function extractTar(tarPath: string, folderPath: string) {
+    return new Promise((fulfill, reject) => {
+        const tarStream = tar.extract(folderPath)
+        tarStream.on('error', reject)
+        tarStream.on('finish', fulfill)
+        const readStream = fs.createReadStream(tarPath)
+        readStream.pipe(bzip()).pipe(tarStream)
+    })
+}
+
+/**
+ * @internal
+ */
+async function installDMG(dmgPath: string, folderPath: string) {
+    const { stdout } = await exec(`hdiutil attach -nobrowse -noautoopen "${dmgPath}"`)
+
+    const volumes = stdout.match(/\/Volumes\/(.*)/m)
+    if (!volumes) {
+        throw new Error(`Could not find volume path in ${stdout}`)
+    }
+    const mountPath = volumes[0]
+    let appName
+
+    try {
+        const fileNames = await readdir(mountPath)
+        appName = fileNames.find(item => {
+            return typeof item === 'string' && item.endsWith('.app')
+        })
+        if (!appName) {
+            throw new Error(`Cannot find app in ${mountPath}`)
+        }
+        const mountedPath = path.join(mountPath, appName)
+
+        await exec(`cp -R "${mountedPath}" "${folderPath}"`)
+    } finally {
+        await exec(`hdiutil detach "${mountPath}" -quiet`).catch(() => { })
+    }
+
+    return appName
+}
 
 export function parseParams(params: EdgedriverParameters) {
     return Object.entries(params)
@@ -123,6 +218,251 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
     await install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, browserVersion: buildId }
+}
+
+type FF_CHANNELS = 'LATEST_FIREFOX_VERSION'
+    | 'LATEST_FIREFOX_DEVEL_VERSION'
+    | 'LATEST_FIREFOX_RELEASED_DEVEL_VERSION'
+    | 'FIREFOX_DEVEDITION'
+    | 'FIREFOX_ESR'
+    | 'FIREFOX_ESR_NEXT'
+    | 'FIREFOX_NIGHTLY';
+
+async function getLatestVersionsFF() {
+    return got
+        .get('https://product-details.mozilla.org/1.0/firefox_versions.json')
+        .json<Record<FF_CHANNELS, string>>()
+        .then(versions => versions)
+        .catch(err => {
+            throw new Error('Could not retrieve versions: ' + err)
+        })
+}
+
+async function getFirefoxInfo() {
+    return got
+        .get('https://product-details.mozilla.org/1.0/firefox.json', { resolveBodyOnly: true })
+        .json<{ releases: Record<`firefox-${string}`, FirefoxReleaseInfo> }>()
+        .then(data => data.releases)
+        .catch(err => { throw new Error(`Could not get Firefox releases information: ${err}`) }
+        )
+}
+
+async function getLatestVersionFromChannelFF(channel: FF_CHANNELS = 'LATEST_FIREFOX_VERSION') {
+    const versions = await getLatestVersionsFF()
+    const version = versions[channel]
+    if (!version) {
+        throw new Error(`Channel ${channel} is not found.`)
+    }
+    return version
+}
+
+export type FirefoxReleaseInfo = {
+    build_number: number,
+    category: string,
+    date: string,
+    description: string | null,
+    is_security_driven: boolean,
+    product: 'firefox',
+    version: string
+};
+
+export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabilities) {
+
+    const { browserVersion } = caps ?? {}
+
+    if (!browserVersion) {
+        // Let Geckodriver deal with it
+        return {}
+    }
+
+    const cbProgressFirefox = (downloadedBytes: number, totalBytes: number) =>
+        downloadProgressCallback('Firefox', downloadedBytes, totalBytes)
+
+    const OS: string = ({  'win32': 'win', 'darwin': 'osx' }[platform() as string] ?? 'linux')
+
+    const arch = {
+        'arm': { 'osx': 'mac' }[OS],
+        'arm64': { 'win': 'win64-aarch64', 'osx': 'mac' }[OS],
+        'ia32': { 'win': 'win32', 'linux': 'linux-i686'  }[OS],
+        'x64': { 'win': 'win64', 'osx': 'mac', 'linux': 'linux-x86_64' }[OS]
+    }[process.arch as string]
+
+    if (!arch) {
+        throw new Error(`Cannot download Firefox for OS ${OS} and ${process.arch}!`)
+    }
+
+    const labelChannelMap: Record<string, FF_CHANNELS> = {
+        'dev': 'FIREFOX_DEVEDITION',
+        'esr': 'FIREFOX_ESR',
+        'nightly': 'FIREFOX_NIGHTLY',
+        'beta': 'LATEST_FIREFOX_RELEASED_DEVEL_VERSION',
+        'stable': 'LATEST_FIREFOX_VERSION',
+        'latest': 'LATEST_FIREFOX_VERSION'
+    }
+
+    let channel: FF_CHANNELS | undefined = labelChannelMap[browserVersion.toLowerCase()]
+
+    let nonSemanticVersion = channel
+        ? await getLatestVersionFromChannelFF(channel)
+        : browserVersion
+
+    const parseVersion = (token: string) => {
+
+        const [alpha, beta] = ['a', 'b']
+            .map(t => token.split(t).length === 2
+                ? token.split(t).pop()
+                : undefined)
+
+        // semver removes anything extra of major, minor and patch
+        // Safeguards for when versions are specified without minor and patch
+        const semanticVersion = coerce(
+            `${(alpha || beta)
+                ? token
+                : token.replace(/[^.\d]/g, '')
+            }.0.0`,
+            { loose: true }
+        )
+
+        return { ...semanticVersion ?? {}, alpha, beta }
+    }
+
+    let semver = parseVersion(nonSemanticVersion)
+
+    channel = nonSemanticVersion.endsWith('dev') ? 'FIREFOX_DEVEDITION' : channel
+    channel = nonSemanticVersion.endsWith('esr') ? 'FIREFOX_ESR' : channel
+    channel = semver.alpha ? 'FIREFOX_NIGHTLY' : channel
+
+    if (!channel) {
+
+        type VersionAndInfo = [string?, FirefoxReleaseInfo?];
+        const versions = await getFirefoxInfo()
+
+        const [oficialVersion]: VersionAndInfo = Object
+            .entries(versions)
+            .map(([version, info]) => [version.substring('firefox-'.length), info] as VersionAndInfo)
+            .find(([oficialVersion]) => oficialVersion === nonSemanticVersion) as VersionAndInfo
+
+        if (!oficialVersion) {
+            throw new Error(`No Firefox version could be found from "${browserVersion}"`)
+        }
+
+        nonSemanticVersion = oficialVersion
+    }
+
+    semver = parseVersion(nonSemanticVersion)
+
+    const { major, minor, patch, alpha, beta } = semver
+
+    if (!major) {
+        throw new Error(`No Firefox version could be processed from "${browserVersion}"`)
+    }
+
+    const locale = 'en-US'
+
+    const suffix = alpha
+        ? `a${alpha}`
+        : beta ? `b${beta}` : undefined
+
+    let mozVersion = `${major}.${minor}${suffix ?? `.${patch}`}`
+    channel === 'FIREFOX_ESR' && (mozVersion += 'esr')
+
+    // Set proper version in capabilities
+    // Geckodriver does not like 0-based patch versions
+    caps.browserVersion = `${major}.${minor}${patch ? `.${patch}` : ''}`
+
+    const dlURL = {
+
+        baseUrl: {
+            'FIREFOX_NIGHTLY': 'https://download.cdn.mozilla.net/pub',
+        }[channel as string] ?? 'https://ftp.mozilla.org/pub',
+
+        path: {
+            'FIREFOX_NIGHTLY': 'firefox/nightly/latest-mozilla-central',
+            'FIREFOX_DEVEDITION': `devedition/releases/${mozVersion}/${arch}/${locale}`,
+        }[channel as string] ?? `firefox/releases/${mozVersion}/${arch}/${locale}`,
+
+        filename: {
+            'FIREFOX_NIGHTLY': `firefox-${mozVersion}.${locale}.${arch}`,
+        }[channel as string] ?? {
+            'osx': `Firefox ${mozVersion}`,
+            'win': `Firefox Setup ${mozVersion}`,
+            'linux': `firefox-${mozVersion}`
+        }[OS],
+
+        ext: {
+            'osx': '.dmg',
+            'win': channel === 'FIREFOX_NIGHTLY'
+                ? '.installer.exe'
+                : '.msi',
+            'linux': '.tar.bz2'
+        }[OS],
+
+        get build() {
+            return [dlURL.baseUrl, dlURL.path, dlURL.filename].join('/') + dlURL.ext
+        }
+    }
+
+    const url = dlURL.build
+
+    log.info(`Setting up Firefox v${mozVersion}`)
+
+    const fileName: string = url.toString().split('/').pop() ?? ''
+
+    const cache = new Cache(cacheDir)
+    const browserRoot = cache.browserRoot(Browser.FIREFOX)
+    const archivePath = path.join(
+        browserRoot,
+        `${mozVersion}${path.extname(fileName)}`
+    )
+    if (!fs.existsSync(browserRoot)) {
+        fs.mkdirSync(browserRoot, { recursive: true })
+    }
+
+    const outputPath = cache.installationDir(Browser.FIREFOX, arch as BrowserPlatform, mozVersion)
+    fs.mkdirSync(outputPath, { recursive: true })
+
+    const getExecPath = (OS: string, outputPath: string) => {
+
+        let fileName = {
+            'win': 'firefox.exe',
+            'linux': 'firefox',
+        }[OS]
+
+        if (OS === 'osx') {
+            fileName = fs.readdirSync(outputPath).find(f => f.endsWith('.app'))
+        }
+
+        if (!fileName) {
+            return undefined
+        }
+
+        return {
+            'osx': path.join(outputPath, fileName, 'Contents', 'MacOS', 'firefox-bin'),
+        }[OS] ?? path.join(outputPath, fileName)
+    }
+
+    if (fs.existsSync(outputPath)) {
+
+        const executablePath = getExecPath(OS, outputPath)
+
+        if (!executablePath || !fs.existsSync(executablePath)) {
+            log.info(`Could not find Firefox executable in "${outputPath}"`)
+        } else {
+            return { executablePath, buildId: channel, platform }
+        }
+    }
+
+    await downloadFile(url, archivePath, cbProgressFirefox)
+
+    await unpackArchive(archivePath, outputPath)
+
+    if (fs.existsSync(archivePath)) {
+        await unlink(archivePath).catch(err => log.error(err))
+    }
+
+    const executablePath = getExecPath(OS, outputPath)
+
+    return { executablePath, buildId: channel, platform: arch }
 }
 
 export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {

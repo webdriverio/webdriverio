@@ -11,15 +11,17 @@ import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/driver/index.js'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', (origFS) => ({
     default: {
+        ...origFS,
         access: vi.fn().mockRejectedValue(new Error('boom')),
         mkdir: vi.fn()
     }
 }))
 
-vi.mock('node:fs', () => ({
+vi.mock('node:fs', (origFS) => ({
     default: {
+        ...origFS,
         createWriteStream: vi.fn()
     }
 }))
@@ -31,8 +33,9 @@ vi.mock('node:os', async (origMod) => ({
     }
 }))
 
-vi.mock('node:child_process', () => ({
+vi.mock('node:child_process', (origCP) => ({
     default: {
+        ...origCP,
         spawn: vi.fn().mockReturnValue({
             stdout: { pipe: vi.fn() },
             stderr: { pipe: vi.fn() }

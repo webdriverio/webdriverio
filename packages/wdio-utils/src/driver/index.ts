@@ -1,5 +1,6 @@
-import fs from 'node:fs'
 import os from 'node:os'
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -16,7 +17,7 @@ import type { InstallOptions } from '@puppeteer/browsers'
 import type { Capabilities, Options } from '@wdio/types'
 
 import {
-    parseParams, setupChrome, definesRemoteDriver, setupChromedriver,
+    parseParams, setupChrome, setupFirefox, definesRemoteDriver, setupChromedriver,
     isChrome, isFirefox, isEdge, isSafari, getCacheDir
 } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
@@ -107,9 +108,21 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * Firefox
          */
-        const geckodriverOptions = caps['wdio:geckodriverOptions'] || ({} as GeckodriverParameters)
+        const geckodriverOptions = caps['wdio:geckodriverOptions'] || {}
+        const cacheDir = geckodriverOptions.cacheDir || options.cacheDir || os.tmpdir()
+
+        const exist = await fsp.access(cacheDir).then(() => true, () => false)
+        if (!exist) {
+            await fsp.mkdir(cacheDir, { recursive: true })
+        }
+        const { executablePath } = await setupFirefox(cacheDir, caps)
+
         driver = 'GeckoDriver'
+
+        caps['moz:firefoxOptions'] = deepmerge({ binary: executablePath }, caps['moz:firefoxOptions'] || {})
+
         driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
+
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge

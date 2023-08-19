@@ -9,15 +9,17 @@ vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')
 }))
 
-vi.mock('node:os', () => ({
+vi.mock('node:os', (origOS) => ({
     default: {
+        ...origOS,
         tmpdir: vi.fn().mockReturnValue('/tmp'),
         platform: vi.fn().mockReturnValue('darwin')
     }
 }))
 
-vi.mock('node:fs', () => ({
+vi.mock('node:fs', (origFS) => ({
     default: {
+        ...origFS,
         readdirSync: vi.fn().mockReturnValue([
             '114.0.5735.199',
             '115.0.5790.110',
@@ -32,15 +34,17 @@ vi.mock('node:fs', () => ({
     }
 }))
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', (origFS) => ({
     default: {
+        ...origFS,
         mkdir: vi.fn().mockResolvedValue({}),
         access: vi.fn().mockResolvedValue({})
     }
 }))
 
-vi.mock('node:child_process', () => ({
+vi.mock('node:child_process', (origCP) => ({
     default: {
+        ...origCP,
         execSync: vi.fn().mockReturnValue(Buffer.from('Google Chrome 115.0.5790.98\n'))
     }
 }))

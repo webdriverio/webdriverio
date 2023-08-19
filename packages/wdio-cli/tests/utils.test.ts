@@ -48,13 +48,17 @@ vi.mock('ejs')
 vi.mock('inquirer')
 vi.mock('recursive-readdir')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => {
+vi.mock('child_process', (origCP) => {
     const m = {
+        ...origCP,
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
-    return m
+    return {
+        default: m,
+        ...m,
+    }
 })
 
 vi.mock('read-pkg-up', () => ({
@@ -69,8 +73,9 @@ vi.mock('read-pkg-up', () => ({
 
 vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 }) }))
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', (origFS) => ({
     default: {
+        ...origFS,
         access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
