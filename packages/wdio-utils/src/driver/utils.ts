@@ -11,8 +11,9 @@ import got from 'got'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import { getChromePath } from 'chrome-launcher'
-import type { BrowserPlatform
-} from '@puppeteer/browsers'
+import type { BrowserPlatform } from '@puppeteer/browsers'
+import { coerce } from 'semver'
+
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, Cache,
     computeExecutablePath, type InstallOptions
@@ -24,16 +25,12 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-const log = logger('webdriver')
-const EXCLUDED_PARAMS = ['version', 'help']
-
 import extractZip from 'extract-zip'
-// @ts-expect-error: This dependency comes from @puppeteer/browsers
 import tar from 'tar-fs'
-// @ts-expect-error: This dependency comes from @puppeteer/browsers
 import bzip from 'unbzip2-stream'
 
-import { coerce } from 'semver'
+const log = logger('webdriver')
+const EXCLUDED_PARAMS = ['version', 'help']
 
 const pipeline = promisify(stream.pipeline)
 const exec = promisify(cp.exec)
@@ -50,9 +47,6 @@ export async function downloadFile(url: string, destinationPath: string, progres
     return pipeline(downloadStream, fileWriterStream)
 }
 
-/**
- * @internal
- */
 export async function unpackArchive(archivePath: string, folderPath: string) {
     if (archivePath.endsWith('.zip')) {
         await extractZip(archivePath, { dir: folderPath })
@@ -73,9 +67,6 @@ export async function unpackArchive(archivePath: string, folderPath: string) {
     }
 }
 
-/**
- * @internal
- */
 function extractTar(tarPath: string, folderPath: string) {
     return new Promise((fulfill, reject) => {
         const tarStream = tar.extract(folderPath)
@@ -86,9 +77,6 @@ function extractTar(tarPath: string, folderPath: string) {
     })
 }
 
-/**
- * @internal
- */
 async function installDMG(dmgPath: string, folderPath: string) {
     const { stdout } = await exec(`hdiutil attach -nobrowse -noautoopen "${dmgPath}"`)
 

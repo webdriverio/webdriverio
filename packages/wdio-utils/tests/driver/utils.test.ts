@@ -9,17 +9,31 @@ vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')
 }))
 
-vi.mock('node:os', (origOS) => ({
-    default: {
-        ...origOS,
+vi.mock('node:os', async () => {
+
+    const origOS = await vi.importActual<typeof import('node:os')>('node:os')
+
+    const mod = {
         tmpdir: vi.fn().mockReturnValue('/tmp'),
         platform: vi.fn().mockReturnValue('darwin')
     }
-}))
 
-vi.mock('node:fs', (origFS) => ({
-    default: {
-        ...origFS,
+    return {
+        ...origOS,
+        ...module,
+        default: {
+            ...origOS,
+            ...mod
+        }
+    }
+
+})
+
+vi.mock('node:fs', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs')>('node:fs')
+
+    const mod = {
         readdirSync: vi.fn().mockReturnValue([
             '114.0.5735.199',
             '115.0.5790.110',
@@ -32,22 +46,53 @@ vi.mock('node:fs', (origFS) => ({
             'SetupMetrics'
         ])
     }
-}))
 
-vi.mock('node:fs/promises', (origFS) => ({
-    default: {
+    return {
         ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod
+        }
+    }
+})
+
+vi.mock('node:fs/promises', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+
+    const mod = {
         mkdir: vi.fn().mockResolvedValue({}),
         access: vi.fn().mockResolvedValue({})
     }
-}))
 
-vi.mock('node:child_process', (origCP) => ({
-    default: {
-        ...origCP,
+    return {
+        ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod,
+        }
+    }
+})
+
+vi.mock('node:child_process', async () => {
+
+    const origCP = await vi.importActual<typeof import('node:child_process')>('node:child_process')
+
+    const mod = {
         execSync: vi.fn().mockReturnValue(Buffer.from('Google Chrome 115.0.5790.98\n'))
     }
-}))
+
+    return {
+        ...origCP,
+        ...mod,
+        default: {
+            ...origCP,
+            ...mod,
+        }
+    }
+})
 
 vi.mock('@puppeteer/browsers', () => ({
     Browser: { CHROME: 'chrome' },
@@ -102,7 +147,7 @@ describe('driver utils', () => {
         it('should install chrome stable if browser is not found', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             vi.mocked(getChromePath).mockReturnValue('/path/to/stable')
-            await expect(setupChrome('/foo/bar', {})).resolves.toEqual( {
+            await expect(setupChrome('/foo/bar', {})).resolves.toEqual({
                 buildId: '115.0.5790.98',
                 cacheDir: '/foo/bar',
                 executablePath: '/path/to/stable',

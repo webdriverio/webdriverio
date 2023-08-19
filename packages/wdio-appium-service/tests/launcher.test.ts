@@ -10,21 +10,53 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher.js'
 
-vi.mock('node:fs', () => ({
-    default: {
-        createWriteStream: vi.fn()
-    }
-}))
+vi.mock('node:fs', async () => {
 
-vi.mock('node:fs/promises', () => ({
-    default: {
+    const origFS = await vi.importActual<typeof import('node:fs')>('node:fs')
+
+    const mod = {
+        createWriteStream: vi.fn(),
+    }
+
+    return {
+        ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod,
+        }
+    }
+})
+
+vi.mock('node:fs/promises', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+
+    const mod = {
         mkdir: vi.fn(),
         access: vi.fn().mockResolvedValue(true),
     }
-}))
+
+    return {
+        ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod,
+        }
+    }
+})
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => ({ spawn: vi.fn() }))
+vi.mock('child_process', async () => {
+
+    const origCP = await vi.importActual<typeof import('child_process')>('child_process')
+
+    return {
+        ...origCP,
+        spawn: vi.fn()
+    }
+})
 vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
     url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
 }))
@@ -66,10 +98,10 @@ class MockCustomFailingProcess extends MockFailingProcess {
 }
 
 vi.mock('../src/utils', async () => {
-    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
+    const origUtils = await vi.importActual('../src/utils.js') as any
     return {
+        ...origUtils,
         getFilePath: vi.fn().mockReturnValue('/some/file/path'),
-        formatCliArgs
     }
 })
 

@@ -13,7 +13,8 @@ vi.mock('../../src/driver/utils.js', async (orig) => {
         setupChromedriver: vi.fn(),
         setupEdgedriver: vi.fn(),
         setupGeckodriver: vi.fn(),
-        setupChrome: vi.fn()
+        setupChrome: vi.fn(),
+        setupFirefox: vi.fn()
     }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

@@ -11,20 +11,32 @@ import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/driver/index.js'
 
-vi.mock('node:fs/promises', (origFS) => ({
-    default: {
-        ...origFS,
+vi.mock('node:fs/promises', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+
+    const mod = {
         access: vi.fn().mockRejectedValue(new Error('boom')),
         mkdir: vi.fn()
     }
-}))
 
-vi.mock('node:fs', (origFS) => ({
-    default: {
+    return {
         ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod,
+        }
+    }
+})
+
+vi.mock('node:fs', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs')>('node:fs')
+
+    const mod = {
         createWriteStream: vi.fn()
     }
-}))
 
 vi.mock('node:os', async (origMod) => ({
     default: {
@@ -33,16 +45,27 @@ vi.mock('node:os', async (origMod) => ({
     }
 }))
 
-vi.mock('node:child_process', (origCP) => ({
-    default: {
-        ...origCP,
+vi.mock('node:child_process', async () => {
+
+    const origCP = await vi.importActual<typeof import('node:child_process')>('node:child_process')
+
+    const mod = {
         spawn: vi.fn().mockReturnValue({
             stdout: { pipe: vi.fn() },
             stderr: { pipe: vi.fn() }
         }),
         execSync: vi.fn().mockReturnValue(Buffer.from('115.0.5790.171'))
     }
-}))
+
+    return {
+        ...origCP,
+        ...mod,
+        default: {
+            ...origCP,
+            ...mod,
+        }
+    }
+})
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('devtools', () => ({ default: 'devtools package' }))
@@ -78,6 +101,8 @@ describe('startWebDriver', () => {
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         vi.mocked(install).mockClear()
+        vi.mocked(fsp.access).mockClear()
+        vi.mocked(fsp.mkdir).mockClear()
     })
 
     afterEach(() => {
@@ -129,6 +154,9 @@ describe('startWebDriver', () => {
                 'wdio:geckodriverOptions': {
                     foo: 'bar'
                 },
+                'moz:firefoxOptions': {
+                    'binary': undefined,
+                }
             }
         })
         expect(startGeckodriver).toBeCalledTimes(1)

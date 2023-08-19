@@ -8,17 +8,43 @@ import * as configCmd from '../../src/commands/config.js'
 
 vi.mock('yargs')
 vi.mock('execa')
-vi.mock('node:child_process', () => ({
-    default: {
+vi.mock('node:child_process', async () => {
+
+    const origCP = await vi.importActual<typeof import('node:child_process')>('node:child_process')
+
+    const mod = {
         spawn: vi.fn()
     }
-}))
-vi.mock('node:fs/promises', () => ({
-    default: {
+
+    return {
+        ...origCP,
+        ...mod,
+        default: {
+            ...origCP,
+            ...mod,
+        }
+    }
+
+})
+
+vi.mock('node:fs/promises', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+
+    const mod = {
         access: vi.fn().mockResolvedValue(true),
         readFile: vi.fn()
     }
-}))
+
+    return {
+        ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod,
+        }
+    }
+})
 vi.mock('./../../src/launcher', () => ({
     default: class {
         run() {

@@ -48,16 +48,22 @@ vi.mock('ejs')
 vi.mock('inquirer')
 vi.mock('recursive-readdir')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', (origCP) => {
-    const m = {
-        ...origCP,
+vi.mock('node:child_process', async () => {
+
+    const origCP = await vi.importActual<typeof import('node:child_process')>('node:child_process')
+    const mod = {
         execSyncRes: 'APPIUM_MISSING',
-        execSync: () => m.execSyncRes,
+        execSync: function() { return this.execSyncRes },
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
+
     return {
-        default: m,
-        ...m,
+        ...origCP,
+        ...mod,
+        default: {
+            ...origCP,
+            ...mod
+        },
     }
 })
 
@@ -73,14 +79,25 @@ vi.mock('read-pkg-up', () => ({
 
 vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 }) }))
 
-vi.mock('node:fs/promises', (origFS) => ({
-    default: {
-        ...origFS,
+vi.mock('node:fs/promises', async () => {
+
+    const origFS = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+
+    const mod = {
         access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
-}))
+
+    return {
+        ...origFS,
+        ...mod,
+        default: {
+            ...origFS,
+            ...mod
+        },
+    }
+})
 
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {

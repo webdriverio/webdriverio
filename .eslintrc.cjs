@@ -67,6 +67,7 @@ const config = {
             files: ['*.test.ts'],
             rules: {
                 'dot-notation': 'off',
+                '@typescript-eslint/consistent-type-imports': 'warn',
             },
         },
     ],
