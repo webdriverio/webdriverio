@@ -9,7 +9,7 @@ import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import { start as startEdgedriver, type EdgedriverParameters } from 'edgedriver'
+import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
@@ -124,6 +124,14 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Microsoft Edge is very particular when it comes to browser names
          */
         caps.browserName = 'MicrosoftEdge'
+
+        /**
+         * on Linux set the path to the Edge binary if not already set
+         */
+        if (!caps['ms:edgeOptions']?.binary && process.platform !== 'darwin' && process.platform !== 'win32') {
+            caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
+            caps['ms:edgeOptions'].binary = findEdgePath()
+        }
     } else {
         throw new Error(
             `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +
