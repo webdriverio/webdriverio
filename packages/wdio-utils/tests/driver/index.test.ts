@@ -24,6 +24,13 @@ vi.mock('node:fs', () => ({
     }
 }))
 
+vi.mock('node:os', async (origMod) => ({
+    default: {
+        ...(await origMod<any>()),
+        platform: vi.fn().mockReturnValue('linux')
+    }
+}))
+
 vi.mock('node:child_process', () => ({
     default: {
         spawn: vi.fn().mockReturnValue({
@@ -40,7 +47,7 @@ vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({ start: vi.fn().mockReturnValue('safaridriver') }))
 vi.mock('edgedriver', () => ({
     start: vi.fn().mockResolvedValue('edgedriver'),
-    findEdgePath: vi.fn().mockResolvedValue('/foo/bar/executable')
+    findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
 }))
 vi.mock('geckodriver', () => ({ start: vi.fn().mockResolvedValue('geckodriver') }))
 vi.mock('wait-port', () => ({ default: vi.fn() }))
@@ -145,6 +152,9 @@ describe('startWebDriver', () => {
                 'wdio:edgedriverOptions': {
                     foo: 'bar'
                 },
+                'ms:edgeOptions': {
+                    binary: '/foo/bar/executable'
+                }
             }
         })
         expect(startEdgedriver).toBeCalledTimes(1)

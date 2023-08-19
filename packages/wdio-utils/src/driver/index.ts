@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -128,7 +129,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * on Linux set the path to the Edge binary if not already set
          */
-        if (!caps['ms:edgeOptions']?.binary && process.platform !== 'darwin' && process.platform !== 'win32') {
+        if (!caps['ms:edgeOptions']?.binary && os.platform() !== 'darwin' && os.platform() !== 'win32') {
             caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
             caps['ms:edgeOptions'].binary = findEdgePath()
         }
