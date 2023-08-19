@@ -38,7 +38,10 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({ start: vi.fn().mockReturnValue('safaridriver') }))
-vi.mock('edgedriver', () => ({ start: vi.fn().mockResolvedValue('edgedriver') }))
+vi.mock('edgedriver', () => ({
+    start: vi.fn().mockResolvedValue('edgedriver'),
+    findEdgePath: vi.fn().mockResolvedValue('/foo/bar/executable')
+}))
 vi.mock('geckodriver', () => ({ start: vi.fn().mockResolvedValue('geckodriver') }))
 vi.mock('wait-port', () => ({ default: vi.fn() }))
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
