@@ -268,12 +268,12 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
     const cbProgressFirefox = (downloadedBytes: number, totalBytes: number) =>
         downloadProgressCallback('Firefox', downloadedBytes, totalBytes)
 
-    const OS: string = ({  'win32': 'win', 'darwin': 'osx' }[platform() as string] ?? 'linux')
+    const OS: string = ({ 'win32': 'win', 'darwin': 'osx' }[platform() as string] ?? 'linux')
 
     const arch = {
         'arm': { 'osx': 'mac' }[OS],
         'arm64': { 'win': 'win64-aarch64', 'osx': 'mac' }[OS],
-        'ia32': { 'win': 'win32', 'linux': 'linux-i686'  }[OS],
+        'ia32': { 'win': 'win32', 'linux': 'linux-i686' }[OS],
         'x64': { 'win': 'win64', 'osx': 'mac', 'linux': 'linux-x86_64' }[OS]
     }[process.arch as string]
 
@@ -298,6 +298,14 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
 
     const parseVersion = (token: string) => {
 
+        const label = Object
+            .keys(labelChannelMap)
+            .find(label => token.endsWith(label))
+
+        if (label) {
+            token = token.substring(0, token.length - label.length)
+        }
+
         const [alpha, beta] = ['a', 'b']
             .map(t => token.split(t).length === 2
                 ? token.split(t).pop()
@@ -313,13 +321,13 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
             { loose: true }
         )
 
-        return { ...semanticVersion ?? {}, alpha, beta }
+        return { ...semanticVersion ?? {}, alpha, beta, label }
     }
 
     let semver = parseVersion(nonSemanticVersion)
 
-    channel = nonSemanticVersion.endsWith('dev') ? 'FIREFOX_DEVEDITION' : channel
-    channel = nonSemanticVersion.endsWith('esr') ? 'FIREFOX_ESR' : channel
+    channel = semver.label === 'dev' ? 'FIREFOX_DEVEDITION' : channel
+    channel = semver.label === 'esr' ? 'FIREFOX_ESR' : channel
     channel = semver.alpha ? 'FIREFOX_NIGHTLY' : channel
 
     if (!channel) {
@@ -440,11 +448,34 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
     if (fs.existsSync(outputPath)) {
 
         const executablePath = getExecPath(OS, outputPath)
+        const execFound = executablePath && fs.existsSync(executablePath)
 
-        if (!(executablePath && fs.existsSync(executablePath))) {
-            log.info(`Could not find Firefox executable in "${outputPath}"`)
-        } else {
-            return { executablePath, buildId: channel, platform }
+        !execFound && log.info(`Could not find Firefox executable in "${outputPath}"`)
+
+        if (execFound) {
+            const props = { executablePath, buildId: channel, platform }
+
+            let shouldDownload = false
+
+            if (channel === 'FIREFOX_NIGHTLY') {
+
+                // Check latest nightly, updates often
+                shouldDownload = await got.head(url)
+                    .then(async res => {
+
+                        const header = res.headers['last-modified']
+                        const lastModified: number = new Date(header ?? NaN).valueOf()
+
+                        return (!!header && !Number.isNaN(lastModified)) && await fsp
+                            .lstat(executablePath)
+                            .then(exec => exec.birthtimeMs < lastModified)
+                    })
+                    .catch(err => { log.error(err); return false })
+            }
+
+            if (!shouldDownload){
+                return props
+            }
         }
     }
 
@@ -461,7 +492,7 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
     return { executablePath, buildId: channel, platform: arch }
 }
 
-export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
+export function getCacheDir(options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
     const driverOptions: { cacheDir?: string } = (
         caps['wdio:chromedriverOptions'] ||
         caps['wdio:chromedriverOptions'] ||
@@ -472,7 +503,7 @@ export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps:
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
+export async function setupChromedriver(cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
@@ -490,7 +521,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
-        const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
+        const chromedriverInstallOpts: InstallOptions & { unpack?: true } = {
             cacheDir,
             buildId,
             platform,
@@ -536,11 +567,11 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     return { executablePath }
 }
 
-export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
+export function setupGeckodriver(cacheDir: string, driverVersion?: string) {
     return downloadGeckodriver(driverVersion, cacheDir)
 }
 
-export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
+export function setupEdgedriver(cacheDir: string, driverVersion?: string) {
     return downloadEdgedriver(driverVersion, cacheDir)
 }
 
@@ -562,15 +593,15 @@ export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'k
     )
 }
 
-export function isChrome (browserName?: string) {
+export function isChrome(browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.chrome.includes(browserName.toLowerCase()))
 }
-export function isSafari (browserName?: string) {
+export function isSafari(browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.safari.includes(browserName.toLowerCase()))
 }
-export function isFirefox (browserName?: string) {
+export function isFirefox(browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.firefox.includes(browserName.toLowerCase()))
 }
-export function isEdge (browserName?: string) {
+export function isEdge(browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
 }
