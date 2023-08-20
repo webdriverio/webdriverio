@@ -94,15 +94,28 @@ vi.mock('node:child_process', async () => {
     }
 })
 
-vi.mock('@puppeteer/browsers', () => ({
-    Browser: { CHROME: 'chrome' },
-    ChromeReleaseChannel: { STABLE: 'stable' },
-    detectBrowserPlatform: vi.fn(),
-    resolveBuildId: vi.fn().mockReturnValue('115.0.5790.98'),
-    canDownload: vi.fn().mockResolvedValue(true),
-    computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
-    install: vi.fn()
-}))
+vi.mock('@puppeteer/browsers', async () => {
+
+    const mod = {
+        ChromeReleaseChannel: { STABLE: 'stable' },
+        detectBrowserPlatform: vi.fn(),
+        resolveBuildId: vi.fn().mockReturnValue('115.0.5790.98'),
+        canDownload: vi.fn().mockResolvedValue(true),
+        computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
+        install: vi.fn()
+    }
+
+    const origPB = await vi.importActual<typeof import('@puppeteer/browsers')>('@puppeteer/browsers')
+
+    return {
+        ...origPB,
+        ...mod,
+        default: {
+            ...origPB,
+            ...mod
+        }
+    }
+})
 
 describe('driver utils', () => {
     it('should parse params', () => {
