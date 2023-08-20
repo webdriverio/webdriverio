@@ -91,7 +91,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[];
 
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
@@ -144,7 +144,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIODriverOptions, WebdriverIO.WDIOVSCodeServiceOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -199,6 +199,13 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
      */
     // eslint-disable-next-line
     testobject_api_key?: string
+}
+
+export interface WebdriverIOCapabilities {
+    'wdio:chromedriverOptions'?: WebdriverIO.ChromedriverOptions
+    'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
+    'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
+    'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
 }
 
 export interface ChromeOptions {

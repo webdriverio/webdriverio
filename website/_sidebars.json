@@ -98,7 +98,8 @@
             "component-testing/svelte",
             "component-testing/solid",
             "component-testing/react",
-            "component-testing/preact"
+            "component-testing/preact",
+            "component-testing/stencil"
           ]
         },
         "component-testing/coverage",

@@ -150,6 +150,39 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
+        test('should set correct config properties using parallel multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: {} },
+                browserB: { capabilities: {} }
+            }, {
+                browserC: { port: 5678, capabilities: {} },
+                browserD: { capabilities: {} }
+            }]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities[0].browserA.protocol).toBe('http')
+            expect(capabilities[0].browserA.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserA.port).toBe(1234)
+            expect(capabilities[0].browserA.path).toBe('/')
+            expect(capabilities[0].browserB.protocol).toBe('http')
+            expect(capabilities[0].browserB.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserB.port).toBe(4723)
+            expect(capabilities[0].browserB.path).toBe('/')
+            expect(capabilities[1].browserC.protocol).toBe('http')
+            expect(capabilities[1].browserC.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserC.port).toBe(5678)
+            expect(capabilities[1].browserC.path).toBe('/')
+            expect(capabilities[1].browserD.protocol).toBe('http')
+            expect(capabilities[1].browserD.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserD.port).toBe(4723)
+            expect(capabilities[1].browserD.path).toBe('/')
+        })
+
         test('should not override cloud config using multiremote', async () => {
             const options = {
                 logPath : './',

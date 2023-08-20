@@ -183,7 +183,6 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          *
          * Note that import-meta-resolve will resolve to CJS no ESM export is found
          */
-
         const localNodeModules = path.join(process.cwd(), 'node_modules')
 
         try {

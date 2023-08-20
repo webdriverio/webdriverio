@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getChromePath } from 'chrome-launcher'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 
-import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome } from '../../src/driver/utils.js'
+import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome, definesRemoteDriver } from '../../src/driver/utils.js'
 
 vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')
@@ -29,6 +29,13 @@ vi.mock('node:fs', () => ({
             'new_chrome_proxy.exe',
             'SetupMetrics'
         ])
+    }
+}))
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn().mockResolvedValue({}),
+        access: vi.fn().mockResolvedValue({})
     }
 }))
 
@@ -75,13 +82,14 @@ describe('driver utils', () => {
 
         it('should throw if platform is not supported', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce(undefined)
-            await expect(setupChrome({}, '/foo/bar')).rejects.toThrow('The current platform is not supported.')
+            await expect(setupChrome('/foo/bar', {})).rejects.toThrow('The current platform is not supported.')
         })
 
         it('should run setup for local chrome if browser version is omitted', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
-            await expect(setupChrome({}, '/foo/bar')).resolves.toEqual({
+            await expect(setupChrome('/foo/bar', {})).resolves.toEqual({
                 buildId: '115.0.5790.98',
+                cacheDir: '/foo/bar',
                 executablePath: '/foo/bar',
                 platform: 'mac'
             })
@@ -90,8 +98,9 @@ describe('driver utils', () => {
         it('should install chrome stable if browser is not found', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             vi.mocked(getChromePath).mockReturnValue('/path/to/stable')
-            await expect(setupChrome({}, '/foo/bar')).resolves.toEqual( {
+            await expect(setupChrome('/foo/bar', {})).resolves.toEqual( {
                 buildId: '115.0.5790.98',
+                cacheDir: '/foo/bar',
                 executablePath: '/path/to/stable',
                 platform: 'windows'
             })
@@ -101,17 +110,27 @@ describe('driver utils', () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             vi.mocked(canDownload).mockResolvedValueOnce(false)
             vi.mocked(getChromePath).mockImplementationOnce(() => { throw new Error('boom') })
-            await expect(setupChrome({}, '/foo/bar')).rejects.toThrow(/Couldn't find a matching Chrome browser /)
+            await expect(setupChrome('/foo/bar', {})).rejects.toThrow(/Couldn't find a matching Chrome browser /)
         })
 
         it('should install chrome browser with specific version provided', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
-            await expect(setupChrome({ browserVersion: '1.2.3' }, '/foo/bar')).resolves.toEqual({
-                buildId: '115.0.5790.98',
+            await expect(setupChrome('/foo/bar', { browserVersion: '1.2.3' })).resolves.toEqual({
+                browserVersion: '115.0.5790.98',
                 executablePath: '/foo/bar/executable',
-                platform: 'windows'
             })
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '1.2.3')
         })
+    })
+
+    it('definesRemoteDriver', () => {
+        expect(definesRemoteDriver({})).toBe(false)
+        expect(definesRemoteDriver({ hostname: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ port: 1 })).toBe(true)
+        expect(definesRemoteDriver({ path: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ protocol: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ user: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ key: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ user: 'foo', key: 'bar' })).toBe(true)
     })
 })
