@@ -3,15 +3,9 @@ id: driverbinaries
 title: டிரைவர் பைனரிஸ்
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. You only need to have a browser installed, that's it!
 
-:::warn
-
-With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
-
-:::
-
-ஒவ்வொரு டிரைவரையும் தனித்தனியாக எவ்வாறு அமைக்கலாம் என்பதை பின்வருவது விவரிக்கிறது. [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README இல் அனைத்து டிரைவர் பட்டியலைக் காணலாம்.
+The following describes how you can still set up each driver individually. [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README இல் அனைத்து டிரைவர் பட்டியலைக் காணலாம்.
 
 :::tip
 
@@ -38,14 +32,20 @@ chromedriver --port=4444 --verbose
 Firefox ஐ தானியக்கமாக்க, உங்கள் என்விரான்மென்டிக்கு ஏற்ற `geckodriver` இன் சமீபத்திய பதிப்பைப் பதிவிறக்கி, அதை உங்கள் ப்ராஜெக்ட் டைரக்டரியில் திறக்கவும்:
 
 <Tabs
-  defaultValue="curl"
+  defaultValue="npm"
   values={[
-    {label: 'Curl', value: 'curl'},
+    {label: 'NPM', value: 'npm'},
+ {label: 'Curl', value: 'curl'},
  {label: 'Brew', value: 'brew'},
  {label: 'Windows (64 bit / Chocolatey)', value: 'chocolatey'},
  {label: 'Windows (64 bit / Powershell) DevTools', value: 'powershell'},
  ]
 }>
+<TabItem value="curl">
+```bash npm2yarn
+npm install geckodriver
+```
+</TabItem>
 <TabItem value="curl">
 
 Linux:
@@ -101,7 +101,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Note:** மற்ற `geckodriver` வெளியீடுகள் கிடைக்கின்றன [here](https://github.com/mozilla/geckodriver/releases). பதிவிறக்கிய பிறகு, நீங்கள் டிரைவரைத் தொடங்கலாம்:
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -109,10 +109,11 @@ cd $unzipped_file
 
 ## Edgedriver
 
-மைக்ரோசாஃப்ட் எட்ஜிற்கான டிரைவரை [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)இல் பதிவிறக்கம் செய்யலாம். பதிவிறக்கிய பிறகு நீங்கள் Edgedriver ஐ பின்வருமாறு தொடங்கலாம்:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) or as NPM package via:
 
 ```sh
-./path/to/edgedriver --port=4444 --verbose
+npm install -g edgedriver
+edgedriver --version # prints: Microsoft Edge WebDriver 115.0.1901.203 (a5a2b1779bcfe71f081bc9104cca968d420a89ac)
 ```
 
 ## Safaridriver
