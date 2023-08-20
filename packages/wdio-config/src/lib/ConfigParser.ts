@@ -37,6 +37,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 }
 
 export default class ConfigParser {
+    #projectRootDir = process.cwd()
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
@@ -258,18 +259,18 @@ export default class ConfigParser {
         const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
-        let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
-        let exclude = ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
+        let specs = ConfigParser.getFilePaths(this._config.specs!, this.#projectRootDir, this._pathService)
+        let exclude = ConfigParser.getFilePaths(this._config.exclude!, this.#projectRootDir, this._pathService)
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
         if (Array.isArray(capExclude) && exclude.length === 0){
-            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
+            exclude = ConfigParser.getFilePaths(capExclude, this.#projectRootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
         if (!isSpecParamPassed && Array.isArray(capSpecs)){
-            specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
+            specs = ConfigParser.getFilePaths(capSpecs, this.#projectRootDir, this._pathService)
         }
 
         // handle case where user passes --suite via CLI
@@ -281,7 +282,7 @@ export default class ConfigParser {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, this._config.rootDir, this._pathService))
+                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, this.#projectRootDir, this._pathService))
                 }
             }
 
@@ -320,21 +321,21 @@ export default class ConfigParser {
      */
     setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[]) {
         const filesToFilter = new Set<string>()
-        const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
+        const fileList = ConfigParser.getFilePaths(specs, this.#projectRootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
             // Return value will always be string[]
             const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
-                this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
-                this._config.rootDir,
+                this._pathService.glob(filteredFile, this.#projectRootDir),
+                this.#projectRootDir,
                 this._pathService
             )
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
                         filteredFile,
-                        path.dirname(this.#configFilePath)
+                        this.#projectRootDir
                     )
                 )
             } else if (globMatchedFiles.length) {
