@@ -26,7 +26,9 @@ import type { Options, Capabilities } from '@wdio/types'
 import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 import extractZip from 'extract-zip'
+// @ts-ignore
 import tar from 'tar-fs'
+// @ts-ignore
 import bzip from 'unbzip2-stream'
 
 const log = logger('webdriver')
