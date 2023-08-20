@@ -48,13 +48,15 @@ export async function downloadFile(url: string, destinationPath: string, progres
 }
 
 export async function unpackArchive(archivePath: string, folderPath: string) {
+
+    await mkdir(folderPath, { recursive: true })
+
     if (archivePath.endsWith('.zip')) {
         await extractZip(archivePath, { dir: folderPath })
     } else if (archivePath.endsWith('.tar.bz2')) {
         await extractTar(archivePath, folderPath)
     } else if (archivePath.endsWith('.dmg')) {
-        await mkdir(folderPath, { recursive: true })
-        return await installDMG(archivePath, folderPath)
+        await installDMG(archivePath, folderPath)
     } else if (archivePath.endsWith('.msi')) {
         await exec(`msiexec /quiet /i "${archivePath}" INSTALL_DIRECTORY_PATH="${folderPath}" TASKBAR_SHORTCUT=false DESKTOP_SHORTCUT=false INSTALL_MAINTENANCE_SERVICE=false`)
     } else if (archivePath.endsWith('.exe')) {
@@ -67,7 +69,7 @@ export async function unpackArchive(archivePath: string, folderPath: string) {
     }
 }
 
-function extractTar(tarPath: string, folderPath: string) {
+export function extractTar(tarPath: string, folderPath: string) {
     return new Promise((fulfill, reject) => {
         const tarStream = tar.extract(folderPath)
         tarStream.on('error', reject)
@@ -77,7 +79,7 @@ function extractTar(tarPath: string, folderPath: string) {
     })
 }
 
-async function installDMG(dmgPath: string, folderPath: string) {
+export async function installDMG(dmgPath: string, folderPath: string) {
     const { stdout } = await exec(`hdiutil attach -nobrowse -noautoopen "${dmgPath}"`)
 
     const volumes = stdout.match(/\/Volumes\/(.*)/m)
@@ -406,7 +408,13 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
         fs.mkdirSync(browserRoot, { recursive: true })
     }
 
-    const outputPath = cache.installationDir(Browser.FIREFOX, arch as BrowserPlatform, mozVersion)
+    const outputPath = cache.installationDir(
+        Browser.FIREFOX,
+        arch as BrowserPlatform,
+        channel === 'FIREFOX_DEVEDITION'
+            ? `${mozVersion}dev`
+            : mozVersion
+    )
     fs.mkdirSync(outputPath, { recursive: true })
 
     const getExecPath = (OS: string, outputPath: string) => {
@@ -433,7 +441,7 @@ export async function setupFirefox(cacheDir: string, caps: Capabilities.Capabili
 
         const executablePath = getExecPath(OS, outputPath)
 
-        if (!executablePath || !fs.existsSync(executablePath)) {
+        if (!(executablePath && fs.existsSync(executablePath))) {
             log.info(`Could not find Firefox executable in "${outputPath}"`)
         } else {
             return { executablePath, buildId: channel, platform }
