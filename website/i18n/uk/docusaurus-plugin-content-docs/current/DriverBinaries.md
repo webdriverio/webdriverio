@@ -3,15 +3,9 @@ id: driverbinaries
 title: Бінарні файли драйверів
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. You only need to have a browser installed, that's it!
 
-:::warn
-
-With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
-
-:::
-
-Нижче описано, як можна налаштувати кожен драйвер окремо. Ви можете знайти список усіх драйверів у [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver).
+The following describes how you can still set up each driver individually. Ви можете знайти список усіх драйверів у [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver).
 
 :::tip
 
@@ -38,14 +32,20 @@ chromedriver --port=4444 --verbose
 Щоб автоматизувати Firefox, завантажте останню версію `geckodriver` для свого середовища та розпакуйте її в каталозі проєкту:
 
 <Tabs
-  defaultValue="curl"
+  defaultValue="npm"
   values={[
-    {label: 'Curl', value: 'curl'},
+    {label: 'NPM', value: 'npm'},
+ {label: 'Curl', value: 'curl'},
  {label: 'Brew', value: 'brew'},
  {label: 'Windows (64 bit / Chocolatey)', value: 'chocolatey'},
  {label: 'Windows (64 bit / Powershell) DevTools', value: 'powershell'},
  ]
 }>
+<TabItem value="curl">
+```bash npm2yarn
+npm install geckodriver
+```
+</TabItem>
 <TabItem value="curl">
 
 Linux:
@@ -101,7 +101,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Примітка:** Інші версії `geckodriver` доступні [тут](https://github.com/mozilla/geckodriver/releases). Після завантаження ви можете запустити драйвер за допомогою:
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -109,10 +109,11 @@ cd $unzipped_file
 
 ## Edgedriver
 
-Ви можете завантажити драйвер для Microsoft Edge на вебсайті проєкту [](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). Після завантаження ви можете запустити драйвер за допомогою:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) or as NPM package via:
 
 ```sh
-./path/to/edgedriver --port=4444 --verbose
+npm install -g edgedriver
+edgedriver --version # prints: Microsoft Edge WebDriver 115.0.1901.203 (a5a2b1779bcfe71f081bc9104cca968d420a89ac)
 ```
 
 ## Safaridriver
