@@ -3,15 +3,9 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. You only need to have a browser installed, that's it!
 
-:::warn
-
-With WebdriverIO v8.14 and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO.
-
-:::
-
-The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+The following describes how you can still set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
 :::tip
 
@@ -38,14 +32,20 @@ chromedriver --port=4444 --verbose
 To automate Firefox download the latest version of `geckodriver` for your environment and unpack it in your project directory:
 
 <Tabs
-  defaultValue="curl"
+  defaultValue="npm"
   values={[
-    {label: 'Curl', value: 'curl'},
+    {label: 'NPM', value: 'npm'},
+ {label: 'Curl', value: 'curl'},
  {label: 'Brew', value: 'brew'},
  {label: 'Windows (64 bit / Chocolatey)', value: 'chocolatey'},
  {label: 'Windows (64 bit / Powershell) DevTools', value: 'powershell'},
  ]
 }>
+<TabItem value="curl">
+```bash npm2yarn
+npm install geckodriver
+```
+</TabItem>
 <TabItem value="curl">
 
 Linux:
@@ -109,10 +109,11 @@ cd $unzipped_file
 
 ## Edgedriver
 
-You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) or as NPM package via:
 
 ```sh
-./path/to/edgedriver --port=4444 --verbose
+npm install -g edgedriver
+edgedriver --version # prints: Microsoft Edge WebDriver 115.0.1901.203 (a5a2b1779bcfe71f081bc9104cca968d420a89ac)
 ```
 
 ## Safaridriver
