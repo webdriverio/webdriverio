@@ -12,17 +12,15 @@ import { deepmerge } from 'deepmerge-ts'
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
 import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
-import type { InstallOptions } from '@puppeteer/browsers'
+import { setupChrome, setupChromedriver, type ChromedriverParameters } from './chrome.js'
+import { setupFirefox } from './firefox.js'
 
 import type { Capabilities, Options } from '@wdio/types'
 
-import {
-    parseParams, setupChrome, setupFirefox, definesRemoteDriver, setupChromedriver,
-    isChrome, isFirefox, isEdge, isSafari, getCacheDir
-} from './utils.js'
+import { parseParams, getCacheDir, definesRemoteDriver, isChrome, isFirefox, isEdge, isSafari } from './utils.js'
+
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = InstallOptions & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters {}
@@ -70,11 +68,12 @@ export async function startWebDriver (options: Options.WebDriver) {
     }
 
     const port = await getPort()
-    const cacheDir = getCacheDir(options, caps)
+
     if (isChrome(caps.browserName)) {
         /**
          * Chrome
          */
+        const cacheDir = getCacheDir(options, caps['wdio:chromedriverOptions'])
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupChrome(cacheDir, caps)
         const { executablePath: chromedriverExcecuteablePath } = await setupChromedriver(cacheDir, browserVersion)
@@ -89,6 +88,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams)
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
     } else if (isSafari(caps.browserName)) {
+
         const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as WebdriverIO.SafaridriverOptions)
         /**
          * Safari
@@ -109,7 +109,7 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Firefox
          */
         const geckodriverOptions = caps['wdio:geckodriverOptions'] || {}
-        const cacheDir = geckodriverOptions.cacheDir || options.cacheDir || os.tmpdir()
+        const cacheDir = getCacheDir(options, geckodriverOptions)
 
         const exist = await fsp.access(cacheDir).then(() => true, () => false)
         if (!exist) {
@@ -128,6 +128,7 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Microsoft Edge
          */
         const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
+        const cacheDir = getCacheDir(options, edgedriverOptions)
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)

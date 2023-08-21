@@ -1,22 +1,44 @@
 import path from 'node:path'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
-import type * as utils from '../../src/driver/utils.js'
-import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupChrome } from '../../src/driver/utils.js'
+import { setupEdgedriver } from '../../src/driver/edge.js'
+import { setupChromedriver, setupChrome } from '../../src/driver/chrome.js'
+import { setupGeckodriver } from '../../src/driver/firefox.js'
 import { setupDriver, setupBrowser } from '../../src/driver/manager.js'
 
+vi.mock('../../src/driver/edge.js', async (orig) => {
+    const origMod = await orig() as any
+    return {
+        ...origMod,
+        setupEdgedriver: vi.fn(),
+    }
+})
+
+vi.mock('../../src/driver/firefox.js', async (orig) => {
+    const origMod = await orig() as any
+    return {
+        ...origMod,
+        setupGeckodriver: vi.fn(),
+    }
+})
+
+vi.mock('../../src/driver/chrome.js', async (orig) => {
+    const origMod = await orig() as any
+    return {
+        ...origMod,
+        setupChromedriver: vi.fn(),
+        setupChrome: vi.fn(),
+    }
+})
+
 vi.mock('../../src/driver/utils.js', async (orig) => {
-    const origMod = await orig<typeof utils>()
+    const origMod = await orig() as any
     return {
         ...origMod,
         getCacheDir: vi.fn().mockReturnValue('/foo/bar'),
-        setupChromedriver: vi.fn(),
-        setupEdgedriver: vi.fn(),
-        setupGeckodriver: vi.fn(),
-        setupChrome: vi.fn(),
-        setupFirefox: vi.fn()
     }
 })
+
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('setupDriver', () => {

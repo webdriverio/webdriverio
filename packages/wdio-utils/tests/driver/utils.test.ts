@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getChromePath } from 'chrome-launcher'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 
-import { parseParams, getLocalChromePath, getBuildIdByPath, setupChrome, definesRemoteDriver } from '../../src/driver/utils.js'
+import { parseParams, definesRemoteDriver } from '../../src/driver/utils.js'
+import { getLocalChromePath, getBuildIdByPath, setupChrome } from '../../src/driver/chrome.js'
 
 vi.mock('chrome-launcher', () => ({
     getChromePath: vi.fn().mockReturnValue('/foo/bar')

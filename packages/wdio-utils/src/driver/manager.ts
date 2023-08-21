@@ -1,11 +1,11 @@
 import logger from '@wdio/logger'
 import type { Options, Capabilities } from '@wdio/types'
 
-import {
-    getCacheDir, definesRemoteDriver,
-    isSafari, isEdge, isFirefox, isChrome,
-    setupChromedriver, setupEdgedriver, setupGeckodriver, setupChrome
-} from './utils.js'
+import { definesRemoteDriver, getCacheDir, isSafari, isEdge, isFirefox, isChrome } from './utils.js'
+
+import { setupChrome, setupChromedriver } from './chrome.js'
+import { setupEdgedriver } from './edge.js'
+import { setupFirefox, setupGeckodriver } from './firefox.js'
 
 const log = logger('@wdio/utils')
 const UNDEFINED_BROWSER_VERSION = null
@@ -90,12 +90,14 @@ function mapCapabilities (
 
 export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
     return mapCapabilities(options, caps, async (cap: Capabilities.Capabilities) => {
-        const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
+            const cacheDir = getCacheDir(options, cap['wdio:edgedriverOptions'])
             return setupEdgedriver(cacheDir, cap.browserVersion)
         } else if (isFirefox(cap.browserName)) {
+            const cacheDir = getCacheDir(options, cap['wdio:geckodriverOptions'])
             return setupGeckodriver(cacheDir, cap.browserVersion)
         } else if (isChrome(cap.browserName)) {
+            const cacheDir = getCacheDir(options, cap['wdio:chromedriverOptions'])
             return setupChromedriver(cacheDir, cap.browserVersion)
         }
 
@@ -105,14 +107,14 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
 
 export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
     return mapCapabilities(options, caps, async (cap: Capabilities.Capabilities) => {
-        const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
             // not yet implemented
             return Promise.resolve()
         } else if (isFirefox(cap.browserName)) {
-            // not yet implemented
-            return Promise.resolve()
+            const cacheDir = getCacheDir(options, cap['wdio:geckodriverOptions'])
+            return setupFirefox(cacheDir, cap)
         } else if (isChrome(cap.browserName)) {
+            const cacheDir = getCacheDir(options, cap['wdio:chromedriverOptions'])
             return setupChrome(cacheDir, cap)
         }
 

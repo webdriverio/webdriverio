@@ -179,11 +179,16 @@ describe('beforeSession', () => {
 })
 
 describe('_multiRemoteAction', () => {
-    it('resolve if no browser object', () => {
+    it('resolve if no browser object', async () => {
         const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
         tmpService['_browser'] = undefined
-        expect(tmpService._multiRemoteAction({} as any)).toEqual(Promise.resolve())
+
+        const action = tmpService._multiRemoteAction({} as any)
+
+        expect(action instanceof Promise).toEqual(true)
+        expect(await action).toEqual(undefined)
+        expect(action).resolves
     })
 })
 
