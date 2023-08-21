@@ -24,33 +24,34 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
 }
 
 export function defragCliArgs(args?: AppiumServerArguments | Array<string>) {
-    if (Array.isArray(args)) {
-        return args.reduce((acc: KeyValueArgs, currentItem, index, array) => {
-            const nextItem = array[index + 1]
-
-            if (
-                currentItem?.toString().startsWith('--') ||
-                currentItem?.toString().startsWith('-')
-            ) {
-                const [key, value] = (currentItem ?? '').toString().split('=')
-
-                if (value !== undefined) {
-                    acc[key.replace(/^-+/g, '')] = value
-                } else if (
-                    nextItem &&
-                    (nextItem?.toString().startsWith('--') ||
-                        nextItem?.toString().startsWith('-'))
-                ) {
-                    acc[key.replace(/^-+/g, '')] = true
-                } else {
-                    acc[key.replace(/^-+/g, '')] = nextItem
-                }
-            }
-            return acc
-        }, {})
+    if (!Array.isArray(args)) {
+        return args
     }
 
-    return args
+    return args.reduce((acc: KeyValueArgs, currentItem, index, array) => {
+        const nextItem = array[index + 1]
+
+        if (
+            !currentItem?.toString().startsWith('--') &&
+            !currentItem?.toString().startsWith('-')
+        ) {
+            return acc
+        }
+
+        const [key, value] = (currentItem ?? '').toString().split('=')
+        if (value !== undefined) {
+            acc[key.replace(/^--/g, '')] = value
+        } else if (
+            nextItem &&
+            (nextItem?.toString().startsWith('--') ||
+                nextItem?.toString().startsWith('-'))
+        ) {
+            acc[key.replace(/^--/g, '')] = true
+        } else {
+            acc[key.replace(/^--/g, '')] = nextItem
+        }
+        return acc
+    }, {})
 }
 
 export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
@@ -66,7 +67,7 @@ export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
             continue
         }
 
-        cliArgs.push(`--${paramCase(key)}`)
+        cliArgs.push(key.startsWith('-') ? key : `--${paramCase(key)}`)
         // Only non-boolean and non-null values are added as option values
         if (typeof value !== 'boolean') {
             cliArgs.push(sanitizeCliOptionValue(value))

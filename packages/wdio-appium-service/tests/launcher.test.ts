@@ -211,7 +211,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: ['--foo', 'bar', '--port', 1234]
+                args: ['--foo', 'bar', '-p', 1234]
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -351,6 +351,100 @@ describe('Appium launcher', () => {
                         '/foo/bar/appium',
                         '--base-path',
                         '/'
+                    ],
+                    expect.any(Object)
+                )
+            }
+        })
+
+        test('should set correct config properties for array of args', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: ['-a', 'bar', '--relaxed-security', '-p', 1234, '--allow-insecure=adb_shell']
+            }
+            const capabilities = [{} as Capabilities.DesiredCapabilities]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/',
+                        '-a',
+                        'bar',
+                        '--relaxed-security',
+                        '-p',
+                        '1234',
+                        '--allow-insecure',
+                        'adb_shell',
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '-a',
+                        'bar',
+                        '--relaxed-security',
+                        '-p',
+                        '1234',
+                        '--allow-insecure',
+                        'adb_shell',
+                    ],
+                    expect.any(Object)
+                )
+            }
+        })
+
+        test('should set correct config properties for object of args', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { '-a': 'bar', 'relaxed-security': true, port: 1234, 'allow-insecure': 'adb_shell' }
+            }
+            const capabilities = [{} as Capabilities.DesiredCapabilities]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/',
+                        '-a',
+                        'bar',
+                        '--relaxed-security',
+                        '--port',
+                        '1234',
+                        '--allow-insecure',
+                        'adb_shell',
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '-a',
+                        'bar',
+                        '--relaxed-security',
+                        '--port',
+                        '1234',
+                        '--allow-insecure',
+                        'adb_shell',
                     ],
                     expect.any(Object)
                 )

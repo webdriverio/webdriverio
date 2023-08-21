@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, beforeAll, test } from 'vitest'
-import { getFilePath, formatCliArgs } from '../src/utils.js'
+import { getFilePath, formatCliArgs, defragCliArgs } from '../src/utils.js'
 
 describe('getFilePath', () => {
     let basePath: string
@@ -175,5 +175,39 @@ describe('argument formatting', () => {
         const args = formatCliArgs(argsArray)
 
         expect(args).toEqual(['-p', '4723'])
+    })
+})
+
+describe('argument defragging', () => {
+    test('should defrags arguments correctly for object', () => {
+        const args = defragCliArgs({
+            '-a': '127.0.0.1',
+            port: 4723,
+            '--relaxed-security': true,
+            'allow-insecure': 'foo'
+        })
+
+        expect(args).toEqual({
+            '-a': '127.0.0.1',
+            port: 4723,
+            '--relaxed-security': true,
+            'allow-insecure': 'foo'
+        })
+    })
+
+    test('should defrags arguments correctly for array', () => {
+        const args = defragCliArgs([
+            '-a', '127.0.0.1',
+            '--port', 4723,
+            '--relaxed-security', true,
+            '--allow-insecure=foo'
+        ])
+
+        expect(args).toEqual({
+            '-a': '127.0.0.1',
+            port: 4723,
+            'relaxed-security': true,
+            'allow-insecure': 'foo'
+        })
     })
 })

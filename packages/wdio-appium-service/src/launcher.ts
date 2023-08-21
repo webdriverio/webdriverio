@@ -70,6 +70,12 @@ export default class AppiumLauncher implements Services.ServiceInstance {
      * to Appium server
      */
     private _setCapabilities() {
+        let desiredProperty = 'port' // Use 'port' property by default
+
+        if ('-p' in this._args) {
+            desiredProperty = '-p' // Use '-p' property if it exists
+        }
+
         /**
          * Multiremote sessions
          */
@@ -80,7 +86,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 !isCloudCapability(c) && Object.assign(
                     capability,
                     DEFAULT_CONNECTION,
-                    'port' in this._args ? { port: this._args.port } : {},
+                    desiredProperty in this._args ? { port: this._args[desiredProperty] } : {},
                     { path: this._args.basePath },
                     { ...capability }
                 )
@@ -99,7 +105,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                         !isCloudCapability(capa) && Object.assign(
                             c,
                             DEFAULT_CONNECTION,
-                            'port' in this._args ? { port: this._args.port } : {},
+                            desiredProperty in this._args ? { port: this._args[desiredProperty] } : {},
                             { path: this._args.basePath },
                             { ...c }
                         )
@@ -109,7 +115,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
                         cap,
                         DEFAULT_CONNECTION,
-                        'port' in this._args ? { port: this._args.port } : {},
+                        desiredProperty in this._args ? { port: this._args[desiredProperty] } : {},
                         { path: this._args.basePath },
                         { ...cap }
                     )
