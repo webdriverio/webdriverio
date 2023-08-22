@@ -66,7 +66,7 @@ export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
         return contents
             .split('\n')
             .filter((line) => line.startsWith('Version='))
-            .map((line) => line.replace('Version=', ''))
+            .map((line) => line.replace('Version=', '').replace(/\r/, ''))
             .pop()
     }
 
@@ -140,8 +140,6 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
         browser: browserName,
         downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(browserName, downloadedBytes, totalBytes)
     }
-    console.log('CHECK', buildId, browserName, platform, tag)
-
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
         throw new Error(`Couldn't find a matching Chrome browser for tag "${buildId}" on platform "${platform}"`)
