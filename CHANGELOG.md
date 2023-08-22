@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.6 (2023-08-22)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-utils`
+  * [#10971](https://github.com/webdriverio/webdriverio/pull/10971) (@wdio/utils): set edge binary path in caps ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-reporter`
+  * [#10998](https://github.com/webdriverio/webdriverio/pull/10998) (@wdio/reporter): support CJS environments ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`, `wdio-mocha-framework`
+  * [#10975](https://github.com/webdriverio/webdriverio/pull/10975) Adding esmDecorator & unloadFiles ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.15.4 (2023-08-16)
 
 #### :bug: Bug Fix

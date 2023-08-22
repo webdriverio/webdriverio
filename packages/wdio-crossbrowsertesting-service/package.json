@@ -1,6 +1,6 @@
 {
   "name": "@wdio/crossbrowsertesting-service",
-  "version": "8.15.4",
+  "version": "8.15.6",
   "description": "A WebdriverIO service that manages local tunnel and job metadata for CrossBrowserTesting users.",
   "author": "Daphne Magsby <daphnem@crossbrowsertesting.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service",
@@ -33,7 +33,7 @@
     "@wdio/types": "8.15.0",
     "cbt_tunnels": "^1.2.2",
     "got": "^ 12.6.1",
-    "webdriverio": "8.15.4"
+    "webdriverio": "8.15.6"
   },
   "devDependencies": {
     "@types/node": "^20.1.0"
