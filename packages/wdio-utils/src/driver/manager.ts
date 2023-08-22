@@ -4,7 +4,7 @@ import type { Options, Capabilities } from '@wdio/types'
 import {
     getCacheDir, definesRemoteDriver,
     isSafari, isEdge, isFirefox, isChrome,
-    setupChromedriver, setupEdgedriver, setupGeckodriver, setupChrome
+    setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser
 } from './utils.js'
 
 const log = logger('@wdio/utils')
@@ -109,11 +109,8 @@ export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, 
         if (isEdge(cap.browserName)) {
             // not yet implemented
             return Promise.resolve()
-        } else if (isFirefox(cap.browserName)) {
-            // not yet implemented
-            return Promise.resolve()
-        } else if (isChrome(cap.browserName)) {
-            return setupChrome(cacheDir, cap)
+        } else if (isChrome(cap.browserName) || isFirefox(cap.browserName)) {
+            return setupPuppeteerBrowser(cacheDir, cap)
         }
 
         return Promise.resolve()
