@@ -6,6 +6,7 @@ import { TestStats } from '@wdio/reporter'
 import WDIOJunitReporter from '../src/index.js'
 
 const mochaRunnerLog = (await vi.importActual('./__fixtures__/mocha-runner.json') as any).default
+const mochaRunnerNestedArrayOfSuitesLog = (await vi.importActual('./__fixtures__/mocha-runner-nested-array-specs.json') as any).default
 const cucumberRunnerLog = (await vi.importActual('./__fixtures__/cucumber-runner.json') as any).default
 const cucumberRunnerBrowserstackIosLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-ios.json') as any).default
 const cucumberRunnerBrowserstackAndroidLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-android.json') as any).default
@@ -17,6 +18,7 @@ const featuresWithFailingThenSkipStepLog = (await vi.importActual('./__fixtures_
 const featuresWithPendingStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-pending-step.json') as any).default
 const featuresWithErrorStepAndNoErrorObjectLog = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object.json') as any).default
 const nestedSuites = (await vi.importActual('./__fixtures__/nested-suites.json') as any).default
+const nestedArrayOfSuites = (await vi.importActual('./__fixtures__/nested-array-suites.json') as any).default
 const unorderedFeatureAndScenarioWithError = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json') as any).default
 const suitesWithFailedBeforeEachHookLog = (await vi.importActual('./__fixtures__/suites-with-failed-before-each-hook.json') as any).default
 const suitesWithFailedAfterEachHookLog = (await vi.importActual('./__fixtures__/suites-with-failed-after-each-hook.json') as any).default
@@ -289,6 +291,11 @@ describe('wdio-junit-reporter', () => {
     it('generates xml output correctly when having nested suites', () => {
         reporter.suites = nestedSuites as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having nested array of suites', () => {
+        reporter.suites = nestedArrayOfSuites as any
+        expect(reporter['_buildJunitXml'](mochaRunnerNestedArrayOfSuitesLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
