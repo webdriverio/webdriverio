@@ -25,10 +25,19 @@
     "access": "public"
   },
   "type": "module",
+  "main": "./cjs/index.js",
+  "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./cjs/index.js"
+      },
+      "./cjs/index.js"
+    ]
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
