@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
 import type * as utils from '../../src/driver/utils.js'
-import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupChrome } from '../../src/driver/utils.js'
+import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser } from '../../src/driver/utils.js'
 import { setupDriver, setupBrowser } from '../../src/driver/manager.js'
 
 vi.mock('../../src/driver/utils.js', async (orig) => {
@@ -13,7 +13,7 @@ vi.mock('../../src/driver/utils.js', async (orig) => {
         setupChromedriver: vi.fn(),
         setupEdgedriver: vi.fn(),
         setupGeckodriver: vi.fn(),
-        setupChrome: vi.fn()
+        setupPuppeteerBrowser: vi.fn()
     }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -196,7 +196,7 @@ describe('setupDriver', () => {
 
 describe('setupBrowser', () => {
     beforeEach(() => {
-        vi.mocked(setupChrome).mockClear()
+        vi.mocked(setupPuppeteerBrowser).mockClear()
     })
 
     test('with testrunner capabilities', async () => {
@@ -219,14 +219,22 @@ describe('setupBrowser', () => {
             browserName: 'firefox',
             browserVersion: '6'
         }])
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 
@@ -269,14 +277,22 @@ describe('setupBrowser', () => {
                 }
             }
         })
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 
@@ -321,14 +337,22 @@ describe('setupBrowser', () => {
                 }
             }
         }])
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 })

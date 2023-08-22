@@ -140,6 +140,8 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
         browser: browserName,
         downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(browserName, downloadedBytes, totalBytes)
     }
+    console.log('CHECK', buildId, browserName, platform, tag)
+
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
         throw new Error(`Couldn't find a matching Chrome browser for tag "${buildId}" on platform "${platform}"`)

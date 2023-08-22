@@ -71,6 +71,14 @@ vi.mock('../../src/driver/detectBackend.js', () => ({
     })
 }))
 
+vi.mock('../../src/driver/utils.js', async (actualMod) => ({
+    ...(await actualMod() as any),
+    setupPuppeteerBrowser: vi.fn().mockResolvedValue({
+        executablePath: '/path/to/browser',
+        browserVersion: '1.2.3'
+    })
+}))
+
 describe('startWebDriver', () => {
     const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
     beforeEach(() => {
@@ -127,6 +135,9 @@ describe('startWebDriver', () => {
             port: 1234,
             capabilities: {
                 browserName: 'firefox',
+                'moz:firefoxOptions': {
+                    binary: '/path/to/browser'
+                },
                 'wdio:geckodriverOptions': {
                     foo: 'bar'
                 },
@@ -194,8 +205,7 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fsp.access).toBeCalledTimes(2)
-        expect(fsp.mkdir).toBeCalledTimes(1)
+        expect(fsp.access).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
