@@ -128,7 +128,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style)', () => {
@@ -156,7 +156,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesWithNoErrorObjectLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON (Cucumber-style)', () => {
@@ -184,35 +184,35 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesHooksLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if before each hook failed', () => {
         reporter.suites = suitesWithFailedBeforeEachHookLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if after each hook failed', () => {
         reporter.suites = suitesWithFailedAfterEachHookLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output when test is marked as skipped', () => {
         reporter.suites = suiteTestRetry as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set', () => {
@@ -226,7 +226,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set (Cucumber-style)', () => {
@@ -272,7 +272,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when the addFileAttribute option is set (Cucumber-style)', () => {
@@ -285,17 +285,17 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output without ansi', () => {
         reporter.suites = suitesErrorLog as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when having nested suites', () => {
         reporter.suites = nestedSuites as any
-        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when having nested array of suites', () => {
         reporter.suites = nestedArrayOfSuites as any
-        expect(reporter['_buildJunitXml'](mochaRunnerNestedArrayOfSuitesLog as any).replace(/\s/g, '').replace(/file:\/\/\/C:/g, '')).toMatchSnapshot()
+        expect(reporter['_buildJunitXml'](mochaRunnerNestedArrayOfSuitesLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
