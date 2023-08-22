@@ -32,7 +32,7 @@ vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@w
 if (os.platform() === 'win32') {
     cucumberRunnerLog.specs = ['file:///C:/features/sample_feature.feature']
     mochaRunnerLog.specs = ['file:///C:/path/to/project/test/specs/sync.spec.js']
-    mochaRunnerNestedArrayOfSuitesLog.specs = ['file:///C:/path/to/project/test/specs/sync.spec.js', 'file:///C:/path/to/project/test/specs/sync_2.spec.js']
+    mochaRunnerNestedArrayOfSuitesLog.specs = ['file:///C:/path/to/project/test/specs/sync_0.spec.js', 'file:///C:/path/to/project/test/specs/sync_1.spec.js']
     cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackAndroidLog.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackIosLog.specs = ['file:///C:/features/sample_feature.feature']
@@ -43,8 +43,9 @@ if (os.platform() === 'win32') {
     }
 
     for (const fixture of [suitesLog, suitesErrorLog, suitesHooksLog, suiteTestRetry, suitesMultipleLog, suitesWithFailedAfterEachHookLog, suitesWithFailedBeforeEachHookLog, suitesWithNoErrorObjectLog, nestedArrayOfSuites, nestedSuites]) {
-        for (const [, suite] of Object.entries(fixture) as any) {
-            suite.file = 'C:\\path\\to\\project\\test\\specs\\sync.spec.js'
+        for (const [index, [, suite]] of Object.entries(Object.entries(fixture)) as any) {
+            const specFileName = (fixture === nestedArrayOfSuites) ? `sync_${index}` : 'sync'
+            suite.file = `C:\\path\\to\\project\\test\\specs\\${specFileName}.spec.js`
         }
     }
 }
