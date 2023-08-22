@@ -98,8 +98,8 @@
         }
     },
     "specs": [
-        "file:///examples/wdio/mocha/mocha.test.js",
-        "file:///examples/wdio/mocha/mocha_2.test.js"
+        "file:///path/to/project/test/specs/sync.spec.js",
+        "file:///path/to/project/test/specs/sync_2.spec.js"
     ],
     "failures": 0,
     "end": "2018-04-17T09:09:28.678Z"

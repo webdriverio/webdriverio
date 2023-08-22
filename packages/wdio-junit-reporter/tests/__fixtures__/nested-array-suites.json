@@ -6,7 +6,7 @@
       "_duration": 6141,
       "uid": "suite-0-0",
       "cid": "0-0",
-      "file": "/examples/wdio/mocha/mocha.test.js",
+      "file": "/path/to/project/test/specs/sync.spec.js",
       "title": "My Login application",
       "fullTitle": "My Login application",
       "tests": [
@@ -52,7 +52,7 @@
       "_duration": 852,
       "uid": "suite-0-1",
       "cid": "0-0",
-      "file": "/examples/wdio/mocha/mocha_2.test.js",
+      "file": "/path/to/project/test/specs/sync_2.spec.js",
       "title": "My Login application",
       "fullTitle": "My Login application",
       "tests": [
