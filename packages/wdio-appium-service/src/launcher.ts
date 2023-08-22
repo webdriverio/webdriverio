@@ -13,7 +13,7 @@ import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { getFilePath, defragCliArgs, formatCliArgs } from './utils.js'
+import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
@@ -39,7 +39,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     ) {
         this._args = {
             basePath: DEFAULT_CONNECTION.path,
-            ...(defragCliArgs(this._options.args) || {})
+            ...(this._options.args || {})
         }
         this._logPath = _options.logPath || this._config?.outputDir
     }
@@ -124,6 +124,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     async onPrepare() {
+        /**
+         * Throws an error if `this._options.args` is defined and is an array.
+         * @throws {Error} If `this._options.args` is an array.
+         */
+        if (this._options.args && Array.isArray(this._options.args)) {
+            throw new Error('Args should be an object')
+        }
         /**
          * Append remaining arguments
          */

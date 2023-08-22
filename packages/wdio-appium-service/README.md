@@ -86,9 +86,9 @@ export const config = {
 Map of arguments for the Appium server, passed directly to `appium`.
 
 See [the documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/server-args/index.html) for possible arguments.
-The arguments should be supplied in lower camel case, so `--pre-launch true` becomes `preLaunch: true` or passed as an array.
+The arguments are supplied in lower camel case. For instance, `debugLogSpacing: true` transforms into `--debug-log-spacing true`, or they can be supplied as outlined in the Appium documentation.
 
-Type: `Object` or `Array`
+Type: `Object`
 
 Default: `{}`
 
@@ -102,10 +102,10 @@ export const config = {
                 // ...
                 debugLogSpacing: true,
                 platformName: 'iOS',
+                '-p': 1234,
+                '--relaxed-security': true
                 // ...
             }
-            // or
-            // args: ['-p', '4722', '--relaxed-security', '--log-level', 'info:info']
         }]
     ],
     // ...

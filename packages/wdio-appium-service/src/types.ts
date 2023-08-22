@@ -31,7 +31,7 @@ export interface AppiumServiceConfig {
      * Map of arguments for the Appium server, passed directly to `appium`.
      * @default {}
      */
-    args?: AppiumServerArguments | Array<string>
+    args?: AppiumServerArguments
 }
 
 export type ArgValue = string | number | boolean | null

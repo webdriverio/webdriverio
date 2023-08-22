@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, beforeAll, test } from 'vitest'
-import { getFilePath, formatCliArgs, defragCliArgs } from '../src/utils.js'
+import { getFilePath, formatCliArgs } from '../src/utils.js'
 
 describe('getFilePath', () => {
     let basePath: string
@@ -157,7 +157,8 @@ describe('argument formatting', () => {
             commandTimeout: '7200',
             showIosLog: false,
             sessionOverride: true,
-            app: '/Users/frodo/My Projects/the-ring/the-ring.app'
+            app: '/Users/frodo/My Projects/the-ring/the-ring.app',
+            '-p': 1234
         })
 
         expect(args[0]).toBe('--address')
@@ -167,47 +168,8 @@ describe('argument formatting', () => {
         expect(args[4]).toBe('--session-override')
         expect(args[5]).toBe('--app')
         expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
-        expect(args.length).toBe(7)
-    })
-
-    test('should coerce arguments to string if array is passed', () => {
-        const argsArray = ['-p', 4723]
-        const args = formatCliArgs(argsArray)
-
-        expect(args).toEqual(['-p', '4723'])
-    })
-})
-
-describe('argument defragging', () => {
-    test('should defrags arguments correctly for object', () => {
-        const args = defragCliArgs({
-            '-a': '127.0.0.1',
-            port: 4723,
-            '--relaxed-security': true,
-            'allow-insecure': 'foo'
-        })
-
-        expect(args).toEqual({
-            '-a': '127.0.0.1',
-            port: 4723,
-            '--relaxed-security': true,
-            'allow-insecure': 'foo'
-        })
-    })
-
-    test('should defrags arguments correctly for array', () => {
-        const args = defragCliArgs([
-            '-a', '127.0.0.1',
-            '--port', 4723,
-            '--relaxed-security', true,
-            '--allow-insecure=foo'
-        ])
-
-        expect(args).toEqual({
-            '-a': '127.0.0.1',
-            port: 4723,
-            'relaxed-security': true,
-            'allow-insecure': 'foo'
-        })
+        expect(args[7]).toBe('-p')
+        expect(args[8]).toBe('1234')
+        expect(args.length).toBe(9)
     })
 })
