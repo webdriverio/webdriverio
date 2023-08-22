@@ -247,7 +247,14 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 </TabItem>
 <TabItem value="firefox">
 
-When testing on Firefox, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Firefox, you can let WebdriverIO setup Firefox Nightly for you by providing `latest` as `browserVersion`:
+
+```ts
+    browserName: 'firefox',
+    browserVersion: 'latest'
+```
+
+If you like to test a manually downloaded version you can provide a binary path to the browser via:
 
 ```ts
     browserName: 'firefox',
