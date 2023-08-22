@@ -381,7 +381,7 @@ export default class Runner extends EventEmitter {
             /**
              * don't write to file if no logs were captured
              */
-            if (!logs || logs.length === 0) {
+            if (!logs || !Array.isArray(logs) || logs.length === 0) {
                 return
             }
 
