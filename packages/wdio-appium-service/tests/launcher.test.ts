@@ -66,10 +66,9 @@ class MockCustomFailingProcess extends MockFailingProcess {
 }
 
 vi.mock('../src/utils', async () => {
-    const { defragCliArgs, formatCliArgs } = await vi.importActual('../src/utils.js') as any
+    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
     return {
         getFilePath: vi.fn().mockReturnValue('/some/file/path'),
-        defragCliArgs,
         formatCliArgs
     }
 })
