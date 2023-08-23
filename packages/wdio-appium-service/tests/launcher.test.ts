@@ -89,7 +89,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command:'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
             const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -105,8 +105,10 @@ describe('Appium launcher', () => {
                         'path/to/my_custom_appium',
                         '--base-path',
                         '/',
-                        '--foo',
-                        'bar'
+                        '--address',
+                        'bar',
+                        '--default-capabilities',
+                        '{"foo":"bar"}'
                     ],
                     expect.any(Object)
                 )
@@ -116,8 +118,10 @@ describe('Appium launcher', () => {
                     [
                         '--base-path',
                         '/',
-                        '--foo',
-                        'bar'
+                        '--address',
+                        'bar',
+                        '--default-capabilities',
+                        '{"foo":"bar"}'
                     ],
                     expect.any(Object)
                 )
@@ -132,7 +136,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: {} },
@@ -154,7 +158,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }
             const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
                 browserA: { port: 1234, capabilities: {} },
@@ -186,7 +190,7 @@ describe('Appium launcher', () => {
         test('should not override cloud config using multiremote', async () => {
             const options = {
                 logPath : './',
-                args : { foo : 'foo' },
+                args : { address: 'foo' },
                 installArgs : { bar : 'bar' },
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
@@ -210,7 +214,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+                args: { address:'bar', port: 1234 }
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -230,7 +234,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
+                args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
             const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -254,7 +258,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
@@ -265,7 +269,7 @@ describe('Appium launcher', () => {
                     'path/to/my_custom_appium',
                     '--base-path',
                     '/',
-                    '--foo',
+                    '--address',
                     'bar'
                 ],
                 expect.any(Object)
@@ -281,7 +285,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
@@ -294,7 +298,7 @@ describe('Appium launcher', () => {
 
             const launcher = new AppiumLauncher({
                 logPath: './',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
@@ -305,7 +309,7 @@ describe('Appium launcher', () => {
                         expect.any(String),
                         '--base-path',
                         '/',
-                        '--foo',
+                        '--address',
                         'bar'
                     ],
                     expect.any(Object)
@@ -317,7 +321,7 @@ describe('Appium launcher', () => {
                         '/foo/bar/appium',
                         '--base-path',
                         '/',
-                        '--foo',
+                        '--address',
                         'bar'
                     ],
                     expect.any(Object)
@@ -357,7 +361,7 @@ describe('Appium launcher', () => {
         })
 
         test('should start Appium', async () => {
-            const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {} as any)
+            const launcher = new AppiumLauncher({ args: { localTimezone: true } }, [], {} as any)
             await launcher.onPrepare()
         })
 
@@ -387,6 +391,16 @@ describe('Appium launcher', () => {
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
             expect(error).toEqual(expectedError)
+        })
+
+        test('should result in an error when args is not of object type', async () => {
+            const options = {
+                args: []
+            }
+            // @ts-ignore test invalid param type!
+            const launcher = new AppiumLauncher(options, [], {} as any)
+            const expectedError = new Error('Args should be an object')
+            await expect(launcher.onPrepare()).rejects.toEqual(expectedError)
         })
     })
 
