@@ -122,7 +122,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * Throws an error if `this._options.args` is defined and is an array.
          * @throws {Error} If `this._options.args` is an array.
          */
-        if (this._options.args && Array.isArray(this._options.args)) {
+        if (Array.isArray(this._options.args)) {
             throw new Error('Args should be an object')
         }
         /**
