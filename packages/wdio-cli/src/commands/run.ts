@@ -180,11 +180,16 @@ export async function handler(argv: RunCommandArguments) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
         const localTSConfigPath = (
             (
+                process.env.TS_NODE_PROJECT &&
+                path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
+            ) ||
+            (
                 params.autoCompileOpts?.tsNodeOpts?.project &&
                 path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
             ) ||
             path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
         )
+        await fs.access(localTSConfigPath)
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
             reject: false,

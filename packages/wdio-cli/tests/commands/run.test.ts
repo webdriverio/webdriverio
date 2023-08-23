@@ -107,13 +107,36 @@ describe('Command: run', () => {
             delete process.env.NODE_OPTIONS
         })
 
-        it('should restart process if esm loader if needed', async () => {
+        it('should restart process if esm loader is needed', async () => {
+            vi.mocked(fs.access).mockResolvedValue()
             expect(execa).toBeCalledTimes(0)
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
                 .toContain('--loader ts-node/esm/transpile-only')
+        })
+
+        it('should load custom tsconfig', async () => {
+            vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
+            expect(execa).toBeCalledTimes(0)
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            process.env.TS_NODE_PROJECT = './config/tsconfig.e2e.json'
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(execa).toBeCalledTimes(1)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env.TS_NODE_PROJECT)
+                .toContain('/config/tsconfig.e2e.json')
+        })
+
+        it('should load custom ts-node options', async () => {
+            vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
+            expect(execa).toBeCalledTimes(0)
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            process.env.TS_NODE_TYPE_CHECK = 'true'
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(execa).toBeCalledTimes(1)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env.TS_NODE_TYPE_CHECK)
+                .toContain('true')
         })
 
         it('should not restart if loader is already provided', async () => {
