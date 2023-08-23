@@ -85,8 +85,8 @@ export const config = {
 ### args
 Map of arguments for the Appium server, passed directly to `appium`.
 
-See [the documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/server-args/index.html) for possible arguments.
-The arguments are supplied in lower camel case. For instance, `debugLogSpacing: true` transforms into `--debug-log-spacing true`, or they can be supplied as outlined in the Appium documentation.
+See [the documentation](https://github.com/appium/appium/blob/master/packages/appium/docs/en/cli/args.md) for possible arguments.
+The arguments are supplied in lower camel case. For instance, `debugLogSpacing: true` transforms into `--debug-log-spacing`, or they can be supplied as outlined in the Appium documentation.
 
 Type: `Object`
 
@@ -101,9 +101,7 @@ export const config = {
             args: {
                 // ...
                 debugLogSpacing: true,
-                platformName: 'iOS',
-                '-p': 1234,
-                '--relaxed-security': true
+                platformName: 'iOS'
                 // ...
             }
         }]
@@ -111,6 +109,7 @@ export const config = {
     // ...
 }
 ```
+**Note:** The utilization of aliases is discouraged and unsupported. Instead, please use the full property name in lower camel case.
 
 ----
 

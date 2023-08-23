@@ -211,7 +211,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { '--foo' :'bar', '-p': 1234 }
+                args: { foo :'bar', port: 1234 }
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -395,9 +395,8 @@ describe('Appium launcher', () => {
                 args: []
             }
             const launcher = new AppiumLauncher(options, [], {} as any)
-            const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Args should be an object')
-            expect(error).toEqual(expectedError)
+            await expect(launcher.onPrepare()).rejects.toEqual(expectedError)
         })
     })
 

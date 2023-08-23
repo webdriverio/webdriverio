@@ -157,8 +157,7 @@ describe('argument formatting', () => {
             commandTimeout: '7200',
             showIosLog: false,
             sessionOverride: true,
-            app: '/Users/frodo/My Projects/the-ring/the-ring.app',
-            '-p': 1234
+            app: '/Users/frodo/My Projects/the-ring/the-ring.app'
         })
 
         expect(args[0]).toBe('--address')
@@ -168,8 +167,6 @@ describe('argument formatting', () => {
         expect(args[4]).toBe('--session-override')
         expect(args[5]).toBe('--app')
         expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
-        expect(args[7]).toBe('-p')
-        expect(args[8]).toBe('1234')
-        expect(args.length).toBe(9)
+        expect(args.length).toBe(7)
     })
 })
