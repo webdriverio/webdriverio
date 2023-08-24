@@ -178,18 +178,18 @@ export async function handler(argv: RunCommandArguments) {
     )
     if (isTSFile && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        const tsNodeProjectFromEnvVar = process.env.TS_NODE_PROJECT &&
+            path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
+        const tsNodeProjectFromParams = params.autoCompileOpts?.tsNodeOpts?.project &&
+            path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
+        const tsNodeProjectRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+        if (tsNodeProjectFromParams) {
+            console.log('Deprecated: use the TS_NODE_PROJECT environment variable instead')
+        }
         const localTSConfigPath = (
-            (
-                process.env.TS_NODE_PROJECT &&
-                path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
-            ) ||
-            (
-                params.autoCompileOpts?.tsNodeOpts?.project &&
-                path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
-            ) ||
-            path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        )
-        await fs.access(localTSConfigPath)
+            tsNodeProjectFromEnvVar ||
+            tsNodeProjectFromParams ||
+            tsNodeProjectRelativeToWdioConfig)
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
             reject: false,
