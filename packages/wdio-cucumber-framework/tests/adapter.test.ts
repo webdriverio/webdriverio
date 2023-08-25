@@ -257,12 +257,8 @@ describe('CucumberAdapter', () => {
 
         // @ts-expect-error
         vi.mocked(Cucumber.BeforeStep).mock.calls[0][0].bind(cukeWorld)({
-            pickle: {
-                name: 'scenario',
-            },
-            pickleStep: {
-                text: 'step',
-            },
+            pickle: 'scenario',
+            pickleStep: 'step',
         })
         expect(executeHooksWithArgs).toBeCalledWith(
             'beforeStep',
@@ -272,12 +268,8 @@ describe('CucumberAdapter', () => {
 
         // @ts-expect-error
         vi.mocked(Cucumber.AfterStep).mock.calls[0][0].bind(cukeWorld)({
-            pickle: {
-                name: 'scenario',
-            },
-            pickleStep: {
-                text: 'step',
-            },
+            pickle: 'scenario',
+            pickleStep: 'step',
             result: {
                 duration: NaN,
                 error: undefined,

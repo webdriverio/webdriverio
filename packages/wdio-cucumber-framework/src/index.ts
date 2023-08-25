@@ -110,6 +110,7 @@ class CucumberAdapter {
             _cid: this._cid,
             _specs: this._specs,
             _eventEmitter: this._eventEmitter,
+            _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter
         }
 
         const builder = new Gherkin.AstBuilder(uuidFn)
@@ -377,26 +378,19 @@ class CucumberAdapter {
             )
         })
 
-        supportCodeLibraryBuilder.methods.BeforeStep(async function ({
-            pickle,
-            pickleStep,
-        }) {
+        supportCodeLibraryBuilder.methods.BeforeStep(async function (world) {
             await executeHooksWithArgs('beforeStep', config.beforeStep, [
-                pickleStep.text,
-                pickle.name,
+                world.pickleStep,
+                world.pickle,
                 this,
             ])
         })
 
-        supportCodeLibraryBuilder.methods.AfterStep(async function ({
-            pickle,
-            pickleStep,
-            result,
-        }) {
+        supportCodeLibraryBuilder.methods.AfterStep(async function (world) {
             await executeHooksWithArgs('afterStep', config.afterStep, [
-                pickleStep.text,
-                pickle.name,
-                result,
+                world.pickleStep,
+                world.pickle,
+                getResultObject(world),
                 this,
             ])
         })

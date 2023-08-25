@@ -2,6 +2,10 @@ import type { IFormatterOptions } from '@cucumber/cucumber'
 import { Formatter, Status } from '@cucumber/cucumber'
 import type { EventEmitter } from 'node:events'
 
+import logger from '@wdio/logger'
+
+const log = logger('CucumberFormatter')
+
 import type {
     Envelope,
     GherkinDocument,
@@ -43,6 +47,7 @@ export default class CucumberFormatter extends Formatter {
     private cid: string
     private specs: string[]
     private eventEmitter: EventEmitter
+    private scenarioLevelReporter: boolean
 
     private _featureStart?: Date
     private _scenarioStart?: Date
@@ -50,7 +55,7 @@ export default class CucumberFormatter extends Formatter {
 
     constructor(options: IFormatterOptions) {
         super(options)
-
+        let results: TestStepResult[] = []
         options.eventBroadcaster.on('envelope', (envelope: Envelope) => {
             if (envelope.gherkinDocument) {
                 this.onGherkinDocument(envelope.gherkinDocument)
@@ -61,15 +66,30 @@ export default class CucumberFormatter extends Formatter {
             } else if (envelope.testCase) {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
+                results = []
                 this.onTestCaseStarted(envelope.testCaseStarted)
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
+                results.push(envelope.testStepFinished.testStepResult!)
                 this.onTestStepFinished(envelope.testStepFinished)
             } else if (envelope.testCaseFinished) {
-                this.onTestCaseFinished()
+                /**
+                 * only store result if step isn't retried
+                 */
+                if (envelope.testCaseFinished.willBeRetried) {
+                    return log.debug(
+                        `test case with id ${envelope.testCaseFinished.testCaseStartedId} will be retried, ignoring result`
+                    )
+                }
+                this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
+            } else if (envelope.source) {
+                // do nothing for step definition patterns
+            } else {
+                /* istanbul ignore next */
+                log.debug(`Unknown envelope received: ${JSON.stringify(envelope, null, 4)}`)
             }
         })
 
@@ -77,6 +97,7 @@ export default class CucumberFormatter extends Formatter {
         this.cid = options.parsedArgvOptions._cid
         this.specs = options.parsedArgvOptions._specs
         this.eventEmitter = options.parsedArgvOptions._eventEmitter
+        this.scenarioLevelReporter = options.parsedArgvOptions._scenarioLevelReporter
     }
 
     emit(event: string, payload: any) {
@@ -354,100 +375,104 @@ export default class CucumberFormatter extends Formatter {
             rule: reporterScenario.rule,
         }
 
-        this.emit('suite:start', payload)
+        this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', payload)
     }
 
     onTestStepStarted(testStepStartedEvent: TestStepStarted) {
-        const testcase = this._testCases.find(
-            (testcase) =>
-                this._currentTestCase &&
-                testcase.id === this._currentTestCase.testCaseId
-        )
-        const scenario = this._scenarios.find(
-            (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
-        )
-        const teststep = testcase?.testSteps?.find(
-            (step) => step.id === testStepStartedEvent.testStepId
-        )
-        const step =
-            scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-            teststep
+        if (!this.scenarioLevelReporter) {
+            const testcase = this._testCases.find(
+                (testcase) =>
+                    this._currentTestCase &&
+                    testcase.id === this._currentTestCase.testCaseId
+            )
+            const scenario = this._scenarios.find(
+                (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
+            )
+            const teststep = testcase?.testSteps?.find(
+                (step) => step.id === testStepStartedEvent.testStepId
+            )
+            const step =
+                scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
+                teststep
 
-        const doc = this._gherkinDocEvents.find(
-            (gde) => gde.uri === scenario?.uri
-        )
-        const uri = doc?.uri
-        const feature = doc?.feature
+            const doc = this._gherkinDocEvents.find(
+                (gde) => gde.uri === scenario?.uri
+            )
+            const uri = doc?.uri
+            const feature = doc?.feature
 
-        /* istanbul ignore if */
-        if (!step) {
-            return
-        }
+            /* istanbul ignore if */
+            if (!step) {
+                return
+            }
 
-        this._currentPickle = { uri, feature, scenario, step }
+            this._currentPickle = { uri, feature, scenario, step }
 
-        this._testStart = new Date()
-        const type = getStepType(step)
-        const payload = buildStepPayload(
-            uri as string,
-            feature as Feature,
-            scenario as Pickle,
-            step as PickleStep,
-            { type }
-        )
-
-        this.emit(`${type}:start`, payload)
-    }
-
-    onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
-        const testcase = this._testCases.find(
-            (testcase) => testcase.id === this._currentTestCase?.testCaseId
-        )
-        const scenario = this._scenarios.find(
-            (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
-        )
-        const teststep = testcase?.testSteps?.find(
-            (step) => step.id === testStepFinishedEvent.testStepId
-        )
-        const step =
-            scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-            teststep
-        const result = testStepFinishedEvent.testStepResult
-
-        const doc = this._gherkinDocEvents.find(
-            (gde) => gde.uri === scenario?.uri
-        )
-        const uri = doc?.uri
-        const feature = doc?.feature
-
-        /* istanbul ignore if */
-        if (!step) {
-            return
-        }
-
-        delete this._currentPickle
-
-        const type = getStepType(step)
-        if (type === 'hook') {
-            return this.afterHook(
+            this._testStart = new Date()
+            const type = getStepType(step)
+            const payload = buildStepPayload(
                 uri as string,
                 feature as Feature,
                 scenario as Pickle,
-                step,
+                step as PickleStep,
+                { type }
+            )
+
+            this.emit(`${type}:start`, payload)
+        }
+    }
+
+    onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
+        if (!this.scenarioLevelReporter) {
+            const testcase = this._testCases.find(
+                (testcase) => testcase.id === this._currentTestCase?.testCaseId
+            )
+            const scenario = this._scenarios.find(
+                (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
+            )
+            const teststep = testcase?.testSteps?.find(
+                (step) => step.id === testStepFinishedEvent.testStepId
+            )
+            const step =
+                scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
+                teststep
+            const result = testStepFinishedEvent.testStepResult
+
+            const doc = this._gherkinDocEvents.find(
+                (gde) => gde.uri === scenario?.uri
+            )
+            const uri = doc?.uri
+            const feature = doc?.feature
+
+            /* istanbul ignore if */
+            if (!step) {
+                return
+            }
+
+            delete this._currentPickle
+
+            const type = getStepType(step)
+            if (type === 'hook') {
+                return this.afterHook(
+                    uri as string,
+                    feature as Feature,
+                    scenario as Pickle,
+                    step,
+                    result
+                )
+            }
+
+            return this.afterTest(
+                uri as string,
+                feature as Feature,
+                scenario as Pickle,
+                step as PickleStep,
                 result
             )
         }
-
-        return this.afterTest(
-            uri as string,
-            feature as Feature,
-            scenario as Pickle,
-            step as PickleStep,
-            result
-        )
     }
 
-    onTestCaseFinished() {
+    onTestCaseFinished(results: TestStepResult[]) {
         const tc = this._testCases.find(
             (tc) => tc.id === this._currentTestCase?.testCaseId
         )
@@ -459,6 +484,11 @@ export default class CucumberFormatter extends Formatter {
         if (!scenario) {
             return
         }
+
+        /**
+         * propagate the first non passing result or the last one
+         */
+        const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri
@@ -477,6 +507,9 @@ export default class CucumberFormatter extends Formatter {
             tags: scenario.tags,
         }
 
+        if (this.scenarioLevelReporter) {
+            return this.afterTest(uri as string, feature as Feature, scenario, { id: scenario.id } as PickleStep, finalResult as TestStepResult)
+        }
         this.emit('suite:end', payload)
     }
 
