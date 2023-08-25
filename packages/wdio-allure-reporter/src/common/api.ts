@@ -177,6 +177,7 @@ export function addAttachment (name: string, content: string | Buffer | object, 
 
 /**
  * Start allure step
+ * @deprecated use `step` method instead
  * @name startStep
  * @param {string} title - step name in report
  */
@@ -186,6 +187,7 @@ export function startStep (title: string) {
 
 /**
  * End current allure step
+ * @deprecated use `step` method instead
  * @name endStep
  * @param {StepStatus} [status='passed'] - step status
  */
@@ -198,6 +200,7 @@ export function endStep (status: Status = Status.PASSED) {
 
 /**
  * Create allure step
+ * @deprecated use `step` method instead
  * @name addStep
  * @param {string} title - step name in report
  * @param {object} [attachmentObject={}] - attachment for step
