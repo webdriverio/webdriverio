@@ -79,6 +79,17 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
         await fsp.mkdir(cacheDir, { recursive: true })
     }
 
+    /**
+     * don't set up Chrome if a binary was defined in caps
+     */
+    const chromeOptions = caps['goog:chromeOptions'] || {}
+    if (typeof chromeOptions.binary === 'string') {
+        return {
+            executablePath: chromeOptions.binary,
+            browserVersion: getBuildIdByPath(chromeOptions.binary)
+        }
+    }
+
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
@@ -93,10 +104,8 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
          */
         if (tag) {
             return {
-                cacheDir,
-                platform,
                 executablePath,
-                buildId: await resolveBuildId(Browser.CHROME, platform, tag)
+                browserVersion: await resolveBuildId(Browser.CHROME, platform, tag)
             }
         }
     }
@@ -128,9 +137,10 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
 export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
     const driverOptions: { cacheDir?: string } = (
         caps['wdio:chromedriverOptions'] ||
-        caps['wdio:chromedriverOptions'] ||
-        caps['wdio:chromedriverOptions'] ||
-        caps['wdio:chromedriverOptions'] ||
+        caps['wdio:geckodriverOptions'] ||
+        caps['wdio:edgedriverOptions'] ||
+        // Safaridriver does not have any options as it already
+        // is installed on macOS
         {}
     )
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
