@@ -52,7 +52,7 @@ export const config = {
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 - `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
 - `addConsoleLogs` - optional parameter(`false` by default), set to true in order to attach console logs from step to the reporter.
-- `reportedEnvironmentVars` - Set this option to display the environment variables in the report. Note that setting this, does not modify the actual environment variables.
+- `reportedEnvironmentVars` (**type:** `Record<string, string>`) - Set this option to display the environment variables in the report. Note that setting this, does not modify the actual environment variables.
 
 ## Supported Allure API
 * `addLabel(name, value)` - assign a custom label to test
@@ -77,15 +77,6 @@ export const config = {
 * `addDescription(description, [type])` – add description to test.
     * `description` (*String*) - description of the test.
     * `type` (*String*, optional) – description type, `text` by default. Values ['text', 'html','markdown']
-* `addStep(title, [{content, name = 'attachment'}], [status])` - add step to test.
-    * `title` (*String*) - name of the step.
-    * `content` (*String*, optional) - step attachment
-    * `name` (*String*, optional) - step attachment name, `attachment` by default.
-    * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
-* `startStep(title)` - start with a step
-    * `title` (*String*) - name of the step.
-* `endStep(status)` - end with a step
-    * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
 * `step(name, body)` - starts step with content function inside. Allows to create steps with infinite hierarchy
     * `body` (*Function*) - the step body async function
 

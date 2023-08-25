@@ -152,10 +152,3 @@ export const REG_EXPS = {
     commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
     execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
 }
-
-export const SUPPORTED_BROWSERNAMES = {
-    chrome: ['chrome', 'googlechrome', 'chromium', 'chromium-browser'],
-    firefox: ['firefox', 'ff', 'mozilla', 'mozilla firefox'],
-    edge: ['edge', 'microsoftedge', 'msedge'],
-    safari: ['safari', 'safari technology preview']
-}

@@ -19,7 +19,6 @@ describe('SharedStoreService', () => {
     beforeEach(() => {
         const capabilities = {
             browserName: 'chrome',
-            acceptInsecureCerts: true,
             'wdio:sharedStoreServicePort': 65209
         } as SharedStoreServiceCapabilities
         storeService = new SharedStoreService(null as never, capabilities)

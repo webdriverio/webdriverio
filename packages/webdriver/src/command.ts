@@ -131,7 +131,7 @@ export default function (
                 /**
                  * kill driver process if there is one
                  */
-                if (this._driverProcess) {
+                if (this._driverProcess && body.deleteSessionOpts?.shutdownDriver !== false) {
                     log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
                     const killedSuccessfully = this._driverProcess.kill('SIGKILL')
                     if (!killedSuccessfully) {

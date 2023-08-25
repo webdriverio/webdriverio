@@ -138,6 +138,90 @@ describe('wdio-testingbot-service', () => {
         })
     })
 
+    it('should merge tunnelIdentifier in tb:options in parallel multiremote', async () => {
+        const options: TestingbotOptions = {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                apiKey: 'user',
+                apiSecret: 'key',
+                tunnelIdentifier: 'my-tunnel'
+            }
+        }
+        const config: any = {
+            user: 'user',
+            key: 'key'
+        }
+        const caps: Capabilities.MultiRemoteCapabilities[] = [{
+            browserA: {
+                capabilities: {
+                    'tb:options': {
+                        build: 'unit-test',
+                    }
+                }
+            } as any,
+            browserB: {
+                capabilities: {
+                    'tb:options': {
+                        build: 'other-unit-test',
+                    }
+                }
+            } as any
+        }, {
+            browserC: {
+                capabilities: {
+                    'tb:options': {
+                        build: 'unit-test',
+                    }
+                }
+            } as any,
+            browserD: {
+                capabilities: {
+                    'tb:options': {
+                        build: 'other-unit-test',
+                    }
+                }
+            } as any
+        }]
+        const tbLauncher = new TestingBotLauncher(options)
+
+        await tbLauncher.onPrepare(config, caps as any)
+        expect(caps).toEqual([{
+            browserA: {
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'unit-test',
+                    }
+                }
+            },
+            browserB: {
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'other-unit-test',
+                    }
+                }
+            }
+        }, {
+            browserC: {
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'unit-test',
+                    }
+                }
+            },
+            browserD: {
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'other-unit-test',
+                    }
+                }
+            }
+        }])
+    })
+
     it('should add tunnelIdentifier in tb:options', async () => {
         const options: TestingbotOptions = {
             tbTunnel: true,

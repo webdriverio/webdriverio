@@ -10,7 +10,7 @@ declare global {
     }
 }
 
-export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit' | 'solid'
+export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit' | 'solid' | 'stencil'
 type Arrayable<T> = T | Array<T>
 type CoverageReporter = 'clover' | 'cobertura' | 'html-spa' | 'html' | 'json-summary' | 'json' | 'lcov' | 'lcovonly' | 'none' | 'teamcity' | 'text-lcov' | 'text-summary' | 'text'
 export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' | 'checkProd' | 'forceBuildInstrument'> {

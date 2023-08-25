@@ -4,12 +4,12 @@
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
     "types": [
+      "@wdio/utils",
       "@wdio/globals/types",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
       "@wdio/browserstack-service",
       "@wdio/devtools-service",
-      "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",
       "@wdio/static-server-service",

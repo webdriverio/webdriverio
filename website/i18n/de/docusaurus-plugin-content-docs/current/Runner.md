@@ -98,7 +98,7 @@ Der Browser-Runner erlaubt folgende Konfigurationen:
 
 Wenn Sie Komponenten mit einem der oben genannten Frameworks testen, können Sie eine Voreinstellung definieren, die sicherstellt, dass alles sofort konfiguriert ist.
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br /> __Example:__
 
 ```js title="wdio.conf.js"
 export const {

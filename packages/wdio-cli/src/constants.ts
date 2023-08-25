@@ -16,6 +16,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 🤖 Successfully setup project at %s 🎉
 
@@ -148,6 +149,7 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
     { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
+    { name: 'StencilJS (https://stenciljs.com/)', value: '$--$stencil' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
     { name: 'Other', value: false }
@@ -437,7 +439,15 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Do you want to use a compiler?',
-    choices: Object.values(CompilerOptions),
+    choices: (answers: Questionnair) => {
+        /**
+         * StencilJS only supports TypeScript
+         */
+        if (answers.preset && answers.preset.includes('stencil')) {
+            return [CompilerOptions.TS]
+        }
+        return Object.values(CompilerOptions)
+    },
     default: /* istanbul ignore next */ (answers: Questionnair) => detectCompiler(answers)
 }, {
     type: 'confirm',

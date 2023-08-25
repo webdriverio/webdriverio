@@ -28,7 +28,8 @@ export default class FileSystemPathService implements PathService {
      */
     glob(pattern: string, rootDir: string): string[] {
         const globResult = globSync(pattern, {
-            cwd: rootDir
+            cwd: rootDir,
+            matchBase: true
         }) || []
         const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
         /**

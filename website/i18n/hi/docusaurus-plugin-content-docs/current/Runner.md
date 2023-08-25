@@ -95,7 +95,7 @@ npm install --save-dev @wdio/browser-runner
 
 यदि आप ऊपर उल्लिखित रूपरेखाओं में से किसी एक का उपयोग करके घटकों का परीक्षण करते हैं, तो आप एक पूर्व निर्धारित निर्धारित कर सकते हैं जो सुनिश्चित करता है कि सब कुछ बॉक्स से बाहर कॉन्फ़िगर किया गया है। इस विकल्प का उपयोग `viteConfig`के साथ नहीं किया जा सकता है।
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br /> __Example:__
 
 ```js title="wdio.conf.js"
 एक्सपोर्ट const {
