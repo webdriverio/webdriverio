@@ -65,7 +65,7 @@ Given(`${stepText} {string}`, async function (url) {
 Given('I click on link {string}', async (selector) => {
     const elem = await browser.$(selector)
 
-    expect(browser.Cucumber_Test).toBe(3)
+    expect(browser.Cucumber_Test_Step).toBe(3);
 
     await elem.click()
 })

@@ -1,14 +1,9 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
 import type TagExpressionParser from '@cucumber/tag-expressions'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 import { compile } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 
-import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import type { World } from '@cucumber/cucumber'
 import type {
     TableRow,
     TableCell,
@@ -20,11 +15,7 @@ import type {
     GherkinDocument
 } from '@cucumber/messages'
 
-import type { Capabilities } from '@wdio/types'
-import type { ReporterStep } from './constants.js'
-import type { TestHookDefinitionConfig } from './types.js'
-
-const log = logger('@wdio/cucumber-framework:utils')
+import type { ReporterStep } from './types.js'
 
 /**
  * NOTE: this function is exported for testing only
@@ -131,67 +122,6 @@ export function buildStepPayload(
         featureName: feature.name,
         scenarioName: scenario.name,
     }
-}
-
-/**
- * wrap every user defined hook with function named `userHookFn`
- * to identify later on is function a step, user hook or wdio hook.
- * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
- */
-export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
-    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
-        options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
-            const hookFn = testRunHookDefinition.code
-            if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
-                }
-                const userHookFn = function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
-                }
-                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
-            }
-        })
-    })
-}
-
-/**
- * Returns true/false if testCase should be kept for current capabilities
- * according to tag in the syntax  @skip([conditions])
- * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
- * @param {*} testCase
- */
-export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip$|^@skip\((.*)\)$/
-
-    const match = (value: string, expr: RegExp) => {
-        if (Array.isArray(expr)) {
-            return expr.indexOf(value) >= 0
-        } else if (expr instanceof RegExp) {
-            return expr.test(value)
-        }
-        return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
-    }
-
-    const parse = (skipExpr: string) =>
-        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
-            const pos = splitItem.indexOf('=')
-            if (pos > 0) {
-                try {
-                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-                } catch (err: any) {
-                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
-                }
-            }
-            return acc
-        }, {})
-
-    return !(pickle && pickle.tags && pickle.tags
-        .map(p => p.name?.match(skipTag))
-        .filter(Boolean)
-        .map(m => parse(m![1] ?? ''))
-        .find((filter: Capabilities.Capabilities) => Object.keys(filter)
-            .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
 
 /**

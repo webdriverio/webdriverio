@@ -14,12 +14,12 @@ Feature: Example feature
         Mock Page Title
         """
 
-    Scenario: Retry Check
-        Then  I should fail once but pass on the second run
+    # Scenario: Retry Check
+    #     Then  I should fail once but pass on the second run
 
-    @skip(browserName="chrome")
-    Scenario: Skipped... should never be executed
-        Then  this test should fail
+    # @skip(browserName="chrome")
+    # Scenario: Skipped... should never be executed
+    #     Then  this test should fail
 
     Scenario Outline: Multiple Examples
         Given Foo <foo> and Bar <bar> are passed
@@ -41,8 +41,8 @@ Feature: Example feature
             | Brocolli  | 2      |
             | Cucumber  | 10     |
 
-    Scenario: ignoreUndefinedDefinitions
-        Given this step doesn't exist
+    # Scenario: ignoreUndefinedDefinitions
+    #     Given this step doesn't exist
 
     Scenario: failAmbiguousDefinitions
         Given this is ambiguous

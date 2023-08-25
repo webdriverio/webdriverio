@@ -6,8 +6,6 @@ import {
     getStepType,
     getFeatureId,
     buildStepPayload,
-    setUserHookNames,
-    filterPickles,
     getTestStepTitle,
     addKeywordToStep,
     getRule,
@@ -111,74 +109,6 @@ describe('utils', () => {
         } as any, {
             type: 'step'
         })).toMatchSnapshot()
-    })
-
-    it('setUserHookNames', () => {
-        const options = {
-            beforeTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
-            beforeTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
-        }
-        setUserHookNames(options as any)
-        const hookTypes = Object.values(options)
-        expect(hookTypes).toHaveLength(4)
-        hookTypes.forEach(hookType => {
-            expect(hookType).toHaveLength(3)
-
-            const wdioHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('wdioHook'))
-            const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookFn')
-            const userAsyncHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookAsyncFn')
-            expect(wdioHooks).toHaveLength(1)
-            expect(userHooks).toHaveLength(1)
-            expect(userAsyncHooks).toHaveLength(1)
-        })
-    })
-
-    it('filterPickles', () => {
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="chrome")' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome',
-            platformName: 'windows'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar";platformName="windows")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(something=weird)' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip()' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip_local' }]
-        } as any)).toBe(true)
     })
 
     it('addKeywordToStep should add keywords to the steps', () => {
