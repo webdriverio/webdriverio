@@ -45,8 +45,7 @@
     "@wdio/logger": "8.11.0",
     "@wdio/types": "8.15.0",
     "diff": "^5.0.0",
-    "object-inspect": "^1.12.0",
-    "supports-color": "9.4.0"
+    "object-inspect": "^1.12.0"
   },
   "devDependencies": {
     "@types/diff": "^5.0.2",
