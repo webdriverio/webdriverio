@@ -75,6 +75,9 @@ describe('startWebDriver', () => {
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         vi.mocked(install).mockClear()
+        vi.mocked(fsp.access).mockClear()
+        vi.mocked(fsp.mkdir).mockClear()
+        vi.mocked(cp.spawn).mockClear()
     })
 
     afterEach(() => {
@@ -196,6 +199,40 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
+        )
+    })
+
+    it('should start no driver or download chrome if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { binary: '/my/chromedriver' },
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: '0.0.0.0',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    binary: '/my/chrome'
+                },
+                'wdio:chromedriverOptions': {
+                    allowedIps: [''],
+                    allowedOrigins: ['*'],
+                    binary: '/my/chromedriver'
+                },
+            }
+        })
+        expect(fsp.access).toBeCalledTimes(1)
+        expect(fsp.mkdir).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledWith(
+            '/my/chromedriver',
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
         )
     })
 
