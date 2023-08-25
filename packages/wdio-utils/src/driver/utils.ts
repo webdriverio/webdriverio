@@ -48,7 +48,9 @@ export function getLocalChromePath() {
 export function getBuildIdByPath(chromePath?: string) {
     if (!chromePath) {
         return
-    } else if (os.platform() === 'win32') {
+    }
+
+    if (os.platform() === 'win32') {
         const versionPath = path.dirname(chromePath)
         const contents = fs.readdirSync(versionPath)
         const versions = contents.filter(a => /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/g.test(a))
@@ -59,7 +61,7 @@ export function getBuildIdByPath(chromePath?: string) {
     }
 
     const versionString = cp.execSync(`"${chromePath}" --version`).toString()
-    return versionString.split(' ').pop()?.trim()
+    return versionString.trim().split(' ').pop()?.trim()
 }
 
 let lastTimeCalled = Date.now()
