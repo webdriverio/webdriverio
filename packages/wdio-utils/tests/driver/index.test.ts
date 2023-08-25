@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver } from 'edgedriver'
@@ -50,7 +51,7 @@ vi.mock('edgedriver', () => ({
     findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
 }))
 vi.mock('geckodriver', () => ({ start: vi.fn().mockResolvedValue('geckodriver') }))
-vi.mock('wait-port', () => ({ default: vi.fn() }))
+vi.mock('wait-port', () => ({ default: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -234,6 +235,18 @@ describe('startWebDriver', () => {
             '/my/chromedriver',
             ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
         )
+    })
+
+    it('should fail on timeout', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        vi.mocked(waitPort).mockRejectedValueOnce(new Error('timeout'))
+        await expect(startWebDriver(options)).rejects.toThrow('Timed out to connect to Chromedriver')
+        expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
     it('should find last known good version for chromedriver', async () => {
