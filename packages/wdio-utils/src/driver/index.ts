@@ -76,7 +76,9 @@ export async function startWebDriver (options: Options.WebDriver) {
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupChrome(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = await setupChromedriver(cacheDir, browserVersion)
+        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
+            ? { executablePath: chromedriverOptions.binary }
+            : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },

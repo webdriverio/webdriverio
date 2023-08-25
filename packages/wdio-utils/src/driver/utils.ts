@@ -134,8 +134,8 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
     return { executablePath, browserVersion: buildId }
 }
 
-export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
-    const driverOptions: { cacheDir?: string } = (
+function getDriverOptions (caps: Capabilities.Capabilities) {
+    return (
         caps['wdio:chromedriverOptions'] ||
         caps['wdio:geckodriverOptions'] ||
         caps['wdio:edgedriverOptions'] ||
@@ -143,6 +143,10 @@ export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps:
         // is installed on macOS
         {}
     )
+}
+
+export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
+    const driverOptions = getDriverOptions(caps)
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
 }
 
