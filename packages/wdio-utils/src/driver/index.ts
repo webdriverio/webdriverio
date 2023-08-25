@@ -32,6 +32,7 @@ declare global {
 }
 
 const log = logger('@wdio/utils')
+const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
 export async function startWebDriver (options: Options.WebDriver) {
     /**
@@ -153,7 +154,8 @@ export async function startWebDriver (options: Options.WebDriver) {
         driverProcess.stderr?.pipe(logStream)
     }
 
-    await waitPort({ port, output: 'silent' })
+    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
+        .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
     options.hostname = '0.0.0.0'
     options.port = port
