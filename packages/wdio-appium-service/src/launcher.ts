@@ -119,6 +119,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     async onPrepare() {
         /**
+         * Throws an error if `this._options.args` is defined and is an array.
+         * @throws {Error} If `this._options.args` is an array.
+         */
+        if (Array.isArray(this._options.args)) {
+            throw new Error('Args should be an object')
+        }
+        /**
          * Append remaining arguments
          */
         this._appiumCliArgs.push(...formatCliArgs(this._args))
