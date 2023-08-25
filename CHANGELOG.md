@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.8 (2023-08-25)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11019](https://github.com/webdriverio/webdriverio/pull/11019) (@wdio/utils): ignore space before new line when detecting local Chrome version ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.15.7 (2023-08-25)
 
 #### :bug: Bug Fix
