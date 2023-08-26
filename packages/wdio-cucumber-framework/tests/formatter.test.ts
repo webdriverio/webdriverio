@@ -81,9 +81,9 @@ describe('CucumberFormatter', () => {
                     _specs: specs,
                     _eventEmitter: new EventEmitter(),
                     _scenarioLevelReporter: false,
-                    _tagsInTitle: true,
-                    _ignoreUndefinedDefinitions: true,
-                    _failAmbiguousDefinitions: false,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
                 },
             } as any)
         })
@@ -227,8 +227,8 @@ describe('CucumberFormatter', () => {
                     _specs: specs,
                     _eventEmitter: new EventEmitter(),
                     _scenarioLevelReporter: true,
-                    _tagsInTitle: true,
-                    _ignoreUndefinedDefinitions: true,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
                 },
             } as any)
@@ -417,10 +417,10 @@ describe('CucumberFormatter', () => {
                     _cid: cid,
                     _specs: specs,
                     _eventEmitter: new EventEmitter(),
-                    _scenarioLevelReporter: true,
+                    _scenarioLevelReporter: false,
                     _tagsInTitle: true,
-                    _ignoreUndefinedDefinitions: true,
-                    _failAmbiguousDefinitions: true,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: false,
                 },
             } as any)
         })
