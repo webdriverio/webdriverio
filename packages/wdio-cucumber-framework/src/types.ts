@@ -220,3 +220,7 @@ export interface HookFunctionExtension {
      */
     afterFeature?(uri: string, feature: Feature): void;
 }
+
+export interface StepDefinitionOptions {
+    retry: number;
+}

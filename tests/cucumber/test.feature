@@ -14,8 +14,8 @@ Feature: Example feature
         Mock Page Title
         """
 
-    # Scenario: Retry Check
-    #     Then  I should fail once but pass on the second run
+    Scenario: Retry Check
+        Then  I should fail once but pass on the second run
 
     # @skip(browserName="chrome")
     # Scenario: Skipped... should never be executed

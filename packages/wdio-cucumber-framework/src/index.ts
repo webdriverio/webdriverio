@@ -20,6 +20,7 @@ import { shouldRun } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
+    StepDefinitionOptions
 } from './types.js'
 import type { Feature, GherkinDocument } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber'
@@ -226,7 +227,7 @@ class CucumberAdapter {
             await this.registerRequiredModules()
             supportCodeLibraryBuilder.reset(this._cwd, this._newId)
 
-            this.addWdioHooks(this._config, supportCodeLibraryBuilder)
+            this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
 
             setDefaultTimeout(this._cucumberOpts.timeout)
 
@@ -367,7 +368,7 @@ class CucumberAdapter {
      * set `beforeFeature`, `afterFeature`, `beforeScenario`, `afterScenario`, 'beforeStep', 'afterStep'
      * @param {object} config config
      */
-    addWdioHooks(
+    addWdioHooksAndWrapSteps(
         config: Options.Testrunner,
         supportCodeLibraryBuilder: SupportCodeLibraryBuilder
     ) {
@@ -423,6 +424,30 @@ class CucumberAdapter {
                 params.feature,
             ])
         })
+
+        supportCodeLibraryBuilder.methods.setDefinitionFunctionWrapper(function (fn: Function, options: StepDefinitionOptions = { retry: 0 }) {
+            const retries = { attempts: 0, limit: isFinite(options?.retry) ? options.retry : 0 }
+
+            if (retries.limit !== 0) {
+                return async function (this: Record<string, any>, ...args: any[]) {
+                    while (retries.limit >= retries.attempts) {
+                        this.wdioRetries = retries.attempts
+                        try {
+                            await fn.apply(this, args)
+                            break
+                        } catch (error) {
+                            if (retries.limit === retries.attempts) {
+                                throw error
+                            }
+                            retries.attempts++
+                        }
+                    }
+                }
+            }
+
+            return fn
+        })
+
     }
 }
 
