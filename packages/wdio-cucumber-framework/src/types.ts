@@ -116,6 +116,26 @@ export interface CucumberOptions {
      * @default false
      */
     scenarioLevelReporter?: boolean;
+    /**
+     * Add cucumber tags to feature or scenario name
+     * @default false
+     */
+    tagsInTitle?: boolean;
+    /**
+     * Treat undefined definitions as warnings.
+     * Please note that this is a @wdio/cucumber-framework specific option and
+     * not recognized by cucumber-js itself.
+     * @default false
+     */
+    ignoreUndefinedDefinitions?: boolean;
+    /**
+     * Treat ambiguous definitions as errors.
+     *
+     * Please note that this is a @wdio/cucumber-framework specific option
+     * and not recognized by cucumber-js itself.
+     * @default false
+     */
+    failAmbiguousDefinitions?: boolean;
 }
 
 export interface HookParams {

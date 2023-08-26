@@ -108,7 +108,10 @@ class CucumberAdapter {
             _cid: this._cid,
             _specs: this._specs,
             _eventEmitter: this._eventEmitter,
-            _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter
+            _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter,
+            _tagsInTitle: this._cucumberOpts.tagsInTitle,
+            _ignoreUndefinedDefinitions: this._cucumberOpts.ignoreUndefinedDefinitions,
+            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions
         }
 
         const builder = new Gherkin.AstBuilder(uuidFn)
@@ -217,6 +220,7 @@ class CucumberAdapter {
     async run() {
         let runtimeError
         let result
+        let failedCount
 
         try {
             await this.registerRequiredModules()
@@ -234,6 +238,10 @@ class CucumberAdapter {
                 write(chunk, encoding, callback) {
                     callback()
                 },
+            })
+
+            this._eventEmitter.on('getFailedCount', (payload) => {
+                failedCount = payload
             })
 
             const environment: IRunEnvironment = {
@@ -256,6 +264,14 @@ class CucumberAdapter {
             )
 
             result = success ? 0 : 1
+
+            /**
+             * if we ignore undefined definitions we trust the reporter
+             * with the fail count
+             */
+            if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
+                result = failedCount
+            }
         } catch (err: any) {
             runtimeError = err
             result = 1

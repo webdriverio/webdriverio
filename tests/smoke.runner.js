@@ -291,9 +291,9 @@ const cucumberTestrunner = async () => {
             ],
             cucumberOpts: {
                 tags: '(not @SKIPPED_TAG)',
+                ignoreUndefinedDefinitions: true,
                 retry: 1,
                 retryTagFilter: '@retry',
-                name: ['^(?!failAmbiguousDefinitions$)'],
                 scenarioLevelReporter: true
             }
         }
@@ -348,6 +348,8 @@ const cucumberFailAmbiguousDefinitions = async () => {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
             cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                failAmbiguousDefinitions: true,
                 name: ['failAmbiguousDefinitions']
             }
         }

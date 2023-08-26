@@ -41,8 +41,8 @@ Feature: Example feature
             | Brocolli  | 2      |
             | Cucumber  | 10     |
 
-    # Scenario: ignoreUndefinedDefinitions
-    #     Given this step doesn't exist
+    Scenario: ignoreUndefinedDefinitions
+        Given this step doesn't exist
 
     Scenario: failAmbiguousDefinitions
         Given this is ambiguous

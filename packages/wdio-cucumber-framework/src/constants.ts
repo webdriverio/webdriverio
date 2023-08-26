@@ -33,4 +33,7 @@ export const DEFAULT_OPTS: CucumberOptions = {
     worldParameters: {},
     timeout: DEFAULT_TIMEOUT,
     scenarioLevelReporter: false,
+    tagsInTitle: false,
+    ignoreUndefinedDefinitions: false,
+    failAmbiguousDefinitions: false
 }
