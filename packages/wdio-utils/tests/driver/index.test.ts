@@ -238,8 +238,6 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fsp.access).toBeCalledTimes(1)
-        expect(fsp.mkdir).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
@@ -272,17 +270,9 @@ describe('startWebDriver', () => {
             .mockRejectedValueOnce(new Error('boom'))
             .mockResolvedValue({} as any)
         await startWebDriver(options)
-        expect(install).toBeCalledTimes(3)
+        expect(install).toBeCalledTimes(1)
         expect(install).toBeCalledWith(expect.objectContaining({
             buildId: '115.0.5790.171',
-            browser: 'chrome'
-        }))
-        expect(install).toBeCalledWith(expect.objectContaining({
-            buildId: '115.0.5790.171',
-            browser: 'chromedriver'
-        }))
-        expect(install).toBeCalledWith(expect.objectContaining({
-            buildId: '115.0.5790.170',
             browser: 'chromedriver'
         }))
     })

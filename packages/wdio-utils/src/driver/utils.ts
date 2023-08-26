@@ -71,7 +71,7 @@ export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
     }
 
     const versionString = cp.execSync(`"${firefoxPath}" --version`).toString()
-    return versionString.split(' ').pop()?.trim()
+    return versionString.trim().split(' ').pop()?.trim()
 }
 
 let lastTimeCalled = Date.now()
@@ -96,11 +96,16 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     /**
      * don't set up Chrome if a binary was defined in caps
      */
-    const chromeOptions = caps['goog:chromeOptions'] || {}
-    if (typeof chromeOptions.binary === 'string') {
+    const browserOptions = (browserName === Browser.CHROME
+        ? caps['goog:chromeOptions']
+        : caps['moz:firefoxOptions']
+    ) || {}
+    if (typeof browserOptions.binary === 'string') {
         return {
-            executablePath: chromeOptions.binary,
-            browserVersion: getBuildIdByPath(chromeOptions.binary)
+            executablePath: browserOptions.binary,
+            browserVersion: browserName === Browser.CHROME
+                ? getBuildIdByChromePath(browserOptions.binary)
+                : await getBuildIdByFirefoxPath(browserOptions.binary)
         }
     }
 
@@ -142,7 +147,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     }
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
-        throw new Error(`Couldn't find a matching Chrome browser for tag "${buildId}" on platform "${platform}"`)
+        throw new Error(`Couldn't find a matching ${browserName} browser for tag "${buildId}" on platform "${platform}"`)
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)

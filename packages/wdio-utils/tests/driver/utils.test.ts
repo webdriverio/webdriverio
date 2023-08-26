@@ -73,7 +73,7 @@ describe('driver utils', () => {
 
     it('getBuildIdByChromePath', () => {
         expect(getBuildIdByChromePath()).toBe(undefined)
-        expect(getBuildIdByChromePath('/foo/bar')).toBe('115.0.5790.98')
+        expect(getBuildIdByChromePath('/foo/bar')).toBe('116.0.5845.110')
 
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(getBuildIdByChromePath('/foo/bar')).toBe('115.0.5790.110')
@@ -81,7 +81,7 @@ describe('driver utils', () => {
 
     it('getBuildIdByFirefoxPath', async () => {
         expect(await getBuildIdByFirefoxPath()).toBe(undefined)
-        expect(await getBuildIdByFirefoxPath('/foo/bar')).toBe('115.0.5790.98')
+        expect(await getBuildIdByFirefoxPath('/foo/bar')).toBe('116.0.5845.110')
 
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(await getBuildIdByFirefoxPath('/foo/bar')).toBe('116.0.3')
@@ -101,7 +101,7 @@ describe('driver utils', () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
             await expect(setupPuppeteerBrowser('/foo/bar', {})).resolves.toEqual({
                 browserVersion: '116.0.5845.110',
-                executablePath: '/foo/bar'
+                executablePath: '/path/to/chrome'
             })
         })
 
@@ -117,7 +117,7 @@ describe('driver utils', () => {
 
         it('should install chrome stable if browser is not found', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
-            vi.mocked(locateChrome).mockReturnValue('/path/to/stable')
+            vi.mocked(locateChrome).mockResolvedValue('/path/to/stable')
             await expect(setupPuppeteerBrowser('/foo/bar', {})).resolves.toEqual( {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/stable'
@@ -129,7 +129,7 @@ describe('driver utils', () => {
             vi.mocked(canDownload).mockResolvedValueOnce(false)
             vi.mocked(locateChrome).mockRejectedValueOnce(new Error('not found'))
             await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome' }))
-                .rejects.toThrow(/Couldn't find a matching Chrome browser/)
+                .rejects.toThrow(/Couldn't find a matching chrome browser/)
         })
 
         it('should install chrome browser with specific version provided', async () => {
