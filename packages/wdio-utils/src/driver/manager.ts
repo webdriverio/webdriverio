@@ -94,7 +94,9 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
         if (isEdge(cap.browserName)) {
             return setupEdgedriver(cacheDir, cap.browserVersion)
         } else if (isFirefox(cap.browserName)) {
-            return setupGeckodriver(cacheDir, cap.browserVersion)
+            // "latest" works for setting up browser only but not geckodriver
+            const version = cap.browserVersion === 'latest' ? undefined : cap.browserVersion
+            return setupGeckodriver(cacheDir, version)
         } else if (isChrome(cap.browserName)) {
             return setupChromedriver(cacheDir, cap.browserVersion)
         }
