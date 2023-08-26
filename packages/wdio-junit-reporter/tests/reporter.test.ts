@@ -277,7 +277,7 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output correctly when the addFileAttribute option is set', () => {
         reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
-        reporter.suites = featuresLog as any
+        reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
