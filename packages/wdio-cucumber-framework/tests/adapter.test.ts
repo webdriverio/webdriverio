@@ -117,14 +117,14 @@ describe('CucumberAdapter', () => {
             cucumberOpts: { format: [] }
         }, ['/foo/bar'], {}, {})
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
 
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
-        expect(adapter.addWdioHooks).toBeCalledTimes(1)
+        expect(adapter.addWdioHooksAndWrapSteps).toBeCalledTimes(1)
         expect(adapter.loadFiles).toBeCalledTimes(1)
     })
 
@@ -195,7 +195,7 @@ describe('CucumberAdapter', () => {
         expect(mockery.disable).toBeCalledTimes(1)
     })
 
-    it('addWdioHooks', async () => {
+    it('addWdioHooksAndWrapSteps', async () => {
         class CustomWorld {
             public foo = 'bar'
         }
@@ -210,7 +210,7 @@ describe('CucumberAdapter', () => {
             {},
             {}
         )
-        adapter.addWdioHooks(
+        adapter.addWdioHooksAndWrapSteps(
             {
                 beforeFeature: 'beforeFeature',
                 afterFeature: 'afterFeature',
@@ -227,6 +227,7 @@ describe('CucumberAdapter', () => {
                     AfterStep: Cucumber.AfterStep,
                     After: Cucumber.After,
                     AfterAll: Cucumber.AfterAll,
+                    setDefinitionFunctionWrapper: Cucumber.setDefinitionFunctionWrapper
                 },
             }
         )
@@ -236,6 +237,7 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(Cucumber.After).toBeCalledTimes(1)
         expect(Cucumber.AfterAll).toBeCalledTimes(1)
+        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
@@ -320,7 +322,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -345,7 +347,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -370,7 +372,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -395,7 +397,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -420,7 +422,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(false)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -445,7 +447,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -470,7 +472,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooks = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
