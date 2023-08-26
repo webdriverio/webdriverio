@@ -5,13 +5,19 @@ import type { CucumberOptions } from './types.js'
 
 export const DEFAULT_TIMEOUT = 60000
 
+export const FILE_PROTOCOL = 'file://'
+
+const cucumberFormatter = path.resolve(url.fileURLToPath(import.meta.url), '../cucumberFormatter.js')
+
+const isWindows = process.platform === 'win32'
+
 export const DEFAULT_OPTS: CucumberOptions = {
     paths: [],
     backtrace: false,
     dryRun: false,
     forceExit: false,
     failFast: false,
-    format: [path.resolve(url.fileURLToPath(import.meta.url), '../cucumberFormatter.js')],
+    format: [isWindows ? `file://${cucumberFormatter}` : cucumberFormatter],
     formatOptions: {},
     import: [],
     language: 'en',
@@ -26,6 +32,5 @@ export const DEFAULT_OPTS: CucumberOptions = {
     tags: '',
     worldParameters: {},
     timeout: DEFAULT_TIMEOUT,
-    scenarioLevelReporter: false
+    scenarioLevelReporter: false,
 }
-

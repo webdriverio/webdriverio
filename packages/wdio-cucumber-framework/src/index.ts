@@ -14,7 +14,7 @@ import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import TagExpressionParser from '@cucumber/tag-expressions'
 
-import { DEFAULT_OPTS } from './constants.js'
+import { DEFAULT_OPTS, FILE_PROTOCOL } from './constants.js'
 import { shouldRun } from './utils.js'
 
 import type {
@@ -64,8 +64,6 @@ const {
 const uuidFn = IdGenerator.uuid()
 
 const require = createRequire(import.meta.url)
-
-const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
 
