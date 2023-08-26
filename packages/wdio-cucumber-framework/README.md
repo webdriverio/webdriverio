@@ -104,6 +104,26 @@ Only retries the features or scenarios with tags matching the expression (repeat
 
 Type: `RegExp`
 
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br />
+Default: `false`
+
+### ignoreUndefinedDefinitions
+**Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**
+Treat undefined definitions as warnings.
+
+Type: `Boolean`<br />
+Default: `false`
+
+### failAmbiguousDefinitions
+**Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**
+Treat ambiguous definitions as errors.
+
+Type: `Boolean`<br />
+Default: `false`
+
 ----
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).
