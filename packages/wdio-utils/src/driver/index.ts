@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -9,7 +10,7 @@ import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import { start as startEdgedriver, type EdgedriverParameters } from 'edgedriver'
+import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
@@ -31,6 +32,7 @@ declare global {
 }
 
 const log = logger('@wdio/utils')
+const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
 export async function startWebDriver (options: Options.WebDriver) {
     /**
@@ -75,7 +77,9 @@ export async function startWebDriver (options: Options.WebDriver) {
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupChrome(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = await setupChromedriver(cacheDir, browserVersion)
+        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
+            ? { executablePath: chromedriverOptions.binary }
+            : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },
@@ -124,6 +128,14 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Microsoft Edge is very particular when it comes to browser names
          */
         caps.browserName = 'MicrosoftEdge'
+
+        /**
+         * on Linux set the path to the Edge binary if not already set
+         */
+        if (!caps['ms:edgeOptions']?.binary && os.platform() !== 'darwin' && os.platform() !== 'win32') {
+            caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
+            caps['ms:edgeOptions'].binary = findEdgePath()
+        }
     } else {
         throw new Error(
             `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +
@@ -142,7 +154,8 @@ export async function startWebDriver (options: Options.WebDriver) {
         driverProcess.stderr?.pipe(logStream)
     }
 
-    await waitPort({ port, output: 'silent' })
+    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
+        .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
     options.hostname = '0.0.0.0'
     options.port = port

@@ -55,7 +55,7 @@
     "test:e2e:firefox": "vitest --config e2e/standalone/vitest.config.ts firefox.e2e.ts",
     "test:e2e:webdriver": "node --loader ts-node/esm ./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.local.conf.ts",
     "test:e2e:cloud": "node --loader ts-node/esm ./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.ts",
-    "test:e2e:cjs": "node e2e/interop/webdriverio.e2e.js && node e2e/interop/webdriver.e2e.js && node e2e/interop/devtools.e2e.js && node e2e/interop/cucumber-framework.e2e.js && node e2e/interop/allure-reporter.e2e.js && node e2e/interop/shared-store.e2e.js && node e2e/interop/wdio-cli.e2e.js",
+    "test:e2e:cjs": "node e2e/interop/webdriverio.e2e.js && node e2e/interop/webdriver.e2e.js && node e2e/interop/devtools.e2e.js && node e2e/interop/cucumber-framework.e2e.js && node e2e/interop/allure-reporter.e2e.js && node e2e/interop/shared-store.e2e.js && node e2e/interop/wdio-cli.e2e.js && node e2e/interop/wdio-reporter.e2e.js",
     "ts": "run-p ts:*",
     "ts:webdriver": "cd tests/typings/webdriver && npx tsc --skipLibCheck",
     "ts:devtools": "cd tests/typings/devtools && npx tsc --skipLibCheck",

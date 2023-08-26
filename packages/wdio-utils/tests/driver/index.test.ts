@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver } from 'edgedriver'
@@ -24,6 +25,13 @@ vi.mock('node:fs', () => ({
     }
 }))
 
+vi.mock('node:os', async (origMod) => ({
+    default: {
+        ...(await origMod<any>()),
+        platform: vi.fn().mockReturnValue('linux')
+    }
+}))
+
 vi.mock('node:child_process', () => ({
     default: {
         spawn: vi.fn().mockReturnValue({
@@ -38,9 +46,12 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({ start: vi.fn().mockReturnValue('safaridriver') }))
-vi.mock('edgedriver', () => ({ start: vi.fn().mockResolvedValue('edgedriver') }))
+vi.mock('edgedriver', () => ({
+    start: vi.fn().mockResolvedValue('edgedriver'),
+    findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
+}))
 vi.mock('geckodriver', () => ({ start: vi.fn().mockResolvedValue('geckodriver') }))
-vi.mock('wait-port', () => ({ default: vi.fn() }))
+vi.mock('wait-port', () => ({ default: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -65,6 +76,9 @@ describe('startWebDriver', () => {
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         vi.mocked(install).mockClear()
+        vi.mocked(fsp.access).mockClear()
+        vi.mocked(fsp.mkdir).mockClear()
+        vi.mocked(cp.spawn).mockClear()
     })
 
     afterEach(() => {
@@ -142,6 +156,9 @@ describe('startWebDriver', () => {
                 'wdio:edgedriverOptions': {
                     foo: 'bar'
                 },
+                'ms:edgeOptions': {
+                    binary: '/foo/bar/executable'
+                }
             }
         })
         expect(startEdgedriver).toBeCalledTimes(1)
@@ -184,6 +201,52 @@ describe('startWebDriver', () => {
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
         )
+    })
+
+    it('should start no driver or download chrome if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { binary: '/my/chromedriver' },
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: '0.0.0.0',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    binary: '/my/chrome'
+                },
+                'wdio:chromedriverOptions': {
+                    allowedIps: [''],
+                    allowedOrigins: ['*'],
+                    binary: '/my/chromedriver'
+                },
+            }
+        })
+        expect(fsp.access).toBeCalledTimes(1)
+        expect(fsp.mkdir).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledWith(
+            '/my/chromedriver',
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
+        )
+    })
+
+    it('should fail on timeout', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        vi.mocked(waitPort).mockRejectedValueOnce(new Error('timeout'))
+        await expect(startWebDriver(options)).rejects.toThrow('Timed out to connect to Chromedriver')
+        expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
     it('should find last known good version for chromedriver', async () => {

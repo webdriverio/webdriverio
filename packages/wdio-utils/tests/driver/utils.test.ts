@@ -41,7 +41,7 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('node:child_process', () => ({
     default: {
-        execSync: vi.fn().mockReturnValue(Buffer.from('Google Chrome 115.0.5790.98\n'))
+        execSync: vi.fn().mockReturnValue(Buffer.from('Google Chrome 116.0.5845.110 \n'))
     }
 }))
 
@@ -49,7 +49,7 @@ vi.mock('@puppeteer/browsers', () => ({
     Browser: { CHROME: 'chrome' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn(),
-    resolveBuildId: vi.fn().mockReturnValue('115.0.5790.98'),
+    resolveBuildId: vi.fn().mockReturnValue('116.0.5845.110'),
     canDownload: vi.fn().mockResolvedValue(true),
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     install: vi.fn()
@@ -69,7 +69,7 @@ describe('driver utils', () => {
 
     it('getBuildIdByPath', () => {
         expect(getBuildIdByPath()).toBe(undefined)
-        expect(getBuildIdByPath('/foo/bar')).toBe('115.0.5790.98')
+        expect(getBuildIdByPath('/foo/bar')).toBe('116.0.5845.110')
 
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(getBuildIdByPath('/foo/bar')).toBe('115.0.5790.110')
@@ -88,10 +88,18 @@ describe('driver utils', () => {
         it('should run setup for local chrome if browser version is omitted', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
             await expect(setupChrome('/foo/bar', {})).resolves.toEqual({
-                buildId: '115.0.5790.98',
-                cacheDir: '/foo/bar',
-                executablePath: '/foo/bar',
-                platform: 'mac'
+                browserVersion: '116.0.5845.110',
+                executablePath: '/foo/bar'
+            })
+        })
+
+        it('should do nothing if browser binary is defined within caps', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
+            await expect(setupChrome('/foo/bar', {
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            })).resolves.toEqual({
+                browserVersion: '116.0.5845.110',
+                executablePath: '/my/chrome'
             })
         })
 
@@ -99,10 +107,8 @@ describe('driver utils', () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             vi.mocked(getChromePath).mockReturnValue('/path/to/stable')
             await expect(setupChrome('/foo/bar', {})).resolves.toEqual( {
-                buildId: '115.0.5790.98',
-                cacheDir: '/foo/bar',
-                executablePath: '/path/to/stable',
-                platform: 'windows'
+                browserVersion: '116.0.5845.110',
+                executablePath: '/path/to/stable'
             })
         })
 
@@ -116,7 +122,7 @@ describe('driver utils', () => {
         it('should install chrome browser with specific version provided', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             await expect(setupChrome('/foo/bar', { browserVersion: '1.2.3' })).resolves.toEqual({
-                browserVersion: '115.0.5790.98',
+                browserVersion: '116.0.5845.110',
                 executablePath: '/foo/bar/executable',
             })
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '1.2.3')
