@@ -17,7 +17,7 @@ Jeśli tworzysz własne treści WebdriverIO do celów edukacyjnych, możesz pobr
 
 ### Roboter Logo
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
+![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
 ### Logo Projektu
 
