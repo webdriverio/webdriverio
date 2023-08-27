@@ -5,6 +5,7 @@
     "_duration": 745,
     "uid": "My awesome hooks",
     "cid": "0-0",
+    "file": "/path/to/project/test/specs/sync.spec.js",
     "title": "My awesome feature",
     "fullTitle": "My awesome feature",
     "tests": [],

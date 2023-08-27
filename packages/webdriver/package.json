@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "8.15.4",
+  "version": "8.15.8",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
@@ -38,11 +38,11 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",
-    "@wdio/config": "8.15.4",
+    "@wdio/config": "8.15.8",
     "@wdio/logger": "8.11.0",
     "@wdio/protocols": "8.14.6",
-    "@wdio/types": "8.15.0",
-    "@wdio/utils": "8.15.4",
+    "@wdio/types": "8.15.7",
+    "@wdio/utils": "8.15.8",
     "deepmerge-ts": "^5.1.0",
     "got": "^ 12.6.1",
     "ky": "^0.33.0",

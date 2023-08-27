@@ -439,7 +439,7 @@ export default class ConfigParser {
                 if (filenames.length === 0) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-                files = [...files, ...filenames]
+                files = [...files, ...new Set(filenames)]
             }
         }
         return files

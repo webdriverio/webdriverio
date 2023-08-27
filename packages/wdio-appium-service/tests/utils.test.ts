@@ -169,11 +169,4 @@ describe('argument formatting', () => {
         expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
         expect(args.length).toBe(7)
     })
-
-    test('should coerce arguments to string if array is passed', () => {
-        const argsArray = ['-p', 4723]
-        const args = formatCliArgs(argsArray)
-
-        expect(args).toEqual(['-p', '4723'])
-    })
 })

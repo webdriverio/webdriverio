@@ -28,6 +28,11 @@ export const config: Options.Testrunner = {
         'moz:firefoxOptions': {
             args: ['-headless']
         }
+    }, {
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
     }],
 
     /**
@@ -49,15 +54,3 @@ if (os.platform() === 'darwin') {
         browserName: 'safari'
     })
 }
-
-/**
- * ToDo(Christian): fix https://github.com/webdriverio-community/node-edgedriver/issues/93
- */
-// if (['darwin', 'win32'].includes(os.platform())) {
-//     (config.capabilities as Capabilities.Capabilities[]).push({
-//         browserName: 'edge',
-//         'ms:edgeOptions': {
-//             args: ['--headless', '--disable-gpu']
-//         }
-//     })
-// }
