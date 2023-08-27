@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.9 (2023-08-27)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#10977](https://github.com/webdriverio/webdriverio/pull/10977) Fix junit reporter test duplication issue for WDIO v8 ([@jemishgopani](https://github.com/jemishgopani))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-utils`
+  * [#10995](https://github.com/webdriverio/webdriverio/pull/10995) (@wdio/utils): support setup of Firefox browser through @puppeteer/browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#11017](https://github.com/webdriverio/webdriverio/pull/11017) docs: AI copilot implementation ([@nickscamara](https://github.com/nickscamara))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jemish Gopani ([@jemishgopani](https://github.com/jemishgopani))
+- Nicolas ([@nickscamara](https://github.com/nickscamara))
+
+
 ## v8.15.8 (2023-08-25)
 
 #### :bug: Bug Fix
