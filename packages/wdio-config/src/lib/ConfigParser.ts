@@ -37,7 +37,6 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 }
 
 export default class ConfigParser {
-    #projectRootDir = process.cwd()
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
@@ -64,7 +63,9 @@ export default class ConfigParser {
          * rather than relative to the config file
          */
         if (_initialConfig.spec) {
-            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
+            let specsDirPath = path.dirname(path.join(process.cwd(), _pathService.glob(_initialConfig.spec[0], process.cwd())[0]))
+            specsDirPath = _initialConfig.spec[0].includes(path.sep) ? process.cwd() : specsDirPath
+            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec, specsDirPath) as string[]
         }
         this.merge(_initialConfig)
     }
@@ -105,7 +106,7 @@ export default class ConfigParser {
 
     /**
      * merges config file with default values
-     * @param {string} filename path of file relative to current directory
+     * @param {String} filename path of file relative to current directory
      */
     private async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
@@ -214,7 +215,7 @@ export default class ConfigParser {
 
     /**
      * Add hooks from an existing service to the runner config.
-     * @param {object} service - an object that contains hook methods.
+     * @param {Object} service - an object that contains hook methods.
      */
     addService(service: Services.Hooks) {
         const addHook = (hookName: string, hook: Function) => {
@@ -259,18 +260,18 @@ export default class ConfigParser {
         const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
-        let specs = this.findSpecs(this._config.specs!)
-        let exclude = this.findSpecs(this._config.exclude!)
+        let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
+        let exclude = ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
         if (Array.isArray(capExclude) && exclude.length === 0){
-            exclude = this.findSpecs(capExclude!)
+            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
         if (!isSpecParamPassed && Array.isArray(capSpecs)){
-            specs = this.findSpecs(capSpecs!)
+            specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
         // handle case where user passes --suite via CLI
@@ -282,7 +283,7 @@ export default class ConfigParser {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, this.#projectRootDir, this._pathService))
+                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, this._config.rootDir, this._pathService))
                 }
             }
 
@@ -314,24 +315,28 @@ export default class ConfigParser {
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {string[]} cliArgFileList  list of files in a string form
+     * @param  {String[]} cliArgFileList  list of files in a string form
      * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
     setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[]) {
         const filesToFilter = new Set<string>()
-        const fileList = this.findSpecs(specs)
+        const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
             // Return value will always be string[]
-            const globMatchedFiles = <string[]> this.findSpecs(this._pathService.glob(filteredFile, this.#projectRootDir))
+            const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
+                this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
+                this._config.rootDir,
+                this._pathService
+            )
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
                         filteredFile,
-                        this.#projectRootDir
+                        path.dirname(this.#configFilePath)
                     )
                 )
             } else if (globMatchedFiles.length) {
@@ -449,7 +454,7 @@ export default class ConfigParser {
      * returns specs files with the excludes filtered
      *
      * @param  {String[] | String[][]} spec files -  list of spec files
-     * @param  {string[]} exclude files -  list of exclude files
+     * @param  {String[]} exclude files -  list of exclude files
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
     filterSpecs(specs: Spec[], exclude: string[]) {
@@ -461,15 +466,5 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
-    }
-
-    /**
-     * returns specs and excluded specs if it is available on project root or config root directories
-     * @param  {String[] | String[][]} patterns list of files to glob
-     */
-    findSpecs(pattern: Spec[]) {
-        let specs = ConfigParser.getFilePaths(pattern, this._config.rootDir, this._pathService)
-        specs = specs.length === 0 ? ConfigParser.getFilePaths(pattern, this.#projectRootDir, this._pathService) : specs
-        return specs
     }
 }

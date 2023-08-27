@@ -171,20 +171,18 @@ export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, re
     }
 }
 
-export function makeRelativeToCWD (files: (string | string[])[] = []): (string | string[])[] {
+export function makeRelativeToCWD (files: (string | string[])[] = [], cwdPath: string): (string | string[])[] {
     const returnFiles: (string | string[])[] = []
 
     for (const file of files) {
         if (Array.isArray(file)) {
-            returnFiles.push(makeRelativeToCWD(file) as string[])
+            returnFiles.push(makeRelativeToCWD(file, cwdPath) as string[])
             continue
         }
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            : file.includes('/')
-                ? path.resolve(process.cwd(), file)
-                : file
+            : path.resolve(cwdPath, file)
         )
     }
 
