@@ -1,0 +1,106 @@
+{
+    "type": "runner",
+    "start": "2018-04-17T09:09:27.771Z",
+    "_duration": 907,
+    "cid": "0-0",
+    "capabilities": {
+        "acceptSslCerts": true,
+        "applicationCacheEnabled": false,
+        "browserConnectionEnabled": false,
+        "browserName": "chrome",
+        "chrome": {
+            "chromedriverVersion": "2.33.506106 (8a06c39c4582fbfbab6966dbb1c38a9173bfb1a2)",
+            "userDataDir": "/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/.org.chromium.Chromium.wPrPpk"
+        },
+        "cssSelectorsEnabled": true,
+        "databaseEnabled": false,
+        "handlesAlerts": true,
+        "hasTouchScreen": false,
+        "javascriptEnabled": true,
+        "locationContextEnabled": true,
+        "mobileEmulationEnabled": false,
+        "nativeEvents": true,
+        "networkConnectionEnabled": false,
+        "pageLoadStrategy": "normal",
+        "platform": "Mac OS X",
+        "rotatable": false,
+        "setWindowRect": true,
+        "takesHeapSnapshot": true,
+        "takesScreenshot": true,
+        "unexpectedAlertBehaviour": "",
+        "version": "65.0.3325.181",
+        "webStorageEnabled": true
+    },
+    "sanitizedCapabilities": "chrome.65_0_3325_181.macosx",
+    "config": {
+        "hostname": "127.0.0.1",
+        "port": 4444,
+        "specs": [
+            [
+                "./examples/wdio/mocha/mocha.test.js",
+                "/examples/wdio/mocha/mocha_2.test.js"
+            ]
+        ],
+        "suites": {},
+        "exclude": [],
+        "outputDir": "/path/to/project/test",
+        "logLevel": "trace",
+        "baseUrl": "http://localhost",
+        "bail": 0,
+        "waitforInterval": 500,
+        "waitforTimeout": 10000,
+        "framework": "mocha",
+        "reporters": [
+            "dot",
+            "junit",
+            "spec"
+        ],
+        "maxInstances": 1,
+        "maxInstancesPerCapability": 100,
+        "connectionRetryTimeout": 120000,
+        "connectionRetryCount": 3,
+        "execArgv": [],
+        "runnerEnv": {},
+        "runner": "local",
+        "mochaOpts": {
+            "timeout": 60000,
+            "ui": "bdd",
+            "fullStackTrace": true
+        },
+        "jasmineOpts": {
+            "defaultTimeoutInterval": 10000
+        },
+        "before": [],
+        "beforeSession": [],
+        "beforeSuite": [],
+        "beforeHook": [],
+        "beforeTest": [],
+        "beforeCommand": [],
+        "afterCommand": [],
+        "afterTest": [],
+        "afterHook": [],
+        "afterSuite": [],
+        "afterSession": [],
+        "after": [],
+        "onReload": [],
+        "beforeFeature": [],
+        "beforeScenario": [],
+        "beforeStep": [],
+        "afterFeature": [],
+        "afterScenario": [],
+        "afterStep": [],
+        "_": [
+            "wdio.conf.js"
+        ],
+        "$0": "../packages/wdio-cli/bin/wdio",
+        "capabilities": {
+            "browserName": "chrome"
+        }
+    },
+    "specs": [
+        "path/to/project/test/specs/sync_0.spec.js",
+        "path/to/project/test/specs/sync_1.spec.js"
+    ],
+    "failures": 0,
+    "end": "2018-04-17T09:09:28.678Z"
+}
