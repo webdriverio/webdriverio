@@ -15,7 +15,7 @@ export default function FooterWrapper() {
                     accentColor: '#EA5906',
                 }}
                 icon={
-                    <img src="/img/mendable/robot-white.png" alt="Mendable Robot Icon" width={'40px'} />
+                    <img src="/img/materials/robot-white.svg" alt="WebdriverIO AI Copilot" width={'40px'} />
                 }
                 floatingButtonStyle={{
                     color: '#ffffff',
