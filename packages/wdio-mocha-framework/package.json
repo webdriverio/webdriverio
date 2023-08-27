@@ -1,6 +1,6 @@
 {
   "name": "@wdio/mocha-framework",
-  "version": "8.15.8",
+  "version": "8.15.9",
   "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
@@ -40,7 +40,7 @@
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.11.0",
     "@wdio/types": "8.15.7",
-    "@wdio/utils": "8.15.8",
+    "@wdio/utils": "8.15.9",
     "mocha": "^10.0.0"
   },
   "publishConfig": {
