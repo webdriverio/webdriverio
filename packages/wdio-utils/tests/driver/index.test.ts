@@ -87,6 +87,7 @@ describe('startWebDriver', () => {
         vi.mocked(fsp.access).mockClear()
         vi.mocked(fsp.mkdir).mockClear()
         vi.mocked(cp.spawn).mockClear()
+        vi.mocked(startGeckodriver).mockClear()
     })
 
     afterEach(() => {
@@ -243,6 +244,40 @@ describe('startWebDriver', () => {
             '/my/chromedriver',
             ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
         )
+    })
+
+    it('should start no driver or download geckodriver if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'firefox',
+                'wdio:geckodriverOptions': { binary: '/my/geckodriver' },
+                'moz:firefoxOptions': { binary: '/my/firefox' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(res).toBe('geckodriver')
+        expect(startGeckodriver).toBeCalledWith({
+            cacheDir: expect.any(String),
+            customGeckoDriverPath: '/my/geckodriver',
+            port: 1234
+        })
+    })
+
+    it('should start no driver or download edgedriver if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'edge',
+                'wdio:edgedriverOptions': { binary: '/my/edgedriver' },
+                'ms:edgeOptions': { binary: '/my/edge' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(res).toBe('edgedriver')
+        expect(startEdgedriver).toBeCalledWith({
+            cacheDir: expect.any(String),
+            customEdgeDriverPath: '/my/edgedriver',
+            port: 1234
+        })
     })
 
     it('should fail on timeout', async () => {

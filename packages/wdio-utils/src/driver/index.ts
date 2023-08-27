@@ -21,7 +21,7 @@ import {
 } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = InstallOptions & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
+export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters {}
@@ -116,15 +116,23 @@ export async function startWebDriver (options: Options.WebDriver) {
             { binary: executablePath },
             caps['moz:firefoxOptions'] || {}
         )
+
+        /**
+         * the "binary" parameter refers to the driver binary in the WebdriverIO.GeckodriverOptions and
+         * to the Firefox binary in the driver option
+         */
         delete caps.browserVersion
-        const geckodriverOptions = caps['wdio:geckodriverOptions'] || ({} as GeckodriverParameters)
+        const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
+        geckodriverOptions.customGeckoDriverPath = binary
+
         driver = 'GeckoDriver'
         driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
          */
-        const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
+        const { binary, ...edgedriverOptions } = caps['wdio:edgedriverOptions'] || ({} as WebdriverIO.EdgedriverOptions)
+        edgedriverOptions.customEdgeDriverPath = binary
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)

@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { Options, Capabilities } from '@wdio/types'
 
 import {
-    getCacheDir, definesRemoteDriver,
+    getCacheDir, definesRemoteDriver, getDriverOptions,
     isSafari, isEdge, isFirefox, isChrome,
     setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser
 } from './utils.js'
@@ -11,6 +11,11 @@ const log = logger('@wdio/utils')
 const UNDEFINED_BROWSER_VERSION = null
 
 type SetupTaskFunction = (cap: Capabilities.Capabilities) => Promise<unknown>
+
+enum BrowserDriverTaskLabel {
+    BROWSER = 'browser binaries',
+    DRIVER = 'browser driver'
+}
 
 function mapCapabilities (
     options: Omit<Options.WebDriver, 'capabilities'>,
@@ -41,13 +46,15 @@ function mapCapabilities (
     ).flat().filter((cap) => (
         /**
          * only set up driver if
-         *   - browserName is defined so we know it is a browser session
-         *   - we are not about to run a cloud session
-         *   - we are not running Safari (driver already installed on macOS)
          */
+        // - browserName is defined so we know it is a browser session
         cap.browserName &&
+        // - we are not about to run a cloud session
         !definesRemoteDriver(options) &&
-        !isSafari(cap.browserName)
+        // - we are not running Safari (driver already installed on macOS)
+        !isSafari(cap.browserName) &&
+        // - driver options don't define a binary path
+        !getDriverOptions(cap).binary
     ))
 
     /**
@@ -102,7 +109,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
         }
 
         return Promise.resolve()
-    }, 'browser driver')
+    }, BrowserDriverTaskLabel.DRIVER)
 }
 
 export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
@@ -116,5 +123,5 @@ export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, 
         }
 
         return Promise.resolve()
-    }, 'browser binaries')
+    }, BrowserDriverTaskLabel.BROWSER)
 }

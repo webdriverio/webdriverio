@@ -156,7 +156,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     return { executablePath, browserVersion: buildId }
 }
 
-function getDriverOptions (caps: Capabilities.Capabilities) {
+export function getDriverOptions (caps: Capabilities.Capabilities) {
     return (
         caps['wdio:chromedriverOptions'] ||
         caps['wdio:geckodriverOptions'] ||

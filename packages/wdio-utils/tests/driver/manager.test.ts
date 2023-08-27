@@ -33,6 +33,18 @@ describe('setupDriver', () => {
             browserName: 'chrome',
             browserVersion: '2'
         }, {
+            browserName: 'chrome',
+            browserVersion: '2',
+            'wdio:chromedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
+            browserName: 'chrome',
+            browserVersion: '3',
+            'wdio:chromedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
             browserName: 'edge',
             browserVersion: '3'
         }, {
@@ -44,10 +56,21 @@ describe('setupDriver', () => {
         }, {
             browserName: 'edge'
         }, {
+            browserName: 'edge',
+            'wdio:edgedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
             browserName: 'edge'
         }, {
             browserName: 'firefox',
             browserVersion: '5'
+        }, {
+            browserName: 'firefox',
+            browserVersion: '5',
+            'wdio:geckodriverOptions': {
+                binary: 'foo'
+            }
         }, {
             browserName: 'firefox',
             browserVersion: '5'
@@ -81,6 +104,15 @@ describe('setupDriver', () => {
                     browserVersion: '2'
                 }
             },
+            browserBWithDriverBinary: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '3',
+                    'wdio:chromedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserBRepeat: {
                 capabilities: {
                     browserName: 'chrome',
@@ -99,6 +131,21 @@ describe('setupDriver', () => {
                     browserVersion: '4'
                 }
             },
+            browserDRepeat: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '4'
+                }
+            },
+            browserDWithDriverBinary: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '5',
+                    'wdio:edgedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserE: {
                 capabilities: {
                     browserName: 'firefox',
@@ -111,10 +158,19 @@ describe('setupDriver', () => {
                     browserVersion: '5'
                 }
             },
+            browserEWithDriverBinary: {
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '6',
+                    'wdio:geckodriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserF: {
                 capabilities: {
                     browserName: 'firefox',
-                    browserVersion: '6'
+                    browserVersion: '7'
                 }
             }
         })
@@ -126,7 +182,7 @@ describe('setupDriver', () => {
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '4')
         expect(setupGeckodriver).toBeCalledTimes(2)
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '5')
-        expect(setupGeckodriver).toBeCalledWith('/foo/bar', '6')
+        expect(setupGeckodriver).toBeCalledWith('/foo/bar', '7')
     })
 
     test('with multiremote capabilities series', async () => {
@@ -141,6 +197,15 @@ describe('setupDriver', () => {
                 capabilities: {
                     browserName: 'chrome',
                     browserVersion: '2'
+                }
+            },
+            browserBWithDriverBinary: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '3',
+                    'wdio:chromedriverOptions': {
+                        binary: 'foo'
+                    }
                 }
             },
         }, {
@@ -162,6 +227,15 @@ describe('setupDriver', () => {
                     browserVersion: '4'
                 }
             },
+            browserDWithDriverBinary: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '5',
+                    'wdio:edgedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
         }, {
             browserA: {
                 capabilities: {
@@ -179,6 +253,15 @@ describe('setupDriver', () => {
                 capabilities: {
                     browserName: 'firefox',
                     browserVersion: '6'
+                }
+            },
+            browserFWithDriverBinary: {
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '7',
+                    'wdio:geckodriverOptions': {
+                        binary: 'foo'
+                    }
                 }
             }
         }])
