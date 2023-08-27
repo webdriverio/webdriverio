@@ -17,7 +17,7 @@ WebdriverIO சமூகம் உலகம் முழுவதும் ப�
 
 ### ரோபோட்டர் லோகோ
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
+![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
 ### திட்டச் சின்னம்
 
