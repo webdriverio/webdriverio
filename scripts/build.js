@@ -49,6 +49,7 @@ const ESM_CJS_PACKAGES = [
     'eslint-plugin-wdio',
     'wdio-allure-reporter',
     'wdio-globals',
+    'wdio-reporter'
 ]
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
