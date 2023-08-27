@@ -17,7 +17,7 @@ WebdriverIO समुदाय दुनिया भर में वर्क�
 
 ### रोबोटर लोगो
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
+![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
 ### प्रोजेक्ट लोगो
 
