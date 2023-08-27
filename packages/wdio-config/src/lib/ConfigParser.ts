@@ -63,7 +63,10 @@ export default class ConfigParser {
          * rather than relative to the config file
          */
         if (_initialConfig.spec) {
-            const specsDirPath = _initialConfig.spec[0].includes(path.sep) ? process.cwd() : path.dirname(path.join(process.cwd(), _pathService.glob(_initialConfig.spec[0], process.cwd())[0]))
+            // Find dir path for single spec using glob pattern
+            const specsDirPath = _initialConfig.spec[0].includes(path.sep) || _initialConfig.spec[0].includes('/')
+                ? process.cwd()
+                : path.dirname(path.join(process.cwd(), _pathService.glob(_initialConfig.spec[0], process.cwd())[0]))
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec, specsDirPath) as string[]
         }
         this.merge(_initialConfig)
