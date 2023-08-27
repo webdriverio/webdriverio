@@ -98,8 +98,8 @@
         }
     },
     "specs": [
-        "path/to/project/test/specs/sync_0.spec.js",
-        "path/to/project/test/specs/sync_1.spec.js"
+        "/path/to/project/test/specs/sync_0.spec.js",
+        "/path/to/project/test/specs/sync_1.spec.js"
     ],
     "failures": 0,
     "end": "2018-04-17T09:09:28.678Z"
