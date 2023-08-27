@@ -17,7 +17,7 @@ title: Материалы
 
 ### Roboter Logo
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
+![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
 ### Логотип проекта
 
