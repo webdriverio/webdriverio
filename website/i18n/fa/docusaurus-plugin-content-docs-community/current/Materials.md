@@ -17,7 +17,7 @@ title: منابع آموزشی و تصاویر
 
 ### لوگوی ربات
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
+![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
 ### لوگوی پروژه
 
