@@ -7,13 +7,13 @@ import cp from 'node:child_process'
 import got from 'got'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
-import { getChromePath } from 'chrome-launcher'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
     computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
+import { locateChrome, locateFirefox } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options, Capabilities } from '@wdio/types'
 
@@ -36,16 +36,7 @@ export function parseParams(params: EdgedriverParameters) {
         .filter(Boolean)
 }
 
-export function getLocalChromePath() {
-    try {
-        const chromePath = getChromePath()
-        return chromePath
-    } catch (err: unknown) {
-        return
-    }
-}
-
-export function getBuildIdByPath(chromePath?: string) {
+export function getBuildIdByChromePath(chromePath?: string) {
     if (!chromePath) {
         return
     }
@@ -64,6 +55,25 @@ export function getBuildIdByPath(chromePath?: string) {
     return versionString.trim().split(' ').pop()?.trim()
 }
 
+export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
+    if (!firefoxPath) {
+        return
+    }
+
+    if (os.platform() === 'win32') {
+        const appPath = path.dirname(firefoxPath)
+        const contents = (await fsp.readFile(path.join(appPath, 'application.ini'))).toString('utf-8')
+        return contents
+            .split('\n')
+            .filter((line) => line.startsWith('Version='))
+            .map((line) => line.replace('Version=', '').replace(/\r/, ''))
+            .pop()
+    }
+
+    const versionString = cp.execSync(`"${firefoxPath}" --version`).toString()
+    return versionString.trim().split(' ').pop()?.trim()
+}
+
 let lastTimeCalled = Date.now()
 export const downloadProgressCallback = (artifact: string, downloadedBytes: number, totalBytes: number) => {
     if (Date.now() - lastTimeCalled < 1000) {
@@ -74,8 +84,10 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
     lastTimeCalled = Date.now()
 }
 
-export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilities) {
+export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
+
+    const browserName = caps.browserName === Browser.FIREFOX ? Browser.FIREFOX : Browser.CHROME
     const exist = await fsp.access(cacheDir).then(() => true, () => false)
     if (!exist) {
         await fsp.mkdir(cacheDir, { recursive: true })
@@ -84,11 +96,16 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
     /**
      * don't set up Chrome if a binary was defined in caps
      */
-    const chromeOptions = caps['goog:chromeOptions'] || {}
-    if (typeof chromeOptions.binary === 'string') {
+    const browserOptions = (browserName === Browser.CHROME
+        ? caps['goog:chromeOptions']
+        : caps['moz:firefoxOptions']
+    ) || {}
+    if (typeof browserOptions.binary === 'string') {
         return {
-            executablePath: chromeOptions.binary,
-            browserVersion: getBuildIdByPath(chromeOptions.binary)
+            executablePath: browserOptions.binary,
+            browserVersion: browserName === Browser.CHROME
+                ? getBuildIdByChromePath(browserOptions.binary)
+                : await getBuildIdByFirefoxPath(browserOptions.binary)
         }
     }
 
@@ -98,16 +115,19 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
     }
 
     if (!caps.browserVersion) {
-        const executablePath = getLocalChromePath()!
-        const tag = getBuildIdByPath(executablePath)
-
+        const executablePath = browserName === Browser.CHROME
+            ? await locateChrome().catch(() => undefined)
+            : await locateFirefox().catch(() => undefined)
+        const tag = browserName === Browser.CHROME
+            ? getBuildIdByChromePath(executablePath)
+            : await getBuildIdByFirefoxPath(executablePath)
         /**
          * verify that we have a valid Chrome browser installed
          */
         if (tag) {
             return {
                 executablePath,
-                browserVersion: await resolveBuildId(Browser.CHROME, platform, tag)
+                browserVersion: await resolveBuildId(browserName, platform, tag)
             }
         }
     }
@@ -115,28 +135,30 @@ export async function setupChrome(cacheDir: string, caps: Capabilities.Capabilit
     /**
      * otherwise download provided Chrome browser version or "stable"
      */
-    const tag = caps.browserVersion || ChromeReleaseChannel.STABLE
-    const buildId = await resolveBuildId(Browser.CHROME, platform, tag)
+    const tag = browserName === Browser.CHROME
+        ? caps.browserVersion || ChromeReleaseChannel.STABLE
+        : caps.browserVersion || 'latest'
+    const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
         cacheDir,
         platform,
         buildId,
-        browser: Browser.CHROME,
-        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chrome', downloadedBytes, totalBytes)
+        browser: browserName,
+        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(`${browserName} (${buildId})`, downloadedBytes, totalBytes)
     }
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
-        throw new Error(`Couldn't find a matching Chrome browser for tag "${buildId}" on platform "${platform}"`)
+        throw new Error(`Couldn't find a matching ${browserName} browser for tag "${buildId}" on platform "${platform}"`)
     }
 
-    log.info(`Setting up Chrome v${buildId}`)
+    log.info(`Setting up ${browserName} v${buildId}`)
     await install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, browserVersion: buildId }
 }
 
-function getDriverOptions (caps: Capabilities.Capabilities) {
+export function getDriverOptions (caps: Capabilities.Capabilities) {
     return (
         caps['wdio:chromedriverOptions'] ||
         caps['wdio:geckodriverOptions'] ||
@@ -158,7 +180,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         throw new Error('The current platform is not supported.')
     }
 
-    const version = driverVersion || getBuildIdByPath(getLocalChromePath()) || ChromeReleaseChannel.STABLE
+    const version = driverVersion || getBuildIdByChromePath(await locateChrome()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,

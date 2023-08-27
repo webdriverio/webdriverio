@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
 import type * as utils from '../../src/driver/utils.js'
-import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupChrome } from '../../src/driver/utils.js'
+import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser } from '../../src/driver/utils.js'
 import { setupDriver, setupBrowser } from '../../src/driver/manager.js'
 
 vi.mock('../../src/driver/utils.js', async (orig) => {
@@ -13,7 +13,7 @@ vi.mock('../../src/driver/utils.js', async (orig) => {
         setupChromedriver: vi.fn(),
         setupEdgedriver: vi.fn(),
         setupGeckodriver: vi.fn(),
-        setupChrome: vi.fn()
+        setupPuppeteerBrowser: vi.fn()
     }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -33,6 +33,18 @@ describe('setupDriver', () => {
             browserName: 'chrome',
             browserVersion: '2'
         }, {
+            browserName: 'chrome',
+            browserVersion: '2',
+            'wdio:chromedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
+            browserName: 'chrome',
+            browserVersion: '3',
+            'wdio:chromedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
             browserName: 'edge',
             browserVersion: '3'
         }, {
@@ -44,10 +56,21 @@ describe('setupDriver', () => {
         }, {
             browserName: 'edge'
         }, {
+            browserName: 'edge',
+            'wdio:edgedriverOptions': {
+                binary: 'foo'
+            }
+        }, {
             browserName: 'edge'
         }, {
             browserName: 'firefox',
             browserVersion: '5'
+        }, {
+            browserName: 'firefox',
+            browserVersion: '5',
+            'wdio:geckodriverOptions': {
+                binary: 'foo'
+            }
         }, {
             browserName: 'firefox',
             browserVersion: '5'
@@ -81,6 +104,15 @@ describe('setupDriver', () => {
                     browserVersion: '2'
                 }
             },
+            browserBWithDriverBinary: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '3',
+                    'wdio:chromedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserBRepeat: {
                 capabilities: {
                     browserName: 'chrome',
@@ -99,6 +131,21 @@ describe('setupDriver', () => {
                     browserVersion: '4'
                 }
             },
+            browserDRepeat: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '4'
+                }
+            },
+            browserDWithDriverBinary: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '5',
+                    'wdio:edgedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserE: {
                 capabilities: {
                     browserName: 'firefox',
@@ -111,10 +158,19 @@ describe('setupDriver', () => {
                     browserVersion: '5'
                 }
             },
+            browserEWithDriverBinary: {
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '6',
+                    'wdio:geckodriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
             browserF: {
                 capabilities: {
                     browserName: 'firefox',
-                    browserVersion: '6'
+                    browserVersion: '7'
                 }
             }
         })
@@ -126,7 +182,7 @@ describe('setupDriver', () => {
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '4')
         expect(setupGeckodriver).toBeCalledTimes(2)
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '5')
-        expect(setupGeckodriver).toBeCalledWith('/foo/bar', '6')
+        expect(setupGeckodriver).toBeCalledWith('/foo/bar', '7')
     })
 
     test('with multiremote capabilities series', async () => {
@@ -141,6 +197,15 @@ describe('setupDriver', () => {
                 capabilities: {
                     browserName: 'chrome',
                     browserVersion: '2'
+                }
+            },
+            browserBWithDriverBinary: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '3',
+                    'wdio:chromedriverOptions': {
+                        binary: 'foo'
+                    }
                 }
             },
         }, {
@@ -162,6 +227,15 @@ describe('setupDriver', () => {
                     browserVersion: '4'
                 }
             },
+            browserDWithDriverBinary: {
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '5',
+                    'wdio:edgedriverOptions': {
+                        binary: 'foo'
+                    }
+                }
+            },
         }, {
             browserA: {
                 capabilities: {
@@ -180,6 +254,15 @@ describe('setupDriver', () => {
                     browserName: 'firefox',
                     browserVersion: '6'
                 }
+            },
+            browserFWithDriverBinary: {
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '7',
+                    'wdio:geckodriverOptions': {
+                        binary: 'foo'
+                    }
+                }
             }
         }])
         expect(setupChromedriver).toBeCalledTimes(2)
@@ -196,7 +279,7 @@ describe('setupDriver', () => {
 
 describe('setupBrowser', () => {
     beforeEach(() => {
-        vi.mocked(setupChrome).mockClear()
+        vi.mocked(setupPuppeteerBrowser).mockClear()
     })
 
     test('with testrunner capabilities', async () => {
@@ -219,14 +302,22 @@ describe('setupBrowser', () => {
             browserName: 'firefox',
             browserVersion: '6'
         }])
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 
@@ -269,14 +360,22 @@ describe('setupBrowser', () => {
                 }
             }
         })
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 
@@ -321,14 +420,22 @@ describe('setupBrowser', () => {
                 }
             }
         }])
-        expect(setupChrome).toBeCalledTimes(2)
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledTimes(4)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '1'
         })
-        expect(setupChrome).toBeCalledWith('/foo/bar', {
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'chrome',
             browserVersion: '2'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '6'
         })
     })
 })
