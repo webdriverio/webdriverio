@@ -123,7 +123,9 @@ export async function startWebDriver (options: Options.WebDriver) {
          */
         delete caps.browserVersion
         const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
-        geckodriverOptions.customGeckoDriverPath = binary
+        if (binary) {
+            geckodriverOptions.customGeckoDriverPath = binary
+        }
 
         driver = 'GeckoDriver'
         driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })

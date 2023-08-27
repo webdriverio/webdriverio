@@ -135,7 +135,9 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     /**
      * otherwise download provided Chrome browser version or "stable"
      */
-    const tag = caps.browserVersion || ChromeReleaseChannel.STABLE
+    const tag = browserName === Browser.CHROME
+        ? caps.browserVersion || ChromeReleaseChannel.STABLE
+        : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
@@ -143,7 +145,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
         platform,
         buildId,
         browser: browserName,
-        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(browserName, downloadedBytes, totalBytes)
+        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(`${browserName} (${buildId})`, downloadedBytes, totalBytes)
     }
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
