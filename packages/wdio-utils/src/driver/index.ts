@@ -134,7 +134,10 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Microsoft Edge
          */
         const { binary, ...edgedriverOptions } = caps['wdio:edgedriverOptions'] || ({} as WebdriverIO.EdgedriverOptions)
-        edgedriverOptions.customEdgeDriverPath = binary
+        if (binary) {
+            edgedriverOptions.customEdgeDriverPath = binary
+        }
+
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
