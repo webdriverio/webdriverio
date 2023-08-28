@@ -29,5 +29,6 @@ export const ChromeReleaseChannel = () => {}
 export const detectBrowserPlatform = () => {}
 export const type = 'browser'
 export const sync = () => {}
-export const getChromePath = () => {}
+export const locateChrome = () => {}
+export const locateFirefox = () => {}
 export default () => {}
