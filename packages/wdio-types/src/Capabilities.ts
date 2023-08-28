@@ -626,6 +626,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:tapWithShortPressDuration'?: number;
     'appium:scaleFactor'?: string;
     'appium:usePrebuiltWDA'?: boolean;
+    'appium:usePreinstalledWDA'?: boolean;
     'appium:webDriverAgentUrl'?: string;
     'appium:derivedDataPath'?: string;
     'appium:launchWithIDB'?: boolean;
