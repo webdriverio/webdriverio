@@ -64,7 +64,7 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "read-pkg-up": "10.0.0",
+    "read-pkg-up": "10.1.0",
     "recursive-readdir": "^2.2.3",
     "webdriverio": "8.15.9",
     "yargs": "^17.7.2",
