@@ -101,13 +101,13 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
     })
 
     it('should not initiated with no tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, [], {}, {})
+        const adapter = await CucumberAdapter.init!!('0-0', {}, [], {}, {}, {}, false)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(false)
     })
@@ -115,7 +115,7 @@ describe('CucumberAdapter', () => {
     it('can run without errors', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { format: [] }
-        }, ['/foo/bar'], {}, {})
+        }, ['/foo/bar'], {}, {}, {}, false)
         adapter.registerRequiredModules = vi.fn()
         adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
@@ -144,7 +144,7 @@ describe('CucumberAdapter', () => {
                     }
                 ]
             }
-        }, ['/foo/bar'], {}, {})
+        }, ['/foo/bar'], {}, {}, {}, false)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(undefined)
@@ -208,7 +208,9 @@ describe('CucumberAdapter', () => {
             },
             ['/foo/bar'],
             {},
-            {}
+            {},
+            {},
+            false
         )
         adapter.addWdioHooksAndWrapSteps(
             {
@@ -315,7 +317,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -340,7 +344,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -365,7 +371,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -390,7 +398,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -415,7 +425,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -440,7 +452,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -465,7 +479,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -489,7 +505,9 @@ describe('CucumberAdapter', () => {
                 'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
             ],
             {},
-            {}
+            {},
+            {},
+            false
         )
 
         expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')

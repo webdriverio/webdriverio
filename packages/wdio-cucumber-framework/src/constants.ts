@@ -35,5 +35,6 @@ export const DEFAULT_OPTS: CucumberOptions = {
     scenarioLevelReporter: false,
     tagsInTitle: false,
     ignoreUndefinedDefinitions: false,
-    failAmbiguousDefinitions: false
+    failAmbiguousDefinitions: false,
+    tagExpression: ''
 }

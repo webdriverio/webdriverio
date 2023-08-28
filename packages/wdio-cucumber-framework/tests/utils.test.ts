@@ -9,6 +9,7 @@ import {
     getTestStepTitle,
     addKeywordToStep,
     getRule,
+    generateSkipTagsFromCapabilities
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
@@ -198,4 +199,42 @@ describe('utils', () => {
         expect(getRule(feature as any, '3')).toBe('Rule for scenario 3 and 4')
         expect(getRule(feature as any, '4')).toBe('Rule for scenario 3 and 4')
     })
+
+    it('generateSkipTagsFromCapabilities', () => {
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip{browserName="chrome"}']]))
+            .toStrictEqual(['(not @skip{browserName="chrome"})'])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip{browserName="foobar"}']]))
+            .toStrictEqual([])
+    })
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+        platformName: 'windows'
+    }, [['@skip{browserName="foobar";platformName="windows"}']]))
+        .toStrictEqual([])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip{something="weird"}']]))
+        .toStrictEqual([])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip{}']]))
+        .toStrictEqual(['(not @skip{})'])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip']]))
+        .toStrictEqual(['(not @skip)'])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip_local']]))
+        .toStrictEqual([])
 })

@@ -15,7 +15,7 @@ import { IdGenerator } from '@cucumber/messages'
 import TagExpressionParser from '@cucumber/tag-expressions'
 
 import { DEFAULT_OPTS, FILE_PROTOCOL } from './constants.js'
-import { shouldRun } from './utils.js'
+import { generateSkipTagsFromCapabilities, shouldRun } from './utils.js'
 
 import type {
     CucumberOptions,
@@ -95,7 +95,8 @@ class CucumberAdapter {
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter,
-        private _eventEmitter: EventEmitter
+        private _eventEmitter: EventEmitter,
+        private _generateSkipTags: boolean = true
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -128,6 +129,9 @@ class CucumberAdapter {
         this._specs = this._specs.map((spec) =>
             spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec
         )
+
+        // backwards compatibility for tagExpression usage
+        this._cucumberOpts.tags = this._cucumberOpts.tags ? this._cucumberOpts.tags : this._cucumberOpts.tagExpression
     }
 
     readFiles(
@@ -164,7 +168,7 @@ class CucumberAdapter {
 
     filterSpecsByTagExpression(
         specs: Options.Testrunner['specs'] = [],
-        tagExpression = this._config.cucumberOpts?.tags ?? ''
+        tagExpression = this._cucumberOpts.tags ?? ''
     ): typeof specs {
         if (!tagExpression) {
             return specs
@@ -196,11 +200,26 @@ class CucumberAdapter {
         return filteredSpecs
     }
 
+    generateDynamicSkipTags() {
+        return this.getGherkinDocuments([this._specs])
+            .map((specDoc: GherkinDocument | GherkinDocument[]) => {
+                const [doc] = [specDoc].flat(1)
+                const pickles = Gherkin.compile(doc, '', uuidFn)
+                const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
+                const generatedTag = generateSkipTagsFromCapabilities(this._capabilities, tags)
+                return generatedTag.length > 0 ? generatedTag.join(' and '): []
+            }).flat(1)
+    }
+
     async init() {
+        if (this._generateSkipTags) {
+            this._cucumberOpts.tags = this._cucumberOpts.tags ? this.generateDynamicSkipTags().concat(this._cucumberOpts.tags).join(' and ') : this.generateDynamicSkipTags().toString()
+        }
+
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
-        if (this._config.cucumberOpts?.tags) {
+        if (this._cucumberOpts.tags) {
             this._specs = this.filterSpecsByTagExpression([this._specs]).flat(
                 1
             )

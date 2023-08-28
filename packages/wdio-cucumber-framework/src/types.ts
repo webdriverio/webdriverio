@@ -136,6 +136,12 @@ export interface CucumberOptions {
      * @default false
      */
     failAmbiguousDefinitions?: boolean;
+    /**
+     * Only execute the features or scenarios with tags matching the expression.
+     * Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+     * @deprecated Use the `tags` config property instead.
+     */
+    tagExpression?: string;
 }
 
 export interface HookParams {

@@ -1,5 +1,5 @@
 import path from 'node:path'
-
+import logger from '@wdio/logger'
 import type TagExpressionParser from '@cucumber/tag-expressions'
 import { compile } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
@@ -14,8 +14,10 @@ import type {
     TestStepResultStatus,
     GherkinDocument
 } from '@cucumber/messages'
-
+import type { Capabilities } from '@wdio/types'
 import type { ReporterStep } from './types.js'
+
+const log = logger('@wdio/cucumber-framework:utils')
 
 /**
  * NOTE: this function is exported for testing only
@@ -182,4 +184,58 @@ export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof Tag
     const pickles = compile(doc, '', IdGenerator.uuid())
     const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
     return tags.some((tag) => tagParser.evaluate(tag))
+}
+
+/**
+ * Generates skip tags based on capabilities and provided tags.
+ *
+ * @param {Capabilities.RemoteCapability} capabilities - The capabilities for which skip tags will be generated.
+ * @param {string[][]} tags - The original tags of scenarios.
+ * @returns {string[]} - An array of generated skip tags in Cucumber tag expression format.
+ */
+export function generateSkipTagsFromCapabilities(capabilities: Capabilities.RemoteCapability, tags: string[][]): string[] {
+    const generatedTags: string[] = []
+
+    const skipTag = /^@skip$|^@skip\{(.*)\}$/
+
+    const match = (value: string, expr: RegExp) => {
+        if (Array.isArray(expr)) {
+            return expr.indexOf(value) >= 0
+        } else if (expr instanceof RegExp) {
+            return expr.test(value)
+        }
+        return (
+            (expr && ('' + expr).toLowerCase()) ===
+            (value && ('' + value).toLowerCase())
+        )
+    }
+
+    const parse = (skipExpr: string) =>
+        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
+            const pos = splitItem.indexOf('=')
+            if (pos > 0) {
+                try {
+                    acc[splitItem.substring(0, pos)] = eval(
+                        splitItem.substring(pos + 1)
+                    )
+                } catch (err: any) {
+                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
+                }
+            }
+            return acc
+        }, {})
+
+    tags.flat(1).forEach((tag) => {
+        const matched = tag.match(skipTag)
+        if (matched) {
+            const isSkip = [parse(matched[1] ?? '')]
+                .find((filter: Capabilities.Capabilities) => Object.keys(filter)
+                    .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
+            if (isSkip) {
+                generatedTags.push(`(not ${tag})`)
+            }
+        }
+    })
+
+    return generatedTags
 }
