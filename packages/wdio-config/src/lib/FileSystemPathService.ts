@@ -32,6 +32,8 @@ export default class FileSystemPathService implements PathService {
             matchBase: true
         }) || []
         const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
+            .replace(/^[a-z]:\\/, (match: string) => match.toUpperCase())
+
         /**
          * given that glob treats characters like `[` or `{` in a special way
          * and we also want to be able to find files with these characters included
