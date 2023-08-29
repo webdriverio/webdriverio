@@ -58,6 +58,18 @@ export interface BrowserstackConfig {
      */
     testObservabilityOptions?: TestObservabilityOptions;
     /**
+    * Set this to true to enable BrowserStack Accessibility Automation which will
+    * automically conduct accessibility testing on your pre-existing test builds
+    * and generate health reports which can be viewed in the Accessibility dashboard.
+    * @default false
+    */
+    accessibility?: boolean | string;
+    /**
+    * Customise the Accessibility-related config options under this key.
+    * For e.g. wcagVersion, bestPractice issues, needsReview issues etc.
+    */
+    accessibilityOptions?: { [key: string]: any; };
+    /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
      * custom_id, sharable_id of the uploaded app
@@ -184,7 +196,8 @@ export interface UserConfig {
     projectName?: string,
     buildTag?: string,
     bstackServiceVersion?: string,
-    buildIdentifier?: string
+    buildIdentifier?: string,
+    accessibilityOptions?: { [key: string]: any; }
 }
 
 export interface UploadType {
@@ -244,3 +257,8 @@ interface StepData {
 interface Failure {
     backtrace: string[]
 }
+
+export interface BrowserStack extends WebdriverIO.Browser  {
+    getAccessibilityResultsSummary: any,
+    getAccessibilityResults: any
+ }

@@ -162,6 +162,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    'browserstack.accessibility'?: boolean | string
+    'browserstack.accessibilityOptions'?: { [key: string]: any; }
     /**
      * @private
      */
@@ -1262,8 +1264,14 @@ export interface BrowserStackCapabilities {
      * Specify an identifier for a build consists group of tests.
      */
     buildIdentifier?: string
+
+    accessibility?: boolean | string
+    accessibilityOptions?: { [key: string]: any; }
+
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
+    'browserstack.accessibility'?: string | boolean
+    'browserstack.accessibilityOptions'?: { [key: string]: any; }
 }
 
 export interface SauceLabsVisualCapabilities {
