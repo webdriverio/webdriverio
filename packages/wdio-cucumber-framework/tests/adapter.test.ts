@@ -3,15 +3,12 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { executeHooksWithArgs } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
-import mockery from 'mockery'
 import type * as Messages from '@cucumber/messages'
 
-import type * as Utils from '../src/utils.js'
 import * as packageExports from '../src/index.js'
 
 import CucumberAdapter from '../src/index.js'
 
-vi.mock('mockery')
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
@@ -26,37 +23,15 @@ vi.mock('@cucumber/messages', async () => {
     }
 })
 
-vi.mock('../src/reporter', () => ({
-    default: class CucumberReporter {
-        eventListener = {
-            getPickleIds: vi.fn().mockReturnValue(['8']),
-            getHookParams: vi.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
-        }
-    }
-}))
-
 vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
+    return {}
 })
 vi.mock('moduleB', () => ({
     default: function moduleB(opts: any) {
         // @ts-ignore
         global.MODULE_B_WAS_LOADED_WITH = opts
     }
-}))
-
-vi.mock('../src/utils', async () => {
-
-    const module: typeof Utils = await vi.importActual('../src/utils')
-
-    return {
-        ...module,
-        setUserHookNames: vi.fn()
-    }
-})
-
-vi.mock('@cucumber/gherkin-streams', () => ({
-    GherkinStreams: { fromPaths: vi.fn().mockReturnValue('GherkinStreams.fromPaths') }
 }))
 
 declare global {
@@ -72,9 +47,6 @@ describe('CucumberAdapter', () => {
     beforeEach(() => {
         vi.mocked(executeHooksWithArgs).mockClear()
         vi.mocked(Cucumber.setDefinitionFunctionWrapper).mockClear()
-        vi.mocked(mockery.enable).mockClear()
-        vi.mocked(mockery.registerMock).mockClear()
-        vi.mocked(mockery.disable).mockClear()
         vi.mocked(Cucumber.BeforeAll).mockClear()
         vi.mocked(Cucumber.AfterAll).mockClear()
         vi.mocked(Cucumber.Before).mockClear()
@@ -128,11 +100,7 @@ describe('CucumberAdapter', () => {
         expect(adapter.loadFiles).toBeCalledTimes(1)
     })
 
-    /**
-     * failing due to missing support of dynamic mock imports
-     * https://github.com/vitest-dev/vitest/issues/1294
-     */
-    it.skip('registerRequiredModules', async () => {
+    it('registerRequiredModules', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 requireModule: [
@@ -148,17 +116,13 @@ describe('CucumberAdapter', () => {
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(undefined)
-        adapter.registerRequiredModules()
+        await adapter.registerRequiredModules()
         expect(global.MODULE_A_WAS_LOADED).toBe(true)
         expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ foo: 'bar' })
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(true)
     })
 
-    /**
-     * failing due to missing support of dynamic mock imports
-     * https://github.com/vitest-dev/vitest/issues/1294
-     */
-    it.skip('requiredFiles', async () => {
+    it('loadFilesWithType', async () => {
         /**
          * skip for windows which for some reasons only can find one entry, e.g.:
          * D:\\a\\webdriverio\\webdriverio\\packages\\wdio-cucumber-framework\\tests\\adapter.test.ts
@@ -171,28 +135,21 @@ describe('CucumberAdapter', () => {
             cucumberOpts: {
                 require: [
                     __filename,
-                    path.join(__dirname, '__mocks__', 'module*.ts')
+                    path.join(process.cwd(), '__mocks__', 'module*.ts')
                 ]
             }
-        }, ['/foo/bar'], {}, {})
-        expect(adapter.requiredFiles()).toHaveLength(4)
+        }, ['/foo/bar'], {}, {}, {}, false)
+
+        expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require)).toHaveLength(4)
     })
 
-    /**
-     * failing due to missing support of dynamic mock imports
-     * https://github.com/vitest-dev/vitest/issues/1294
-     */
-    it.skip('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.requiredFiles = vi.fn().mockReturnValue([__dirname + '/__mocks__/moduleC.ts'])
+    it('loadSpecFiles', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        adapter.loadFilesWithType = vi.fn().mockReturnValue([process.cwd() + '/__mocks__/moduleC.ts'])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
-        adapter.loadSpecFiles()
+        await adapter.loadFiles()
         expect(global.MODULE_C_WAS_LOADED).toBe(true)
-
-        expect(mockery.enable).toBeCalledTimes(1)
-        expect(mockery.registerMock).toBeCalledWith('@cucumber/cucumber', expect.any(Object))
-        expect(mockery.disable).toBeCalledTimes(1)
     })
 
     it('addWdioHooksAndWrapSteps', async () => {

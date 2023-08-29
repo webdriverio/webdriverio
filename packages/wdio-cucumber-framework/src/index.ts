@@ -327,7 +327,7 @@ class CucumberAdapter {
             this._cucumberOpts.requireModule.map(
                 async (requiredModule: string | Function | string[]) => {
                     if (Array.isArray(requiredModule)) {
-                        (await import(requiredModule[0]))(requiredModule[1])
+                        (await import(requiredModule[0])).default(requiredModule[1])
                     } else if (typeof requiredModule === 'function') {
                         requiredModule()
                     } else {
