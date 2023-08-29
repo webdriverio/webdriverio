@@ -67,8 +67,9 @@ class _AccessibilityHandler {
             } else if (capType === 'goog:chromeOptions' && (caps as Capabilities.Capabilities)['goog:chromeOptions']) {
                 return (caps as Capabilities.Capabilities)['goog:chromeOptions']
             } else {
-                if ((caps as Capabilities.Capabilities)['bstack:options'] && (caps as Capabilities.Capabilities)['bstack:options']?.[capType as keyof BrowserStackCapabilities]) {
-                    return (caps as Capabilities.Capabilities)['bstack:options']?.[capType as keyof BrowserStackCapabilities]
+                const bstackOptions = (caps as Capabilities.Capabilities)['bstack:options']
+                if ( bstackOptions && bstackOptions?.[capType as keyof BrowserStackCapabilities]) {
+                    return bstackOptions?.[capType as keyof BrowserStackCapabilities]
                 } else if ((caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]) {
                     return (caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]
                 }
