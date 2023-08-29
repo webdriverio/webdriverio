@@ -1,8 +1,9 @@
 import React from 'react'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import Footer from '@theme-original/Footer'
 import { MendableFloatingButton } from '@mendable/search'
 
-export default function FooterWrapper() {
+export default function FooterWrapper(props) {
     const {
         siteConfig: { customFields },
     } = useDocusaurusContext()
@@ -30,6 +31,7 @@ export default function FooterWrapper() {
                 dialogPlaceholder='Why Webdriver.IO?'
                 welcomeMessage='Welcome! How can I help?'
             />
+            <Footer {...props} />
         </>
     )
 }
