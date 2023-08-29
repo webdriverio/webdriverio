@@ -187,8 +187,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                             source.startsWith('.') &&
                             [...sessionMocks.values()].find((m) => {
                                 const fileImportPath = path.resolve(path.dirname(id), source)
+                                const fileImportPathSliced = fileImportPath.slice(0, path.extname(fileImportPath).length * -1)
                                 const testMockPath = path.resolve(path.dirname(spec || '/'), m)
-                                return fileImportPath.slice(0, path.extname(fileImportPath).length * -1) === testMockPath.slice(0, path.extname(testMockPath).length * -1)
+                                const testMockPathSliced = testMockPath.slice(0, path.extname(testMockPath).length * -1)
+                                return fileImportPathSliced === testMockPathSliced && fileImportPathSliced.length > 0
                             })
                         )
                     )
