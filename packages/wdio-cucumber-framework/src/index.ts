@@ -131,7 +131,7 @@ class CucumberAdapter {
         )
 
         // backwards compatibility for tagExpression usage
-        this._cucumberOpts.tags = this._cucumberOpts.tags ? this._cucumberOpts.tags : this._cucumberOpts.tagExpression
+        this._cucumberOpts.tags = this._cucumberOpts.tags || this._cucumberOpts.tagExpression
     }
 
     readFiles(
@@ -213,16 +213,14 @@ class CucumberAdapter {
 
     async init() {
         if (this._generateSkipTags) {
-            this._cucumberOpts.tags = this._cucumberOpts.tags ? this.generateDynamicSkipTags().concat(this._cucumberOpts.tags).join(' and ') : this.generateDynamicSkipTags().toString()
+            this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
         }
 
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
         if (this._cucumberOpts.tags) {
-            this._specs = this.filterSpecsByTagExpression([this._specs]).flat(
-                1
-            )
+            this._specs = this.filterSpecsByTagExpression([this._specs]).flat(1)
         }
         // Filter the specs according to line numbers
         if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
