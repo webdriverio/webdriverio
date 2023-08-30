@@ -2,6 +2,7 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 import fs from 'node:fs/promises'
+import path from 'node:path'
 import { execa } from 'execa'
 import * as runCmd from '../../src/commands/run.js'
 import * as configCmd from '../../src/commands/config.js'
@@ -125,7 +126,7 @@ describe('Command: run', () => {
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             expect(vi.mocked(execa).mock.calls[0][2]!.env.TS_NODE_PROJECT)
-                .toContain('/config/tsconfig.e2e.json')
+                .toContain(`${path.sep}config${path.sep}tsconfig.e2e.json`)
         })
 
         it('should load custom ts-node options', async () => {
