@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
-
+import logger from '@wdio/logger'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 import { executeHooksWithArgs } from '@wdio/utils'
@@ -34,6 +34,8 @@ import {
 } from '@cucumber/cucumber/api'
 
 import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
+
+const log = logger('@wdio/cucumber-framework')
 
 const {
     After,
@@ -132,6 +134,10 @@ class CucumberAdapter {
 
         // backwards compatibility for tagExpression usage
         this._cucumberOpts.tags = this._cucumberOpts.tags || this._cucumberOpts.tagExpression
+
+        if (this._cucumberOpts.tagExpression) {
+            log.warn("'tagExpression' is deprecated. Use 'tags' instead.")
+        }
     }
 
     readFiles(
@@ -239,6 +245,7 @@ class CucumberAdapter {
         let runtimeError
         let result
         let failedCount
+        let outStream
 
         try {
             await this.registerRequiredModules()
@@ -252,7 +259,7 @@ class CucumberAdapter {
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
-            const outStream = new Writable({
+            outStream = new Writable({
                 write(chunk, encoding, callback) {
                     callback()
                 },
@@ -293,6 +300,8 @@ class CucumberAdapter {
         } catch (err: any) {
             runtimeError = err
             result = 1
+        } finally {
+            outStream?.end()
         }
 
         await executeHooksWithArgs('after', this._config.after, [
