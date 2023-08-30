@@ -3,7 +3,7 @@ id: gettingstarted
 title: はじめに
 ---
 
-WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIOを始めるための紹介をします。 なにか問題や分からないことがあった場合は、 [Discord サポート ](https://discord.webdriver.io) に問い合わせることで、サポートを受けることができます。 またはWebdriverIOのX [](https://twitter.com/webdriverio) への問い合わせも可能です。
+WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIOを始めるための紹介をします。 なにか問題や分からないことがあった場合は、 [Discord サポート ](https://discord.webdriver.io) に問い合わせることで、サポートを受けることができます。 またはWebdriverIOの [X](https://twitter.com/webdriverio) への問い合わせも可能です。
 
 :::info
 これらは、WebdriverIO の最新バージョン (__>=8.x__) のドキュメントです。 もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
@@ -13,15 +13,15 @@ WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIO�
 
 :::tip公式YouTubeチャンネル🎥
 
-WebdriverIO に関する動画をお探しの場合は[](https://youtube.com/@webdriverio)で見つけることができます。 チャンネル登録をお願いします！
+WebdriverIO に関する動画をお探しの場合は[公式チャンネル](https://youtube.com/@webdriverio)で見つけることができます。 チャンネル登録をお願いします！
 
 :::
 
-## Initiate a WebdriverIO Setup
+## WebdriverIOのセットアップを開始する
 
-To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
+[WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio)を使用して WebdriverIOのセットアップを既存または新しいプロジェクトに追加するには、次のコマンドを実行します。
 
-If you're in the root directory of an existing project, run:
+既存のプロジェクトのルートディレクトリにいる場合は、下記のコマンドを実行します。
 
 <Tabs
   defaultValue="npm"
@@ -72,11 +72,11 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+このコマンドひとつで、WebdriverIO CLI がダウンロードされ、設定ウィザードが実行されます。
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+設定ウィザードは、セットアップをガイドする一連の質問を行います `--yes` パラメータを渡すと、 [Page Object](https://martinfowler.com/bliki/PageObject.html) パターンを使用して Chrome で Mocha を使用するデフォルトの設定を選択できます。
 
 <Tabs
   defaultValue="npm"
@@ -109,9 +109,9 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Install CLI Manually
+## CLI を手動でインストールする
 
-You can also add the CLI package to your project manually via:
+下記の方法で CLI パッケージをプロジェクトに手動で追加することもできます。
 
 ```sh
 npm i --save-dev @wdio/cli
@@ -121,45 +121,45 @@ npx wdio --version # prints e.g. `8.13.10`
 npx wdio config
 ```
 
-## Run Test
+## 実行する
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+`run` コマンドを使用し、作成したばかりの WebdriverIO のconfig ファイルを指定することで、テスト スイートを開始できます。
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+特定のテストファイルを実行したい場合は、 `--spec` パラメータをつけることで可能です。
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+または、configファイルでテストスイートを定義し、テストスイート内で定義されたテストファイルのみを実行できます。
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## スクリプトで実行する
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+WebdriverIOをNode.JSの[Standalone mode](/docs/setuptypes#standalone-mode)でオートメーション・エンジンとして使用したい場合は、WebdriverIOを直接インストールしてパッケージとして使用することもできます。例えば、例えばWeb サイトのスクリーンショットを生成するには
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__注意:__ すべての WebdriverIO コマンドは非同期であり、 [`async/await`](https://javascript.info/async-await)を使用して適切に処理する必要があります。
 
-## Record tests
+## テスト内容を記録する
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO は、画面上でテスト アクションを記録し、WebdriverIO テスト スクリプトを自動的に生成することで開始を支援するツールを提供します。 詳細については、 [Chrome DevTools Recorder を使用したRecorder テスト](/docs/record)を参照してください。
 
-## System Requirements
+## システム要件
 
-You’ll need [Node.js](http://nodejs.org) installed.
+[Node.js](http://nodejs.org) がインストールされている必要があります。
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
+- すくなくとも現在一番古いLTS であるv16.x 以降をインストールしてください
+- LTS リリースもしくはLTS リリースとなるリリースのみが正式にサポートされます。
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+現在のシステムに Node がインストールされていない場合は、 [NVM](https://github.com/creationix/nvm) または [Volta](https://volta.sh/) などのバージョン管理ツールを利用して、複数のアクティブな Node.js バージョンの管理を支援することをお勧めします。 NVM は一般的な選択肢ですが、Volta も優れた代替手段です。
