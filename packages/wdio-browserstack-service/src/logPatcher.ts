@@ -1,6 +1,5 @@
 import Transport from 'winston-transport'
-// const { consoleHolder } = require('../../helpers/test-observability/constants');
-const consoleHolder: typeof console = Object.assign({}, console)
+import { consoleHolder } from './constants.js'
 
 const LOG_LEVELS = {
     INFO: 'INFO', ERROR: 'ERROR', DEBUG: 'DEBUG', TRACE: 'TRACE', WARN: 'WARN',
@@ -12,10 +11,8 @@ class logPatcher extends Transport {
     }
 
     logToTestOps = (level = LOG_LEVELS.INFO, message = ['']) => {
-        // @ts-ignore
-        consoleHolder[level.toLowerCase()](...message)
-        // @ts-ignore
-        process.emit(`bs:addLog:${process.pid}`, {
+        (consoleHolder as any)[level.toLowerCase()](...message)
+        (process.emit as Function)(`bs:addLog:${process.pid}`, {
             timestamp: new Date().toISOString(),
             level: level.toUpperCase(),
             message: `"${message.join(', ')}"`,

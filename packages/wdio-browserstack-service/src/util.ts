@@ -671,4 +671,14 @@ export function getFailureObject(error: string|Error) {
     }
 }
 
+export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
+    if (!requestQueueHandler) {
+        requestQueueHandler = RequestQueueHandler.getInstance()
+    }
+    const req = requestQueueHandler.add(data)
+    if (req.proceed && req.data) {
+        await uploadEventData(req.data, req.url)
+    }
+}
+
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

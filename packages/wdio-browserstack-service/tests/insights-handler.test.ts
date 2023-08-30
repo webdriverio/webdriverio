@@ -752,7 +752,7 @@ describe('appendTestItemLog', function () {
     let testLogObj: StdLog
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'mocha')
-        sendDataSpy = vi.spyOn(insightsHandler, 'sendData').mockImplementation(() => { return [] as any })
+        sendDataSpy = vi.spyOn(utils, 'pushDataToQueue').mockImplementation(() => { return [] as any })
         testLogObj = { ...logObj }
     })
 
