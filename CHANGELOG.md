@@ -21,6 +21,27 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.10 (2023-08-29)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11053](https://github.com/webdriverio/webdriverio/pull/11053) (@wdio/browser-runner): fix detection of mocked module ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11025](https://github.com/webdriverio/webdriverio/pull/11025) Update Capabilities.ts ([@yanhaijing](https://github.com/yanhaijing))
+
+#### :memo: Documentation
+* [#11047](https://github.com/webdriverio/webdriverio/pull/11047) fix footer wrapping ([@tamil777selvan](https://github.com/tamil777selvan))
+* [#11049](https://github.com/webdriverio/webdriverio/pull/11049) fix JSONWP api description typo ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- 颜海镜 ([@yanhaijing](https://github.com/yanhaijing))
+
+
 ## v8.15.9 (2023-08-27)
 
 #### :bug: Bug Fix
