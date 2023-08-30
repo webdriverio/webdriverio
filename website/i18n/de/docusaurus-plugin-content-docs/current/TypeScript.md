@@ -15,28 +15,11 @@ WebdriverIO erkennt automatisch, ob diese Abhängigkeiten installiert sind, und 
 
 ## Konfiguration
 
-Sie können benutzerdefinierte Optionen für `ts-node` über Ihre `wdio.conf.ts` bereitstellen, z.B.:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: './tsconfig.json'
-        }
-    }
-}
-```
-
-Oder wenden Sie sie über die Umgebung an:
+You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
 
 ```sh
-# run wdio testrunner with custom tsconfig.json location
-TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+# run wdio testrunner with custom options
+TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
 Die minimale TypeScript-Version ist `v4.0.5`.
