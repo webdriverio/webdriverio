@@ -12,6 +12,7 @@ class logPatcher extends Transport {
 
     logToTestOps = (level = LOG_LEVELS.INFO, message = ['']) => {
         (consoleHolder as any)[level.toLowerCase()](...message)
+        // eslint-disable-next-line no-unexpected-multiline
         (process.emit as Function)(`bs:addLog:${process.pid}`, {
             timestamp: new Date().toISOString(),
             level: level.toUpperCase(),
