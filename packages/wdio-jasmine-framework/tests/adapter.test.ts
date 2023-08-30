@@ -2,12 +2,17 @@ import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 
 vi.mock('jasmine')
-vi.mock('expect-webdriverio')
+vi.mock('expect-webdriverio', () => ({
+    matchers: {
+        toHaveTitle: vi.fn()
+    }
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 
@@ -17,6 +22,11 @@ const INTERFACES = {
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const BEFORE_HOOK_IDX = 1
 const AFTER_HOOK_IDX = 3
+
+globalThis.jasmine = {
+    addMatchers: 'addMatchers',
+    addAsyncMatchers: 'addAsyncMatchers'
+}
 
 const wdioReporter: EventEmitter = {
     write: vi.fn(),
@@ -60,6 +70,22 @@ test('comes with a factory', async () => {
     )
     const result = await instance.run()
     expect(result).toBe(0)
+
+    globalThis.jasmine.addAsyncMatchers = vi.fn()
+    globalThis.jasmine.addMatchers({
+        testMatcher: function testMatcher(/*matcherUtils*/) {
+            return {
+                compare: function compare(/*actual, expected*/) {
+                    return { pass: true, message: 'Just good vibes.' }
+                }
+            }
+        }
+    })
+    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    const testMatcher = vi.mocked(globalThis.jasmine.addAsyncMatchers).mock.calls[0][0].testMatcher
+    const { compare, negativeCompare } = testMatcher({} as any)
+    expect(compare.constructor.name).toBe('AsyncFunction')
+    expect(negativeCompare?.constructor.name).toBe('AsyncFunction')
 })
 
 test('should properly set up jasmine', async () => {
@@ -70,7 +96,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
+    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(2)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error
@@ -87,6 +113,12 @@ test('should properly set up jasmine', async () => {
     expect(adapter['_jrunner']!.configureDefaultReporter.name).toBe('noop')
     // @ts-ignore outdated types
     adapter['_jrunner']!.configureDefaultReporter()
+
+    expect(jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    expect(jasmine.addAsyncMatchers).toBeCalledWith({
+        toBe: expect.any(Function),
+        toHaveTitle: expect.any(Function)
+    })
 })
 
 test('should propery wrap interfaces', async () => {
@@ -472,7 +504,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         adapter['_jrunner']!.addRequires = vi.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner']!.addHelperFiles = vi.fn()
+        adapter['_jrunner']!.addMatchingHelperFiles = vi.fn()
         // @ts-ignore outdated types
         adapter['_jrunner']!.loadRequires = vi.fn()
         adapter['_jrunner']!.loadHelpers = vi.fn()
@@ -485,7 +517,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
+        expect(adapter['_jrunner']!.addMatchingHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
         expect(adapter['_hasTests']).toBe(false)
     })
 
@@ -518,4 +550,5 @@ describe('hasTests', () => {
 afterEach(() => {
     vi.mocked(wrapGlobalTestMethod).mockClear()
     vi.mocked(executeHooksWithArgs).mockClear()
+    vi.mocked(jasmine.addAsyncMatchers).mockClear()
 })

@@ -10,7 +10,7 @@ updates:
   ignore:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
-    # doesn't support glob anymore in v4
+    # doesn't support glob anymore in v4 (Windows)
     - dependency-name: "rimraf"
 - package-ecosystem: npm
   directory: "/"
@@ -30,6 +30,10 @@ updates:
     - dependency-name: "serialize-error"
     - dependency-name: "expect-webdriverio"
     - dependency-name: "allure-js-commons"
+    - dependency-name: "@types/node"
+    - dependency-name: "@cucumber/cucumber"
+    - dependency-name: "lerna"
+      update-types: ["version-update:semver-major"]
     # moved to ESM only
     - dependency-name: "del"
     - dependency-name: "got"

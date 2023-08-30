@@ -9,7 +9,8 @@ import {
     SUITES_NO_TESTS,
     SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
-    SUITES_MULTIPLE_ERRORS
+    SUITES_MULTIPLE_ERRORS,
+    SUITES_WITH_DOC_STRING
 } from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
@@ -203,9 +204,9 @@ describe('SpecReporter', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         browserName: 'safari',
-                        deviceName: 'udid-serial-of-device',
-                        platformVersion: '14.3',
-                        platformName: 'iOS',
+                        ['appium:deviceName']: 'udid-serial-of-device',
+                        ['appium:platformVersion']: '14.3',
+                        ['appium:platformName']: 'iOS',
                         testobject_test_report_url: ' https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2'
                     },
                     sessionId: 'c752c683e0874da4b1dad593ce6645b2',
@@ -395,10 +396,40 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should not print if data table format is not given', () => {
+        it('should not print if argument is a single line doc string', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument = 'some different format'
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should print multiple lines doc string', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should print if the doc string is a blank string', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
+                suites[0].hooksAndTests[0].argument = ''
+                suites[0].hooksAndTests[1].argument = ''
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should not print if the argument is undefined', () => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
+                suites[0].hooksAndTests[0].argument = undefined
                 return suites
             })
             const result = tmpReporter.getResultDisplay()
@@ -514,6 +545,30 @@ describe('SpecReporter', () => {
 
         it('should return no suites', () => {
             expect(tmpReporter.getOrderedSuites().length).toBe(0)
+        })
+
+        it('should propagate root suite hook errors', () => {
+            tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
+            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } } as any
+            tmpReporter.currentSuites = [{
+                hooks: [{
+                    type: 'hook',
+                    title: '"before all" hook in "{root}"',
+                    state: 'failed'
+                }, {
+                    type: 'hook',
+                    title: '"after all" hook in "{root}"',
+                    state: undefined
+                }, {
+                    type: 'hook',
+                    title: '"after all" hook in "{root}"',
+                    state: 'failed'
+                }]
+            }] as any
+            const result = tmpReporter.getOrderedSuites()
+            expect(result.length).toBe(4)
+            expect(result[0].hooks.length).toBe(1)
+            expect(result[3].hooks.length).toBe(1)
         })
     })
 
@@ -772,52 +827,60 @@ describe('SpecReporter', () => {
 
         it('should return verbose mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS'
+            })).toBe('iPhone 6 Plus on iOS 9.2')
+        })
+
+        it('should return verbose mobile combo', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS'
             })).toBe('iPhone 6 Plus on iOS 9.2')
         })
 
         it('should return preface mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS'
             }, false)).toBe('iPhone 6 Plus iOS 9.2')
         })
 
         it('should return verbose mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
+                ['appium:app']: 'sauce-storage:myApp.app'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return preface mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
+                ['appium:app']: 'sauce-storage:myApp.app'
             }, true)).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return verbose mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
                 browserName: 'Safari'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
         })
 
         it('should return preface mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
+                ['appium:deviceName']: 'iPhone 6 Plus',
+                ['appium:platformVersion']: '9.2',
+                ['appium:platformName']: 'iOS',
                 browserName: 'Safari'
             }, false)).toBe('iPhone 6 Plus iOS 9.2')
         })
@@ -882,6 +945,15 @@ describe('SpecReporter', () => {
                 browserName: 'chrome',
                 version: 50,
             } as any, false)).toBe('chrome 50 (unknown)')
+        })
+
+        it('should recognise bundleIds', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Mac',
+                automationName: 'Mac2',
+                bundleId: 'com.apple.calculator',
+                sessionId: '53d1c8fd-23d9-4e81-a94b-011d2e694b9a'
+            } as any, false)).toBe('com.apple.calculator Mac')
         })
     })
 

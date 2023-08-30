@@ -41,14 +41,14 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize'
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize', 'got',
+    'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port'
 ]
 
 const POLYFILLS = [
     ...builtinModules,
     ...builtinModules.map((m) => `node:${m}`)
-].map((m) => m.replace('/promises', ''))
-
+]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
@@ -63,7 +63,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             }
 
             if (POLYFILLS.includes(id)) {
-                return polyfillPath(normalizeId(id))
+                return polyfillPath(normalizeId(id.replace('/promises', '')))
             }
 
             if (id === '@wdio/browser-runner') {
@@ -94,8 +94,10 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === resolvedVirtualModuleId) {
                 return /*js*/`
+                    import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
+                    export const wrappedFn = (...args) => fn()(...args)
                 `
             }
         },
@@ -120,7 +122,10 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             return () => {
                 server.middlewares.use(async (req, res, next) => {
                     log.info(`Received request for: ${req.originalUrl}`)
-                    if (!req.originalUrl) {
+                    /**
+                     * don't return test page when sourcemaps are requested
+                     */
+                    if (!req.originalUrl || req.url?.endsWith('.map')) {
                         return next()
                     }
 

@@ -32,7 +32,7 @@ export const config = {
         defaultTimeoutInterval: 1000 * 60 * 3,
         grep: 'SKIPPED_GREP',
         invertGrep: true,
-        require: ['ts-node/esm']
+        require: ['ts-node/esm'],
     },
 
     cucumberOpts: {

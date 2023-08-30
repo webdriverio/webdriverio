@@ -15,6 +15,20 @@ export const pathToFileURL = () => ''
 export const fileURLToPath = () => ''
 export const dirname = () => ''
 export const resolve = () => ''
+export const download = () => ''
+export const findEdgePath = () => ''
 export const sep = '/'
+export const start = () => {}
+export const install = () => {}
+export const computeExecutablePath = () => {}
+export const Browser = () => {}
+export const getInstalledBrowsers = () => {}
+export const canDownload = () => {}
+export const resolveBuildId = () => {}
+export const ChromeReleaseChannel = () => {}
+export const detectBrowserPlatform = () => {}
 export const type = 'browser'
+export const sync = () => {}
+export const locateChrome = () => {}
+export const locateFirefox = () => {}
 export default () => {}

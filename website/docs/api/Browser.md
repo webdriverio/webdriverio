@@ -18,7 +18,7 @@ A browser object has the following properties:
 | `capabilities` | `Object` | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre> |
 | `requestedCapabilities` | `Object` | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>
 | `sessionId` | `String` | Session id assigned from the remote server. |
-| `options` | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](http://localhost:3000/docs/setuptypes). |
+| `options` | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
 | `commandList` | `String[]` | A list of commands registered to the browser instance |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
@@ -34,9 +34,9 @@ In addition to that the following commands are available:
 
 | Name | Parameters | Details |
 | ---- | ---------- | ------- |
-| `addCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for compisition purposes. Read more in the [Custom Command](/docs/customcommands) guide. |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide. |
+| `addCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide. |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide. |
 
 ## Remarks
 
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
 
 ```js
 // mypageobject.page.js
@@ -113,8 +113,7 @@ Here is a list of events. Keep in mind that this is not the full list of availab
 Feel free to contribute to update the document by adding descriptions of more events here.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebDriverIO requests to your WebDriver endoints,
-this event will be emitted with some useful information:
+This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
 
 - `durationMillisecond`: Time duration of the request in millisecond.
 - `error`: Error object if the request failed.

@@ -86,19 +86,28 @@ test('configureServer continues if no url given', async () => {
     const next = vi.fn()
     const res = { end: vi.fn() }
     middleware({}, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     middleware({ ...req, originalUrl: 'https://google.com' }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     SESSIONS.set('1-2', {} as any)
     middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2' }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
+    expect(next).toBeCalledWith()
+    next.mockClear()
+
+    middleware({ ...req, originalUrl: 'http://localhost:1234/build/foobar.js.map', url: 'build/foobar.js.map' }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
     expect(next).toBeCalledWith()
     next.mockClear()
 

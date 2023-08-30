@@ -20,6 +20,7 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
     vue: ['@vitejs/plugin-vue', 'default', undefined],
     svelte: ['@sveltejs/vite-plugin-svelte', 'svelte', undefined],
     solid: ['vite-plugin-solid', 'default', undefined],
+    stencil: undefined,
     lit: undefined
 }
 
@@ -53,7 +54,6 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             // Enable esbuild polyfill plugins
             plugins: [
                 esbuildCommonjs(['@testing-library/vue']),
-                // @ts-expect-error issue between esbuild dep from WebdriverIO vs Vite
                 codeFrameFix()
             ],
         },

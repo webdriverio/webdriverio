@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
+
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 
-enum SupportedAutomationProtocols {
+export enum SupportedAutomationProtocols {
     webdriver = 'webdriver',
     devtools = 'devtools',
     stub = './protocol-stub.js'
@@ -45,6 +46,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     automationProtocol: {
         type: 'string',
+        default: SupportedAutomationProtocols.webdriver,
         validate: (param: Options.SupportedProtocols) => {
             /**
              * path when proxy is used for browser testing
@@ -168,7 +170,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     waitforTimeout: {
         type: 'number',
-        default: 3000
+        default: 5000
     },
     /**
      * supported test framework by wdio testrunner
@@ -310,7 +312,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         default: 0
     },
     /**
-     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred: {
         type: 'boolean',

@@ -1,12 +1,12 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command.js'
-import { BidiHandler } from './bidi.js'
+import { BidiHandler } from './bidi/handler.js'
 import { DEFAULTS } from './constants.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
@@ -20,10 +20,12 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
+        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
-        if (!options.logLevels || !options.logLevels.webdriver) {
-            logger.setLevel('webdriver', params.logLevel!)
+        if (params.logLevel && (!options.logLevels || !options.logLevels.webdriver)) {
+            logger.setLevel('webdriver', params.logLevel)
         }
 
         /**
@@ -34,14 +36,17 @@ export default class WebDriver {
         }
 
         log.info('Initiate new session using the WebDriver protocol')
-
+        const driverProcess = await startWebDriver(params)
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+        const driverPrototype: Record<string, PropertyDescriptor> = {
+            _driverProcess: { value: driverProcess, configurable: false, writable: true }
+        }
 
+        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...driverPrototype }
         const monad = webdriverMonad(
             { ...params, requestedCapabilities },
             modifier,
@@ -133,3 +138,4 @@ export default class WebDriver {
  */
 export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
+export * from './bidi/handler.js'

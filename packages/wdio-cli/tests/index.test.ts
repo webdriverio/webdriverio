@@ -4,8 +4,13 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs as yargsMock } from 'yargs'
 
 import { run } from '../src/index.js'
+import { run as cjsRun } from '../src/cjs/index.js'
 import { handler } from '../src/commands/run.js'
 
+vi.mock('dotenv/config', () => {
+    process.env = { ...process.env, ...{ foo: 'bar' } }
+    return {}
+})
 vi.mock('yargs')
 vi.mock('yargs/helpers', () => ({ hideBin: vi.fn() }))
 vi.mock('./../src/commands/run', async () => ({
@@ -22,8 +27,20 @@ describe('index', () => {
         console.error = vi.fn()
     })
 
+    it('should populate environment using dotenv/conifg', () => {
+        expect(process.env.foo).toBe('bar')
+    })
+
     it('should call config if no known command is used', async () => {
         await run()
+        expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
+            _: ['wdio.conf.js']
+        })
+    })
+
+    it('should call esm run method from cjs index', async () => {
+        await cjsRun()
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
             _: ['wdio.conf.js']

@@ -1,7 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
-import glob from 'glob'
+import { sync as globSync } from 'glob'
 import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import FileSystemPathService from '../src/lib/FileSystemPathService.js'
@@ -9,7 +9,7 @@ import FileSystemPathService from '../src/lib/FileSystemPathService.js'
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
 vi.mock('glob', () => ({
-    default: { sync: vi.fn(() => 'glob result') }
+    sync: vi.fn(() => 'glob result')
 }))
 
 vi.mock('node:fs', async () => {
@@ -24,7 +24,7 @@ vi.mock('node:fs', async () => {
 
 describe('FileSystemPathService', () => {
     afterEach(() => {
-        vi.mocked(glob.sync).mockClear()
+        vi.mocked(globSync).mockClear()
         vi.clearAllMocks()
     })
 
@@ -58,16 +58,25 @@ describe('FileSystemPathService', () => {
 
     describe('glob', function () {
         it('should pass calls to glob', function () {
+            vi.mocked(globSync).mockReturnValue(['glob result'])
             const svc = new FileSystemPathService()
-            expect(svc.glob('globtrotter', '/foo/bar')).toEqual('glob result')
-            expect(glob.sync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar' })
+            expect(svc.glob('globtrotter', '/foo/bar')).toEqual(['glob result'])
+            expect(globSync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar', matchBase: true })
         })
         it('should process file name with []', function () {
-            vi.mocked(glob.sync).mockReturnValue([])
+            vi.mocked(globSync).mockReturnValue([])
             vi.mocked(fs.existsSync).mockReturnValue(true)
             const svc = new FileSystemPathService()
             expect(svc.glob('./examples/wdio/mocha/[test].js', '/foo/bar'))
                 .toEqual([path.resolve('/foo', 'bar', 'examples', 'wdio', 'mocha', '[test].js')])
+        })
+
+        it('should return files in sorted order', function () {
+            vi.mocked(globSync).mockReturnValue(['c.test.js', 'a.test.js', 'f.test.js'])
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            const svc = new FileSystemPathService()
+            expect(svc.glob('./examples/wdio/mocha/*.test.js', '/foo/bar'))
+                .toEqual(['a.test.js', 'c.test.js', 'f.test.js'])
         })
     })
 
@@ -94,7 +103,7 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             const error = await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')
                 .catch((err) => err) as Error
-            expect(error.message).toContain('Failed to load')
+            expect(error.message).toContain('Failed to load url')
         })
     })
 })

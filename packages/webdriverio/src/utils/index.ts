@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises'
-import http from 'node:http'
 import path from 'node:path'
 import { URL } from 'node:url'
 
@@ -8,22 +7,20 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
-import { SUPPORTED_BROWSER } from 'devtools'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
+import { ELEMENT_KEY, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
-const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS']
+const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS', 'CDP_SESSIONS']
 
 declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
@@ -171,7 +168,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
 
 /**
  * check for unicode character or split string into literals
- * @param  {String} value  text
+ * @param  {string} value  text
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value: string, isDevTools = false) {
@@ -542,90 +539,6 @@ export const enhanceElementsArray = (
  * @param {string} automationProtocol
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub.js'
-
-export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
-    /**
-     * if automation protocol is set by user prefer this
-     */
-    if (config.automationProtocol) {
-        return config.automationProtocol
-    }
-
-    /**
-     * run WebDriver if hostname or port is set
-     */
-    if (config.hostname || config.port || config.path || (config.user && config.key)) {
-        return 'webdriver'
-    }
-
-    /**
-     * only run DevTools protocol if capabilities match supported platforms
-     */
-    const caps = (
-        ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
-        config.capabilities as Capabilities.Capabilities
-    ) || {}
-    const desiredCaps = caps as Capabilities.DesiredCapabilities
-    if (!SUPPORTED_BROWSER.includes(caps.browserName?.toLowerCase() as string)) {
-        return 'webdriver'
-    }
-
-    /**
-     * check if we are on mobile and use WebDriver if so
-     */
-    if (
-        desiredCaps.deviceName || caps['appium:deviceName'] ||
-        caps['appium:platformVersion'] ||
-        desiredCaps.app || caps['appium:app']
-    ) {
-        return 'webdriver'
-    }
-
-    /**
-     * run WebDriver if capabilities clearly identify it as it
-     */
-    if (config.capabilities && ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
-        return 'webdriver'
-    }
-
-    /**
-     * make a head request to check if a driver is available
-     */
-    const resp: http.IncomingMessage | { error: Error } = await new Promise((resolve) => {
-        const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
-        req.on('error', (error) => resolve({ error }))
-        req.end()
-    })
-
-    /**
-     * kill agent otherwise process will stale
-     */
-    const driverEndpointHeaders = resp as http.IncomingMessage
-    if ((driverEndpointHeaders as any).req && (driverEndpointHeaders as any).req.agent) {
-        (driverEndpointHeaders as any).req.agent.destroy()
-    }
-
-    if (driverEndpointHeaders && driverEndpointHeaders.statusCode === 200) {
-        return 'webdriver'
-    }
-
-    return 'devtools'
-}
-
-/**
- * updateCapabilities allows modifying capabilities before session
- * is started
- *
- * NOTE: this method is executed twice when running the WDIO testrunner
- */
-export const updateCapabilities = (
-    params: Options.WebdriverIO | Options.Testrunner,
-    automationProtocol?: Options.SupportedProtocols
-) => {
-    if (automationProtocol && !params.automationProtocol) {
-        params.automationProtocol = automationProtocol
-    }
-}
 
 /**
  * compare if an object (`base`) contains the same values as another object (`match`)

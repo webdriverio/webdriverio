@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
@@ -13,22 +14,28 @@ import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage, WorkerCoverageMapMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
+import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
 import {
     FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER,
     DEFAULT_REPORTS_DIRECTORY
 } from './constants.js'
-import { makeHeadless, getCoverageByFactor } from './utils.js'
+import updateViteConfig from './vite/frameworks/index.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
+type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage
+
 export default class BrowserRunner extends LocalRunner {
+    #options: BrowserRunnerOptionsImport
     #config: Options.Testrunner
-    #server: ViteServer
+    #servers: Set<ViteServer> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
+    #viteOptimizations: InlineConfig = {}
 
     #mapStore = libSourceMap.createSourceMapStore()
     private _coverageMaps: CoverageMap[] = []
@@ -43,10 +50,19 @@ export default class BrowserRunner extends LocalRunner {
             throw new Error(FRAMEWORK_SUPPORT_ERROR)
         }
 
-        this.#server = new ViteServer(options, _config)
+        this.#options = options
         this.#config = _config
         this.#coverageOptions = options.coverage || <CoverageOptions>{}
         this.#reportsDirectory = this.#coverageOptions.reportsDirectory || path.join(this.#config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
+
+        /**
+         * transform mochaOpts require params so we can use it in the browser
+         */
+        if (this.#config.mochaOpts) {
+            this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
+                .map((r) => path.join(this.#config.rootDir || process.cwd(), r))
+                .map((r) => url.pathToFileURL(r).pathname)
+        }
     }
 
     /**
@@ -54,13 +70,6 @@ export default class BrowserRunner extends LocalRunner {
      */
     async initialise() {
         log.info('Initiate browser environment')
-        try {
-            await this.#server.start()
-            this._config.baseUrl = `http://localhost:${this.#server.config.server?.port}`
-        } catch (err: any) {
-            throw new Error(`Vite server failed to start: ${err.stack}`)
-        }
-
         if (typeof this.#coverageOptions.clean === 'undefined' || this.#coverageOptions.clean) {
             const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
                 .then(() => true, () => false)
@@ -69,30 +78,49 @@ export default class BrowserRunner extends LocalRunner {
             }
         }
 
+        /**
+         * make adjustments based on detected frontend frameworks
+         */
+        try {
+            this.#viteOptimizations = await updateViteConfig(this.#options, this.#config)
+        } catch (err) {
+            log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
+        }
+
         await super.initialise()
     }
 
-    run (runArgs: RunArgs): WorkerInstance {
+    async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
+        runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 
-        if (runArgs.command === 'run') {
+        const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
+
+        try {
+            await server.start()
+            runArgs.args.baseUrl = `http://localhost:${server.config.server?.port}`
+        } catch (err: any) {
+            throw new Error(`Vite server failed to start: ${err.stack}`)
+        }
+
+        if (!runArgs.args.baseUrl && runArgs.command === 'run') {
             runArgs.args.baseUrl = this._config.baseUrl
         }
 
-        const worker = super.run(runArgs)
-        this.#server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state, true))
-        this.#server.on('workerHookExecution', (payload: HookTriggerEvent) => {
+        const worker = await super.run(runArgs)
+        server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state, true))
+        server.on('workerHookExecution', (payload: HookTriggerEvent) => {
             if (worker.cid !== payload.cid) {
                 return
             }
             if (worker.isKilled) {
                 log.debug(`Worker with cid ${payload.cid} was killed, skipping hook execution`)
-                return process.nextTick(() => this.#server.resolveHook(payload))
+                return process.nextTick(() => server.resolveHook(payload))
             }
             return worker.postMessage('workerHookExecution', payload, true)
         })
 
-        worker.on('message', this.#onWorkerMessage.bind(this))
+        worker.on('message', (payload: WorkerMessagePayload) => this.#onWorkerMessage(payload, server))
         return worker
     }
 
@@ -103,11 +131,13 @@ export default class BrowserRunner extends LocalRunner {
      */
     async shutdown() {
         await super.shutdown()
-        await this.#server.close()
+        for (const server of this.#servers) {
+            await server.close()
+        }
         return this._generateCoverageReports()
     }
 
-    async #onWorkerMessage (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) {
+    async #onWorkerMessage (payload: WorkerMessagePayload, workerServer: ViteServer) {
         if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
             SESSIONS.set(payload.cid!, {
                 args: this.#config.mochaOpts || {},
@@ -136,7 +166,7 @@ export default class BrowserRunner extends LocalRunner {
         }
 
         if (payload.name === 'workerHookResult') {
-            this.#server.resolveHook(payload.args)
+            workerServer.resolveHook(payload.args)
         }
 
         if (payload.name === 'coverageMap') {

@@ -1,8 +1,8 @@
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { Label } from 'allure-js-commons'
-import { Status as AllureStatus } from 'allure-js-commons'
+import type { Label, AllureTest, AllureGroup  } from 'allure-js-commons'
+import { Status as AllureStatus, md5 } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
 
@@ -52,6 +52,15 @@ export const isEmpty = (object: any) =>
     !object || Object.keys(object).length === 0
 
 /**
+ * Is mocha beforeEach hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isMochaBeforeEachHook = (title: string) =>
+    title.includes(mochaEachHooks[0])
+
+/**
  * Is mocha beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
@@ -71,7 +80,7 @@ export const isMochaAllHooks = (title: string) =>
 
 /**
  * Properly format error from different test runners
- * @param {Object} test - TestStat object
+ * @param {object} test - TestStat object
  * @returns {Object} - error object
  * @private
  */
@@ -166,4 +175,16 @@ export const getSuiteLabels = ({ tags }: SuiteStats): Label[] => {
 
         return acc
     }, [])
+}
+
+export const setHistoryId = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
+    if (!test) {
+        return
+    }
+    const params = test.wrappedItem.parameters.slice()
+    const paramsPart = params
+        .sort((a, b) => a.name?.localeCompare(b.name))
+        .map(it => it.name + it.value)
+        .join('')
+    test.historyId = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
 }

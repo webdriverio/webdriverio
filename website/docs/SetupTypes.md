@@ -3,9 +3,6 @@ id: setuptypes
 title: Setup Types
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
 
 ## Protocol Bindings
@@ -35,7 +32,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-All [protocol commands](./api/_webdriver.md) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+All [protocol commands](api/webdriver) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
 
 The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
 
@@ -45,7 +42,7 @@ For more information on these package interfaces, see [Modules API](/docs/api/mo
 
 ## Standalone Mode
 
-To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](./api/element/_dragAndDrop.md) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
+To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](api/element/dragAndDrop) command) and core concepts such as [smart selectors](selectors) or [auto-waits](autowait). The example from above can be simplified like this:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
@@ -53,7 +50,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Using WebdriverIO in standalone mode still gives you access to all protocol commands but provides a super set of additional commands that provide a higher level interaction with the browser. It allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Spectron](https://www.electronjs.org/spectron) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).
 
-If no specific options are set WebdriverIO will try to find a browser driver on `http://localhost:4444/` and automatically switches to the Chrome DevTools protocol and Puppeteer as automation engine if such a driver can't be found. If you like to run based on WebDriver you need to either start that driver manually or through a script or [NPM package](https://www.npmjs.com/package/chromedriver).
+If no specific options are set WebdriverIO will always attempt to download at setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome it might also install [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) depending on whether it can find a browser on the machine.
 
 For more information on the `webdriverio` package interfaces, see [Modules API](/docs/api/modules).
 
@@ -69,6 +66,6 @@ Here is the same example from above, written as a test spec and executed by WDIO
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.
+The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](gettingstarted) section for more information.
 
 For more information on the `@wdio/cli` testrunner package interface, see [Modules API](/docs/api/modules).

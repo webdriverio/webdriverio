@@ -5,7 +5,7 @@ import { events } from '../constants.js'
 /**
  * Call reporter
  * @param {string} event  - event name
- * @param {Object} msg - event payload
+ * @param {object} msg - event payload
  * @private
  */
 const tellReporter = (event: string, msg: any = {}) => {
@@ -144,11 +144,11 @@ export function addTag(tag: string) {
 /**
  * Add environment value
  * @name addEnvironment
- * @param {string} name - environment name
- * @param {string} value - environment value
+ * @deprecated addEnvironment is deprecated. Use reportedEnvironmentVars in config instead.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function addEnvironment (name: string, value: string) {
-    tellReporter(events.addEnvironment, { name, value })
+    console.warn('⚠️ addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter.')
 }
 
 /**
@@ -177,6 +177,7 @@ export function addAttachment (name: string, content: string | Buffer | object, 
 
 /**
  * Start allure step
+ * @deprecated use `step` method instead
  * @name startStep
  * @param {string} title - step name in report
  */
@@ -186,6 +187,7 @@ export function startStep (title: string) {
 
 /**
  * End current allure step
+ * @deprecated use `step` method instead
  * @name endStep
  * @param {StepStatus} [status='passed'] - step status
  */
@@ -198,9 +200,10 @@ export function endStep (status: Status = Status.PASSED) {
 
 /**
  * Create allure step
+ * @deprecated use `step` method instead
  * @name addStep
  * @param {string} title - step name in report
- * @param {Object} [attachmentObject={}] - attachment for step
+ * @param {object} [attachmentObject={}] - attachment for step
  * @param {string} attachmentObject.content - attachment content
  * @param {string} [attachmentObject.name='attachment'] - attachment name
  * @param {string} [attachmentObject.type='text/plain'] - attachment type
@@ -241,12 +244,12 @@ export function addArgument (name: string, value: string) {
  */
 export async function step(name: string, body: StepBodyFunction) {
     const runningStep = new AllureCommandStepExecutable(name)
-    const result = await runningStep.start(body)
-
+    // looks complicated due to https://github.com/allure-framework/allure-js/commit/ce9a6f986d32a079b7f60c9f77a7d90f01d9a9f2#r110599261
+    const result = await new Promise((resolve) => runningStep.run(body, async (result) => resolve(result)))
     tellReporter(events.addAllureStep, result)
 }
 
 export default {
     addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
+    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step, addTag
 }

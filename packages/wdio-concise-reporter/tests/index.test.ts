@@ -108,15 +108,19 @@ describe('ConciseReporter', () => {
         it('should return failing count', () => {
             tmpReporter['_stateCounts'].failed = 0
             let result = tmpReporter.getCountDisplay()
-            expect(result).toBe('All went well !!')
+            expect(result).toBe('❌ Failed to setup tests, no tests found')
+
+            tmpReporter.counts.tests = 1
+            result = tmpReporter.getCountDisplay()
+            expect(result).toBe('✅ All went well!')
 
             tmpReporter['_stateCounts'].failed = 1
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe('Test failed (1):')
+            expect(result).toBe('❌ Test failed (1):')
 
             tmpReporter['_stateCounts'].failed = 2
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe('Tests failed (2):')
+            expect(result).toBe('❌ Tests failed (2):')
         })
     })
 
@@ -173,7 +177,7 @@ describe('ConciseReporter', () => {
         it('should return mobile combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS'
             })).toBe('iPhone 6 Plus on iOS 9.2')
         })
@@ -181,16 +185,16 @@ describe('ConciseReporter', () => {
         it('should return mobile combo executing an app', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
+                ['appium:app']: 'sauce-storage:myApp.app'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
                 deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
+                ['appium:platformVersion']: '9.2',
                 platformName: 'iOS',
                 browserName: 'Safari'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')

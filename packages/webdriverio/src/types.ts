@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
-import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
+import type { Protocol } from 'devtools-protocol'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -8,6 +8,9 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppete
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
+import type { Matches } from './utils/interception/types.js'
+
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -114,7 +117,7 @@ type MultiRemoteElementCommands = {
 }
 
 export type MultiRemoteBrowserCommandsType = {
-    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
@@ -234,7 +237,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
-export interface Browser extends BrowserBase, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -368,7 +371,7 @@ interface KeyActionEntity {
 
 export interface Action {
     id: string
-    actions: (NoneActionEntity & PointerActionEntity & KeyActionEntity)[]
+    actions: (NoneActionEntity | PointerActionEntity | KeyActionEntity)[]
     type?: 'pointer' | 'key'
     parameters?: {
         pointerType: 'mouse' | 'pen' | 'touch'
@@ -443,16 +446,45 @@ export type DragAndDropCoordinate = {
 /**
  * WebdriverIO Mock definition
  */
-type MockFunctions = FunctionProperties<DevtoolsInterception>
+
+interface RequestEvent {
+    requestId: number
+    request: Matches
+    responseStatusCode: number
+    responseHeaders: Record<string, string>
+}
+
+interface MatchEvent extends Matches {
+    mockedResponse?: string | Buffer
+}
+
+interface OverwriteEvent {
+    requestId: number
+    responseCode: number
+    responseHeaders: Record<string, string>
+    body?: string | Record<string, any>
+}
+
+interface FailEvent {
+    requestId: number
+    errorReason: Protocol.Network.ErrorReason
+}
+
+interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on'> {
+    on(event: 'request', callback: (request: RequestEvent) => void): Mock
+    on(event: 'match', callback: (match: MatchEvent) => void): Mock
+    on(event: 'continue', callback: (requestId: number) => void): Mock
+    on(event: 'overwrite', callback: (response: OverwriteEvent) => void): Mock
+    on(event: 'fail', callback: (error: FailEvent) => void): Mock
+}
+
 type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}
 
-export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities'>, Omit<WebDriverAttachOptions, 'capabilities'> {
-    options?: {
-        automationProtocol?: Options.SupportedProtocols,
-    }
-    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
-    requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
+export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
+    options: Options.WebdriverIO
+    capabilities: WebDriverAttachOptions['capabilities'],
+    requestedCapabilities?: WebDriverAttachOptions['capabilities'],
 }
 
 declare global {

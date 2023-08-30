@@ -3,7 +3,7 @@ id: configuration
 title: Configuration
 ---
 
-Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Based on the [setup type](setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver Options
 
@@ -86,7 +86,7 @@ Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
 
 ### logLevel
 
@@ -176,6 +176,13 @@ It does nothing if the response did not have proper keys while the flag is enabl
 Type: `Boolean`<br />
 Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br />
+Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -257,7 +264,7 @@ Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
@@ -318,7 +325,7 @@ Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br />
 Default: `true`
@@ -341,7 +348,7 @@ Options: `mocha` | `jasmine`
 ### mochaOpts, jasmineOpts and cucumberOpts
 
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](./Frameworks.md).
+Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br />
 Default: `{ timeout: 10000 }`

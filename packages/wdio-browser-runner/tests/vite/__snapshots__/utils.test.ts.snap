@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`getTemplate > renders template correctly 1`] = `
 "
@@ -7,6 +7,32 @@ exports[`getTemplate > renders template correctly 1`] = `
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
+            
+            <script type=\\"module\\">
+                const alias = {}
+                window.__wdioMockCache__ = new Map()
+                window.wdioImport = function (modName, mod) {
+                    /**
+                     * attempt to resolve direct import
+                     */
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+
+                    /**
+                     * if above fails, check if we have an alias for it
+                     */
+                    for (const [aliasName, aliasPath] of Object.entries(alias)) {
+                        if (modName.slice(0, aliasName.length) === aliasName) {
+                            modName = modName.replace(aliasName, aliasPath)
+                        }
+                    }
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+                    return mod
+                }
+            </script>
             <script type=\\"module\\" src=\\"/node_modules/mocha/mocha.js\\"></script>
             <script src=\\"/@fs//foo/bar/browser-source-map-support.js\\"></script>
             <script type=\\"module\\">
@@ -30,14 +56,17 @@ exports[`getTemplate > renders template correctly 1`] = `
                 /**
                  * mock process
                  */
-                window.process = {
+                window.process = window.process || {
                     platform: 'browser',
-                    env: {},
-                    stdout: {}
+                    env: {\\"some\\":\\"env\\"},
+                    stdout: {},
+                    stderr: {},
+                    cwd: () => \\"/some/cwd\\",
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
-            <style>:root {
+            <style>
+                :root {
     --mocha-color: #000;
     --mocha-bg-color: #fff;
     --mocha-pass-icon-color: #00d6b2;
@@ -100,7 +129,14 @@ exports[`getTemplate > renders template correctly 1`] = `
         --mocha-code-number: #4ca7ff;
     }
 }
-</style>
+
+
+                body {
+                    width: calc(100% - 500px);
+                    padding: 0;
+                    margin: 0;
+                }
+            </style>
             
             <script type=\\"module\\">
                 some code
@@ -111,8 +147,8 @@ exports[`getTemplate > renders template correctly 1`] = `
                 window.VueCompilerDOM = VueCompilerDOM
             </script>
         </head>
-        <body style=\\"width: calc(100% - 500px); padding: 0; margin: 0;\\">
-            <mocha-framework spec=\\"/spec.js\\" minified></mocha-framework>
+        <body>
+            <mocha-framework spec=\\"/spec.js\\" style=\\"display: none\\"></mocha-framework>
             <script type=\\"module\\">
                 window.process.env = {\\"some\\":\\"env\\"}
             </script>

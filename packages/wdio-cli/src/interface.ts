@@ -3,7 +3,7 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import type { HookError } from './utils.js'
+import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
@@ -211,8 +211,11 @@ export default class WDIOCLInterface extends EventEmitter {
         return args
     }
 
-    logHookError (error: HookError) {
-        return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
+    logHookError (error: Error | HookError) {
+        if (error instanceof HookError) {
+            return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
+        }
+        return this.log(`${chalk.red(error.name)}: ${chalk.red(error.stack || error.message)}`)
     }
 
     /**

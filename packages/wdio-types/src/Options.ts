@@ -202,6 +202,11 @@ export interface WebDriver extends Connection {
      * the `wdio` log.
      */
     outputDir?: string
+    /**
+     * The path to the root of the cache directory. This directory is used to store all drivers that are downloaded
+     * when attempting to start a session.
+     */
+    cacheDir?: string
 }
 
 export interface MultiRemoteBrowserOptions {
@@ -396,7 +401,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     specFileRetriesDelay?: number
     /**
-     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred?: boolean
     /**

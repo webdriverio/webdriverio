@@ -181,7 +181,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         /**
          * handle retries for requests
          * @param {Error} error  error object that causes the retry
-         * @param {String} msg   message that is being shown as warning to user
+         * @param {string} msg   message that is being shown as warning to user
          */
         const retry = (error: Error, msg: string) => {
             /**

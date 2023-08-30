@@ -18,7 +18,6 @@ if (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac))
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const browserName = isMac ? 'safari' : 'chrome'
-const driver = isMac ? 'safaridriver' : 'chromedriver'
 export const config = {
     /**
      * specify test files
@@ -40,7 +39,6 @@ export const config = {
     framework: 'mocha',
     outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET),
     reporters: ['spec', 'dot', 'junit'],
-    services: [driver],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
         rootDir: path.resolve(__dirname, '..'),
@@ -63,6 +61,7 @@ export const config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 150000
+        timeout: 150000,
+        require: ['./__fixtures__/setup.js']
     }
 }

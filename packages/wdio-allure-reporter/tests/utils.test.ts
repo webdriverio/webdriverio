@@ -4,7 +4,16 @@ import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, isScreenshotCommand, getSuiteLabels,
+    getTestStatus,
+    isEmpty,
+    isMochaEachHooks,
+    getErrorFromFailedTest,
+    isMochaAllHooks,
+    getLinkByTemplate,
+    findLast,
+    isScreenshotCommand,
+    getSuiteLabels,
+    isMochaBeforeEachHook,
 } from '../src/utils.js'
 import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -78,6 +87,13 @@ describe('utils', () => {
         expect(isMochaEachHooks('"after all" hook')).toEqual(false)
         expect(isMochaEachHooks('"before each" hook')).toEqual(true)
         expect(isMochaEachHooks('"after each" hook')).toEqual(true)
+    })
+
+    it('isMochaBeforeEachHook filter hook by title', () => {
+        expect(isMochaBeforeEachHook('"before all" hook')).toEqual(false)
+        expect(isMochaBeforeEachHook('"after all" hook')).toEqual(false)
+        expect(isMochaBeforeEachHook('"before each" hook')).toEqual(true)
+        expect(isMochaBeforeEachHook('"after each" hook')).toEqual(false)
     })
 
     describe('isEmpty', () => {

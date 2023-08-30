@@ -4,7 +4,7 @@ import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser } from '@wdio/config'
-import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
+import { initialisePlugin, initialiseLauncherService, sleep, setupDriver, setupBrowser } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
@@ -28,7 +28,7 @@ interface WorkerSpecs {
     rid?: string
 }
 
-interface EndMessage {
+export interface EndMessage {
     cid: string, // is actually rid
     exitCode: number,
     specs: string[],
@@ -38,6 +38,7 @@ interface EndMessage {
 class Launcher {
     public configParser: ConfigParser
     public isMultiremote = false
+    public isParallelMultiremote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
 
@@ -61,9 +62,9 @@ class Launcher {
 
     /**
      * run sequence
-     * @return  {Promise}  that only gets resolves with either an exitCode or an error
+     * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
-    async run() {
+    async run(): Promise<undefined | number> {
         await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
@@ -74,7 +75,9 @@ class Launcher {
         this._args.autoCompileOpts = config.autoCompileOpts
 
         const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
-        this.isMultiremote = !Array.isArray(capabilities)
+        this.isParallelMultiremote = Array.isArray(capabilities) &&
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
+        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
 
         if (config.outputDir) {
             await fs.mkdir(path.join(config.outputDir), { recursive: true })
@@ -83,9 +86,19 @@ class Launcher {
 
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
+        /**
+         * For Parallel-Multiremote, only get the specs and excludes from the first object
+         */
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c: Capabilities.DesiredCapabilities) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .map((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (this.isParallelMultiremote) {
+                        const keys = Object.keys(c as Capabilities.MultiRemoteCapabilities)
+                        return this.configParser.getSpecs(((c as Capabilities.MultiRemoteCapabilities)[keys[0]].capabilities as Capabilities.DesiredCapabilities).specs,
+                            ((c as Capabilities.MultiRemoteCapabilities)[keys[0]].capabilities as Capabilities.DesiredCapabilities).exclude).length
+                    }
+                    return this.configParser.getSpecs((c as Capabilities.DesiredCapabilities).specs, (c as Capabilities.DesiredCapabilities).exclude).length
+                })
                 .reduce((a, b) => a + b, 0)
             : 1
 
@@ -99,7 +112,7 @@ class Launcher {
         /**
          * catches ctrl+c event
          */
-        exitHook(this.exitHandler.bind(this))
+        exitHook(this._exitHandler.bind(this))
         let exitCode = 0
         let error: HookError | undefined = undefined
 
@@ -122,7 +135,15 @@ class Launcher {
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
-            exitCode = await this.runMode(config, caps)
+            /**
+             * pre-configure necessary driver for worker threads
+             */
+            await Promise.all([
+                setupDriver(config, caps),
+                setupBrowser(config, caps)
+            ])
+
+            exitCode = await this._runMode(config, caps)
 
             /**
              * run onComplete hook
@@ -163,7 +184,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
+    private _runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -183,33 +204,33 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this.isMultiremote) {
+        if (this.isMultiremote && !this.isParallelMultiremote) {
             /**
              * Multiremote mode
              */
             this._schedule.push({
                 cid: cid++,
                 caps: caps as Capabilities.MultiRemoteCapabilities,
-                specs: this.formatSpecs(caps, specFileRetries),
+                specs: this._formatSpecs(caps, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
         } else {
             /**
-             * Regular mode
+             * Regular mode & Parallel Multiremote
              */
-            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)[]) {
                 /**
                  * when using browser runner we only allow one session per browser
                  */
-                const availableInstances = config.runner === 'browser'
+                const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
                     : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
 
                 this._schedule.push({
                     cid: cid++,
-                    caps: capabilities as Capabilities.Capabilities,
-                    specs: this.formatSpecs(capabilities, specFileRetries),
+                    caps: capabilities as (Capabilities.Capabilities | Capabilities.MultiRemoteCapabilities),
+                    specs: this._formatSpecs(capabilities, specFileRetries),
                     availableInstances,
                     runningInstances: 0
                 })
@@ -230,7 +251,7 @@ class Launcher {
             /**
              * return immediately if no spec was run
              */
-            if (this.runSpecs()) {
+            if (this._runSpecs()) {
                 resolve(0)
             }
         })
@@ -239,7 +260,7 @@ class Launcher {
     /**
      * Format the specs into an array of objects with files and retries
      */
-    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
+    private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
         const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
 
         return files.map(file => {
@@ -258,7 +279,7 @@ class Launcher {
      * run multiple single remote tests
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
-    runSpecs() {
+    private _runSpecs(): boolean {
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -268,7 +289,7 @@ class Launcher {
 
         const config = this.configParser.getConfig()
 
-        while (this.getNumberOfRunningInstances() < config.maxInstances) {
+        while (this._getNumberOfRunningInstances() < config.maxInstances) {
             const schedulableCaps = this._schedule
                 /**
                  * bail if number of errors exceeds allowed
@@ -289,7 +310,7 @@ class Launcher {
                 /**
                  * make sure complete number of running instances is not higher than general maxInstances number
                  */
-                .filter(() => this.getNumberOfRunningInstances() < config.maxInstances)
+                .filter(() => this._getNumberOfRunningInstances() < config.maxInstances)
                 /**
                  * make sure the capability has available capacities
                  */
@@ -311,7 +332,7 @@ class Launcher {
             }
 
             const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
-            this.startInstance(
+            this._startInstance(
                 specs.files,
                 schedulableCaps[0].caps as Capabilities.DesiredCapabilities,
                 schedulableCaps[0].cid,
@@ -322,14 +343,14 @@ class Launcher {
             schedulableCaps[0].runningInstances++
         }
 
-        return this.getNumberOfRunningInstances() === 0 && this.getNumberOfSpecsLeft() === 0
+        return this._getNumberOfRunningInstances() === 0 && this._getNumberOfSpecsLeft() === 0
     }
 
     /**
      * gets number of all running instances
      * @return {number} number of running instances
      */
-    getNumberOfRunningInstances() {
+    private _getNumberOfRunningInstances(): number {
         return this._schedule.map((a) => a.runningInstances).reduce((a, b) => a + b)
     }
 
@@ -337,18 +358,18 @@ class Launcher {
      * get number of total specs left to complete whole suites
      * @return {number} specs left to complete suite
      */
-    getNumberOfSpecsLeft() {
+    private _getNumberOfSpecsLeft(): number {
         return this._schedule.map((a) => a.specs.length).reduce((a, b) => a + b)
     }
 
     /**
      * Start instance in a child process.
      * @param  {Array} specs  Specs to run
-     * @param  {Number} cid  Capabilities ID
-     * @param  {String} rid  Runner ID override
-     * @param  {Number} retries  Number of retries remaining
+     * @param  {number} cid  Capabilities ID
+     * @param  {string} rid  Runner ID override
+     * @param  {number} retries  Number of retries remaining
      */
-    async startInstance(
+    private async _startInstance(
         specs: string[],
         caps: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities,
         cid: number,
@@ -368,7 +389,7 @@ class Launcher {
 
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
-        const runnerId = rid || this.getRunnerId(cid)
+        const runnerId = rid || this._getRunnerId(cid)
         const processNumber = this._runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
@@ -415,7 +436,7 @@ class Launcher {
             .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
-        const worker = this.runner.run({
+        const worker = await this.runner.run({
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
@@ -439,7 +460,7 @@ class Launcher {
         })
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
-        worker.on('exit', this.endHandler.bind(this))
+        worker.on('exit', this._endHandler.bind(this))
     }
 
     private _workerHookError (error: HookError) {
@@ -455,10 +476,10 @@ class Launcher {
 
     /**
      * generates a runner id
-     * @param  {Number} cid capability id (unique identifier for a capability)
+     * @param  {number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    getRunnerId (cid: number) {
+    private _getRunnerId (cid: number): string {
         if (!this._rid[cid]) {
             this._rid[cid] = 0
         }
@@ -467,12 +488,12 @@ class Launcher {
 
     /**
      * Close test runner process once all child processes have exited
-     * @param  {Number} cid       Capabilities ID
-     * @param  {Number} exitCode  exit code of child process
+     * @param  {number} cid       Capabilities ID
+     * @param  {number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
-     * @param  {Number} retries   Number or retries remaining
+     * @param  {number} retries   Number or retries remaining
      */
-    async endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
+    private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -512,7 +533,7 @@ class Launcher {
          * - there are specs to be executed
          * - we are running watch mode
          */
-        const shouldRunSpecs = this.runSpecs()
+        const shouldRunSpecs = this._runSpecs()
         const inWatchMode = this._isWatchMode && !this._hasTriggeredExitRoutine
         if (!shouldRunSpecs || inWatchMode) {
             /**
@@ -536,7 +557,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback?: (value: boolean) => void) {
+    private _exitHandler (callback?: (value: boolean) => void): void | Promise<void> {
         if (!callback || !this.runner || !this.interface) {
             return
         }
@@ -554,7 +575,7 @@ class Launcher {
      * returns true if user stopped watch mode, ex with ctrl+c
      * @returns {boolean}
      */
-    private _isWatchModeHalted () {
+    private _isWatchModeHalted(): boolean {
         return this._isWatchMode && this._hasTriggeredExitRoutine
     }
 }

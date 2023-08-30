@@ -107,7 +107,7 @@ describe('selector strategies helper', () => {
     it('should find an element by tag name + similar content', () => {
         const element = findStrategy('div*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//div[contains(., "some random text with "§$%&/()div=or others") and not(.//div)]')
     })
 
     it('should find an element by tag name + class + content', () => {
@@ -125,13 +125,13 @@ describe('selector strategies helper', () => {
     it('should find an element by tag name + class + similar content', () => {
         const element = findStrategy('div.some-class*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@class, "some-class") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//div[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others") and not(.//div[contains(@class, "some-class")])]')
     })
 
     it('should find an element by class + similar content', () => {
         const element = findStrategy('.some-class*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@class, "some-class") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//*[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others") and not(.//*[contains(@class, "some-class")])]')
     })
 
     it('should find an element by tag name + id + content', () => {
@@ -149,19 +149,19 @@ describe('selector strategies helper', () => {
     it('should find an element by tag name + id + similar content', () => {
         const element = findStrategy('div#some-id*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@id, "some-id") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//div[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others") and not(.//div[contains(@id, "some-id")])]')
     })
 
     it('should find an element by id + similar content', () => {
         const element = findStrategy('#some-id*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@id, "some-id") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//*[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others") and not(.//*[contains(@id, "some-id")])]')
     })
 
     it('should find an element by id + similar content see #1494', () => {
         const element = findStrategy('#What-is-WebdriverIO*=What')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@id, "What-is-WebdriverIO") and contains(text(), "What")]')
+        expect(element.value).toBe('.//*[contains(@id, "What-is-WebdriverIO") and contains(., "What") and not(.//*[contains(@id, "What-is-WebdriverIO")])]')
     })
 
     it('should find an element by tag name + attribute + content', () => {
@@ -185,13 +185,13 @@ describe('selector strategies helper', () => {
     it('should find an element by tag name + attribute + similar content', () => {
         const element = findStrategy('div[some-attribute="some-value"]*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@some-attribute, "some-value") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//div[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others") and not(.//div[contains(@some-attribute, "some-value")])]')
     })
 
     it('should find an element by attribute + similar content', () => {
         const element = findStrategy('[some-attribute="some-value"]*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(text(), "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others") and not(.//*[contains(@some-attribute, "some-value")])]')
     })
 
     it('should find an custom element by tag name + content', () => {
@@ -419,7 +419,7 @@ describe('selector strategies helper', () => {
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of button in case of role selector', () => {
         const element = findStrategy('[role=button]')
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[role="button"],input[type="checkbox"],summary[aria-expanded="false"],summary[aria-expanded="true"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button')
+        expect(element.value).toBe('[role="button"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button')
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of checkbox in case of role selector', () => {
@@ -431,7 +431,7 @@ describe('selector strategies helper', () => {
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of listbox in case of role selector', () => {
         const element = findStrategy('[role=listbox]')
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist')
+        expect(element.value).toBe('[role="listbox"],select[size],select[multiple],datalist')
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of rowgroup in case of role selector', () => {

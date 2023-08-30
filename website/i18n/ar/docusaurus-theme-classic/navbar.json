@@ -1,0 +1,26 @@
+{
+  "item.label.Docs": {
+    "message": "الوثائق",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.API": {
+    "message": "واجهة برمجة التطبيقات (API)",
+    "description": "Navbar item with label API"
+  },
+  "item.label.Blog": {
+    "message": "المدونة",
+    "description": "Navbar item with label Blog"
+  },
+  "item.label.Contribute": {
+    "message": "ساهِم",
+    "description": "Navbar item with label Contribute"
+  },
+  "item.label.Community": {
+    "message": "المشتركون",
+    "description": "Navbar item with label Community"
+  },
+  "item.label.v8": {
+    "message": "الإصدار 8",
+    "description": "Navbar item with label v8"
+  }
+}

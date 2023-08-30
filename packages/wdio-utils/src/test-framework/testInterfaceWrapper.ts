@@ -28,8 +28,8 @@ const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
  * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
  * @param  {Function} afterFn       after hook
  * @param  {Function} afterArgsFn   function that returns args for `afterFn`
- * @param  {String}   cid           cid
- * @param  {Number}   repeatTest    number of retries if hook fails
+ * @param  {string}   cid           cid
+ * @param  {number}   repeatTest    number of retries if hook fails
  * @return {Function}               wrapped framework hook function
  */
 export const runHook = function (
@@ -44,7 +44,7 @@ export const runHook = function (
     repeatTest: number,
     timeout: number
 ) {
-    return origFn(function (
+    const wrappedHook = function (
         this: unknown,
         ...hookFnArgs: [
             string,
@@ -73,7 +73,12 @@ export const runHook = function (
             cid,
             repeatTest
         )
-    }, timeout)
+    }
+    /**
+     * make sure Mocha grabs the correct hook function body
+     */
+    wrappedHook.toString = () => hookFn.toString()
+    return origFn(wrappedHook, timeout)
 }
 
 /**
@@ -86,8 +91,8 @@ export const runHook = function (
  * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
  * @param  {Function} afterFn       after hook
  * @param  {Function} afterFnArgs   function that returns args for `afterFn`
- * @param  {String}   cid           cid
- * @param  {Number}   repeatTest    number of retries if test fails
+ * @param  {string}   cid           cid
+ * @param  {number}   repeatTest    number of retries if test fails
  * @return {Function}               wrapped test function
  */
 export const runSpec = function (
@@ -103,7 +108,7 @@ export const runSpec = function (
     repeatTest: number,
     timeout: number
 ) {
-    return origFn(specTitle, function (
+    const wrappedFn = function (
         this: unknown,
         ...specFnArgs: [
             string,
@@ -132,7 +137,12 @@ export const runSpec = function (
             cid,
             repeatTest
         )
-    }, timeout)
+    }
+    /**
+     * make sure Mocha grabs the correct test function body
+     */
+    wrappedFn.toString = () => specFn.toString()
+    return origFn(specTitle, wrappedFn, timeout)
 }
 
 /**
@@ -140,12 +150,12 @@ export const runSpec = function (
  *
  * @param  {Function} origFn               original framework function
  * @param  {Boolean}  isSpec               whether or not origFn is a spec
- * @param  {String[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
+ * @param  {string[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
  * @param  {Function} beforeFn             before hook
  * @param  {Function} beforeFnArgs         function that returns args for `beforeFn`
  * @param  {Function} afterFn              after hook
  * @param  {Function} afterArgsFn          function that returns args for `afterFn`
- * @param  {String}   cid                  cid
+ * @param  {string}   cid                  cid
  * @return {Function}                      wrapped test/hook function
  */
 export const wrapTestFunction = function (
@@ -236,8 +246,8 @@ export const wrapTestFunction = function (
  * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
  * @param  {Function} afterFn       after hook
  * @param  {Function} afterArgsFn   function that returns args for `afterFn`
- * @param  {String}   fnName        test interface command to wrap, e.g. `beforeEach`
- * @param  {String}   cid           cid
+ * @param  {string}   fnName        test interface command to wrap, e.g. `beforeEach`
+ * @param  {string}   cid           cid
  * @param  {Object}   scope         the scope to run command from, defaults to global
  */
 export const wrapGlobalTestMethod = function (

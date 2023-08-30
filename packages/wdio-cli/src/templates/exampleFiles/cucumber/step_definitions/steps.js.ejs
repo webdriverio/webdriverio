@@ -1,17 +1,20 @@
-<%- isUsingTypeScript || esmSupport
+<%- answers.isUsingTypeScript || answers.esmSupport
     ? "import { Given, When, Then } from '@wdio/cucumber-framework';"
     : "const { Given, When, Then } = require('@wdio/cucumber-framework');" %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { expect, $ } from '@wdio/globals'`
+    : `const { expect, $ } = require('@wdio/globals')` %>
 <%
 /**
  * step definition without page objects
  */
-if (usePageObjects) { %>
-<%- isUsingTypeScript || esmSupport
-    ? `import LoginPage from '${relativePath}/login.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
-    : `const LoginPage = require('${relativePath}/login.page');` %>
-<%- isUsingTypeScript || esmSupport
-    ? `import SecurePage from '${relativePath}/secure.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
-    : `const SecurePage = require('${relativePath}/secure.page');` %>
+if (answers.usePageObjects) { %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import LoginPage from '${answers.relativePath}/login.page${answers.esmSupport ? '.js' : ''}';`
+    : `const LoginPage = require('${answers.relativePath}/login.page');` %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import SecurePage from '${answers.relativePath}/secure.page${answers.esmSupport ? '.js' : ''}';`
+    : `const SecurePage = require('${answers.relativePath}/secure.page');` %>
 
 const pages = {
     login: LoginPage

@@ -1,7 +1,8 @@
-<%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
-
-<%- isUsingTypeScript || esmSupport
-    ? `import Page from './page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}';`
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import { $ } from '@wdio/globals'`
+    : `const { $ } = require('@wdio/globals')` %>
+<%- answers.isUsingTypeScript || answers.esmSupport
+    ? `import Page from './page${answers.esmSupport ? '.js' : ''}';`
     : "const Page = require('./page');" %>
 
 /**
@@ -11,9 +12,9 @@ class SecurePage extends Page {
     /**
      * define selectors using getter methods
      */
-    <%- isUsingTypeScript ? "public " : "" %>get flashAlert () {
+    <%- answers.isUsingTypeScript ? "public " : "" %>get flashAlert () {
         return $('#flash');
     }
 }
 
-<%- isUsingTypeScript || esmSupport ? "export default": "module.exports =" %> new SecurePage();
+<%- answers.isUsingTypeScript || answers.esmSupport ? "export default": "module.exports =" %> new SecurePage();

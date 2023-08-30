@@ -1,7 +1,0 @@
-// Vitest Snapshot v1
-
-exports[`utils > updateCapabilities > should do nothing if no browser specified 1`] = `
-{
-  "capabilities": {},
-}
-`;

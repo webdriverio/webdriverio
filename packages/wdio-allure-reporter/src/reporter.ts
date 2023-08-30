@@ -6,19 +6,23 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
+    LinkType, ContentType, AllureCommandStepExecutable,
+} from 'allure-js-commons'
+import {
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId, isMochaBeforeEachHook,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddAttachmentEventArgs, AddDescriptionEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
     AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
@@ -69,6 +73,9 @@ export default class AllureReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+
+        const { reportedEnvironmentVars } = this._options
+        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
     }
 
     attachLogs() {
@@ -132,6 +139,7 @@ export default class AllureReporter extends WDIOReporter {
             const currentTest = this._state.pop() as AllureTest | AllureStep
 
             if (currentTest instanceof AllureTest) {
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
             } else {
                 currentTest.endStep()
@@ -163,6 +171,7 @@ export default class AllureReporter extends WDIOReporter {
         currentTest.status = AllureStatus.SKIPPED
 
         if (currentTest instanceof AllureTest) {
+            setHistoryId(currentTest, this._state.currentSuite)
             currentTest.endTest()
         } else {
             currentTest.endStep()
@@ -185,6 +194,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (currentSpec instanceof AllureTest) {
+            setHistoryId(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
         } else {
             currentSpec.endStep()
@@ -208,16 +218,15 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!this._isMultiremote) {
             const caps = this._capabilities as Capabilities.DesiredCapabilities
-            const { browserName, deviceName, desired, device } = caps
+            const { browserName, desired, device } = caps
+            const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
             let targetName = device || browserName || deviceName || cid
-
             // custom mobile grids can have device information in a `desired` cap
-            if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+            if (desired && deviceName && desired['appium:platformVersion']) {
+                targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
             }
-
             const browserstackVersion = caps.os_version || caps.osVersion
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps['appium:platformVersion'] || ''
             const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
 
@@ -274,7 +283,6 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
-        process.on(events.addEnvironment, this.addEnvironment.bind(this))
         process.on(events.addAttachment, this.addAttachment.bind(this))
         process.on(events.addDescription, this.addDescription.bind(this))
         process.on(events.startStep, this.startStep.bind(this))
@@ -350,6 +358,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.SKIPPED
                 currentTest.stage = Stage.PENDING
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -368,6 +377,7 @@ export default class AllureReporter extends WDIOReporter {
                     currentTest.detailsTrace = error.stack
                 }
 
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -381,6 +391,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -395,22 +406,14 @@ export default class AllureReporter extends WDIOReporter {
 
     onTestStart(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
-
         this._consoleOutput = ''
-
-        const testTitle = test.currentTest ? test.currentTest : test.title
-
-        if (this._state.currentTest?.wrappedItem.name === testTitle) {
-            // Test already in progress, most likely started by a before each hook
-            return
-        }
 
         if (useCucumberStepReporter) {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
 
-            this._startStep(testTitle)
+            this._startStep(test.title)
 
             if (dataTable) {
                 this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
@@ -418,7 +421,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this._startTest(testTitle, test.cid)
+        this._startTest(test.title, test.cid)
     }
 
     onTestPass() {
@@ -487,7 +490,7 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        if (!this._state.currentAllureTestOrStep || this._isMultiremote) {
+        if (!this._state.currentStep || this._isMultiremote) {
             return
         }
 
@@ -500,7 +503,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!disableWebdriverStepsReporting) {
             this.attachJSON('Response', commandResult)
-            this._endTest(AllureStatus.PASSED)
+            this.endStep(AllureStatus.PASSED)
         }
     }
 
@@ -536,7 +539,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks
         if (!hook.parent || !this._state.currentSuite) {
@@ -553,20 +556,44 @@ export default class AllureReporter extends WDIOReporter {
         // set beforeEach / afterEach hook (step) status
         if (disableMochaHooks && isMochaEachHook) {
             this._endTest(hook.error ? AllureStatus.FAILED : AllureStatus.PASSED, hook.error)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && hook.error) {
+                const fakeTestStat = Object.assign({}, hook, { title: hook.currentTest }) as TestStats
+                this._endTest(fakeTestStat.error ? AllureStatus.FAILED : AllureStatus.PASSED, fakeTestStat.error)
+            }
             return
         }
 
         if (hook.error) {
             // add hook as test to suite for mocha all hooks, when it didn't start before
-            if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+            if (disableMochaHooks && isMochaAllHook) {
                 this.onTestStart(hook)
             }
 
             this.onTestFail(hook)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && !disableMochaHooks) {
+                this.onTestFail(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+            }
+
             return
         }
 
         this.onTestPass()
+
+        if (useCucumberStepReporter) {
+            // remove hook from suite if it has no steps or attachments
+            const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
+            if (currentItem) {
+                const currentStep = currentItem.steps[currentItem.steps.length-1]
+
+                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                    currentItem.steps.pop()
+                }
+            }
+        }
     }
 
     addLabel({
@@ -724,15 +751,6 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    addEnvironment({
-        name,
-        value
-    }: AddEnvironmentEventArgs) {
-        this._allure.writeEnvironmentInfo({
-            [name]: value,
-        })
-    }
-
     addDescription({
         description,
         descriptionType
@@ -874,7 +892,6 @@ export default class AllureReporter extends WDIOReporter {
     static addParentSuite = addParentSuite
     static addTestId = addTestId
     static addStory = addStory
-    static addEnvironment = addEnvironment
     static addDescription = addDescription
     static addAttachment = addAttachment
     static startStep = startStep

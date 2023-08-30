@@ -217,20 +217,6 @@ describe('reporter runtime implementation', () => {
         expect(results[0].links.find((link: Link) => link.type === LinkType.TMS).url).toEqual('https://webdriver.io/2')
     })
 
-    it('should correct add environment', () => {
-        const reporter = new AllureReporter({ outputDir })
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onTestStart(testStart())
-        reporter.addEnvironment({ name: 'foo', value: 'bar' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { environmentInfo } = getResults(outputDir)
-
-        expect(environmentInfo).toEqual({ foo: 'bar' })
-    })
-
     it('should correct add description', () => {
         const reporter = new AllureReporter({ outputDir })
 
@@ -395,6 +381,7 @@ describe('reporter runtime implementation', () => {
         const osParameter = results[0].parameters.find((parameter: Parameter) => parameter.name === 'os')
 
         expect(results).toHaveLength(1)
+        expect(results[0].historyId).toEqual('3cffc3d1d78d183463efee4c042f156c')
         expect(osParameter.value).toEqual('osx')
     })
 
@@ -463,7 +450,10 @@ describe('reporter runtime implementation', () => {
 
             reporter.onRunnerStart({
                 ...runnerStart(),
-                capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' },
+                capabilities: {
+                    deviceName: 'Android Emulator',
+                    'appium:platformVersion': '8.0'
+                },
             })
             reporter.onTestStart(testStart())
             reporter.onTestPass()
@@ -481,7 +471,7 @@ describe('reporter runtime implementation', () => {
 
             reporter.onRunnerStart({
                 ...runnerStart(),
-                capabilities: { device: 'Google Pixel 3', platformVersion: '9.0' },
+                capabilities: { device: 'Google Pixel 3', 'appium:platformVersion': '9.0' },
             })
             reporter.onTestStart(testStart())
             reporter.onTestPass()
@@ -672,10 +662,10 @@ describe('auxiliary methods', () => {
             deviceName: 'emulator',
             desired: {
                 platformName: 'Android',
-                automationName: 'UiAutomator2',
-                deviceName: 'Android GoogleAPI Emulator',
-                platformVersion: '6.0',
-                noReset: true,
+                'appium:automationName': 'UiAutomator2',
+                'appium:deviceName': 'Android GoogleAPI Emulator',
+                'appium:platformVersion': '6.0',
+                'appium:noReset': true,
             }
         }
         const reporter = new AllureReporter({ outputDir })

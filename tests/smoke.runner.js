@@ -8,6 +8,8 @@ import { SevereServiceError } from '../packages/node_modules/webdriverio/build/i
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
+const parallelMultiRemoteBaseConfig = path.resolve(__dirname, 'helpers', 'parallel-multiremote-config.js')
+const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -109,7 +111,9 @@ const cjsTestrunner = async () => {
  * Jasmine wdio testrunner tests
  */
 const jasmineTestrunner = async () => {
-    const { skippedSpecs } = await launch('jasmineTestrunner', baseConfig, {
+    const logFile = path.resolve(__dirname, 'helpers', 'expectationResults.log')
+    await fs.rm(logFile, { force: true })
+    const { skippedSpecs } = await launch('jasmineTestrunner', jasmineConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'jasmine', 'test.js'),
@@ -126,6 +130,25 @@ const jasmineTestrunner = async () => {
     }
 
     assert.strictEqual(skippedSpecs, 1)
+    assert.equal(
+        (await fs.readFile(logFile, 'utf-8')).toString(),
+        [
+            'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
+            'expect(object).toEqual(object)',
+            'expect(object).toBeFalse(boolean)',
+            'expect(string).toHaveTitle(object)',
+            'expect(object).toBeDisplayed(object)',
+            'expect(object).toBeDisplayed(object)',
+            'expect(number).toBe(number)',
+            'expect(number).toBe(number)',
+            'expect(object).toBeDefined(function)',
+            'expect(function).toBeInstanceOf(function)',
+            'expect(object).testMatcher(number)',
+            ''
+        ].join('\n')
+    )
 }
 
 /**
@@ -171,7 +194,7 @@ const jasmineTimeout = async () => {
         'spec was not failing due to timeout error'
     )
     assert.ok(
-        specLogs.includes('Error: expect(received).toBe(expected) // Object.is equality'),
+        specLogs.includes('at listOnTimeout (node:internal'),
         'spec was not failing a sync assertion error'
     )
     assert.ok(
@@ -211,7 +234,7 @@ const jasmineAfterAll = async () => {
         'spec did not execute the expected describe'
     )
     assert.ok(
-        specLogs.includes('Error: expect(received).toBe(expected)'),
+        specLogs.includes('actual expected') && specLogs.includes('truefalse'),
         'spec did not fail with the expected check'
     )
     assert.ok(
@@ -221,6 +244,35 @@ const jasmineAfterAll = async () => {
     assert.ok(
         !specLogs.includes('✖ "after all" hook'),
         'spec reported the after all hook as a failed test'
+    )
+}
+
+/**
+ * Jasmine verify failSpecWithNoExpectations support
+ */
+const jasmineFailSpecWithNoExpectations = async () => {
+    const logFile = path.join(__dirname, 'jasmineWithNoExpectations.spec.log')
+    await launch('jasmineAfterAll', baseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'jasmine', 'jasmineWithNoExpectations.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine',
+        jasmineOpts: {
+            failSpecWithNoExpectations: true
+        }
+    }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('No assertions found in test'),
+        'spec did not fail with the expected check'
     )
 }
 
@@ -247,6 +299,42 @@ const cucumberTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
+}
+
+/**
+ * Cucumber wdio testrunner -- run single scenario by line number
+ */
+const cucumberTestrunnerByLineNumber = async () => {
+    const logFile = path.join(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
+    await fs.rm(logFile, { force: true })
+    await launch(
+        'cucumberTestrunnerByLineNumber',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: [path.resolve(__dirname, 'cucumber', 'test.feature:10')],
+            cucumberOpts: {
+                tagExpression: '(not @SKIPPED_TAG)',
+                scenarioLevelReporter: false
+            },
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]]
+        }
+    )
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('Sync Execution'),
+        'scenario not executed in feature by line number'
+    )
+    assert.ok(
+        !specLogs.includes('Retry Check'),
+        'extra scenarios not filtered out by line number'
+    )
 }
 
 /**
@@ -386,6 +474,17 @@ const multiremote = async () => {
                 capabilities: { browserName: 'chrome' }
             }
         }
+    })
+}
+
+/**
+ * parallel multiremote wdio testrunner tests
+ */
+const parallelMultiremote = async () => {
+    console.log(parallelMultiRemoteBaseConfig)
+    await launch('parallelMultiremote', parallelMultiRemoteBaseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
     })
 }
 
@@ -569,11 +668,13 @@ const nonGlobalTestrunner = async () => {
         mochaTestrunner,
         jasmineTestrunner,
         multiremote,
+        parallelMultiremote,
         wdioHooks,
         cjsTestrunner,
         sharedStoreServiceTest,
         mochaSpecGrouping,
         cucumberTestrunner,
+        cucumberTestrunnerByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
         standaloneTest,
@@ -585,6 +686,7 @@ const nonGlobalTestrunner = async () => {
         jasmineReporter,
         jasmineTimeout,
         jasmineAfterAll,
+        jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
         customReporterString,

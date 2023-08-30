@@ -5,18 +5,34 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types.js'
+import TestReporter from './reporter.js'
 
-import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util.js'
+import {
+    frameworkSupportsHook,
+    getCloudProvider,
+    getGitMetaData,
+    getHookType,
+    getScenarioExamples,
+    getUniqueIdentifier,
+    getUniqueIdentifierForCucumber,
+    isBrowserstackSession,
+    isScreenshotCommand,
+    o11yClassErrorHandler,
+    removeAnsiColors,
+    sleep,
+    uploadEventData
+} from './util.js'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
 
-export default class InsightsHandler {
+class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
     private _platformMeta: PlatformMeta
     private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
+    private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
@@ -32,6 +48,10 @@ export default class InsightsHandler {
             sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+    }
+
+    setSuiteFile(filename: string) {
+        this._suiteFile = filename
     }
 
     async before () {
@@ -52,34 +72,78 @@ export default class InsightsHandler {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._framework === 'mocha') {
-            const fullTitle = `${test.parent} - ${test.title}`
-            const hookId = uuidv4()
-            this._tests[fullTitle] = {
-                uuid: hookId,
-                startedAt: (new Date()).toISOString()
-            }
-            this.attachHookData(context, hookId)
-            await this.sendTestRunEvent(test, 'HookRunStarted')
+        if (!frameworkSupportsHook('before', this._framework)) {
+            return
         }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+
+        const hookId = uuidv4()
+        this._tests[fullTitle] = {
+            uuid: hookId,
+            startedAt: (new Date()).toISOString()
+        }
+        this.attachHookData(context, hookId)
+        await this.sendTestRunEvent(test, 'HookRunStarted')
     }
 
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
-        if (this._framework === 'mocha') {
-            const fullTitle = getUniqueIdentifier(test)
-            if (this._tests[fullTitle]) {
-                this._tests[fullTitle].finishedAt = (new Date()).toISOString()
-            } else {
-                this._tests[fullTitle] = {
-                    finishedAt: (new Date()).toISOString()
+        if (!frameworkSupportsHook('after', this._framework)) {
+            return
+        }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        if (this._tests[fullTitle]) {
+            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
+        } else {
+            this._tests[fullTitle] = {
+                finishedAt: (new Date()).toISOString()
+            }
+        }
+        await this.sendTestRunEvent(test, 'HookRunFinished', result)
+
+        const hookType = getHookType(test.title)
+        /*
+            If any of the `beforeAll`, `beforeEach`, `afterEach` then the tests after the hook won't run in mocha (https://github.com/mochajs/mocha/issues/4392)
+            So if any of this hook fails, then we are sending the next tests in the suite as skipped.
+            This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
+         */
+        if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
+            const sendTestSkip = async (skippedTest: any) => {
+
+                // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
+                if (skippedTest.state === undefined) {
+                    const fullTitle = `${skippedTest.parent.title} - ${skippedTest.title}`
+                    this._tests[fullTitle] = {
+                        uuid: uuidv4(),
+                        startedAt: (new Date()).toISOString(),
+                        finishedAt: (new Date()).toISOString()
+                    }
+                    await this.sendTestRunEvent(skippedTest, 'TestRunSkipped')
                 }
             }
-            await this.sendTestRunEvent(test, 'HookRunFinished', result)
+
+            /*
+                Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
+             */
+            const sendSuiteSkipped = async (suite: any) => {
+                for (const skippedTest of suite.tests) {
+                    await sendTestSkip(skippedTest)
+                }
+                for (const skippedSuite of suite.suites) {
+                    await sendSuiteSkipped(skippedSuite)
+                }
+            }
+
+            await sendSuiteSkipped(test.ctx.test.parent)
         }
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const fullTitle = getUniqueIdentifier(test)
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
@@ -88,7 +152,10 @@ export default class InsightsHandler {
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
@@ -206,8 +273,9 @@ export default class InsightsHandler {
             return
         }
         const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-        if (!this._tests[identifier]) {
+        if (!testMeta) {
             return
         }
 
@@ -216,7 +284,7 @@ export default class InsightsHandler {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
-                    test_run_uuid: this._tests[identifier].uuid,
+                    test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
@@ -233,7 +301,7 @@ export default class InsightsHandler {
         const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
-                test_run_uuid: this._tests[identifier].uuid,
+                test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
                 http_response: {
@@ -255,14 +323,40 @@ export default class InsightsHandler {
      */
 
     private attachHookData (context: any, hookId: string): void {
-        if (!context.currentTest || !context.currentTest.parent) {
+        if (context.currentTest && context.currentTest.parent) {
+            const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
+            if (!this._hooks[parentTest]) {
+                this._hooks[parentTest] = []
+            }
+
+            this._hooks[parentTest].push(hookId)
             return
+        } else if (context.test) {
+            this.setHooksFromSuite(context.test.parent, hookId)
         }
-        const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
-        if (!this._hooks[parentTest]) {
-            this._hooks[parentTest] = []
+    }
+
+    private setHooksFromSuite(parent: any, hookId: string): boolean {
+        if (!parent) {
+            return false
         }
-        this._hooks[parentTest].push(hookId)
+
+        if (parent.tests && parent.tests.length > 0) {
+            const uniqueIdentifier = getUniqueIdentifier(parent.tests[0], this._framework)
+            if (!this._hooks[uniqueIdentifier]) {
+                this._hooks[uniqueIdentifier] = []
+            }
+            this._hooks[uniqueIdentifier].push(hookId)
+            return true
+        }
+
+        for (const suite of parent.suites) {
+            const result = this.setHooksFromSuite(suite, hookId)
+            if (result) {
+                return true
+            }
+        }
+        return false
     }
 
     /*
@@ -271,23 +365,30 @@ export default class InsightsHandler {
     private getHierarchy (test: Frameworks.Test) {
         const value: string[] = []
         if (test.ctx && test.ctx.test) {
-            let parent = test.ctx.test.parent
+            // If we already have the parent object, utilize it else get from context
+            let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
             while (parent && parent.title !== '') {
                 value.push(parent.title)
                 parent = parent.parent
             }
+        } else if (test.description && test.fullName) {
+            // for Jasmine
+            value.push(test.description)
+            value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
         }
         return value.reverse()
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
+
+        const filename = test.file || this._suiteFile
 
         const testData: TestData = {
             uuid: testMetaData.uuid,
-            type: test.type,
-            name: test.title,
+            type: test.type || 'test',
+            name: test.title || test.description,
             body: {
                 lang: 'webdriverio',
                 code: test.body
@@ -295,9 +396,9 @@ export default class InsightsHandler {
             scope: fullTitle,
             scopes: this.getHierarchy(test),
             identifier: fullTitle,
-            file_name: test.file,
-            location: test.file,
-            vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
+            file_name: filename ? path.relative(process.cwd(), filename) : undefined,
+            location: filename ? path.relative(process.cwd(), filename) : undefined,
+            vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
             result: 'pending',
@@ -324,12 +425,17 @@ export default class InsightsHandler {
             }
         }
 
-        if (eventType === 'TestRunStarted') {
+        if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped' || eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
+        }
+
+        if (eventType === 'TestRunSkipped') {
+            testData.result = 'skipped'
+            eventType = 'TestRunFinished'
         }
 
         const uploadData: UploadType = {
@@ -339,6 +445,7 @@ export default class InsightsHandler {
         /* istanbul ignore if */
         if (eventType.match(/HookRun/)) {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+            testData.test_run_id = this.getTestRunId(test.ctx)
             uploadData.hook_run = testData
         } else {
             uploadData.test_run = testData
@@ -348,6 +455,42 @@ export default class InsightsHandler {
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
+    }
+
+    private getTestRunId(context: any): string|undefined {
+        if (!context) {
+            return
+        }
+
+        if (context.currentTest) {
+            const uniqueIdentifier = getUniqueIdentifier(context.currentTest, this._framework)
+            return this._tests[uniqueIdentifier] && this._tests[uniqueIdentifier].uuid
+        }
+
+        if (!context.test) {
+            return
+        }
+        return this.getTestRunIdFromSuite(context.test.parent)
+    }
+
+    private getTestRunIdFromSuite(parent: any): string|undefined {
+        if (!parent) {
+            return
+        }
+        for (const test of parent.tests) {
+            const uniqueIdentifier = getUniqueIdentifier(test, this._framework)
+            if (this._tests[uniqueIdentifier]) {
+                return this._tests[uniqueIdentifier].uuid
+            }
+        }
+
+        for (const suite of parent.suites) {
+            const testRunId: string|undefined = this.getTestRunIdFromSuite(suite)
+            if (testRunId) {
+                return testRunId
+            }
+        }
+        return
     }
 
     private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
@@ -372,9 +515,9 @@ export default class InsightsHandler {
             scope: fullNameWithExamples,
             scopes: [feature?.name || ''],
             identifier: scenario?.name,
-            file_name: feature?.path,
+            file_name: feature && feature.path ? path.relative(process.cwd(), feature.path) : undefined,
+            location: feature && feature.path ? path.relative(process.cwd(), feature.path) : undefined,
             vc_filepath: (this._gitConfigPath && feature?.path) ? path.relative(this._gitConfigPath, feature?.path) : undefined,
-            location: feature?.path,
             framework: this._framework,
             result: 'pending',
             meta: {
@@ -448,6 +591,13 @@ export default class InsightsHandler {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }
-        return getUniqueIdentifier(test)
+        return getUniqueIdentifier(test, this._framework)
     }
 }
+
+// https://github.com/microsoft/TypeScript/issues/6543
+const InsightsHandler: typeof _InsightsHandler = o11yClassErrorHandler(_InsightsHandler)
+type InsightsHandler = _InsightsHandler
+
+export default InsightsHandler
+

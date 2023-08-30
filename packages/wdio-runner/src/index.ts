@@ -38,12 +38,12 @@ export default class Runner extends EventEmitter {
 
     /**
      * run test suite
-     * @param  {String}    cid            worker id (e.g. `0-0`)
+     * @param  {string}    cid            worker id (e.g. `0-0`)
      * @param  {Object}    args           config arguments passed into worker process
-     * @param  {String[]}  specs          list of spec files to run
+     * @param  {string[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilities to run session with
-     * @param  {String}    configFile      path to config file to get config from
-     * @param  {Number}    retries        number of retries remaining
+     * @param  {string}    configFile      path to config file to get config from
+     * @param  {number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
@@ -65,7 +65,9 @@ export default class Runner extends EventEmitter {
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
-        const isMultiremote = this._isMultiremote = !Array.isArray(this._configParser.getCapabilities())
+        const capabilities = this._configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
+        const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
+            (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
 
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
@@ -158,7 +160,7 @@ export default class Runner extends EventEmitter {
         /**
          * report sessionId and target connection information to worker
          */
-        const { protocol, hostname, port, path, queryParams, automationProtocol } = browser.options
+        const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
         process.send!(<SessionStartedMessage>{
@@ -167,7 +169,8 @@ export default class Runner extends EventEmitter {
             content: {
                 automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
                 capabilities: browser.capabilities,
-                injectGlobals: this._config.injectGlobals
+                injectGlobals: this._config.injectGlobals,
+                headers
             }
         })
 
@@ -284,7 +287,14 @@ export default class Runner extends EventEmitter {
             this._browser = await initialiseInstance(config, caps, this._isMultiremote)
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
-            _setGlobal('expect', expect, config.injectGlobals)
+
+            /**
+             * for Jasmine we extend the Jasmine matchers instead of injecting the assertion
+             * library ourselves
+             */
+            if (config.framework !== 'jasmine') {
+                _setGlobal('expect', expect, config.injectGlobals)
+            }
 
             /**
              * re-assign previously registered custom commands to the actual instance
@@ -371,7 +381,7 @@ export default class Runner extends EventEmitter {
             /**
              * don't write to file if no logs were captured
              */
-            if (!logs || logs.length === 0) {
+            if (!Array.isArray(logs) || logs.length === 0) {
                 return
             }
 

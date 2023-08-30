@@ -12,6 +12,7 @@ import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from '.
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
+const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 interface TestState {
@@ -80,122 +81,132 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
-        const timeout = this._config.mochaOpts!.timeout
-
         /**
          * start tests
          */
         let failures = 0
-        let uid = 0
         for (const spec of this._specs) {
-            log.info(`Run spec file ${spec} for cid ${this._cid}`)
-
-            /**
-             * if a `sessionId` is part of `this._config` it means we are in watch mode and are
-             * re-using a previous session. Since Vite has already a hotreload feature, there
-             * is no need to call the url command again
-             */
-            if (!this._config.sessionId) {
-                await browser.url(`/?cid=${this._cid}&spec=${url.parse(spec).pathname}`)
-            }
-            // await browser.debug()
-
-            /**
-             * set spec and cid as cookie so the Vite plugin can detect session even without
-             * query parameters
-             */
-            await browser.setCookies([
-                { name: 'WDIO_SPEC', value: url.fileURLToPath(spec) },
-                { name: 'WDIO_CID', value: this._cid }
-            ])
-
-            /**
-             * wait for test results or page errors
-             */
-            let state: TestState = {}
-            const now = Date.now()
-            await browser.waitUntil(async () => {
-                while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
-                    if ((Date.now() - now) > timeout) {
-                        return false
-                    }
-
-                    await sleep()
-
-                    /**
-                     * don't fetch events if user has called debug command
-                     */
-                    if (this.#inDebugMode) {
-                        continue
-                    }
-
-                    state = await browser?.execute(function fetchExecutionState () {
-                        const failures = window.__wdioEvents__ && window.__wdioEvents__.length > 0
-                            ? window.__wdioFailures__
-                            : null
-                        let viteError
-                        const viteErrorElem = document.querySelector('vite-error-overlay')
-                        if (viteErrorElem && viteErrorElem.shadowRoot) {
-                            const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
-                            if (errorElems.length) {
-                                viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
-                            }
-                        }
-                        const loadError = (
-                            typeof window.__wdioErrors__ === 'undefined' &&
-                            document.title !== 'WebdriverIO Browser Test' &&
-                            !document.querySelector('mocha-framework')
-                        )
-                            ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
-                            : null
-                        const errors = viteError || window.__wdioErrors__ || loadError
-                        return { failures, errors, hasViteError: Boolean(viteError) }
-                    }).catch((err: any) => ({ errors: [{ message: err.message }] }))
-                }
-
-                return true
-            }, {
-                timeoutMsg: 'browser test timed out',
-                timeout
-            })
-
-            /**
-             * capture coverage if enabled
-             */
-            if (this.#runnerOptions.coverage?.enabled && process.send) {
-                const coverageMap = await browser.execute(
-                    () => (window.__coverage__ || {})  as CoverageMap)
-                process.send({
-                    origin: 'worker',
-                    name: 'coverageMap',
-                    content: { coverageMap }
-                })
-            }
-
-            if (state.errors?.length) {
-                const errors = state.errors.map((ev) => state.hasViteError
-                    ? `${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`
-                    : `${path.basename(ev.filename || spec)}: ${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`)
-                const { name, message, stack } = new Error(state.hasViteError
-                    ? `Test failed due to the following error: ${errors.join('\n\n')}`
-                    : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
-                process.send!({
-                    origin: 'worker',
-                    name: 'error',
-                    content: { name, message, stack }
-                })
-                failures += 1
-                continue
-            }
-
-            await this.#fetchEvents(browser, spec, ++uid)
-            failures += state.failures || 0
+            failures += await this.#runSpec(spec)
         }
 
         return failures
     }
 
-    async #fetchEvents (browser: WebdriverIO.Browser, spec: string, uid: number) {
+    async #runSpec (spec: string, retried = false): Promise<number> {
+        const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
+        log.info(`Run spec file ${spec} for cid ${this._cid}`)
+
+        /**
+         * if a `sessionId` is part of `this._config` it means we are in watch mode and are
+         * re-using a previous session. Since Vite has already a hotreload feature, there
+         * is no need to call the url command again
+         */
+        if (!this._config.sessionId) {
+            await browser.url(`/?cid=${this._cid}&spec=${url.parse(spec).pathname}`)
+        }
+        // await browser.debug()
+
+        /**
+         * set spec and cid as cookie so the Vite plugin can detect session even without
+         * query parameters
+         */
+        await browser.setCookies([
+            { name: 'WDIO_SPEC', value: url.fileURLToPath(spec) },
+            { name: 'WDIO_CID', value: this._cid }
+        ])
+
+        /**
+         * wait for test results or page errors
+         */
+        let state: TestState = {}
+        const now = Date.now()
+        await browser.waitUntil(async () => {
+            while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
+                if ((Date.now() - now) > timeout) {
+                    return false
+                }
+
+                await sleep()
+
+                /**
+                 * don't fetch events if user has called debug command
+                 */
+                if (this.#inDebugMode) {
+                    continue
+                }
+
+                state = await browser?.execute(function fetchExecutionState () {
+                    const failures = window.__wdioEvents__ && window.__wdioEvents__.length > 0
+                        ? window.__wdioFailures__
+                        : null
+                    let viteError
+                    const viteErrorElem = document.querySelector('vite-error-overlay')
+                    if (viteErrorElem && viteErrorElem.shadowRoot) {
+                        const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                        if (errorElems.length) {
+                            viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
+                        }
+                    }
+                    const loadError = (
+                        typeof window.__wdioErrors__ === 'undefined' &&
+                        document.title !== 'WebdriverIO Browser Test' &&
+                        !document.querySelector('mocha-framework')
+                    )
+                        ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
+                        : null
+                    const errors = viteError || window.__wdioErrors__ || loadError
+                    return { failures, errors, hasViteError: Boolean(viteError) }
+                }).catch((err: any) => ({ errors: [{ message: err.message }] }))
+            }
+
+            return true
+        }, {
+            timeoutMsg: 'browser test timed out',
+            timeout
+        })
+
+        /**
+         * capture coverage if enabled
+         */
+        if (this.#runnerOptions.coverage?.enabled && process.send) {
+            const coverageMap = await browser.execute(
+                () => (window.__coverage__ || {})  as CoverageMap)
+            process.send({
+                origin: 'worker',
+                name: 'coverageMap',
+                content: { coverageMap }
+            })
+        }
+
+        if (state.errors?.length) {
+            const errors = state.errors.map((ev) => state.hasViteError
+                ? `${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`
+                : `${path.basename(ev.filename || spec)}: ${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`)
+
+            /**
+             * retry Vite dynamic import errors once
+             */
+            if (!retried && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
+                log.info('Retry test run due to dynamic import error')
+                return this.#runSpec(spec, true)
+            }
+
+            const { name, message, stack } = new Error(state.hasViteError
+                ? `Test failed due to the following error: ${errors.join('\n\n')}`
+                : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
+            process.send!({
+                origin: 'worker',
+                name: 'error',
+                content: { name, message, stack }
+            })
+            return 1
+        }
+
+        await this.#fetchEvents(browser, spec)
+        return state.failures || 0
+    }
+
+    async #fetchEvents (browser: WebdriverIO.Browser, spec: string) {
         /**
          * populate events to the reporter
          */
@@ -207,7 +218,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             this._reporter.emit(ev.type, {
                 ...ev,
                 file: spec,
-                uid: `${this._cid}-${uid}`,
+                uid: `${this._cid}-${Buffer.from(ev.fullTitle).toString('base64')}`,
                 cid: this._cid
             })
         }

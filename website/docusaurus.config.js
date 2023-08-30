@@ -5,8 +5,10 @@ const projectName = 'webdriverio' // Usually your repo name.
 const branch = 'main'
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
 const twitterUrl = `https://twitter.com/${projectName}`
+const youtubeUrl = `https://youtube.com/@${projectName}`
+const discordUrl = 'https://discord.webdriver.io/'
 const wdioLogo = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+TG9nbyBSZWd1bGFyPC90aXRsZT4KICAgIDxnIGlkPSJMb2dvLVJlZ3VsYXIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxyZWN0IGlkPSJSZWN0YW5nbGUiIGZpbGw9IiNFQTU5MDYiIHg9IjAiIHk9IjAiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjUiPjwvcmVjdD4KICAgICAgICA8cGF0aCBkPSJNOCwxNiBMOCw0OCBMNiw0OCBMNiwxNiBMOCwxNiBaIE00MywxNiBDNTEuODM2NTU2LDE2IDU5LDIzLjE2MzQ0NCA1OSwzMiBDNTksNDAuODM2NTU2IDUxLjgzNjU1Niw0OCA0Myw0OCBDMzQuMTYzNDQ0LDQ4IDI3LDQwLjgzNjU1NiAyNywzMiBDMjcsMjMuMTYzNDQ0IDM0LjE2MzQ0NCwxNiA0MywxNiBaIE0yNywxNiBMMTQuMTA2LDQ3Ljk5OTIwNzggTDExLjk5OSw0Ny45OTkyMDc4IEwyNC44OTQsMTYgTDI3LDE2IFogTTQzLDE4IEMzNS4yNjgwMTM1LDE4IDI5LDI0LjI2ODAxMzUgMjksMzIgQzI5LDM5LjczMTk4NjUgMzUuMjY4MDEzNSw0NiA0Myw0NiBDNTAuNzMxOTg2NSw0NiA1NywzOS43MzE5ODY1IDU3LDMyIEM1NywyNC4yNjgwMTM1IDUwLjczMTk4NjUsMTggNDMsMTggWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIiBmaWxsPSIjRkZGRkZGIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg=='
-
+const mendableAnonKey = 'c4096c1b-8c46-4891-8ba2-5f0e2ef4fa81'
 module.exports = {
     title: 'WebdriverIO',
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
@@ -18,7 +20,12 @@ module.exports = {
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
     customFields: {
-        repoUrl
+        repoUrl,
+        mendableAnonKey
+    },
+    i18n: {
+        defaultLocale: 'en',
+        locales: ['en', 'de', 'es', 'hi', 'fr', 'uk', 'fa', 'ta'/*, 'zh-CN', 'ru' */],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
@@ -71,9 +78,24 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
+                type: 'doc',
+                docId: 'sponsor',
+                label: 'Sponsor',
+                position: 'left'
+            }, {
                 label: 'v8',
                 position: 'right',
                 to: '/versions'
+            }, {
+                type: 'localeDropdown',
+                position: 'right',
+                dropdownItemsAfter: [{
+                    type: 'html',
+                    value: '<hr style="margin: 0.3rem 0;">',
+                }, {
+                    href: 'https://github.com/webdriverio/webdriverio/issues/10261',
+                    label: 'Help Us Translate',
+                }]
             }, {
                 href: repoUrl,
                 position: 'right',
@@ -84,6 +106,16 @@ module.exports = {
                 position: 'right',
                 className: 'header-twitter-link',
                 'aria-label': '@webdriverio on Twitter',
+            }, {
+                href: youtubeUrl,
+                position: 'right',
+                className: 'header-youtube-link',
+                'aria-label': '@webdriverio on YouTube',
+            }, {
+                href: discordUrl,
+                position: 'right',
+                className: 'header-discord-link',
+                'aria-label': 'Support Chat on Discord',
             }],
         },
         footer: {
@@ -110,7 +142,7 @@ module.exports = {
                     href: 'https://stackoverflow.com/questions/tagged/webdriver-io',
                 }, {
                     label: 'Support Chat',
-                    href: 'https://matrix.to/#/#webdriver.io:gitter.im',
+                    href: 'https://discord.webdriver.io',
                 }, {
                     label: 'Slack',
                     href: 'https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/'
@@ -121,22 +153,22 @@ module.exports = {
             }, {
                 title: 'More',
                 items: [{
-                    label: 'Tidelift Subscription',
-                    to: '/docs/enterprise/',
-                }, {
-                    label: 'Donate to WebdriverIO',
-                    href: 'https://opencollective.com/webdriverio',
-                }, {
                     label: 'Blog',
                     to: 'blog',
                 }, {
-                    label: 'GitHub',
-                    href: repoUrl,
+                    label: 'Sponsor',
+                    to: 'docs/sponsor',
+                }, {
+                    label: 'Team',
+                    href: 'https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md',
+                }, {
+                    label: 'YouTube',
+                    href: youtubeUrl,
                 }],
             }],
             logo: {
                 alt: 'OpenJS Foundation Logo',
-                src: '/img/open-jsf-logo.svg',
+                src: 'https://raw.githubusercontent.com/openjs-foundation/artwork/main/openjs_foundation/openjs_foundation-logo-horizontal-color-dark_background.svg',
                 href: 'https://openjsf.org/'
             },
             copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,

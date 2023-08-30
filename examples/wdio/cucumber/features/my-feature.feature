@@ -5,7 +5,7 @@ Feature: Example feature
 
   Scenario: Get size of an element
     Given I go on the website "https://github.com/"
-    Then  should the element ".header-logged-out a" be 32px wide and 35px high
+    Then  should the element ".header-logged-out a" be 32px wide and 34.5px high
 
   Rule: Business rule 1
     Scenario: Get title of website

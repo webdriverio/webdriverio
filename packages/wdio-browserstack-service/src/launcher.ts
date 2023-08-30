@@ -2,7 +2,6 @@ import got from 'got'
 import FormData from 'form-data'
 import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import { SevereServiceError } from 'webdriverio'
@@ -12,13 +11,18 @@ import * as BrowserstackLocalLauncher from 'browserstack-local'
 
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
+import PerformanceTester from './performance-tester.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
-import { VALID_APP_EXTENSION } from './constants.js'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util.js'
-
-const require = createRequire(import.meta.url)
-const { version: bstackServiceVersion } = require('../package.json')
+import { BSTACK_SERVICE_VERSION, VALID_APP_EXTENSION } from './constants.js'
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession,
+} from './util.js'
+import CrashReporter from './crash-reporter.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -42,43 +46,61 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
-            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
-                if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        capability['browserstack.wdioService'] = bstackServiceVersion
+            capabilities
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
                     }
-                    this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
-                    this._buildName = capability.build?.toString()
-                } else {
-                    capability['bstack:options'].wdioService = bstackServiceVersion
-                    this._buildName = capability['bstack:options'].buildName
-                    this._projectName = capability['bstack:options'].projectName
-                    this._buildTag = capability['bstack:options'].buildTag
-                    this._buildIdentifier = capability['bstack:options'].buildIdentifier
-                }
-            })
+                    return c as (Capabilities.DesiredCapabilities)
+                })
+                .forEach((capability: Capabilities.DesiredCapabilities) => {
+                    if (!capability['bstack:options']) {
+                        // Skipping adding of service version if session is not of browserstack
+                        if (isBStackSession(this._config)) {
+                            const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                            if (extensionCaps.length) {
+                                capability['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
+                            } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                                capability['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
+                            }
+                        }
+
+                        // Need this details for sending data to Observability
+                        this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
+                        this._buildName = capability.build?.toString()
+                    } else {
+                        capability['bstack:options'].wdioService = BSTACK_SERVICE_VERSION
+                        this._buildName = capability['bstack:options'].buildName
+                        this._projectName = capability['bstack:options'].projectName
+                        this._buildTag = capability['bstack:options'].buildTag
+                        this._buildIdentifier = capability['bstack:options'].buildIdentifier
+                    }
+                })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                    if (isBStackSession(this._config)) {
+                        const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
+                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
+                        }
                     }
                     this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                 } else {
                     const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
-                    bstackOptions!.wdioService = bstackServiceVersion
+                    bstackOptions!.wdioService = BSTACK_SERVICE_VERSION
                     this._buildName = bstackOptions!.buildName
                     this._projectName = bstackOptions!.projectName
                     this._buildTag = bstackOptions!.buildTag
                     this._buildIdentifier = bstackOptions!.buildIdentifier
                 }
             })
+        }
+
+        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
         // by default observability will be true unless specified as false
@@ -90,6 +112,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+        }
+
+        try {
+            CrashReporter.setConfigDetails(this._config, capabilities, this._options)
+        } catch (error: any) {
+            log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 
@@ -147,7 +175,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
-                bstackServiceVersion: bstackServiceVersion,
+                bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
             })
         }
@@ -205,6 +233,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             await stopBuildUpstream()
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+
+            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+                await PerformanceTester.stopAndGenerate('performance-launcher.html')
+                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+                if (!process.env.START_TIME) {
+                    return
+                }
+                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+                log.info(`Total duration is ${duration / 1000 } s`)
             }
         }
 
@@ -295,44 +334,52 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
         if (Array.isArray(capabilities)) {
-            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
-                if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        if (capType === 'local') {
-                            capability['bstack:options'] = { local: true }
+            capabilities
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
+                    }
+                    return c as (Capabilities.DesiredCapabilities)
+                })
+                .forEach((capability: Capabilities.DesiredCapabilities) => {
+                    if (!capability['bstack:options']) {
+                        const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            if (capType === 'local') {
+                                capability['bstack:options'] = { local: true }
+                            } else if (capType === 'app') {
+                                capability['appium:app'] = value
+                            } else if (capType === 'buildIdentifier' && value) {
+                                capability['bstack:options'] = { buildIdentifier: value }
+                            }
+                        } else if (capType === 'local'){
+                            capability['browserstack.local'] = true
                         } else if (capType === 'app') {
-                            capability['appium:app'] = value
-                        } else if (capType === 'buildIdentifier' && value) {
-                            capability['bstack:options'] = { buildIdentifier: value }
+                        // @ts-expect-error BrowserStack still supports outdated JSOMWP
+                            capability.app = value
+                        } else if (capType === 'buildIdentifier') {
+                            if (value) {
+                                capability['browserstack.buildIdentifier'] = value
+                            } else {
+                                delete capability['browserstack.buildIdentifier']
+                            }
+                        } else if (capType === 'localIdentifier') {
+                            capability['browserstack.localIdentifier'] = value
                         }
-                    } else if (capType === 'local'){
-                        capability['browserstack.local'] = true
+                    } else if (capType === 'local') {
+                        capability['bstack:options'].local = true
                     } else if (capType === 'app') {
-                        capability.app = value
+                        capability['appium:app'] = value
                     } else if (capType === 'buildIdentifier') {
                         if (value) {
-                            capability['browserstack.buildIdentifier'] = value
+                            capability['bstack:options'].buildIdentifier = value
                         } else {
-                            delete capability['browserstack.buildIdentifier']
+                            delete capability['bstack:options'].buildIdentifier
                         }
                     } else if (capType === 'localIdentifier') {
-                        capability['browserstack.localIdentifier'] = value
+                        capability['bstack:options'].localIdentifier = value
                     }
-                } else if (capType === 'local') {
-                    capability['bstack:options'].local = true
-                } else if (capType === 'app') {
-                    capability['appium:app'] = value
-                } else if (capType === 'buildIdentifier') {
-                    if (value) {
-                        capability['bstack:options'].buildIdentifier = value
-                    } else {
-                        delete capability['bstack:options'].buildIdentifier
-                    }
-                } else if (capType === 'localIdentifier') {
-                    capability['bstack:options'].localIdentifier = value
-                }
-            })
+                })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
@@ -348,7 +395,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.AppiumCapabilities).app = value
+                        (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                     } else if (capType === 'buildIdentifier') {
                         if (value) {
                             (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier'] = value

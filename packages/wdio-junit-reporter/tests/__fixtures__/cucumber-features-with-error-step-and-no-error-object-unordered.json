@@ -7,7 +7,7 @@
 		"cid": "0-1",
 		"title": "Sample scenario",
 		"fullTitle": "Sample feature2: Sample scenario",
-    "file": "./features/sample_feature.feature",
+    "file": "/features/sample_feature.feature",
 		"tags": [{
 			"name": "@run",
 			"location": {
@@ -220,7 +220,7 @@
 		"uid": "Sample feature2",
 		"cid": "0-1",
 		"title": "Sample feature",
-    "file": "./features/sample_feature.feature",
+    "file": "/features/sample_feature.feature",
 		"tags": [{
 			"type": "Tag",
 			"location": {

@@ -1,0 +1,74 @@
+{
+  "version.label": {
+    "message": "Напред",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "Първи Стъпки",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Core Concepts": {
+    "message": "Основни концепции",
+    "description": "The label for category Core Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Configuration": {
+    "message": "Настройки",
+    "description": "The label for category Configuration in sidebar docs"
+  },
+  "sidebar.docs.category.Guides": {
+    "message": "Ръководство",
+    "description": "The label for category Guides in sidebar docs"
+  },
+  "sidebar.docs.category.Testrunner": {
+    "message": "Тестов инструмент",
+    "description": "The label for category Testrunner in sidebar docs"
+  },
+  "sidebar.docs.category.Component Testing": {
+    "message": "Компонентно тестване",
+    "description": "The label for category Component Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Framework Setup": {
+    "message": "Настройка на фреймуърка",
+    "description": "The label for category Framework Setup in sidebar docs"
+  },
+  "sidebar.docs.category.Migrate": {
+    "message": "Мигриране",
+    "description": "The label for category Migrate in sidebar docs"
+  },
+  "sidebar.docs.category.Integration": {
+    "message": "Интеграция",
+    "description": "The label for category Integration in sidebar docs"
+  },
+  "sidebar.docs.category.Reporter": {
+    "message": "Репортер",
+    "description": "The label for category Reporter in sidebar docs"
+  },
+  "sidebar.docs.category.Services": {
+    "message": "Сървиси",
+    "description": "The label for category Services in sidebar docs"
+  },
+  "sidebar.api.category.Protocols": {
+    "message": "Протоколи",
+    "description": "The label for category Protocols in sidebar api"
+  },
+  "sidebar.api.category.browser": {
+    "message": "browser",
+    "description": "The label for category browser in sidebar api"
+  },
+  "sidebar.api.category.element": {
+    "message": "element",
+    "description": "The label for category element in sidebar api"
+  },
+  "sidebar.api.category.mock": {
+    "message": "mock",
+    "description": "The label for category mock in sidebar api"
+  },
+  "sidebar.flowcharts.category.Flowcharts": {
+    "message": "Блок-схеми",
+    "description": "The label for category Flowcharts in sidebar flowcharts"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "Тестване на уеб разширения",
+    "description": "The label for category Web Extension Testing in sidebar docs"
+  }
+}

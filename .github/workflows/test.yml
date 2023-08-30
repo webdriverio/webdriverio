@@ -7,9 +7,10 @@ on:
     branches:
       - main
       - v7
+      - '!l10n_main'
   pull_request:
     branches-ignore:
-      - l10n_main
+      - 'l10n_main'
 
 permissions:
   contents: read # to fetch code (actions/checkout)
@@ -28,20 +29,30 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
       - name: Interop Tests
-        run: |
-          npm i chromedriver --detect_chromedriver_version
-          npm run test:e2e:cjs
+        run: npm run test:e2e:cjs
+      - name: E2E Launch Tests
+        run: npm run test:e2e:webdriver
+      # - name: 🐛 Debug Build
+      #   uses: stateful/vscode-server-action@v1
+      #   if: failure()
+      #   with:
+      #     timeout: '30000'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: logs
-          path: examples/wdio/browser-runner/logs
+          name: ubuntu-logs-${{ matrix.node-version }}
+          path: |
+            e2e/wdio/*.log
+            e2e/*.log
+            e2e/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -52,23 +63,30 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
-      - name: Setup Chrome Browser
-        uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
-      - name: E2E Edge Launch Tests
-        run: npm run test:e2e:edge
+      - name: E2E Launch Tests
+        run: |
+          npm run test:e2e:edge
+          npm run test:e2e:webdriver
+      - name: 🐛 Debug Build
+        uses: stateful/vscode-server-action@v1
+        if: failure()
+        with:
+          timeout: '30000'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: logs
+          name: windows-logs
           path: |
             e2e/wdio/*.log
             e2e/*.log
@@ -83,7 +101,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
-        run: npm run setup-full
+        run: npm run setup
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
@@ -92,16 +112,8 @@ jobs:
           command: npm run test:e2e
       - name: Safari Component Tests
         run: npm run test:component
-      # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
-      # - name: Setup Firefox
-      #   uses: browser-actions/setup-firefox@latest
-      #   with:
-      #     firefox-version: latest
-      # - run: |
-      #     export FIREFOX_BINARY=$(which firefox)
-      #     echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
-      # - name: E2E Firefox Launch Tests
-      #   run: npm run test:e2e:firefox
+      - name: E2E Launch Tests
+        run: npm run test:e2e:webdriver
       - name: E2E Connection Test
         run: npm run test:e2e:cloud
         if: github.ref == 'refs/heads/main'
@@ -114,3 +126,16 @@ jobs:
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: macos-logs
+          path: |
+            e2e/wdio/*.log
+            e2e/*.log
+            e2e/browser-runner/logs
+      - name: 🐛 Debug Build
+        uses: stateful/vscode-server-action@v1
+        if: failure()
+        with:
+          timeout: '30000'

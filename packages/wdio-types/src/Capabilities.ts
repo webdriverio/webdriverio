@@ -91,7 +91,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[];
 
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
@@ -100,8 +100,8 @@ export interface MultiRemoteCapabilities {
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
 
 export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
-    TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
-    AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
+    TestingbotCapabilities, SeleniumRCCapabilities, GeckodriverCapabilities, IECapabilities,
+    AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities,
     ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
 
     // Read-only capabilities
@@ -144,7 +144,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIOVSCodeServiceOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -199,6 +199,13 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
      */
     // eslint-disable-next-line
     testobject_api_key?: string
+}
+
+export interface WebdriverIOCapabilities {
+    'wdio:chromedriverOptions'?: WebdriverIO.ChromedriverOptions
+    'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
+    'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
+    'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
 }
 
 export interface ChromeOptions {
@@ -393,38 +400,12 @@ export interface ChromeCapabilities {
     mobileEmulationEnabled?: boolean;
 }
 
-// Appium General Capabilities
-export interface AppiumCapabilities {
-    automationName?: string;
-    platformVersion?: string;
-    deviceName?: string;
-    app?: string;
-    newCommandTimeout?: number;
-    language?: string;
-    locale?: string;
-    udid?: string;
-    orientation?: string;
-    autoWebview?: boolean;
-    noReset?: boolean;
-    fullReset?: boolean;
-    eventTimings?: boolean;
-    enablePerformanceLogging?: boolean;
-    printPageSourceOnFindFailure?: boolean;
-
-    // Users as directConnect feature by the server
-    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
-    directConnectProtocol?: string;
-    directConnectHost?: string;
-    directConnectPort?: number;
-    directConnectPath?: string;
-}
-
 /**
  * Appium General W3C Capabilities
  *
- * @see https://appium.io/docs/en/writing-running-appium/caps/
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/
  */
-export interface AppiumW3CCapabilities {
+export interface AppiumCapabilities {
     /**
      * Which automation engine to use.
      *
@@ -465,7 +446,7 @@ export interface AppiumW3CCapabilities {
     'appium:deviceName'?: string;
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -493,7 +474,6 @@ export interface AppiumW3CCapabilities {
     'appium:enablePerformanceLogging'?: boolean;
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
-    'appium:options'?: AppiumCapabilities
     /**
      * Users as directConnect feature by the server
      * https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
@@ -513,114 +493,77 @@ export interface AppiumW3CCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://appium.io/docs/en/writing-running-appium/caps/#android-only
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
  */
 export interface AppiumAndroidCapabilities {
-    appiumVersion?: string;
-    appActivity?: string;
-    appPackage?: string;
-    appWaitActivity?: string;
-    appWaitPackage?: string;
-    appWaitDuration?: number;
-    deviceReadyTimeout?: number;
-    allowTestPackages?: boolean;
-    androidCoverage?: string;
-    androidCoverageEndIntent?: string;
-    androidDeviceReadyTimeout?: number;
-    androidInstallTimeout?: number;
-    androidInstallPath?: string;
-    adbPort?: number;
-    systemPort?: number;
-    remoteAdbHost?: string;
-    androidDeviceSocket?: string;
-    avd?: string;
-    avdLaunchTimeout?: number;
-    avdReadyTimeout?: number;
-    avdArgs?: string;
-    useKeystore?: boolean;
-    keystorePath?: string;
-    keystorePassword?: string;
-    keyAlias?: string;
-    keyPassword?: string;
-    chromedriverExecutable?: string;
-    chromedriverArgs?: string[];
-    chromedriverExecutableDir?: string;
-    chromedriverChromeMappingFile?: string;
-    chromedriverUseSystemExecutable?: boolean;
-    autoWebviewTimeout?: number;
-    chromedriverPort?: number;
-    chromedriverPorts?: (number | number[])[]
-    intentAction?: string;
-    intentCategory?: string;
-    intentFlags?: string;
-    optionalIntentArguments?: string;
-    dontStopAppOnReset?: boolean;
-    unicodeKeyboard?: boolean;
-    resetKeyboard?: boolean;
-    noSign?: boolean;
-    ignoreUnimportantViews?: boolean;
-    disableAndroidWatchers?: boolean;
-    recreateChromeDriverSessions?: boolean;
-    nativeWebScreenshot?: boolean;
-    androidScreenshotPath?: string;
-    autoGrantPermissions?: boolean;
-    networkSpeed?: string;
-    gpsEnabled?: boolean;
-    isHeadless?: boolean;
-    adbExecTimeout?: number;
-    localeScript?: string;
-    skipDeviceInitialization?: boolean;
-    chromedriverDisableBuildCheck?: boolean;
-    skipUnlock?: boolean;
-    unlockType?: string;
-    unlockKey?: string;
-    autoLaunch?: boolean;
-    skipLogcatCapture?: boolean;
-    uninstallOtherPackages?: string;
-    disableWindowAnimation?: boolean;
-    otherApps?: string | string[];
-    uiautomator2ServerLaunchTimeout?: number;
-    uiautomator2ServerInstallTimeout?: number;
-    skipServerInstallation?: boolean;
-    espressoServerLaunchTimeout?: number;
-    disableSuppressAccessibilityService?: boolean;
-}
-
-/**
- * Appium iOS Only Capabilities
- *
- * @see https://appium.io/docs/en/writing-running-appium/caps/#ios-only
- */
-export interface AppiumIOSCapabilities {
-    calendarFormat?: string;
-    bundleId?: string;
-    launchTimeout?: number;
-    locationServicesEnabled?: boolean;
-    locationServicesAuthorized?: boolean;
-    autoAcceptAlerts?: boolean;
-    autoDismissAlerts?: boolean;
-    nativeInstrumentsLib?: boolean;
-    nativeWebTap?: boolean;
-    safariInitialUrl?: string;
-    safariAllowPopups?: boolean;
-    safariIgnoreFraudWarning?: boolean;
-    safariOpenLinksInBackground?: boolean;
-    keepKeyChains?: boolean;
-    localizableStringsDir?: string;
-    processArguments?: string;
-    interKeyDelay?: number;
-    showIOSLog?: boolean;
-    sendKeyStrategy?: string;
-    screenshotWaitTimeout?: number;
-    waitForAppScript?: string;
-    webviewConnectRetries?: number;
-    appName?: string;
-    customSSLCert?: string;
-    webkitResponseTimeout?: number;
-    remoteDebugProxy?: string;
-    enableAsyncExecuteFromHttps?: boolean;
-    skipLogCapture?: boolean;
-    webkitDebugProxyPort?: number;
+    'appium:appiumVersion'?: string;
+    'appium:appActivity'?: string;
+    'appium:appPackage'?: string;
+    'appium:appWaitActivity'?: string;
+    'appium:appWaitPackage'?: string;
+    'appium:appWaitDuration'?: number;
+    'appium:deviceReadyTimeout'?: number;
+    'appium:allowTestPackages'?: boolean;
+    'appium:androidCoverage'?: string;
+    'appium:androidCoverageEndIntent'?: string;
+    'appium:androidDeviceReadyTimeout'?: number;
+    'appium:androidInstallTimeout'?: number;
+    'appium:androidInstallPath'?: string;
+    'appium:adbPort'?: number;
+    'appium:systemPort'?: number;
+    'appium:remoteAdbHost'?: string;
+    'appium:androidDeviceSocket'?: string;
+    'appium:avd'?: string;
+    'appium:avdLaunchTimeout'?: number;
+    'appium:avdReadyTimeout'?: number;
+    'appium:avdArgs'?: string;
+    'appium:useKeystore'?: boolean;
+    'appium:keystorePath'?: string;
+    'appium:keystorePassword'?: string;
+    'appium:keyAlias'?: string;
+    'appium:keyPassword'?: string;
+    'appium:chromedriverExecutable'?: string;
+    'appium:chromedriverArgs'?: string[];
+    'appium:chromedriverExecutableDir'?: string;
+    'appium:chromedriverChromeMappingFile'?: string;
+    'appium:chromedriverUseSystemExecutable'?: boolean;
+    'appium:autoWebviewTimeout'?: number;
+    'appium:chromedriverPort'?: number;
+    'appium:chromedriverPorts'?: (number | number[])[]
+    'appium:intentAction'?: string;
+    'appium:intentCategory'?: string;
+    'appium:intentFlags'?: string;
+    'appium:optionalIntentArguments'?: string;
+    'appium:dontStopAppOnReset'?: boolean;
+    'appium:unicodeKeyboard'?: boolean;
+    'appium:resetKeyboard'?: boolean;
+    'appium:noSign'?: boolean;
+    'appium:ignoreUnimportantViews'?: boolean;
+    'appium:disableAndroidWatchers'?: boolean;
+    'appium:recreateChromeDriverSessions'?: boolean;
+    'appium:nativeWebScreenshot'?: boolean;
+    'appium:androidScreenshotPath'?: string;
+    'appium:autoGrantPermissions'?: boolean;
+    'appium:networkSpeed'?: string;
+    'appium:gpsEnabled'?: boolean;
+    'appium:isHeadless'?: boolean;
+    'appium:adbExecTimeout'?: number;
+    'appium:localeScript'?: string;
+    'appium:skipDeviceInitialization'?: boolean;
+    'appium:chromedriverDisableBuildCheck'?: boolean;
+    'appium:skipUnlock'?: boolean;
+    'appium:unlockType'?: string;
+    'appium:unlockKey'?: string;
+    'appium:autoLaunch'?: boolean;
+    'appium:skipLogcatCapture'?: boolean;
+    'appium:uninstallOtherPackages'?: string;
+    'appium:disableWindowAnimation'?: boolean;
+    'appium:otherApps'?: string | string[];
+    'appium:uiautomator2ServerLaunchTimeout'?: number;
+    'appium:uiautomator2ServerInstallTimeout'?: number;
+    'appium:skipServerInstallation'?: boolean;
+    'appium:espressoServerLaunchTimeout'?: number;
+    'appium:disableSuppressAccessibilityService'?: boolean;
 }
 
 /**
@@ -634,7 +577,14 @@ export interface AppiumXCUITestCapabilities {
     'appium:app'?: string;
     'appium:calendarFormat'?: string;
     'appium:bundleId'?: string;
+    'appium:launchTimeout'?: number;
     'appium:udid'?: string;
+    'appium:appName'?: string;
+    'appium:waitForAppScript'?: string;
+    'appium:sendKeyStrategy'?: string;
+    'appium:screenshotWaitTimeout'?: number;
+    'appium:interKeyDelay'?: number;
+    'appium:nativeInstrumentsLib'?: boolean;
     'appium:autoAcceptAlerts'?: boolean;
     'appium:autoDismissAlerts'?: boolean;
     'appium:nativeWebTap'?: boolean;
@@ -676,6 +626,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:tapWithShortPressDuration'?: number;
     'appium:scaleFactor'?: string;
     'appium:usePrebuiltWDA'?: boolean;
+    'appium:usePreinstalledWDA'?: boolean;
     'appium:webDriverAgentUrl'?: string;
     'appium:derivedDataPath'?: string;
     'appium:launchWithIDB'?: boolean;
@@ -700,6 +651,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:simpleIsVisibleCheck'?: boolean;
     'appium:shouldUseSingletonTestManager'?: boolean;
     'appium:isHeadless'?: boolean;
+    'appium:autoGrantPermissions'?: boolean;
     'appium:useXctestrunFile'?: boolean;
     'appium:absoluteWebLocations'?: boolean;
     'appium:simulatorWindowCenter'?: string;
@@ -1162,6 +1114,18 @@ export interface BrowserStackCapabilities {
      */
     debug?: boolean
     networkLogs?: boolean
+     /**
+     * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
+     * Enable viewing the response data in the Network Logs tab on your session
+     */
+    networkLogsOptions?: {
+        captureContent?: boolean
+    },
+    /**
+     * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/interactive-session
+     * Enable an interactive debugging session while your test session is running
+     */
+    interactiveDebugging?: boolean,
     seleniumVersion?: string
     seleniumCdp?: boolean,
     ie?: {
@@ -1398,7 +1362,19 @@ export interface TestingbotCapabilities {
     tags?: string[];
     build?: string | number | number;
     public?: boolean;
-    'tunnel-identifier'?: string
+    'tunnel-identifier'?: string;
+    realDevice?: boolean;
+    'selenium-version'?: string;
+    chromedriverVersion?: string;
+    iedriverVersion?: string;
+    edgedriverVersion?: string;
+    geckodriverVersion?: string;
+    operaDriverVersion?: string;
+    timeZone?: string;
+    upload?: string;
+    'testingbot.geoCountryCode'?: string;
+    idletimeout?: number;
+    'load-extension'?: string;
 }
 
 export interface SeleniumRCCapabilities {

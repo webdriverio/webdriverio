@@ -1,4 +1,7 @@
 import type { BrowserstackConfig } from './types.js'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const { version: bstackServiceVersion } = require('../package.json')
 
 export const BROWSER_DESCRIPTION = [
     'device',
@@ -32,3 +35,4 @@ export const DATA_BATCH_INTERVAL = 2000
 export const BATCH_EVENT_TYPES = ['LogCreated', 'TestRunStarted', 'TestRunFinished', 'HookRunFinished', 'HookRunStarted', 'ScreenshotCreated']
 export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
+export const BSTACK_SERVICE_VERSION = bstackServiceVersion

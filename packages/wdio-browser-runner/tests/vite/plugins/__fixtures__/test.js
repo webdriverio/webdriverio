@@ -5,13 +5,14 @@ import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 import * as matchers from '@testing-library/jest-dom/matchers'
 
+import 'something'
+
 import defaultExport, { namedExportValue } from 'someModule'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
-mock('./components/constants.ts', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('./components/constants.ts', async (mod) => {
     return {
         GREETING: mod.GREETING + ' Sir'
     }

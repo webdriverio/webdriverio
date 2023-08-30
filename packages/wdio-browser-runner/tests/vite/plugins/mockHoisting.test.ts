@@ -46,9 +46,9 @@ test('exposes correct format', () => {
     }])
 })
 
-test('does not transform if file is not within spec', () => {
+test('does not transform if files that user should not be able to mock', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
-    expect((postPlugin.transform as Function)('foobar', 'barforr')).toEqual({ code: 'foobar' })
+    expect((postPlugin.transform as Function)('foobar', '@vite/client')).toEqual({ code: 'foobar' })
 })
 
 test('transforms test file properly for mocking', () => {
@@ -68,28 +68,24 @@ test('transforms test file properly for mocking', () => {
     expect(mockHandler.resetMocks).toBeCalledTimes(1)
 })
 
-test('returns original file', async () => {
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(
-        `/@mock${os.platform() === 'win32' ? '/' : ''}${fixturePath}`
-    )).toBe(TESTFILE)
-})
+test('transforms any other imported file properly for mocking', () => {
+    const postPlugin = mockHoisting(mockHandler).pop()!
+    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
+    const serverA = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl: `/foo?spec=/${testfilePath}` }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(serverA)()
+    ;(postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)
+    const originalUrl = '/some/other/dependency.js'
+    const serverB = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(serverB)()
+    const newCode = (postPlugin.transform as Function)(TESTFILE, originalUrl)
+    newCode.code = newCode.code.replace('C:/', '').replace('D:/', '') // fix for Windows
 
-test('returns mock file', async () => {
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)('foobar')).toMatchSnapshot()
-})
+    delete newCode.map.file
+    delete newCode.map.sources
 
-test('returns mock for prebundled dep', async () => {
-    vi.mocked(mockHandler.mocks.get).mockReturnValue()
-    const id = '/path/to/project/node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e7'
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
-})
-
-test('returns mock for relative file import', async () => {
-    vi.mocked(mockHandler.mocks.get).mockReturnValue()
-    const id = '/path/to/project/constants.ts'
-    const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
+    expect(newCode).toMatchSnapshot()
 })

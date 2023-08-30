@@ -1,0 +1,29 @@
+services: [<%- answers.services.map((service) => {
+    if (service === 'electron') {
+        return /*js*/`[
+        'electron',
+        {
+            appPath: '${answers.appPath}',
+            appName: productName,
+            appArgs: ['foo', 'bar=baz'],
+            chromedriver: {
+                logFileName: 'wdio-chromedriver.log',
+            },
+            electronVersion: '23.1.0',
+        }
+    ]`
+    } else if (service === 'sauce' && answers.useSauceConnect) {
+        return /*js*/`[
+        'sauce',
+        {
+            sauceConnect: true,
+            sauceConnectOpts: {
+                // add Sauce Connect Options if needed
+                // see more at https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide
+            }
+        }
+    ]`
+    }
+
+    return `'${service}'`
+}).join(', ') %>],

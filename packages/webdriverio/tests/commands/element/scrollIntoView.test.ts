@@ -65,6 +65,17 @@ describe('scrollIntoView test', () => {
             expect(vi.mocked(got).mock.calls.pop()![0]!.href.endsWith('/execute/sync'))
                 .toBe(true)
         })
+
+        it('rounds float delta values', async () => {
+            vi.spyOn(browser, 'getWindowSize').mockResolvedValue({ height: 800.123, width: 600.321 })
+            vi.spyOn(browser, 'getElementRect').mockResolvedValue(
+                ({ x: 15.34, y: 20.23, height: 30.2344, width: 50.543 }))
+            await elem.scrollIntoView({ block: 'center', inline: 'center' })
+            const optionsCenter = vi.mocked(got).mock.calls.slice(-2, -1)[0][1] as any
+            expect(optionsCenter.json.actions[0].actions[0].deltaX).toBe(-260)
+            expect(optionsCenter.json.actions[0].actions[0].deltaY).toBe(-365)
+        })
+
     })
 
     describe('mobile', () => {

@@ -1,15 +1,15 @@
 [
   {
-    "packageName": "wdio-chromedriver-service",
-    "title": "ChromeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
-  },
-  {
     "packageName": "wdio-vscode-service",
     "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
+  },
+  {
+    "packageName": "wdio-nuxt-service",
+    "title": "WDIO Nuxt Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
   },
   {
     "packageName": "wdio-intercept-service",
@@ -24,18 +24,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-electron-service"
   },
   {
-    "packageName": "wdio-geckodriver-service",
-    "title": "Geckodriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
-  },
-  {
-    "packageName": "wdio-edgedriver-service",
-    "title": "EdgeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
-  },
-  {
     "packageName": "wdio-gmail-service",
     "title": "Gmail",
     "githubUrl": "https://github.com/webdriverio-community/wdio-gmail-service",
@@ -44,18 +32,21 @@
   {
     "packageName": "wdio-zafira-listener-service",
     "title": "Zafira Listener",
+    "branch": "master",
     "githubUrl": "https://github.com/shashidharus/wdio-zafira-listener-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-zafira-listener-service"
   },
   {
     "packageName": "wdio-reportportal-service",
     "title": "Report Portal",
+    "branch": "master",
     "githubUrl": "https://github.com/borisosipov/wdio-reportportal-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-service"
   },
   {
     "packageName": "wdio-docker-service",
     "title": "Docker",
+    "branch": "master",
     "githubUrl": "https://github.com/stsvilik/wdio-docker-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-docker-service"
   },
@@ -68,18 +59,21 @@
   {
     "packageName": "wdio-wiremock-service",
     "title": "WireMock",
+    "branch": "master",
     "githubUrl": "https://github.com/erwinheitzman/wdio-wiremock-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
   },
   {
     "packageName": "wdio-slack-service",
     "title": "Slack",
+    "branch": "master",
     "githubUrl": "https://github.com/carmenmitru/wdio-slack-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   },
   {
     "packageName": "wdio-lambdatest-service",
     "title": "LambdaTest",
+    "branch": "master",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-lambdatest-service"
   },
@@ -92,18 +86,21 @@
   {
     "packageName": "wdio-ng-apimock-service",
     "title": "Ng-apimock",
+    "branch": "master",
     "githubUrl": "https://github.com/ng-apimock/webdriverio-plugin",
     "npmUrl": "https://www.npmjs.com/package/wdio-ng-apimock-service"
   },
   {
     "packageName": "wdio-novus-visual-regression-service",
     "title": "Novus Visual Regression",
+    "branch": "master",
     "githubUrl": "https://github.com/Jnegrier/wdio-novus-visual-regression-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-novus-visual-regression-service"
   },
   {
     "packageName": "wdio-rerun-service",
     "title": "Re-run",
+    "branch": "master",
     "githubUrl": "https://github.com/jwplayer/wdio-rerun-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-rerun-service"
   },
@@ -124,12 +121,14 @@
   {
     "packageName": "wdio-performancetotal-service",
     "title": "PerformanceTotal",
+    "branch": "master",
     "githubUrl": "https://github.com/tzurp/performance-total",
     "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
   },
   {
     "packageName": "wdio-cleanuptotal-service",
     "title": "CleanupTotal",
+    "branch": "master",
     "githubUrl": "https://github.com/tzurp/cleanup-total",
     "npmUrl": "https://www.npmjs.com/package/wdio-cleanuptotal-service"
   },
@@ -167,6 +166,7 @@
   {
     "packageName": "wdio-ms-teams-service",
     "title": "Microsoft Teams",
+    "branch": "master",
     "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
   },
@@ -179,6 +179,7 @@
   {
     "packageName": "wdio-tesults-service",
     "title": "Tesults",
+    "branch": "master",
     "githubUrl": "https://github.com/tesults/wdio-tesults-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
   },
@@ -204,5 +205,11 @@
     "title": "Vitaq AI",
     "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
+  },
+  {
+    "packageName": "wdio-robonut-service",
+    "title": "Robonut",
+    "githubUrl": "https://github.com/udarrr/wdio-robonut-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-robonut-service"
   }
 ]

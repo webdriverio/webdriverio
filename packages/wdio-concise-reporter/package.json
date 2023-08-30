@@ -1,6 +1,6 @@
 {
   "name": "@wdio/concise-reporter",
-  "version": "8.6.8",
+  "version": "8.15.10",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",
@@ -29,8 +29,8 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.6.8",
-    "@wdio/types": "8.6.8",
+    "@wdio/reporter": "8.15.10",
+    "@wdio/types": "8.15.10",
     "chalk": "^5.0.1",
     "pretty-ms": "^7.0.1"
   },

@@ -20,8 +20,12 @@
     <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
         <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
     </a>
-    <a href="https://matrix.to/#/#webdriver.io:gitter.im">
-        <img alt="Support Channel" src="https://img.shields.io/badge/Join-on%20Matrix-4FB898">
+    <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
+        <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
+    </a>
+    <br />
+    <a href="https://discord.webdriver.io">
+        <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
     </a>
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
         <img alt="Issue Resolution time" src="http://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">
@@ -47,11 +51,11 @@
 WebdriverIO is a test automation framework, for e2e as well as unit and component testing in the browser, that allows you to run tests based on the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html), [WebDriver BiDi](https://github.com/w3c/webdriver-bidi) as well as [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or LambdaTest.
 
 ## :woman_technologist: :man_technologist: Contributing
-Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them. 
+Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them.
 
 ### Getting started with GitHub Codespaces
 
-To get started, create a codespace for this repository by clicking this 👇 
+To get started, create a codespace for this repository by clicking this 👇
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2296970)
 
@@ -67,7 +71,7 @@ You can also just click on:
 
 to get a ready-to-use development environment for you to start working on this code base.
 
-If you're looking for issues to help out with, check out [the issues labeled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out to our [Matrix Channel](https://matrix.to/#/#webdriver.io:gitter.im) if you have questions on where to start contributing.
+If you're looking for issues to help out with, check out [the issues labeled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out to our [Matrix Channel](https://discord.webdriver.io) if you have questions on where to start contributing.
 
 ## :office: WebdriverIO for Enterprise
 
@@ -111,12 +115,11 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 ### Services
 
 - [@wdio/appium-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service) - A WebdriverIO service to start & stop Appium Server
-- [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service) - A WebdriverIO service that provides a better integration into Browserstack
+- [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service) - A WebdriverIO service that can be used to use BrowserStack Test Observability which is a reporting, debugging, and test suite quality tracking tool for any test running anywhere. The service also helps for a better integration with the BrowserStack grid if you're running tests on the grid.
 - [@wdio/crossbrowsertesting-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) - A WebdriverIO service that provides a better integration into CrossBrowserTesting
 - [@wdio/devtools-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
 - [@wdio/firefox-profile-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [@wdio/sauce-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into Sauce Labs
-- [@wdio/selenium-standalone-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service) - A WebdriverIO service that automatically sets up a selenium standalone server
 - [@wdio/shared-store-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service) - A WebdriverIO service to exchange data across processes
 - [@wdio/testingbot-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
 
@@ -153,6 +156,12 @@ This project is maintained by [awesome people](/AUTHORS.md) following a common [
 Does your company use WebdriverIO? Ask your manager or marketing team if your company would be interested in supporting our project. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone. Also, your company's logo will show [on GitHub](https://github.com/webdriverio/webdriverio#readme) - who doesn't want a little extra exposure? [Here's the info](https://opencollective.com/webdriverio).
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/gold-sponsor.svg?avatarHeight=36&width=600"></a>
+
+### 🥈 Silver Sponsor
+
+<p align="center">
+    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" alt="Lambdatest" /></a>
+</p>
 
 ## :page_facing_up: License
 

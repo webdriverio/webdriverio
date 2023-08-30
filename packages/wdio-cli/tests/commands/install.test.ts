@@ -5,15 +5,19 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs } from 'yargs'
 import yarnInstall from 'yarn-install'
 
-vi.mocked(fs.access).mockResolvedValue()
-
 import * as installCmd from '../../src/commands/install.js'
 import * as configCmd from '../../src/commands/config.js'
 import * as utils from '../../src/utils.js'
 
 vi.mock('yargs')
 vi.mock('yarn-install')
-vi.mock('node:fs/promises')
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue({}),
+        readFile: vi.fn().mockResolvedValue({}),
+        writeFile: vi.fn().mockResolvedValue({})
+    }
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const findInConfigMock = vi.spyOn(utils, 'findInConfig')
@@ -54,7 +58,7 @@ describe('Command: install', () => {
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
         vi.mocked(fs.access).mockRejectedValue(new Error('Doesn\'t exist'))
 
-        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
+        await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith(
             'install',
@@ -64,12 +68,12 @@ describe('Command: install', () => {
     })
 
     it('should verify if configuration already has desired installation', async () => {
-        findInConfigMock.mockReturnValue(['chromedriver'])
+        findInConfigMock.mockReturnValue(['vite'])
         vi.mocked(fs.access).mockResolvedValue()
 
-        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
+        await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('The service chromedriver is already part of your configuration.')
+        expect(console.log).toHaveBeenCalledWith('The service vite is already part of your configuration.')
     })
 
     it('should correctly install packages', async () => {
@@ -78,10 +82,10 @@ describe('Command: install', () => {
         vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
         vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
 
-        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
+        await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
-        expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
@@ -95,7 +99,7 @@ describe('Command: install', () => {
         vi.mocked(utils.replaceConfig).mockRestore()
         vi.spyOn(utils, 'replaceConfig').mockReturnValue('')
 
-        const err = await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
+        const err = await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
             .catch((err: Error) => err) as Error
         expect(err.message).toBe('Couldn\'t find "service" property in wdio.conf.js')
 
@@ -107,10 +111,10 @@ describe('Command: install', () => {
         vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
         vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
 
-        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './path/to/wdio.conf.js' } as any)
+        await installCmd.handler({ type: 'service', name: 'vite', config: './path/to/wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
-        expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
@@ -123,7 +127,7 @@ describe('Command: install', () => {
         vi.mocked(yarnInstall).mockImplementation(() => ({ status: 1, stderr: 'test error' } as any))
         vi.spyOn(console, 'error')
 
-        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
+        await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
         expect(console.error).toHaveBeenCalledWith('Error installing packages', 'test error')
         expect(process.exit).toHaveBeenCalledWith(1)

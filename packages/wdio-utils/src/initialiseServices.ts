@@ -148,7 +148,7 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
  * initialise services for worker instance
  * @param  {Object} config                 wdio config
  * @param  {Object} caps                   worker capabilities
- * @param  {[type]} ignoredWorkerServices  list of services that don't need to be required in a worker
+ * @param  {object} ignoredWorkerServices  list of services that don't need to be required in a worker
  *                                         as they don't export a service for it
  * @return {Object[]}                      list if worker initiated worker services
  */

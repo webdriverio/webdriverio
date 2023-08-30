@@ -32,7 +32,7 @@ const BROWSER_DRIVER_ERRORS = [
 export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
-     * JSONWireProtocol and WebDriver protoocol, e.g.
+     * JSONWireProtocol and WebDriver protocol, e.g.
      */
     if (params.capabilities) {
         const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
@@ -49,7 +49,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
                 `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
                 'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
                 'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
-                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out ' +
                 'to your vendor support team if you have further questions.'
             )
         }
@@ -91,7 +91,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save actual receveived session details
+     * save actual received session details
      */
     params.capabilities = response.value.capabilities || response.value
 
@@ -100,7 +100,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
 
 /**
  * check if WebDriver requests was successful
- * @param  {Number}  statusCode status code of request
+ * @param  {number}  statusCode status code of request
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
@@ -122,7 +122,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
             body.value.message === 'An element could not be located on the page using the given search parameters.' ||
-            // Internet Explorter
+            // Internet Explorer
             body.value.message.toLowerCase().startsWith('unable to find element')
         )
     ) {
@@ -273,7 +273,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -282,7 +282,8 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
-        isSeleniumStandalone: { value: isSeleniumStandalone }
+        isSeleniumStandalone: { value: isSeleniumStandalone },
+        isBidi: { value: isBidi }
     }
 }
 
@@ -294,13 +295,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  */
 export function setupDirectConnect(client: Client) {
     const capabilities = client.capabilities as Capabilities.DesiredCapabilities
-    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
-    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
-    let directConnectPath = capabilities.directConnectPath
-    if (!(directConnectPath || directConnectPath === '')) {
-        directConnectPath = capabilities['appium:directConnectPath']
-    }
-    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
+    const directConnectProtocol = capabilities['appium:directConnectProtocol']
+    const directConnectHost = capabilities['appium:directConnectHost']
+    const directConnectPath = capabilities['appium:directConnectPath']
+    const directConnectPort = capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
@@ -321,7 +319,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
-            '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file as the service might had problems to start the driver.'
+            '\nIt seems like the service failed to start or is rejecting any connections.'
     }
 
     if (err.message === 'unhandled request') {

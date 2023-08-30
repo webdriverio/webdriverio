@@ -21,7 +21,7 @@ export default class CucumberReporter {
 
     constructor (
         eventBroadcaster: EventEmitter,
-        pickleFilter: PickleFilter,
+        pickleFilter: InstanceType<typeof PickleFilter>,
         private _options: ReporterOptions,
         private _cid: string,
         private _specs: string[],
@@ -114,6 +114,10 @@ export default class CucumberReporter {
         if (result.message) {
             error = new Error(result.message.split('\n')[0])
             error.stack = result.message
+        }
+
+        if (result.status === Status.FAILED) {
+            this.failedCount++
         }
 
         const payload = buildStepPayload(uri, feature, scenario, step as PickleStep, {

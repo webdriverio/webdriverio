@@ -53,10 +53,11 @@ export default class ConciseReporter extends WDIOReporter {
      */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
-
         return failedTestsCount > 0
-            ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
-            : 'All went well !!'
+            ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
+            : this.counts.tests === 0
+                ? '❌ Failed to setup tests, no tests found'
+                : '✅ All went well!'
     }
 
     /**
@@ -104,12 +105,12 @@ export default class ConciseReporter extends WDIOReporter {
     getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
-        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
 
         // mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
 
             return `${device} on ${platform} ${version} ${executing}`.trim()

@@ -20,7 +20,7 @@ With that, the project offers not only the ability of automating user agents usi
 - automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
 - scraping of websites
 - providing technical content and best practices in form of [boilerplates](https://webdriver.io/) and [blog posts](https://webdriver.io/blog/)
-- providing technical help in form of a [community channel](https://matrix.to/#/#webdriver.io:gitter.im)
+- providing technical help in form of a [community channel](https://discord.webdriver.io)
 
 ### 1.2: Out-of-Scope
 

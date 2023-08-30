@@ -66,6 +66,33 @@ IMPORTANT! Every spec file should be atomic and isolated from others' specs.
 The idea of the service is to deal with very specific environment setup issues.
 Please avoid sharing test execution data!
 
+### Resource Pools
+
+If the worker threads are competing for resources that must be assigned for each worker, you can use Resource Pool API:
+
+```js
+// wdio.conf.js
+import { setResourcePool, getValueFromPool, addValueToPool } from '@wdio/shared-store-service'
+
+export const config = {
+    maxInstances: 2,
+    // ...
+    onPrepare: async function (config, capabilities) {
+        await setResourcePool('availableUrls', ['url01.com', 'url02.com'])
+    },
+    // ...
+    beforeSession: async (conf) => {
+        conf.baseUrl = await getValueFromPool('availableUrls');
+    },
+    // ...
+    afterSession: async (conf) => {
+        // worker returns the used resource for next workers to use
+        await addValueToPool('availableUrls', conf.baseUrl);
+    }
+```
+
+This example ensures that both workers never use the same `baseUrl`. A unique url is only assigned to one worker until it's released by it.
+
 ## Configuration
 
 Add `shared-store` to the services list and the `sharedStore` object will be accessible to you on the [`browser` scope](https://webdriver.io/docs/api/browser) in your test.

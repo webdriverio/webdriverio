@@ -4,16 +4,28 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
+import type * as Messages from '@cucumber/messages'
+
+import * as Utils from '../src/utils.js'
+import * as packageExports from '../src/index.js'
 
 import CucumberAdapter from '../src/index.js'
-import { setUserHookNames } from '../src/utils.js'
-import * as packageExports from '../src/index.js'
 
 vi.mock('mockery')
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
-vi.mock('@cucumber/messages', () => ({ IdGenerator: { incrementing: vi.fn() } }))
+vi.mock('@cucumber/messages', async () => {
+    const module: typeof Messages = await vi.importActual('@cucumber/messages')
+
+    return {
+        IdGenerator: {
+            uuid: module.IdGenerator.uuid,
+            incrementing: vi.fn()
+        }
+    }
+})
+
 vi.mock('../src/reporter', () => ({
     default: class CucumberReporter {
         eventListener = {
@@ -27,15 +39,21 @@ vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
 })
 vi.mock('moduleB', () => ({
-    default: function moduleB (opts: any) {
+    default: function moduleB(opts: any) {
         // @ts-ignore
         global.MODULE_B_WAS_LOADED_WITH = opts
     }
 }))
 
-vi.mock('../src/utils', () => ({
-    setUserHookNames: vi.fn()
-}))
+vi.mock('../src/utils', async () => {
+
+    const module: typeof Utils = await vi.importActual('../src/utils')
+
+    return {
+        ...module,
+        setUserHookNames: vi.fn()
+    }
+})
 
 vi.mock('@cucumber/gherkin-streams', () => ({
     GherkinStreams: { fromPaths: vi.fn().mockReturnValue('GherkinStreams.fromPaths') }
@@ -100,9 +118,9 @@ describe('CucumberAdapter', () => {
     })
 
     it('should trigger after hook if initiation fails', async () => {
+
         vi.mocked(Cucumber.parseGherkinMessageStream)
             .mockRejectedValueOnce(new Error('boom'))
-
         const err = await CucumberAdapter.init!('0-0', {
             cucumberFeaturesWithLineNumbers: ['/bar/foo', '/foo/bar']
         }, ['/foo/bar'], {}, {})
@@ -129,7 +147,7 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadSpecFiles).toBeCalledTimes(1)
-        expect(setUserHookNames).toBeCalledTimes(1)
+        expect(Utils.setUserHookNames).toBeCalledTimes(1)
     })
 
     it('can run with failing result', async () => {
@@ -304,7 +322,7 @@ describe('CucumberAdapter', () => {
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
-        function wdioHookFn () { return 'foobar' }
+        function wdioHookFn() { return 'foobar' }
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
         expect(
             vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
@@ -317,5 +335,166 @@ describe('CucumberAdapter', () => {
         expect(testFnWrapper).toBeCalledTimes(0)
         wrappedStep('someWorld', 1, 2, 3)
         expect(vi.mocked(testFnWrapper).mock.calls).toMatchSnapshot()
+    })
+
+    it('can run when filtering by tag at Feature level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at root Scenario level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@run' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Rule level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at Scenario within Rule', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runinrule' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by non-existent tag', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@notpresent' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(0)
+        expect(adapter._hasTests).toBe(false)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by tag at example level', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runExample' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by cucumber tag-expression', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { tagExpression: '@runall and @tagAtLine' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can set a default language for feature files', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { featureDefaultLanguage: 'da' } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+            ],
+            {},
+            {}
+        )
+
+        expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
     })
 })

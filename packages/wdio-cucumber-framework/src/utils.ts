@@ -1,15 +1,27 @@
 import path from 'node:path'
 
+import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
+import type TagExpressionParser from '@cucumber/tag-expressions'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import { compile } from '@cucumber/gherkin'
+import { IdGenerator } from '@cucumber/messages'
+
 import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import type { World } from '@cucumber/cucumber'
-import type { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
+import type {
+    TableRow,
+    TableCell,
+    PickleStep,
+    TestStep,
+    Feature,
+    Pickle,
+    TestStepResultStatus,
+    GherkinDocument
+} from '@cucumber/messages'
 
-import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
-import { isFunctionAsync } from '@wdio/utils'
-
 import type { ReporterStep } from './constants.js'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 import type { TestHookDefinitionConfig } from './types.js'
 
 const log = logger('@wdio/cucumber-framework:utils')
@@ -150,7 +162,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * @param {*} testCase
  */
 export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip\((.*)\)$/
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {
@@ -177,7 +189,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
     return !(pickle && pickle.tags && pickle.tags
         .map(p => p.name?.match(skipTag))
         .filter(Boolean)
-        .map(m => parse(m![1]))
+        .map(m => parse(m![1] ?? ''))
         .find((filter: Capabilities.Capabilities) => Object.keys(filter)
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
@@ -231,4 +243,15 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
         }
         return step
     })
+}
+
+export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
+
+    if (!doc.feature) {
+        return false
+    }
+
+    const pickles = compile(doc, '', IdGenerator.uuid())
+    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
+    return tags.some((tag) => tagParser.evaluate(tag))
 }

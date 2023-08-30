@@ -29,6 +29,39 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Page Object Pattern
     - Sauce Labs integration
 
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- Frameworks:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- Features:
+    - Typescript v5
+    - Page Object Pattern
+    - Prettier
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - Appium
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data serice
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: WDIO-V8 with Cucumber (V8x).
@@ -69,7 +102,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
     -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
-## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
+## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
 - Frameworks
     - WebdriverIO (v8)
@@ -77,11 +110,47 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
 
 - Features
     - Contain sample test scenario in cucumber
-    - Integrates cucumber html reports with Embedded videos on failures
-    - Integrates Lambdatest and CircleCI services
-    - Integrates Visual, Accessibility and API testing
-    - Integrates Email functionality
-    - Integrates s3 bucket for test reports storage and retrieval
+    - Integrated cucumber html reports with Embedded videos on failures
+    - Integrated Lambdatest and CircleCI services
+    - Integrated Visual, Accessibility and API testing
+    - Integrated Email functionality
+    - Integrated s3 bucket for test reports storage and retrieval
+
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Mocha, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Mocha (v10)
+    - Serenity/JS (v3)
+    - Serenity BDD reporting
+
+- Features
+    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Automatic screenshots on test failure, embedded in reports
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+    - TypeScript
+    - ESLint
+
+## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) template project to help you get started with acceptance testing your web applications using the latest WebdriverIO, Cucumber, and Serenity/JS.
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Cucumber (v9)
+    - Serenity/JS (v3)
+    - Serenity BDD reporting
+
+- Features
+    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
+    - Automatic screenshots on test failure, embedded in reports
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/blob/main/.github/workflows/main.yml)
+    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+    - TypeScript
+    - ESLint
 
 # v7 Boilerplate Projects
 
@@ -119,7 +188,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - WebdriverIO (v7)
   - Mocha
 - Features
-  - [Page Object](PageObjects.md) Model
+  - [Page Object](pageobjects) Model
   - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
   - Allure Report
   - Automatic screenshots capture for failing tests
@@ -179,42 +248,6 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
 
-## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Mocha, and Serenity/JS
-
-- Frameworks
-    - WebdriverIO
-    - Mocha
-    - Serenity/JS
-    - Serenity BDD reporting
-
-- Features
-  - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-  - Automatic screenshots on test failure, embedded in reports
-  - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-  - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-  - TypeScript
-  - ESLint
-
-## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
-
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Cucumber, and Serenity/JS
-
-- Frameworks
-    - WebdriverIO
-    - Cucumber
-    - Serenity/JS
-    - Serenity BDD reporting
-
-- Features
-    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-    - Automatic screenshots on test failure, embedded in reports
-    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-    - TypeScript
-    - ESLint
-
 ## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
 
 This a template project to help you show how you can run webdriverio test from Web applications using the latest WebdriverIO, and Cucumber framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
@@ -233,7 +266,7 @@ This a template project to help you show how you can run electronJS tests using 
 This project include:
 
 - Sample electronjs app
-- Sample cucumber testscripts
+- Sample cucumber test scripts
 
 Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
 
@@ -268,3 +301,24 @@ Template project to run appium tests on real Roku devices using mocha with page 
     - Typescript
     - Screenshot on failure
     - Example tests using a sample Roku channel
+
+## [krishnapollu/wdio-cucumber-poc](https://github.com/krishnapollu/wdio-cucumber-poc)
+
+PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha tests
+
+- Framework:
+    - Cucumber (v8)
+    - WebdriverIO (v8)
+    - Mocha (v8)
+      
+- Features:
+    - Cucumber based E2E Tests
+    - Mocha based Data Driven Tests
+    - Web only Tests - in Local as well as cloud platforms
+    - Mobile Only tests - local as well as remote cloud emulators (or devices)
+    - Web + Mobile Tests - Multiremote - local as well as cloud platforms
+    - Multiple Reports integrated including Allure
+    - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
+    - Github workflow to run the test and upload the allure report
+ 
+      

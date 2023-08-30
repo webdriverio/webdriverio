@@ -175,7 +175,8 @@ export interface TestData {
     hook_type?: string,
     hooks?: string[],
     meta?: TestMeta,
-    tags?: string[]
+    tags?: string[],
+    test_run_id?: string
 }
 
 export interface UserConfig {
@@ -197,6 +198,22 @@ export interface LaunchResponse {
     jwt: string,
     build_hashed_id: string,
     allow_screenshots?: boolean
+}
+
+export interface UserConfigforReporting {
+  framework?: string,
+  services?: any[],
+  capabilities?: Capabilities.RemoteCapability,
+  env?: {
+    'BROWSERSTACK_BUILD': string | undefined,
+    'BROWSERSTACK_BUILD_NAME': string | undefined,
+    'BUILD_TAG': string | undefined,
+  }
+}
+
+export interface CredentialsForCrashReportUpload {
+  username?: string,
+  password?: string
 }
 
 interface IntegrationObject {

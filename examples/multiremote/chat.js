@@ -18,14 +18,12 @@ describe('multiremote example', () => {
         matrix = await multiremote({
             browserA: {
                 capabilities: {
-                    browserName: 'chrome',
-                    acceptInsecureCerts: true
+                    browserName: 'chrome'
                 }
             },
             browserB: {
                 capabilities: {
-                    browserName: 'chrome',
-                    acceptInsecureCerts: true
+                    browserName: 'chrome'
                 },
                 port: 4445
             }

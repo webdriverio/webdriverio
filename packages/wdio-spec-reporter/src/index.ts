@@ -143,22 +143,21 @@ export default class SpecReporter extends WDIOReporter {
 
         const suiteStartBanner = (stat.type === 'feature' || stat.type === 'suite' || stat.type === 'suite:start') ?
             `${this._preface} ${divider}\n`+
-            `${this._preface} Suite started : \n`+
+            `${this._preface} Suite started: \n`+
             `${this._preface}   » ${this._suiteName}\n` : '\n'
 
-        const contentNonTest = stat.type!=='hook' ?
-            `${suiteStartBanner}${this._preface} ${title}` :
-            `${this._preface} Hook executed : ${title}`
+        const content = stat.type === 'test'
+            ? `${this._preface} ${indent}` +
+              `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
+              ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+            : stat.type !== 'hook' ?
+                `${suiteStartBanner}${this._preface} ${title}` :
+                title
+                    ? `${this._preface} Hook executed: ${title}`
+                    : undefined
 
-        const contentTest = `${this._preface} ${indent}` +
-            `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
-            ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
-
-        if (process.send) {
-            process.send({
-                name: 'reporterRealTime',
-                content: stat.type === 'test' ? contentTest : contentNonTest
-            })
+        if (process.send && content) {
+            process.send({ name: 'reporterRealTime', content })
         }
     }
 
@@ -167,7 +166,7 @@ export default class SpecReporter extends WDIOReporter {
      */
     printReport(runner: RunnerStats) {
         // Don't print non failed tests
-        if (runner.failures === 0 && this._onlyFailures === true){
+        if (runner.failures === 0 && this._onlyFailures === true) {
             return
         }
 
@@ -322,7 +321,7 @@ export default class SpecReporter extends WDIOReporter {
             const suiteIndent = this.indent(suite.uid)
 
             // Display file path of spec
-            if (!specFileReferences.includes(suite.file)) {
+            if (suite.file && !specFileReferences.includes(suite.file)) {
                 output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
                 specFileReferences.push(suite.file)
             }
@@ -352,13 +351,24 @@ export default class SpecReporter extends WDIOReporter {
                 // Output for a single test
                 output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
 
-                // print cucumber data table cells
-                const args = (test as TestStats).argument as Argument
-                if (args && args.rows && args.rows.length) {
-                    const data = buildTableData(args.rows)
-                    const rawTable = printTable(data)
-                    const table = getFormattedRows(rawTable, testIndent)
-                    output.push(...table)
+                // print cucumber data table cells and docstring
+                const arg = (test as TestStats).argument
+                if (typeof(arg) === 'string'){
+                    // Doc string is the same with the indent on the output for a single test
+                    const docstringIndent = '  '
+                    const docstringMark = `${testIndent}${docstringIndent}"""`
+                    const docstring = String(arg)
+                    const formattedDocstringLines = docstring.split('\n').filter(line => line)
+                        .map((line: string) => `${testIndent}${docstringIndent}${line}`)
+                    output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
+                } else {
+                    const dataTable = arg as Argument
+                    if (dataTable && dataTable.rows && dataTable.rows.length) {
+                        const data = buildTableData(dataTable.rows)
+                        const rawTable = printTable(data)
+                        const table = getFormattedRows(rawTable, testIndent)
+                        output.push(...table)
+                    }
                 }
 
                 // print pending reasons
@@ -389,7 +399,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get the display for passing, failing and skipped
-     * @param  {String} duration Duration string
+     * @param  {string} duration Duration string
      * @return {Array} Count display
      */
     getCountDisplay (duration: string) {
@@ -477,12 +487,36 @@ export default class SpecReporter extends WDIOReporter {
             }
         }
 
+        /**
+         * ensure we include root suite hook errors
+         */
+        const rootSuite = this.currentSuites[0]
+        if (rootSuite) {
+            const baseRootSuite = {
+                ...rootSuite,
+                type: 'suite',
+                title: '(root)',
+                fullTitle: '(root)',
+                suites: []
+            }
+            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
+            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: beforeAllHooks,
+                hooksAndTests: beforeAllHooks
+            }))
+            this._orderedSuites.push(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: afterAllHooks,
+                hooksAndTests: afterAllHooks
+            }))
+        }
+
         return this._orderedSuites
     }
 
     /**
      * Indent a suite based on where how it's nested
-     * @param  {String} uid Unique suite key
+     * @param  {string} uid Unique suite key
      * @return {String}     Spaces for indentation
      */
     indent (uid: string) {
@@ -492,7 +526,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get a symbol based on state
-     * @param  {String} state State of a test
+     * @param  {string} state State of a test
      * @return {String}       Symbol to display
      */
     getSymbol (state?: keyof Symbols) {
@@ -501,7 +535,7 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get a color based on a given state
-     * @param  {String} state Test state
+     * @param  {string} state Test state
      * @return {String}       State color
      */
     getColor (state?: string) {
@@ -535,8 +569,10 @@ export default class SpecReporter extends WDIOReporter {
             ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
             (capability as Capabilities.DesiredCapabilities)
         )
-        const device = caps.deviceName
-        const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
+        const device = caps['appium:deviceName']
+        const app = ((caps['appium:app'] || (caps as any).app) || '').replace('sauce-storage:', '')
+        const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
+        const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser || appName)
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -544,7 +580,7 @@ export default class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
-        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
@@ -553,11 +589,11 @@ export default class SpecReporter extends WDIOReporter {
          */
         const platform = isMultiremote
             ? ''
-            : caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+            : caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program = appName || caps.browserName
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

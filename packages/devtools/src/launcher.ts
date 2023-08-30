@@ -78,12 +78,11 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
         touch: devtoolsOptions.defaultViewport.isMobile
     }) || {}
+    const windowFlags = devtoolsOptions.defaultViewport !== null ?
+        [`--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`, `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`] : []
     const chromeFlags = [
         ...defaultFlags,
-        ...[
-            `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
-            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
-        ],
+        ...windowFlags,
         ...(headless ? [
             '--headless',
             '--no-sandbox'
@@ -105,6 +104,12 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
             '--touch-events',
             '--enable-viewport'
         )
+    }
+
+    // Honor both ignoreHTTPSErrors and acceptInsecureCerts
+    // Only for WebKit/Blink engines, Firefox uses a different option
+    if (capabilities.acceptInsecureCerts || devtoolsOptions.ignoreHTTPSErrors) {
+        chromeFlags.push('--ignore-certificate-errors')
     }
 
     log.info(`Launch Google Chrome (${chromeOptions.binary}) with flags: ${chromeFlags.join(' ')}`)
@@ -145,7 +150,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
 function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
     const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
     const vendorCapKey = VENDOR_PREFIX[browserType]
-    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+    const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -153,12 +158,14 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
-    let headless = (capabilities as any).headless
-    if (devtoolsOptions) {
-        ignoreDefaultArgs = devtoolsOptions.ignoreDefaultArgs
-        headless = devtoolsOptions.headless
-    }
+    const ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    const headless = (capabilities as any).headless || devtoolsOptions.headless
+
+    // Set devtoolsOptions to honor both ignoreHTTPSErrors and acceptInsecureCerts
+    // Only necessary for Firefox, not for WebKit/Blink engines
+    devtoolsOptions.ignoreHTTPSErrors = browserType === 'firefox'
+        ? Boolean(devtoolsOptions.ignoreHTTPSErrors || capabilities.acceptInsecureCerts)
+        : devtoolsOptions.ignoreHTTPSErrors ?? false
 
     if (!capabilities[vendorCapKey]) {
         capabilities[vendorCapKey] = {}
@@ -179,7 +186,15 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
         },
-        prefs: capabilities[vendorCapKey]?.prefs
+        prefs: capabilities[vendorCapKey]?.prefs,
+        args: [
+            // Set args to honor both ignoreHTTPSErrors  and acceptInsecureCerts
+            // Only for WebKit/Blink engines, Firefox uses a different option
+            ...['--ignore-certificate-errors']
+                .filter(() =>
+                    browserType === 'edge'
+                    && (devtoolsOptions.ignoreHTTPSErrors || capabilities.acceptInsecureCerts)                )
+        ]
     }, capabilities[vendorCapKey] || {}, devtoolsOptions || {})
 
     if (!executablePath) {

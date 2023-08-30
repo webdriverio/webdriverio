@@ -3,7 +3,7 @@ import { expectType } from 'tsd'
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError, ElementArray } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
-import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
+import { type MockOverwriteFunction, type ClickOptions, type TouchAction, type Selector, type Action, Key } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -20,6 +20,16 @@ declare global {
         }
     }
 }
+
+const actions: Action[] = [{
+    id: 'foobar',
+    type: 'key',
+    actions: [
+        { type: 'keyDown', value: Key.Enter },
+        { type: 'pause', duration: 2_000 },
+        { type: 'keyUp', value: Key.Enter }
+    ]
+}]
 
 async function bar() {
     // multiremote

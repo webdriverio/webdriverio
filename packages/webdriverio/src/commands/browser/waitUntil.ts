@@ -16,7 +16,7 @@ import type { WaitUntilOptions } from '../../types.js'
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitUntil/index.html#L3-L8
- * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitUntil/waitUntilExample.js#L6-L14
+ * @example https://github.com/webdriverio/example-recipes/blob/0c9252b0a4f7e18a34cece74e5798c1fe464c120/waitUntil/waitUntilExample.js#L16-L24
  * @type utility
  *
  */

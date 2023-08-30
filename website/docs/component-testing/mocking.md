@@ -15,9 +15,6 @@ import { fn, spy } from '@wdio/browser-runner'
 
 By importing `fn` you can create a spy function (mock) to track its execution and with `spyOn` track a method on an already created object.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 <Tabs
   defaultValue="mocks"
   values={[
@@ -217,16 +214,15 @@ export const bar = () => 'bar';
 export default () => 'baz';
 ```
 
-In your test you can access the original module by calling the `origModuleFactory` function:
+The original module will be passed into the mock factory which you can use to e.g. partially mock a dependency:
 
 ```js
 import { mock, fn } from '@wdio/browser-runner'
 import defaultExport, { bar, foo } from './foo-bar-baz.js';
 
-mock('./foo-bar-baz.js', async (origModuleFactory) => {
-    const originalModule = await origModuleFactory()
-
-    //Mock the default export and named export 'foo'
+mock('./foo-bar-baz.js', async (originalModule) => {
+    // Mock the default export and named export 'foo'
+    // and propagate named export from the original module
     return {
         __esModule: true,
         ...originalModule,

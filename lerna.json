@@ -1,9 +1,9 @@
 {
-  "lerna": "3.4.3",
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "packages": [
     "packages/*"
   ],
-  "version": "8.6.9",
+  "version": "8.15.10",
   "command": {
     "bootstrap": {
       "npmClientArgs": [

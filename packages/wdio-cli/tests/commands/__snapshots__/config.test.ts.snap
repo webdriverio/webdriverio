@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`handler 1`] = `
 {
@@ -24,6 +24,7 @@ exports[`handler 1`] = `
     "plugins": [],
     "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
     "projectRootDir": "/foo/bar",
+    "purpose": undefined,
     "rawAnswers": {
       "backend": "On my local machine",
       "baseUrl": "http://localhost",
@@ -46,6 +47,7 @@ exports[`handler 1`] = `
     "tsConfigFilePath": "/foo/bar/tsconfig.json",
     "tsProject": "./tsconfig.json",
     "usePageObjects": false,
+    "useSauceConnect": undefined,
     "wdioConfigPath": "/foo/bar/wdio.conf.ts",
   },
   "success": true,
@@ -77,6 +79,7 @@ exports[`parseAnswers 1`] = `
   ],
   "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
   "projectRootDir": "/foo/bar",
+  "purpose": undefined,
   "rawAnswers": {
     "backend": "On my local machine",
     "baseUrl": "http://localhost",
@@ -112,6 +115,7 @@ exports[`parseAnswers 1`] = `
   "tsConfigFilePath": "/foo/bar/tsconfig.json",
   "tsProject": "./tsconfig.json",
   "usePageObjects": true,
+  "useSauceConnect": undefined,
   "wdioConfigPath": "/foo/bar/wdio.conf.ts",
 }
 `;
@@ -126,8 +130,8 @@ exports[`runConfigCommand 1`] = `
     "
 🤖 Successfully setup project at /foo/bar 🎉
 
-Join our Matrix community and instantly find answers to your issues or queries. Or just join and say hi 👋!
-  🔗 https://matrix.to/#/#webdriver.io:gitter.im
+Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio

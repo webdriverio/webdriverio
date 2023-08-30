@@ -14,6 +14,7 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import yarnInstall from 'yarn-install'
+import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -22,8 +23,8 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import {
-    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg,
-    COMPILER_OPTIONS, TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
+    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, CompilerOptions,
+    TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
 } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
 
@@ -81,8 +82,8 @@ export async function runServiceHook(
 /**
  * Run hook in service launcher
  * @param {Array|Function} hook - can be array of functions or single function
- * @param {Object} config
- * @param {Object} capabilities
+ * @param {object} config
+ * @param {object} capabilities
  */
 export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
     if (typeof hook === 'function') {
@@ -144,9 +145,6 @@ export async function runOnCompleteHook(
 export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
-        caps.appPackage ||
-        caps.appWaitActivity ||
-        caps.app ||
         caps.platformName ||
         caps['appium:platformName'] ||
         caps['appium:appPackage'] ||
@@ -206,34 +204,11 @@ export function replaceConfig(config: string, type: string, name: string) {
 
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * Automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install.
-     * Also, set `DETECT_CHROMEDRIVER_VERSION` flag to have package install the right driver version.
-     */
-    if (names.some(({ short }) => short === 'chromedriver')) {
-        process.env.DETECT_CHROMEDRIVER_VERSION = '1'
-        packages.push('chromedriver')
-    }
-
-    /**
-     * automatically install latest Geckodriver if `wdio-geckodriver-service` was selected for install
-     */
-    if (names.some(({ short }) => short === 'geckodriver')) {
-        packages.push('geckodriver')
-    }
-
-    /**
-     * automatically install latest EdgeDriver if `wdio-edgedriver-service` was selected for install
-     */
-    if (names.some(({ short }) => short === 'edgedriver')) {
-        packages.push('msedgedriver')
-    }
-
-    /**
      * install Appium if it is not installed globally if `@wdio/appium-service`
      * was selected for install
      */
     if (names.some(({ short }) => short === 'appium')) {
-        const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
+        const result = execSync('appium --version || echo APPIUM_MISSING', { stdio: 'pipe' }).toString().trim()
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
         } else if (update) {
@@ -252,29 +227,8 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
  * @todo add JSComments
  */
 export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
-    const splitHash = pkg.split(hash)
-    return {
-        package: splitHash[0],
-        short: splitHash[1]
-    }
-}
-
-export const validateServiceAnswers = (answers: string[]): Boolean | string => {
-    let result: boolean | string = true
-
-    Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
-        const exists = answers.some(answer => answer.includes(name))
-
-        const hasExclusive = services.some(service =>
-            answers.some(answer => answer.includes(service))
-        )
-
-        if (exists && hasExclusive) {
-            result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
-        }
-    })
-
-    return result
+    const [p, short, purpose] = pkg.split(hash)
+    return { package: p, short, purpose }
 }
 
 export async function getCapabilities(arg: ReplCommandArguments) {
@@ -368,10 +322,10 @@ export async function detectCompiler(answers: Questionnair) {
     const root = getProjectRoot(answers, projectProps)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
     return (await hasBabelConfig(root))
-        ? COMPILER_OPTIONS.babel // default to Babel
+        ? CompilerOptions.Babel // default to Babel
         : rootTSConfigExist
-            ? COMPILER_OPTIONS.ts // default to TypeScript
-            : COMPILER_OPTIONS.nil // default to no compiler
+            ? CompilerOptions.TS // default to TypeScript
+            : CompilerOptions.Nil // default to no compiler
 }
 
 /**
@@ -398,12 +352,10 @@ export async function generateTestFiles(answers: ParsedAnswers) {
     return generateBrowserRunnerTestFiles(answers)
 }
 
-const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid']
+const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid', 'stencil']
 export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
     const isUsingFramework = typeof answers.preset === 'string'
-    const preset = isUsingFramework
-        ? answers.preset || 'lit'
-        : ''
+    const preset = getPreset(answers)
     const tplRootDir = path.join(TEMPLATE_ROOT_DIR, 'browser')
     await fs.mkdir(answers.destSpecRootPath, { recursive: true })
 
@@ -411,7 +363,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
      * render css file
      */
     if (isUsingFramework) {
-        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), answers)
+        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), { answers })
         await fs.writeFile(path.join(answers.destSpecRootPath, 'Component.css'), renderedCss)
     }
 
@@ -424,7 +376,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
         : testExt
     if (preset) {
         const componentOutFileName = `Component.${fileExt}`
-        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), answers)
+        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), { answers })
         await fs.writeFile(path.join(answers.destSpecRootPath, componentOutFileName), renderedComponent)
     }
 
@@ -432,16 +384,14 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
      * render test file
      */
     const componentFileName = preset ? `Component.${preset}.test.ejs` : 'standalone.test.ejs'
-    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), answers)
+    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), { answers })
     await fs.writeFile(path.join(answers.destSpecRootPath, `Component.test.${testExt}`), renderedTest)
 }
 
 async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
-        : (answers.framework === 'mocha'
-            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
-            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
+        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
@@ -453,8 +403,8 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     )))).reduce((cur, acc) => [...acc, ...(cur)], [])
 
     for (const file of files) {
-        const renderedTpl = await renderFile(file, answers)
-        const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
+        const renderedTpl = await renderFile(file, { answers })
+        const isJSX = answers.preset && TSX_BASED_FRAMEWORKS.includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         const destPath = (
             file.endsWith('page.js.ejs')
@@ -471,35 +421,39 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        const answers = QUESTIONNAIRE.reduce((answers, question) => Object.assign(
-            answers,
-            question.when && !question.when(answers)
-                /**
-                 * set nothing if question doesn't apply
-                 */
-                ? {}
-                : {
-                    [question.name]: typeof question.default !== 'undefined'
+        const ignoredQuestions = ['e2eEnvironment']
+        const filterdQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
+        const answers = {} as Questionnair
+        for (const question of filterdQuestionaire) {
+            /**
+             * set nothing if question doesn't apply
+             */
+            if (question.when && !question.when(answers)) {
+                continue
+            }
+
+            Object.assign(answers, {
+                [question.name]: typeof question.default !== 'undefined'
+                    /**
+                     * set default value if existing
+                     */
+                    ? typeof question.default === 'function'
+                        ? await question.default(answers)
+                        : await question.default
+                    : question.choices && question.choices.length
                         /**
-                         * set default value if existing
+                         * pick first choice, select value if it exists
                          */
-                        ? typeof question.default === 'function'
-                            ? question.default(answers)
-                            : question.default
-                        : question.choices && question.choices.length
-                            /**
-                             * pick first choice, select value if it exists
-                             */
-                            ? typeof question.choices === 'function'
+                        ? typeof question.choices === 'function'
+                            ? (question.choices(answers)[0] as any as { value: any }).value
                                 ? (question.choices(answers)[0] as any as { value: any }).value
-                                    ? (question.choices(answers)[0] as any as { value: any }).value
-                                    : question.choices(answers)[0]
-                                : (question.choices[0] as { value: any }).value
-                                    ? (question.choices[0] as { value: any }).value
-                                    : question.choices[0]
-                            : {}
-                }
-        ), {} as Questionnair)
+                                : question.choices(answers)[0]
+                            : (question.choices[0] as { value: any }).value
+                                ? (question.choices[0] as { value: any }).value
+                                : question.choices[0]
+                        : {}
+            })
+        }
         /**
          * some questions have async defaults
          */
@@ -711,6 +665,21 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     }
 
     /**
+     * add dependency for Lit testing
+     */
+    const preset = getPreset(parsedAnswers)
+    if (preset === 'lit') {
+        parsedAnswers.packagesToInstall.push('lit')
+    }
+
+    /**
+     * add dependency for Stencil testing
+     */
+    if (preset === 'stencil') {
+        parsedAnswers.packagesToInstall.push('@stencil/core')
+    }
+
+    /**
      * add helper for React rendering when not using Testing Library
      */
     if (presetPackage.short === 'react') {
@@ -725,6 +694,19 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
      */
     if (parsedAnswers.framework === 'jasmine' && parsedAnswers.isUsingTypeScript) {
         parsedAnswers.packagesToInstall.push('@types/jasmine')
+    }
+
+    /**
+     * add Appium mobile drivers if desired
+     */
+    if (parsedAnswers.purpose === 'macos') {
+        parsedAnswers.packagesToInstall.push('appium-mac2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'android') {
+        parsedAnswers.packagesToInstall.push('appium-uiautomator2-driver')
+    }
+    if (parsedAnswers.mobileEnvironment === 'ios') {
+        parsedAnswers.packagesToInstall.push('appium-xcuitest-driver')
     }
 
     /**
@@ -781,13 +763,64 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     ]
 
     if (!parsedAnswers.hasRootTSConfig) {
+        const preset = getPreset(parsedAnswers)
         const config = {
             compilerOptions: {
+                // compiler
                 moduleResolution: 'node',
                 module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
-                types,
                 target: 'es2022',
-            }
+                types,
+                skipLibCheck: true,
+                // bundler
+                noEmit: true,
+                allowImportingTsExtensions: true,
+                resolveJsonModule: true,
+                isolatedModules: true,
+                // linting
+                strict: true,
+                noUnusedLocals: true,
+                noUnusedParameters: true,
+                noFallthroughCasesInSwitch: true,
+                ...Object.assign(
+                    preset === 'lit'
+                        ? {
+                            experimentalDecorators: true,
+                            useDefineForClassFields: false
+                        }
+                        : {},
+                    preset === 'react'
+                        ? {
+                            jsx: 'react-jsx'
+                        }
+                        : {},
+                    preset === 'preact'
+                        ? {
+                            jsx: 'react-jsx',
+                            jsxImportSource: 'preact'
+                        }
+                        : {},
+                    preset === 'solid'
+                        ? {
+                            jsx: 'preserve',
+                            jsxImportSource: 'solid-js'
+                        }
+                        : {},
+                    preset === 'stencil'
+                        ? {
+                            experimentalDecorators: true,
+                            jsx: 'react',
+                            jsxFactory: 'h',
+                            jsxFragmentFactory: 'Fragment'
+                        }
+                        : {}
+                )
+            },
+            include: preset === 'svelte'
+                ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+                : preset === 'vue'
+                    ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+                    : ['src']
         }
         await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
         await fs.writeFile(
@@ -797,6 +830,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     console.log(chalk.green.bold('✔ Success!\n'))
+}
+
+function getPreset (parsedAnswers: ParsedAnswers) {
+    const isUsingFramework = typeof parsedAnswers.preset === 'string'
+    return isUsingFramework ? (parsedAnswers.preset || 'lit') : ''
 }
 
 /**
@@ -884,4 +922,26 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
         )
         return false
     }
+}
+
+export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
+    if (parsedAnswers.e2eEnvironment !== 'mobile') {
+        return
+    }
+
+    const answer = await inquirer.prompt({
+        name: 'continueWithAppiumSetup',
+        message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
+        type: 'confirm',
+        default: true
+    })
+
+    if (!answer.continueWithAppiumSetup) {
+        return console.log(
+            'Ok! You can learn more about setting up mobile environments in the ' +
+            'Appium docs at https://appium.io/docs/en/2.0/quickstart/'
+        )
+    }
+
+    return $({ stdio: 'inherit' })`npx appium-installer`
 }

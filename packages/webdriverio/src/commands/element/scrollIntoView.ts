@@ -61,10 +61,19 @@ export async function scrollIntoView (
      */
     const elemRect = await browser.getElementRect(this.elementId)
     const viewport = await browser.getWindowSize()
+    let [windowX, windowY] = await browser.execute(() => [
+        window.scrollX, window.scrollY
+    ])
+
+    const origin = windowX === 0 && windowY === 0 ? this : undefined
+
+    windowX = elemRect.x <= viewport.width ? elemRect.x - 10 : viewport.width / 2
+    windowY = elemRect.y <= viewport.height ? elemRect.y - 10 : viewport.height / 2
+
     const deltaByOption = {
         start: { y: elemRect.y, x: elemRect.x },
         center: { y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2), x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2) },
-        end: { y: elemRect.y - (viewport.height - elemRect.height), x: elemRect.x - (viewport.width - elemRect.width) }
+        end: { y: elemRect.y - (viewport.height - elemRect.height - 20), x: elemRect.x - (viewport.width - elemRect.width) }
     }
     let [deltaX, deltaY] = [deltaByOption.start.x, deltaByOption.start.y]
     if (options && typeof options !== 'boolean') {
@@ -83,9 +92,23 @@ export async function scrollIntoView (
         }
     }
 
+    if (origin) {
+        deltaX = deltaX > viewport.width ? Math.round(viewport.width - elemRect.width - (elemRect.width / 2) - 30) : Math.round(deltaX)
+        deltaY = deltaY > viewport.height ? Math.round(viewport.height - elemRect.height - (elemRect.height / 2) - 30) : Math.round(deltaY)
+
+        windowX = 0
+        windowY = 0
+    } else {
+        deltaX = Math.round(deltaX - windowX)
+        deltaY = Math.round(deltaY - windowY)
+
+        windowX = Math.round(windowX)
+        windowY = Math.round(windowY)
+    }
+
     try {
         return await browser.action('wheel')
-            .scroll({ duration: 200, deltaX, deltaY })
+            .scroll({ duration: 200, x: windowX, y: windowY, deltaX, deltaY, origin })
             .perform()
     } catch (err: any) {
         log.warn(

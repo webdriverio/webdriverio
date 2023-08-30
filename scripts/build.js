@@ -49,11 +49,12 @@ const ESM_CJS_PACKAGES = [
     'eslint-plugin-wdio',
     'wdio-allure-reporter',
     'wdio-globals',
+    'wdio-reporter'
 ]
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
-const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'webdriver', 'webdriverio']
+const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'wdio-cli', 'webdriver', 'webdriverio']
 
 const packages = getSubPackages()
     /**

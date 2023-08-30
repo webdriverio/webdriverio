@@ -1,12 +1,13 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants.js'
+import type { BackendChoice, RegionOptions, CompilerOptions } from './constants.js'
 
 export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
-    backend: typeof BACKEND_CHOICES[number]
+    appPath?: string
+    backend?: BackendChoice
     hostname?: string
     port?: string
     path?: string
@@ -18,14 +19,15 @@ export interface Questionnair {
     env_user?: string
     // eslint-disable-next-line
     env_key?: string
-    region?: typeof REGION_OPTION[number]
+    region?: RegionOptions
+    useSauceConnect?: boolean
     framework: string
     specs?: string
     stepDefinitions?: string
     generateTestFiles: boolean
     usePageObjects?: boolean
     pages?: string
-    isUsingCompiler: typeof COMPILER_OPTION_ANSWERS[number]
+    isUsingCompiler: CompilerOptions
     reporters: string[]
     services: string[]
     plugins: string[]
@@ -35,12 +37,16 @@ export interface Questionnair {
     createPackageJSON?: boolean
     projectRootCorrect?: boolean
     projectRoot?: string
+    e2eEnvironment?: 'web' | 'mobile'
+    mobileEnvironment?: 'android' | 'ios'
+    browserEnvironment?: ('chrome' | 'firefox' | 'safari' | 'microsoftedge')[]
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
     rawAnswers: Questionnair
     runner: 'local' | 'browser'
     framework: string
+    purpose: string
     reporters: string[]
     plugins: string[]
     services: string[]
@@ -100,7 +106,7 @@ export interface ReplCommandArguments {
 
 export interface InstallCommandArguments {
     yarn: boolean
-    config: string
+    config?: string
     type: 'service' | 'reporter' | 'framework' | 'plugin'
     name: string
 }
@@ -114,6 +120,7 @@ export interface ConfigCommandArguments {
 export interface SupportedPackage {
     package: string
     short: string
+    purpose: string
 }
 
 export interface OnCompleteResult {

@@ -1,5 +1,8 @@
 {
   "plugins": ["wdio"],
+  "env": {
+    "mocha": true
+  },
   "extends": [
     "eslint:recommended",
     "plugin:wdio/recommended"

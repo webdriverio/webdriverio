@@ -12,7 +12,6 @@ exports.config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        acceptInsecureCerts: true,
         'wdio:devtoolsOptions': {
             headless: true
         }

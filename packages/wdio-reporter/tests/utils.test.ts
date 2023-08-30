@@ -1,9 +1,9 @@
 import { describe, expect, vi, it, afterAll } from 'vitest'
 
-import supportsColor from 'supports-color'
+import supportsColor from '../src/supportsColor.js'
 import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils.js'
 
-vi.mock('supports-color', () => {
+vi.mock('../src/supportsColor.js', () => {
     return {
         default: new Proxy({
             stdout: false
@@ -34,7 +34,7 @@ describe('utils', () => {
             browserName: 'chrome',
             platform: 'Windows 10',
             version: 'latest',
-            app: 'my-awesome.app'
+            'appium:app': 'my-awesome.app'
         })).toBe('chrome.latest.windows10.my-awesome_app')
         expect(sanitizeCaps({
             browserName: 'chrome',
@@ -44,9 +44,9 @@ describe('utils', () => {
         expect(sanitizeCaps({
             deviceName: 'Android Emulator',
             platformName: 'Android',
-            platformVersion: '6.4',
-            app: 'my-awesome.apk'
-        })).toBe('androidemulator.android.6_4.my-awesome_apk')
+            'appium:platformVersion': '6.4',
+            'appium:app': 'my-awesome.apk'
+        })).toBe('android.androidemulator.6_4.my-awesome_apk')
     })
 
     it('pad', () => {

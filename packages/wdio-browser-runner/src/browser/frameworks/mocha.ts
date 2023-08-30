@@ -32,6 +32,7 @@ export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string
     #socket?: WebSocket
+    #require: string[]
     #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
     #runnerEvents: any[] = []
     #isMinified = false
@@ -40,6 +41,8 @@ export class MochaFramework extends HTMLElement {
         super()
         this.#root = this.attachShadow({ mode: 'open' })
         this.#spec = this.getAttribute('spec')!
+        this.#require = window.__wdioEnv__.args.require || []
+        delete window.__wdioEnv__.args.require
 
         if (!this.#spec) {
             throw new Error('"spec" attribute required but not set')
@@ -53,6 +56,10 @@ export class MochaFramework extends HTMLElement {
 
     static get observedAttributes() {
         return ['minified']
+    }
+
+    get spec () {
+        return this.#spec
     }
 
     connectedCallback() {
@@ -80,11 +87,30 @@ export class MochaFramework extends HTMLElement {
     }
 
     async run (socket: WebSocket) {
+        const globalTeardownScripts: Function[] = []
+        const globalSetupScripts: Function[] = []
+        for (const r of this.#require) {
+            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(r)) || {}
+            if (typeof mochaGlobalSetup === 'function') {
+                globalSetupScripts.push(mochaGlobalSetup)
+            }
+            if (typeof mochaGlobalTeardown === 'function') {
+                globalTeardownScripts.push(mochaGlobalTeardown)
+            }
+        }
+
         /**
          * import test case (order is important here)
          */
         const file = this.#spec
         await import(file)
+
+        /**
+         * run setup scripts
+         */
+        for (const setupScript of globalSetupScripts) {
+            await setupScript()
+        }
 
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
@@ -100,14 +126,16 @@ export class MochaFramework extends HTMLElement {
         setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         const self = this
-        before(function () {
+        const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
+        mochaBeforeHook(function () {
             self.#getHook('beforeSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
             })
         })
 
-        after(function () {
+        const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
+        mochaAfterHook(function () {
             self.#getHook('afterSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
@@ -115,7 +143,20 @@ export class MochaFramework extends HTMLElement {
             })
         })
 
-        const runner = mocha.run(this.#onFinish.bind(this))
+        /**
+         * remove loader animation
+         */
+        const spinner = this.#root.querySelector('.lds-ring')
+        if (spinner) {
+            spinner.remove()
+        }
+
+        const runner = mocha.run(async (failures) => {
+            await this.#onFinish(failures)
+            for (const teardownScript of globalTeardownScripts) {
+                await teardownScript()
+            }
+        })
         Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => runner.on(mochaEvent, (payload: any) => {
             this.#runnerEvents.push(formatMessage({ type: wdioEvent, payload, err: payload.err }))
         }))
@@ -200,6 +241,43 @@ template.innerHTML = /*html*/`
         background-size: 30px;
         background-position: 15px 20px;
     }
+    .lds-ring {
+        display: inline-block;
+        position: absolute;
+        top: calc(50% - 40px);
+        left: calc(50% - 40px);
+        width: 80px;
+        height: 80px;
+    }
+    .lds-ring div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border: 4px solid #EA5907;
+        border-radius: 50%;
+        animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: #EA5907 transparent transparent transparent;
+    }
+    .lds-ring div:nth-child(1) {
+        animation-delay: -0.45s;
+    }
+    .lds-ring div:nth-child(2) {
+        animation-delay: -0.3s;
+    }
+    .lds-ring div:nth-child(3) {
+        animation-delay: -0.15s;
+    }
+    @keyframes lds-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
     .reporter.minified {
         width: 65px;
     }
@@ -255,6 +333,7 @@ template.innerHTML = /*html*/`
 </style>
 <div class="reporter">
     <div id="mocha"></div>
+    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
     <button class="btnCollapseExpand">
         <svg width="50" height="40" viewBox="2 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#fff" d="M13.11 29.113c7.243 0 13.113-5.871 13.113-13.113S20.353 2.887 13.11 2.887C5.868 2.887-.003 8.758-.003 16S5.868 29.113 13.11 29.113zm0-25.177c6.652 0 12.064 5.412 12.064 12.064S19.762 28.064 13.11 28.064C6.457 28.064 1.046 22.652 1.046 16S6.457 3.936 13.11 3.936z"/>

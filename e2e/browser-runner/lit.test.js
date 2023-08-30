@@ -10,8 +10,7 @@ import { someExport, namedExports } from '@testing-library/user-event'
 import { SimpleGreeting } from './components/LitComponent.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
-mock('./components/constants.ts', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('./components/constants.ts', async (mod) => {
     return {
         GREETING: mod.GREETING + ' Sir'
     }
@@ -24,8 +23,7 @@ mock('graphql-request', () => ({
     }
 }))
 
-mock('@testing-library/user-event', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('@testing-library/user-event', async (mod) => {
     return {
         someExport: 'foobarloo',
         namedExports: Object.keys(mod)
@@ -36,6 +34,11 @@ unmock('is-url')
 mock('@namespace/module')
 
 describe('Lit Component testing', () => {
+    it('recognises require files', () => {
+        expect(window.globalSetupScriptExecuted).toBe(true)
+        expect(window.mochaGlobalSetupExecuted).toBe(true)
+    })
+
     it('should render component', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,
@@ -136,6 +139,71 @@ describe('Lit Component testing', () => {
             )
             expect(await $('div=Find me').getHTML(false)).toBe('Find me')
             expect(await $('div*=me').getHTML(false)).toBe('Find me')
+        })
+
+        it('fetches inner element by content correctly', async () => {
+            render(
+                html`<div><div><span>Find me</span></div></div>`,
+                document.body
+            )
+            expect(await $('div*=me').getHTML(false)).toBe('<span>Find me</span>')
+        })
+
+        it('fetches inner element by content correctly with class names', async () => {
+            render(
+                html`<div class="foo" id="#bar"><div><span>Find me</span></div></div>`,
+                document.body
+            )
+            expect(await $('div.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+        })
+
+        it('fetches inner element by content correctly with nested class names', async () => {
+            /**
+             * <div class="foo" id="#bar">
+             *     <div>
+             *         <div class="foo" id="#bar">
+             *             <div>
+             *                 <span>Find me</span>
+             *             </div>
+             *         </div>
+             *     </div>
+             * </div>
+             */
+            render(
+                html`
+                <div class="foo" id="#bar"><div><div class="foo" id="#bar"><div><span>Find me</span></div></div></div></div>`,
+                document.body
+            )
+            expect(await $('div.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+        })
+
+        it('fetches inner element by content correctly with nested attribute selector', async () => {
+            /**
+             * <div data-testid="foobar">
+             *     <div>
+             *         <div data-testid="foobar">
+             *             <div>
+             *                 <span>Find me</span>
+             *             </div>
+             *         </div>
+             *     </div>
+             * </div>
+             */
+            render(
+                html`
+                <div data-testid="foobar"><div><div data-testid="foobar"><div><span>Find me</span></div></div></div></div>`,
+                document.body
+            )
+            expect(await $('[data-testid="foobar"]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('[data-testid]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div[data-testid="foobar"]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div[data-testid]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
         })
 
         it('fetches the parent element by content correctly', async () => {

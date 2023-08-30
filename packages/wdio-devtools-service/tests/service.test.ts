@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src/index.js'
 import Auditor from '../src/auditor.js'
+import { setUnsupportedCommand } from '../src/utils.js'
 
 import logger from '@wdio/logger'
 
@@ -38,7 +39,6 @@ vi.mock('../src/auditor', () => {
 })
 
 vi.mock('../src/utils', async () => {
-    const { isBrowserSupported } = await vi.importActual('../src/utils.js') as any
     let wasCalled = false
 
     return {
@@ -49,7 +49,6 @@ vi.mock('../src/utils', async () => {
             }
             throw new Error('boom')
         }),
-        isBrowserSupported,
         setUnsupportedCommand: vi.fn(),
         getLighthouseDriver: vi.fn()
     }
@@ -88,53 +87,16 @@ beforeEach(() => {
     vi.mocked(log.error).mockClear()
 })
 
-test('beforeSession', () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, {})
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 85 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '85' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 62 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '62' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 65 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '65' })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox' })
-    expect(service['_isSupported']).toBe(true)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 86 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '86' })
-    expect(service['_isSupported']).toBe(true)
-})
-
 test('if not supported by browser', async () => {
     const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_isSupported'] = false
+    service['_browser'] = {
+        addCommand: vi.fn(),
+        getPuppeteer: vi.fn(() => Promise.reject(new Error('ups')))
+    } as any
 
     await service._setupHandler()
-    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(0)
+    expect(setUnsupportedCommand).toBeCalledTimes(1)
+    expect(vi.mocked(service['_browser']!.addCommand!).mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
@@ -144,7 +106,6 @@ test('if supported by browser', async () => {
         }
     })
     service['_browser'] = browser
-    service['_isSupported'] = true
     await service._setupHandler()
     expect(service['_session']?.send).toBeCalledWith('Network.enable')
     expect(service['_session']?.send).toBeCalledWith('Runtime.enable')

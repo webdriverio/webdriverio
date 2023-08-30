@@ -1,5 +1,11 @@
-import { test, expect } from 'vitest'
+import { test, vi, expect } from 'vitest'
 import { getAnswers } from '../src/utils.js'
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockRejectedValue(new Error('ENOENT'))
+    }
+}))
 
 test('runConfig with yes param', async () => {
     const answers = await getAnswers(true)
