@@ -148,6 +148,7 @@ describe('startWebDriver', () => {
         expect(startGeckodriver).toBeCalledWith({
             port: 1234,
             foo: 'bar',
+            host: 'localhost',
             cacheDir: expect.any(String)
         })
     })
@@ -289,6 +290,7 @@ describe('startWebDriver', () => {
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
             customGeckoDriverPath: '/my/geckodriver',
+            host: 'localhost',
             port: 1234
         })
     })
