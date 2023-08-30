@@ -333,7 +333,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
 
 export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
     try {
-        const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null'
+        const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
     } catch (error) {
         log.debug(`Exception in verifying the Accessibility session with error : ${error}`)
@@ -346,7 +346,7 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     const accessKey = getBrowserStackKey(config)
 
     if (isUndefined(userName) || isUndefined(accessKey)) {
-        log.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing authentication token')
+        log.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
         return null
     }
 
@@ -429,7 +429,8 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
 
 export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) => {
     if (!isBrowserStackSession) {
-        return false // since we are running only on Automate as of now
+        log.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
+        return {} // since we are running only on Automate as of now
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
@@ -462,7 +463,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
 
 export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) => {
     if (!isBrowserStackSession) {
-        return false // since we are running only on Automate as of now
+        return {} // since we are running only on Automate as of now
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
@@ -494,8 +495,8 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
 }
 
 export const stopAccessibilityTestRun = errorHandler(async function stopAccessibilityTestRun() {
-    if (isUndefined(process.env.BSTACK_A11Y_JWT) ||
-        typeof process.env.BSTACK_A11Y_JWT !== 'string') {
+    const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
+    if (!hasA11yJwtToken) {
         return {
             status: 'error',
             message: 'Build creation had failed.'
