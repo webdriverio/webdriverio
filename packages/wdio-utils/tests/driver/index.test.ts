@@ -218,7 +218,9 @@ describe('startWebDriver', () => {
             capabilities: {
                 browserName: 'chrome',
                 'wdio:chromedriverOptions': {
-                    binary: '/my/chromedriver'
+                    binary: '/my/chromedriver',
+                    allowedDomains: '*',
+                    allowedIps: ''
                 },
                 'goog:chromeOptions': { binary: '/my/chrome' }
             } as any
@@ -234,14 +236,16 @@ describe('startWebDriver', () => {
                     binary: '/my/chrome'
                 },
                 'wdio:chromedriverOptions': {
-                    binary: '/my/chromedriver'
+                    binary: '/my/chromedriver',
+                    allowedDomains: '*',
+                    allowedIps: ''
                 },
             }
         })
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
-            ['--port=1234', '--binary=/my/chromedriver']
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-domains=*', '--allowed-ips=']
         )
     })
 
