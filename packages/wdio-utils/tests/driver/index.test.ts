@@ -103,7 +103,7 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(params)).resolves.toBe('safaridriver')
         await expect(params).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'safari',
@@ -132,7 +132,7 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(params)).resolves.toBe('geckodriver')
         expect(params).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'firefox',
@@ -161,7 +161,7 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(options)).resolves.toBe('edgedriver')
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'MicrosoftEdge',
@@ -192,7 +192,7 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -200,8 +200,6 @@ describe('startWebDriver', () => {
                     binary: expect.any(String)
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: [''],
-                    allowedOrigins: ['*'],
                     'foo': 'bar',
                 },
             }
@@ -210,22 +208,24 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
-            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
+            ['--port=1234', '--foo=bar']
         )
     })
 
-    it('should start no driver or download chrome if binaries are defined', async () => {
+    it('should only set allowed-ips or allowed-origins when these are explicitly passed in the options object', async () => {
         const options = {
             capabilities: {
                 browserName: 'chrome',
-                'wdio:chromedriverOptions': { binary: '/my/chromedriver' },
+                'wdio:chromedriverOptions': {
+                    binary: '/my/chromedriver'
+                },
                 'goog:chromeOptions': { binary: '/my/chrome' }
             } as any
         }
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -233,8 +233,6 @@ describe('startWebDriver', () => {
                     binary: '/my/chrome'
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: [''],
-                    allowedOrigins: ['*'],
                     binary: '/my/chromedriver'
                 },
             }
@@ -242,7 +240,39 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
-            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
+            ['--port=1234', '--binary=/my/chromedriver']
+        )
+    })
+
+    it('should start no driver or download chrome if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': {
+                    binary: '/my/chromedriver'
+                },
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: 'localhost',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    binary: '/my/chrome'
+                },
+                'wdio:chromedriverOptions': {
+                    binary: '/my/chromedriver'
+                },
+            }
+        })
+        expect(cp.spawn).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledWith(
+            '/my/chromedriver',
+            ['--port=1234', '--binary=/my/chromedriver']
         )
     })
 
