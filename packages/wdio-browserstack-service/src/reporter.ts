@@ -7,14 +7,14 @@ import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import logger from '@wdio/logger'
 
-import { BrowserstackConfig, TestData, TestMeta, UploadType } from './types'
+import type { BrowserstackConfig, CurrentRunInfo, StdLog, TestData, TestMeta, UploadType } from './types'
 import {
     getCloudProvider,
     getGitMetaData,
     uploadEventData,
     o11yClassErrorHandler,
     removeAnsiColors,
-    getHookType
+    getHookType, pushDataToQueue
 } from './util'
 import RequestQueueHandler from './request-handler'
 
@@ -31,6 +31,8 @@ class _TestReporter extends WDIOReporter {
     private static _tests: Record<string, TestMeta> = {}
     private _gitConfigPath?: string
     private _gitConfigured: boolean = false
+    private _currentHook: CurrentRunInfo = {}
+    private _currentTest: CurrentRunInfo = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
@@ -38,6 +40,42 @@ class _TestReporter extends WDIOReporter {
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
         await this.configureGit()
+        this.registerListeners()
+    }
+
+    registerListeners () {
+        if (this._config?.framework !== 'jasmine') {
+            return
+        }
+        process.removeAllListeners(`bs:addLog:${process.pid}`)
+        process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
+    }
+
+    public async appendTestItemLog(stdLog: StdLog) {
+        if (this._currentHook.uuid && !this._currentHook.finished) {
+            stdLog.hook_run_uuid = this._currentHook.uuid
+        } else if (this._currentTest.uuid) {
+            stdLog.test_run_uuid = this._currentTest.uuid
+        }
+        if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
+            await pushDataToQueue({
+                event_type: 'LogCreated',
+                logs: [stdLog]
+            })
+        }
+    }
+
+    setCurrentHook(hookDetails: CurrentRunInfo) {
+        if (hookDetails.finished) {
+            if (this._currentHook.uuid === hookDetails.uuid) {
+                this._currentHook.finished = true
+            }
+            return
+        }
+        this._currentHook = {
+            uuid: hookDetails.uuid,
+            finished: false
+        }
     }
 
     async configureGit() {
@@ -106,8 +144,11 @@ class _TestReporter extends WDIOReporter {
         if (!this.needToSendData('test', 'start')) return
         if (testStats.fullTitle === '<unknown test>') return
 
+        const uuid = uuidv4()
+        this._currentTest.uuid = uuid
+
         _TestReporter._tests[testStats.fullTitle] = {
-            uuid: uuidv4(),
+            uuid: uuid,
         }
         await this.sendTestRunEvent(testStats, 'TestRunStarted')
     }
@@ -119,6 +160,7 @@ class _TestReporter extends WDIOReporter {
 
         const identifier = this.getHookIdentifier(hookStats)
         const hookId = uuidv4()
+        this.setCurrentHook({ uuid: hookId })
         _TestReporter._tests[identifier] = {
             uuid: hookId,
             startedAt: (new Date()).toISOString()
@@ -139,6 +181,8 @@ class _TestReporter extends WDIOReporter {
                 finishedAt: (new Date()).toISOString()
             }
         }
+        this.setCurrentHook({ uuid: _TestReporter._tests[identifier].uuid, finished: true })
+
         if (!hookStats.state && !hookStats.error) {
             hookStats.state = 'passed'
         }

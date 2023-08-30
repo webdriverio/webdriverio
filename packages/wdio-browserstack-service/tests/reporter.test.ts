@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { StdLog } from '../src'
 
 import TestReporter from '../src/reporter'
 import RequestQueueHandler from '../src/request-handler'
@@ -368,6 +369,51 @@ describe('test-reporter', () => {
                 expect(uploadEventDataSpy).toBeCalledTimes(1)
             })
 
+        })
+    })
+
+    describe('appendTestItemLog', function () {
+        let reporter: TestReporter
+        let sendDataSpy: any
+        const logObj: StdLog = {
+            timestamp: new Date().toISOString(),
+            level: 'INFO',
+            message: 'some log',
+            kind: 'TEST_LOG',
+            http_response: {}
+        }
+        let testLogObj: StdLog
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            sendDataSpy = jest.spyOn(utils, 'pushDataToQueue')
+            sendDataSpy.mockImplementation(() => { return [] as any })
+            testLogObj = { ...logObj }
+        })
+
+        afterEach(() => {
+            sendDataSpy.mockClear()
+        })
+
+        it('should upload with current test uuid for log', function () {
+            reporter['_currentTest'] = { uuid: 'some_uuid' }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.test_run_uuid).toBe('some_uuid')
+            expect(sendDataSpy).toBeCalledTimes(1)
+        })
+
+        it('should upload with current hook uuid for log', function () {
+            reporter['_currentHook'] = { uuid: 'some_uuid' }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.hook_run_uuid).toBe('some_uuid')
+            expect(sendDataSpy).toBeCalledTimes(1)
+        })
+
+        it('should not upload log if hook is finished', function () {
+            reporter['_currentHook'] = { uuid: 'some_uuid', finished: true }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.hook_run_uuid).toBe(undefined)
+            expect(testLogObj.test_run_uuid).toBe(undefined)
+            expect(sendDataSpy).toBeCalledTimes(0)
         })
     })
 })

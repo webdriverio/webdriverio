@@ -892,9 +892,13 @@ describe('appendTestItemLog', function () {
     let testLogObj: StdLog
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
-        sendDataSpy = jest.spyOn(insightsHandler, 'sendData')
+        sendDataSpy = jest.spyOn(utils, 'pushDataToQueue')
         sendDataSpy.mockImplementation(() => { return [] as any })
         testLogObj = { ...logObj }
+    })
+
+    afterEach(() => {
+        sendDataSpy.mockClear()
     })
 
     it('should upload with current test uuid for log', function () {

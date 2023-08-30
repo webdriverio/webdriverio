@@ -23,7 +23,7 @@ import {
     removeAnsiColors,
     sleep,
     uploadEventData,
-    getFailureObject
+    getFailureObject, pushDataToQueue
 } from './util'
 import type { TestData, TestMeta, PlatformMeta, UploadType, CurrentRunInfo, StdLog } from './types'
 import RequestQueueHandler from './request-handler'
@@ -63,6 +63,9 @@ class _InsightsHandler {
     }
 
     registerListeners() {
+        if (!(this._framework === 'mocha' || this._framework === 'cucumber')) {
+            return
+        }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
@@ -456,16 +459,10 @@ class _InsightsHandler {
             } else if (this._currentTest.uuid) {
                 if (this._framework === 'mocha' || this._framework === 'cucumber') {
                     stdLog.test_run_uuid = this._currentTest.uuid
-                } else if (this._framework === 'jasmine' && this._currentTest.test) {
-                    const identifier = getUniqueIdentifier(this._currentTest.test, this._framework)
-                    const testMeta = TestReporter.getTests()[identifier]
-                    if (testMeta) {
-                        stdLog.test_run_uuid = testMeta.uuid
-                    }
                 }
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
-                await this.sendData({
+                await pushDataToQueue({
                     event_type: 'LogCreated',
                     logs: [stdLog]
                 })
