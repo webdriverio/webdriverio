@@ -1,19 +1,19 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: はじめに
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIOを始めるための紹介をします。 なにか問題や分からないことがあった場合は、 [Discord サポート ](https://discord.webdriver.io) に問い合わせることで、サポートを受けることができます。 またはWebdriverIOのX [](https://twitter.com/webdriverio) への問い合わせも可能です。
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+これらは、WebdriverIO の最新バージョン (__>=8.x__) のドキュメントです。 もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
 
-:::tip Official YouTube Channel 🎥
+:::tip公式YouTubeチャンネル🎥
 
-You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
+WebdriverIO に関する動画をお探しの場合は[](https://youtube.com/@webdriverio)で見つけることができます。 チャンネル登録をお願いします！
 
 :::
 
