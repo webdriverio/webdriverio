@@ -264,7 +264,7 @@ class JunitReporter extends WDIOReporter {
             const suite = this.suites[suiteKey]
             if (isCucumberFrameworkRunner && suite.type === type && specFileName === suite.file) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
-            } else if (!isCucumberFrameworkRunner) {
+            } else if (!isCucumberFrameworkRunner && specFileName === suite.file) {
                 builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
             }
         }
