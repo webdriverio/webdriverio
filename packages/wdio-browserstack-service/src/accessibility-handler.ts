@@ -14,14 +14,12 @@ import {
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
 } from './util.js'
-import type { TestMeta, BrowserStack } from './types.js'
+import type { BrowserStack } from './types.js'
 import type { BrowserStackCapabilities } from '@wdio/types/build/Capabilities.js'
 
 const log = logger('@wdio/browserstack-service')
 
 class _AccessibilityHandler {
-    private _tests: Record<string, TestMeta> = {}
-    private _hooks: Record<string, string[]> = {}
     private _platformA11yMeta: { [key: string]: any; }
     private _caps: Capabilities.RemoteCapability
     private _suiteFile?: string
@@ -125,7 +123,7 @@ class _AccessibilityHandler {
                     if (pageOpen) {
                         if (shouldScanTest) {
                             log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
-                            await (this._browser as WebdriverIO.Browser).executeAsync(() => {
+                            await (this._browser as WebdriverIO.Browser).executeAsync(`
                                 const callback = arguments[arguments.length - 1]
                                 const fn = () => {
                                     window.addEventListener('A11Y_TAP_STARTED', fn2)
@@ -137,12 +135,12 @@ class _AccessibilityHandler {
                                     callback()
                                 }
                                 fn()
-                            })
+                            `)
                         } else {
-                            await (this._browser as WebdriverIO.Browser).execute(() => {
+                            await (this._browser as WebdriverIO.Browser).execute(`
                                 const e = new CustomEvent('A11Y_FORCE_STOP')
                                 window.dispatchEvent(e)
-                            })
+                            `)
                         }
                         this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
@@ -228,7 +226,7 @@ class _AccessibilityHandler {
                     if (pageOpen) {
                         if (shouldScanScenario) {
                             log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
-                            await (this._browser as WebdriverIO.Browser).executeAsync(() => {
+                            await (this._browser as WebdriverIO.Browser).executeAsync(`
                                 const callback = arguments[arguments.length - 1]
                                 const fn = () => {
                                     window.addEventListener('A11Y_TAP_STARTED', fn2)
@@ -240,12 +238,12 @@ class _AccessibilityHandler {
                                     callback()
                                 }
                                 fn()
-                            })
+                            `)
                         } else {
-                            await (this._browser as WebdriverIO.Browser).execute(() => {
+                            await (this._browser as WebdriverIO.Browser).execute(`
                                 const e = new CustomEvent('A11Y_FORCE_STOP')
                                 window.dispatchEvent(e)
-                            })
+                            `)
                         }
                         this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
 
