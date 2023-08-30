@@ -15,28 +15,11 @@ WebdriverIO به طور خودکار تشخیص می دهد که آیا این �
 
 ## پیکربندی
 
-شما می توانید گزینه های سفارشی `ts-node` را از طریق `wdio.conf.ts` خود ارائه دهید، به عنوان مثال:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: './tsconfig.json'
-        }
-    }
-}
-```
-
-یا آنها را از طریق محیط اعمال کنید:
+You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
 
 ```sh
-# run wdio testrunner with custom tsconfig.json location
-TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+# run wdio testrunner with custom options
+TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
 حداقل نسخه TypeScript نسخه `4.0.5` است.
