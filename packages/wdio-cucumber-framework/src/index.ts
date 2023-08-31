@@ -473,7 +473,6 @@ class CucumberAdapter {
 
             return fn
         })
-
     }
 }
 
