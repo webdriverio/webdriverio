@@ -40,6 +40,11 @@ export const config: Options.Testrunner = {
         'moz:firefoxOptions': {
             args: ['-headless']
         }
+    }, {
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
     }],
 
     /**
@@ -59,14 +64,5 @@ export const config: Options.Testrunner = {
 if (os.platform() === 'darwin') {
     (config.capabilities as Capabilities.Capabilities[]).push({
         browserName: 'safari'
-    })
-}
-
-if (os.platform() === 'win32') {
-    (config.capabilities as Capabilities.Capabilities[]).push({
-        browserName: 'edge',
-        'ms:edgeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
     })
 }
