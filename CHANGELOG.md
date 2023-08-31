@@ -21,6 +21,82 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.15.10 (2023-08-29)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11053](https://github.com/webdriverio/webdriverio/pull/11053) (@wdio/browser-runner): fix detection of mocked module ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11025](https://github.com/webdriverio/webdriverio/pull/11025) Update Capabilities.ts ([@yanhaijing](https://github.com/yanhaijing))
+
+#### :memo: Documentation
+* [#11047](https://github.com/webdriverio/webdriverio/pull/11047) fix footer wrapping ([@tamil777selvan](https://github.com/tamil777selvan))
+* [#11049](https://github.com/webdriverio/webdriverio/pull/11049) fix JSONWP api description typo ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- 颜海镜 ([@yanhaijing](https://github.com/yanhaijing))
+
+
+## v8.15.9 (2023-08-27)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#10977](https://github.com/webdriverio/webdriverio/pull/10977) Fix junit reporter test duplication issue for WDIO v8 ([@jemishgopani](https://github.com/jemishgopani))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-utils`
+  * [#10995](https://github.com/webdriverio/webdriverio/pull/10995) (@wdio/utils): support setup of Firefox browser through @puppeteer/browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#11017](https://github.com/webdriverio/webdriverio/pull/11017) docs: AI copilot implementation ([@nickscamara](https://github.com/nickscamara))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jemish Gopani ([@jemishgopani](https://github.com/jemishgopani))
+- Nicolas ([@nickscamara](https://github.com/nickscamara))
+
+
+## v8.15.8 (2023-08-25)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11019](https://github.com/webdriverio/webdriverio/pull/11019) (@wdio/utils): ignore space before new line when detecting local Chrome version ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.15.7 (2023-08-25)
+
+#### :bug: Bug Fix
+* `wdio-types`, `wdio-utils`
+  * [#11014](https://github.com/webdriverio/webdriverio/pull/11014) (@wdio/utils): respect custom binary paths in caps ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#11006](https://github.com/webdriverio/webdriverio/pull/11006) Update allure common utils to fix steps with exception behaviour ([@epszaw](https://github.com/epszaw))
+* `wdio-runner`
+  * [#10997](https://github.com/webdriverio/webdriverio/pull/10997) Update runner index.ts due to a logs.map error is not a function ([@carri747](https://github.com/carri747))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#11015](https://github.com/webdriverio/webdriverio/pull/11015) (@wdio/utils): have driver manager time out when trying to connect to driver ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#10972](https://github.com/webdriverio/webdriverio/pull/10972)  deprecating array of args support in appium service ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* [#10999](https://github.com/webdriverio/webdriverio/pull/10999) [📖 Docs]: Better document new driver options and `cacheDir` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- [@carri747](https://github.com/carri747)
+
+
 ## v8.15.6 (2023-08-22)
 
 #### :bug: Bug Fix

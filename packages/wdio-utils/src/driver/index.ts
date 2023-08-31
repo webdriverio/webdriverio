@@ -16,12 +16,12 @@ import type { InstallOptions } from '@puppeteer/browsers'
 import type { Capabilities, Options } from '@wdio/types'
 
 import {
-    parseParams, setupChrome, definesRemoteDriver, setupChromedriver,
+    parseParams, setupPuppeteerBrowser, definesRemoteDriver, setupChromedriver,
     isChrome, isFirefox, isEdge, isSafari, getCacheDir
 } from './utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = InstallOptions & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
+export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters {}
@@ -32,6 +32,7 @@ declare global {
 }
 
 const log = logger('@wdio/utils')
+const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
 export async function startWebDriver (options: Options.WebDriver) {
     /**
@@ -75,8 +76,11 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Chrome
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
-        const { executablePath: chromeExecuteablePath, browserVersion } = await setupChrome(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = await setupChromedriver(cacheDir, browserVersion)
+
+        const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
+        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
+            ? { executablePath: chromedriverOptions.binary }
+            : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },
@@ -107,14 +111,33 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * Firefox
          */
-        const geckodriverOptions = caps['wdio:geckodriverOptions'] || ({} as GeckodriverParameters)
+        const { executablePath } = await setupPuppeteerBrowser(cacheDir, caps)
+        caps['moz:firefoxOptions'] = deepmerge(
+            { binary: executablePath },
+            caps['moz:firefoxOptions'] || {}
+        )
+
+        /**
+         * the "binary" parameter refers to the driver binary in the WebdriverIO.GeckodriverOptions and
+         * to the Firefox binary in the driver option
+         */
+        delete caps.browserVersion
+        const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
+        if (binary) {
+            geckodriverOptions.customGeckoDriverPath = binary
+        }
+
         driver = 'GeckoDriver'
         driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
          */
-        const edgedriverOptions = caps['wdio:edgedriverOptions'] || ({} as EdgedriverParameters)
+        const { binary, ...edgedriverOptions } = caps['wdio:edgedriverOptions'] || ({} as WebdriverIO.EdgedriverOptions)
+        if (binary) {
+            edgedriverOptions.customEdgeDriverPath = binary
+        }
+
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
@@ -151,7 +174,8 @@ export async function startWebDriver (options: Options.WebDriver) {
         driverProcess.stderr?.pipe(logStream)
     }
 
-    await waitPort({ port, output: 'silent' })
+    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
+        .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
     options.hostname = '0.0.0.0'
     options.port = port

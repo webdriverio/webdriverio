@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver } from 'edgedriver'
@@ -50,7 +51,7 @@ vi.mock('edgedriver', () => ({
     findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
 }))
 vi.mock('geckodriver', () => ({ start: vi.fn().mockResolvedValue('geckodriver') }))
-vi.mock('wait-port', () => ({ default: vi.fn() }))
+vi.mock('wait-port', () => ({ default: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -70,11 +71,23 @@ vi.mock('../../src/driver/detectBackend.js', () => ({
     })
 }))
 
+vi.mock('../../src/driver/utils.js', async (actualMod) => ({
+    ...(await actualMod() as any),
+    setupPuppeteerBrowser: vi.fn().mockResolvedValue({
+        executablePath: '/path/to/browser',
+        browserVersion: '1.2.3'
+    })
+}))
+
 describe('startWebDriver', () => {
     const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         vi.mocked(install).mockClear()
+        vi.mocked(fsp.access).mockClear()
+        vi.mocked(fsp.mkdir).mockClear()
+        vi.mocked(cp.spawn).mockClear()
+        vi.mocked(startGeckodriver).mockClear()
     })
 
     afterEach(() => {
@@ -123,6 +136,9 @@ describe('startWebDriver', () => {
             port: 1234,
             capabilities: {
                 browserName: 'firefox',
+                'moz:firefoxOptions': {
+                    binary: '/path/to/browser'
+                },
                 'wdio:geckodriverOptions': {
                     foo: 'bar'
                 },
@@ -190,13 +206,90 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fsp.access).toBeCalledTimes(2)
-        expect(fsp.mkdir).toBeCalledTimes(1)
+        expect(fsp.access).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
         )
+    })
+
+    it('should start no driver or download chrome if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { binary: '/my/chromedriver' },
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: '0.0.0.0',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    binary: '/my/chrome'
+                },
+                'wdio:chromedriverOptions': {
+                    allowedIps: [''],
+                    allowedOrigins: ['*'],
+                    binary: '/my/chromedriver'
+                },
+            }
+        })
+        expect(cp.spawn).toBeCalledTimes(1)
+        expect(cp.spawn).toBeCalledWith(
+            '/my/chromedriver',
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
+        )
+    })
+
+    it('should start no driver or download geckodriver if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'firefox',
+                'wdio:geckodriverOptions': { binary: '/my/geckodriver' },
+                'moz:firefoxOptions': { binary: '/my/firefox' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(res).toBe('geckodriver')
+        expect(startGeckodriver).toBeCalledWith({
+            cacheDir: expect.any(String),
+            customGeckoDriverPath: '/my/geckodriver',
+            port: 1234
+        })
+    })
+
+    it('should start no driver or download edgedriver if binaries are defined', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'edge',
+                'wdio:edgedriverOptions': { binary: '/my/edgedriver' },
+                'ms:edgeOptions': { binary: '/my/edge' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(res).toBe('edgedriver')
+        expect(startEdgedriver).toBeCalledWith({
+            cacheDir: expect.any(String),
+            customEdgeDriverPath: '/my/edgedriver',
+            port: 1234
+        })
+    })
+
+    it('should fail on timeout', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        vi.mocked(waitPort).mockRejectedValueOnce(new Error('timeout'))
+        await expect(startWebDriver(options)).rejects.toThrow('Timed out to connect to Chromedriver')
+        expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
     it('should find last known good version for chromedriver', async () => {
@@ -212,17 +305,9 @@ describe('startWebDriver', () => {
             .mockRejectedValueOnce(new Error('boom'))
             .mockResolvedValue({} as any)
         await startWebDriver(options)
-        expect(install).toBeCalledTimes(3)
+        expect(install).toBeCalledTimes(1)
         expect(install).toBeCalledWith(expect.objectContaining({
             buildId: '115.0.5790.171',
-            browser: 'chrome'
-        }))
-        expect(install).toBeCalledWith(expect.objectContaining({
-            buildId: '115.0.5790.171',
-            browser: 'chromedriver'
-        }))
-        expect(install).toBeCalledWith(expect.objectContaining({
-            buildId: '115.0.5790.170',
             browser: 'chromedriver'
         }))
     })
