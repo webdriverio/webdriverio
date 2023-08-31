@@ -16,7 +16,7 @@ import {
     isTrue,
 } from './util.js'
 import type { BrowserStack } from './types.js'
-import type { BrowserStackCapabilities } from '@wdio/types/build/Capabilities.js'
+import { testForceStop, testStartEvent, testStop } from './scripts/test-event-scripts.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -67,8 +67,8 @@ class _AccessibilityHandler {
                 return (caps as Capabilities.Capabilities)['goog:chromeOptions']
             } else {
                 const bstackOptions = (caps as Capabilities.Capabilities)['bstack:options']
-                if ( bstackOptions && bstackOptions?.[capType as keyof BrowserStackCapabilities]) {
-                    return bstackOptions?.[capType as keyof BrowserStackCapabilities]
+                if ( bstackOptions && bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]) {
+                    return bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]
                 } else if ((caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]) {
                     return (caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]
                 }
@@ -96,100 +96,91 @@ class _AccessibilityHandler {
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (!this._accessibility || this._framework !== 'mocha') {
+        if (this._framework !== 'mocha' || !this._browser) {
             return
         }
 
-        if (isBrowserstackSession(this._browser)) {
-            const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
-            const testIdentifier = this.getIdentifier(test)
-            this._testMetadata[testIdentifier] = {
-                scanTestForAccessibility : shouldScanTest,
-                accessibilityScanStarted : true
-            }
-
-            if (this._browser && isAccessibilityAutomationSession(this._accessibility)) {
-                let pageOpen = true
-
-                try {
-                    const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
-                    const url = new URL(currentURL)
-                    pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
-                } catch (e) {
-                    pageOpen = false
-                }
-
-                try {
-                    if (pageOpen) {
-                        if (shouldScanTest) {
-                            log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
-                            await (this._browser as WebdriverIO.Browser).executeAsync(`
-                                const callback = arguments[arguments.length - 1]
-                                const fn = () => {
-                                    window.addEventListener('A11Y_TAP_STARTED', fn2)
-                                    const e = new CustomEvent('A11Y_FORCE_START')
-                                    window.dispatchEvent(e)
-                                }
-                                const fn2 = () => {
-                                    window.removeEventListener('A11Y_TAP_STARTED', fn)
-                                    callback()
-                                }
-                                fn()
-                            `)
-                        } else {
-                            await (this._browser as WebdriverIO.Browser).execute(`
-                                const e = new CustomEvent('A11Y_FORCE_STOP')
-                                window.dispatchEvent(e)
-                            `)
-                        }
-                        this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
-
-                        if (shouldScanTest) {
-                            log.info('Automate test case execution has started.')
-                        }
-                    }
-                } catch (error) {
-                    log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
-                }
-            }
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            return
         }
-    }
 
-    async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (!this._accessibility || this._framework !== 'mocha') {
+        let pageOpen = true
+        const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
+        const testIdentifier = this.getIdentifier(test)
+        this._testMetadata[testIdentifier] = {
+            scanTestForAccessibility : shouldScanTest,
+            accessibilityScanStarted : true
+        }
+
+        try {
+            const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
+            const url = new URL(currentURL)
+            pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
+        } catch (e) {
+            pageOpen = false
+        }
+
+        if (!pageOpen) {
             return
         }
 
         try {
-            if (isBrowserstackSession(this._browser)) {
-                const testIdentifier = this.getIdentifier(test)
-                const accessibilityScanStarted = this._testMetadata[testIdentifier]?.accessibilityScanStarted
-                const shouldScanTestForAccessibility = this._testMetadata[testIdentifier]?.scanTestForAccessibility
-
-                if (accessibilityScanStarted && isAccessibilityAutomationSession(this._accessibility)) {
-                    if (shouldScanTestForAccessibility) {
-                        log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
-                    }
-                    const dataForExtension = {
-                        saveResults: shouldScanTestForAccessibility,
-                        testDetails: {
-                            'name': test.title,
-                            'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
-                            'filePath': this._suiteFile,
-                            'scopeList': [suiteTitle, test.title]
-                        },
-                        platform: this._platformA11yMeta
-                    }
-
-                    await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
-
-                    if (shouldScanTestForAccessibility) {
-                        log.info('Accessibility testing for this test case has ended.')
-                    }
-                }
+            if (shouldScanTest) {
+                log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
+                await this.sendTestStartEvent(this._browser as WebdriverIO.Browser)
+            } else {
+                await this.sendTestForceStopEvent(this._browser as WebdriverIO.Browser)
             }
-        } catch (er) {
-            log.error(`Accessibility results could not be processed for the test case ${test.title}. Error :`, er)
+            this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
+
+            if (shouldScanTest) {
+                log.info('Automate test case execution has started.')
+            }
+        } catch (error) {
+            log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
+        }
+    }
+
+    async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
+        if (this._framework !== 'mocha' || !this._browser) {
+            return
+        }
+
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            return
+        }
+
+        try {
+            const testIdentifier = this.getIdentifier(test)
+            const accessibilityScanStarted = this._testMetadata[testIdentifier]?.accessibilityScanStarted
+            const shouldScanTestForAccessibility = this._testMetadata[testIdentifier]?.scanTestForAccessibility
+
+            if (!accessibilityScanStarted) {
+                return
+            }
+
+            if (shouldScanTestForAccessibility) {
+                log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
+            }
+
+            const dataForExtension = {
+                saveResults: shouldScanTestForAccessibility,
+                testDetails: {
+                    'name': test.title,
+                    'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
+                    'filePath': this._suiteFile,
+                    'scopeList': [suiteTitle, test.title]
+                },
+                platform: this._platformA11yMeta
+            }
+
+            await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
+
+            if (shouldScanTestForAccessibility) {
+                log.info('Accessibility testing for this test case has ended.')
+            }
+        } catch (error) {
+            log.error(`Accessibility results could not be processed for the test case ${test.title}. Error :`, error)
         }
     }
 
@@ -198,108 +189,97 @@ class _AccessibilityHandler {
     */
 
     async beforeScenario (world: ITestCaseHookParameter) {
-        if (!this._accessibility) {
+        if (!this._browser) {
             return
         }
 
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            return
+        }
+
+        let pageOpen = true
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
+        const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
 
-        if (isBrowserstackSession(this._browser)) {
-            const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
+        try {
             this._testMetadata[uniqueId] = {
                 scanTestForAccessibility : shouldScanScenario,
                 accessibilityScanStarted : true
             }
+            const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
+            const url = new URL(currentURL)
+            pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
+        } catch (e) {
+            pageOpen = false
+        }
 
-            if (this._browser && isAccessibilityAutomationSession(this._accessibility)) {
-                let pageOpen = true
+        if (!pageOpen) {
+            return
+        }
 
-                try {
-                    const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
-                    const url = new URL(currentURL)
-                    pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
-                } catch (e) {
-                    pageOpen = false
-                }
-
-                try {
-                    if (pageOpen) {
-                        if (shouldScanScenario) {
-                            log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
-                            await (this._browser as WebdriverIO.Browser).executeAsync(`
-                                const callback = arguments[arguments.length - 1]
-                                const fn = () => {
-                                    window.addEventListener('A11Y_TAP_STARTED', fn2)
-                                    const e = new CustomEvent('A11Y_FORCE_START')
-                                    window.dispatchEvent(e)
-                                }
-                                const fn2 = () => {
-                                    window.removeEventListener('A11Y_TAP_STARTED', fn)
-                                    callback()
-                                }
-                                fn()
-                            `)
-                        } else {
-                            await (this._browser as WebdriverIO.Browser).execute(`
-                                const e = new CustomEvent('A11Y_FORCE_STOP')
-                                window.dispatchEvent(e)
-                            `)
-                        }
-                        this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
-
-                        if (shouldScanScenario) {
-                            log.info('Automate test case execution has started.')
-                        }
-                    }
-                } catch (error) {
-                    log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
-                }
+        try {
+            if (shouldScanScenario) {
+                log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
+                await this.sendTestStartEvent(this._browser as WebdriverIO.Browser)
+            } else {
+                await this.sendTestForceStopEvent(this._browser as WebdriverIO.Browser)
             }
+            this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
+
+            if (shouldScanScenario) {
+                log.info('Automate test case execution has started.')
+            }
+        } catch (error) {
+            log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
         }
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
-        if (!this._accessibility) {
+        if (!this._browser) {
+            return
+        }
+
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
 
         const pickleData = world.pickle
-        const gherkinDocument = world.gherkinDocument
-        const featureData = gherkinDocument.feature
-        const uniqueId = getUniqueIdentifierForCucumber(world)
-
         try {
-            if (isBrowserstackSession(this._browser)) {
-                const accessibilityScanStarted = this._testMetadata[uniqueId]?.accessibilityScanStarted
-                const shouldScanTestForAccessibility = this._testMetadata[uniqueId]?.scanTestForAccessibility
+            const gherkinDocument = world.gherkinDocument
+            const featureData = gherkinDocument.feature
+            const uniqueId = getUniqueIdentifierForCucumber(world)
+            const accessibilityScanStarted = this._testMetadata[uniqueId]?.accessibilityScanStarted
+            const shouldScanTestForAccessibility = this._testMetadata[uniqueId]?.scanTestForAccessibility
 
-                if (accessibilityScanStarted && isAccessibilityAutomationSession(this._accessibility)) {
-                    if (shouldScanTestForAccessibility) {
-                        log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
-                    }
-                    const dataForExtension = {
-                        saveResults: shouldScanTestForAccessibility,
-                        testDetails: {
-                            'name': pickleData.name,
-                            'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
-                            'filePath': gherkinDocument.uri,
-                            'scopeList': [featureData?.name, pickleData.name]
-                        },
-                        platform: this._platformA11yMeta
-                    }
-
-                    await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
-
-                    if (shouldScanTestForAccessibility) {
-                        log.info('Accessibility testing for this test case has ended.')
-                    }
-                }
+            if (!accessibilityScanStarted) {
+                return
             }
-        } catch (er) {
-            log.error(`Accessibility results could not be processed for the test case ${pickleData.name}. Error :`, er)
+
+            if (shouldScanTestForAccessibility) {
+                log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
+            }
+
+            const dataForExtension = {
+                saveResults: shouldScanTestForAccessibility,
+                testDetails: {
+                    'name': pickleData.name,
+                    'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
+                    'filePath': gherkinDocument.uri,
+                    'scopeList': [featureData?.name, pickleData.name]
+                },
+                platform: this._platformA11yMeta
+            }
+
+            await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
+
+            if (shouldScanTestForAccessibility) {
+                log.info('Accessibility testing for this test case has ended.')
+            }
+        } catch (error) {
+            log.error(`Accessibility results could not be processed for the test case ${pickleData.name}. Error :`, error)
         }
     }
 
@@ -307,24 +287,16 @@ class _AccessibilityHandler {
      * private methods
      */
 
-    private sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
-        return (browser as WebdriverIO.Browser).executeAsync(`
-            const callback = arguments[arguments.length - 1];
+    private sendTestStartEvent(browser: WebdriverIO.Browser) {
+        return (browser as WebdriverIO.Browser).executeAsync(testStartEvent())
+    }
 
-            this.res = null;
-            if (arguments[0].saveResults) {
-            window.addEventListener('A11Y_TAP_TRANSPORTER', (event) => {
-                window.tapTransporterData = event.detail;
-                this.res = window.tapTransporterData;
-                callback(this.res);
-            });
-            }
-            const e = new CustomEvent('A11Y_TEST_END', {detail: arguments[0]});
-            window.dispatchEvent(e);
-            if (arguments[0].saveResults !== true ) {
-            callback();
-            }
-        `, dataForExtension)
+    private sendTestForceStopEvent(browser: WebdriverIO.Browser) {
+        return (browser as WebdriverIO.Browser).execute(testForceStop())
+    }
+
+    private sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
+        return (browser as WebdriverIO.Browser).executeAsync(testStop(), dataForExtension)
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
@@ -332,6 +304,10 @@ class _AccessibilityHandler {
             return getUniqueIdentifierForCucumber(test)
         }
         return getUniqueIdentifier(test, this._framework)
+    }
+
+    private shouldRunTestHooks(browser: any, isAccessibility?: boolean | string) {
+        return isBrowserstackSession(browser) && isAccessibilityAutomationSession(isAccessibility)
     }
 }
 

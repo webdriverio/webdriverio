@@ -21,6 +21,7 @@ import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
+import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -439,21 +440,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     try {
-        const results = await (browser as WebdriverIO.Browser).execute(`
-        return new Promise(function (resolve, reject) {
-            try {
-            const event = new CustomEvent('A11Y_TAP_GET_RESULTS');
-            const fn = function (event) {
-                window.removeEventListener('A11Y_RESULTS_RESPONSE', fn);
-                resolve(event.detail.data);
-            };
-            window.addEventListener('A11Y_RESULTS_RESPONSE', fn);
-            window.dispatchEvent(event);
-            } catch {
-            reject();
-            }
-        });
-        `)
+        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults())
         return results
     } catch {
         log.error('No accessibility results were found.')
@@ -472,21 +459,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 
     try {
-        const summaryResults = await (browser as WebdriverIO.Browser).execute(`
-            return new Promise(function (resolve, reject) {
-            try{
-                const event = new CustomEvent('A11Y_TAP_GET_RESULTS_SUMMARY');
-                const fn = function (event) {
-                    window.removeEventListener('A11Y_RESULTS_SUMMARY_RESPONSE', fn);
-                    resolve(event.detail.summary);
-                };
-                window.addEventListener('A11Y_RESULTS_SUMMARY_RESPONSE', fn);
-                window.dispatchEvent(event);
-            } catch {
-                reject();
-            }
-            });
-        `)
+        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary())
         return summaryResults
     } catch {
         log.error('No accessibility summary was found.')
