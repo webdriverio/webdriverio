@@ -152,6 +152,18 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - TypeScript
     - ESLint
 
+## [Muralijc/wdio-headspin-boilerplate](https://github.com/Muralijc/Wdio-Headspin-boilerplate/)
+Boilerplate project to run WebdriverIO tests in Headspin Cloud (https://www.headspin.io/) using Cucumber features, and the page objects pattern.
+- Фреймворки
+    - WebdriverIO (v8)
+    - Cucumber (v8)
+
+- Возможности
+    - Cloud integration with [Headspin](https://www.headspin.io/)
+    - Supports Page Object Model
+    - Contains sample Scenarios written in Declarative style of BDD
+    - Integrated cucumber html reports
+
 # v7 Boilerplate Projects
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -288,13 +300,13 @@ This project uses:
 
 Template project to run appium tests on real Roku devices using mocha with page object pattern.
 
-- Фреймворки
+- Frameworks
     - WebdriverIO Async v7
     - Appium 2.0
     - Mocha v7
     - Отчеты Allure
 
-- Возможности
+- Features
     - Page Object Model
     - Typescript
     - Screenshot on failure
@@ -319,4 +331,5 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
  
+      
       
