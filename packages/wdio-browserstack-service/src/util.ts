@@ -962,7 +962,7 @@ export function isUndefined(value: any) {
     return value === undefined || value === null
 }
 
-export function getCapabilityValueAsBoolean(value?: any) {
+export function isTrue(value?: any) {
     return (value + '') === 'true'
 }
 

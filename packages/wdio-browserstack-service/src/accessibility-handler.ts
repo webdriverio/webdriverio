@@ -13,7 +13,7 @@ import {
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
-    getCapabilityValueAsBoolean,
+    isTrue,
 } from './util.js'
 import type { BrowserStack } from './types.js'
 import type { BrowserStackCapabilities } from '@wdio/types/build/Capabilities.js'
@@ -39,7 +39,7 @@ class _AccessibilityHandler {
         }
 
         this._caps = _capabilities
-        this._accessibility = getCapabilityValueAsBoolean(_accessibilityAutomation)
+        this._accessibility = isTrue(_accessibilityAutomation)
         this._accessibilityOptions = _accessibilityOpts
     }
 
@@ -50,9 +50,9 @@ class _AccessibilityHandler {
     _getCapabilityValue(caps: Capabilities.RemoteCapability, capType: string, legacyCapType: string) {
         if (caps) {
             if (capType === 'accessibility') {
-                if ((caps as Capabilities.Capabilities)['bstack:options'] && (getCapabilityValueAsBoolean((caps as Capabilities.Capabilities)['bstack:options']?.accessibility))) {
+                if ((caps as Capabilities.Capabilities)['bstack:options'] && (isTrue((caps as Capabilities.Capabilities)['bstack:options']?.accessibility))) {
                     return (caps as Capabilities.Capabilities)['bstack:options']?.accessibility
-                } else if (getCapabilityValueAsBoolean((caps as Capabilities.Capabilities)['browserstack.accessibility'])) {
+                } else if (isTrue((caps as Capabilities.Capabilities)['browserstack.accessibility'])) {
                     return (caps as Capabilities.Capabilities)['browserstack.accessibility']
                 }
             } else if (capType === 'deviceName') {
@@ -77,7 +77,7 @@ class _AccessibilityHandler {
     }
 
     async before () {
-        this._accessibility = this._accessibility = getCapabilityValueAsBoolean(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
+        this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
         if (isBrowserstackSession(this._browser) && isAccessibilityAutomationSession(this._accessibility)) {
             const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')

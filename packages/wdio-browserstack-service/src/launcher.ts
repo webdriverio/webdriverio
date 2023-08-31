@@ -25,7 +25,7 @@ import {
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
-    getCapabilityValueAsBoolean
+    isTrue
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 
@@ -67,8 +67,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             if (extensionCaps.length) {
                                 capability['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                                 if (!isUndefined(capability['browserstack.accessibility'])) {
-                                    this._accessibilityAutomation ||= getCapabilityValueAsBoolean(capability['browserstack.accessibility'])
-                                } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
+                                    this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility'])
+                                } else if (isTrue(this._options.accessibility)) {
                                     capability['bstack:options'].accessibility = true
                                 }
                             } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
@@ -87,9 +87,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         this._buildIdentifier = capability['bstack:options'].buildIdentifier
 
                         if (!isUndefined(capability['bstack:options'].accessibility)) {
-                            this._accessibilityAutomation ||= getCapabilityValueAsBoolean(capability['bstack:options'].accessibility)
-                        } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
-                            capability['bstack:options'].accessibility = (getCapabilityValueAsBoolean(this._options.accessibility))
+                            this._accessibilityAutomation ||= isTrue(capability['bstack:options'].accessibility)
+                        } else if (isTrue(this._options.accessibility)) {
+                            capability['bstack:options'].accessibility = (isTrue(this._options.accessibility))
                         }
                     }
                 })
@@ -101,9 +101,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         if (extensionCaps.length) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                             if (!isUndefined((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])) {
-                                this._accessibilityAutomation ||= getCapabilityValueAsBoolean((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])
-                            } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
-                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (getCapabilityValueAsBoolean(this._options.accessibility)) }
+                                this._accessibilityAutomation ||= isTrue((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])
+                            } else if (isTrue(this._options.accessibility)) {
+                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
                             }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                             (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
@@ -118,9 +118,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._buildTag = bstackOptions!.buildTag
                     this._buildIdentifier = bstackOptions!.buildIdentifier
                     if (!isUndefined(bstackOptions!.accessibility)) {
-                        this._accessibilityAutomation ||= getCapabilityValueAsBoolean(bstackOptions!.accessibility)
-                    } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
-                        bstackOptions!.accessibility = getCapabilityValueAsBoolean(this._options.accessibility)
+                        this._accessibilityAutomation ||= isTrue(bstackOptions!.accessibility)
+                    } else if (isTrue(this._options.accessibility)) {
+                        bstackOptions!.accessibility = isTrue(this._options.accessibility)
                     }
                 }
             })
@@ -130,7 +130,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
-        this._accessibilityAutomation ||= getCapabilityValueAsBoolean(this._options.accessibility)
+        this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         this._options.accessibility = this._accessibilityAutomation
 
         // by default observability will be true unless specified as false

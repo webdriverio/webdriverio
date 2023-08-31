@@ -35,7 +35,7 @@ import {
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     createAccessibilityTestRun,
-    getCapabilityValueAsBoolean,
+    isTrue,
 } from '../src/util.js'
 
 const log = logger('test')
@@ -1119,16 +1119,16 @@ describe('getA11yResultsSummary', () => {
     })
 })
 
-describe('getCapabilityValueAsBoolean', () => {
+describe('isTrue', () => {
     it('returns true if value is `true`', async () => {
-        expect(getCapabilityValueAsBoolean('true')).toEqual(true)
+        expect(isTrue('true')).toEqual(true)
     })
 
     it('returns false if value is `false`', async () => {
-        expect(getCapabilityValueAsBoolean('false')).toEqual(false)
+        expect(isTrue('false')).toEqual(false)
     })
 
     it('returns false if value is undefined', async () => {
-        expect(getCapabilityValueAsBoolean(undefined)).toEqual(false)
+        expect(isTrue(undefined)).toEqual(false)
     })
 })
