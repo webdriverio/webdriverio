@@ -9,22 +9,7 @@ import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 
-import * as Cucumber from '@cucumber/cucumber'
-import Gherkin from '@cucumber/gherkin'
-import { GherkinStreams } from '@cucumber/gherkin-streams'
-import { IdGenerator } from '@cucumber/messages'
-import TagExpressionParser from '@cucumber/tag-expressions'
-
-import CucumberReporter from './reporter.js'
-import { DEFAULT_OPTS } from './constants.js'
-import { setUserHookNames, shouldRun } from './utils.js'
-
-import type { World as WorldType, IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
-import type { GherkinDocument } from '@cucumber/messages'
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
-import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
-
-const {
+import {
     After,
     AfterAll,
     AfterStep,
@@ -50,8 +35,22 @@ const {
     defineStep,
     parseGherkinMessageStream,
     supportCodeLibraryBuilder,
+} from '@cucumber/cucumber'
+import * as Cucumber from '@cucumber/cucumber'
 
-} = Cucumber
+import Gherkin from '@cucumber/gherkin'
+import { GherkinStreams } from '@cucumber/gherkin-streams'
+import { IdGenerator } from '@cucumber/messages'
+import TagExpressionParser from '@cucumber/tag-expressions'
+
+import CucumberReporter from './reporter.js'
+import { DEFAULT_OPTS } from './constants.js'
+import { setUserHookNames, shouldRun } from './utils.js'
+
+import type { IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
+import type { GherkinDocument } from '@cucumber/messages'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
 
 const uuidFn = IdGenerator.uuid()
 
@@ -479,7 +478,7 @@ class CucumberAdapter {
         options: StepDefinitionOptions,
         getHookParams: Function
     ) {
-        return function (this: WorldType, ...args: any[]) {
+        return function (this: typeof World, ...args: any[]) {
             const hookParams = getHookParams()
             const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
 
