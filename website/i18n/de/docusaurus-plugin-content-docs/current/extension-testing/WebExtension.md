@@ -17,7 +17,7 @@ Diese Dokumentation lässt Safari-Weberweiterungen aus, da ihre Unterstützung w
 
 ### Chrome
 
-Das Laden einer Web-Extension in Chrome kann durch Bereitstellen einer `base64` -codierten Zeichenfolge der `crx` Datei oder durch Bereitstellen eines Pfads zur Web-Extension erfolgen. Am einfachsten ist es, letzteres zu tun, indem Sie Ihre Chrome-Funktionen wie folgt definieren:
+Das Laden einer Web-Extension in Chrome kann durch Bereitstellen einer `base64` -codierten Zeichenfolge der `crx` Datei oder durch Bereitstellen eines Pfads zur Web-Extension erfolgen. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
 ```js wdio.conf.js
 import path from 'node:path'
