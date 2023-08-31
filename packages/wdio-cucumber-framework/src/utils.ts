@@ -196,7 +196,7 @@ export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof Tag
 export function generateSkipTagsFromCapabilities(capabilities: Capabilities.RemoteCapability, tags: string[][]): string[] {
     const generatedTags: string[] = []
 
-    const skipTag = /^@skip$|^@skip\{(.*)\}$/
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {
@@ -232,7 +232,7 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Remo
                 .find((filter: Capabilities.Capabilities) => Object.keys(filter)
                     .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
             if (isSkip) {
-                generatedTags.push(`(not ${tag})`)
+                generatedTags.push(`(not ${tag.replace(/(\(|\))/g, '\\$1')})`)
             }
         }
     })

@@ -17,7 +17,7 @@ Feature: Example feature
     Scenario: Retry Check
         Then  I should fail once but pass on the second run
 
-    @skip{browserName="chrome"}
+    @skip(browserName="chrome")
     Scenario: Skipped... should never be executed
         Then  this test should fail
 

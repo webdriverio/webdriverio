@@ -5,7 +5,7 @@ const config: WebdriverIO.Config = {
         timeout: 123,
         require: ['123'],
         // @ts-expect-error
-        scenarioLevelReporter: "wrong param",
+        scenarioLevelReporter: 'wrong param',
     },
     capabilities: {}
 }

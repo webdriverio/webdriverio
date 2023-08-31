@@ -203,30 +203,30 @@ describe('utils', () => {
     it('generateSkipTagsFromCapabilities', () => {
         expect(generateSkipTagsFromCapabilities({
             browserName: 'chrome',
-        }, [['@skip{browserName="chrome"}']]))
-            .toStrictEqual(['(not @skip{browserName="chrome"})'])
+        }, [['@skip(browserName="chrome")']]))
+            .toStrictEqual(['(not @skip\\(browserName="chrome"\\))'])
 
         expect(generateSkipTagsFromCapabilities({
             browserName: 'chrome',
-        }, [['@skip{browserName="foobar"}']]))
+        }, [['@skip\\(browserName="foobar"\\)']]))
             .toStrictEqual([])
     })
 
     expect(generateSkipTagsFromCapabilities({
         browserName: 'chrome',
         platformName: 'windows'
-    }, [['@skip{browserName="foobar";platformName="windows"}']]))
+    }, [['@skip\\(browserName="foobar";platformName="windows"\\)']]))
         .toStrictEqual([])
 
     expect(generateSkipTagsFromCapabilities({
         browserName: 'chrome',
-    }, [['@skip{something="weird"}']]))
+    }, [['@skip\\(something="weird"\\)']]))
         .toStrictEqual([])
 
     expect(generateSkipTagsFromCapabilities({
         browserName: 'chrome',
-    }, [['@skip{}']]))
-        .toStrictEqual(['(not @skip{})'])
+    }, [['@skip()']]))
+        .toStrictEqual(['(not @skip\\(\\))'])
 
     expect(generateSkipTagsFromCapabilities({
         browserName: 'chrome',
