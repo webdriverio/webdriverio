@@ -24,7 +24,8 @@ import {
     isBStackSession,
     isUndefined,
     isAccessibilityAutomationSession,
-    stopAccessibilityTestRun
+    stopAccessibilityTestRun,
+    getCapabilityValueAsBoolean
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 
@@ -66,9 +67,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             if (extensionCaps.length) {
                                 capability['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                                 if (!isUndefined(capability['browserstack.accessibility'])) {
-                                    this._accessibilityAutomation ||= (capability['browserstack.accessibility'] + '') === 'true'
-                                } else if (this._options.accessibility + '' === 'true') {
-                                    capability['bstack:options'].accessibility = (this._options.accessibility + '' === 'true')
+                                    this._accessibilityAutomation ||= getCapabilityValueAsBoolean(capability['browserstack.accessibility'])
+                                } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
+                                    capability['bstack:options'].accessibility = true
                                 }
                             } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                                 capability['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
@@ -86,9 +87,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         this._buildIdentifier = capability['bstack:options'].buildIdentifier
 
                         if (!isUndefined(capability['bstack:options'].accessibility)) {
-                            this._accessibilityAutomation ||= (capability['bstack:options'].accessibility + '') === 'true'
-                        } else if (this._options.accessibility + '' === 'true') {
-                            capability['bstack:options'].accessibility = (this._options.accessibility + '' === 'true')
+                            this._accessibilityAutomation ||= getCapabilityValueAsBoolean(capability['bstack:options'].accessibility)
+                        } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
+                            capability['bstack:options'].accessibility = (getCapabilityValueAsBoolean(this._options.accessibility))
                         }
                     }
                 })
@@ -100,9 +101,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         if (extensionCaps.length) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                             if (!isUndefined((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])) {
-                                this._accessibilityAutomation ||= ((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'] + '') === 'true'
-                            } else if (this._options.accessibility + '' === 'true') {
-                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (this._options.accessibility + '' === 'true') }
+                                this._accessibilityAutomation ||= getCapabilityValueAsBoolean((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])
+                            } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
+                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (getCapabilityValueAsBoolean(this._options.accessibility)) }
                             }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                             (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
@@ -117,9 +118,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._buildTag = bstackOptions!.buildTag
                     this._buildIdentifier = bstackOptions!.buildIdentifier
                     if (!isUndefined(bstackOptions!.accessibility)) {
-                        this._accessibilityAutomation ||= (bstackOptions!.accessibility + '') === 'true'
-                    } else if ((this._options.accessibility + '') === 'true') {
-                        bstackOptions!.accessibility = (this._options.accessibility + '') === 'true'
+                        this._accessibilityAutomation ||= getCapabilityValueAsBoolean(bstackOptions!.accessibility)
+                    } else if (getCapabilityValueAsBoolean(this._options.accessibility)) {
+                        bstackOptions!.accessibility = getCapabilityValueAsBoolean(this._options.accessibility)
                     }
                 }
             })
@@ -129,7 +130,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
-        this._accessibilityAutomation ||= (this._options.accessibility + '') === 'true'
+        this._accessibilityAutomation ||= getCapabilityValueAsBoolean(this._options.accessibility)
         this._options.accessibility = this._accessibilityAutomation
 
         // by default observability will be true unless specified as false

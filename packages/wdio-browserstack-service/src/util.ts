@@ -374,11 +374,11 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         'browserstackAutomation': true,
     }
 
-    const requestOptions = { ...{
+    const requestOptions = {
         json: data,
         username: getBrowserStackUser(config),
         password: getBrowserStackKey(config),
-    } }
+    }
 
     try {
         const response: any = await nodeRequest(
@@ -439,7 +439,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     try {
-        const results = await(browser as WebdriverIO.Browser).execute(`
+        const results = await (browser as WebdriverIO.Browser).execute(`
         return new Promise(function (resolve, reject) {
             try {
             const event = new CustomEvent('A11Y_TAP_GET_RESULTS');
@@ -960,6 +960,10 @@ export function getBrowserStackKey(config: Options.Testrunner) {
 
 export function isUndefined(value: any) {
     return value === undefined || value === null
+}
+
+export function getCapabilityValueAsBoolean(value?: any) {
+    return (value + '') === 'true'
 }
 
 export function frameworkSupportsHook(hook: string, framework?: string) {

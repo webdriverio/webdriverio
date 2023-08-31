@@ -13,6 +13,7 @@ import {
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
+    getCapabilityValueAsBoolean,
 } from './util.js'
 import type { BrowserStack } from './types.js'
 import type { BrowserStackCapabilities } from '@wdio/types/build/Capabilities.js'
@@ -38,7 +39,7 @@ class _AccessibilityHandler {
         }
 
         this._caps = _capabilities
-        this._accessibility = (_accessibilityAutomation + '') === 'true'
+        this._accessibility = getCapabilityValueAsBoolean(_accessibilityAutomation)
         this._accessibilityOptions = _accessibilityOpts
     }
 
@@ -49,9 +50,9 @@ class _AccessibilityHandler {
     _getCapabilityValue(caps: Capabilities.RemoteCapability, capType: string, legacyCapType: string) {
         if (caps) {
             if (capType === 'accessibility') {
-                if ((caps as Capabilities.Capabilities)['bstack:options'] && ((caps as Capabilities.Capabilities)['bstack:options']?.accessibility + '' === 'true')) {
+                if ((caps as Capabilities.Capabilities)['bstack:options'] && (getCapabilityValueAsBoolean((caps as Capabilities.Capabilities)['bstack:options']?.accessibility))) {
                     return (caps as Capabilities.Capabilities)['bstack:options']?.accessibility
-                } else if (((caps as Capabilities.Capabilities)['browserstack.accessibility'] + '') === 'true') {
+                } else if (getCapabilityValueAsBoolean((caps as Capabilities.Capabilities)['browserstack.accessibility'])) {
                     return (caps as Capabilities.Capabilities)['browserstack.accessibility']
                 }
             } else if (capType === 'deviceName') {
@@ -76,13 +77,13 @@ class _AccessibilityHandler {
     }
 
     async before () {
-        if (isBrowserstackSession(this._browser) && isAccessibilityAutomationSession(this._accessibility) && this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility')) {
+        this._accessibility = this._accessibility = getCapabilityValueAsBoolean(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
+
+        if (isBrowserstackSession(this._browser) && isAccessibilityAutomationSession(this._accessibility)) {
             const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
             const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '')
 
             this._accessibility = validateCapsWithA11y(deviceName, this._platformA11yMeta, chromeOptions)
-        } else {
-            this._accessibility = (this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility') + '') === 'true'
         }
 
         (this._browser as BrowserStack).getAccessibilityResultsSummary = async () => {
@@ -95,7 +96,7 @@ class _AccessibilityHandler {
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (this._framework !== 'mocha') {
+        if (!this._accessibility || this._framework !== 'mocha') {
             return
         }
 
@@ -108,16 +109,15 @@ class _AccessibilityHandler {
             }
 
             if (this._browser && isAccessibilityAutomationSession(this._accessibility)) {
-                let url
                 let pageOpen = true
-                const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
 
                 try {
-                    url = new URL(currentURL)
+                    const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
+                    const url = new URL(currentURL)
+                    pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
                 } catch (e) {
                     pageOpen = false
                 }
-                pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
 
                 try {
                     if (pageOpen) {
@@ -156,7 +156,7 @@ class _AccessibilityHandler {
     }
 
     async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (this._framework !== 'mocha') {
+        if (!this._accessibility || this._framework !== 'mocha') {
             return
         }
 
@@ -198,6 +198,10 @@ class _AccessibilityHandler {
     */
 
     async beforeScenario (world: ITestCaseHookParameter) {
+        if (!this._accessibility) {
+            return
+        }
+
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
@@ -211,16 +215,15 @@ class _AccessibilityHandler {
             }
 
             if (this._browser && isAccessibilityAutomationSession(this._accessibility)) {
-                let url
                 let pageOpen = true
-                const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
 
                 try {
-                    url = new URL(currentURL)
+                    const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
+                    const url = new URL(currentURL)
+                    pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
                 } catch (e) {
                     pageOpen = false
                 }
-                pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
 
                 try {
                     if (pageOpen) {
@@ -259,6 +262,10 @@ class _AccessibilityHandler {
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
+        if (!this._accessibility) {
+            return
+        }
+
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature

@@ -35,6 +35,7 @@ import {
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     createAccessibilityTestRun,
+    getCapabilityValueAsBoolean,
 } from '../src/util.js'
 
 const log = logger('test')
@@ -1115,5 +1116,19 @@ describe('getA11yResultsSummary', () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
         expect(browser.execute).toBeCalledTimes(1)
+    })
+})
+
+describe('getCapabilityValueAsBoolean', () => {
+    it('returns true if value is `true`', async () => {
+        expect(getCapabilityValueAsBoolean('true')).toEqual(true)
+    })
+
+    it('returns false if value is `false`', async () => {
+        expect(getCapabilityValueAsBoolean('false')).toEqual(false)
+    })
+
+    it('returns false if value is undefined', async () => {
+        expect(getCapabilityValueAsBoolean(undefined)).toEqual(false)
     })
 })
