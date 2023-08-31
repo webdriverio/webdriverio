@@ -435,7 +435,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
-        log.warn('Not a Accessibility Automation session, cannot retrieve Accessibility results.')
+        log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
         return {}
     }
 
