@@ -17,7 +17,7 @@ Estos documentos dejan fuera las extensiones web de Safari ya que su soporte est
 
 ### Chrome
 
-Cargar una extensión web en Chrome se puede hacer proporcionando una cadena codificada en `base64` del archivo `crx` o proporcionando una ruta a la carpeta de extensión web. Lo más fácil es sólo hacer esto último definiendo tus capacidades de cromo de la siguiente manera:
+Cargar una extensión web en Chrome se puede hacer proporcionando una cadena codificada en `base64` del archivo `crx` o proporcionando una ruta a la carpeta de extensión web. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
 ```js wdio.conf.js
 import path from 'node:path'
