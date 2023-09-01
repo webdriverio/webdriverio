@@ -266,18 +266,8 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-अस्पष्ट परिभाषाओं को त्रुटियों के रूप में मानें। कृपया ध्यान दें कि यह `@wdio/cucumber-framework` विशिष्ट विकल्प है और इसे खीरा-js द्वारा ही पहचाना नहीं गया है।
-
-Type: `boolean`<br /> Default: `false`
-
 #### failFast
 पहली बार असफल होने पर रन होने को रोक दें।
-
-Type: `boolean`<br /> Default: `false`
-
-#### ignoreUndefinedDefinitions
-अपरिभाषित परिभाषाओं को चेतावनियों के रूप में मानें। कृपया ध्यान दें कि यह @wdio/cucumber-framework विशिष्ट विकल्प है और इसे cucumber-js द्वारा ही पहचाना नहीं गया है।
 
 Type: `boolean`<br /> Default: `false`
 
@@ -285,11 +275,6 @@ Type: `boolean`<br /> Default: `false`
 केवल उन परिदृश्यों को निष्पादित करें जिनके नाम अभिव्यक्ति (दोहराने योग्य) से मेल खाते हैं।
 
 Type: `RegExp[]`<br /> Default: `[]`
-
-#### profile
-उपयोग करने के लिए प्रोफ़ाइल निर्दिष्ट करें।
-
-Type: `string[]`<br /> Default: `[]`
 
 #### require
 सुविधाओं को निष्पादित करने से पहले आपकी चरण परिभाषाओं वाली फ़ाइलों की आवश्यकता होती है। आप अपनी चरण परिभाषाओं के लिए एक ग्लोब भी निर्दिष्ट कर सकते हैं।
@@ -302,40 +287,76 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-एक कस्टम स्निपेट सिंटैक्स निर्दिष्ट करें।
+### import
+Paths to where your support code is, for ESM.
 
-Type: `string`<br /> Default: `null`
+Type: `String[]`<br /> Default: `[]` Example:
 
-#### snippets
-लंबित चरणों के लिए चरण परिभाषा स्निपेट छुपाएं.
-
-Type: `boolean`<br /> Default: `true`
-
-#### source
-स्रोत यूरी छुपाएं।
-
-Type: `boolean`<br /> Default: `true`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 कोई अपरिभाषित या लंबित चरण होने पर विफल।
 
 Type: `boolean`<br /> Default: `false`
 
-#### tagExpression
+## tags
 अभिव्यक्ति से मेल खाने वाले टैग के साथ केवल सुविधाओं या परिदृश्यों को निष्पादित करें। अधिक विवरण के लिए कृपया [कुकुम्बर दस्तावेज़](https://docs.cucumber.io/cucumber/api/#tag-expressions) देखें।
 
-Type: `string`<br /> Default: `null`
+Type: `String`<br /> Default: ``
 
-#### tagsInTitle
-फीचर या परिदृश्य नाम में कुकुम्बर टैग जोड़ें।
-
-Type: `boolean`<br /> Default: `false`
-
-#### timeout
+### timeout
 स्टेप परिभाषाओं के लिए मिलीसेकंड में टाइमआउट।
 
-Type: `number`<br /> Default: `30000`
+Type: `Number`<br /> Default: `30000`
+
+### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br /> Default: `0`
+
+### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### ignoreUndefinedDefinitions
+अपरिभाषित परिभाषाओं को चेतावनियों के रूप में मानें।
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### failAmbiguousDefinitions
+अस्पष्ट परिभाषाओं को त्रुटियों के रूप में मानें।
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br /> Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+उपयोग करने के लिए प्रोफ़ाइल निर्दिष्ट करें।
+
+Type: `string[]`<br /> Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### कुकुम्बर में स्किपिंग परीक्षण
 
