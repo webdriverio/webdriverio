@@ -352,7 +352,7 @@ Here you have some examples of this syntax:
 - `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
-- `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
 ### Import Step Definition Helper
 
