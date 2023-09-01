@@ -40,7 +40,6 @@
   "dependencies": {
     "@cucumber/cucumber": "9.4.0",
     "@cucumber/gherkin": "26.2.0",
-    "@cucumber/gherkin-streams": "^5.0.1",
     "@cucumber/messages": "22.0.0",
     "@cucumber/tag-expressions": "5.0.6",
     "@types/node": "^20.1.0",
@@ -48,12 +47,10 @@
     "@wdio/types": "8.15.10",
     "@wdio/utils": "8.15.10",
     "glob": "^10.2.2",
-    "is-glob": "^4.0.0",
-    "mockery": "^2.1.0"
+    "is-glob": "^4.0.0"
   },
   "devDependencies": {
-    "@types/is-glob": "^4.0.1",
-    "@types/mockery": "^1.4.29"
+    "@types/is-glob": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
