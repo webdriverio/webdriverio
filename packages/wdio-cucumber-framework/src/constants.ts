@@ -36,5 +36,6 @@ export const DEFAULT_OPTS: CucumberOptions = {
     tagsInTitle: false,
     ignoreUndefinedDefinitions: false,
     failAmbiguousDefinitions: false,
-    tagExpression: ''
+    tagExpression: '',
+    profiles: []
 }

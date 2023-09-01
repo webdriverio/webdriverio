@@ -276,7 +276,7 @@ class CucumberAdapter {
             }
 
             const { runConfiguration } = await loadConfiguration(
-                { provided: this._cucumberOpts },
+                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts },
                 environment
             )
 

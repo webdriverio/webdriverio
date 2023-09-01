@@ -92,11 +92,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
-            } else if (envelope.source) {
-                // do nothing for step definition patterns
             } else {
-                /* istanbul ignore next */
-                log.debug(`Unknown envelope received: ${JSON.stringify(envelope, null, 4)}`)
+                // do nothing for other envelopes
             }
         })
 

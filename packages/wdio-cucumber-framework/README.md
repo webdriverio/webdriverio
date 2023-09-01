@@ -141,6 +141,13 @@ Default: ``
 
 ***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
 
+#### profile
+Specify the profile to use.
+
+Type: `string[]`<br />
+Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 ----
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).
