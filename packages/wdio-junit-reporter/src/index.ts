@@ -305,10 +305,10 @@ class JunitReporter extends WDIOReporter {
         return JSON.stringify(limit(val))
     }
 
-    private _sameFileName(file1: string, file2: string) {
+    private _sameFileName(file1?: string, file2?: string) {
         // ensure both files are not a file URL
-        file1 = file1 && file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2 && file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1
+        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2
         return file1 === file2
     }
 }
