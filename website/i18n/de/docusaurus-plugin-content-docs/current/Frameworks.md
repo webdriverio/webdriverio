@@ -266,18 +266,8 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-Uneindeutige Definitionen als Fehler markieren. Bitte beachten Sie, dass dies eine `@wdio/cucumber-framework` spezifische Option ist und von Cucumber selbst nicht erkannt wird.
-
-Type: `boolean`<br /> Default: `false`
-
 #### failFast
 Brechen Sie den Test-Lauf beim ersten Fehler ab.
-
-Type: `boolean`<br /> Default: `false`
-
-#### ignoreUndefinedDefinitions
-Behandeln Sie undefinierte Definitionen als Warnungen. Bitte beachten Sie, dass dies eine @wdio/cucumber-framework spezifische Option ist und von Cucumber selbst nicht erkannt wird.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -285,11 +275,6 @@ Type: `boolean`<br /> Default: `false`
 Führen Sie nur die Szenarien aus, deren Name dem Ausdruck entspricht (wiederholbar).
 
 Type: `RegExp[]`<br /> Default: `[]`
-
-#### profile
-Geben Sie das zu verwendende Cucumber-Profil an.
-
-Type: `string[]`<br /> Default: `[]`
 
 #### require
 Liste der Dateien, die die Step-Definitionen implementieren. Liste der Dateien, die die Step-Definitionen implementieren Liste der Dateien, die die Step-Definitionen implementieren Sie können auch einen Glob für Ihre Step-Definitionen angeben.
@@ -302,40 +287,76 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-Geben Sie eine benutzerdefinierte Snippet-Syntax an.
+### import
+Paths to where your support code is, for ESM.
 
-Type: `string`<br /> Default: `null`
+Type: `String[]`<br /> Default: `[]` Example:
 
-#### snippets
-Step Definitionen für ausstehende Schritte ausblenden.
-
-Type: `boolean`<br /> Default: `true`
-
-#### source
-Quell-URIS ausblenden.
-
-Type: `boolean`<br /> Default: `true`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 Fehlgeschlagen, wenn undefinierte oder ausstehende Schritte vorhanden sind.
 
 Type: `boolean`<br /> Default: `false`
 
-#### tagExpression
+## tags
 Führen Sie nur die Funktionen oder Szenarien mit Tags aus, die dem Ausdruck entsprechen. Weitere Einzelheiten finden Sie in der [Cucumber-Dokumentation](https://docs.cucumber.io/cucumber/api/#tag-expressions).
 
-Type: `string`<br /> Default: `null`
+Type: `String`<br /> Default: ``
 
-#### tagsInTitle
-Cucumber-Tags zum Funktions- oder Szenarionamen hinzufügen.
-
-Type: `boolean`<br /> Default: `false`
-
-#### timeout
+### timeout
 Timeout in Millisekunden für Schrittdefinitionen.
 
-Type: `number`<br /> Default: `30000`
+Type: `Number`<br /> Default: `30000`
+
+### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br /> Default: `0`
+
+### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### ignoreUndefinedDefinitions
+Behandeln Sie undefinierte Definitionen als Warnungen.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### failAmbiguousDefinitions
+Uneindeutige Definitionen als Fehler markieren.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br /> Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+Geben Sie das zu verwendende Cucumber-Profil an.
+
+Type: `string[]`<br /> Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### Überspringen von Tests in Cucumber
 
