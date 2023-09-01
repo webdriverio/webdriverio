@@ -21,6 +21,37 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.0 (2023-09-01)
+
+#### :rocket: New Feature
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#11010](https://github.com/webdriverio/webdriverio/pull/11010) Adopt latest Cucumber API interface ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11065](https://github.com/webdriverio/webdriverio/pull/11065) fix(@wdio/cucumber-framework): fix Cucumber types ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`
+  * [#11002](https://github.com/webdriverio/webdriverio/pull/11002) Fix tsnode options ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11067](https://github.com/webdriverio/webdriverio/pull/11067) Adding support for cucumber profiles & update docs ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-utils`
+  * [#11057](https://github.com/webdriverio/webdriverio/pull/11057) fix(@wdio-utils): secure driver connections when using the built-in driv… ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* Other
+  * [#11066](https://github.com/webdriverio/webdriverio/pull/11066) adding headspin boilerplate ([@Muralijc](https://github.com/Muralijc))
+* `webdriverio`
+  * [#11061](https://github.com/webdriverio/webdriverio/pull/11061) Fix found typos ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Murali Jayaraman ([@Muralijc](https://github.com/Muralijc))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.15.10 (2023-08-29)
 
 #### :bug: Bug Fix
