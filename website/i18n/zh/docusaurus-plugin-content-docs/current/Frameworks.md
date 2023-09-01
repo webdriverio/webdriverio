@@ -266,18 +266,8 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Treat ambiguous definitions as errors. Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
-
-Type: `boolean`<br /> Default: `false`
-
 #### failFast
 Abort the run on first failure.
-
-Type: `boolean`<br /> Default: `false`
-
-#### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Treat undefined definitions as warnings. Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -285,11 +275,6 @@ Type: `boolean`<br /> Default: `false`
 Only execute the scenarios with name matching the expression (repeatable).
 
 Type: `RegExp[]`<br /> Default: `[]`
-
-#### profile
-Specify the profile to use.
-
-Type: `string[]`<br /> Default: `[]`
 
 #### require
 Require files containing your step definitions before executing features. You can also specify a glob to your step definitions. Require files containing your step definitions before executing features. You can also specify a glob to your step definitions. You can also specify a glob to your step definitions.
@@ -302,40 +287,76 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-Specify a custom snippet syntax.
+### import
+Paths to where your support code is, for ESM.
 
-Type: `string`<br /> Default: `null`
+Type: `String[]`<br /> Default: `[]` Example:
 
-#### snippets
-Hide step definition snippets for pending steps.
-
-Type: `boolean`<br /> Default: `true`
-
-#### source
-Hide source uris.
-
-Type: `boolean`<br /> Default: `true`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 Fail if there are any undefined or pending steps.
 
 Type: `boolean`<br /> Default: `false`
 
-#### tagExpression
+## tags
 Only execute the features or scenarios with tags matching the expression. Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details. Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
-Type: `string`<br /> Default: `null`
+Type: `String`<br /> Default: ``
 
-#### tagsInTitle
-Add cucumber tags to feature or scenario name.
-
-Type: `boolean`<br /> Default: `false`
-
-#### timeout
+### timeout
 Timeout in milliseconds for step definitions.
 
-Type: `number`<br /> Default: `30000`
+Type: `Number`<br /> Default: `30000`
+
+### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br /> Default: `0`
+
+### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### ignoreUndefinedDefinitions
+Treat undefined definitions as warnings.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### failAmbiguousDefinitions
+Treat ambiguous definitions as errors.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br /> Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+Specify the profile to use.
+
+Type: `string[]`<br /> Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### Skipping tests in cucumber
 
