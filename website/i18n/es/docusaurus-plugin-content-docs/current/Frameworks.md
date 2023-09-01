@@ -352,7 +352,7 @@ Aquí tienes algunos ejemplos de esta sintaxis:
 - `@skip(browserName="chrome")`: la prueba no se ejecutará contra los navegadores chrome.
 - `@skip(browserName="firefox";platformName="linux")`: omitirá la prueba en firefox sobre ejecuciones de linux.
 - `@skip(browserName=["cromo","firefox"])`: los elementos etiquetados serán omitidos para los navegadores de cromo y firefox.
-- `@skip(browserName=/i. explorer/`: las capacidades con navegadores que coincidan con la expresión regular se omitirán (como `iexplorer`, `explorador de Internet`, `explorador de Internet`, . .).
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
 ### Importar ayuda de definición de pasos
 
