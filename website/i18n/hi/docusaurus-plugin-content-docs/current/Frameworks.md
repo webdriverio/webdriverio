@@ -352,7 +352,7 @@ Type: `number`<br /> Default: `30000`
 - `@skip(browserName="chrome")`: क्रोम ब्राउज़र के विरुद्ध परीक्षण निष्पादित नहीं किया जाएगा।
 - `@skip(browserName="firefox";platformName="linux")`: लिनक्स निष्पादन पर फ़ायरफ़ॉक्स में परीक्षण को छोड़ देगा।
 - `@skip(browserName=["chrome","firefox"])`: टैग किए गए आइटम क्रोम और फ़ायरफ़ॉक्स दोनों ब्राउज़रों के लिए छोड़ दिए जाएंगे।
-- `@skip(browserName=/i.*explorer/`: regexp से मेल खाने वाले ब्राउज़र की क्षमताओं को छोड़ दिया जाएगा (जैसे `iexplorer`, `internet Explorer`, `internet-explorer`, ...)।
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
 ### इम्पोर्ट स्टेप डेफिनिशन हेल्पर
 
