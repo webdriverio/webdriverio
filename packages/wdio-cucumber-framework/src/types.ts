@@ -142,6 +142,11 @@ export interface CucumberOptions {
      * @deprecated Use the `tags` config property instead.
      */
     tagExpression?: string;
+    /**
+     * Profiles from which to include configuration.
+     * @default []
+     */
+    profiles?: string[];
 }
 
 export interface HookParams {
