@@ -352,7 +352,7 @@ Hier haben Sie einige Beispiele für diese Syntax:
 - `@skip(browserName="chrome")`: Der Test wird nicht für Chrome-Browser ausgeführt.
 - `@skip(browserName="firefox";platformName="linux")`: überspringt den Test in Firefox in Linux.
 - `@skip(browserName=["chrome","firefox"])`: Markierte Steps werden sowohl mit Chrome- als auch mit dem Firefox-Browser übersprungen.
-- `@skip(browserName=/i.*explorer/`: Funktionen mit Browsern, die mit dem regulären Ausdruck übereinstimmen, werden übersprungen (z.B.: `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
 ### Hilfe zum Importieren von Schrittdefinitionen
 
