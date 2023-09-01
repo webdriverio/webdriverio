@@ -76,9 +76,9 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 `
 
 export const JSONWP_API_DESCRIPTION = /*md*/`
-:::caution depcrecated
+:::caution deprecated
 
-The JSONWireProtocol is decrecated and replaced by the [WebDriver](/docs/api/webdriver)
+The JSONWireProtocol is deprecated and replaced by the [WebDriver](/docs/api/webdriver)
 protocol.
 
 :::
