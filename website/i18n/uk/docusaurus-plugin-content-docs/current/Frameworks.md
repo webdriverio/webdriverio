@@ -266,18 +266,8 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-Розглядати неоднозначні визначення як помилки. Зверніть увагу, що цей параметр підтримується лише `@wdio/cucumber-framework`, і не розпізнається самим cucumber-js.
-
-Type: `boolean`<br /> Default: `false`
-
 #### failFast
 Припинити виконання при першому невдалому тесті.
-
-Type: `boolean`<br /> Default: `false`
-
-#### ignoreUndefinedDefinitions
-Розглядати невизначені визначення як попередження. Зверніть увагу, що цей параметр підтримується лише @wdio/cucumber-framework, і не розпізнається самим cucumber-js.
 
 Type: `boolean`<br /> Default: `false`
 
@@ -285,11 +275,6 @@ Type: `boolean`<br /> Default: `false`
 Виконувати лише сценарії з іменами, які відповідають виразу (повторюване).
 
 Type: `RegExp[]`<br /> Default: `[]`
-
-#### profile
-Профіль для використання.
-
-Type: `string[]`<br /> Default: `[]`
 
 #### require
 Файли, що містять визначення ваших кроків, які буде підключено перед виконанням функцій. Ви також можете вказати ґлоб патерн до файлів із визначенням кроків.
@@ -302,40 +287,76 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-Укажіть користувацький фрагмент синтаксису.
+### import
+Paths to where your support code is, for ESM.
 
-Type: `string`<br /> Default: `null`
+Type: `String[]`<br /> Default: `[]` Example:
 
-#### snippets
-Приховувати фрагменти із визначенням кроків для кроків в очікуванні.
-
-Type: `boolean`<br /> Default: `true`
-
-#### source
-Чи показувати URI.
-
-Type: `boolean`<br /> Default: `true`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 Викидати помилка, якщо є невизначені або незавершені кроки.
 
 Type: `boolean`<br /> Default: `false`
 
-#### tagExpression
+## tags
 Виконувати функції або сценарії лише з тегами, що відповідають виразу. Будь ласка, перегляньте документацію [Cucumber](https://docs.cucumber.io/cucumber/api/#tag-expressions) для додаткової інформації.
 
-Type: `string`<br /> Default: `null`
+Type: `String`<br /> Default: ``
 
-#### tagsInTitle
-Додати теги Cucumber до назви функції або сценарію.
-
-Type: `boolean`<br /> Default: `false`
-
-#### timeout
+### timeout
 Час очікування в мілісекундах для визначення кроків.
 
-Type: `number`<br /> Default: `30000`
+Type: `Number`<br /> Default: `30000`
+
+### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br /> Default: `0`
+
+### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### ignoreUndefinedDefinitions
+Розглядати невизначені визначення як попередження.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### failAmbiguousDefinitions
+Розглядати неоднозначні визначення як помилки.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br /> Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+Профіль для використання.
+
+Type: `string[]`<br /> Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### Skipping tests in cucumber
 
