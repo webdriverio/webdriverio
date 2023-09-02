@@ -36,12 +36,133 @@ While the amount of fixed defined capabilities is verry low, everyone can provid
 
 ### WebdriverIO Capabilities to manage browser driver options
 
-WebdriverIO manages installing and running browser driver for you. In order to propagate options to the driver you can use the following custom capabilities:
+WebdriverIO manages installing and running browser driver for you. WebdriverIO uses a custom capability that allows you to pass in parameters to the driver.
 
-- `wdio:chromedriverOptions`: manage Chromedriver options (see `chromedriver --help` for more information)
-- `wdio:safaridriverOptions`: manage Safaridriver [options](https://github.com/webdriverio-community/node-safaridriver#options)
-- `wdio:geckodriverOptions`: manage Geckodriver [options](https://github.com/webdriverio-community/node-geckodriver#options)
-- `wdio:edgedriverOptions`: manage Edgedriver [options](https://github.com/webdriverio-community/node-edgedriver#options)
+#### Common Driver Options
+
+While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
+
+##### `cacheDir`
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `string`<br />
+Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
+##### `binary`
+
+Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the driver you are using.
+
+Type: `string`
+
+#### Browser Specific Driver Options
+
+In order to propagate options to the driver you can use the following custom capabilities:
+
+- Chrome: `wdio:chromedriverOptions`
+- Firefox: `wdio:geckodriverOptions`
+- Microsoft Egde: `wdio:edgedriverOptions`
+- Safari: `wdio:safaridriverOptions`
+
+<Tabs
+  defaultValue="chrome"
+  values={[
+    {label: 'wdio:chromedriverOptions', value: 'chrome'},
+    {label: 'wdio:geckodriverOptions', value: 'firefox'},
+    {label: 'wdio:edgedriverOptions', value: 'msedge'},
+    {label: 'wdio:safaridriverOptions', value: 'safari'},
+  ]
+}>
+<TabItem value="chrome">
+
+##### adbPort
+The port on which the ADB driver should run.
+
+Example: `9515`
+
+Type: `number`
+
+##### urlBase
+Base URL path prefix for commands, e.g. `wd/url`.
+
+Example: `/`
+
+Type: `string`
+
+##### logPath
+Write server log to file instead of stderr, increases log level to `INFO`
+
+Type: `string`
+
+##### logLevel
+Set log level. Possible options `ALL`, `DEBUG`, `INFO`, `WARNING`, `SEVERE`, `OFF`.
+
+Type: `string`
+
+##### verbose
+Log verbosely (equivalent to `--log-level=ALL`)
+
+Type: `boolean`
+
+##### silent
+Log nothing (equivalent to `--log-level=OFF`)
+
+Type: `boolean`
+
+##### appendLog
+Append log file instead of rewriting.
+
+Type: `boolean`
+
+##### replayable
+Log verbosely and don't truncate long strings so that the log can be replayed (experimental).
+
+Type: `boolean`
+
+##### readableTimestamp
+Add readable timestamps to log.
+
+Type: `boolean`
+
+##### enableChromeLogs
+Show logs from the browser (overrides other logging options).
+
+Type: `boolean`
+
+##### bidiMapperPath
+Custom bidi mapper path.
+
+Type: `string`
+
+##### allowedIps
+Comma-separated allowlist of remote IP addresses which are allowed to connect to EdgeDriver.
+
+Type: `string[]`<br />
+Default: `['']`
+
+##### allowedOrigins
+Comma-separated allowlist of request origins which are allowed to connect to EdgeDriver. Using `*` to allow any host origin is dangerous!
+
+Type: `string[]`<br />
+Default: `['*']`
+
+</TabItem>
+<TabItem value="firefox">
+
+See all Geckodriver options in the official [driver package](https://github.com/webdriverio-community/node-geckodriver#options).
+
+</TabItem>
+<TabItem value="msedge">
+
+See all Edgedriver options in the official [driver package](https://github.com/webdriverio-community/node-edgedriver#options).
+
+</TabItem>
+<TabItem value="safari">
+
+See all Safaridriver options in the official [driver package](https://github.com/webdriverio-community/node-safaridriver#options).
+
+</TabItem>
+</Tabs>
 
 ## Special Capabilities for Specific Use Cases
 
@@ -119,14 +240,21 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 ```ts
 {
     browserName: 'chrome',
-    browserVersion: 'stable' // or 'dev', 'canary', 'beta'
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
 }
 ```
 
 </TabItem>
 <TabItem value="firefox">
 
-When testing on Firefox, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Firefox, you can let WebdriverIO setup Firefox Nightly for you by providing `latest` as `browserVersion`:
+
+```ts
+    browserName: 'firefox',
+    browserVersion: 'latest'
+```
+
+If you like to test a manually downloaded version you can provide a binary path to the browser via:
 
 ```ts
     browserName: 'firefox',

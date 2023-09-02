@@ -77,15 +77,6 @@ export const config = {
 * `addDescription(description, [type])` – add description to test.
     * `description` (*String*) - description of the test.
     * `type` (*String*, optional) – description type, `text` by default. Values ['text', 'html','markdown']
-* `addStep(title, [{content, name = 'attachment'}], [status])` - add step to test.
-    * `title` (*String*) - name of the step.
-    * `content` (*String*, optional) - step attachment
-    * `name` (*String*, optional) - step attachment name, `attachment` by default.
-    * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
-* `startStep(title)` - start with a step
-    * `title` (*String*) - name of the step.
-* `endStep(status)` - end with a step
-    * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
 * `step(name, body)` - starts step with content function inside. Allows to create steps with infinite hierarchy
     * `body` (*Function*) - the step body async function
 

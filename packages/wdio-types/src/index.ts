@@ -22,6 +22,10 @@ interface DriverOptions {
      * directory where browser and driver should be stored
      */
     cacheDir?: string
+    /**
+     * path to custom driver binary
+     */
+    binary?: string
 }
 
 declare global {
