@@ -225,15 +225,35 @@ describe('beforeScenario', () => {
         } as any)
 
         expect(executeSpy).toBeCalledTimes(1)
+    })
 
+    it('should not execute test started if shouldRunTestHooks is false', async () => {
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return false })
+        await accessibilityHandler.beforeScenario({
+            pickle: {
+                name: 'pickle-name',
+                tags: []
+            },
+            gherkinDocument: {
+                uri: '',
+                feature: {
+                    name: 'feature-name',
+                    description: ''
+                }
+            }
+        } as any)
+
+        expect(executeSpy).toBeCalledTimes(0)
     })
 })
 
 describe('afterScenario', () => {
+    let executeAsyncSpy: any
     let accessibilityHandler: AccessibilityHandler
 
     beforeEach(() => {
         accessibilityHandler = new AccessibilityHandler(browser, caps, false, 'framework', true, accessibilityOpts)
+        executeAsyncSpy = vi.spyOn((browser as WebdriverIO.Browser), 'executeAsync')
         vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
@@ -264,6 +284,47 @@ describe('afterScenario', () => {
         expect(accessibilityHandler['sendTestStopEvent']).toBeCalledTimes(1)
         expect(logInfoMock.mock.calls[1][0])
             .toContain('Accessibility testing for this test case has ended.')
+    })
+
+    it('should return if shouldRunTestHooks is false', async () => {
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return false })
+        await accessibilityHandler.afterScenario({
+            pickle: {
+                name: 'pickle-name',
+                tags: []
+            },
+            gherkinDocument: {
+                uri: '',
+                feature: {
+                    name: 'feature-name',
+                    description: ''
+                }
+            }
+        } as any)
+
+        expect(executeAsyncSpy).toBeCalledTimes(0)
+    })
+
+    it('should return if accessibilityScanStarted is false', async () => {
+        accessibilityHandler['_testMetadata']['test title'] = {
+            accessibilityScanStarted: true,
+            scanTestForAccessibility: true
+        }
+        await accessibilityHandler.afterScenario({
+            pickle: {
+                name: 'pickle-name',
+                tags: []
+            },
+            gherkinDocument: {
+                uri: '',
+                feature: {
+                    name: 'feature-name',
+                    description: ''
+                }
+            }
+        } as any)
+
+        expect(executeAsyncSpy).toBeCalledTimes(0)
     })
 })
 
@@ -309,10 +370,16 @@ describe('beforeTest', () => {
 
         it('should not execute test started if page opened but cannot start scan', async () => {
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(false)
-
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
             expect(executeSpy).toBeCalledTimes(1)
+        })
+
+        it('should not execute test started if shouldRunTestHooks is false', async () => {
+            accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return false })
+            await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
+
+            expect(executeSpy).toBeCalledTimes(0)
         })
     })
 
@@ -334,10 +401,12 @@ describe('beforeTest', () => {
 })
 
 describe('afterTest', () => {
+    let executeAsyncSpy: any
     let accessibilityHandler: AccessibilityHandler
 
     beforeEach(() => {
         accessibilityHandler = new AccessibilityHandler(browser, caps, false, 'mocha', true, accessibilityOpts)
+        executeAsyncSpy = vi.spyOn((browser as WebdriverIO.Browser), 'executeAsync')
         vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
@@ -354,6 +423,23 @@ describe('afterTest', () => {
 
         expect(logInfoMock.mock.calls[1][0])
             .toContain('Accessibility testing for this test case has ended.')
+    })
+
+    it('should not return if accessibilityScanStarted is false', async () => {
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return false })
+        await accessibilityHandler.afterTest('suite title', { parent: 'parent', title: 'test' } as any)
+
+        expect(executeAsyncSpy).toBeCalledTimes(0)
+    })
+
+    it('should not return if shouldRunTestHooks is false', async () => {
+        accessibilityHandler['_testMetadata']['test title'] = {
+            accessibilityScanStarted: false,
+            scanTestForAccessibility: true
+        }
+        await accessibilityHandler.afterTest('suite title', { parent: 'parent', title: 'test' } as any)
+
+        expect(executeAsyncSpy).toBeCalledTimes(0)
     })
 })
 
