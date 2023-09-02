@@ -73,7 +73,7 @@ await expect(button).toBeDisplayed();
 
 ## Don't overuse commands and assertions
 
-When using expect.toBeDisplayed you implicitly also with for the element to exist.
+When using expect.toBeDisplayed you implicitly also wait for the element to exist. There isn't a need to use the waitForXXX commands when you already have an assertion doing the same thing.
 
 ```js
 // 👎
@@ -81,15 +81,10 @@ await button.waitForExist();
 await expect(button).toBeDisplayed();
 
 // 👎
-await expect(button).toBeExisting();
-await expect(button).toBeDisplayed();
-```
-
-No need to use the waitForXXX commands when you already have an assertion doing the same thing.
-
-```js
-// 👎
 await button.waitForDisplayed();
+await expect(button).toBeDisplayed();
+
+// 👍
 await expect(button).toBeDisplayed();
 ```
 
