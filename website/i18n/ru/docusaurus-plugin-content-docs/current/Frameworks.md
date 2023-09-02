@@ -287,7 +287,7 @@ cucumberOpts: {
 }
 ```
 
-### import
+#### import
 Paths to where your support code is, for ESM.
 
 Type: `String[]`<br /> Default: `[]` Example:
@@ -303,48 +303,48 @@ Fail if there are any undefined or pending steps.
 
 Type: `boolean`<br /> Default: `false`
 
-## tags
+#### tags
 Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br /> Default: ``
 
-### timeout
+#### timeout
 Timeout in milliseconds for step definitions.
 
 Type: `Number`<br /> Default: `30000`
 
-### retry
+#### retry
 Specify the number of times to retry failing test cases.
 
 Type: `Number`<br /> Default: `0`
 
-### retryTagFilter
+#### retryTagFilter
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
 Type: `RegExp`
 
-### tagsInTitle
+#### tagsInTitle
 Add cucumber tags to feature or scenario name
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### ignoreUndefinedDefinitions
+#### ignoreUndefinedDefinitions
 Treat undefined definitions as warnings.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### failAmbiguousDefinitions
+#### failAmbiguousDefinitions
 Treat ambiguous definitions as errors.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### tagExpression
+#### tagExpression
 Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br /> Default: ``
