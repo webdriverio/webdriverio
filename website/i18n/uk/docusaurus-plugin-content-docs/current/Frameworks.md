@@ -287,7 +287,7 @@ cucumberOpts: {
 }
 ```
 
-### import
+#### import
 Paths to where your support code is, for ESM.
 
 Type: `String[]`<br /> Default: `[]` Example:
@@ -303,48 +303,48 @@ cucumberOpts: {
 
 Type: `boolean`<br /> Default: `false`
 
-## tags
+#### tags
 Виконувати функції або сценарії лише з тегами, що відповідають виразу. Будь ласка, перегляньте документацію [Cucumber](https://docs.cucumber.io/cucumber/api/#tag-expressions) для додаткової інформації.
 
 Type: `String`<br /> Default: ``
 
-### timeout
+#### timeout
 Час очікування в мілісекундах для визначення кроків.
 
 Type: `Number`<br /> Default: `30000`
 
-### retry
+#### retry
 Specify the number of times to retry failing test cases.
 
 Type: `Number`<br /> Default: `0`
 
-### retryTagFilter
+#### retryTagFilter
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
 Type: `RegExp`
 
-### tagsInTitle
+#### tagsInTitle
 Add cucumber tags to feature or scenario name
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### ignoreUndefinedDefinitions
+#### ignoreUndefinedDefinitions
 Розглядати невизначені визначення як попередження.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### failAmbiguousDefinitions
+#### failAmbiguousDefinitions
 Розглядати неоднозначні визначення як помилки.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### tagExpression
+#### tagExpression
 Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br /> Default: ``
