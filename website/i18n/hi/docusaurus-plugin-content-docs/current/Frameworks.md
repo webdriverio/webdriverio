@@ -287,7 +287,7 @@ cucumberOpts: {
 }
 ```
 
-### import
+#### import
 Paths to where your support code is, for ESM.
 
 Type: `String[]`<br /> Default: `[]` Example:
@@ -303,48 +303,48 @@ cucumberOpts: {
 
 Type: `boolean`<br /> Default: `false`
 
-## tags
+#### tags
 अभिव्यक्ति से मेल खाने वाले टैग के साथ केवल सुविधाओं या परिदृश्यों को निष्पादित करें। अधिक विवरण के लिए कृपया [कुकुम्बर दस्तावेज़](https://docs.cucumber.io/cucumber/api/#tag-expressions) देखें।
 
 Type: `String`<br /> Default: ``
 
-### timeout
+#### timeout
 स्टेप परिभाषाओं के लिए मिलीसेकंड में टाइमआउट।
 
 Type: `Number`<br /> Default: `30000`
 
-### retry
+#### retry
 Specify the number of times to retry failing test cases.
 
 Type: `Number`<br /> Default: `0`
 
-### retryTagFilter
+#### retryTagFilter
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
 Type: `RegExp`
 
-### tagsInTitle
+#### tagsInTitle
 Add cucumber tags to feature or scenario name
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### ignoreUndefinedDefinitions
+#### ignoreUndefinedDefinitions
 अपरिभाषित परिभाषाओं को चेतावनियों के रूप में मानें।
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### failAmbiguousDefinitions
+#### failAmbiguousDefinitions
 अस्पष्ट परिभाषाओं को त्रुटियों के रूप में मानें।
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### tagExpression
+#### tagExpression
 Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br /> Default: ``
@@ -358,7 +358,7 @@ Type: `string[]`<br /> Default: `[]`
 
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
-### कुकुम्बर में स्किपिंग परीक्षण
+### Skipping tests in cucumber
 
 ध्यान दें कि यदि आप `cucumberOpts`में उपलब्ध नियमित खीरा परीक्षण फ़िल्टरिंग क्षमताओं का उपयोग करके एक परीक्षण छोड़ना चाहते हैं, तो आप इसे क्षमताओं में कॉन्फ़िगर किए गए सभी ब्राउज़रों और उपकरणों के लिए करेंगे। यदि आवश्यक न हो तो सत्र शुरू किए बिना केवल विशिष्ट क्षमताओं के संयोजन के लिए परिदृश्यों को छोड़ने में सक्षम होने के लिए, वेबड्राइवरियो ककड़ी के लिए निम्नलिखित विशिष्ट टैग सिंटैक्स प्रदान करता है:
 
@@ -375,7 +375,7 @@ Type: `string[]`<br /> Default: `[]`
 - `@skip(browserName=["chrome","firefox"])`: टैग किए गए आइटम क्रोम और फ़ायरफ़ॉक्स दोनों ब्राउज़रों के लिए छोड़ दिए जाएंगे।
 - `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
-### इम्पोर्ट स्टेप डेफिनिशन हेल्पर
+### Import Step Definition Helper
 
 स्टेप डेफिनिशन हेल्पर जैसे `Given`, `When` या `Then` या हुक का उपयोग करने के लिए, आपको `@cucumber/cucumber`से आयात करने का अनुमान है, उदाहरण के लिए:
 
