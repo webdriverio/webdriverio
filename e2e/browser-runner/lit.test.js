@@ -236,6 +236,12 @@ describe('Lit Component testing', () => {
         })
 
         it('can save a pdf', async () => {
+            /**
+             * Safari does not support 'POST /session/<sessionId>/print' command
+             */
+            if (browser.capabilities.browserName.toLowerCase() === 'safari') {
+                return
+            }
             expect((await browser.savePDF('./screenshot.pdf')).type)
                 .toBe('Buffer')
         })
@@ -250,7 +256,7 @@ describe('Lit Component testing', () => {
                 expect(await $('aria/Find me').getHTML(false)).toBe('Find me')
             })
 
-            it(' images with an alt tag', async () => {
+            it('images with an alt tag', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`<img alt="foo" src="Find me">`,
