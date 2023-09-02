@@ -230,6 +230,16 @@ describe('Lit Component testing', () => {
             expect((await $(() => document.body).getTagName()).toLowerCase()).toBe('body')
         })
 
+        it('can save a screenshot', async () => {
+            expect((await browser.saveScreenshot('./screenshot.png')).type)
+                .toBe('Buffer')
+        })
+
+        it('can save a pdf', async () => {
+            expect((await browser.savePDF('./screenshot.pdf')).type)
+                .toBe('Buffer')
+        })
+
         describe('a11y selectors', () => {
             it('aria label is received from element content', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
