@@ -93,7 +93,7 @@ await button.waitForDisplayed();
 await expect(button).toBeDisplayed();
 ```
 
-No need to wait for an element to exist or be displayed when interacting or when asserting something like it's text unless the element explicitly can be invisible (opacity: 0; for example) in which case waiting for the element to be displayed makes sense.
+No need to wait for an element to exist or be displayed when interacting or when asserting something like it's text unless the element can explicitly be invisible (opacity: 0; for example) or can explicitly be disabled (disabled attribute for example) in which case waiting for the element to be displayed makes sense.
 
 ```js
 // 👎
