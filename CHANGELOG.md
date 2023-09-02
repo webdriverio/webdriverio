@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.2 (2023-09-02)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11068](https://github.com/webdriverio/webdriverio/pull/11068) (@wdio/browser-runner): allow to take screenshots and pdf when running component tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11073](https://github.com/webdriverio/webdriverio/pull/11073) (webdriverio): deprecate touchAction command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.1 (2023-09-02)
 
 #### :bug: Bug Fix
