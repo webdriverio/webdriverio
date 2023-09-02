@@ -139,7 +139,7 @@ await submitFormButton.click();
 
 ## Async loops
 
-When you have some asynchronous code that you want to repeat it is important to know that now all loops can do this.
+When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
 
 The following will not click the elements in order.
 
