@@ -21,6 +21,7 @@ import type {
     TestStepFinished,
     TestStepResult,
     TestCaseFinished,
+    Hook
 } from '@cucumber/messages'
 
 import {
@@ -36,6 +37,7 @@ import type { HookParams, ReporterScenario } from './types.js'
 
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
+    private _hookEvent: Hook[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
     private _currentTestCase?: TestCaseStarted
@@ -92,6 +94,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
+            } else if (envelope.hook) {
+                this.onHook(envelope.hook)
             } else {
                 // do nothing for other envelopes
             }
@@ -268,6 +272,10 @@ export default class CucumberFormatter extends Formatter {
         this.eventEmitter.emit('getHookParams', this._currentPickle)
     }
 
+    onHook(hookEvent: Hook) {
+        this._hookEvent.push(hookEvent)
+    }
+
     onTestRunStarted() {
         if (this.usesSpecGrouping()) {
             return
@@ -410,9 +418,14 @@ export default class CucumberFormatter extends Formatter {
             const teststep = testcase?.testSteps?.find(
                 (step) => step.id === testStepStartedEvent.testStepId
             )
+
+            const hook = this._hookEvent.find(
+                (h) => h.id === teststep?.hookId
+            )
+
             const step =
                 scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-                teststep
+                { ...teststep, text: `${hook?.name || ''} ${hook?.tagExpression || ''}`.trim() } as TestStep
 
             const doc = this._gherkinDocEvents.find(
                 (gde) => gde.uri === scenario?.uri
