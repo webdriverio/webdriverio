@@ -84,7 +84,7 @@ If you want to debug your tests with breakpoints in latest VSCode, you have two 
 
 ### VSCode Toggle Auto Attach
 
-You can automatically attach the debugger by follwing these steps in VSCode:
+You can automatically attach the debugger by following these steps in VSCode:
  - Press CMD + Shift + P (Linux and Macos) or CTRL + Shift + P (Windows)
  - Type "attach" into the input field
  - Select "Debug: Toggle Auto Attach"
