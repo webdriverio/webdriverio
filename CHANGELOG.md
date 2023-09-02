@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.1 (2023-09-02)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#11063](https://github.com/webdriverio/webdriverio/pull/11063) fix spec name comparison - Closes [#11060](https://github.com/webdriverio/webdriverio/issues/11060) ([@lecousin](https://github.com/lecousin))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11069](https://github.com/webdriverio/webdriverio/pull/11069) Add name, tag of hook to reporter & doc refactor ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Guillaume Le Cousin ([@lecousin](https://github.com/lecousin))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.0 (2023-09-01)
 
 #### :rocket: New Feature
