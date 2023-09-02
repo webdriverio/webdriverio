@@ -24,7 +24,7 @@ class _AccessibilityHandler {
     private _platformA11yMeta: { [key: string]: any; }
     private _caps: Capabilities.RemoteCapability
     private _suiteFile?: string
-    private _accessibility?: string | boolean
+    private _accessibility?: boolean
     private _accessibilityOptions?: { [key: string]: any; }
     private _testMetadata: { [key: string]: any; } = {}
 

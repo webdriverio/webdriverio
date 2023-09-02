@@ -42,7 +42,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
-    private _accessibilityAutomation?: string | boolean
+    private _accessibilityAutomation?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,

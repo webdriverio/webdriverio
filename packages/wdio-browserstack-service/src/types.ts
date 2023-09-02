@@ -63,7 +63,7 @@ export interface BrowserstackConfig {
     * and generate health reports which can be viewed in the Accessibility dashboard.
     * @default false
     */
-    accessibility?: boolean | string;
+    accessibility?: boolean;
     /**
     * Customise the Accessibility-related config options under this key.
     * For e.g. wcagVersion, bestPractice issues, needsReview issues etc.
