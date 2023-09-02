@@ -21,6 +21,73 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.1 (2023-09-02)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#11063](https://github.com/webdriverio/webdriverio/pull/11063) fix spec name comparison - Closes [#11060](https://github.com/webdriverio/webdriverio/issues/11060) ([@lecousin](https://github.com/lecousin))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11069](https://github.com/webdriverio/webdriverio/pull/11069) Add name, tag of hook to reporter & doc refactor ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Guillaume Le Cousin ([@lecousin](https://github.com/lecousin))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.0 (2023-09-01)
+
+#### :rocket: New Feature
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#11010](https://github.com/webdriverio/webdriverio/pull/11010) Adopt latest Cucumber API interface ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11065](https://github.com/webdriverio/webdriverio/pull/11065) fix(@wdio/cucumber-framework): fix Cucumber types ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`
+  * [#11002](https://github.com/webdriverio/webdriverio/pull/11002) Fix tsnode options ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11067](https://github.com/webdriverio/webdriverio/pull/11067) Adding support for cucumber profiles & update docs ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-utils`
+  * [#11057](https://github.com/webdriverio/webdriverio/pull/11057) fix(@wdio-utils): secure driver connections when using the built-in driv… ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* Other
+  * [#11066](https://github.com/webdriverio/webdriverio/pull/11066) adding headspin boilerplate ([@Muralijc](https://github.com/Muralijc))
+* `webdriverio`
+  * [#11061](https://github.com/webdriverio/webdriverio/pull/11061) Fix found typos ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Murali Jayaraman ([@Muralijc](https://github.com/Muralijc))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.15.10 (2023-08-29)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11053](https://github.com/webdriverio/webdriverio/pull/11053) (@wdio/browser-runner): fix detection of mocked module ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11025](https://github.com/webdriverio/webdriverio/pull/11025) Update Capabilities.ts ([@yanhaijing](https://github.com/yanhaijing))
+
+#### :memo: Documentation
+* [#11047](https://github.com/webdriverio/webdriverio/pull/11047) fix footer wrapping ([@tamil777selvan](https://github.com/tamil777selvan))
+* [#11049](https://github.com/webdriverio/webdriverio/pull/11049) fix JSONWP api description typo ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- 颜海镜 ([@yanhaijing](https://github.com/yanhaijing))
+
+
 ## v8.15.9 (2023-08-27)
 
 #### :bug: Bug Fix

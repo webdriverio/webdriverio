@@ -187,8 +187,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                             source.startsWith('.') &&
                             [...sessionMocks.values()].find((m) => {
                                 const fileImportPath = path.resolve(path.dirname(id), source)
+                                const fileImportPathSliced = fileImportPath.slice(0, path.extname(fileImportPath).length * -1)
                                 const testMockPath = path.resolve(path.dirname(spec || '/'), m)
-                                return fileImportPath.slice(0, path.extname(fileImportPath).length * -1) === testMockPath.slice(0, path.extname(testMockPath).length * -1)
+                                const testMockPathSliced = testMockPath.slice(0, path.extname(testMockPath).length * -1)
+                                return fileImportPathSliced === testMockPathSliced && fileImportPathSliced.length > 0
                             })
                         )
                     )
@@ -218,8 +220,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         nodePath.insertBefore(newNode)
                     }
 
+                    // determine file extension length so we can cut it out, fall back to infinity if no extension is set
+                    const mockExtensionLengh = (path.extname(source).length * -1) || Infinity
                     const wdioImportModuleIdentifier = source.startsWith('.') || source.startsWith('/')
-                        ? url.pathToFileURL(path.resolve(path.dirname(id), source).slice(0, path.extname(source).length * -1)).pathname
+                        ? url.pathToFileURL(path.resolve(path.dirname(id), source).slice(0, mockExtensionLengh)).pathname
                         : source
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
                     const mockImport = isSpecFile && !isMockedModule
