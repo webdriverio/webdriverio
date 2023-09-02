@@ -39,7 +39,7 @@ await $('table tr td');
 
 ### Prefer locating a single element instead of taking one from a list
 
-It is not always possible to do this but using CSS pseudo-classes like [:nth-child](https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child) you can match elements based on the indexes of the elements in the child list of their parents.
+It isn't always possible to do this but using CSS pseudo-classes like [:nth-child](https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child) you can match elements based on the indexes of the elements in the child list of their parents.
 
 Queries all table rows.
 
