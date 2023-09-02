@@ -104,7 +104,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Grouping Test Specs To Run Sequentially
 
-As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
+As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance. Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
 
 To group tests to run in a single instance, define them as an array within the specs definition.
 
