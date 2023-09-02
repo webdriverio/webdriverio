@@ -2,6 +2,19 @@ import { touchAction as touchActionCommand } from '../constant.js'
 import type { TouchActions } from '../../types.js'
 
 /**
+ * :::caution Deprecation Warning
+ *
+ * The `touchAction` command is __deprecated__ and will be removed in a future version.
+ * We recommend to use the [`action`](/docs/api/browser/action) command instead with
+ * pointer type `touch`, e.g.:
+ *
+ * ```ts
+ * await browser.action('pointer', {
+ *   parameters: { pointerType: 'touch' }
+ * })
+ * ```
+ *
+ * :::
  *
  * The Touch Action API provides the basis of all gestures that can be automated in Appium.
  * It is currently only available to native apps and can not be used to interact with webapps.
