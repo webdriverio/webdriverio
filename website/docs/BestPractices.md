@@ -9,6 +9,8 @@ This guide aims to share our best practices that help you write performant and r
 
 ## Use resilient selectors
 
+__Note:__ To find out all the possible selectors WebdriverIO supports, checkout our [Selectors](./Selectors.md) page.
+
 Use selectors that are resilient to changes in the DOM.
 
 ```js reference useResilientSelectors
