@@ -287,7 +287,7 @@ cucumberOpts: {
 }
 ```
 
-### import
+#### import
 Paths to where your support code is, for ESM.
 
 Type: `String[]`<br /> Default: `[]` Example:
@@ -303,48 +303,48 @@ Fehlgeschlagen, wenn undefinierte oder ausstehende Schritte vorhanden sind.
 
 Type: `boolean`<br /> Default: `false`
 
-## tags
+#### tags
 Führen Sie nur die Funktionen oder Szenarien mit Tags aus, die dem Ausdruck entsprechen. Weitere Einzelheiten finden Sie in der [Cucumber-Dokumentation](https://docs.cucumber.io/cucumber/api/#tag-expressions).
 
 Type: `String`<br /> Default: ``
 
-### timeout
+#### timeout
 Timeout in Millisekunden für Schrittdefinitionen.
 
 Type: `Number`<br /> Default: `30000`
 
-### retry
+#### retry
 Specify the number of times to retry failing test cases.
 
 Type: `Number`<br /> Default: `0`
 
-### retryTagFilter
+#### retryTagFilter
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
 Type: `RegExp`
 
-### tagsInTitle
+#### tagsInTitle
 Add cucumber tags to feature or scenario name
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### ignoreUndefinedDefinitions
+#### ignoreUndefinedDefinitions
 Behandeln Sie undefinierte Definitionen als Warnungen.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### failAmbiguousDefinitions
+#### failAmbiguousDefinitions
 Uneindeutige Definitionen als Fehler markieren.
 
 Type: `Boolean`<br /> Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### tagExpression
+#### tagExpression
 Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br /> Default: ``
@@ -358,7 +358,7 @@ Type: `string[]`<br /> Default: `[]`
 
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
-### Überspringen von Tests in Cucumber
+### Skipping tests in cucumber
 
 Beachten Sie, dass Sie, wenn Sie einen Test mit den in `cucumberOpts` verfügbaren Filterfunktionen für Cucumber Tests überspringen möchten, dies für alle Browser und Geräte tun werden, die in den Funktionen konfiguriert sind. Um Szenarien nur für bestimmte Browser-Kombinationen überspringen zu können, ohne dass eine Sitzung gestartet wird, falls dies nicht erforderlich ist, stellt WebdriverIO die folgende spezifische Tag-Syntax für Gurke bereit:
 
@@ -375,7 +375,7 @@ Hier haben Sie einige Beispiele für diese Syntax:
 - `@skip(browserName=["chrome","firefox"])`: Markierte Steps werden sowohl mit Chrome- als auch mit dem Firefox-Browser übersprungen.
 - `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
-### Hilfe zum Importieren von Schrittdefinitionen
+### Import Step Definition Helper
 
 Um Schrittdefinitionshelfer wie `Given`, `When` or `Then` oder Hooks zu verwenden, sollten Sie then from `@cucumber/cucumber`importieren, z. B. so:
 
@@ -391,7 +391,7 @@ import { Given, When, Then } from '@wdio/cucumber-framework'
 
 Dadurch wird sichergestellt, dass Sie die richtigen Helfer innerhalb des WebdriverIO-Frameworks verwenden, und Sie können eine unabhängige Cucumber-Version für andere Arten von Tests verwenden.
 
-## Verwendung Serenity/JS
+## Using Serenity/JS
 
 [Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) ist ein Open-Source-Framework, das entwickelt wurde, um Akzeptanz- und Regressionstests komplexer Softwaresysteme schneller, kollaborativer und einfacher zu skalieren.
 
@@ -402,7 +402,7 @@ Für WebdriverIO-Testsuiten bietet Serenity/JS:
 
 ![Beispiel für einen Serenity BDD-Bericht](/img/serenity-bdd-reporter.png)
 
-### Installation von Serenity/JS
+### Installing Serenity/JS
 
 Um Serenity/JS zu einem [WebdriverIO-Projekt](https://webdriver.io/docs/gettingstarted)hinzuzufügen, installieren Sie die folgenden Serenity/JS-Module von NPM:
 
@@ -418,7 +418,7 @@ Erfahren Sie mehr über Serenity/JS-Module:
 - [`@serenity-js/console-reporter`](https://serenity-js.org/api/console-reporter/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [`@serenity-js/serenity-bdd`](https://serenity-js.org/api/serenity-bdd/?pk_campaign=wdio8&pk_source=webdriver.io)
 
-### Konfiguration von Serenity/JS
+### Configuring Serenity/JS
 
 Um die Integration mit Serenity/JS zu aktivieren, konfigurieren Sie WebdriverIO wie folgt:
 
@@ -532,7 +532,7 @@ Erfahren Sie mehr über
 - [Serenity/JS Mocha-Konfigurationsoptionen](https://serenity-js.org/api/mocha-adapter/interface/MochaConfig/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [WebdriverIO-Konfigurationsdatei](configurationfile)
 
-### Erstellung von Serenity BDD-Berichten und Dokumentation
+### Producing Serenity BDD reports and living documentation
 
 [Serenity BDD-Berichte und Dokumentation](https://serenity-bdd.github.io/docs/reporting/the_serenity_reports) werden von [Serenity BDD CLI](https://github.com/serenity-bdd/serenity-core/tree/main/serenity-cli)generiert, ein Java-Programm, das vom Modul [`@serenity-js/serenity-bdd`](https://serenity-js.org/api/serenity-bdd/?pk_campaign=wdio8&pk_source=webdriver.io) heruntergeladen und verwaltet wird.
 
@@ -563,7 +563,7 @@ Um mehr über den `SerenityBDDReporter`zu erfahren, konsultieren Sie bitte:
 - Konfigurationsbeispiele in [`SerenityBDDReporter` API-Dokumente](https://serenity-js.org/api/serenity-bdd/class/SerenityBDDReporter/?pk_campaign=wdio8&pk_source=webdriver.io),
 - [Serenity/JS-Beispiele auf GitHub](https://github.com/serenity-js/serenity-js/tree/main/examples).
 
-### Verwendung der Serenity/JS-Screenplay-Pattern-APIs
+### Using Serenity/JS Screenplay Pattern APIs
 
 Das [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io) ist ein innovativer, benutzerzentrierter Ansatz zum Schreiben hochwertiger automatisierter Abnahmetests. Es führt Sie zu einer effektiven Nutzung von Abstraktionsebenen, Ihren Testszenarien dabei, die Geschäftssprache Ihrer Domäne zu erfassen, und fördert gute Test- und Softwareentwicklungsgewohnheiten in Ihrem Team.
 
