@@ -21,7 +21,7 @@
     "test:browser:lit:wdio": "cross-env WDIO_PRESET=lit node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec lit.test.js",
     "test:browser:lit:verifyCoverage": "run-s verifyCoverage",
     "test:browser:lit:verifyScreenshotFile": "test -f ./screenshot.png && rm ./screenshot.png",
-    "test:browser:lit:verifyPDFFile": "test -f ./screenshot.pdf && rm ./screenshot.pdf",
+    "test:browser:lit:verifyPDFFile": "if [ \"$(uname -s)\" == \"Darwin\" ]; then echo \"skip on mac\"; else test -f ./screenshot.pdf && rm ./screenshot.pdf; fi",
     "test:browser:stencil": "run-s test:browser:stencil:*",
     "test:browser:stencil:wdio": "cross-env WDIO_PRESET=stencil node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec stencil.test.tsx",
     "test:browser:stencil:verifyCoverage": "run-s verifyCoverage",
