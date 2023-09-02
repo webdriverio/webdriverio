@@ -19,9 +19,25 @@ await $('button[type="submit"]');
 
 ## Limit DOM interactions
 
-Everytime you use the $ or $$ command, WebdriverIO tries to locate the element in the DOM. These operations are very expensive so you should try to limit them as much as possible.
+Everytime you use the [`$`](https://webdriver.io/docs/api/browser/$) or [`$$`](https://webdriver.io/docs/api/browser/$$) command, WebdriverIO tries to locate the element in the DOM. These operations are very expensive so you should try to limit them as much as possible.
 
 ### Prefer using a single selector over chaining
+
+When using the [`$`](https://webdriver.io/docs/api/browser/$) or [`$$`](https://webdriver.io/docs/api/browser/$$) command, the only time you should use chaining is when you want to combine different [selector strategies](https://webdriver.io/docs/selectors/#custom-selector-strategies).
+
+Using a single strategy
+
+```js
+// 👎
+await $('table').$('tr').$('td');
+```
+
+``` js
+// 👍
+await $('table').custom$('myCustomStrategy', 'tr').$('td');
+```
+
+Another reason why you do not want to chain elements and would want to use a single selector is because it locates the elements separately and since DOM interactions are expensive, this should be avoided.
 
 Interacts with the DOM three times.
 
@@ -64,7 +80,8 @@ Don't use manual assertions that do not automatically wait for the results to ma
 expect(await button.isDisplayed()).toBe(true);
 ```
 
-By using the built-in assertions WebdriverIO will automatically wait for the actual result to match the expected result resulting in resilient tests.
+By using the built-in assertions WebdriverIO will automatically wait for the actual result to match the expected result, resulting in resilient tests.
+It achieves this by automatically retrying the assertion until it passes or times out.
 
 ```js
 // 👍
@@ -140,9 +157,9 @@ The following will not click the elements in order.
 
 ```js
 // 👎
-elements.forEach(async (element) => {
-    await element.click();
-});
+for (let i = 0; i < 10; i++) {
+    await executeSomeLogic();
+}
 ```
 
 The following will click the elements in order.
@@ -150,7 +167,7 @@ The following will click the elements in order.
 ```js
 // 👍
 for (const element of elements) {
-    await element.click();
+    await executeSomeLogic();
 }
 ```
 
