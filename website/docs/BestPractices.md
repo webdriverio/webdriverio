@@ -145,7 +145,9 @@ The following will not click the elements in order.
 
 ```js
 // 👎
-elements.forEach(async (element) => await element.click());
+elements.forEach(async (element) => {
+    await element.click();
+});
 ```
 
 The following will click the elements in order.
