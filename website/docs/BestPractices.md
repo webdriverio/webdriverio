@@ -57,14 +57,14 @@ await $('table tr:nth-child(15)');
 
 ## Use the built-in assertions
 
-Don't use manual assertions
+Don't use manual assertions that do not automatically wait for the results to match as this will cause for flaky tests.
 
 ```js
 // 👎
 expect(await button.isDisplayed()).toBe(true);
 ```
 
-Use the built-in assertions
+By using the built-in assertions WebdriverIO will automatically wait for the actual result to match the expected result resulting in resilient tests.
 
 ```js
 // 👍
@@ -72,8 +72,6 @@ await expect(button).toBeDisplayed();
 ```
 
 ## Don't overuse commands and assertions
-
-## Use the built-in assertions
 
 When using expect.toBeDisplayed you implicitly also with for the element to exist.
 
