@@ -441,7 +441,7 @@ Gets executed before test execution begins. At this point you can access to all 
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Параметры:
 
@@ -512,7 +512,7 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Параметры:
 
