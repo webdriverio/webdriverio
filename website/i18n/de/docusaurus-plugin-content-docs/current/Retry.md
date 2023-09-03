@@ -160,9 +160,9 @@ export const config = {
 
 Dadurch soll verhindert werden, dass unzuverlässige Tests in eine Codebasis eingeführt werden. Durch Hinzufügen der Option `--multi-run` cli werden die angegebenen Tests oder Suiten x-mal ausgeführt. Bei Verwendung dieses CLI-Flags muss auch das Flag `--spec` oder `--suite` angegeben werden.
 
-Beim Hinzufügen neuer Tests zu einer Codebasis, insbesondere durch einen CI/CD-Prozess, könnten sich die Tests später als fehlerbehaftet darstellen. Diese Fehlerbeständigkeit kann von einer Reihe von Dingen wie Netzwerkproblemen, Serverlast, Datenbankgröße usw. erzeugt werden. Die Verwendung des Flags `--multi-run` in Ihrem CD/CD-Prozess kann dabei helfen, diese fehlerhaften Tests abzufangen, bevor sie zu einer Hauptcodebasis zusammengeführt werden.
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Diese Fehlerbeständigkeit kann von einer Reihe von Dingen wie Netzwerkproblemen, Serverlast, Datenbankgröße usw. erzeugt werden. Die Verwendung des Flags `--multi-run` in Ihrem CD/CD-Prozess kann dabei helfen, diese fehlerhaften Tests abzufangen, bevor sie zu einer Hauptcodebasis zusammengeführt werden.
 
-Eine mögliche Strategie besteht darin, Ihre Tests wie gewohnt in Ihrem CI/CD-Prozess auszuführen. Wenn Sie einen neuen Test einführen, können Sie eine weitere Reihe von Tests mit der neuen Spezifikation ausführen, die den `--spec` zusammen mit `--multi-run` Parameter angegeben und damit die neuen Tests x-mal ausgeführen. Wenn der Test in einem dieser Fälle fehlschlägt, muss der Test erst untersucht werden und stabiler gemacht werden.
+One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--multi-run` so it runs the new test x number of times. Wenn der Test in einem dieser Fälle fehlschlägt, muss der Test erst untersucht werden und stabiler gemacht werden.
 
 ```sh
 # This will run the example.e2e.js spec 5 times
