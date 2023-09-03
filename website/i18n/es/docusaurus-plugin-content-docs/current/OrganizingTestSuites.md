@@ -104,7 +104,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Agrupación de especificaciones de prueba para ejecutar secuencialmente
 
-Como se describió anteriormente, existen beneficios al ejecutar las pruebas simultáneamente.  Sin embargo, hay casos en los que sería beneficioso agrupar las pruebas de forma secuencial en un solo caso.  Ejemplos de esto son principalmente donde hay un gran costo de configuración p.ej. transcompilar código o proporcionar instancias en la nube, pero también hay modelos de uso avanzados que se benefician de esta capacidad.
+Como se describió anteriormente, existen beneficios al ejecutar las pruebas simultáneamente. Sin embargo, hay casos en los que sería beneficioso agrupar las pruebas de forma secuencial en un solo caso. Ejemplos de esto son principalmente donde hay un gran costo de configuración p.ej. transcompilar código o proporcionar instancias en la nube, pero también hay modelos de uso avanzados que se benefician de esta capacidad.
 
 Para agrupar pruebas a ejecutar en una sola instancia, definirlas como una matriz dentro de la definición de especificaciones.
 
