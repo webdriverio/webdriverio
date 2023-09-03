@@ -13,7 +13,7 @@ El formato de un objeto de capacidad está bien definido por la [especificación
 
 ## Características personalizadas
 
-Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo puede proporcionar y aceptar funciones personalizadas que son específicas del controlador de automatización o interfaz remota:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### Extensiones de Capacidad Específica del Explorador
 
@@ -265,7 +265,7 @@ If you like to test a manually downloaded version you can provide a binary path 
 </TabItem>
 <TabItem value="msedge">
 
-When testing on Micrsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
     browserName: 'msedge',
