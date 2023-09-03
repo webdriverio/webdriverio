@@ -496,7 +496,7 @@ Parameters:
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameters:
 
@@ -567,7 +567,7 @@ Parameters:
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameters:
 
