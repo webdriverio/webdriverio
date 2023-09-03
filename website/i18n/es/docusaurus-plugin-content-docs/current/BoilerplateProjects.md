@@ -330,6 +330,5 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Multiple Reports integrated including Allure
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
- 
-      
-      
+
+
