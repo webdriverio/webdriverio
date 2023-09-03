@@ -5,7 +5,7 @@ title: Github Actions
 
 Wenn Ihr Repository auf Github gehostet wird, können Sie [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) verwenden, um Ihre Tests auf der Infrastruktur von Github auszuführen.
 
-1. jedes Mal, wenn Sie Änderungen vornehmen
+1. every time you push changes
 2. bei jeder Pull-Request-Erstellung
 3. zu einer geplanten Uhrzeit
 4. durch eine manuelle Auslösung
