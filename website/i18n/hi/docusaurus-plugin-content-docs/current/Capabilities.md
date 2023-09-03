@@ -13,7 +13,7 @@ title: क्षमताएं
 
 ## कस्टम क्षमताएं
 
-जबकि निश्चित परिभाषित क्षमताओं की मात्रा बहुत कम है, हर कोई कस्टम क्षमताओं को प्रदान और स्वीकार कर सकता है जो ऑटोमेशन ड्राइवर या रिमोट इंटरफ़ेस के लिए विशिष्ट हैं:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### ब्राउज़र विशिष्ट क्षमता एक्सटेंशन
 
@@ -265,7 +265,7 @@ If you like to test a manually downloaded version you can provide a binary path 
 </TabItem>
 <TabItem value="msedge">
 
-When testing on Micrsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
     browserName: 'msedge',
