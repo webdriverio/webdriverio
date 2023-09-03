@@ -13,7 +13,7 @@ Das Format eines Capability-Objekts ist durch die [WebDriver-Spezifikation](http
 
 ## Benutzerdefinierte Capabilities
 
-Während die Menge an fest definierten Fähigkeiten sehr gering ist, kann jeder benutzerdefinierte Fähigkeiten bereitstellen und akzeptieren, die spezifisch für den Automatisierungstreiber oder die Remote-Schnittstelle sind:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### Browserspezifische Capability-Erweiterungen
 
@@ -265,7 +265,7 @@ If you like to test a manually downloaded version you can provide a binary path 
 </TabItem>
 <TabItem value="msedge">
 
-When testing on Micrsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
     browserName: 'msedge',
