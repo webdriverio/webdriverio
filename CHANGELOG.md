@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.3 (2023-09-03)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11076](https://github.com/webdriverio/webdriverio/pull/11076) Parse scenario description to reports & doc update ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* Other
+  * [#11074](https://github.com/webdriverio/webdriverio/pull/11074) (docs): update debugger documentation ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`, `wdio-types`
+  * [#11075](https://github.com/webdriverio/webdriverio/pull/11075) (docs): fix typos ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.2 (2023-09-02)
 
 #### :bug: Bug Fix
