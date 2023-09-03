@@ -105,7 +105,7 @@ Esto se llevará a cabo a través de todas las pruebas inicialmente y se detendr
 
 ## Depuración (Debug)
 
-Aunque (todavía) no es posible establecer puntos de interrupción en su IDE y que sean reconocidos por el navegador remoto, puedes usar el comando [`debug`](/docs/api/browser/debug) para detener la prueba en cualquier punto. Esto le permite abrir DevTools para luego depurar la prueba mediante la configuración de puntos de interrupción en la pestaña [fuentes](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. Esto le permite abrir DevTools para luego depurar la prueba mediante la configuración de puntos de interrupción en la pestaña [fuentes](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
 
 Cuando se llama al comando `debug` , también obtendrá una interfaz repl de Node.js en su terminal, diciendo:
 
