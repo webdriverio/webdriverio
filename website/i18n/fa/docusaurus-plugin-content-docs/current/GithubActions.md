@@ -5,7 +5,7 @@ title: Github Actions
 
 اگر مخزن شما در Github میزبانی می شود، می توانید از [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) برای اجرای آزمایش های خود در زیرساخت Github استفاده کنید.
 
-1. هر بار که تغییرات را push می‌کنید
+1. every time you push changes
 2. در هر ایجاد درخواست pull
 3. در زمان مقرر
 4. توسط یک ماشه دستی
