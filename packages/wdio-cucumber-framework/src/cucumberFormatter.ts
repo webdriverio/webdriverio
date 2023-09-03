@@ -31,6 +31,7 @@ import {
     getRule,
     getStepType,
     buildStepPayload,
+    getScenarioDescription
 } from './utils.js'
 
 import type { HookParams, ReporterScenario } from './types.js'
@@ -397,6 +398,7 @@ export default class CucumberFormatter extends Formatter {
             title: this.getTitle(reporterScenario),
             parent: getFeatureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
+            description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
             tags: reporterScenario.tags,
             rule: reporterScenario.rule,
