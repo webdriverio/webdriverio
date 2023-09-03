@@ -441,7 +441,7 @@ Parámetros:
 
 ### beforeSuite
 
-Gancho que se ejecuta antes de que la suite comience
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parámetros:
 
@@ -507,12 +507,12 @@ Parámetros:
 - `result.result` (`Any`): devuelve el objeto de la función de prueba
 - `resultado.duración` (`Número`): duración de la prueba
 - `result.passed` (`Boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
-- `result.retries` (`Objeto`): información de las especificaciones relacionadas con las recuperaciones, por ejemplo, `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `resultado` (`objeto`): resultado de gancho (contiene `error`, `resultado`, `duración`, `pasado`, `reintentos` propiedades)
 
 ### afterSuite
 
-Gancho que es ejecutado después de que la suite haya terminado
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parámetros:
 
