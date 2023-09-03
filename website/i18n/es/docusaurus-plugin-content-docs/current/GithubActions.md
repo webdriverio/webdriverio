@@ -5,7 +5,7 @@ title: Acciones de Github
 
 Si su repositorio está alojado en Github, puede usar [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) para ejecutar sus pruebas en la infraestructura de Github.
 
-1. cada vez que envíes cambios
+1. every time you push changes
 2. en cada creación del pull request
 3. tiempo programado
 4. por activación manual
