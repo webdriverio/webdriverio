@@ -199,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-Wenn Sie auf Sauce Labs laufen, können Sie Tests zwischen verschiedenen Rechenzentren durchführen: USA oder EU. Um Ihre Region in EU zu ändern, fügen Sie `region: 'eu'` zu Ihrer Konfiguration hinzu.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. Um Ihre Region in EU zu ändern, fügen Sie `region: 'eu'` zu Ihrer Konfiguration hinzu.
 
 __Hinweis:__ Dies hat nur Auswirkungen, wenn Sie `user` und `key`, die mit Ihrem Sauce Labs-Konto verbunden sind, in Ihren Options bereitstellen.
 
@@ -441,7 +441,7 @@ Parameter:
 
 ### beforeSuite
 
-Hook, die ausgeführt wird, bevor die Suite gestartet wird
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameter:
 
@@ -507,12 +507,12 @@ Parameter:
 - `result.result` (`Any`): Ergebniss der Testfunktion
 - `result.duration` (`Ziffer`): Testdauer
 - `result.passed` (`Boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
-- `result.retries` (`Object`): Informationen zur ausgeführten Wiederholungen, z. B. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`Objekt`): Hook-Ergebnis (enthält `error`, `result`, `duration`, `passed`, `retries` Eigenschaften)
 
 ### afterSuite
 
-Hook, der ausgeführt wird, nachdem die Suite beendet wurde
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameter:
 
