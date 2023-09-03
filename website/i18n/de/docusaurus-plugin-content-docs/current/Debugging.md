@@ -78,11 +78,21 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## Debuggen mit Visual Studio Code (VSCode)
 
-Wenn Sie Ihre Tests mit Breakpoints im neuesten VS Code debuggen möchten, müssen Sie die [Nightly Version des JavaScript-Debuggers](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly)installieren und aktivieren.
+If you want to debug your tests with breakpoints in latest VSCode, you have two options for starting the debugger of which option 1 is the easiest method:
+ 1. automatically attaching the debugger
+ 2. attaching the debugger using a configuration file
 
-> laut https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 wird dies nur für Windows und Linux benötigt. In MacOS dies funktioniert auch ohne die Nightly-Version.
+### VSCode Toggle Auto Attach
 
-Zusätzliche Informationen: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+You can automatically attach the debugger by following these steps in VSCode:
+ - Press CMD + Shift + P (Linux and Macos) or CTRL + Shift + P (Windows)
+ - Type "attach" into the input field
+ - Select "Debug: Toggle Auto Attach"
+ - Select "Only With Flag"
+
+ That's it! Now when you run your tests (remember you will need the --inspect flag set in your config as shown earlier) it will automatically start the debugger and stop on the first breakpoint that it reaches.
+
+### VSCode Configuration file
 
 Es ist möglich, alle oder ausgewählte Test-Dateien auszuführen. Debug-Konfiguration(en) müssen zu `.vscode/launch.json`hinzugefügt werden, um die ausgewählten Tests zu debuggen, fügen Sie die folgende Konfiguration hinzu:
 ```
@@ -106,6 +116,8 @@ Es ist möglich, alle oder ausgewählte Test-Dateien auszuführen. Debug-Konfigu
 Um alle Test-Dateien auszuführen, entfernen Sie `"--spec", "${file}"` von `"args"`
 
 Hier ist eine Beispiel: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json) Datei.
+
+Zusätzliche Informationen: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
 ## Dynamische Repl mit Atom
 
