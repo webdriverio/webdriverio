@@ -160,9 +160,9 @@ export const config = {
 
 Se trata de ayudar a evitar que se introduzcan pruebas falsas en una base de código. Añadiendo la opción de cli `--multi-run` ejecutará la(s) prueba(s) especificada(s) o suite(s) x número de veces. Al usar esta bandera cli la bandera `--spec` o `--suite` también debe ser especificada.
 
-Cuando se añaden nuevas pruebas a una base de código, espáticamente a través de un proceso de CI/CD las pruebas podrían pasar y ser fusionadas pero se vuelven flakly más adelante. Este error podría provenir de una serie de asuntos como problemas de red, carga del servidor, tamaño de la base de datos, etc. Utilizando la bandera `--multi-run` en su proceso de CD/CD puede ayudar a capturar estas pruebas defectuosas antes de que se fusionen en una base de código principal.
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Este error podría provenir de una serie de asuntos como problemas de red, carga del servidor, tamaño de la base de datos, etc. Utilizando la bandera `--multi-run` en su proceso de CD/CD puede ayudar a capturar estas pruebas defectuosas antes de que se fusionen en una base de código principal.
 
-Una estrategia a utilizar es ejecutar sus pruebas como de costumbre en su proceso de CI/CD, pero si está introduciendo una nueva prueba, puede ejecutar otro conjunto de pruebas con la nueva especificación especificada en `--spec` junto con `--multi -ejecutar` para que ejecute la nueva prueba x número de veces. Si la prueba falla cualquiera de esas veces, la prueba no se fusionará y tendrá que ser examinada por qué falló.
+One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--multi-run` so it runs the new test x number of times. Si la prueba falla cualquiera de esas veces, la prueba no se fusionará y tendrá que ser examinada por qué falló.
 
 ```sh
 # This will run the example.e2e.js spec 5 times
