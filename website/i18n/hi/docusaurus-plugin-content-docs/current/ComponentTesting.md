@@ -105,7 +105,7 @@ $ npx wdio run ./wdio.conf.js --watch
 
 ## डीबग करना
 
-हालांकि आपके आईडीई में ब्रेकप्वाइंट सेट करना (अभी तक) संभव नहीं है और उन्हें दूरस्थ ब्राउज़र द्वारा पहचाना जा रहा है, आप किसी भी बिंदु पर परीक्षण को रोकने के लिए [`debug`](/docs/api/browser/debug) कमांड का उपयोग कर सकते हैं। यह आपको [स्रोत टैब](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools)में ब्रेकप्वाइंट सेट करके परीक्षण को डीबग करने के लिए DevTools खोलने की अनुमति देता है।
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. यह आपको [स्रोत टैब](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools)में ब्रेकप्वाइंट सेट करके परीक्षण को डीबग करने के लिए DevTools खोलने की अनुमति देता है।
 
 जब `debug` कमांड को कॉल किया जाता है, तो आपको अपने टर्मिनल में एक Node.js repl इंटरफ़ेस मिलेगा, जो कहेगा:
 
