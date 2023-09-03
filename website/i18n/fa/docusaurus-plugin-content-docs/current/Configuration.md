@@ -199,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-اگر در Sauce Labs اجرا می‌شود، می‌توانید تست‌ها را بین مراکز داده مختلف اجرا کنید: ایالات متحده یا اتحادیه اروپا. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
 
 __توجه:__ این فقط در صورتی تأثیر می گذارد که `user` و `key` را ارائه دهید که به حساب Sauce Labs شما متصل شده باشند.
 
@@ -441,7 +441,7 @@ Parameters:
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameters:
 
@@ -512,7 +512,7 @@ Parameters:
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameters:
 
