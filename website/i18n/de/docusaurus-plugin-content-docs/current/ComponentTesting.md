@@ -108,7 +108,7 @@ Dadurch werden zunächst alle Tests durchlaufen. Sie können dann Änderungen an
 
 ## Debuggen
 
-Während es (noch) nicht möglich ist, Debugging Points in Ihrer IDE zu setzen und sie vom Remote-Browser erkennen zu lassen, können Sie den Test jederzeit mit dem Befehl [`debug`](/docs/api/browser/debug) stoppen. Auf diese Weise können Sie DevTools öffnen, um den Test dann zu debuggen, indem Sie Haltepunkte auf der Registerkarte [Sources](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools) festlegen.
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. Auf diese Weise können Sie DevTools öffnen, um den Test dann zu debuggen, indem Sie Haltepunkte auf der Registerkarte [Sources](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools) festlegen.
 
 Wenn der Befehl `debug` aufgerufen wird, erhalten Sie auch eine Node.js-Repl-Schnittstelle in Ihrem Terminal, die besagt:
 
