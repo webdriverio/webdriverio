@@ -249,7 +249,11 @@ class CucumberAdapter {
 
         try {
             await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId)
+            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+                requireModules: this._cucumberOpts.requireModule,
+                requirePaths: this._cucumberOpts.require,
+                importPaths: this._cucumberOpts.import,
+            })
 
             this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
 
