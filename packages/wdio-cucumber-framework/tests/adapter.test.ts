@@ -1,7 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
@@ -11,7 +10,6 @@ import * as packageExports from '../src/index.js'
 import CucumberAdapter from '../src/index.js'
 
 vi.mock('@wdio/utils')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
 vi.mock('@cucumber/messages', async () => {
@@ -81,8 +79,11 @@ describe('CucumberAdapter', () => {
     })
 
     it('throws if parallel cucumber opts is set', async () => {
-        await CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false)
-        expect(logger('').warn).toBeCalledWith('The option "parallel" is not supported by WebdriverIO')
+        await expect(
+            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false)
+        ).rejects.toEqual(expect.objectContaining({
+            message: 'The option "parallel" is not supported by WebdriverIO'
+        }))
     })
 
     it('should not initiated with no tests', async () => {
