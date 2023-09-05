@@ -28,7 +28,9 @@ import {
     getObservabilityBuild,
     getObservabilityProject,
     getObservabilityBuildTags,
-    o11yErrorHandler, frameworkSupportsHook, getFailureObject,
+    o11yErrorHandler,
+    frameworkSupportsHook,
+    getFailureObject
 } from '../src/util.js'
 
 vi.mock('got')
