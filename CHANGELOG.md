@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.4 (2023-09-05)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11100](https://github.com/webdriverio/webdriverio/pull/11100) (webdriverio): fix scrollIntoView if scroll position has changed ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11099](https://github.com/webdriverio/webdriverio/pull/11099) (@wdio/cucumber-framework): disable parallel execution and warn user that this feature is not supported ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.3 (2023-09-03)
 
 #### :bug: Bug Fix
