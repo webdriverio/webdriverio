@@ -1,8 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-
-import ejs from 'ejs'
+import mustache from 'mustache'
 
 import { repoUrl } from '../constants.js'
 import {
@@ -11,7 +10,7 @@ import {
 } from '../protocols.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'template.mustache')
 
 const category = 'api'
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
@@ -75,7 +74,7 @@ export function generateProtocolDocs (sidebars: any) {
                     description.description = protocolNote
                 }
 
-                const markdown = ejs.render(template, { docfiles: [description], path }, { delimiter: '?' })
+                const markdown = mustache.render(template, { docfiles: [description], path }, { delimiter: '?' })
                 if (!protocolDocs[protocolName]) {
                     protocolDocs[protocolName] = [[
                         '---',
