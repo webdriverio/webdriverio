@@ -104,8 +104,16 @@ class CucumberAdapter {
         this._cucumberOpts = Object.assign(
             {},
             DEFAULT_OPTS,
-            this._config.cucumberOpts as Required<CucumberOptions>
+            this._config.cucumberOpts as Required<CucumberOptions>,
+            /**
+             * explicitly disable running in parallel as it is not supported
+             */
+            { parallel: 0 }
         )
+
+        if (this._config.cucumberOpts?.parallel) {
+            log.warn('The option "parallel" is not supported by WebdriverIO')
+        }
 
         this._cucumberOpts.formatOptions = {
             _reporter: this._reporter,

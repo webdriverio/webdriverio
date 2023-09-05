@@ -61,10 +61,6 @@ export interface CucumberOptions {
      */
     order?: string;
     /**
-     * Run tests in parallel with the given number of worker processes
-     */
-    parallel?: number;
-    /**
      * Publish a report of your test run to https://reports.cucumber.io/
      */
     publish?: boolean;

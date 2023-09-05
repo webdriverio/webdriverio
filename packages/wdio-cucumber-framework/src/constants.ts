@@ -23,7 +23,6 @@ export const DEFAULT_OPTS: CucumberOptions = {
     language: 'en',
     name: [],
     order: 'defined',
-    parallel: 0,
     publish: false,
     require: [],
     requireModule: [],
