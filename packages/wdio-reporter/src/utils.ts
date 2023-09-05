@@ -1,6 +1,6 @@
-import supportsColor from 'supports-color'
 import type { Capabilities } from '@wdio/types'
 
+import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 
 /**

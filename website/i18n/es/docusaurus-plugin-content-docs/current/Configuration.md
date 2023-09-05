@@ -193,7 +193,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-Si se ejecuta en Sauce Labs, puede ejecutar pruebas entre diferentes datacenters: EE. UU. o UE. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
+Si se ejecuta en Sauce Labs, puede ejecutar pruebas entre diferentes data centers: EE. UU. o UE. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
 
 __Nota:__ Esto solo tiene efecto si proporcionas `usuario` y `opciones de clave` que están conectadas a tu cuenta de Sauce Labs.
 

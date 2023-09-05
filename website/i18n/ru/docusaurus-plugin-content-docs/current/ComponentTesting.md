@@ -100,7 +100,7 @@ This will run through all tests initially and halt once all are run. You can the
 
 ## Debugging
 
-While it is not (yet) possible to set breakpoints in your IDE and have them being recognised by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
 
 When the `debug` command is called, you will also get a Node.js repl interface in your terminal, saying:
 

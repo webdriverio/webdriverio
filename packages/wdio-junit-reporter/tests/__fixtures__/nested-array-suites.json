@@ -1,0 +1,94 @@
+{
+    "suite-0-0": {
+      "type": "suite:start",
+      "start": "2023-08-22T02:27:55.370Z",
+      "end": "2023-08-22T02:28:01.511Z",
+      "_duration": 6141,
+      "uid": "suite-0-0",
+      "cid": "0-0",
+      "file": "/path/to/project/test/specs/sync_0.spec.js",
+      "title": "My Login application",
+      "fullTitle": "My Login application",
+      "tests": [
+        {
+          "type": "test",
+          "start": "2023-08-22T02:27:55.371Z",
+          "end": "2023-08-22T02:28:01.511Z",
+          "_duration": 6140,
+          "uid": "test-00-0",
+          "cid": "0-0",
+          "title": "should login with valid credentials",
+          "fullTitle": "My Login application.should login with valid credentials",
+          "output": [],
+          "retries": 0,
+          "parent": "My Login application",
+          "state": "passed"
+        }
+      ],
+      "hooks": [],
+      "suites": [],
+      "parent": "",
+      "hooksAndTests": [
+        {
+          "type": "test",
+          "start": "2023-08-22T02:27:55.371Z",
+          "end": "2023-08-22T02:28:01.511Z",
+          "_duration": 6140,
+          "uid": "test-00-0",
+          "cid": "0-0",
+          "title": "should login with valid credentials",
+          "fullTitle": "My Login application.should login with valid credentials",
+          "output": [],
+          "retries": 0,
+          "parent": "My Login application",
+          "state": "passed"
+        }
+      ]
+    },
+    "suite-0-1": {
+      "type": "suite:start",
+      "start": "2023-08-22T02:28:01.511Z",
+      "end": "2023-08-22T02:28:02.363Z",
+      "_duration": 852,
+      "uid": "suite-0-1",
+      "cid": "0-0",
+      "file": "/path/to/project/test/specs/sync_1.spec.js",
+      "title": "My Login application",
+      "fullTitle": "My Login application",
+      "tests": [
+        {
+          "type": "test",
+          "start": "2023-08-22T02:28:01.511Z",
+          "end": "2023-08-22T02:28:02.363Z",
+          "_duration": 852,
+          "uid": "test-01-0",
+          "cid": "0-0",
+          "title": "should login with valid credentials",
+          "fullTitle": "My Login application.should login with valid credentials",
+          "output": [],
+          "retries": 0,
+          "parent": "My Login application",
+          "state": "passed"
+        }
+      ],
+      "hooks": [],
+      "suites": [],
+      "parent": "",
+      "hooksAndTests": [
+        {
+          "type": "test",
+          "start": "2023-08-22T02:28:01.511Z",
+          "end": "2023-08-22T02:28:02.363Z",
+          "_duration": 852,
+          "uid": "test-01-0",
+          "cid": "0-0",
+          "title": "should login with valid credentials",
+          "fullTitle": "My Login application.should login with valid credentials",
+          "output": [],
+          "retries": 0,
+          "parent": "My Login application",
+          "state": "passed"
+        }
+      ]
+    }
+  }
