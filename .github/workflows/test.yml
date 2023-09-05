@@ -78,11 +78,11 @@ jobs:
         run: |
           npm run test:e2e:edge
           npm run test:e2e:webdriver
-      # - name: 🐛 Debug Build
-      #   uses: stateful/vscode-server-action@v1
-      #   if: failure()
-      #   with:
-      #     timeout: '30000'
+      - name: 🐛 Debug Build
+        uses: stateful/vscode-server-action@v1
+        if: failure()
+        with:
+          timeout: '30000'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -134,8 +134,8 @@ jobs:
             e2e/wdio/*.log
             e2e/*.log
             e2e/browser-runner/logs
-      # - name: 🐛 Debug Build
-      #   uses: stateful/vscode-server-action@v1
-      #   if: failure()
-      #   with:
-      #     timeout: '30000'
+      - name: 🐛 Debug Build
+        uses: stateful/vscode-server-action@v1
+        if: failure()
+        with:
+          timeout: '30000'

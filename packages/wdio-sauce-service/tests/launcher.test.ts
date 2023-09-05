@@ -242,6 +242,74 @@ test('onPrepare multiremote', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
+test('onPrepare parallel multiremote', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        scRelay: true,
+        sauceConnectOpts: {
+            sePort: 4446,
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const caps: Capabilities.MultiRemoteCapabilities[] = [{
+        browserA: {
+            capabilities: { browserName: 'chrome' }
+        },
+        browserB: {
+            capabilities: {
+                browserName: 'firefox',
+                'sauce:options': { tunnelIdentifier: 'fish' }
+            }
+        }
+    }, {
+        browserC: {
+            capabilities: { browserName: 'chrome' }
+        },
+        browserD: {
+            capabilities: {
+                browserName: 'firefox',
+                'sauce:options': { tunnelIdentifier: 'fish' }
+            }
+        }
+    }]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps).toEqual([{
+        browserA: {
+            capabilities: {
+                browserName: 'chrome',
+                'sauce:options': { tunnelIdentifier: 'my-tunnel' }
+            }
+        },
+        browserB: {
+            capabilities: {
+                browserName: 'firefox',
+                'sauce:options': { tunnelIdentifier: 'fish' }
+            },
+        }
+    }, {
+        browserC: {
+            capabilities: {
+                browserName: 'chrome',
+                'sauce:options': { tunnelIdentifier: 'my-tunnel' }
+            }
+        },
+        browserD: {
+            capabilities: {
+                browserName: 'firefox',
+                'sauce:options': { tunnelIdentifier: 'fish' }
+            },
+        }
+    }])
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+})
+
 test('onPrepare if sauceTunnel is not set', async () => {
     const options: SauceServiceConfig = {
         sauceConnectOpts: {

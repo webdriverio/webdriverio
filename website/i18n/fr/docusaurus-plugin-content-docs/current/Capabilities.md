@@ -13,7 +13,7 @@ The format of a capability object is well defined by the [WebDriver specificatio
 
 ## Custom Capabilities
 
-While the amount of fixed defined capabilities is verry low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### Browser Specific Capability Extensions
 

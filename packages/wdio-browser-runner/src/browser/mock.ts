@@ -15,6 +15,8 @@ export const pathToFileURL = () => ''
 export const fileURLToPath = () => ''
 export const dirname = () => ''
 export const resolve = () => ''
+export const download = () => ''
+export const findEdgePath = () => ''
 export const sep = '/'
 export const start = () => {}
 export const install = () => {}
@@ -27,5 +29,6 @@ export const ChromeReleaseChannel = () => {}
 export const detectBrowserPlatform = () => {}
 export const type = 'browser'
 export const sync = () => {}
-export const getChromePath = () => {}
+export const locateChrome = () => {}
+export const locateFirefox = () => {}
 export default () => {}

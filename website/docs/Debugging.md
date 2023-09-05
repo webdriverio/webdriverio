@@ -78,11 +78,21 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## Debugging with Visual Studio Code (VSCode)
 
-If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).
+If you want to debug your tests with breakpoints in latest VSCode, you have two options for starting the debugger of which option 1 is the easiest method:
+ 1. automatically attaching the debugger
+ 2. attaching the debugger using a configuration file
 
-> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.
+### VSCode Toggle Auto Attach
 
-Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+You can automatically attach the debugger by following these steps in VSCode:
+ - Press CMD + Shift + P (Linux and Macos) or CTRL + Shift + P (Windows)
+ - Type "attach" into the input field
+ - Select "Debug: Toggle Auto Attach"
+ - Select "Only With Flag"
+
+ That's it! Now when you run your tests (remember you will need the --inspect flag set in your config as shown earlier) it will automatically start the debugger and stop on the first breakpoint that it reaches.
+
+### VSCode Configuration file
 
 It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
 ```
@@ -106,6 +116,8 @@ It's possible to run all or selected spec file(s). Debug configuration(s) have t
 To run all spec files remove `"--spec", "${file}"` from `"args"`
 
 Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
+
+Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
 ## Dynamic Repl with Atom
 

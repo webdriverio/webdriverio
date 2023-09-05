@@ -501,7 +501,7 @@ Parameters:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite

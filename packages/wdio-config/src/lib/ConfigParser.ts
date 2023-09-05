@@ -197,7 +197,7 @@ export default class ConfigParser {
             /**
              * `this._config.spec` is string instead of Array in watch mode
              */
-            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
+            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...new Set(this._config.spec)] : [this._config.spec]
         }
 
         /**
@@ -442,7 +442,7 @@ export default class ConfigParser {
                 if (filenames.length === 0) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-                files = [...files, ...filenames]
+                files = [...files, ...new Set(filenames)]
             }
         }
         return files

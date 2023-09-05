@@ -79,3 +79,14 @@ export const UNICODE_CHARACTERS = {
     'ZenkakuHankaku': '\uE040',
     'Zenkaku_Hankaku': '\uE040'
 } as const
+
+export const SUPPORTED_BROWSERNAMES = {
+    chrome: ['chrome', 'googlechrome', 'chromium', 'chromium-browser'],
+    firefox: ['firefox', 'ff', 'mozilla', 'mozilla firefox'],
+    edge: ['edge', 'microsoftedge', 'msedge'],
+    safari: ['safari', 'safari technology preview']
+}
+
+export const DEFAULT_HOSTNAME = '0.0.0.0'
+export const DEFAULT_PROTOCOL = 'http'
+export const DEFAULT_PATH = '/'

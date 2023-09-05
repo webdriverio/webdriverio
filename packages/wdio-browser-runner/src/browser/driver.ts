@@ -13,8 +13,12 @@ const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 interface CommandMessagePromise {
     resolve: (value: unknown) => void
     reject: (err: Error) => void
+    commandName: string
     commandTimeout?: NodeJS.Timeout
 }
+
+const HIDE_REPORTER_FOR_COMMANDS = ['saveScreenshot', 'savePDF']
+const mochaFramework = document.querySelector('mocha-framework')
 
 export default class ProxyDriver {
     static #commandMessages = new Map<string, CommandMessagePromise>()
@@ -46,7 +50,7 @@ export default class ProxyDriver {
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
-        const commandsProcessedInNodeWorld = [...commands, 'debug']
+        const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
             const isDebugCommand = commandName === 'debug'
             prev[commandName] = {
@@ -64,6 +68,10 @@ export default class ProxyDriver {
                         : [`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`]
                     ))
 
+                    if (HIDE_REPORTER_FOR_COMMANDS.includes(commandName) && mochaFramework) {
+                        mochaFramework.setAttribute('style', 'display: none')
+                    }
+
                     socket.send(JSON.stringify(this.#commandRequest({
                         commandName,
                         cid,
@@ -79,7 +87,7 @@ export default class ProxyDriver {
                             )
                         }
 
-                        this.#commandMessages.set(commandId.toString(), { resolve, reject, commandTimeout })
+                        this.#commandMessages.set(commandId.toString(), { resolve, reject, commandTimeout, commandName })
                     })
                 }
             }
@@ -87,9 +95,11 @@ export default class ProxyDriver {
         }, {} as Record<string, { value: Function }>)
 
         /**
-         * handle debug command on the server side
+         * handle certain commands on the server side
          */
         delete userPrototype.debug
+        delete userPrototype.saveScreenshot
+        delete userPrototype.savePDF
 
         const prototype = {
             /**
@@ -127,6 +137,11 @@ export default class ProxyDriver {
             if (!commandMessage) {
                 return console.error(`Unknown command id "${value.id}"`)
             }
+
+            if (HIDE_REPORTER_FOR_COMMANDS.includes(commandMessage.commandName) && mochaFramework) {
+                mochaFramework.removeAttribute('style')
+            }
+
             if (value.error) {
                 console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
                 return commandMessage.reject(new Error(value.error.message || 'unknown error'))
