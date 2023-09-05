@@ -64,7 +64,8 @@ export async function scrollIntoView (
     let [windowX, windowY] = await browser.execute(() => [
         window.scrollX, window.scrollY
     ])
-
+    const origScrollX = windowX
+    const origScrollY = windowY
     const origin = windowX === 0 && windowY === 0 ? this : undefined
 
     windowX = elemRect.x <= viewport.width ? elemRect.x - 10 : viewport.width / 2
@@ -99,8 +100,8 @@ export async function scrollIntoView (
         windowX = 0
         windowY = 0
     } else {
-        deltaX = Math.round(deltaX - windowX)
-        deltaY = Math.round(deltaY - windowY)
+        deltaX = Math.round(deltaX - origScrollX)
+        deltaY = Math.round(deltaY - origScrollY)
 
         windowX = Math.round(windowX)
         windowY = Math.round(windowY)
