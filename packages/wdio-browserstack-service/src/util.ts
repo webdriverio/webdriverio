@@ -13,11 +13,12 @@ import got, { HTTPError } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 
@@ -657,6 +658,17 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
     }
 
     return false
+}
+
+export function patchConsoleLogs() {
+    const BSTestOpsPatcher = new logPatcher({})
+    // eslint-disable-next-line no-global-assign
+    console = {} as typeof console
+    Object.keys(consoleHolder).forEach((method) => {
+        (console as any)[method] = (...args: unknown[]) => {
+            (BSTestOpsPatcher as any)[method](...args)
+        }
+    })
 }
 
 export function getFailureObject(error: string|Error) {
