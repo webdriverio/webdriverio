@@ -16,7 +16,8 @@ import {
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
-    getHookType, pushDataToQueue
+    getHookType,
+    pushDataToQueue
 } from './util.js'
 import RequestQueueHandler from './request-handler.js'
 
