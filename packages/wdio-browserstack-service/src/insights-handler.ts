@@ -510,14 +510,10 @@ class _InsightsHandler {
 
     appendTestItemLog = async (stdLog: StdLog) => {
         try {
-            if (this._currentHook.uuid && !this._currentHook.finished) {
-                if (this._framework === 'mocha' || this._framework === 'cucumber') {
-                    stdLog.hook_run_uuid = this._currentHook.uuid
-                }
-            } else if (this._currentTest.uuid) {
-                if (this._framework === 'mocha' || this._framework === 'cucumber') {
-                    stdLog.test_run_uuid = this._currentTest.uuid
-                }
+            if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
+                stdLog.hook_run_uuid = this._currentHook.uuid
+            } else if (this._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
+                stdLog.test_run_uuid = this._currentTest.uuid
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
                 await pushDataToQueue({
