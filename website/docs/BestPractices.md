@@ -193,7 +193,7 @@ for (const character of characters) {
 
 ## Executing code in parallel
 
-If you do not care about the order in which some code is ran you can utilze Promise.all to speed up the execution.
+If you do not care about the order in which some code is ran you can utilise [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) to speed up the execution.
 
 __Note:__ Since this makes the code harder to read you could abstract this away using a page object or a function, although you should also question if the benefit in performance is worth the cost of readability.
 
