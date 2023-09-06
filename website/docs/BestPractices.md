@@ -13,8 +13,20 @@ __Note:__ To find out all the possible selectors WebdriverIO supports, checkout 
 
 Use selectors that are resilient to changes in the DOM.
 
-```js reference useResilientSelectors
-await $('button[type="submit"]');
+Classes can be applied to multiple elements and should be avoided if possible unless you deliberately want to fetch all elements with that class.
+
+```js
+// 👎
+await $('.button');
+```
+
+All these selectors should return a single element.
+
+```js
+// 👍 
+await $('[test-id="submit-button"]');
+await $('[name="submit-button"]');
+await $('#submit-button');
 ```
 
 ## Limit DOM interactions
@@ -32,12 +44,15 @@ Using a single strategy
 await $('table').$('tr').$('td');
 ```
 
+Using different strategies.
+In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#deep-selectors), which is a strategy to go inside the shadow DOM of an element.
+
 ``` js
-// 👍
-await $('table').custom$('myCustomStrategy', 'tr').$('td');
+// 👍 
+await $('custom-datepicker').$('>>>#calendar').$('button[name="next-month"]');
 ```
 
-Another reason why you do not want to chain elements and would want to use a single selector is because it locates the elements separately and since DOM interactions are expensive, this should be avoided.
+Another reason why you do not want to chain elements and would want to use a single selector is because it locates the elements separately and since the requests to fetch the elements are expensive, this should be avoided.
 
 Interacts with the DOM three times.
 
@@ -152,22 +167,27 @@ await submitFormButton.click();
 ## Async loops
 
 When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
+For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
 
-The following will not click the elements in order.
+Below are some examples of what this means.
+
+The following will not work as asynchronous callback are not supported.
 
 ```js
 // 👎
-for (let i = 0; i < 10; i++) {
-    await executeSomeLogic();
-}
+const characters = 'this is some example text that should be put in order';
+characters.forEach(async (character) => {
+    await browser.keys(character);
+});
 ```
 
-The following will click the elements in order.
+The following will work.
 
 ```js
 // 👍
-for (const element of elements) {
-    await executeSomeLogic();
+const characters = 'this is some example text that should be put in order';
+for (const character of characters) {
+    await browser.keys(character);
 }
 ```
 
