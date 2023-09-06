@@ -24,8 +24,8 @@ All these selectors should return a single element.
 
 ```js
 // 👍 
+await $('aria/Submit');
 await $('[test-id="submit-button"]');
-await $('[name="submit-button"]');
 await $('#submit-button');
 ```
 
