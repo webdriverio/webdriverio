@@ -200,7 +200,7 @@ describe('startWebDriver', () => {
                     binary: expect.any(String)
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: [''],
+                    allowedIps: ['0.0.0.0'],
                     allowedOrigins: ['*'],
                     'foo': 'bar',
                 },
@@ -210,7 +210,7 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
-            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=']
+            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=0.0.0.0']
         )
     })
 
@@ -233,7 +233,7 @@ describe('startWebDriver', () => {
                     binary: '/my/chrome'
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: [''],
+                    allowedIps: ['0.0.0.0'],
                     allowedOrigins: ['*'],
                     binary: '/my/chromedriver'
                 },
@@ -242,7 +242,7 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
-            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=']
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=0.0.0.0']
         )
     })
 

@@ -6,11 +6,10 @@ import {
     getStepType,
     getFeatureId,
     buildStepPayload,
-    setUserHookNames,
-    filterPickles,
     getTestStepTitle,
     addKeywordToStep,
     getRule,
+    generateSkipTagsFromCapabilities
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
@@ -113,74 +112,6 @@ describe('utils', () => {
         })).toMatchSnapshot()
     })
 
-    it('setUserHookNames', () => {
-        const options = {
-            beforeTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
-            beforeTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
-        }
-        setUserHookNames(options as any)
-        const hookTypes = Object.values(options)
-        expect(hookTypes).toHaveLength(4)
-        hookTypes.forEach(hookType => {
-            expect(hookType).toHaveLength(3)
-
-            const wdioHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('wdioHook'))
-            const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookFn')
-            const userAsyncHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookAsyncFn')
-            expect(wdioHooks).toHaveLength(1)
-            expect(userHooks).toHaveLength(1)
-            expect(userAsyncHooks).toHaveLength(1)
-        })
-    })
-
-    it('filterPickles', () => {
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="chrome")' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome',
-            platformName: 'windows'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar";platformName="windows")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(something=weird)' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip()' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip_local' }]
-        } as any)).toBe(true)
-    })
-
     it('addKeywordToStep should add keywords to the steps', () => {
         const steps = [
             // Should get a keyword
@@ -268,4 +199,42 @@ describe('utils', () => {
         expect(getRule(feature as any, '3')).toBe('Rule for scenario 3 and 4')
         expect(getRule(feature as any, '4')).toBe('Rule for scenario 3 and 4')
     })
+
+    it('generateSkipTagsFromCapabilities', () => {
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip(browserName="chrome")']]))
+            .toStrictEqual(['(not @skip\\(browserName="chrome"\\))'])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip\\(browserName="foobar"\\)']]))
+            .toStrictEqual([])
+    })
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+        platformName: 'windows'
+    }, [['@skip\\(browserName="foobar";platformName="windows"\\)']]))
+        .toStrictEqual([])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip\\(something="weird"\\)']]))
+        .toStrictEqual([])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip()']]))
+        .toStrictEqual(['(not @skip\\(\\))'])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip']]))
+        .toStrictEqual(['(not @skip)'])
+
+    expect(generateSkipTagsFromCapabilities({
+        browserName: 'chrome',
+    }, [['@skip_local']]))
+        .toStrictEqual([])
 })

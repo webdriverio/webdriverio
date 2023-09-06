@@ -3,7 +3,7 @@
   "packages": [
     "packages/*"
   ],
-  "version": "8.15.10",
+  "version": "8.16.4",
   "command": {
     "bootstrap": {
       "npmClientArgs": [
