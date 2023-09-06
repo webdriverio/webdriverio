@@ -26,9 +26,9 @@ Browser Objectは、ブラウザまたはモバイル デバイスを制御す�
 
 ## Methods
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+セッションに使用されるオートメーション バックエンドに基づいて、WebdriverIO の [Protocol Commands](/docs/api/protocols) はどの[browser object](/docs/api/browser)にアタッチされるかを識別します。 例えば、Chrome で自動セッションを実行する場合など [`elementHover`](/docs/api/chromium#elementhover) のような Chromium 固有のコマンドにアクセスできますが、 [Appium コマンド](/docs/api/appium) のいずれにもアクセスできません。
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+さらに、WebdriverIO は、ページ上の [ browser ](/docs/api/browser) または [ elements ](/docs/api/element) と対話するために使用することが推奨される一連の便利なメソッドを提供します。
 
 In addition to that the following commands are available:
 
