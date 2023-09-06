@@ -3,7 +3,7 @@ id: cloudservices
 title: 云服务
 ---
 
-您可以轻松搭配 WebdriverIO 与其他按需服务使用 (如 Sauce Labs、Browserstack、TestingBot、CrossBrowserTestin、LambdaTest 或 Perfecto)。 您需要在您的配置中设置您服务的 `user` 和 `key`。
+您可以轻松搭配 WebdriverIO 与其他按需服务使用 (如 Sauce Labs、Browserstack、TestingBot、CrossBrowserTesting、LambdaTest 或 Perfecto)。 您需要在您的配置中设置您服务的 `user` 和 `key`。
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 

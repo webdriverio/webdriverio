@@ -290,7 +290,7 @@ const cucumberTestrunner = async () => {
                 path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
             ],
             cucumberOpts: {
-                tagExpression: '(not @SKIPPED_TAG)',
+                tags: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true,
                 retry: 1,
                 retryTagFilter: '@retry',
@@ -314,7 +314,7 @@ const cucumberTestrunnerByLineNumber = async () => {
             autoCompileOpts: { autoCompile: false },
             spec: [path.resolve(__dirname, 'cucumber', 'test.feature:10')],
             cucumberOpts: {
-                tagExpression: '(not @SKIPPED_TAG)',
+                tags: '(not @SKIPPED_TAG)',
                 scenarioLevelReporter: false
             },
             reporters: [
@@ -350,7 +350,7 @@ const cucumberFailAmbiguousDefinitions = async () => {
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
                 failAmbiguousDefinitions: true,
-                names: ['failAmbiguousDefinitions']
+                name: ['failAmbiguousDefinitions']
             }
         }
     ).then(

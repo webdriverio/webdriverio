@@ -56,7 +56,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
             }
 
             if (!Object.values(SupportedAutomationProtocols).includes(param.toLowerCase() as SupportedAutomationProtocols)) {
-                throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
+                throw new Error(`Currently only "webdriver" and "devtools" is supported as automationProtocol, you set "${param}"`)
             }
 
             try {

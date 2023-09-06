@@ -20,6 +20,7 @@
     "test:browser:lit": "run-s test:browser:lit:*",
     "test:browser:lit:wdio": "cross-env WDIO_PRESET=lit node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec lit.test.js",
     "test:browser:lit:verifyCoverage": "run-s verifyCoverage",
+    "test:browser:lit:verifyScreenshotFile": "test -f ./screenshot.png && rm ./screenshot.png",
     "test:browser:stencil": "run-s test:browser:stencil:*",
     "test:browser:stencil:wdio": "cross-env WDIO_PRESET=stencil node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec stencil.test.tsx",
     "test:browser:stencil:verifyCoverage": "run-s verifyCoverage",
