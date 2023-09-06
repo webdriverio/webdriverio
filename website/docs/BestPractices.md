@@ -63,7 +63,7 @@ In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#d
 
 ``` js
 // 👍 
-await $('custom-datepicker').$('>>>#calendar').$('button[name="next-month"]');
+await $('custom-datepicker').$('>>>#calendar').$('aria/Select');
 ```
 
 ### Prefer locating a single element instead of taking one from a list
