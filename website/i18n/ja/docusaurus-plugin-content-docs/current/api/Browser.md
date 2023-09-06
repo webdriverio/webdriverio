@@ -30,21 +30,21 @@ Browser Objectは、ブラウザまたはモバイル デバイスを制御す�
 
 さらに、WebdriverIO は、ページ上の [ browser ](/docs/api/browser) または [ elements ](/docs/api/element) と対話するために使用することが推奨される一連の便利なメソッドを提供します。
 
-In addition to that the following commands are available:
+これに加えて、次のコマンドも使用できます。
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                        |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allows to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                   |
+| Name                 | Parameters                                                                                                             | Details                                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | 作成目的でブラウザオブジェクトから呼び出すことができるカスタムコマンドを定義できます。 詳細については、 [Custom Command](/docs/customcommands) ガイドを参照してください。                                           |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | ブラウザコマンドをカスタム機能で上書きできます。 他の開発者を混乱させる可能性があるため、慎重に使用してください。 詳細については、 [Custom Command](/docs/customcommands#overwriting-native-commands) ガイドを参照してください。 |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | カスタム セレクター戦略を定義できます。詳細については、 [ Selectors ](/docs/selectors#custom-selector-strategies) ガイドを参照してください。                                                |
 
-## Remarks
+## 備考
 
 ### Mobile Flags
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+セッションがモバイル デバイスで実行されるかどうかに基づいてテストを変更する必要がある場合は、モバイル フラグにアクセスして確認できます。
 
-For example, given this config:
+たとえば、次の構成の場合:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+次のようにテストでこれらのフラグにアクセスできます。
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
+これは、たとえば、次のようにデバイス タイプに基づいて [page objects](../pageobjects) にセレクターを定義する場合に便利です。
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+これらのフラグを使用して、特定のデバイス タイプに対して特定のテストのみを実行することもできます。
 
 ```js
 // mytest.e2e.js
@@ -107,20 +107,20 @@ describe('my test', () => {
 ```
 
 ### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+ブラウザー オブジェクトは EventEmitter であり、ユースケースに応じていくつかのイベントが発行されます。
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+イベントの一覧はこちらです。 これらは利用可能なイベントのすべてのリストではないことに注意してください。 ここにさらにイベントの説明を追加して、ドキュメントの更新に自由に貢献してください。
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+WebDriverレベルの動作を計測するイベントです。 WebdriverIO が WebDriver バックエンドにリクエストを送信するたびに、イベントがいくつかの下記のような有用な情報とともに発行されます。
 
 - `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- ` error `: リクエストが失敗した場合のエラー オブジェクト。
+- ` request `: リクエストオブジェクト。 URL、メソッド、ヘッダーなどを確認することができます。
+- `retryCount`: `0`の場合、リクエストは最初の実行 WebDriverIO が内部で再試行するたびに増加していきます
+- `success`: リクエストが成功したかどうかを表すBoolean `false`、 `error` の場合はプロパティも提供されます。
 
-An example event:
+イベントの例:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### カスタムコマンド
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+ブラウザーのスコープにカスタム コマンドを設定して、一般的に使用されるワークフローを抽象化できます。 詳細については、 [ Custom Commands ](/docs/customcommands#adding-custom-commands) に関するガイドを参照してください。
