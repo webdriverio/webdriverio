@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-import mustache from 'mustache'
+import { Eta } from 'eta'
 
 import { repoUrl } from '../constants.js'
 import {
@@ -10,11 +10,16 @@ import {
 } from '../protocols.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'template.mustache')
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates')
 
 const category = 'api'
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
 const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
+
+const eta = new Eta({
+    views: TEMPLATE_PATH,
+    autoEscape: false,
+})
 
 /**
  * Generate Protocol docs
@@ -22,7 +27,6 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  */
 export function generateProtocolDocs (sidebars: any) {
     fs.mkdir(API_DOCS_ROOT_DIR, { recursive: true }, (err) => console.error(err))
-    const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs: any = {}
 
     const protocolDocEntry = {
@@ -74,7 +78,7 @@ export function generateProtocolDocs (sidebars: any) {
                     description.description = protocolNote
                 }
 
-                const markdown = mustache.render(template, { docfiles: [description], path }, { delimiter: '?' })
+                const markdown = eta.render('./template', { ...description, path })
                 if (!protocolDocs[protocolName]) {
                     protocolDocs[protocolName] = [[
                         '---',

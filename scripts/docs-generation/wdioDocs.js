@@ -2,13 +2,18 @@ import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 import dox from 'dox'
-import mustache from 'mustache'
+import { Eta } from 'eta'
 
 import formatter from '../utils/formatter.js'
 import compiler from '../utils/compiler.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'template.mustache')
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates')
+
+const eta = new Eta({
+    views: TEMPLATE_PATH,
+    autoEscape: false,
+})
 
 /**
  * Generate WebdriverIO docs
@@ -54,55 +59,7 @@ export async function generateWdioDocs (sidebars) {
                 javadoc: doc,
             }
             const formatedDocfile = formatter(docfile)
-            formatedDocfile.renderUsage = function () {
-                let usage
-                if (this.isElementScope) {
-                    usage = `$(selector).${this.command}(${this.paramString})`
-                } else if (this.isMockScope) {
-                    usage = `mock.${this.command}(${this.paramString})`
-                } else {
-                    usage = `${this.isMobile ? 'driver' : 'browser'}.${
-                        this.command
-                    }(${this.paramString})`
-                }
-                return usage
-            }
-            formatedDocfile.renderParamTags = function () {
-                let returnValue = '\n'
-                if (this.paramTags.length) {
-                    returnValue += '##### Parameters\n\n| Name | Type | Details |\n| ---- | ---- | ------- |\n'
-                    this.paramTags.forEach((paramTag) => {
-                        const paramKey = Array.isArray(paramTag.types)
-                            ? paramTag.types.map((type) => `<code>${type.replace(/>/g, '&gt;').replace(/</g, '&lt;')}</code>`).join('|')
-                            : paramTag.type
-                        returnValue += `| <code><var>${paramTag.name}</var></code>`
-                        if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) {
-                            returnValue += '<br /><span class="label labelWarning">optional</span>'
-                        }
-                        returnValue += ` | ${paramKey.split('|').join(', ').replace('(', '').replace(')', '')} | ${paramTag.description} |\n`
-                    })
-                }
-                return returnValue
-            }
-            formatedDocfile.renderExamples = function () {
-                let returnValue = ''
-                const allExamples = [...this.examples, ...this.exampleReferences]
-                if (this.examples.length || this.exampleReferences.length) {
-                    returnValue += `##### Example${allExamples.length > 1 ? 's' : ''}\n\n`
-                    this.exampleReferences.forEach((ref) => {
-                        const filename = path.basename(ref.split('#')[0])
-                        const ext = path.extname(filename).slice(1)
-                        returnValue += `\`\`\`${ext} reference title="${filename}" useHTTPS\n${ref}\n\`\`\`\n\n`
-                    })
-
-                    this.examples.forEach((example) => {
-                        returnValue += `\`\`\`${example.format} ${example.file ? `title="${example.file}"` : ''}\n${example.code}\n\`\`\`\n\n`
-                    })
-                }
-                return returnValue
-            }
-            const template = fs.readFileSync(TEMPLATE_PATH, 'utf-8')
-            const processedDoc = mustache.render(template, formatedDocfile)
+            const processedDoc = eta.render('./template', { ...formatedDocfile, path })
             fs.writeFileSync(output, processedDoc.replace(/\n{3,}/g, '\n\n'))
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
