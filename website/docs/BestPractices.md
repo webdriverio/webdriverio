@@ -11,7 +11,7 @@ This guide aims to share our best practices that help you write performant and r
 
 __Note:__ To find out all the possible selectors WebdriverIO supports, checkout our [Selectors](./Selectors.md) page.
 
-Use selectors that are resilient to changes in the DOM.
+Using selectors that are resilient to changes in the DOM, you'll have a less or even no tests failing when the for example a class is removed from an element.
 
 Classes can be applied to multiple elements and should be avoided if possible unless you deliberately want to fetch all elements with that class.
 
