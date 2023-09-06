@@ -169,6 +169,8 @@ await submitFormButton.click();
 When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
 For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
 
+__Note:__ You can still use these when you do not need the operation to be synchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
+
 Below are some examples of what this means.
 
 The following will not work as asynchronous callback are not supported.
