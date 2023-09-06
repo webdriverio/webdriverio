@@ -67,8 +67,7 @@
     "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
     "version": "npm run changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
-    "postinstall:husky": "husky install",
-    "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
+    "postinstall:husky": "husky install"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^9.3.0",

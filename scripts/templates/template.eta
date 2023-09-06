@@ -16,8 +16,6 @@ title: <%= it.command %>
 <% if (it.alternativeCommands && it.alternativeCommands.length) { %>
 :::info
 
-<% /* This protocol command is embedded in the following convenient method<%= it.alternativeCommands.length > 1 ? 's' : '' %>: <% for (const altCommand of it.alternativeCommands) { %>[<%= altCommand.split('/').pop() %>](/docs/api/<%= altCommand %>)<% } %>. It is recommended to use <%= it.alternativeCommands.length > 1 ? 'these commands' : 'this command' %> instead. */ %>
-
 This protocol command is embedded in the following convenient method<%= it.alternativeCommands.length > 1 ? 's' : '' %>: <%= it.alternativeCommands.map((command) => `[${command.split('/').pop()}}](/docs/api/${command})`).join(', ') %>. It is recommended to use <%= it.alternativeCommands.length > 1 ? 'these commands' : 'this command' %> instead.
 
 :::
