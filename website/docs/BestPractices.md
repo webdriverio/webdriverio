@@ -29,9 +29,23 @@ await $('[name="submit-button"]');
 await $('#submit-button');
 ```
 
-## Limit DOM interactions
+## Limit the amount of element queries
 
-Everytime you use the [`$`](https://webdriver.io/docs/api/browser/$) or [`$$`](https://webdriver.io/docs/api/browser/$$) command, WebdriverIO tries to locate the element in the DOM. These operations are very expensive so you should try to limit them as much as possible.
+Every time you use the [`$`](https://webdriver.io/docs/api/browser/$) or [`$$`](https://webdriver.io/docs/api/browser/$$) command (this includes chaining them), WebdriverIO tries to locate the element in the DOM. These queries are expensive so you should try to limit them as much as possible.
+
+Queries three elements.
+
+```js
+// 👎
+await $('table').$('tr').$('td');
+```
+
+Queries only one element.
+
+``` js
+// 👍
+await $('table tr td');
+```
 
 ### Prefer using a single selector over chaining
 
@@ -50,22 +64,6 @@ In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#d
 ``` js
 // 👍 
 await $('custom-datepicker').$('>>>#calendar').$('button[name="next-month"]');
-```
-
-Another reason why you do not want to chain elements and would want to use a single selector is because it locates the elements separately and since the requests to fetch the elements are expensive, this should be avoided.
-
-Interacts with the DOM three times.
-
-```js
-// 👎
-await $('table').$('tr').$('td');
-```
-
-interacts with the DOM only once.
-
-``` js
-// 👍
-await $('table tr td');
 ```
 
 ### Prefer locating a single element instead of taking one from a list
