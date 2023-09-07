@@ -3,7 +3,11 @@ id: configuration
 title: कॉन्फ़िगरेशन
 ---
 
+<<<<<<< HEAD
 [सेटअप प्रकार](/docs/setuptypes) के आधार पर (उदाहरण के लिए कच्चे प्रोटोकॉल बाइंडिंग का उपयोग करके, वेबड्राइवरियो स्टैंडअलोन पैकेज या WDIO टेस्टरनर के रूप में) पर्यावरण को नियंत्रित करने के लिए विकल्पों का एक अलग सेट उपलब्ध है।
+=======
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+>>>>>>> 3abd27a65 (New translations Configuration.md (Hindi))
 
 ## वेब ड्राइवर विकल्प
 
