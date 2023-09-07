@@ -3,7 +3,11 @@ id: configuration
 title: Konfiguration
 ---
 
+<<<<<<< HEAD
 Basierend auf dem [Setup-Type](/docs/setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
+=======
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+>>>>>>> eedb047cd (New translations Configuration.md (German))
 
 ## WebDriver-Optionen
 
