@@ -70,7 +70,6 @@
     "postinstall:husky": "husky install"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^9.3.0",
     "@octokit/rest": "^19.0.13",
     "@preact/preset-vite": "^2.5.0",
     "@stencil/core": "^4.0.4",
