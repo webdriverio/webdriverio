@@ -5,7 +5,7 @@ title: Best Practices
 
 # Best Practices
 
-This guide aims to share our best practices that help you write performant and resilient tests. 
+This guide aims to share our best practices that help you write performant and resilient tests.
 
 ## Use resilient selectors
 
@@ -21,7 +21,7 @@ await $('.button');
 All these selectors should return a single element.
 
 ```js
-// 👍 
+// 👍
 await $('aria/Submit');
 await $('[test-id="submit-button"]');
 await $('#submit-button');
@@ -47,11 +47,21 @@ Queries only one element.
 await $('table tr td');
 ```
 
-The only time you should use chaining is when you want to combine different [selector strategies](https://webdriver.io/docs/selectors/#custom-selector-strategies).
-In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#deep-selectors), which is a strategy to go inside the shadow DOM of an element.
+### Prefer using a single selector over chaining
+
+When using the [`$`](https://webdriver.io/docs/api/browser/$) or [`$$`](https://webdriver.io/docs/api/browser/$$) command, the only time you should use chaining is when you want to combine different [selector strategies](https://webdriver.io/docs/selectors/#custom-selector-strategies).
+
+Using a single strategy
+
+```js
+// 👎
+await $('table').$('tr').$('td');
+```
+
+Using different strategies. In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#deep-selectors), which is a strategy to go inside the shadow DOM of an element.
 
 ``` js
-// 👍 
+// 👍
 await $('custom-datepicker').$('>>>#calendar').$('aria/Select');
 ```
 
@@ -82,8 +92,7 @@ Don't use manual assertions that do not automatically wait for the results to ma
 expect(await button.isDisplayed()).toBe(true);
 ```
 
-By using the built-in assertions WebdriverIO will automatically wait for the actual result to match the expected result, resulting in resilient tests.
-It achieves this by automatically retrying the assertion until it passes or times out.
+By using the built-in assertions WebdriverIO will automatically wait for the actual result to match the expected result, resulting in resilient tests. It achieves this by automatically retrying the assertion until it passes or times out.
 
 ```js
 // 👍
@@ -153,8 +162,7 @@ await submitFormButton.click();
 
 ## Async loops
 
-When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
-For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
+When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this. For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
 
 __Note:__ You can still use these when you do not need the operation to be synchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
 
