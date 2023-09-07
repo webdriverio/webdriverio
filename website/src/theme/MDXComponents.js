@@ -6,6 +6,7 @@ import TabItem from '@theme/TabItem'
 // custom components
 import { CreateProjectAnimation, CreateMacOSProjectAnimation } from '../components/CreateProjectAnimation.js'
 import { ImageSwitcher } from '../components/ImageSwitcher.js'
+import { CreateFlowcharts } from '../components/CreateFlowcharts.js'
 
 export default {
     // Re-use the default mapping
@@ -16,4 +17,5 @@ export default {
     LiteYouTubeEmbed,
     CreateProjectAnimation,
     CreateMacOSProjectAnimation,
+    CreateFlowcharts,
 }
