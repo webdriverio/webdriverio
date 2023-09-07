@@ -66,6 +66,11 @@ module.exports = {
                 position: 'left',
                 docId: 'api',
             }, {
+                type: 'doc',
+                label: 'Flowchart',
+                position: 'left',
+                docId: 'flowchartsoverview',
+            }, {
                 to: 'blog', label: 'Blog', position: 'left'
             }, {
                 type: 'doc',
@@ -315,7 +320,9 @@ module.exports = {
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
     ],
     scripts: [
+        'https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js',
         'https://buttons.github.io/buttons.js',
-        '/js/ribbons.js'
+        '/js/ribbons.js',
+        '/js/flowchart.js'
     ]
 }
