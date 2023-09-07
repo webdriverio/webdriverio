@@ -8,6 +8,7 @@ import namespacedModule from '@namespace/module'
 import { someExport, namedExports } from '@testing-library/user-event'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
+import { wasmBrowserInstantiate } from './wasm/utils.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 mock('./components/constants.ts', async (mod) => {
@@ -352,5 +353,10 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveText('Click Me!')
             })
         })
+    })
+
+    it('should support WASM', async () => {
+        const wasmModule = await wasmBrowserInstantiate('/browser-runner/wasm/add.wasm')
+        expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
     })
 })
