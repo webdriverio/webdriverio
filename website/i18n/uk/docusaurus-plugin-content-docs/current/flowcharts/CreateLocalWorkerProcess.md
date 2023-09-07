@@ -3,4 +3,6 @@ id: createlocalworkerprocess
 title: Створити робочий процес
 ---
 
-Ця блок-схема пояснює, як створюється робочий процес.
+This flowchart explains how a worker process is created.
+
+<CreateFlowcharts id='createlocalworkerprocess' />
