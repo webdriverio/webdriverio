@@ -14,7 +14,8 @@ import {
     uploadEventData,
     o11yClassErrorHandler,
     removeAnsiColors,
-    getHookType, pushDataToQueue
+    getHookType,
+    pushDataToQueue
 } from './util'
 import RequestQueueHandler from './request-handler'
 

@@ -665,10 +665,10 @@ export function getFailureObject(error: string|Error) {
 
 export function patchConsoleLogs() {
     const BSTestOpsPatcher = new logPatcher({})
-    // eslint-disable-next-line no-global-assign
-    console = {} as typeof console
-    Object.keys(consoleHolder).forEach((method) => {
+    Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        const origMethod = (console[method] as any).bind(console);
         (console as any)[method] = (...args: unknown[]) => {
+            origMethod(...args);
             (BSTestOpsPatcher as any)[method](...args)
         }
     })

@@ -1,5 +1,4 @@
 import Transport from 'winston-transport'
-import { consoleHolder } from './constants'
 
 const LOG_LEVELS = {
     INFO: 'INFO', ERROR: 'ERROR', DEBUG: 'DEBUG', TRACE: 'TRACE', WARN: 'WARN',
@@ -11,7 +10,6 @@ class logPatcher extends Transport {
     }
 
     logToTestOps = (level = LOG_LEVELS.INFO, message = ['']) => {
-        (consoleHolder as any)[level.toLowerCase()](...message);
         (process.emit as Function)(`bs:addLog:${process.pid}`, {
             timestamp: new Date().toISOString(),
             level: level.toUpperCase(),
