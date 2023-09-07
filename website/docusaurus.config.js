@@ -66,11 +66,6 @@ module.exports = {
                 position: 'left',
                 docId: 'api',
             }, {
-                type: 'doc',
-                label: 'Flowchart',
-                position: 'left',
-                docId: 'flowchartsoverview',
-            }, {
                 to: 'blog', label: 'Blog', position: 'left'
             }, {
                 type: 'doc',
