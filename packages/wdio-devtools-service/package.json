@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "8.16.3",
+  "version": "8.16.5",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",
@@ -47,7 +47,7 @@
     "puppeteer-core": "20.3.0",
     "speedline": "^1.4.3",
     "stable": "^0.1.8",
-    "webdriverio": "8.16.3"
+    "webdriverio": "8.16.5"
   },
   "publishConfig": {
     "access": "public"

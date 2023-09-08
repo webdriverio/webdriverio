@@ -73,13 +73,21 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
     })
 
+    it('throws if parallel cucumber opts is set', async () => {
+        await expect(
+            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false)
+        ).rejects.toEqual(expect.objectContaining({
+            message: 'The option "parallel" is not supported by WebdriverIO'
+        }))
+    })
+
     it('should not initiated with no tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, [], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(false)
     })

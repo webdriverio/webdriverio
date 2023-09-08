@@ -107,6 +107,13 @@ class CucumberAdapter {
             this._config.cucumberOpts as Required<CucumberOptions>
         )
 
+        /**
+         * WebdriverIO doesn't support this Cucumber feature so we should let the user know
+         */
+        if (this._config.cucumberOpts?.parallel) {
+            throw new Error('The option "parallel" is not supported by WebdriverIO')
+        }
+
         this._cucumberOpts.formatOptions = {
             _reporter: this._reporter,
             _cid: this._cid,
@@ -249,7 +256,11 @@ class CucumberAdapter {
 
         try {
             await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId)
+            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+                requireModules: this._cucumberOpts.requireModule,
+                requirePaths: this._cucumberOpts.require,
+                importPaths: this._cucumberOpts.import,
+            })
 
             this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
 
