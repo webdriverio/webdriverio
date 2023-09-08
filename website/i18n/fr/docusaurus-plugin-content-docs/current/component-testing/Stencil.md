@@ -1,13 +1,13 @@
 ---
 id: stencil
-title: Stencil
+title: Crayon
 ---
 
-[Stencil](https://stenciljs.com/) is a library for building reusable, scalable component libraries. You can test Stencil components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[Stencil](https://stenciljs.com/) est une bibliothèque pour construire des bibliothèques de composants réutilisables et évolutives. Vous pouvez tester les composants Preact directement dans un navigateur en utilisant WebdriverIO et son [browser runner](/docs/runner#browser-runner).
 
-## Setup
+## Configuration
 
-To setup WebdriverIO within your Stencil project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `stencil` as preset within your runner options, e.g.:
+Pour configurer WebdriverIO dans votre projet React, suivez les [instructions](/docs/component-testing#set-up) de notre documentation de test de composants. Assurez-vous de sélectionner `stencil` comme préréglage dans les options de votre exécuteur, par exemple.:
 
 ```js
 // wdio.conf.js
@@ -103,7 +103,7 @@ flushAll()
 await expect($('...')).toHaveElementClass('...')
 ```
 
-If you prefer to apply changes automatically, set the `autoApplyChanges` flag, e.g.:
+Si vous préférez appliquer les modifications automatiquement, définissez l'option `autoApplyChanges` , par exemple.:
 
 ```ts
 const { flushAll } = render({
