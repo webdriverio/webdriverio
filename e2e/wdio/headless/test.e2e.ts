@@ -1,8 +1,6 @@
 import os from 'node:os'
 import type { Capabilities } from '../../../packages/wdio-types'
 
-const SCROLL_MARGIN_TRESHOLD = 25
-
 describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
@@ -12,6 +10,7 @@ describe('main suite 1', () => {
 
     it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
+        // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
         expect((await browser.checkPWA([
             'isInstallable',
@@ -81,15 +80,13 @@ describe('main suite 1', () => {
         ])
         expect(currentScrollPosition).toEqual([0, 0])
         await $('footer').scrollIntoView()
-        await browser.pause(500)
         const [x, y] = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
         expect(y).toBeGreaterThan(100)
 
         // should scroll relative to current position
-        browser.scroll(0, 0)
-        await browser.pause(500)
+        await browser.scroll(0, 0)
         const sameScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -102,39 +99,83 @@ describe('main suite 1', () => {
         expect(oldScrollPosition).toEqual([x, y])
     })
 
-    /**
-     * ToDo(Christian): Fix this test
-     */
-    it.skip('should be able to handle successive scrollIntoView', async () => {
+    const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
+        undefined,
+        true,
+        false,
+        { block: 'start', inline: 'start' },
+        { block: 'start', inline: 'center' },
+        { block: 'start', inline: 'end' },
+        { block: 'start', inline: 'nearest' },
+        { block: 'center', inline: 'start' },
+        { block: 'center', inline: 'center' },
+        { block: 'center', inline: 'end' },
+        { block: 'center', inline: 'nearest' },
+        { block: 'end', inline: 'start' },
+        { block: 'end', inline: 'center' },
+        { block: 'end', inline: 'end' },
+        { block: 'end', inline: 'nearest' },
+        { block: 'nearest', inline: 'start' },
+        { block: 'nearest', inline: 'center' },
+        { block: 'nearest', inline: 'end' },
+        { block: 'nearest', inline: 'nearest' },
+    ]
+
+    describe('sdfsfd', () => {
+        beforeEach(async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            await browser.setWindowSize(500, 500)
+        })
+
+        inputs.forEach(input => {
+            const inputDescription = typeof input === 'boolean' ? input : JSON.stringify(input)
+            it(`should vertically scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
+                const searchInput = await $('.searchinput')
+                await searchInput.scrollIntoView(input as any)
+                const wdioY = await browser.execute(() => window.scrollY)
+
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                const nativeY = await browser.execute(() => window.scrollY)
+
+                expect(Math.floor(wdioY)).toEqual(Math.floor(nativeY))
+            })
+
+            it(`should horizontally scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
+                const searchInput = await $('.searchinput')
+                await searchInput.scrollIntoView(input as any)
+                const wdioX = await browser.execute(() => window.scrollX)
+
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                const nativeX = await browser.execute(() => window.scrollX)
+
+                expect(Math.floor(wdioX)).toEqual(Math.floor(nativeX))
+            })
+        })
+    })
+
+    it('should be able to handle successive scrollIntoView', async () => {
         await browser.url('http://guinea-pig.webdriver.io')
         await browser.setWindowSize(500, 500)
         const searchInput = await $('.searchinput')
 
         const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
             await searchInput.scrollIntoView(params)
-            await browser.pause(500)
             const [wdioX, wdioY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
 
             await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
-            await browser.pause(500)
             const [windowX, windowY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
 
-            const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
-            expect(Math.abs(wdioX - windowX)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
-            expect(Math.abs(wdioY - windowY)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
+            expect(Math.abs(wdioX - windowX)).toEqual(0)
+            expect(Math.abs(wdioY - windowY)).toEqual(0)
         }
 
-        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
-        await scrollAndCheck()
-        await scrollAndCheck({ block: 'center', inline: 'center' })
-        await scrollAndCheck({ block: 'start', inline: 'start' })
-        await scrollAndCheck({ block: 'end', inline: 'end' })
-        await scrollAndCheck(true)
-        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
+        for (const input of inputs) {
+            await scrollAndCheck(input)
+        }
     })
 
     it('can reload a session', async () => {

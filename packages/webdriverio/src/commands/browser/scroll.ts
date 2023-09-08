@@ -43,11 +43,7 @@ export function scroll (
         .scroll({
             deltaX: x,
             deltaY: y,
-            /**
-             * needed otherwise the command finished before
-             * scrolling position is reached
-             */
-            duration: 200
+            duration: 0
         })
         .perform()
 }
