@@ -14,7 +14,7 @@ import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import TagExpressionParser from '@cucumber/tag-expressions'
 
-import { DEFAULT_OPTS, FILE_PROTOCOL } from './constants.js'
+import { DEFAULT_OPTS } from './constants.js'
 import { generateSkipTagsFromCapabilities, shouldRun } from './utils.js'
 
 import type {
@@ -34,6 +34,10 @@ import {
 } from '@cucumber/cucumber/api'
 
 import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
+
+export const FILE_PROTOCOL = 'file://'
+
+const cucumberFormatter = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '../cucumberFormatter.js')).href
 
 const log = logger('@wdio/cucumber-framework')
 
@@ -114,6 +118,14 @@ class CucumberAdapter {
             throw new Error('The option "parallel" is not supported by WebdriverIO')
         }
 
+        /**
+         * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
+         */
+        this._cucumberOpts.format.push([cucumberFormatter])
+
+        /**
+         * formatting options used by custom cucumberFormatter
+         */
         this._cucumberOpts.formatOptions = {
             _reporter: this._reporter,
             _cid: this._cid,

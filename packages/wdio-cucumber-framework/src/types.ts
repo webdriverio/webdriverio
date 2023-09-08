@@ -32,7 +32,7 @@ export interface CucumberOptions {
     /**
      * Name/path of formatter to use
      */
-    format?: string[];
+    format?: Array<string | [string, string?]>;
     /**
      * Options to be provided to formatters
      */
