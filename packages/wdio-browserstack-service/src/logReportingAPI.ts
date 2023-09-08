@@ -1,4 +1,4 @@
-import Transport from 'winston-transport'
+import Transport = require('winston-transport');
 import { consoleHolder } from './constants.js'
 
 const LOG_LEVELS = {
