@@ -1,4 +1,5 @@
 // mimic types from @cucumber/@cucumber such that users don't install that dependency when not needed
+import type { Frameworks } from '@wdio/types'
 
 export interface ITestCaseHookParameter {
     gherkinDocument: GherkinDocument;
@@ -204,4 +205,23 @@ export declare class Location {
 export declare class Comment {
     location: Location
     text: string
+}
+
+export interface CucumberStore {
+    feature?: Feature,
+    scenario?: Pickle,
+    uri?: string,
+    stepsStarted: boolean,
+    scenariosStarted: boolean
+    steps: Frameworks.PickleStep[]
+}
+
+export interface CucumberHook {
+    id: string,
+    hookId: string
+}
+
+export interface CucumberHookParams {
+    event: 'before'|'after',
+    hookUUID?: string
 }

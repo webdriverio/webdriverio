@@ -21,6 +21,35 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.5 (2023-09-07)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11111](https://github.com/webdriverio/webdriverio/pull/11111) (@wdio/browser-runner): support fetching wasm files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11078](https://github.com/webdriverio/webdriverio/pull/11078) @wdio/cucumber-framework: Add original coordinates when resetting Cucumber Support Library ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* Other
+  * [#11107](https://github.com/webdriverio/webdriverio/pull/11107) (doc): Enabling flowcharts ([@tamil777selvan](https://github.com/tamil777selvan))
+  * [#11106](https://github.com/webdriverio/webdriverio/pull/11106) fix broken link in configuration Closes [#11104](https://github.com/webdriverio/webdriverio/issues/11104) ([@harsha509](https://github.com/harsha509))
+  * [#11110](https://github.com/webdriverio/webdriverio/pull/11110) (docs): update best practices page, add page to translations ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#11071](https://github.com/webdriverio/webdriverio/pull/11071) (docs): add best practices guide ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#11102](https://github.com/webdriverio/webdriverio/pull/11102) (doc): migrate to eta from ejs ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriverio`
+  * [#11005](https://github.com/webdriverio/webdriverio/pull/11005) (docs): saveScreenshot requires afterTest hook to be async ([@hashar](https://github.com/hashar))
+
+#### Committers: 6
+- Antoine Musso ([@hashar](https://github.com/hashar))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.4 (2023-09-05)
 
 #### :bug: Bug Fix

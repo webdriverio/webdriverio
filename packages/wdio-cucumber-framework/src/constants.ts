@@ -9,15 +9,13 @@ export const FILE_PROTOCOL = 'file://'
 
 const cucumberFormatter = path.resolve(url.fileURLToPath(import.meta.url), '../cucumberFormatter.js')
 
-const isWindows = process.platform === 'win32'
-
 export const DEFAULT_OPTS: CucumberOptions = {
     paths: [],
     backtrace: false,
     dryRun: false,
     forceExit: false,
     failFast: false,
-    format: [isWindows ? `file://${cucumberFormatter}` : cucumberFormatter],
+    format: [cucumberFormatter],
     formatOptions: {},
     import: [],
     language: 'en',
