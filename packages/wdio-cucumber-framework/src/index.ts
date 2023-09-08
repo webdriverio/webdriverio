@@ -120,8 +120,13 @@ class CucumberAdapter {
 
         /**
          * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
+         *
+         * It's essential to validate `this._reporter` for unit testing purposes. In real-time scenarios, an instance of an event emitter is typically passed,
+         * whereas during unit testing, we pass the reporter as an empty object `{}`.
          */
-        this._cucumberOpts.format.push([cucumberFormatter])
+        if (Object.keys(this._reporter).length > 0) {
+            this._cucumberOpts.format.push([cucumberFormatter])
+        }
 
         /**
          * formatting options used by custom cucumberFormatter
