@@ -17,17 +17,17 @@ test('should allow to run multiple browser at once', async () => {
      * print log files for debugging if test fails
      */
     if (!hasPassed) {
-        // const rootPath = path.join(__dirname, 'wdio')
-        // const logFiles = fs.readdirSync(rootPath)
-        //     // only log files
-        //     .filter((file) => file.endsWith('.log'))
+        const rootPath = path.join(__dirname, 'wdio')
+        const logFiles = fs.readdirSync(rootPath)
+            // only log files
+            .filter((file) => file.endsWith('.log'))
 
-        // for (const fileName of logFiles) {
-        //     // eslint-disable-next-line no-console
-        //     console.log(`\n========== LOG OUTPUT ${fileName}`)
-        //     // eslint-disable-next-line no-console
-        //     console.log(fs.readFileSync(path.resolve(rootPath, fileName)).toString())
-        // }
+        for (const fileName of logFiles) {
+            // eslint-disable-next-line no-console
+            console.log(`\n========== LOG OUTPUT ${fileName}`)
+            // eslint-disable-next-line no-console
+            console.log(fs.readFileSync(path.resolve(rootPath, fileName)).toString())
+        }
     }
 
     expect(hasPassed).toBe(true)
