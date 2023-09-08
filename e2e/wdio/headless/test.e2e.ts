@@ -121,7 +121,7 @@ describe('main suite 1', () => {
         { block: 'nearest', inline: 'nearest' },
     ]
 
-    describe('sdfsfd', () => {
+    describe('wdio scrollIntoView behaves like native scrollIntoView', () => {
         beforeEach(async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             await browser.setWindowSize(500, 500)
