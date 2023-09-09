@@ -421,7 +421,7 @@ WDIO टेस्टरनर आपको परीक्षण जीवनच
 - `cid` (`string`): क्षमता आईडी (जैसे 0-0)
 - `exitCode` (`number`): 0 - सफलता, 1 - असफल
 - `specs` (`string[]`): कार्यकर्ता प्रक्रिया में चलने के लिए स्पेक्स
-- `retries` (`number`): प्रयुक्त पुनर्प्रयासों की संख्या
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -511,7 +511,7 @@ WebdriverIO कमांड के निष्पादित होने स�
 - `result.result` (`Any`): परीक्षण फंक्शन की वापसी वस्तु
 - `result.duration` (`Number`): मिलीसेकंड में परिदृश्य की अवधि
 - `result.passed` (`Boolean`): यदि परिदृश्य पास हो गया है तो सच है
-- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`object`): हुक परिणाम ( `error`, `result`, `duration`, `passed`, `retries` गुणों को करता है)
 
 ### afterSuite
