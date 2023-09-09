@@ -417,7 +417,7 @@ Parámetros:
 - `cid` (`string`): id de capacidad (por ejemplo, 0-0)
 - `exitCode` (`número`): 0 - éxito, 1 - error
 - `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
-- `retries` (`number`): número de reintentos utilizados
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -507,7 +507,7 @@ Parámetros:
 - `result.result` (`Any`): devuelve el objeto de la función de prueba
 - `resultado.duración` (`Número`): duración de la prueba
 - `result.passed` (`Boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
-- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `resultado` (`objeto`): resultado de gancho (contiene `error`, `resultado`, `duración`, `pasado`, `reintentos` propiedades)
 
 ### afterSuite
