@@ -21,6 +21,32 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.6 (2023-09-09)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11118](https://github.com/webdriverio/webdriverio/pull/11118) fix cucumber report issue - windows ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11098](https://github.com/webdriverio/webdriverio/pull/11098) [v8] Console logs and cucumber hooks support  ([@sriteja777](https://github.com/sriteja777))
+* `wdio-cucumber-framework`
+  * [#11116](https://github.com/webdriverio/webdriverio/pull/11116) Update Cucumber Dependency Version ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* Other
+  * [#11126](https://github.com/webdriverio/webdriverio/pull/11126) fix:docs capabilities ([@SivasubramanianV](https://github.com/SivasubramanianV))
+* `webdriverio`
+  * [#11122](https://github.com/webdriverio/webdriverio/pull/11122) (docs): more bidi examples ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Codemac ([@SivasubramanianV](https://github.com/SivasubramanianV))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.5 (2023-09-07)
 
 #### :bug: Bug Fix
