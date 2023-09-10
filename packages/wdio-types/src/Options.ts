@@ -54,8 +54,6 @@ export interface Connection {
     hostname?: string
     /**
      * Port your WebDriver server is on.
-     *
-     * @default 4444
      */
     port?: number
     /**
