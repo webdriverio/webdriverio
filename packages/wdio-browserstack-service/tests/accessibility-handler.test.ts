@@ -1,4 +1,5 @@
 /// <reference path="../../webdriverio/src/@types/async.d.ts" />
+/// <reference path="../src/@types/cucumber-framework.d.ts" />
 import path from 'node:path'
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
@@ -8,7 +9,6 @@ import logger from '@wdio/logger'
 import AccessibilityHandler from '../src/accessibility-handler.js'
 import * as utils from '../src/util.js'
 import type { Capabilities } from '@wdio/types'
-import type { BrowserStack } from '../src/types.js'
 
 const log = logger('test')
 let accessibilityHandler: AccessibilityHandler
@@ -133,7 +133,7 @@ describe('before', () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
         await accessibilityHandler.before();
-        (browser as BrowserStack).getAccessibilityResultsSummary()
+        (browser as WebdriverIO.Browser).getAccessibilityResultsSummary()
         expect(getA11yResultsSummarySpy).toBeCalledTimes(1)
     })
 
@@ -141,7 +141,7 @@ describe('before', () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
         await accessibilityHandler.before();
-        (browser as BrowserStack).getAccessibilityResults()
+        (browser as WebdriverIO.Browser).getAccessibilityResults()
         expect(getA11yResultsSpy).toBeCalledTimes(1)
     })
 })
@@ -307,7 +307,7 @@ describe('afterScenario', () => {
 
     it('should return if accessibilityScanStarted is false', async () => {
         accessibilityHandler['_testMetadata']['test title'] = {
-            accessibilityScanStarted: true,
+            accessibilityScanStarted: false,
             scanTestForAccessibility: true
         }
         await accessibilityHandler.afterScenario({

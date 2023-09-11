@@ -441,7 +441,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     try {
-        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults())
+        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults)
         return results
     } catch {
         log.error('No accessibility results were found.')
@@ -460,7 +460,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 
     try {
-        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary())
+        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary)
         return summaryResults
     } catch {
         log.error('No accessibility summary was found.')

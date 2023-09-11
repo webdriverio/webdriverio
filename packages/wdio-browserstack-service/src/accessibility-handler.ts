@@ -15,7 +15,6 @@ import {
     validateCapsWithA11y,
     isTrue,
 } from './util.js'
-import type { BrowserStack } from './types.js'
 import { testForceStop, testStartEvent, testStop } from './scripts/test-event-scripts.js'
 
 const log = logger('@wdio/browserstack-service')
@@ -28,7 +27,14 @@ class _AccessibilityHandler {
     private _accessibilityOptions?: { [key: string]: any; }
     private _testMetadata: { [key: string]: any; } = {}
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _capabilities: Capabilities.RemoteCapability, isAppAutomate?: boolean, private _framework?: string, private _accessibilityAutomation?: boolean | string, private _accessibilityOpts?: { [key: string]: any; }) {
+    constructor (
+        private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+        private _capabilities: Capabilities.RemoteCapability,
+        isAppAutomate?: boolean,
+        private _framework?: string,
+        private _accessibilityAutomation?: boolean | string,
+        private _accessibilityOpts?: { [key: string]: any; }
+    ) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as Capabilities.Capabilities
 
         this._platformA11yMeta = {
@@ -86,41 +92,28 @@ class _AccessibilityHandler {
             this._accessibility = validateCapsWithA11y(deviceName, this._platformA11yMeta, chromeOptions)
         }
 
-        (this._browser as BrowserStack).getAccessibilityResultsSummary = async () => {
+        (this._browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
             return await getA11yResultsSummary((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
-        (this._browser as BrowserStack).getAccessibilityResults = async () => {
+        (this._browser as WebdriverIO.Browser).getAccessibilityResults = async () => {
             return await getA11yResults((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (this._framework !== 'mocha' || !this._browser) {
+        if (
+            this._framework !== 'mocha' ||
+            !this.shouldRunTestHooks(this._browser, this._accessibility)
+        ) {
             return
         }
 
-        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
-            return
-        }
-
-        let pageOpen = true
         const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
         const testIdentifier = this.getIdentifier(test)
-        this._testMetadata[testIdentifier] = {
-            scanTestForAccessibility : shouldScanTest,
-            accessibilityScanStarted : true
-        }
+        const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
 
-        try {
-            const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
-            const url = new URL(currentURL)
-            pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
-        } catch (e) {
-            pageOpen = false
-        }
-
-        if (!pageOpen) {
+        if (!isPageOpened) {
             return
         }
 
@@ -142,11 +135,10 @@ class _AccessibilityHandler {
     }
 
     async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (this._framework !== 'mocha' || !this._browser) {
-            return
-        }
-
-        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+        if (
+            this._framework !== 'mocha' ||
+            !this.shouldRunTestHooks(this._browser, this._accessibility)
+        ) {
             return
         }
 
@@ -187,36 +179,19 @@ class _AccessibilityHandler {
     /**
       * Cucumber Only
     */
-
     async beforeScenario (world: ITestCaseHookParameter) {
-        if (!this._browser) {
-            return
-        }
-
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
 
-        let pageOpen = true
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
         const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
+        const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 
-        try {
-            this._testMetadata[uniqueId] = {
-                scanTestForAccessibility : shouldScanScenario,
-                accessibilityScanStarted : true
-            }
-            const currentURL = await (this._browser as WebdriverIO.Browser).getUrl()
-            const url = new URL(currentURL)
-            pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
-        } catch (e) {
-            pageOpen = false
-        }
-
-        if (!pageOpen) {
+        if (!isPageOpened) {
             return
         }
 
@@ -238,10 +213,6 @@ class _AccessibilityHandler {
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
-        if (!this._browser) {
-            return
-        }
-
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
@@ -288,15 +259,15 @@ class _AccessibilityHandler {
      */
 
     private sendTestStartEvent(browser: WebdriverIO.Browser) {
-        return (browser as WebdriverIO.Browser).executeAsync(testStartEvent())
+        return (browser as WebdriverIO.Browser).executeAsync(testStartEvent)
     }
 
     private sendTestForceStopEvent(browser: WebdriverIO.Browser) {
-        return (browser as WebdriverIO.Browser).execute(testForceStop())
+        return (browser as WebdriverIO.Browser).execute(testForceStop)
     }
 
     private sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
-        return (browser as WebdriverIO.Browser).executeAsync(testStop(), dataForExtension)
+        return (browser as WebdriverIO.Browser).executeAsync(testStop, dataForExtension)
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
@@ -307,7 +278,28 @@ class _AccessibilityHandler {
     }
 
     private shouldRunTestHooks(browser: any, isAccessibility?: boolean | string) {
+        if (!browser) {
+            return false
+        }
         return isBrowserstackSession(browser) && isAccessibilityAutomationSession(isAccessibility)
+    }
+
+    private async checkIfPageOpened(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, testIdentifier: string, shouldScanTest?: boolean) {
+        let pageOpen = false
+        this._testMetadata[testIdentifier] = {
+            scanTestForAccessibility : shouldScanTest,
+            accessibilityScanStarted : true
+        }
+
+        try {
+            const currentURL = await (browser as WebdriverIO.Browser).getUrl()
+            const url = new URL(currentURL)
+            pageOpen = url?.protocol === 'http:' || url?.protocol === 'https:'
+        } catch (e) {
+            pageOpen = false
+        }
+
+        return pageOpen
     }
 }
 

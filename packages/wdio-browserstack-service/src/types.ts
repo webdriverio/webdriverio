@@ -276,7 +276,3 @@ interface Failure {
     backtrace: string[]
 }
 
-export interface BrowserStack extends WebdriverIO.Browser  {
-    getAccessibilityResultsSummary: any,
-    getAccessibilityResults: any
- }

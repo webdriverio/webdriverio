@@ -1135,6 +1135,45 @@ describe('isTrue', () => {
     })
 })
 
+describe('getBrowserStackUser', function () {
+    it('should return userName from config if not present as env variable', function () {
+        expect(utils.getBrowserStackUser({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('config_user_name')
+    })
+
+    it('should return userName if present as env variable', function () {
+        process.env.BROWSERSTACK_USERNAME = 'user_name'
+        expect(utils.getBrowserStackUser({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('user_name')
+    })
+
+})
+
+describe('getBrowserStackKey', function () {
+    it('should return accessKey from config if not present as env variable', function () {
+        expect(utils.getBrowserStackKey({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('config_user_key')
+    })
+
+    it('should return accessKey if present as env variable', function () {
+        process.env.BROWSERSTACK_ACCESS_KEY = 'user_key'
+        expect(utils.getBrowserStackKey({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('user_key')
+    })
+})
+
 describe('frameworkSupportsHook', function () {
     describe('mocha', function () {
         it('should return true for beforeHook', function () {
