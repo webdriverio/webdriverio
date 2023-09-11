@@ -90,6 +90,24 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '6')
     })
 
+    test('don\'t setup driver if automation protocol is devtools', async () => {
+        await setupDriver({
+            automationProtocol: 'devtools'
+        } as any, [{
+            browserName: 'chrome',
+            browserVersion: '1'
+        }, {
+            browserName: 'firefox',
+            browserVersion: '5'
+        }, {
+            browserName: 'edge',
+            browserVersion: '4'
+        }])
+        expect(setupGeckodriver).toBeCalledTimes(0)
+        expect(setupChromedriver).toBeCalledTimes(0)
+        expect(setupEdgedriver).toBeCalledTimes(0)
+    })
+
     test('with multiremote capabilities', async () => {
         await setupDriver({}, {
             browserA: {

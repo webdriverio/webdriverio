@@ -54,7 +54,9 @@ function mapCapabilities (
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
-        !getDriverOptions(cap).binary
+        !getDriverOptions(cap).binary &&
+        // - user is not defining "devtools" as automation protocol
+        (options as Options.WebdriverIO).automationProtocol !== 'devtools'
     ))
 
     /**
