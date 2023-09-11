@@ -18,7 +18,7 @@ enum BrowserDriverTaskLabel {
 }
 
 function mapCapabilities (
-    options: Omit<Options.WebDriver, 'capabilities'>,
+    options: Omit<Options.WebdriverIO, 'capabilities'>,
     caps: Capabilities.RemoteCapabilities,
     task: SetupTaskFunction,
     taskItemLabel: string) {
@@ -30,7 +30,12 @@ function mapCapabilities (
                 const isMultiremote = Boolean(multiremoteCaps[Object.keys(cap)[0]].capabilities)
 
                 if (isMultiremote) {
-                    return Object.values(multiremoteCaps).map((c) => c.capabilities)as Capabilities.Capabilities[]
+                    return Object.values(multiremoteCaps).map((c) => {
+                        if (c.automationProtocol === 'devtools') {
+                            return
+                        }
+                        return c.capabilities
+                    }) as Capabilities.Capabilities[]
                 } else if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
@@ -38,6 +43,9 @@ function mapCapabilities (
             }).flat()
             : Object.values(caps as Capabilities.MultiRemoteCapabilities).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
+                if (mrOpts.automationProtocol === 'devtools') {
+                    return
+                }
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
@@ -47,6 +55,8 @@ function mapCapabilities (
         /**
          * only set up driver if
          */
+        // - capabilities are defined and not empty because automationProtocol is set to `devtools`
+        cap &&
         // - browserName is defined so we know it is a browser session
         cap.browserName &&
         // - we are not about to run a cloud session
@@ -54,8 +64,10 @@ function mapCapabilities (
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
-        !getDriverOptions(cap).binary
-    ))
+        !getDriverOptions(cap).binary &&
+        // - user is not defining "devtools" as automation protocol
+        options.automationProtocol !== 'devtools'
+    )) as Capabilities.Capabilities[]
 
     /**
      * nothing to setup

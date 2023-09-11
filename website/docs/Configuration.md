@@ -3,7 +3,7 @@ id: configuration
 title: Configuration
 ---
 
-Based on the [setup type](setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver Options
 
@@ -225,7 +225,7 @@ Default: `500`
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.
 To change your region to EU, add `region: 'eu'` to your config.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
@@ -472,7 +472,7 @@ Parameters:
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of retries used
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -496,7 +496,7 @@ Parameters:
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameters:
 
@@ -562,12 +562,12 @@ Parameters:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameters:
 

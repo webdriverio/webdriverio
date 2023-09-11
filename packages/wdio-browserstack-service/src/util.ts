@@ -13,11 +13,12 @@ import got, { HTTPError } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 
@@ -652,7 +653,45 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
         return true
     }
 
+    if (framework === 'cucumber') {
+        return true
+    }
+
     return false
+}
+
+export function patchConsoleLogs() {
+    const BSTestOpsPatcher = new logPatcher({})
+
+    Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        const origMethod = (console[method] as any).bind(console);
+        (console as any)[method] = (...args: unknown[]) => {
+            origMethod(...args);
+            (BSTestOpsPatcher as any)[method](...args)
+        }
+    })
+}
+
+export function getFailureObject(error: string|Error) {
+    const stack = (error as Error).stack
+    const message = typeof error === 'string' ? error : error.message
+    const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
+
+    return {
+        failure: [{ backtrace: [backtrace] }],
+        failure_reason: removeAnsiColors(message.toString()),
+        failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
+    }
+}
+
+export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
+    if (!requestQueueHandler) {
+        requestQueueHandler = RequestQueueHandler.getInstance()
+    }
+    const req = requestQueueHandler.add(data)
+    if (req.proceed && req.data) {
+        await uploadEventData(req.data, req.url)
+    }
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

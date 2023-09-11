@@ -40,6 +40,18 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 
 See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
 
+## Flowcharts
+
+The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
+
+[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+
+[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+
+[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+
+[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+
 ## Proposing a Change
 
 We are happy for every idea you have that improves the usability of the framework. If you have an idea about a new feature please raise a [feature request](https://github.com/webdriverio/webdriverio/issues/new?template=--feature-request.md) first to get feedback by the maintainer team on it. This lets us reach an agreement on your proposal before you put significant effort into it.
@@ -214,9 +226,9 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   ```
 - *e2e Tests*
   Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These
-  tests spin up headless Chrome and Firefox browsers to test the commands implemented in the `devtools` package. Given that the WebDriver functionality
+  tests spin up headless Chrome, Firefox and Edge browsers to test various implementations like for example the commands implemented in the `devtools` package. Given that the WebDriver functionality
   is already tested with [WPT](https://github.com/web-platform-tests/wpt), we don't need to do it there.
-  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) is required.
+  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly), [Google Chrome](https://www.google.com/chrome/) and [Microsoft Edge](https://www.microsoft.com/en-us/edge/download)is required
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:e2e

@@ -87,7 +87,7 @@ export async function startWebDriver (options: Options.WebDriver) {
             caps['goog:chromeOptions'] || {}
         )
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
-        chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['']
+        chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
         const driverParams = parseParams({ port, ...chromedriverOptions })
         driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams)
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
