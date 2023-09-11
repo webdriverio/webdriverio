@@ -18,7 +18,7 @@ enum BrowserDriverTaskLabel {
 }
 
 function mapCapabilities (
-    options: Omit<Options.WebDriver, 'capabilities'>,
+    options: Omit<Options.WebdriverIO, 'capabilities'>,
     caps: Capabilities.RemoteCapabilities,
     task: SetupTaskFunction,
     taskItemLabel: string) {
@@ -66,7 +66,7 @@ function mapCapabilities (
         // - driver options don't define a binary path
         !getDriverOptions(cap).binary &&
         // - user is not defining "devtools" as automation protocol
-        (options as Options.WebdriverIO).automationProtocol !== 'devtools'
+        options.automationProtocol !== 'devtools'
     )) as Capabilities.Capabilities[]
 
     /**
