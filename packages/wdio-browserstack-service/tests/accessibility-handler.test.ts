@@ -1,5 +1,5 @@
 /// <reference path="../../webdriverio/src/@types/async.d.ts" />
-/// <reference path="../src/@types/cucumber-framework.d.ts" />
+/// <reference path="../src/@types/bstack-service-types.d.ts" />
 import path from 'node:path'
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
@@ -245,6 +245,29 @@ describe('beforeScenario', () => {
 
         expect(executeSpy).toBeCalledTimes(0)
     })
+
+    it('should throw error in before scenario if exception occurs', async () => {
+        const logErrorMock = vi.spyOn(log, 'error')
+        vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
+        accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+        await accessibilityHandler.beforeScenario({
+            pickle: {
+                name: 'pickle-name',
+                tags: []
+            },
+            gherkinDocument: {
+                uri: '',
+                feature: {
+                    name: 'feature-name',
+                    description: ''
+                }
+            }
+        } as any)
+
+        expect(logErrorMock.mock.calls[0][0])
+            .toContain('Exception in starting accessibility automation scan for this test case Error')
+    })
 })
 
 describe('afterScenario', () => {
@@ -326,6 +349,28 @@ describe('afterScenario', () => {
 
         expect(executeAsyncSpy).toBeCalledTimes(0)
     })
+
+    it('should throw error in after scenario if exception occurs', async () => {
+        const logErrorMock = vi.spyOn(log, 'error')
+        accessibilityHandler['sendTestStopEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+
+        await accessibilityHandler.afterScenario({
+            pickle: {
+                name: 'pickle-name',
+                tags: []
+            },
+            gherkinDocument: {
+                uri: '',
+                feature: {
+                    name: 'feature-name',
+                    description: ''
+                }
+            }
+        } as any)
+
+        expect(logErrorMock.mock.calls[0][0])
+            .toContain('Accessibility results could not be processed for the test case')
+    })
 })
 
 describe('beforeTest', () => {
@@ -341,19 +386,19 @@ describe('beforeTest', () => {
 
             executeAsyncSpy = vi.spyOn((browser as WebdriverIO.Browser), 'executeAsync')
             executeSpy = vi.spyOn((browser as WebdriverIO.Browser), 'execute')
-
-            accessibilityHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
         })
 
         it('should execute test started if page opened and can scan the page', async () => {
             const logInfoMock = vi.spyOn(log, 'info')
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
+            accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { return [] })
 
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(executeAsyncSpy).toBeCalledTimes(1)
+            expect(accessibilityHandler['sendTestStartEvent']).toBeCalledTimes(1)
             expect(logInfoMock.mock.calls[1][0])
                 .toContain('Automate test case execution has started.')
+            vi.fn().mockRestore()
         })
 
         it('should not execute test started if url is invalid', async () => {
@@ -380,6 +425,17 @@ describe('beforeTest', () => {
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
             expect(executeSpy).toBeCalledTimes(0)
+        })
+
+        it('should throw error in before test if exception occurs', async () => {
+            const logErrorMock = vi.spyOn(log, 'error')
+            vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
+            accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
+            accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+            await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
+
+            expect(logErrorMock.mock.calls[0][0])
+                .toContain('Exception in starting accessibility automation scan for this test case Error')
         })
     })
 
@@ -440,6 +496,16 @@ describe('afterTest', () => {
         await accessibilityHandler.afterTest('suite title', { parent: 'parent', title: 'test' } as any)
 
         expect(executeAsyncSpy).toBeCalledTimes(0)
+    })
+
+    it('should throw error in after test if exception occurs', async () => {
+        const logErrorMock = vi.spyOn(log, 'error')
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
+        accessibilityHandler['sendTestStopEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+        await accessibilityHandler.afterTest('suite title', { parent: 'parent', title: 'test' } as any)
+
+        expect(logErrorMock.mock.calls[0][0])
+            .toContain('Accessibility results could not be processed for the test case test. Error :')
     })
 })
 

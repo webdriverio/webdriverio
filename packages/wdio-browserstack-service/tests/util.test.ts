@@ -1059,13 +1059,13 @@ describe('getA11yResults', () => {
 
     it('return false if BrowserStack Session', async () => {
         const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), false, false)
-        expect(result).toEqual({})
+        expect(result).toEqual([])
     })
 
     it('return success object if ally token defined and no error in response data', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(false)
         const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), true, false)
-        expect(result).toEqual({})
+        expect(result).toEqual([])
     })
 
     it('return results object if bstack as well as accessibility session', async () => {

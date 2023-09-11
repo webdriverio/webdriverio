@@ -35,7 +35,7 @@ export function testStop(this: any) {
     }
 }
 
-export function accessibilityResults() {
+export function accessibilityResults() : Promise<Array<{ [key: string]: any; }>> {
     return new Promise(function (resolve, reject) {
         try {
             const event = new CustomEvent('A11Y_TAP_GET_RESULTS')
@@ -51,7 +51,7 @@ export function accessibilityResults() {
     })
 }
 
-export function accessibilityResultsSummary() {
+export function accessibilityResultsSummary() : Promise<Object>{
     return new Promise(function (resolve, reject) {
         try {
             const event = new CustomEvent('A11Y_TAP_GET_RESULTS_SUMMARY')

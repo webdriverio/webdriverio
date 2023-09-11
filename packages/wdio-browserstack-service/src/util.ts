@@ -429,15 +429,15 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     }
 })
 
-export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) => {
+export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         log.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
-        return {} // since we are running only on Automate as of now
+        return [] // since we are running only on Automate as of now
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
-        return {}
+        return []
     }
 
     try {
@@ -445,11 +445,11 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
         return results
     } catch {
         log.error('No accessibility results were found.')
-        return {}
+        return []
     }
 }
 
-export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) => {
+export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Object> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
