@@ -23,16 +23,17 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ## Tier Benefits​
 
 - __🥇 Gold (USD$500/mo):__
-  - Large logo placement on the front page of vuejs.org.
-  - Large logo placement in the README of vuejs/core and vuejs/vue.
+  - Large logo placement on the front page of [webdriver.io](https://webdriver.io/)
+  - Large logo placement in the [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
 - __🥈 Silver (USD$250/mo):__
-  - Medium logo placement in the BACKERS.md file of vuejs/core and vuejs/vue.
+  - Medium logo placement on this sponsors page
+  - Medium logo placement in the [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
 - __🥉 Bronze (USD$100/mo):__
-  - Small logo placement in the BACKERS.md file of vuejs/core and vuejs/vue.
+  - Your name or company logo (small) will be put in [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio), [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) files.
 - __🍺 Generous Backer (USD$50/mo):__
-  - Name listed in the BACKERS.md file of vuejs/core and vuejs/vue, above other individual backers.
+  - Your name will be listed under a dedicated "Generous Backers" section in [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio), [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) files.
 - __☕️ Individual Backer (USD$5/mo):__
-  - Name listed in the BACKERS.md file of vuejs/core and vuejs/vue.
+  - Name listed in the [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) file of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
 
 ---
 

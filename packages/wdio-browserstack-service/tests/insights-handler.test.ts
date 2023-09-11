@@ -4,6 +4,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
+import type { StdLog } from '../src/index.js'
 
 import InsightsHandler from '../src/insights-handler.js'
 import * as utils from '../src/util.js'
@@ -546,20 +547,13 @@ describe('beforeHook', () => {
     describe('cucumber', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, false, 'cucumber')
-            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
-            insightsHandler['_tests'] = {}
+            insightsHandler['processCucumberHook'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_framework'] = 'cucumber'
         })
 
-        beforeEach(() => {
-            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
-            vi.mocked(insightsHandler['attachHookData']).mockClear()
-        })
-
-        it('doesn\'t update hook data', async () => {
+        it('should call cucumber hook processor', async () => {
             await insightsHandler.beforeHook(undefined as any, {} as any)
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
+            expect(insightsHandler['processCucumberHook']).toBeCalledTimes(1)
         })
     })
 })
@@ -597,18 +591,12 @@ describe('afterHook', () => {
     describe('cucumber', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, false, 'cucumber')
-            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
-
-            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-            vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
-            vi.mocked(insightsHandler['attachHookData']).mockClear()
+            insightsHandler['processCucumberHook'] = vi.fn().mockImplementation(() => { return [] })
         })
 
-        it('doesn\'t update hook data', async () => {
+        it('should call cucumber hook processor', async () => {
             await insightsHandler.afterHook(undefined as any, {} as any)
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
+            expect(insightsHandler['processCucumberHook']).toBeCalledTimes(1)
         })
     })
 })
@@ -698,5 +686,134 @@ describe('getIdentifier', () => {
     afterEach(() => {
         getUniqueIdentifierSpy.mockReset()
         getUniqueIdentifierForCucumberSpy.mockReset()
+    })
+})
+
+describe('getCucumberHookType', function () {
+    it('should return BEFORE_ALL', function () {
+        expect(insightsHandler['getCucumberHookType'](undefined)).toEqual('BEFORE_ALL')
+    })
+
+    it('should return AFTER_ALL', function () {
+        insightsHandler['_cucumberData'].scenariosStarted = true
+        expect(insightsHandler['getCucumberHookType'](undefined)).toEqual('AFTER_ALL')
+    })
+
+    it('should return BEFORE_EACH', function () {
+        expect(insightsHandler['getCucumberHookType']({ id: '1', hookId: '2' })).toEqual('BEFORE_EACH')
+    })
+
+    it('should return AFTER_EACH', function () {
+        insightsHandler['_cucumberData'].scenariosStarted = true
+        insightsHandler['_cucumberData'].stepsStarted = true
+        expect(insightsHandler['getCucumberHookType']({ id: '1', hookId: '2' })).toEqual('AFTER_EACH')
+    })
+
+    it('should return null if step hook', function () {
+        Object.assign(insightsHandler['_cucumberData'], {
+            scenariosStarted: true,
+            stepsStarted: true,
+            steps: [{}]
+        })
+        expect(insightsHandler['getCucumberHookType']({ id: '1', hookId: '2' })).toEqual(null)
+    })
+})
+
+describe('getCucumberHookUniqueId', function () {
+    let insightsHandler: InsightsHandler
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+    })
+
+    it('should return hookId for each hooks', function () {
+        expect(insightsHandler['getCucumberHookUniqueId']('BEFORE_EACH', { id: '1', hookId: '2' })).toBe('2')
+    })
+
+    it('should return unique id with feature for all hooks', function () {
+        Object.assign(insightsHandler['_cucumberData'], {
+            uri: 'filename',
+            feature: { name: 'some name' }
+        })
+        const hookUniqueId = 'AFTER_ALL for filename:some name'
+        expect(insightsHandler['getCucumberHookUniqueId']('AFTER_ALL', undefined)).toBe(hookUniqueId)
+    })
+})
+
+describe('appendTestItemLog', function () {
+    let insightsHandler: InsightsHandler
+    let sendDataSpy
+    const logObj: StdLog = {
+        timestamp: new Date().toISOString(),
+        level: 'INFO',
+        message: 'some log',
+        kind: 'TEST_LOG',
+        http_response: {}
+    }
+    let testLogObj: StdLog
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'mocha')
+        sendDataSpy = vi.spyOn(utils, 'pushDataToQueue').mockImplementation(() => { return [] as any })
+        testLogObj = { ...logObj }
+    })
+
+    it('should upload with current test uuid for log', function () {
+        insightsHandler['_currentTest'] = { uuid: 'some_uuid' }
+        insightsHandler['appendTestItemLog'](testLogObj)
+        expect(testLogObj.test_run_uuid).toBe('some_uuid')
+        expect(sendDataSpy).toBeCalledTimes(1)
+    })
+
+    it('should upload with current hook uuid for log', function () {
+        insightsHandler['_currentHook'] = { uuid: 'some_uuid' }
+        insightsHandler['appendTestItemLog'](testLogObj)
+        expect(testLogObj.hook_run_uuid).toBe('some_uuid')
+        expect(sendDataSpy).toBeCalledTimes(1)
+    })
+
+    it('should not upload log if hook is finished', function () {
+        insightsHandler['_currentHook'] = { uuid: 'some_uuid', finished: true }
+        insightsHandler['appendTestItemLog'](testLogObj)
+        expect(testLogObj.hook_run_uuid).toBe(undefined)
+        expect(testLogObj.test_run_uuid).toBe(undefined)
+        expect(sendDataSpy).toBeCalledTimes(0)
+    })
+})
+
+describe('processCucumberHook', function () {
+    let insightsHandler: InsightsHandler
+    let sendHookRunEventSpy, cucumberHookTypeSpy, cucumberHookUniqueIdSpy
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'mocha')
+        sendHookRunEventSpy = vi.spyOn(insightsHandler, 'sendHookRunEvent').mockImplementation(() => { return [] as any })
+        cucumberHookTypeSpy = vi.spyOn(insightsHandler, 'getCucumberHookType')
+        cucumberHookTypeSpy.mockImplementation(() => { return 'hii' })
+        cucumberHookUniqueIdSpy = vi.spyOn(insightsHandler, 'getCucumberHookUniqueId')
+    })
+
+    it('should not update if no hook type', function () {
+        cucumberHookTypeSpy.mockReturnValue(null)
+        insightsHandler['processCucumberHook'](undefined, { event: 'before' })
+        expect(sendHookRunEventSpy).toBeCalledTimes(0)
+    })
+
+    it ('should send data for before event', function () {
+        cucumberHookTypeSpy.mockReturnValue('BEFORE_ALL')
+        insightsHandler['_currentTest'].uuid = 'test_uuid'
+        insightsHandler['processCucumberHook'](undefined, { event: 'before', hookUUID: 'hook_uuid' })
+        expect(sendHookRunEventSpy).toBeCalledWith(expect.objectContaining({
+            uuid: 'hook_uuid',
+            testRunId: 'test_uuid',
+            hookType: 'BEFORE_ALL'
+        }), 'HookRunStarted')
+    })
+
+    it('should send data for after event', function () {
+        cucumberHookTypeSpy.mockReturnValue('AFTER_ALL')
+        cucumberHookUniqueIdSpy.mockReturnValue('hook_unique_id')
+        const hookObj = { uuid: 'hook_uuid' }
+        const resultObj = { passed: true }
+        insightsHandler['_tests']['hook_unique_id'] = hookObj
+        insightsHandler['processCucumberHook'](undefined, { event: 'after' }, resultObj as any)
+        expect(sendHookRunEventSpy).toBeCalledWith(hookObj, 'HookRunFinished', resultObj)
     })
 })

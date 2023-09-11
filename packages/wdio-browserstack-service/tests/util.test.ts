@@ -31,11 +31,13 @@ import {
     getObservabilityProject,
     getObservabilityBuildTags,
     o11yErrorHandler,
+    frameworkSupportsHook,
+    getFailureObject,
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     createAccessibilityTestRun,
-    isTrue,
+    isTrue
 } from '../src/util.js'
 
 const log = logger('test')
@@ -1130,5 +1132,49 @@ describe('isTrue', () => {
 
     it('returns false if value is undefined', async () => {
         expect(isTrue(undefined)).toEqual(false)
+    })
+})
+
+describe('frameworkSupportsHook', function () {
+    describe('mocha', function () {
+        it('should return true for beforeHook', function () {
+            expect(frameworkSupportsHook('before', 'mocha')).toBe(true)
+        })
+    })
+
+    describe('cucumber', function () {
+        it('should return true for cucumber', function () {
+            expect(frameworkSupportsHook('before', 'cucumber')).toBe(true)
+        })
+    })
+
+    it('should return false for any other framework', function () {
+        expect(frameworkSupportsHook('before', 'jasmine')).toBe(false)
+    })
+})
+
+describe('getFailureObject', function () {
+    it('should return parsed failure object for string error', function () {
+        const error = 'some error'
+        expect(getFailureObject(error)).toEqual({
+            failure: [{ backtrace: [''] }],
+            failure_reason: 'some error',
+            failure_type: 'UnhandledError'
+        })
+    })
+
+    it('should parse for assertion error', function () {
+        const error = new Error('AssertionError: 2 is not equal to 4')
+        expect(getFailureObject(error)).toMatchObject({
+            failure_reason: 'AssertionError: 2 is not equal to 4',
+            failure_type: 'AssertionError'
+        })
+    })
+
+    it ('should get stacktrace for error object', function () {
+        const error = new Error('some error')
+        expect(getFailureObject(error)).toMatchObject({
+            failure: [{ backtrace: [error.stack.toString()] }]
+        })
     })
 })

@@ -8,7 +8,7 @@ exports[`scroll > desktop > should be able to scroll 1`] = `
         {
           "deltaX": 10,
           "deltaY": 100,
-          "duration": 200,
+          "duration": 0,
           "type": "scroll",
           "x": 0,
           "y": 0,

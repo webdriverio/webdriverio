@@ -32,7 +32,7 @@ export interface CucumberOptions {
     /**
      * Name/path of formatter to use
      */
-    format?: string[];
+    format?: Array<string | [string, string?]>;
     /**
      * Options to be provided to formatters
      */
@@ -60,10 +60,6 @@ export interface CucumberOptions {
      * @default defined
      */
     order?: string;
-    /**
-     * Run tests in parallel with the given number of worker processes
-     */
-    parallel?: number;
     /**
      * Publish a report of your test run to https://reports.cucumber.io/
      */

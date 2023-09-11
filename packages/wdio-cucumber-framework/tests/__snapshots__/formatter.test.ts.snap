@@ -52,6 +52,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
     "suite:start",
     {
       "cid": "0-1",
+      "description": "",
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",
@@ -376,6 +377,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
     "test:start",
     {
       "cid": "0-1",
+      "description": "",
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",

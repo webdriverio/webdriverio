@@ -3,7 +3,7 @@ id: configuration
 title: Конфигурация
 ---
 
-Based on the [setup type](setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver Options
 
@@ -193,7 +193,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU. To change your region to EU, add `region: 'eu'` to your config.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. To change your region to EU, add `region: 'eu'` to your config.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
@@ -501,7 +501,7 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite

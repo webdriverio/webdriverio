@@ -1,21 +1,19 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import markdox from 'markdox'
-import { promisify } from 'node:util'
+import dox from 'dox'
+import { Eta } from 'eta'
 
 import formatter from '../utils/formatter.js'
 import compiler from '../utils/compiler.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
-const MARKDOX_OPTIONS = {
-    formatter: formatter,
-    compiler: compiler,
-    template: TEMPLATE_PATH
-}
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates')
 
-const processDocs = promisify(markdox.process)
+const eta = new Eta({
+    views: TEMPLATE_PATH,
+    autoEscape: false,
+})
 
 /**
  * Generate WebdriverIO docs
@@ -52,10 +50,17 @@ export async function generateWdioDocs (sidebars) {
 
             const filepath = path.join(COMMAND_DIR, scope, file)
             const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
-            const options = Object.assign({}, MARKDOX_OPTIONS, { output })
-            // eslint-disable-next-line no-undef
-            globalThis.path = path
-            await processDocs(filepath, options)
+
+            const raw = fs.readFileSync(filepath, 'utf-8')
+            const data = compiler(filepath, raw)
+            const doc = dox.parseComments(data, { raw: true })
+            const docfile = {
+                filename: filepath,
+                javadoc: doc,
+            }
+            const formatedDocfile = formatter(docfile)
+            const processedDoc = eta.render('./template', { ...formatedDocfile, path })
+            fs.writeFileSync(output, processedDoc.replace(/\n{3,}/g, '\n\n'))
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
             apiDocs[apiDocs.length - 1].items

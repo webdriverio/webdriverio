@@ -353,4 +353,10 @@ describe('Lit Component testing', () => {
             })
         })
     })
+
+    it('should support WASM', async () => {
+        const source = fetch('/browser-runner/wasm/add.wasm')
+        const wasmModule = await WebAssembly.instantiateStreaming(source)
+        expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
+    })
 })

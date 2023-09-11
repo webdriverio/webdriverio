@@ -73,13 +73,21 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
     })
 
+    it('throws if parallel cucumber opts is set', async () => {
+        await expect(
+            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, ['progress'])
+        ).rejects.toEqual(expect.objectContaining({
+            message: 'The option "parallel" is not supported by WebdriverIO'
+        }))
+    })
+
     it('should not initiated with no tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, [], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(false)
     })
@@ -87,7 +95,7 @@ describe('CucumberAdapter', () => {
     it('can run without errors', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { format: [] }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.registerRequiredModules = vi.fn()
         adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
@@ -112,7 +120,7 @@ describe('CucumberAdapter', () => {
                     }
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(undefined)
@@ -138,13 +146,13 @@ describe('CucumberAdapter', () => {
                     path.join(process.cwd(), '__mocks__', 'module*.ts')
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
 
         expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require)).toHaveLength(4)
     })
 
     it('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.loadFilesWithType = vi.fn().mockReturnValue([process.cwd() + '/__mocks__/moduleC.ts'])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
@@ -167,7 +175,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
         adapter.addWdioHooksAndWrapSteps(
             {
@@ -276,7 +285,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -303,7 +313,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -330,7 +341,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -357,7 +369,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -384,7 +397,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -411,7 +425,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -438,7 +453,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -464,7 +480,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')

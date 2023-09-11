@@ -90,6 +90,24 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '6')
     })
 
+    test('no setup with testrunner capabilities when automation protocol is set to devtools', async () => {
+        await setupDriver({
+            automationProtocol: 'devtools'
+        } as any, [{
+            browserName: 'chrome',
+            browserVersion: '1'
+        }, {
+            browserName: 'firefox',
+            browserVersion: '5'
+        }, {
+            browserName: 'edge',
+            browserVersion: '4'
+        }])
+        expect(setupGeckodriver).toBeCalledTimes(0)
+        expect(setupChromedriver).toBeCalledTimes(0)
+        expect(setupEdgedriver).toBeCalledTimes(0)
+    })
+
     test('with multiremote capabilities', async () => {
         await setupDriver({}, {
             browserA: {
@@ -185,6 +203,26 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '7')
     })
 
+    test('no setup with multiremote capabilities when automation protocol is set to devtools', async () => {
+        await setupDriver({}, {
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '1'
+                }
+            },
+            browserB: {
+                automationProtocol: 'devtools',
+                capabilities: {
+                    browserName: 'edge',
+                    browserVersion: '3'
+                }
+            }
+        })
+        expect(setupChromedriver).toBeCalledTimes(1)
+        expect(setupEdgedriver).toBeCalledTimes(0)
+    })
+
     test('with multiremote capabilities series', async () => {
         await setupDriver({}, [{
             browserA: {
@@ -274,6 +312,25 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledTimes(2)
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '5')
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '6')
+    })
+
+    test('no setup with multiremote capabilities series when automation protocol is set to devtools', async () => {
+        await setupDriver({}, [{
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '1'
+                }
+            },
+            browserB: {
+                automationProtocol: 'devtools',
+                capabilities: {
+                    browserName: 'chrome',
+                    browserVersion: '2'
+                }
+            }
+        }])
+        expect(setupChromedriver).toBeCalledTimes(1)
     })
 })
 
