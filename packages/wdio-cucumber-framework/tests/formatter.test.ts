@@ -10,6 +10,7 @@ import {
 import { EventEmitter } from 'node:events'
 import type { TestStepFinished, TestStepStarted } from '@cucumber/messages'
 import { TestStepResultStatus } from '@cucumber/messages'
+import path from 'node:path'
 
 import CucumberFormatter from '../src/cucumberFormatter.js'
 
@@ -49,11 +50,14 @@ const specs = ['/foobar.js']
 
 const gherkinDocEvent = gherkinDocument
 const gherkinDocEventNoLine = gherkinDocument
+const relativeGherkinDocPath = `.${gherkinDocument.uri}`
 // @ts-expect-error
 delete gherkinDocEventNoLine.feature?.location?.line
 
 const loadGherkin = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { gherkinDocument })
+const loadRelativeGherkinPath = (eventBroadcaster: EventEmitter) =>
+    eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, uri: relativeGherkinDocPath } })
 const acceptPickle = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { pickle })
 const loadGherkinNoLine = (eventBroadcaster: EventEmitter) =>
@@ -94,6 +98,15 @@ describe('CucumberFormatter', () => {
             expect(cucumberFormatter._gherkinDocEvents).toEqual([
                 gherkinDocument,
             ])
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
+        it('should return absolute uri on `gherkin-document` event', () => {
+            loadRelativeGherkinPath(eventBroadcaster)
+            // @ts-ignore accessing private property
+            expect(cucumberFormatter._gherkinDocEvents[0].uri).toEqual(
+                path.resolve(relativeGherkinDocPath)
+            )
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
