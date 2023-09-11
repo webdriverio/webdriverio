@@ -51,7 +51,7 @@ export function accessibilityResults() : Promise<Array<{ [key: string]: any; }>>
     })
 }
 
-export function accessibilityResultsSummary() : Promise<Object>{
+export function accessibilityResultsSummary() : Promise<{ [key: string]: any; }> {
     return new Promise(function (resolve, reject) {
         try {
             const event = new CustomEvent('A11Y_TAP_GET_RESULTS_SUMMARY')

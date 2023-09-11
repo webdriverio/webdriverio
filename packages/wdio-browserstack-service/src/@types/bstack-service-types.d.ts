@@ -1,11 +1,11 @@
 declare namespace WebdriverIO {
     interface Browser {
-        getAccessibilityResultsSummary: () => Promise<Object>,
+        getAccessibilityResultsSummary: () => Promise<{ [key: string]: any; }>,
         getAccessibilityResults: () => Promise<Array<{ [key: string]: any; }>>
     }
 
     interface MultiRemoteBrowser {
-        getAccessibilityResultsSummary: () => Promise<Object>,
+        getAccessibilityResultsSummary: () => Promise<{ [key: string]: any; }>,
         getAccessibilityResults: () => Promise<Array<{ [key: string]: any; }>>
     }
 }
