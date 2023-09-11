@@ -52,7 +52,8 @@ export const runHook = function (
             BeforeHookParam<unknown>,
             AfterHookParam<unknown>,
             string,
-            number
+            number,
+            string
         ]
     ) {
         return testFnWrapper.call(
@@ -71,7 +72,8 @@ export const runHook = function (
                 afterFnArgs
             },
             cid,
-            repeatTest
+            repeatTest,
+            origFn.name
         )
     }
     /**
