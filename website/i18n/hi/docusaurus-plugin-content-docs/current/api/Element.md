@@ -23,10 +23,10 @@ title: एलीमेंट ऑब्जेक्ट
 
 इसके अतिरिक्त निम्नलिखित आदेश उपलब्ध हैं:
 
-| नाम                | पैरामीटर                                                              | विवरण                                                                                                                                                                                                                                               |
-| ------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | कस्टम कमांड को परिभाषित करने की अनुमति देता है जिसे कंपोज़िशन उद्देश्यों के लिए ब्राउज़र ऑब्जेक्ट से कॉल किया जा सकता है। [कस्टम कमांड](/docs/customcommands) गाइड में और पढ़ें।                                                                    |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | कस्टम कार्यक्षमता के साथ किसी भी ब्राउज़र कमांड को ओवरवाइट करने की अनुमति देता है। सावधानी से उपयोग करें क्योंकि यह फ्रेमवर्क उपयोगकर्ताओं को भ्रमित कर सकता है। [कस्टम कमांड](/docs/customcommands#overwriting-native-commands) गाइड में और पढ़ें। |
+| नाम                | पैरामीटर                                                              | विवरण                                                                                                                                                                                                                               |
+| ------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. [कस्टम कमांड](/docs/customcommands) गाइड में और पढ़ें।                                                                        |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. सावधानी से उपयोग करें क्योंकि यह फ्रेमवर्क उपयोगकर्ताओं को भ्रमित कर सकता है। [कस्टम कमांड](/docs/customcommands#overwriting-native-commands) गाइड में और पढ़ें। |
 
 ## टिप्पणियां
 
@@ -68,7 +68,7 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO हुड के तहत [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) का उपयोग करता है, इसलिए इन उपयोग मामलों के लिए उनके एपीआई से सभी कमांड भी समर्थित हैं।
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### कस्टम कमांड
 

@@ -340,7 +340,7 @@ export const config = {
     before: function (capabilities, specs, browser) {
     },
     /**
-     * Gets executed before the suite starts.
+     * Gets executed before the suite starts (in Mocha/Jasmine only).
      * @param {object} suite suite details
      */
     beforeSuite: function (suite) {
@@ -394,7 +394,7 @@ export const config = {
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Hook that gets executed after the suite has ended.
+     * Hook that gets executed after the suite has ended (in Mocha/Jasmine only).
      * @param {object} suite suite details
      */
     afterSuite: function (suite) {

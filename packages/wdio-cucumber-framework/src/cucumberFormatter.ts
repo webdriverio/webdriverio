@@ -1,6 +1,7 @@
 import type { IFormatterOptions } from '@cucumber/cucumber'
 import { Formatter, Status } from '@cucumber/cucumber'
 import type { EventEmitter } from 'node:events'
+import path from 'node:path'
 
 import logger from '@wdio/logger'
 
@@ -68,11 +69,11 @@ export default class CucumberFormatter extends Formatter {
         let results: TestStepResult[] = []
         options.eventBroadcaster.on('envelope', (envelope: Envelope) => {
             if (envelope.gherkinDocument) {
-                this.onGherkinDocument(envelope.gherkinDocument)
+                this.onGherkinDocument({ ...envelope.gherkinDocument, ...(envelope.gherkinDocument.uri ? { uri: this.normalizeURI(envelope.gherkinDocument.uri) } : {}) })
             } else if (envelope.testRunStarted) {
                 this.onTestRunStarted()
             } else if (envelope.pickle) {
-                this.onPickleAccepted(envelope.pickle)
+                this.onPickleAccepted({ ...envelope.pickle, uri: this.normalizeURI(envelope.pickle.uri) })
             } else if (envelope.testCase) {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
@@ -110,6 +111,10 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+    }
+
+    normalizeURI(uri: string) {
+        return path.isAbsolute(uri) ? uri : path.resolve(uri)
     }
 
     emit(event: string, payload: any) {

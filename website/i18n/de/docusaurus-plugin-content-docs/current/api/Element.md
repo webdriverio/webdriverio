@@ -23,10 +23,10 @@ Ein Element-Objekt liefert alle Methoden aus dem verfügbaren Automatisierungspr
 
 Zusätzlich stehen folgende Befehle zur Verfügung:
 
-| Namen              | Parameter                                                             | Details                                                                                                                                                                                                                                                                                   |
-| ------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Ermöglicht die Definition benutzerdefinierter Befehle, die aus dem Browser-Objekt für Kompositionszwecke aufgerufen werden können. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands)                                                                             |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Ermöglicht das Überschreiben eines Browser-Befehls mit benutzerdefinierter Funktionalität. Verwenden Sie diese Funktionalität sorgfältig, da es Framework-Benutzer verwirren kann. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands#overwriting-native-commands) |
+| Namen              | Parameter                                                             | Details                                                                                                                                                                                                                                                                              |
+| ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Ermöglicht die Definition benutzerdefinierter Befehle, die aus dem Browser-Objekt für Kompositionszwecke aufgerufen werden können. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands)                                                                        |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Ermöglicht das Überschreiben aller Browserbefehle mit benutzerdefinierten Funktionen. Verwenden Sie diese Funktionalität sorgfältig, da es Framework-Benutzer verwirren kann. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands#overwriting-native-commands) |
 
 ## Bemerkungen
 
@@ -68,7 +68,7 @@ Können Sie Array-Methoden direkt auf der Elementkette aufrufen, z.B.:
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO verwendet [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) unter der Haube, so dass alle Befehle von ihrer API auch für diese Anwendungsfälle unterstützt werden.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### Benutzerdefinierte Befehle
 

@@ -88,6 +88,30 @@ export const config = {
     },
     // ...
 }
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+}
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+}
 ```
 
 Wenn Sie jetzt nur eine einzelne Suite ausführen möchten, können Sie den Suite-Namen als CLI-Argument übergeben:
@@ -104,7 +128,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Gruppieren von Tests zur sequenziellen Ausführung
 
-Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden.  Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen.  Beispiele hierfür sind hauptsächlich dort, wo hohe Einrichtungskosten anfallen, z.B. das Transpilieren von Code oder das Bereitstellen von Cloud-Instanzen für die Umgebung unter Test.
+Wie oben beschrieben, gibt es Vorteile, wenn die Tests gleichzeitig ausgeführt werden. Es gibt jedoch Fälle, in denen es vorteilhaft ist, Tests zu gruppieren, um sie sequenziell in einer Browser Session auszuführen. Beispiele hierfür sind hauptsächlich dort, wo hohe Einrichtungskosten anfallen, z.B. das Transpilieren von Code oder das Bereitstellen von Cloud-Instanzen für die Umgebung unter Test.
 
 Um Tests zur Ausführung in einer einzigen Browser-Sitzung zu gruppieren, definieren Sie sie als Array innerhalb der Specs Definition.
 
@@ -239,6 +263,17 @@ wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 ```
 
 _**Hinweis:** Mocha filtert die Tests, nachdem der WDIO-Test-Runner die Browser Sessions erstellt hat, sodass möglicherweise mehrere Browser erzeugt, aber nicht tatsächlich ausgeführt werden._
+
+## Exclude Specific Tests with MochaOpts
+
+You can also filter which specific `suite|describe` and/or `it|test` you want to exclude by passing a mocha specific argument: `--mochaOpts.invert` to the wdio CLI. `--mochaOpts.invert` performs opposite of `--mochaOpts.grep`
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+wdio wdio.conf.js --spec ./test/specs/e2e/login.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+```
+
+_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
 
 ## Stoppen Sie den Testlauf nach einem Fehler
 

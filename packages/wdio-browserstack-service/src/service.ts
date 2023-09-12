@@ -17,6 +17,7 @@ import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
 import CrashReporter from './crash-reporter.js'
+import AccessibilityHandler from './accessibility-handler.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -34,6 +35,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _insightsHandler?: InsightsHandler
+    private _accessibility
+    private _accessibilityHandler?: AccessibilityHandler
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -44,6 +47,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
+        this._accessibility = this._options.accessibility
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
@@ -129,6 +133,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
         }
 
+        if (this._browser && isBrowserstackSession(this._browser)) {
+            try {
+                this._accessibilityHandler = new AccessibilityHandler(
+                    this._browser,
+                    this._caps,
+                    this._isAppAutomate(),
+                    this._config.framework,
+                    this._accessibility,
+                    this._options.accessibilityOptions
+                )
+                await this._accessibilityHandler.before()
+            } catch (err) {
+                log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+            }
+        }
+
         return await this._printSessionURL()
     }
 
@@ -142,6 +162,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
         this._insightsHandler?.setSuiteFile(suite.file)
+        this._accessibilityHandler?.setSuiteFile(suite.file)
 
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
@@ -177,6 +198,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         await this._insightsHandler?.beforeTest(test)
+        await this._accessibilityHandler?.beforeTest(suiteTitle, test)
     }
 
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -186,6 +208,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
         await this._insightsHandler?.afterTest(test, results)
+        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
     async after (result: number) {
@@ -237,6 +260,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
         await this._insightsHandler?.beforeScenario(world)
+        await this._accessibilityHandler?.beforeScenario(world)
         const scenarioName = world.pickle.name || 'unknown scenario'
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
@@ -261,6 +285,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterScenario(world)
+        await this._accessibilityHandler?.afterScenario(world)
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
