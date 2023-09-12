@@ -58,6 +58,6 @@
     "@types/istanbul-reports": "^3.0.1"
   },
   "peerDependencies": {
-    "@wdio/globals": "8.16.4"
+    "@wdio/globals": "8.16.6"
   }
 }

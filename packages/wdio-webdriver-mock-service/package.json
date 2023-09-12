@@ -33,7 +33,7 @@
     "webdriverio": "8.16.6"
   },
   "peerDependencies": {
-    "@wdio/globals": "8.16.4"
+    "@wdio/globals": "8.16.6"
   },
   "publishConfig": {
     "access": "public"

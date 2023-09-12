@@ -58,6 +58,6 @@
     "@types/uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "@wdio/globals": "8.16.4"
+    "@wdio/globals": "8.16.6"
   }
 }

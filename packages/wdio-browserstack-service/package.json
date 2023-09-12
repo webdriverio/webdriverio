@@ -46,7 +46,7 @@
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
-    "@wdio/globals": "8.16.4"
+    "@wdio/globals": "8.16.6"
   },
   "devDependencies": {
     "@types/node": "^20.1.0"
