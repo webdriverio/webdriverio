@@ -89,7 +89,7 @@ export const testFrameworkFnWrapper = async function (
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
     if (type === 'Hook') {
-        beforeArgs.push(hookName)
+        afterArgs.push(hookName)
     }
     afterArgs.push({
         retries,
