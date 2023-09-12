@@ -46,6 +46,9 @@
     "polka": "^0.5.2",
     "webdriverio": "8.16.6"
   },
+  "peerDependencies": {
+    "@wdio/globals": "8.16.4"
+  },
   "publishConfig": {
     "access": "public"
   }

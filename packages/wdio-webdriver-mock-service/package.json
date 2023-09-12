@@ -32,6 +32,9 @@
     "uuid": "^9.0.0",
     "webdriverio": "8.16.6"
   },
+  "peerDependencies": {
+    "@wdio/globals": "8.16.4"
+  },
   "publishConfig": {
     "access": "public"
   }

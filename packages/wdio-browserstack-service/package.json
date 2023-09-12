@@ -45,7 +45,8 @@
     "winston-transport": "^4.5.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+    "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+    "@wdio/globals": "8.16.4"
   },
   "devDependencies": {
     "@types/node": "^20.1.0"

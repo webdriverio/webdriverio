@@ -40,6 +40,9 @@
   "devDependencies": {
     "@types/ip": "^1.1.0"
   },
+  "peerDependencies": {
+    "@wdio/globals": "8.16.4"
+  },
   "publishConfig": {
     "access": "public"
   }
