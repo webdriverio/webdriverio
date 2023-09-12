@@ -68,7 +68,7 @@ export const testFrameworkFnWrapper = async function (
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
-    if (type === 'Hook') {
+    if (type === 'Hook' && hookName) {
         beforeArgs.push(hookName)
     }
     await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
@@ -88,7 +88,7 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
-    if (type === 'Hook') {
+    if (type === 'Hook' && hookName) {
         afterArgs.push(hookName)
     }
     afterArgs.push({
