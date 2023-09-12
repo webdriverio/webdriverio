@@ -170,7 +170,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
-    afterHook (test: never, context: never, results: Frameworks.TestResult) {
+    afterHook(test: never, context: never, hookName: never, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          */
