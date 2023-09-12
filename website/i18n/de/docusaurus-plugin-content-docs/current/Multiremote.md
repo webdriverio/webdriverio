@@ -79,6 +79,38 @@ export const config = {
 
 Dadurch werden zwei WebDriver-Sitzungen mit Chrome und Firefox erstellt. Statt nur Chrome und Firefox können Sie auch zwei mobile Geräte mit [Appium](http://appium.io) oder ein mobiles Gerät und einen Browser starten lassen.
 
+You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
+
+```js
+export const config = {
+    // ...
+    capabilities: [{
+        myChromeBrowser0: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser0: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    }, {
+        myChromeBrowser1: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser1: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    }]
+    // ...
+}
+```
+
 Sie können sogar eines der [Cloud-Services-Backends](https://webdriver.io/docs/cloudservices.html) zusammen mit lokalen Webdriver/Appium- oder Selenium-Standalone-Instanzen starten. WebdriverIO erkennt automatisch das Cloud-Backend, wenn Sie entweder `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)) oder `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in den Browser Capabilities angegeben.
 
 ```js

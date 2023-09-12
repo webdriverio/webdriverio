@@ -1,5 +1,5 @@
 ---
-id: accessibility
+id: accessibilité
 title: Tests d'accessibilité
 ---
 

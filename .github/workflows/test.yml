@@ -22,7 +22,7 @@ jobs:
       matrix:
         node-version: [16.x, 18.x]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -56,7 +56,7 @@ jobs:
   e2e-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
@@ -94,7 +94,7 @@ jobs:
   e2e-mac:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
