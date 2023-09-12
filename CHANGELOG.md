@@ -26,6 +26,8 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 #### :bug: Bug Fix
 * `wdio-cucumber-framework`
   * [#11118](https://github.com/webdriverio/webdriverio/pull/11118) fix cucumber report issue - windows ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriverio`
+  * [#11120](https://github.com/webdriverio/webdriverio/pull/11120) fix scrollIntoView ([@erwinheitzman](https://github.com/erwinheitzman))
 
 #### :nail_care: Polish
 * `wdio-browserstack-service`
