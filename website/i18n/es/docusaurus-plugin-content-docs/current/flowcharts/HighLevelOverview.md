@@ -3,4 +3,6 @@ id: highleveloverview
 title: Visión general de alto nivel
 ---
 
-El gráfico de flujo proporciona una visión general de alto nivel de cómo el ecosistema WebdriverIO interactúa con los paquetes centrales.
+Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+
+<CreateFlowcharts id='highleveloverview' />

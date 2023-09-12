@@ -5,7 +5,7 @@ title: Github Actions
 
 Якщо ваш репозиторій на Github, ви можете використовувати [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) для запуску тестів в інфраструктурі Github.
 
-1. кожного разу, коли ви робите push до репозиторію
+1. every time you push changes
 2. при кожному створенні Pull Request
 3. в запланований час
 4. вручну

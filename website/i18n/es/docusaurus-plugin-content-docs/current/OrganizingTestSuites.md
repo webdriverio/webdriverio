@@ -104,7 +104,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 ## Agrupación de especificaciones de prueba para ejecutar secuencialmente
 
-Como se describió anteriormente, existen beneficios al ejecutar las pruebas simultáneamente.  Sin embargo, hay casos en los que sería beneficioso agrupar las pruebas de forma secuencial en un solo caso.  Ejemplos de esto son principalmente donde hay un gran costo de configuración p.ej. transcompilar código o proporcionar instancias en la nube, pero también hay modelos de uso avanzados que se benefician de esta capacidad.
+Como se describió anteriormente, existen beneficios al ejecutar las pruebas simultáneamente. Sin embargo, hay casos en los que sería beneficioso agrupar las pruebas de forma secuencial en un solo caso. Ejemplos de esto son principalmente donde hay un gran costo de configuración p.ej. transcompilar código o proporcionar instancias en la nube, pero también hay modelos de uso avanzados que se benefician de esta capacidad.
 
 Para agrupar pruebas a ejecutar en una sola instancia, definirlas como una matriz dentro de la definición de especificaciones.
 
@@ -240,6 +240,17 @@ wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 
 _**Nota:** Mocha filtrará las pruebas después de que el ejecutor de pruebas WDIO cree las instancias, por lo que es posible que vea varias instancias generadas pero que no se ejecutan realmente._
 
+## Exclude Specific Tests with MochaOpts
+
+You can also filter which specific `suite|describe` and/or `it|test` you want to exclude by passing a mocha specific argument: `--mochaOpts.invert` to the wdio CLI. `--mochaOpts.invert` performs opposite of `--mochaOpts.grep`
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+wdio wdio.conf.js --spec ./test/specs/e2e/login.js --mochaOpts.grep "string|regex" --mochaOpts.invert
+```
+
+_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+
 ## Detener la prueba después de un error
 
 Con la opción `bail` , puede decirle a WebdriverIO que detenga la prueba después de que falle cualquier prueba.
@@ -249,7 +260,6 @@ Esto es útil con conjuntos de pruebas grandes cuando ya sabe que su compilació
 La opción `bail` espera un número, que especifica cuántas fallas de prueba pueden ocurrir antes de que WebDriver detenga la ejecución de prueba completa. El valor predeterminado es `0`, lo que significa que siempre ejecuta todas las especificaciones de prueba que puede encontrar.
 
 [Consulte la página](configuration) de Opcionespara obtener información adicional sobre la configuración de la fianza.
-
 ## Ejecutar jerarquía de opciones
 
 Al declarar qué especificaciones ejecutar, hay una cierta jerarquía que define qué patrón tendrá prioridad. Actualmente, así es como funciona, de mayor a menor prioridad:
