@@ -26,10 +26,10 @@ module.exports = class CustomService {
         console.log('execute beforeSuite(suite)')
     }
     beforeHook () {
-        console.log('execute beforeHook(test, context)')
+        console.log('execute beforeHook(test, context, hookName)')
     }
     afterHook () {
-        console.log('execute afterHook(test, context, { error, result, duration, passed, retries })')
+        console.log('execute afterHook(test, context, hookName, { error, result, duration, passed, retries })')
     }
     beforeTest () {
         console.log('execute beforeTest(test, context)')
