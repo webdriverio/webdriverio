@@ -7,7 +7,7 @@ To run automation based on the WebDriver protocol you need to have browser drive
 
 ## Automated setup
 
-With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. All you have to do is specify the browser you want to test and WebdriverIO will do the rest. For more information on this feature, see [here](capabilities#automate-different-browser-channels).
+With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. All you have to do is specify the browser you want to test and WebdriverIO will do the rest.
 
 ### Customizing the level of automation
 
@@ -15,7 +15,7 @@ WebdriverIO's have three levels of automation:
 
 **1. Download and install the browser using [@puppeteer/browsers](https://www.npmjs.com/package/@puppeteer/browsers).**
 
-WebdriverIO will only do this if it cannot autodetect an installation of the browser with the `browserName`/`browserVersion` combination specified in the [capabilities](configuration#capabilities-1) configuration. If `browserVersion` is omitted, WebdriverIO will try to use the browser found with [locate-app](https://www.npmjs.com/package/locate-app), otherwise it will install the current stable browser release.
+If you specify a `browserName`/`browserVersion` combination in the [capabilities](configuration#capabilities-1) configuration, WebdriverIO will download and install the requested combination, regardless of whether there's an existing installation on the machine. If you omit `browserVersion`, WebdriverIO will first try to locate and use an existing installation with [locate-app](https://www.npmjs.com/package/locate-app), otherwise it will download and install the current stable browser release. For more details on `browserVersion`, see [here](capabilities#automate-different-browser-channels).
 
 :::caution
 
