@@ -55,9 +55,7 @@
   "devDependencies": {
     "@types/babel__core": "^7.1.19",
     "@types/istanbul-lib-report": "^3.0.0",
-    "@types/istanbul-reports": "^3.0.1"
-  },
-  "peerDependencies": {
+    "@types/istanbul-reports": "^3.0.1",
     "@wdio/globals": "8.16.6"
   }
 }

@@ -55,9 +55,7 @@
   },
   "devDependencies": {
     "@types/ua-parser-js": "^0.7.33",
-    "@types/uuid": "^9.0.0"
-  },
-  "peerDependencies": {
+    "@types/uuid": "^9.0.0",
     "@wdio/globals": "8.16.6"
   }
 }

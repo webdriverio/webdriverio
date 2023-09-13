@@ -38,9 +38,7 @@
     "webdriverio": "8.16.6"
   },
   "devDependencies": {
-    "@types/ip": "^1.1.0"
-  },
-  "peerDependencies": {
+    "@types/ip": "^1.1.0",
     "@wdio/globals": "8.16.6"
   },
   "publishConfig": {
