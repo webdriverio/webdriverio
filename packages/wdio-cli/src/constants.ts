@@ -103,7 +103,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },

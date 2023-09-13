@@ -50,7 +50,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 El uso de WebdriverIO en modo independiente todavía le da acceso a todos los comandos de protocolo, pero proporciona un súper conjunto de comandos adicionales que proporcionan una interacción de mayor nivel con el navegador. Le permite integrar esta herramienta de automatización en su propio proyecto (prueba) para crear una nueva biblioteca de automatización. Ejemplos populares incluyen [Espectron](https://www.electronjs.org/spectron) o [CodeceptJS](http://codecept.io). También puede escribir scripts simples de Node para eliminar la web por contenido (o cualquier otra cosa que requiera un navegador en ejecución).
 
-Si no se establecen opciones específicas, WebdriverIO tratará de encontrar un controlador de navegador en `http://localhost:4444/` y cambia automáticamente al protocolo Chrome DevTools y al Puppeteer como motor de automatización si no se puede encontrar dicho controlador. Si te gusta ejecutar basado en WebDriver necesitas iniciar ese controlador manualmente o a través de un script o [paquete NPM](https://www.npmjs.com/package/chromedriver).
+If no specific options are set WebdriverIO will always attempt to download at setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome it might also install [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) depending on whether it can find a browser on the machine.
 
 Para obtener más información sobre estas interfaces de paquete, consulte [Modules API](/docs/api/modules).
 

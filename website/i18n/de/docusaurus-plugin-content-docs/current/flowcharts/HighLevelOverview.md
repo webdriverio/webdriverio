@@ -3,4 +3,6 @@ id: highleveloverview
 title: Übersicht
 ---
 
-Das Flussdiagramm bietet einen allgemeinen Überblick darüber, wie das WebdriverIO-Ökosystem mit den Kernpaketen interagiert.
+Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+
+<CreateFlowcharts id='highleveloverview' />

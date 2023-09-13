@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-¡Excelente! Ahora necesita definir un archivo de configuración donde se establezca toda la información sobre sus pruebas, capacidades y configuraciones. Cambie a la sección [Archivo de configuración](configurationfile)  para ver cómo debería ser ese archivo.
+¡Excelente! ¡Excelente! ¡Excelente! Ahora necesita definir un archivo de configuración donde se establezca toda la información sobre sus pruebas, capacidades y configuraciones. Cambie a la sección [Archivo de configuración](configurationfile)  para ver cómo debería ser ese archivo.
 
 Con el helper de configuración de `wdio`, es muy fácil de generar el archivo de configuración. Sólo ejecutar:
 
@@ -156,17 +156,17 @@ wdio install service sauce --config="./path/to/wdio.conf.js"
 sauce
 testingbot
 firefox-profile
-selenium-standalone
 devtools
 browserstack
 appium
-chromedriver
 intercept
 zafira-listener
 reportportal
 docker
 wiremock
 lambdatest
+vite
+nuxt
 ```
 
 #### Lista de reporteros compatibles

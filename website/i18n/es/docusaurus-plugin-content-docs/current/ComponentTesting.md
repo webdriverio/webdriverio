@@ -11,6 +11,11 @@ El navegador Runner utiliza [Vite](https://vitejs.dev/) para renderizar una pág
 
 El servidor Vite es iniciado por el WebdriverIO testrunner y configurado para que pueda utilizar todos los reporteros y servicios como solía para las pruebas e2e normales. Además, inicializa una instancia de [`navegador`](/docs/api/browser) que le permite acceder a un subconjunto de la [API WebdriverIO](/docs/api) para interactuar con los elementos de la página. Similar a las pruebas e2e puede acceder a esa instancia a través de la variable `browser` conectada al ámbito global o importándola desde `@wdio/globals` dependiendo de cómo [`injectGlobals`](/docs/api/globals) se establezca.
 
+WebdriverIO has built-in support for the following frameworks:
+
+- [__Nuxt__](https://nuxt.com/): WebdriverIO's testrunner detects a Nuxt application and automatically sets up your project composables and helps mock out the Nuxt backend, read more in the [Nuxt docs](/docs/component-testing/vue#testing-vue-components-in-nuxt)
+- [__TailwindCSS__](https://tailwindcss.com/): WebdriverIO's testrunner detects if you are using TailwindCSS and loads the environment properly into the test page
+
 ## Configuración
 
 Para configurar WebdriverIO para pruebas unitarias o de componentes en el navegador, inicie un nuevo proyecto WebdriverIO a través de:
@@ -100,7 +105,7 @@ Esto se llevará a cabo a través de todas las pruebas inicialmente y se detendr
 
 ## Depuración (Debug)
 
-Aunque (todavía) no es posible establecer puntos de interrupción en su IDE y que sean reconocidos por el navegador remoto, puedes usar el comando [`debug`](/docs/api/browser/debug) para detener la prueba en cualquier punto. Esto le permite abrir DevTools para luego depurar la prueba mediante la configuración de puntos de interrupción en la pestaña [fuentes](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. Esto le permite abrir DevTools para luego depurar la prueba mediante la configuración de puntos de interrupción en la pestaña [fuentes](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
 
 Cuando se llama al comando `debug` , también obtendrá una interfaz repl de Node.js en su terminal, diciendo:
 

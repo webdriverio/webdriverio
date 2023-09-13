@@ -34,11 +34,14 @@
     "@wdio/types": "8.16.3",
     "@wdio/utils": "8.16.3",
     "ip": "^1.1.8",
-    "saucelabs": "7.2.2",
+    "saucelabs": "^7.3.1",
     "webdriverio": "8.16.6"
   },
   "devDependencies": {
     "@types/ip": "^1.1.0"
+  },
+  "peerDependencies": {
+    "@wdio/globals": "8.16.6"
   },
   "publishConfig": {
     "access": "public"
