@@ -3,4 +3,6 @@ id: highleveloverview
 title: نمای کلی سطح بالا
 ---
 
-نمودار جریان یک نمای کلی در سطح بالا از نحوه تعامل اکوسیستم WebdriverIO با بسته های اصلی ارائه می دهد.
+Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+
+<CreateFlowcharts id='highleveloverview' />

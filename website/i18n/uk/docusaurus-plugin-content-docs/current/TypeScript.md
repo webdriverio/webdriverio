@@ -15,28 +15,11 @@ WebdriverIO автоматично визначить, чи встановлен
 
 ## Конфігурація
 
-Ви можете вказати свої опції `ts-node` через `wdio.conf.ts`, наприклад:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: './tsconfig.json'
-        }
-    }
-}
-```
-
-Або застосувати їх через середовище:
+You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
 
 ```sh
-# run wdio testrunner with custom tsconfig.json location
-TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+# run wdio testrunner with custom options
+TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
 Мінімальна версія TypeScript — `v4.0.5`.

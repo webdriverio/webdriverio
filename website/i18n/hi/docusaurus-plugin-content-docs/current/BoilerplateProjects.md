@@ -102,7 +102,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  किसी भी RDBMS (Oracle, MySql, TeraData, Vertica आदि) के लिए डेटाबेस समर्थन, E2E टेस्ट के लिए उदाहरणों के साथ किसी भी प्रश्न को निष्पादित करना / परिणाम सेट प्राप्त करना आदि।
     -  BrowserStack, सॉसL लेब्स, LambdaTest और एपियम विशिष्ट `.config` फ़ाइल (मोबाइल डिवाइस पर प्लेबैक के लिए)। आईओएस और एंड्रॉइड के लिए लोकल मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
 
-## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
+## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
 - फ्रेमवर्क
     - WebdriverIO (v8)
@@ -110,11 +110,11 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
 
 - विशेतएं
     - कुकुम्बर में सैंपल टेस्ट परिदृश्य शामिल करें
-    - असफलताओं पर एंबेडेड वीडियो के साथ ककड़ी एचटीएमएल रिपोर्ट को एकीकृत करता है
-    - लैम्बडेटेस्ट और सर्किलसीआई सेवाओं को एकीकृत करता है
-    - दृश्य, अभिगम्यता और एपीआई टेस्टिंग को एकीकृत करता है
-    - ईमेल कार्यक्षमता को एकीकृत करता है
-    - टेस्ट रिपोर्ट स्टोरेज और पुनर्प्राप्ति के लिए S3 बाल्टी को एकीकृत करता है
+    - Integrated cucumber html reports with Embedded videos on failures
+    - Integrated Lambdatest and CircleCI services
+    - Integrated Visual, Accessibility and API testing
+    - Integrated Email functionality
+    - Integrated s3 bucket for test reports storage and retrieval
 
 ## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
 
@@ -151,6 +151,18 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
     - टाइपस्क्रिप्ट
     - ESLint
+
+## [Muralijc/wdio-headspin-boilerplate](https://github.com/Muralijc/Wdio-Headspin-boilerplate/)
+Boilerplate project to run WebdriverIO tests in Headspin Cloud (https://www.headspin.io/) using Cucumber features, and the page objects pattern.
+- फ्रेमवर्क
+    - WebdriverIO (v8)
+    - Cucumber (v8)
+
+- विशेतएं
+    - Cloud integration with [Headspin](https://www.headspin.io/)
+    - Supports Page Object Model
+    - Contains sample Scenarios written in Declarative style of BDD
+    - Integrated cucumber html reports
 
 # v7 बॉयलरप्लेट प्रोजेक्ट्स
 
@@ -199,17 +211,17 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
 
 मोचा के साथ E2E परीक्षण चलाने के लिए बॉयलरप्लेट परियोजना।
 
-- फ्रेमवर्क:
+- Frameworks:
     - WebdriverIO (v8)
     - मोचा
-- विशेषताएँ:
+- Features:
     -   टाइपस्क्रिप्ट
     -   [एक्स्पेक्ट-वेबड्राइवरियो](https://github.com/webdriverio/expect-webdriverio)
     -   [विसुअल प्रतिगमन टेस्ट](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   पेज ऑब्जेक्ट पैटर्न
+    -   Page Object Pattern
     -   [प्रतिबद्ध लिंट](https://github.com/conventional-changelog/commitlint) और [प्रतिबद्ध](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESLint
-    -   खूबसूरत
+    -   Prettier
     -   हस्की
     -   गीथूब एक्शन उदाहरण
     -   आकर्षण रिपोर्ट (विफलता पर स्क्रीनशॉट)
@@ -235,7 +247,7 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
 - फ्रेमवर्क
     - WebdriverIO v7
     - कुकुम्बर v7
-    - एपियम
+    - Appium
 
 - विशेतएं
     - नेटिव एंड्राइड और आईओएस ऐप
@@ -288,14 +300,35 @@ Mocha के साथ ATDD वेब परीक्षण, PageObject के �
 
 पेज ऑब्जेक्ट पैटर्न के साथ मोचा का उपयोग करके वास्तविक रोकू उपकरणों पर ऐपियम परीक्षण चलाने के लिए टेम्प्लेट प्रोजेक्ट।
 
-- फ्रेमवर्क
+- Frameworks
     - WebdriverIO Async v7
     - एपियम 2.0
     - मोचा v7
     - आकर्षण रिपोर्ट
 
-- विशेतएं
+- Features
     - पेज ऑब्जेक्ट मॉडल
     - टाइपस्क्रिप्ट
     - विफलता पर स्क्रीनशॉट
     - नमूना रोकू चैनल का उपयोग करके उदाहरण टेस्ट
+
+## [krishnapollu/wdio-cucumber-poc](https://github.com/krishnapollu/wdio-cucumber-poc)
+
+PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha tests
+
+- Framework:
+    - Cucumber (v8)
+    - WebdriverIO (v8)
+    - Mocha (v8)
+
+- Features:
+    - Cucumber based E2E Tests
+    - Mocha based Data Driven Tests
+    - Web only Tests - in Local as well as cloud platforms
+    - Mobile Only tests - local as well as remote cloud emulators (or devices)
+    - Web + Mobile Tests - Multiremote - local as well as cloud platforms
+    - Multiple Reports integrated including Allure
+    - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
+    - Github workflow to run the test and upload the allure report
+
+

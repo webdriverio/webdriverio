@@ -13,7 +13,7 @@ El formato de un objeto de capacidad está bien definido por la [especificación
 
 ## Características personalizadas
 
-Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo puede proporcionar y aceptar funciones personalizadas que son específicas del controlador de automatización o interfaz remota:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### Extensiones de Capacidad Específica del Explorador
 
@@ -34,7 +34,134 @@ Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo pu
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - y mucho más...
 
-Eche un vistazo a WebdriverIO [definición de TypeScript de capacidad](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) para encontrar capacidades específicas para su prueba. Nota: no todos son válidos y es posible que el proveedor no lo admita.
+### WebdriverIO Capabilities to manage browser driver options
+
+WebdriverIO manages installing and running browser driver for you. WebdriverIO uses a custom capability that allows you to pass in parameters to the driver.
+
+#### Common Driver Options
+
+While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
+
+##### `cacheDir`
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `string`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
+##### `binary`
+
+Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
+
+Type: `string`
+
+#### Browser Specific Driver Options
+
+In order to propagate options to the driver you can use the following custom capabilities:
+
+- Chrome: `wdio:chromedriverOptions`
+- Firefox: `wdio:geckodriverOptions`
+- Microsoft Egde: `wdio:edgedriverOptions`
+- Safari: `wdio:safaridriverOptions`
+
+<Tabs
+  defaultValue="chrome"
+  values={[
+    {label: 'wdio:chromedriverOptions', value: 'chrome'},
+ {label: 'wdio:geckodriverOptions', value: 'firefox'},
+ {label: 'wdio:edgedriverOptions', value: 'msedge'},
+ {label: 'wdio:safaridriverOptions', value: 'safari'},
+ ]
+}>
+<TabItem value="chrome">
+
+##### adbPort
+The port on which the ADB driver should run.
+
+Example: `9515`
+
+Type: `number`
+
+##### urlBase
+Base URL path prefix for commands, e.g. `wd/url`.
+
+Example: `/`
+
+Type: `string`
+
+##### logPath
+Write server log to file instead of stderr, increases log level to `INFO`
+
+Type: `string`
+
+##### logLevel
+Set log level. Possible options `ALL`, `DEBUG`, `INFO`, `WARNING`, `SEVERE`, `OFF`.
+
+Type: `string`
+
+##### verbose
+Log verbosely (equivalent to `--log-level=ALL`)
+
+Type: `boolean`
+
+##### silent
+Log nothing (equivalent to `--log-level=OFF`)
+
+Type: `boolean`
+
+##### appendLog
+Append log file instead of rewriting.
+
+Type: `boolean`
+
+##### replayable
+Log verbosely and don't truncate long strings so that the log can be replayed (experimental).
+
+Type: `boolean`
+
+##### readableTimestamp
+Add readable timestamps to log.
+
+Type: `boolean`
+
+##### enableChromeLogs
+Show logs from the browser (overrides other logging options).
+
+Type: `boolean`
+
+##### bidiMapperPath
+Custom bidi mapper path.
+
+Type: `string`
+
+##### allowedIps
+Comma-separated allowlist of remote IP addresses which are allowed to connect to EdgeDriver.
+
+Type: `string[]`<br />
+Default: `['']`
+
+##### allowedOrigins
+Comma-separated allowlist of request origins which are allowed to connect to EdgeDriver. Using `*` to allow any host origin is dangerous!
+
+Type: `string[]`<br />
+Default: `['*']`
+
+</TabItem>
+<TabItem value="firefox">
+
+See all Geckodriver options in the official [driver package](https://github.com/webdriverio-community/node-geckodriver#options).
+
+</TabItem>
+<TabItem value="msedge">
+
+See all Edgedriver options in the official [driver package](https://github.com/webdriverio-community/node-edgedriver#options).
+
+</TabItem>
+<TabItem value="safari">
+
+See all Safaridriver options in the official [driver package](https://github.com/webdriverio-community/node-safaridriver#options).
+
+</TabItem>
+</Tabs>
 
 ## Capacidades especiales para Casos de Uso Específico
 
@@ -107,17 +234,26 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 }>
 <TabItem value="chrome">
 
+When testing on Chrome, WebdriverIO will automatically download the desired browser version and driver for you based on the defined `browserVersion`, e.g.:
+
 ```ts
 {
     browserName: 'chrome',
-    'goog:chromeOptions': {
-        bin: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
-    }
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
 }
 ```
 
 </TabItem>
 <TabItem value="firefox">
+
+When testing on Firefox, you can let WebdriverIO setup Firefox Nightly for you by providing `latest` as `browserVersion`:
+
+```ts
+    browserName: 'firefox',
+    browserVersion: 'latest'
+```
+
+If you like to test a manually downloaded version you can provide a binary path to the browser via:
 
 ```ts
     browserName: 'firefox',
@@ -129,6 +265,8 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 </TabItem>
 <TabItem value="msedge">
 
+When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+
 ```ts
     browserName: 'msedge',
     'ms:edgeOptions': {
@@ -139,11 +277,10 @@ If you like to test a browser version that is not yet released as stable, e.g. C
 </TabItem>
 <TabItem value="safari">
 
+When testing on Safari, make sure you have the [Safari Technology Preview](https://developer.apple.com/safari/technology-preview/) installed on your machine. You can point WebdriverIO to that version via:
+
 ```ts
-    browserName: 'msedge',
-    'ms:edgeOptions': {
-        browserName: 'Safari Technology Preview'
-    }
+    browserName: 'safari technology preview'
 ```
 
 </TabItem>

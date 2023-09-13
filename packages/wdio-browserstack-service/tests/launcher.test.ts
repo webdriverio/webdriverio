@@ -523,6 +523,33 @@ describe('onPrepare', () => {
         expect(mockStart).toHaveBeenCalled()
         vi.clearAllMocks()
     })
+
+    it('should create accessibility test run if accessibility flag is true', async () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const serviceOptions = { accessibility: true }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
+        await service.onPrepare(config, caps)
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        vi.clearAllMocks()
+    })
+
+    it('should add accessibility options after filtering not allowed caps', async () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const caps: any = [{ 'bstack:options': {
+            buildName: 'browserstack wdio build'
+        } },
+        { 'bstack:options': {
+            buildName: 'browserstack wdio build'
+        } }]
+        const serviceOptions = { accessibility: true, accessibilityOptions: { wcagVersion: 'wcag2aa', includeTagsInTestingScope: ['@P1'] } }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build' } }, { 'bstack:options': { buildName: 'browserstack wdio build' } }]
+        await service.onPrepare(config, capabilities)
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(capabilities[0]['bstack:options']).toEqual({ buildName: 'browserstack wdio build', accessibilityOptions: { wcagVersion: 'wcag2aa' } })
+        vi.clearAllMocks()
+    })
 })
 
 describe('onComplete', () => {
@@ -560,6 +587,15 @@ describe('onComplete', () => {
         service.browserstackLocal = new Local()
         return expect(service.onComplete()).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
+    })
+
+    it('should stop accessibility test run on complete', () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'stopAccessibilityTestRun')
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+
+        const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
+        service.onComplete()
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -621,6 +657,44 @@ describe('constructor', () => {
         new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': pkg.version } } })
+    })
+
+    it('should add the "accessibility" property to an array of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
+        new BrowserstackLauncher(serviceOptions as any, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true } },
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true } }
+        ])
+    })
+
+    it('should add the "accessibility" property to an array of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = [{ 'moz:firefoxOptions': {} }, { 'goog:chromeOptions': {} }]
+        new BrowserstackLauncher(serviceOptions as any, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true }, 'moz:firefoxOptions': {} },
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true }, 'goog:chromeOptions': {} }
+        ])
+    })
+
+    it('should add the "accessibility" property to object of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
+        new BrowserstackLauncher(serviceOptions as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': pkg.version, 'accessibility': true }, 'goog:chromeOptions': {} } } })
+    })
+
+    it('should add the "accessibility" property to object of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {} } } }
+        new BrowserstackLauncher(serviceOptions as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': pkg.version, 'accessibility': true }, 'goog:chromeOptions': {} } } })
     })
 
     it('update spec list if it is a rerun', async () => {
@@ -759,6 +833,79 @@ describe('_updateCaps', () => {
 
         service._updateCaps(caps, 'localIdentifier', 'wdio1')
         expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': pkg.version, localIdentifier: 'wdio1' })
+    })
+})
+
+describe('_updateObjectTypeCaps', () => {
+    const options: BrowserstackConfig = { accessibilityOptions: { wcagVersion: 'wcag2a' } }
+    const caps: any = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should update the accessibilityOptions cap in capabilities', () => {
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps[0]['browserstack.accessibilityOptions'].includeIssueType).toEqual({ bestPractice: true, needsReview: true })
+    })
+
+    it('should update the accessibilityOptions cap if bstack:options is not present in caps array', () => {
+        const caps: any = [{ 'ms:edgeOptions': {} }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps[0]['bstack:options']['accessibilityOptions'].includeIssueType).toEqual({ bestPractice: true, needsReview: true })
+    })
+
+    it('should update accessibilityOptions in caps object if bstack:options is present', () => {
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': pkg.version, 'accessibilityOptions': { 'includeIssueType': { 'bestPractice': true, 'needsReview': true } } })
+    })
+
+    it('should update accessibilityOptions in caps object if bstack:options is not present', () => {
+        const caps = { chromeBrowser: { capabilities: {} } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version, 'browserstack.accessibilityOptions': { includeIssueType: { bestPractice: true, needsReview: true } } })
+    })
+
+    it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {
+        const caps = [{ 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } }]
+        const service = new BrowserstackLauncher(options as any, caps as any, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps[0]['bstack:options']).toEqual({ 'wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateObjectTypeCaps', () => {
+        const caps = { chromeBrowser: { capabilities: { 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } } } }
+        const service = new BrowserstackLauncher(options as any, caps as any, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateObjectTypeCaps', () => {
+        const caps = { chromeBrowser: { capabilities: { 'browserstack.accessibilityOptions': { wcagVersion: 'wcag2a' } } } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateCaps', () => {
+        const caps: any = [{ 'browserstack.accessibilityOptions': { wcagVersion: 'wcag2a' } }]
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps[0]).toEqual({ 'browserstack.wdioService': pkg.version })
     })
 })
 
