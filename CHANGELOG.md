@@ -21,6 +21,41 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.7 (2023-09-13)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`, `wdio-types`
+  * [#11064](https://github.com/webdriverio/webdriverio/pull/11064) Browserstack Accessibility support with WebdriverIO 🚀  ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11022](https://github.com/webdriverio/webdriverio/pull/11022) (@wdio/globals): fix type propagation ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11160](https://github.com/webdriverio/webdriverio/pull/11160) (@wdio/cli): fix gmail-service reference during project initialization ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-utils`
+  * [#11158](https://github.com/webdriverio/webdriverio/pull/11158) mocha: skip test in custom hooks ([@tamil777selvan](https://github.com/tamil777selvan))
+  * [#11153](https://github.com/webdriverio/webdriverio/pull/11153) (@wdio/utils): use --no-sandbox flag when detecting Chrome version ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11130](https://github.com/webdriverio/webdriverio/pull/11130) (@wdio/utils): don't setup a driver nor browser if using devtools protocol ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#11131](https://github.com/webdriverio/webdriverio/pull/11131) fix cucumber junit report ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* `wdio-types`, `wdio-utils`, `webdriver`
+  * [#11128](https://github.com/webdriverio/webdriverio/pull/11128) Improve automated webdriver setup documentation ([@marcogrcr](https://github.com/marcogrcr))
+* Other
+  * [#10642](https://github.com/webdriverio/webdriverio/pull/10642) New Crowdin updates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-sauce-service`
+  * [#11155](https://github.com/webdriverio/webdriverio/pull/11155) (@wdio/sauce-service): bump saucelabs package ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Marco Gonzalez ([@marcogrcr](https://github.com/marcogrcr))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.6 (2023-09-09)
 
 #### :bug: Bug Fix
