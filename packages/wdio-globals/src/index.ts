@@ -1,4 +1,4 @@
-import '../types.d.ts'
+/// <reference path="../types.d.ts" />
 
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
