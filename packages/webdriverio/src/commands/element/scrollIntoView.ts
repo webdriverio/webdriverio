@@ -61,55 +61,50 @@ export async function scrollIntoView (
      */
     const elemRect = await browser.getElementRect(this.elementId)
     const viewport = await browser.getWindowSize()
-    let [windowX, windowY] = await browser.execute(() => [
+    let [scrollX, scrollY] = await browser.execute(() => [
         window.scrollX, window.scrollY
     ])
-    const origScrollX = windowX
-    const origScrollY = windowY
-    const origin = windowX === 0 && windowY === 0 ? this : undefined
 
-    windowX = elemRect.x <= viewport.width ? elemRect.x - 10 : viewport.width / 2
-    windowY = elemRect.y <= viewport.height ? elemRect.y - 10 : viewport.height / 2
+    // handle elements outside of the viewport
+    scrollX = elemRect.x <= viewport.width ? elemRect.x : viewport.width / 2
+    scrollY = elemRect.y <= viewport.height ? elemRect.y : viewport.height / 2
 
     const deltaByOption = {
-        start: { y: elemRect.y, x: elemRect.x },
+        start: { y: elemRect.y - elemRect.height, x: elemRect.x - elemRect.width },
         center: { y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2), x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2) },
-        end: { y: elemRect.y - (viewport.height - elemRect.height - 20), x: elemRect.x - (viewport.width - elemRect.width) }
+        end: { y: elemRect.y - (viewport.height - elemRect.height), x: elemRect.x - (viewport.width - elemRect.width) }
     }
+
     let [deltaX, deltaY] = [deltaByOption.start.x, deltaByOption.start.y]
-    if (options && typeof options !== 'boolean') {
+    if (options === true) {
+        options = { block: 'start', inline: 'nearest' }
+    }
+    if (options === false) {
+        options = { block: 'end', inline: 'nearest' }
+    }
+    if (options && typeof options === 'object') {
         const { block, inline } = options
         if (block === 'nearest') {
-            const nearestDistance = Math.min(...Object.values(deltaByOption).map(delta => Math.abs(delta.y)))
-            deltaY = Object.values(deltaByOption).find(delta => Math.abs(delta.y) === nearestDistance)!.y
+            const nearestYDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.y))
+            deltaY = Object.values(deltaByOption).find(delta => delta.y === nearestYDistance)!.y
         } else if (block) {
             deltaY = deltaByOption[block].y
         }
         if (inline === 'nearest') {
-            const nearestDistance = Math.min(...Object.values(deltaByOption).map(delta => Math.abs(delta.x)))
-            deltaX = Object.values(deltaByOption).find(delta => Math.abs(delta.x) === nearestDistance)!.x
+            const nearestXDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.x))
+            deltaX = Object.values(deltaByOption).find(delta => delta.x === nearestXDistance)!.x
         } else if (inline) {
             deltaX = deltaByOption[inline].x
         }
     }
 
-    if (origin) {
-        deltaX = deltaX > viewport.width ? Math.round(viewport.width - elemRect.width - (elemRect.width / 2) - 30) : Math.round(deltaX)
-        deltaY = deltaY > viewport.height ? Math.round(viewport.height - elemRect.height - (elemRect.height / 2) - 30) : Math.round(deltaY)
-
-        windowX = 0
-        windowY = 0
-    } else {
-        deltaX = Math.round(deltaX - origScrollX)
-        deltaY = Math.round(deltaY - origScrollY)
-
-        windowX = Math.round(windowX)
-        windowY = Math.round(windowY)
-    }
+    // take into account the current scroll position
+    deltaX = Math.round(deltaX - scrollX)
+    deltaY = Math.round(deltaY - scrollY)
 
     try {
         return await browser.action('wheel')
-            .scroll({ duration: 200, x: windowX, y: windowY, deltaX, deltaY, origin })
+            .scroll({ duration: 0, x: deltaX, deltaY, origin: this })
             .perform()
     } catch (err: any) {
         log.warn(

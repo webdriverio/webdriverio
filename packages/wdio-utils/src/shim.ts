@@ -52,12 +52,21 @@ const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: a
         args = [args]
     }
 
-    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
+    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve, reject) => {
         let result
 
         try {
             result = hook.apply(this, args)
         } catch (e: any) {
+            /**
+             * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
+             * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
+             * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
+             * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
+             */
+            if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
+                return reject()
+            }
             log.error(e.stack)
             return resolve(e)
         }

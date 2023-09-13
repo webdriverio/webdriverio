@@ -4,6 +4,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
 import CrashReporter from '../src/crash-reporter.js'
+import logger from '@wdio/logger'
+import * as utils from '../src/util.js'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -30,12 +32,20 @@ import {
     getObservabilityBuildTags,
     o11yErrorHandler,
     frameworkSupportsHook,
-    getFailureObject
+    getFailureObject,
+    validateCapsWithA11y,
+    shouldScanTestForAccessibility,
+    isAccessibilityAutomationSession,
+    createAccessibilityTestRun,
+    isTrue
 } from '../src/util.js'
+
+const log = logger('test')
 
 vi.mock('got')
 vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
@@ -860,6 +870,307 @@ describe('o11yErrorHandler', () => {
             await newFunc(0, 0)
             expect(spy).toBeCalledTimes(1)
         })
+    })
+})
+
+describe('validateCapsWithA11y', () => {
+    let logInfoMock: any
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+    })
+
+    it('returns false if deviceName is defined', async () => {
+        expect(validateCapsWithA11y('Samsung S22')).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will run only on Desktop browsers.')
+    })
+
+    it('returns false if browser is not chrome', async () => {
+        const platformMeta = {
+            'browser_name': 'safari'
+        }
+
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will run only on Chrome browsers.')
+    })
+
+    it('returns false if browser version is lesser than 94', async () => {
+        const platformMeta = {
+            'browser_name': 'chrome',
+            'browser_version': '90'
+        }
+
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will run only on Chrome browser version greater than 94.')
+    })
+
+    it('returns false if browser version is lesser than 94', async () => {
+        const platformMeta = {
+            'browser_name': 'chrome',
+            'browser_version': 'latest'
+        }
+        const chromeOptions = {
+            args: ['--headless']
+        }
+
+        expect(validateCapsWithA11y(undefined, platformMeta, chromeOptions)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+    })
+
+    it('returns true if validation done', async () => {
+        const platformMeta = {
+            'browser_name': 'chrome',
+            'browser_version': 'latest'
+        }
+        const chromeOptions = {}
+
+        expect(validateCapsWithA11y(undefined, platformMeta, chromeOptions)).toEqual(true)
+    })
+})
+
+describe('shouldScanTestForAccessibility', () => {
+    it('returns true if full test name contains includeTags', async () => {
+        expect(shouldScanTestForAccessibility('suite title', 'test title', { includeTagsInTestingScope: 'title' })).toEqual(true)
+    })
+
+    it('returns false if full test name contains excludeTags', async () => {
+        expect(shouldScanTestForAccessibility('suite title', 'test title', { excludeTagsInTestingScope: 'title' })).toEqual(true)
+    })
+})
+
+describe('isAccessibilityAutomationSession', () => {
+    it('returns true if accessibility is true and ally token is present', async () => {
+        process.env.BSTACK_A11Y_JWT = 'someToken'
+        expect(isAccessibilityAutomationSession(true)).toEqual(true)
+    })
+
+    it('returns true if accessibility is true and ally token is present', async () => {
+        process.env.BSTACK_A11Y_JWT = ''
+        expect(isAccessibilityAutomationSession(true)).toEqual(false)
+    })
+})
+
+describe('createAccessibilityTestRun', () => {
+    const logInfoMock = vi.spyOn(log, 'error')
+
+    beforeEach (() => {
+        vi.mocked(gitRepoInfo).mockReturnValue({} as any)
+    })
+
+    it('return null if BrowserStack credentials arre undefined', async () => {
+        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, {})
+        expect(result).toEqual(null)
+        expect(logInfoMock.mock.calls[2][0])
+            .toContain('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
+    })
+
+    it('return undefined if completed', async () => {
+        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
+        vi.mocked(got).mockReturnValue({
+            json: () => Promise.resolve({ data: { accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' } }),
+        } as any)
+
+        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
+        expect(got).toBeCalledTimes(1)
+        expect(result).toEqual('0.0.6.0')
+    })
+
+    it('return undefined if completed', async () => {
+        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
+        vi.mocked(got).mockReturnValue({
+            json: () => Promise.resolve({ accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' }),
+        } as any)
+
+        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
+        expect(got).toBeCalledTimes(1)
+        expect(result).toEqual(null)
+        expect(logInfoMock.mock.calls[3][0]).contains('xception while creating test run for BrowserStack Accessibility Automation')
+    })
+
+    afterEach(() => {
+        (got as vi.Mock).mockClear()
+    })
+})
+
+describe('stopAccessibilityTestRun', () => {
+    beforeEach (() => {
+        vi.mocked(gitRepoInfo).mockReturnValue({} as any)
+    })
+
+    it('return error object if ally token not defined', async () => {
+        process.env.BSTACK_A11Y_JWT = undefined
+        const result: any = await utils.stopAccessibilityTestRun()
+        expect(result).toEqual({ 'message': 'Build creation had failed.', 'status': 'error' })
+    })
+
+    it('return success object if ally token defined and no error in response data', async () => {
+        process.env.BSTACK_A11Y_JWT = 'someToken'
+        vi.mocked(got).mockReturnValue({
+            json: () => Promise.resolve({ data: {} }),
+        } as any)
+        const result: any = await utils.stopAccessibilityTestRun()
+        expect(result).toEqual({ 'message': '', 'status': 'success' })
+    })
+
+    it('return error object if ally token defined and no error in response data', async () => {
+        process.env.BSTACK_A11Y_JWT = 'someToken'
+        vi.mocked(got).mockReturnValue({
+            json: () => Promise.resolve({ data: { error: 'Some Error occurred' } }),
+        } as any)
+        const result: any = await utils.stopAccessibilityTestRun()
+        expect(result).toEqual({ 'message': 'Invalid request: Some Error occurred', 'status': 'error' })
+    })
+
+    afterEach(() => {
+        (got as vi.Mock).mockClear()
+    })
+})
+
+describe('getA11yResults', () => {
+    const browser = {
+        sessionId: 'session123',
+        config: {},
+        capabilities: {
+            device: '',
+            os: 'OS X',
+            os_version: 'Catalina',
+            browserName: 'chrome'
+        },
+        instances: ['browserA', 'browserB'],
+        isMultiremote: false,
+        browserA: {
+            sessionId: 'session456',
+            capabilities: { 'bstack:options': {
+                device: '',
+                os: 'Windows',
+                osVersion: 10,
+                browserName: 'chrome'
+            } }
+        },
+        getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
+        browserB: {},
+        execute: vi.fn(),
+        executeAsync: async () => { 'done' },
+        on: vi.fn(),
+    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
+    it('return false if BrowserStack Session', async () => {
+        const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), false, false)
+        expect(result).toEqual([])
+    })
+
+    it('return success object if ally token defined and no error in response data', async () => {
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(false)
+        const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), true, false)
+        expect(result).toEqual([])
+    })
+
+    it('return results object if bstack as well as accessibility session', async () => {
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+        await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
+        expect(browser.execute).toBeCalledTimes(1)
+    })
+})
+
+describe('getA11yResultsSummary', () => {
+    const browser = {
+        sessionId: 'session123',
+        config: {},
+        capabilities: {
+            device: '',
+            os: 'OS X',
+            os_version: 'Catalina',
+            browserName: 'chrome'
+        },
+        instances: ['browserA', 'browserB'],
+        isMultiremote: false,
+        browserA: {
+            sessionId: 'session456',
+            capabilities: { 'bstack:options': {
+                device: '',
+                os: 'Windows',
+                osVersion: 10,
+                browserName: 'chrome'
+            } }
+        },
+        getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
+        browserB: {},
+        execute: vi.fn(),
+        executeAsync: async () => { 'done' },
+        on: vi.fn(),
+    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
+    it('return false if BrowserStack Session', async () => {
+        const result: any = await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), false, false)
+        expect(result).toEqual({})
+    })
+
+    it('return success object if ally token defined and no error in response data', async () => {
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(false)
+        const result: any = await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, false)
+        expect(result).toEqual({})
+    })
+
+    it('return results object if bstack as well as accessibility session', async () => {
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+        await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
+        expect(browser.execute).toBeCalledTimes(1)
+    })
+})
+
+describe('isTrue', () => {
+    it('returns true if value is `true`', async () => {
+        expect(isTrue('true')).toEqual(true)
+    })
+
+    it('returns false if value is `false`', async () => {
+        expect(isTrue('false')).toEqual(false)
+    })
+
+    it('returns false if value is undefined', async () => {
+        expect(isTrue(undefined)).toEqual(false)
+    })
+})
+
+describe('getBrowserStackUser', function () {
+    it('should return userName from config if not present as env variable', function () {
+        expect(utils.getBrowserStackUser({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('config_user_name')
+    })
+
+    it('should return userName if present as env variable', function () {
+        process.env.BROWSERSTACK_USERNAME = 'user_name'
+        expect(utils.getBrowserStackUser({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('user_name')
+    })
+
+})
+
+describe('getBrowserStackKey', function () {
+    it('should return accessKey from config if not present as env variable', function () {
+        expect(utils.getBrowserStackKey({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('config_user_key')
+    })
+
+    it('should return accessKey if present as env variable', function () {
+        process.env.BROWSERSTACK_ACCESS_KEY = 'user_key'
+        expect(utils.getBrowserStackKey({
+            user: 'config_user_name',
+            key: 'config_user_key',
+            capabilities: {}
+        })).toEqual('user_key')
     })
 })
 

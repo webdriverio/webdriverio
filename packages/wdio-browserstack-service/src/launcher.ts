@@ -14,13 +14,18 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
-import { BSTACK_SERVICE_VERSION, VALID_APP_EXTENSION } from './constants.js'
+import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, VALID_APP_EXTENSION } from './constants.js'
 import {
     launchTestSession,
+    createAccessibilityTestRun,
     shouldAddServiceVersion,
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
+    isUndefined,
+    isAccessibilityAutomationSession,
+    stopAccessibilityTestRun,
+    isTrue
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 
@@ -37,6 +42,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
+    private _accessibilityAutomation?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -60,6 +66,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                             if (extensionCaps.length) {
                                 capability['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
+                                if (!isUndefined(capability['browserstack.accessibility'])) {
+                                    this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility'])
+                                } else if (isTrue(this._options.accessibility)) {
+                                    capability['bstack:options'].accessibility = true
+                                }
                             } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                                 capability['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                             }
@@ -74,6 +85,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         this._projectName = capability['bstack:options'].projectName
                         this._buildTag = capability['bstack:options'].buildTag
                         this._buildIdentifier = capability['bstack:options'].buildIdentifier
+
+                        if (!isUndefined(capability['bstack:options'].accessibility)) {
+                            this._accessibilityAutomation ||= isTrue(capability['bstack:options'].accessibility)
+                        } else if (isTrue(this._options.accessibility)) {
+                            capability['bstack:options'].accessibility = (isTrue(this._options.accessibility))
+                        }
                     }
                 })
         } else if (typeof capabilities === 'object') {
@@ -83,6 +100,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
+                            if (!isUndefined((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])) {
+                                this._accessibilityAutomation ||= isTrue((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])
+                            } else if (isTrue(this._options.accessibility)) {
+                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
+                            }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                             (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                         }
@@ -95,6 +117,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._projectName = bstackOptions!.projectName
                     this._buildTag = bstackOptions!.buildTag
                     this._buildIdentifier = bstackOptions!.buildIdentifier
+                    if (!isUndefined(bstackOptions!.accessibility)) {
+                        this._accessibilityAutomation ||= isTrue(bstackOptions!.accessibility)
+                    } else if (isTrue(this._options.accessibility)) {
+                        bstackOptions!.accessibility = isTrue(this._options.accessibility)
+                    }
                 }
             })
         }
@@ -102,6 +129,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
+
+        this._accessibilityAutomation ||= isTrue(this._options.accessibility)
+        this._options.accessibility = this._accessibilityAutomation
 
         // by default observability will be true unless specified as false
         this._options.testObservability = this._options.testObservability === false ? false : true
@@ -168,6 +198,42 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         */
         this._handleBuildIdentifier(capabilities)
 
+        // remove accessibilityOptions from the capabilities if present
+        this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
+
+        if (this._accessibilityAutomation) {
+            const scannerVersion = await createAccessibilityTestRun(this._options, this._config, {
+                projectName: this._projectName,
+                buildName: this._buildName,
+                buildTag: this._buildTag,
+                bstackServiceVersion: BSTACK_SERVICE_VERSION,
+                buildIdentifier: this._buildIdentifier,
+                accessibilityOptions: this._options.accessibilityOptions
+            })
+
+            if (scannerVersion) {
+                process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
+            }
+            log.debug(`Accessibility scannerVersion ${scannerVersion}`)
+        }
+
+        if (this._options.accessibilityOptions) {
+            const filteredOpts = Object.keys(this._options.accessibilityOptions)
+                .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
+                .reduce((opts, key) => {
+                    return {
+                        ...opts,
+                        [key]: this._options.accessibilityOptions?.[key]
+                    }
+                }, {})
+
+            if (Object.keys(filteredOpts).length > 0) {
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
+            }
+        } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
+        }
+
         if (this._options.testObservability) {
             log.debug('Sending launch start event')
 
@@ -228,6 +294,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onComplete () {
+        if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+            await stopAccessibilityTestRun().catch((error: any) => {
+                log.error(`Exception in stop accessibility test run: ${error}`)
+            })
+        }
+
         if (this._options.testObservability) {
             log.debug('Sending stop launch event')
             await stopBuildUpstream()
@@ -332,7 +404,88 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         return app
     }
 
-    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
+    _updateObjectTypeCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: { [key: string]: any; }) {
+        try {
+            if (Array.isArray(capabilities)) {
+                capabilities
+                    .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                        if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                            return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
+                        }
+                        return c as (Capabilities.DesiredCapabilities)
+                    })
+                    .forEach((capability: Capabilities.DesiredCapabilities) => {
+                        if (!capability['bstack:options']) {
+                            const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                            if (extensionCaps.length) {
+                                if (capType === 'accessibilityOptions' && value) {
+                                    capability['bstack:options'] = { accessibilityOptions: value }
+                                }
+                            } else if (capType === 'accessibilityOptions') {
+                                if (value) {
+                                    const accessibilityOpts = { ...value }
+                                    if (capability?.accessibility) {
+                                        accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
+                                        accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
+                                    }
+                                    capability['browserstack.accessibilityOptions'] = accessibilityOpts
+                                } else {
+                                    delete capability['browserstack.accessibilityOptions']
+                                }
+                            }
+                        } else if (capType === 'accessibilityOptions') {
+                            if (value) {
+                                const accessibilityOpts = { ...value }
+                                if (capability['bstack:options'].accessibility) {
+                                    accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
+                                    accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
+                                }
+                                capability['bstack:options'].accessibilityOptions = accessibilityOpts
+                            } else {
+                                delete capability['bstack:options'].accessibilityOptions
+                            }
+                        }
+                    })
+            } else if (typeof capabilities === 'object') {
+                Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                    if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                        const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            if (capType === 'accessibilityOptions' && value) {
+                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { accessibilityOptions: value }
+                            }
+                        } else if (capType === 'accessibilityOptions') {
+                            if (value) {
+                                const accessibilityOpts = { ...value }
+                                if ((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility']) {
+                                    accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
+                                    accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
+                                }
+                                (caps.capabilities as Capabilities.Capabilities)['browserstack.accessibilityOptions'] = accessibilityOpts
+                            } else {
+                                delete (caps.capabilities as Capabilities.Capabilities)['browserstack.accessibilityOptions']
+                            }
+                        }
+                    } else if (capType === 'accessibilityOptions') {
+                        if (value) {
+                            const accessibilityOpts = { ...value }
+                            if ((caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibility) {
+                                accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
+                                accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
+                            }
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibilityOptions = accessibilityOpts
+                        } else {
+                            delete (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibilityOptions
+                        }
+                    }
+                })
+            }
+        } catch (error) {
+            log.debug(`Exception while retrieving capability value. Error - ${error}`)
+        }
+    }
+
+    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: string) {
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {

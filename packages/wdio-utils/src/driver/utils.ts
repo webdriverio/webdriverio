@@ -51,7 +51,7 @@ export function getBuildIdByChromePath(chromePath?: string) {
         return oldest
     }
 
-    const versionString = cp.execSync(`"${chromePath}" --version`).toString()
+    const versionString = cp.execSync(`"${chromePath}" --version --no-sandbox`).toString()
     return versionString.trim().split(' ').pop()?.trim()
 }
 

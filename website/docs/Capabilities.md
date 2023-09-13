@@ -51,7 +51,7 @@ Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ##### `binary`
 
-Path to a custom driver binary.
+Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
 
 Type: `string`
 

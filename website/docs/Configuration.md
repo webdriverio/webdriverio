@@ -472,7 +472,7 @@ Parameters:
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of retries used
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -562,7 +562,7 @@ Parameters:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite

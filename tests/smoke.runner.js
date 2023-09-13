@@ -663,6 +663,22 @@ const nonGlobalTestrunner = async () => {
     assert.strictEqual(hasFailed, false)
 }
 
+/**
+ * Mocha wdio testrunner skip tests via wdio hook
+ */
+const mochaHooksTestrunner = async () => {
+    const { skippedSpecs } = await launch(
+        'mochaHooksTestrunner',
+        path.resolve(__dirname, 'helpers', 'mocha-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test-skipped-hooks.ts'),
+            ]
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -692,7 +708,8 @@ const nonGlobalTestrunner = async () => {
         customReporterString,
         customReporterObject,
         severeErrorTest,
-        nonGlobalTestrunner
+        nonGlobalTestrunner,
+        mochaHooksTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

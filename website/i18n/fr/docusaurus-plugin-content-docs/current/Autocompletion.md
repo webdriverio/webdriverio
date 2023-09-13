@@ -15,7 +15,7 @@ Les définitions de types basées sur [JSDoc](http://usejsdoc.org/) sont utilis�
 
 ![Auto-complétion](/img/autocompletion/1.png)
 
-Utilisez les raccourcis standards <kbd>⇧ + ⌥ + SPACE</kbd> sur la plate-forme IntelliJ pour voir la documentation disponible :
+Utilisez les raccourcis standards <kbd><unk> + <unk> + SPACE</kbd> sur la plate-forme IntelliJ pour voir la documentation disponible :
 
 ![Auto-complétion](/img/autocompletion/2.png)
 
@@ -25,7 +25,7 @@ Visual Studio Code a généralement la prise en charge automatique des types et 
 
 ![Auto-complétion](/img/autocompletion/14.png)
 
-Si vous utilisez JavaScript vanilla et que vous voulez avoir un support de type approprié, vous devez créer un jsconfig `jsconfig.json` à la racine de votre projet et reportez-vous aux paquets wdio utilisés, par exemple:
+Si vous utilisez JavaScript vanilla et que vous voulez avoir un support de type approprié, vous devez créer un jsconfig `. son` à la racine de votre projet et reportez-vous aux paquets wdio utilisés, par exemple:
 
 ```json title="jsconfig.json"
 {

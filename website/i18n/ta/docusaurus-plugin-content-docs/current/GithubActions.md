@@ -5,7 +5,7 @@ title: Github Actions
 
 உங்கள் களஞ்சியமானது Github இல் ஹோஸ்ட் செய்யப்பட்டிருந்தால், Github இன் உள்கட்டமைப்பில் உங்கள் டெஸ்டுகளை இயக்க [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) பயன்படுத்தலாம்.
 
-1. ஒவ்வொரு முறையும் நீங்கள் மாற்றங்களைப் பகிரும்பொழுது
+1. every time you push changes
 2. ஒவ்வொரு இழுப்பு கோரிக்கை உருவாக்கத்திலும்
 3. திட்டமிட்ட நேரத்தில்
 4. மேனுவல் தூண்டுதல் மூலம்

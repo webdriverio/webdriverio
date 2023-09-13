@@ -1,28 +1,40 @@
 import { remote } from '../../packages/webdriverio/build/index.js'
-
-/**
- * this little script demonstrates how to run a session
- * on the WebDriver Bidi protocol.
- */
 const browser = await remote({
+    logLevel: 'error',
     capabilities: {
         webSocketUrl: true,
         browserName: 'chrome'
     }
 })
 
-console.log(browser.capabilities)
-
-await browser.send({
-    method: 'session.subscribe',
-    params: { events: ['log.entryAdded'] }
+await browser.sessionSubscribe({
+    events: ['log.entryAdded']
 })
 
 /**
- * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}
+ * Console logging
  */
-browser.on('message', (data) => console.log('received %s', data))
+browser.on('message', (data) => {
+    const payload = JSON.parse(data.toString())
+    if (payload.method !== 'log.entryAdded') {
+        return
+    }
+    console.log(JSON.stringify(payload, null, 4))
+})
+await browser.execute(() => console.log('Hello Bidi'))
 
-await browser.executeScript('console.log("Hello Bidi")', [])
-// await browser.debug()
+/**
+ * Network logging
+ */
+await browser.sessionSubscribe({
+    events: ['network.responseCompleted']
+})
+browser.on('message', (data) => {
+    const payload = JSON.parse(data.toString())
+    if (payload.method !== 'network.responseCompleted') {
+        return
+    }
+    console.log(JSON.stringify(payload, null, 4))
+})
+await browser.url('https://webdriver.io')
 await browser.deleteSession()

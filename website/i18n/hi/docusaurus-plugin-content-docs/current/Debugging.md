@@ -78,11 +78,21 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## विजुअल स्टूडियो कोड (VSCode) के साथ डिबगिंग
 
-यदि आप नवीनतम VSCode में ब्रेकप्वाइंट के साथ अपने परीक्षणों को डीबग करना चाहते हैं, तो आपको जावास्क्रिप्ट डीबगर [रात्रिकालीन संस्करण को स्थापित और सक्षम करना होगा](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly)।
+If you want to debug your tests with breakpoints in latest VSCode, you have two options for starting the debugger of which option 1 is the easiest method:
+ 1. automatically attaching the debugger
+ 2. attaching the debugger using a configuration file
 
-> https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 के अनुसार यह केवल विंडोज़ और लिनक्स के लिए आवश्यक है। मैक ओएस एक्स रात के संस्करण के बिना काम कर रहा है।
+### VSCode Toggle Auto Attach
 
-अतिरिक्त जानकारी: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+You can automatically attach the debugger by following these steps in VSCode:
+ - Press CMD + Shift + P (Linux and Macos) or CTRL + Shift + P (Windows)
+ - Type "attach" into the input field
+ - Select "Debug: Toggle Auto Attach"
+ - Select "Only With Flag"
+
+ That's it! Now when you run your tests (remember you will need the --inspect flag set in your config as shown earlier) it will automatically start the debugger and stop on the first breakpoint that it reaches.
+
+### VSCode Configuration file
 
 सभी या चयनित विशिष्ट फ़ाइल (फ़ाइलों) को चलाना संभव है। डीबग कॉन्फ़िगरेशन(ओं) को `.vscode/launch.json`में जोड़ा जाना चाहिए, चयनित युक्ति को डीबग करने के लिए निम्न कॉन्फ़िगरेशन जोड़ें:
 ```
@@ -106,6 +116,8 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 सभी विशिष्ट फ़ाइलों को चलाने के लिए `"--spec", "${file}"` `"args"`से हटा दें
 
 उदाहरण: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
+
+अतिरिक्त जानकारी: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
 ## एटम के साथ गतिशील उत्तर
 

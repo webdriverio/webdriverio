@@ -79,6 +79,38 @@ export const config = {
 
 यह क्रोम और फ़ायरफ़ॉक्स के साथ दो वेबड्राइवर सत्र बनाएगा। केवल क्रोम और फ़ायरफ़ॉक्स के बजाय आप [एपियम](http://appium.io) या एक मोबाइल डिवाइस और एक ब्राउज़र का उपयोग करके दो मोबाइल डिवाइस भी बूट कर सकते हैं।
 
+You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
+
+```js
+export const config = {
+    // ...
+    capabilities: [{
+        myChromeBrowser0: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser0: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    }, {
+        myChromeBrowser1: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser1: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    }]
+    // ...
+}
+```
+
 आप स्थानीय वेबड्राइवर/एपियम, या सेलेनियम स्टैंडअलोन उदाहरणों के साथ [क्लाउड सेवाओं में से एक बैकएंड](https://webdriver.io/docs/cloudservices.html) को बूट भी कर सकते हैं। WebdriverIO स्वचालित रूप से क्लाउड बैकएंड क्षमताओं का पता लगाता है यदि आपने ब्राउज़र क्षमताओं में `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), या `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) में से कोई भी निर्दिष्ट किया है।
 
 ```js
