@@ -3,11 +3,7 @@ id: configuration
 title: कॉन्फ़िगरेशन
 ---
 
-<<<<<<< HEAD
-[सेटअप प्रकार](/docs/setuptypes) के आधार पर (उदाहरण के लिए कच्चे प्रोटोकॉल बाइंडिंग का उपयोग करके, वेबड्राइवरियो स्टैंडअलोन पैकेज या WDIO टेस्टरनर के रूप में) पर्यावरण को नियंत्रित करने के लिए विकल्पों का एक अलग सेट उपलब्ध है।
-=======
 Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
->>>>>>> 3abd27a65 (New translations Configuration.md (Hindi))
 
 ## वेब ड्राइवर विकल्प
 
@@ -23,13 +19,13 @@ Type: `String`<br /> Default: `http`
 
 आपके ड्राइवर सर्वर का होस्ट।
 
-Type: `String`<br /> Default: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 पोर्ट आपका ड्राइवर सर्वर चालू है।
 
-प्रकार: `Number`<br /> डिफ़ॉल्ट: `4444`
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -41,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 ड्राइवर सर्वर के लिए प्रचारित क्वेरी पैरामीटर।
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com), [क्रॉसब्रोसरटेस्टिंग](https://crossbrowsertesting.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com), [क्रॉसब्रोसरटेस्टिंग](https://crossbrowsertesting.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 
