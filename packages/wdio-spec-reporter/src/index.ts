@@ -291,7 +291,7 @@ export default class SpecReporter extends WDIOReporter {
     getEventsToReport (suite: SuiteStats) {
         return [
             /**
-             * report all tests by excluding failure if retry is done and only hooks that failed
+             * Generate a report that shows all tests except those that failed but passed on retry, and only display failed hooks.
              */
             ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
                 if (currentItem instanceof TestStats) {
