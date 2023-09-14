@@ -10,7 +10,8 @@ import {
     SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS,
-    SUITES_WITH_DOC_STRING
+    SUITES_WITH_DOC_STRING,
+    SUITES_WITH_RETRY
 } from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
@@ -753,6 +754,24 @@ describe('SpecReporter', () => {
                 expect(printReporter['_onlyFailures']).toBe(true)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
+        })
+    })
+
+    describe('onRetry', () => {
+        let printReporter: any = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        beforeEach(() => {
+            printReporter = new SpecReporter({})
+            printReporter.write = vi.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES_WITH_RETRY
+        })
+
+        it('should group retried test cases', () => {
+            runner.failures = 0
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
     })
 
