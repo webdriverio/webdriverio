@@ -21,6 +21,15 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.8 (2023-09-14)
+
+#### :memo: Documentation
+* [#11167](https://github.com/webdriverio/webdriverio/pull/11167) Fix incorrect browser auto-setup doc ([@marcogrcr](https://github.com/marcogrcr))
+
+#### Committers: 1
+- Marco Gonzalez ([@marcogrcr](https://github.com/marcogrcr))
+
+
 ## v8.16.7 (2023-09-13)
 
 #### :rocket: New Feature
