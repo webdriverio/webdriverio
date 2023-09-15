@@ -284,13 +284,26 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
  * @param  {Function} fn         spec or hook method
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
+ * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = [], timeout: number = 20000): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
-        const result = fn.apply(this, args)
+        // @ts-expect-error
+        const _timeout = this?._runnable?._timeout || globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL || timeout
+        /**
+         * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
+         */
+        const result = await Promise.race([
+            fn.apply(this, args),
+            new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error('Timeout'))
+                }, _timeout)
+            })
+        ])
 
         if (result && typeof result.finally === 'function') {
             result.catch((err: any) => err)
