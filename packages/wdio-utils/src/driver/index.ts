@@ -6,6 +6,7 @@ import cp, { type ChildProcess } from 'node:child_process'
 import getPort from 'get-port'
 import waitPort from 'wait-port'
 import logger from '@wdio/logger'
+import split2 from 'split2'
 import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
@@ -163,8 +164,8 @@ export async function startWebDriver (options: Options.WebDriver) {
         )
     }
 
+    const logIdentifier = driver.split(' ').shift()?.toLowerCase() || 'driver'
     if (options.outputDir) {
-        const logIdentifier = driver.split(' ').shift()?.toLowerCase()
         const logFileName = process.env.WDIO_WORKER_ID
             ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
             : `wdio-${logIdentifier}-${port}.log`
@@ -172,6 +173,10 @@ export async function startWebDriver (options: Options.WebDriver) {
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         driverProcess.stdout?.pipe(logStream)
         driverProcess.stderr?.pipe(logStream)
+    } else {
+        const driverLog = logger(logIdentifier)
+        driverProcess.stdout?.pipe(split2()).on('data', driverLog.info.bind(driverLog))
+        driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
     }
 
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
