@@ -21,14 +21,14 @@ Default: `http`
 Host of your driver server.
 
 Type: `String`<br />
-Default: `localhost`
+Default: `0.0.0.0`
 
 ### port
 
 Port your driver server is on.
 
 Type: `Number`<br />
-Default: `4444`
+Default: `undefined`
 
 ### path
 
@@ -42,21 +42,21 @@ Default: `/`
 Query parameters that are propagated to the driver server.
 
 Type: `Object`<br />
-Default: `null`
+Default: `undefined`
 
 ### user
 
 Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
-Default: `null`
+Default: `undefined`
 
 ### key
 
 Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
-Default: `null`
+Default: `undefined`
 
 ### capabilities
 
