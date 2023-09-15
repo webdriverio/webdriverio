@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.9 (2023-09-15)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11172](https://github.com/webdriverio/webdriverio/pull/11172) handle timeout exceptions ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-spec-reporter`
+  * [#11168](https://github.com/webdriverio/webdriverio/pull/11168) enhance spec report by grouping retried test cases ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 1
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.8 (2023-09-14)
 
 #### :memo: Documentation
