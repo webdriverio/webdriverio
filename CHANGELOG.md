@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.10 (2023-09-15)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11175](https://github.com/webdriverio/webdriverio/pull/11175) (@wdio/utils): propagate driver logs to stdout ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#11176](https://github.com/webdriverio/webdriverio/pull/11176) (@wdio/appium-service): propagate error message on boot time ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.9 (2023-09-15)
 
 #### :bug: Bug Fix
