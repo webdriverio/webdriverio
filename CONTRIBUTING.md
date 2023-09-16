@@ -40,6 +40,18 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 
 See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
 
+## Flowcharts
+
+The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
+
+[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+
+[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+
+[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+
+[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+
 ## Proposing a Change
 
 We are happy for every idea you have that improves the usability of the framework. If you have an idea about a new feature please raise a [feature request](https://github.com/webdriverio/webdriverio/issues/new?template=--feature-request.md) first to get feedback by the maintainer team on it. This lets us reach an agreement on your proposal before you put significant effort into it.

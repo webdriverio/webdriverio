@@ -3,7 +3,7 @@ id: configuration
 title: Configuración
 ---
 
-Basado en el tipo de configuración [](setuptypes) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
+Basado en el tipo de configuración [Setup-Type](/docs/setuptypes) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
 
 ## Opciones de WebDriver
 
@@ -78,7 +78,7 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. Consulte [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) para obtener más detalles.
+Si está ejecutando pruebas web o nativas en dispositivos móviles, `capacidades` difieren del protocolo WebDriver. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
 
 ### logLevel
 
@@ -155,6 +155,12 @@ Si habilita [la función de conexión directa del Appium](https://appiumpro.com/
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -179,7 +185,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
+Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cuenta la minúscula `f` en el nombre de opción.) (Tenga en cuenta la minúscula `f` en el nombre de opción.) (Tenga en cuenta la minúscula `f` en el nombre de opción.) Este tiempo de espera __solo__ afecta a los comandos que empiezan con `espera*` y su tiempo de espera predeterminado.
 
 Para aumentar el tiempo de espera de una _prueba_, por favor vea la documentación del framework.
 
@@ -193,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-Si se ejecuta en Sauce Labs, puede ejecutar pruebas entre diferentes datacenters: EE. UU. o UE. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
+Si se ejecuta en Sauce Labs, puede ejecutar pruebas entre diferentes data centers: EE. UU. o UE. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
 
 __Nota:__ Esto solo tiene efecto si proporcionas `usuario` y `opciones de clave` que están conectadas a tu cuenta de Sauce Labs.
 
@@ -209,7 +215,7 @@ Las siguientes opciones (incluidas las mencionadas arriba) se definen sólo para
 
 ### specs
 
-Definir las especificaciones para la ejecución de pruebas. Puede especificar un patrón de glob para que coincida con varios archivos a la vez o envolver un glob o un conjunto de rutas en un array para ejecutarlos dentro de un proceso de un solo worker. Todas las rutas son vistas como relativas desde la ruta del archivo de configuración.
+Definir las especificaciones para la ejecución de pruebas. Puede especificar un patrón de glob para que coincida con varios archivos a la vez o envolver un glob o un conjunto de rutas en un array para ejecutarlos dentro de un proceso de un solo worker. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
@@ -261,7 +267,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-Si quieres que tu ejecución de prueba se detenga después de un número específico de fallos de prueba, usa `bail`. (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) **Nota:** Tenga en cuenta que al usar un corredor de pruebas de terceros (como Mocha), podría requerirse una configuración adicional.
+Si quieres que tu ejecución de prueba se detenga después de un número específico de fallos de prueba, usa `bail`. (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) (Por defecto es `0`, que ejecuta todas las pruebas sin importar qué.) **Nota:** Tenga en cuenta que al usar un corredor de pruebas de terceros (como Mocha), podría requerirse una configuración adicional.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -279,7 +285,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Si los especfiles reintentados o no deben volver a intentarse inmediatamente o posponerse al final de la cola.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -411,7 +417,7 @@ Parámetros:
 - `cid` (`string`): id de capacidad (por ejemplo, 0-0)
 - `exitCode` (`número`): 0 - éxito, 1 - error
 - `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
-- `retries` (`number`): número de reintentos utilizados
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -435,7 +441,7 @@ Parámetros:
 
 ### beforeSuite
 
-Gancho que se ejecuta antes de que la suite comience
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parámetros:
 
@@ -501,12 +507,12 @@ Parámetros:
 - `result.result` (`Any`): devuelve el objeto de la función de prueba
 - `resultado.duración` (`Número`): duración de la prueba
 - `result.passed` (`Boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
-- `result.retries` (`Objeto`): información de las especificaciones relacionadas con las recuperaciones, por ejemplo, `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `resultado` (`objeto`): resultado de gancho (contiene `error`, `resultado`, `duración`, `pasado`, `reintentos` propiedades)
 
 ### afterSuite
 
-Gancho que es ejecutado después de que la suite haya terminado
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parámetros:
 

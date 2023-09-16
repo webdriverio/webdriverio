@@ -1,0 +1,95 @@
+<% if (it.hasDocusaurusHeader) { %>
+---
+id: <%= it.command %>
+
+title: <%= it.command %>
+
+<% if (it.customEditUrl) { %>custom_edit_url: <%= it.customEditUrl %><% } %>
+
+---
+<% } else if (it.hasHeader) { %>
+## <%= it.command %>
+<% } %>
+
+<%= it.description %>
+
+<% if (it.alternativeCommands && it.alternativeCommands.length) { %>
+:::info
+
+This protocol command is embedded in the following convenient method<%= it.alternativeCommands.length > 1 ? 's' : '' %>: <%= it.alternativeCommands.map((command) => `[${command.split('/').pop()}}](/docs/api/${command})`).join(', ') %>. It is recommended to use <%= it.alternativeCommands.length > 1 ? 'these commands' : 'this command' %> instead.
+
+:::
+<% } %>
+
+##### Usage
+
+```js
+<% if (it.isElementScope) { %>
+$(selector).<%= it.command %>(<%= it.paramString %>)
+<% } else if (it.isMockScope) { %>
+mock.<%= it.command %>(<%= it.paramString %>)
+<% } else { %>
+<%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
+<% } %>
+```
+
+<% if (it.paramTags.length) { %>
+##### Parameters
+
+| Name | Type | Details |
+| ---- | ---- | ------- |
+<% it.paramTags.forEach((paramTag) => { %>
+| <code><var><%= paramTag.name %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span class="label labelWarning">optional</span><% } %> | <%= Array.isArray(paramTag.types) ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join(', ') : paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %> | <%= paramTag.description %> |
+<% }) %>
+<% } %>
+
+<%
+const allExamples = [...it.examples, ...it.exampleReferences];
+if (allExamples.length) {
+%>
+##### Example<%= allExamples.length > 1 ? 's' : '' %>
+
+<% it.exampleReferences.forEach(function(ref) {
+const filename = it.path.basename(ref.split('#')[0]);
+const ext = it.path.extname(filename).slice(1);
+%>
+
+```<%= ext %> reference title="<%= filename %>" useHTTPS
+<%= ref %>
+
+```
+
+<% }); %>
+
+<% it.examples.forEach(function(example) { %>
+
+```<%= example.format %><% if (example.file) { %> title="<%= example.file %>"<%}%>
+
+<% = example.code %>
+
+```
+
+<% }); %>
+<% } %>
+
+<% if (it.returns) { %>
+##### Returns
+
+- **&lt;<%= it.returns.type %>&gt; <code><var><%= it.returns.name %></var></code>:** <%= it.returns.description %>
+<% } %>
+
+<% if (it.throwsTags.length) { %>
+##### Throws
+
+<% it.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %><% }) %>
+<% } %>
+
+<% if (it.support && Object.keys(it.support).length) { %>
+##### Support
+
+<% Object.keys(it.support).forEach(function(platform) { %>
+![Support for <%= Object.keys(it.support[platform]).map(function(driver) {
+    return driver + " (" + it.support[platform][driver] + ")";
+}).join(", ") %>](/img/icons/<%= platform %>.svg)
+<% }) %>
+<% } %>

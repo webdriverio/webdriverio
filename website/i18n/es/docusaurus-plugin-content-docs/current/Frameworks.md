@@ -266,28 +266,13 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-Tratar definiciones ambigüas como errores. Tenga en cuenta que esta es una opción específica de `@wdio/cucumber-framework` y no reconocida por cucumber-js mismo.
-
-Tipo: `boolean`<br /> Predeterminado: `false`
-
 #### failFast
 Abordar la ejecución en el primer fallo.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### ignoreUndefinedDefinitions
-Tratar las definiciones indefinidas como advertencias. Tenga en cuenta que esta es una opción específica @wdio/cucumber-framework y no reconocida por cucumber-js mismo.
-
-Tipo: `boolean`<br /> Predeterminado: `false`
-
 #### names
 Ejecutar sólo los escenarios con el nombre que coincide con la expresión (repetible).
-
-Tipo: `String`<br /> Predeterminado: `localhost`
-
-#### profile
-Especifica la tabla de Cc para su uso.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
@@ -302,42 +287,78 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-Especifica una sintaxis de fragmento personalizada.
+#### import
+Paths to where your support code is, for ESM.
 
-Tipo: `String`<br /> Predeterminado: `localhost`
+Type: `String[]`<br /> Default: `[]` Example:
 
-#### snippets
-Ocultar fragmentos de definición de paso para pasos pendientes.
-
-Tipo: `boolean`<br /> Predeterminado: `false`
-
-#### source
-Ocultar uris de origen.
-
-Tipo: `boolean`<br /> Predeterminado: `false`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 Fallo si hay algún paso indefinido o pendiente.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### tagExpression
+#### tags
 Sólo ejecutar las características o escenarios con etiquetas que coincidan con la expresión. Consulte la [documentación de Cucumber](https://docs.cucumber.io/cucumber/api/#tag-expressions) para más detalles.
 
-Tipo: `String`<br /> Predeterminado: `localhost`
-
-#### tagsInTitle
-Añadir etiquetas de Cucumber a la característica o al nombre del escenario.
-
-Tipo: `boolean`<br /> Predeterminado: `false`
+Type: `String`<br /> Default: ``
 
 #### timeout
 Tiempo de espera en milisegundos para definiciones de pasos.
 
+Type: `Number`<br /> Default: `30000`
+
+#### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br /> Default: `0`
+
+#### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+#### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### ignoreUndefinedDefinitions
+Tratar las definiciones indefinidas como advertencias.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### failAmbiguousDefinitions
+Tratar definiciones ambigüas como errores.
+
+Type: `Boolean`<br /> Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br /> Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+Especifica la tabla de Cc para su uso.
+
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-### Omitiendo pruebas en Cucumber
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
+
+### Skipping tests in cucumber
 
 Ten en cuenta que si quieres saltar una prueba usando las capacidades de filtrado de pruebas de pepino regulares disponibles en `cucumberOpts`, lo haremos para todos los navegadores y dispositivos configurados en las capacidades. Para poder omitir escenarios sólo para combinaciones de capacidades específicas sin tener una sesión iniciada si no es necesario, webdriverio proporciona la siguiente sintaxis específica de etiquetas para pepinos:
 
@@ -352,9 +373,9 @@ Aquí tienes algunos ejemplos de esta sintaxis:
 - `@skip(browserName="chrome")`: la prueba no se ejecutará contra los navegadores chrome.
 - `@skip(browserName="firefox";platformName="linux")`: omitirá la prueba en firefox sobre ejecuciones de linux.
 - `@skip(browserName=["cromo","firefox"])`: los elementos etiquetados serán omitidos para los navegadores de cromo y firefox.
-- `@skip(browserName=/i. explorer/`: las capacidades con navegadores que coincidan con la expresión regular se omitirán (como `iexplorer`, `explorador de Internet`, `explorador de Internet`, . .).
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
-### Importar ayuda de definición de pasos
+### Import Step Definition Helper
 
 Para utilizar el ayudante de definición de pasos como `dado`, `Cuando` o `Luego` o ganchos, se supone que se importará desde `@cucumber/pepino`, e.. como esto:
 

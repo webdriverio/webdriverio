@@ -1,6 +1,7 @@
 import type { IFormatterOptions } from '@cucumber/cucumber'
 import { Formatter, Status } from '@cucumber/cucumber'
 import type { EventEmitter } from 'node:events'
+import path from 'node:path'
 
 import logger from '@wdio/logger'
 
@@ -21,6 +22,7 @@ import type {
     TestStepFinished,
     TestStepResult,
     TestCaseFinished,
+    Hook
 } from '@cucumber/messages'
 
 import {
@@ -30,12 +32,14 @@ import {
     getRule,
     getStepType,
     buildStepPayload,
+    getScenarioDescription
 } from './utils.js'
 
 import type { HookParams, ReporterScenario } from './types.js'
 
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
+    private _hookEvent: Hook[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
     private _currentTestCase?: TestCaseStarted
@@ -65,11 +69,11 @@ export default class CucumberFormatter extends Formatter {
         let results: TestStepResult[] = []
         options.eventBroadcaster.on('envelope', (envelope: Envelope) => {
             if (envelope.gherkinDocument) {
-                this.onGherkinDocument(envelope.gherkinDocument)
+                this.onGherkinDocument({ ...envelope.gherkinDocument, ...(envelope.gherkinDocument.uri ? { uri: this.normalizeURI(envelope.gherkinDocument.uri) } : {}) })
             } else if (envelope.testRunStarted) {
                 this.onTestRunStarted()
             } else if (envelope.pickle) {
-                this.onPickleAccepted(envelope.pickle)
+                this.onPickleAccepted({ ...envelope.pickle, uri: this.normalizeURI(envelope.pickle.uri) })
             } else if (envelope.testCase) {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
@@ -92,6 +96,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
+            } else if (envelope.hook) {
+                this.onHook(envelope.hook)
             } else {
                 // do nothing for other envelopes
             }
@@ -105,6 +111,10 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+    }
+
+    normalizeURI(uri: string) {
+        return path.isAbsolute(uri) ? uri : path.resolve(uri)
     }
 
     emit(event: string, payload: any) {
@@ -268,6 +278,10 @@ export default class CucumberFormatter extends Formatter {
         this.eventEmitter.emit('getHookParams', this._currentPickle)
     }
 
+    onHook(hookEvent: Hook) {
+        this._hookEvent.push(hookEvent)
+    }
+
     onTestRunStarted() {
         if (this.usesSpecGrouping()) {
             return
@@ -389,6 +403,7 @@ export default class CucumberFormatter extends Formatter {
             title: this.getTitle(reporterScenario),
             parent: getFeatureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
+            description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
             tags: reporterScenario.tags,
             rule: reporterScenario.rule,
@@ -410,9 +425,14 @@ export default class CucumberFormatter extends Formatter {
             const teststep = testcase?.testSteps?.find(
                 (step) => step.id === testStepStartedEvent.testStepId
             )
+
+            const hook = this._hookEvent.find(
+                (h) => h.id === teststep?.hookId
+            )
+
             const step =
                 scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-                teststep
+                { ...teststep, text: `${hook?.name || ''} ${hook?.tagExpression || ''}`.trim() } as TestStep
 
             const doc = this._gherkinDocEvents.find(
                 (gde) => gde.uri === scenario?.uri

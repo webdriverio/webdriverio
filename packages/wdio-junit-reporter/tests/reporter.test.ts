@@ -344,4 +344,25 @@ describe('wdio-junit-reporter', () => {
         }
         expect(reporter['_buildOrderedReport'](null, null as any, specFileName, 'feature', true)).toBe('_addCucumberFeatureToBuilder')
     })
+
+    it('_sameFileName', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const file1URL = os.platform() === 'win32' ? 'file:///C:/foo/bar' : 'file:///foo/bar'
+        const file1Path = os.platform() === 'win32' ? 'C:\\foo\\bar' : '/foo/bar'
+        const file2URL = os.platform() === 'win32' ? 'file:///C:/bar/foo' : 'file:///bar/foo'
+        const file2Path = os.platform() === 'win32' ? 'C:\\bar\\foo' : '/bar/foo'
+        expect(reporter['_sameFileName'](file1URL, file1URL)).toBeTruthy()
+        expect(reporter['_sameFileName'](file1URL, file1Path)).toBeTruthy()
+        expect(reporter['_sameFileName'](file1Path, file1URL)).toBeTruthy()
+        expect(reporter['_sameFileName'](file1Path, file1Path)).toBeTruthy()
+        expect(reporter['_sameFileName'](file1URL, file2URL)).toBeFalsy()
+        expect(reporter['_sameFileName'](file1URL, file2Path)).toBeFalsy()
+        expect(reporter['_sameFileName'](file1Path, file2URL)).toBeFalsy()
+        expect(reporter['_sameFileName'](file1Path, file2Path)).toBeFalsy()
+        expect(reporter['_sameFileName'](undefined, file1URL)).toBeFalsy()
+        expect(reporter['_sameFileName'](undefined, file1Path)).toBeFalsy()
+        expect(reporter['_sameFileName'](file1URL, undefined)).toBeFalsy()
+        expect(reporter['_sameFileName'](file1Path, undefined)).toBeFalsy()
+        expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
+    })
 })

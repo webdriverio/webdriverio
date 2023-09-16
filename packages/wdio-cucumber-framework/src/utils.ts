@@ -239,3 +239,11 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Remo
 
     return generatedTags
 }
+
+/**
+ * Retrives scenario description if available.
+ */
+export function getScenarioDescription(feature: Feature, scenarioId: string){
+    const children = feature.children?.find((child) => child?.scenario?.id === scenarioId)!
+    return children?.scenario?.description || ''
+}

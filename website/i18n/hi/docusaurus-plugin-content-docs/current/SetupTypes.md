@@ -32,7 +32,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-सभी [प्रोटोकॉल कमांड](api/webdriver) ऑटोमेशन ड्राइवर से अपरिष्कृत प्रतिक्रिया लौटाते हैं। पैकेज बहुत हल्का है और प्रोटोकॉल उपयोग के साथ बातचीत को आसान बनाने के लिए ऑटो-वेट जैसे __नंबर__ स्मार्ट लॉजिक है।
+All [protocol commands](api/webdriver) return the raw response from the automation driver. पैकेज बहुत हल्का है और प्रोटोकॉल उपयोग के साथ बातचीत को आसान बनाने के लिए ऑटो-वेट जैसे __नंबर__ स्मार्ट लॉजिक है।
 
 उदाहरण के लिए लागू प्रोटोकॉल आदेश ड्राइवर के प्रारंभिक सत्र की प्रतिक्रिया पर निर्भर करते हैं। उदाहरण के लिए यदि प्रतिक्रिया इंगित करती है कि एक मोबाइल सत्र शुरू किया गया था, तो पैकेज इंस्टेंस प्रोटोटाइप के लिए सभी एपियम और मोबाइल JSON वायर प्रोटोकॉल कमांड लागू करता है।
 
@@ -42,7 +42,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## स्टैंडअलोन मोड
 
-वेबड्राइवर प्रोटोकॉल के साथ बातचीत को सरल बनाने के लिए `webdriverio` पैकेज प्रोटोकॉल के शीर्ष पर विभिन्न प्रकार के कमांड लागू करता है (उदाहरण के लिए [`dragAndDrop`](api/element/dragAndDrop) कमांड) और कोर अवधारणाएं जैसे [स्मार्ट चयनकर्ता](selectors) या [ऑटो-वेट](autowait)। ऊपर से उदाहरण इस तरह सरल किया जा सकता है:
+To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](api/element/dragAndDrop) command) and core concepts such as [smart selectors](selectors) or [auto-waits](autowait). ऊपर से उदाहरण इस तरह सरल किया जा सकता है:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
@@ -50,7 +50,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 स्टैंडअलोन मोड में WebdriverIO का उपयोग करना अभी भी आपको सभी प्रोटोकॉल कमांड तक पहुंच प्रदान करता है लेकिन अतिरिक्त कमांड का एक सुपर सेट प्रदान करता है जो ब्राउज़र के साथ उच्च स्तर की सहभागिता प्रदान करता है। यह आपको एक नई ऑटोमेशन लाइब्रेरी बनाने के लिए इस ऑटोमेशन टूल को अपने (परीक्षण) प्रोजेक्ट में एकीकृत करने की अनुमति देता है। लोकप्रिय उदाहरणों में शामिल हैं [Spectron](https://www.electronjs.org/spectron) या [CodeceptJS](http://codecept.io)। आप सामग्री के लिए वेब को परिमार्जन करने के लिए सादा नोड स्क्रिप्ट भी लिख सकते हैं (या कुछ और जिसके लिए एक चल रहे ब्राउज़र की आवश्यकता होती है)।
 
-यदि कोई विशिष्ट विकल्प सेट नहीं किया गया है तो WebdriverIO `http://localhost:4444/` पर एक ब्राउज़र ड्राइवर खोजने का प्रयास करेगा और स्वचालित रूप से Chrome DevTools प्रोटोकॉल और Puppeteer को ऑटोमेशन इंजन के रूप में स्विच करता है यदि ऐसा ड्राइवर नहीं मिल पाता है। यदि आप वेबड्राइवर के आधार पर चलाना पसंद करते हैं तो आपको या तो उस ड्राइवर को मैन्युअल रूप से या स्क्रिप्ट या [एनपीएम पैकेज](https://www.npmjs.com/package/chromedriver)के माध्यम से शुरू करना होगा।
+If no specific options are set WebdriverIO will always attempt to download at setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome it might also install [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) depending on whether it can find a browser on the machine.
 
 `webdriverio` पैकेज इंटरफेस पर अधिक जानकारी के लिए, [मॉड्यूल API](/docs/api/modules)देखें।
 

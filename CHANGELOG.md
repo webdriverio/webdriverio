@@ -21,6 +21,224 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.10 (2023-09-15)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11175](https://github.com/webdriverio/webdriverio/pull/11175) (@wdio/utils): propagate driver logs to stdout ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#11176](https://github.com/webdriverio/webdriverio/pull/11176) (@wdio/appium-service): propagate error message on boot time ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.16.9 (2023-09-15)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11172](https://github.com/webdriverio/webdriverio/pull/11172) handle timeout exceptions ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-spec-reporter`
+  * [#11168](https://github.com/webdriverio/webdriverio/pull/11168) enhance spec report by grouping retried test cases ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 1
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.8 (2023-09-14)
+
+#### :memo: Documentation
+* [#11167](https://github.com/webdriverio/webdriverio/pull/11167) Fix incorrect browser auto-setup doc ([@marcogrcr](https://github.com/marcogrcr))
+
+#### Committers: 1
+- Marco Gonzalez ([@marcogrcr](https://github.com/marcogrcr))
+
+
+## v8.16.7 (2023-09-13)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`, `wdio-types`
+  * [#11064](https://github.com/webdriverio/webdriverio/pull/11064) Browserstack Accessibility support with WebdriverIO 🚀  ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11022](https://github.com/webdriverio/webdriverio/pull/11022) (@wdio/globals): fix type propagation ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11160](https://github.com/webdriverio/webdriverio/pull/11160) (@wdio/cli): fix gmail-service reference during project initialization ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-utils`
+  * [#11158](https://github.com/webdriverio/webdriverio/pull/11158) mocha: skip test in custom hooks ([@tamil777selvan](https://github.com/tamil777selvan))
+  * [#11153](https://github.com/webdriverio/webdriverio/pull/11153) (@wdio/utils): use --no-sandbox flag when detecting Chrome version ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11130](https://github.com/webdriverio/webdriverio/pull/11130) (@wdio/utils): don't setup a driver nor browser if using devtools protocol ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#11131](https://github.com/webdriverio/webdriverio/pull/11131) fix cucumber junit report ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* `wdio-types`, `wdio-utils`, `webdriver`
+  * [#11128](https://github.com/webdriverio/webdriverio/pull/11128) Improve automated webdriver setup documentation ([@marcogrcr](https://github.com/marcogrcr))
+* Other
+  * [#10642](https://github.com/webdriverio/webdriverio/pull/10642) New Crowdin updates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-sauce-service`
+  * [#11155](https://github.com/webdriverio/webdriverio/pull/11155) (@wdio/sauce-service): bump saucelabs package ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Marco Gonzalez ([@marcogrcr](https://github.com/marcogrcr))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.6 (2023-09-09)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11118](https://github.com/webdriverio/webdriverio/pull/11118) fix cucumber report issue - windows ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriverio`
+  * [#11120](https://github.com/webdriverio/webdriverio/pull/11120) fix scrollIntoView ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11098](https://github.com/webdriverio/webdriverio/pull/11098) [v8] Console logs and cucumber hooks support  ([@sriteja777](https://github.com/sriteja777))
+* `wdio-cucumber-framework`
+  * [#11116](https://github.com/webdriverio/webdriverio/pull/11116) Update Cucumber Dependency Version ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* Other
+  * [#11126](https://github.com/webdriverio/webdriverio/pull/11126) fix:docs capabilities ([@SivasubramanianV](https://github.com/SivasubramanianV))
+* `webdriverio`
+  * [#11122](https://github.com/webdriverio/webdriverio/pull/11122) (docs): more bidi examples ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Codemac ([@SivasubramanianV](https://github.com/SivasubramanianV))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.5 (2023-09-07)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11111](https://github.com/webdriverio/webdriverio/pull/11111) (@wdio/browser-runner): support fetching wasm files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11078](https://github.com/webdriverio/webdriverio/pull/11078) @wdio/cucumber-framework: Add original coordinates when resetting Cucumber Support Library ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* Other
+  * [#11107](https://github.com/webdriverio/webdriverio/pull/11107) (doc): Enabling flowcharts ([@tamil777selvan](https://github.com/tamil777selvan))
+  * [#11106](https://github.com/webdriverio/webdriverio/pull/11106) fix broken link in configuration Closes [#11104](https://github.com/webdriverio/webdriverio/issues/11104) ([@harsha509](https://github.com/harsha509))
+  * [#11110](https://github.com/webdriverio/webdriverio/pull/11110) (docs): update best practices page, add page to translations ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#11071](https://github.com/webdriverio/webdriverio/pull/11071) (docs): add best practices guide ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#11102](https://github.com/webdriverio/webdriverio/pull/11102) (doc): migrate to eta from ejs ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriverio`
+  * [#11005](https://github.com/webdriverio/webdriverio/pull/11005) (docs): saveScreenshot requires afterTest hook to be async ([@hashar](https://github.com/hashar))
+
+#### Committers: 6
+- Antoine Musso ([@hashar](https://github.com/hashar))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.4 (2023-09-05)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11100](https://github.com/webdriverio/webdriverio/pull/11100) (webdriverio): fix scrollIntoView if scroll position has changed ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11099](https://github.com/webdriverio/webdriverio/pull/11099) (@wdio/cucumber-framework): disable parallel execution and warn user that this feature is not supported ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.16.3 (2023-09-03)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11076](https://github.com/webdriverio/webdriverio/pull/11076) Parse scenario description to reports & doc update ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* Other
+  * [#11074](https://github.com/webdriverio/webdriverio/pull/11074) (docs): update debugger documentation ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`, `wdio-types`
+  * [#11075](https://github.com/webdriverio/webdriverio/pull/11075) (docs): fix typos ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.2 (2023-09-02)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11068](https://github.com/webdriverio/webdriverio/pull/11068) (@wdio/browser-runner): allow to take screenshots and pdf when running component tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11073](https://github.com/webdriverio/webdriverio/pull/11073) (webdriverio): deprecate touchAction command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.16.1 (2023-09-02)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#11063](https://github.com/webdriverio/webdriverio/pull/11063) fix spec name comparison - Closes [#11060](https://github.com/webdriverio/webdriverio/issues/11060) ([@lecousin](https://github.com/lecousin))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11069](https://github.com/webdriverio/webdriverio/pull/11069) Add name, tag of hook to reporter & doc refactor ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Guillaume Le Cousin ([@lecousin](https://github.com/lecousin))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.0 (2023-09-01)
+
+#### :rocket: New Feature
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#11010](https://github.com/webdriverio/webdriverio/pull/11010) Adopt latest Cucumber API interface ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11065](https://github.com/webdriverio/webdriverio/pull/11065) fix(@wdio/cucumber-framework): fix Cucumber types ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`
+  * [#11002](https://github.com/webdriverio/webdriverio/pull/11002) Fix tsnode options ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#11067](https://github.com/webdriverio/webdriverio/pull/11067) Adding support for cucumber profiles & update docs ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-utils`
+  * [#11057](https://github.com/webdriverio/webdriverio/pull/11057) fix(@wdio-utils): secure driver connections when using the built-in driv… ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* Other
+  * [#11066](https://github.com/webdriverio/webdriverio/pull/11066) adding headspin boilerplate ([@Muralijc](https://github.com/Muralijc))
+* `webdriverio`
+  * [#11061](https://github.com/webdriverio/webdriverio/pull/11061) Fix found typos ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+
+#### Committers: 4
+- Artur Ćwikliński ([@arturCwiklinsky](https://github.com/arturCwiklinsky))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Murali Jayaraman ([@Muralijc](https://github.com/Muralijc))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.15.10 (2023-08-29)
 
 #### :bug: Bug Fix

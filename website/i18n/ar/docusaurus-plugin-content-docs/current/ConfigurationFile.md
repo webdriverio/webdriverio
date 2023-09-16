@@ -340,7 +340,7 @@ export const config = {
     before: function (capabilities, specs, browser) {
     },
     /**
-     * Gets executed before the suite starts.
+     * Gets executed before the suite starts (in Mocha/Jasmine only).
      * @param {object} suite suite details
      */
     beforeSuite: function (suite) {
@@ -389,12 +389,12 @@ export const config = {
      * @param {*}       result.result    return object of test function
      * @param {number}  result.duration  duration of test
      * @param {boolean} result.passed    true if test has passed, otherwise false
-     * @param {object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Hook that gets executed after the suite has ended.
+     * Hook that gets executed after the suite has ended (in Mocha/Jasmine only).
      * @param {object} suite suite details
      */
     afterSuite: function (suite) {

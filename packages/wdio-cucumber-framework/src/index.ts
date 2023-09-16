@@ -14,7 +14,7 @@ import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import TagExpressionParser from '@cucumber/tag-expressions'
 
-import { DEFAULT_OPTS, FILE_PROTOCOL } from './constants.js'
+import { DEFAULT_OPTS } from './constants.js'
 import { generateSkipTagsFromCapabilities, shouldRun } from './utils.js'
 
 import type {
@@ -34,6 +34,8 @@ import {
 } from '@cucumber/cucumber/api'
 
 import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
+
+export const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/cucumber-framework')
 
@@ -98,7 +100,8 @@ class CucumberAdapter {
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
-        private _generateSkipTags: boolean = true
+        private _generateSkipTags: boolean = true,
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -107,6 +110,21 @@ class CucumberAdapter {
             this._config.cucumberOpts as Required<CucumberOptions>
         )
 
+        /**
+         * WebdriverIO doesn't support this Cucumber feature so we should let the user know
+         */
+        if (this._config.cucumberOpts?.parallel) {
+            throw new Error('The option "parallel" is not supported by WebdriverIO')
+        }
+
+        /**
+         * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
+         */
+        this._cucumberOpts.format.push([this._cucumberFormatter])
+
+        /**
+         * formatting options used by custom cucumberFormatter
+         */
         this._cucumberOpts.formatOptions = {
             _reporter: this._reporter,
             _cid: this._cid,
@@ -249,7 +267,11 @@ class CucumberAdapter {
 
         try {
             await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId)
+            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+                requireModules: this._cucumberOpts.requireModule,
+                requirePaths: this._cucumberOpts.require,
+                importPaths: this._cucumberOpts.import,
+            })
 
             this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
 

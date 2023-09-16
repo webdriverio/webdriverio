@@ -1,6 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
+import cp from 'node:child_process'
 import type fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
@@ -74,6 +75,7 @@ describe('driver utils', () => {
     it('getBuildIdByChromePath', () => {
         expect(getBuildIdByChromePath()).toBe(undefined)
         expect(getBuildIdByChromePath('/foo/bar')).toBe('116.0.5845.110')
+        expect(cp.execSync).toBeCalledWith('"/foo/bar" --version --no-sandbox')
 
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(getBuildIdByChromePath('/foo/bar')).toBe('115.0.5790.110')

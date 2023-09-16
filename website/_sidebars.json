@@ -42,6 +42,7 @@
       "type": "category",
       "label": "Guides",
       "items": [
+        "bestpractices",
         "selectors",
         "timeouts",
         "accessibility",

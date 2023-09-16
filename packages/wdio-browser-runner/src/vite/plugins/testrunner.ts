@@ -125,7 +125,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * don't return test page when sourcemaps are requested
                      */
-                    if (!req.originalUrl || req.url?.endsWith('.map')) {
+                    if (!req.originalUrl || req.url?.endsWith('.map') || req.url?.endsWith('.wasm')) {
                         return next()
                     }
 

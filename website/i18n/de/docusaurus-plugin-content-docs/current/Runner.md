@@ -63,6 +63,7 @@ Dieser Runner verwendet [Vite](https://vitejs.dev/) , um Ihren Testcode zu kompi
 - Vue.js
 - Svelte
 - SolidJS
+- Stencil
 
 Jede Testdatei / Testdateigruppe wird innerhalb einer einzelnen Seite ausgeführt, was bedeutet, dass die Seite zwischen jedem Test neu geladen wird, um die Isolation zwischen den Tests zu gewährleisten.
 

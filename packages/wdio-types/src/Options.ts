@@ -54,8 +54,6 @@ export interface Connection {
     hostname?: string
     /**
      * Port your WebDriver server is on.
-     *
-     * @default 4444
      */
     port?: number
     /**
@@ -266,7 +264,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      */
     automationProtocol?: SupportedProtocols
     /**
-     * If running on Sauce Labs, you can choose to run tests between different datacenters:
+     * If running on Sauce Labs, you can choose to run tests between different data centers:
      * US or EU. To change your region to EU, add region: 'eu' to your config.
      */
     region?: SauceRegions

@@ -51,7 +51,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Appium
     - Cloud testing Integration with BrowserStack & Sauce Labs
     - Docker service
-    - Share data serice
+    - Share data service
     - Separate config files for each service
     - Testdata management & read by user type
     - Reporting
@@ -74,7 +74,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Soporte de base de datos a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecutando cualquier consulta / obtención de resultados etc. con ejemplos de pruebas E2E
     - Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y reportes de Allure y Xunit/Junit en el servidor web.
     - Ejemplos de aplicación de demostración https://search.yahoo.com/ y http://the-internet.herokuapp.com.
-    - BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo (para la reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    - BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para la reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -87,7 +87,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de lectura/escritura de datos de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo ( para reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo ( para reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -100,9 +100,9 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de datos de lectura/escritura de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo (para reproducción en el dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para reproducción en el dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
-## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
+## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
 - Frameworks
     - WebdriverIO (v8)
@@ -110,11 +110,11 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
 
 - Funcionalidades
     - Contiene escenario de prueba de ejemplo en Cucumber
-    - Integra reportes de Cucumber html con videos incrustados en fallos
-    - Integra los servicios de Lambdatest y CircleCI
-    - Integra las pruebas Visual, Accesibilidad y API
-    - Integra la funcionalidad de Email
-    - Integra el cubo s3 para el almacenamiento de los informes de prueba y recuperarlos?
+    - Integrated cucumber html reports with Embedded videos on failures
+    - Integrated Lambdatest and CircleCI services
+    - Integrated Visual, Accessibility and API testing
+    - Integrated Email functionality
+    - Integrated s3 bucket for test reports storage and retrieval
 
 ## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
 
@@ -151,6 +151,18 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - [Demo informe Serenity BDD](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) publicado en las páginas de GitHub
     - TypeScript
     - ESLint
+
+## [Muralijc/wdio-headspin-boilerplate](https://github.com/Muralijc/Wdio-Headspin-boilerplate/)
+Boilerplate project to run WebdriverIO tests in Headspin Cloud (https://www.headspin.io/) using Cucumber features, and the page objects pattern.
+- Frameworks
+    - WebdriverIO (v8)
+    - Cucumber (v8)
+
+- Funcionalidades
+    - Cloud integration with [Headspin](https://www.headspin.io/)
+    - Supports Page Object Model
+    - Contains sample Scenarios written in Declarative style of BDD
+    - Integrated cucumber html reports
 
 # Proyectos de Boilerplate v7
 
@@ -202,11 +214,11 @@ Proyecto Boilerplate para ejecutar pruebas E2E con Mocha.
 - Frameworks:
     - WebdriverIO (v7)
     - Mocha
-- Funcionalidades:
+- Features:
     -   TypeScript
     -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
     -   [Pruebas de regresión visual](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   Patrón de objetos de página
+    -   Page Object Pattern
     -   [Confirmar lint](https://github.com/conventional-changelog/commitlint) y [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESlint
     -   Prettier
@@ -294,8 +306,29 @@ Proyecto de plantillas para ejecutar pruebas de appium en dispositivos Roku real
     - Mocha v7
     - Informe Allure
 
-- Funcionalidades
+- Features
     - Modelo de objeto de página
     - TypeScript
     - Captura de pantalla en caso de falla
     - Pruebas de ejemplo usando un canal de ejemplo Roku
+
+## [krishnapollu/wdio-cucumber-poc](https://github.com/krishnapollu/wdio-cucumber-poc)
+
+PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha tests
+
+- Framework:
+    - Cucumber (v8)
+    - WebdriverIO (v8)
+    - Mocha (v8)
+
+- Features:
+    - Cucumber based E2E Tests
+    - Mocha based Data Driven Tests
+    - Web only Tests - in Local as well as cloud platforms
+    - Mobile Only tests - local as well as remote cloud emulators (or devices)
+    - Web + Mobile Tests - Multiremote - local as well as cloud platforms
+    - Multiple Reports integrated including Allure
+    - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
+    - Github workflow to run the test and upload the allure report
+
+
