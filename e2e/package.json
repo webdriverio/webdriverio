@@ -34,6 +34,7 @@
   "devDependencies": {
     "@babel/plugin-transform-react-jsx-development": "^7.22.5",
     "@jspm/core": "^2.0.1",
+    "@serenity-js/core": "^3.10.3",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/preact": "^3.2.3",
     "@testing-library/react": "^14.0.0",
