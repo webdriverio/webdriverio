@@ -173,7 +173,6 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             } else if (error) {
                 errorMessage += `\n${error.toString()}`
             }
-            log.error(errorMessage)
             callback(new Error(errorMessage), null)
         })
     }
