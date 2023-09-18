@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.11 (2023-09-18)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11201](https://github.com/webdriverio/webdriverio/pull/11201) (@wdio/utils): better error message if function can't be found ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`
+  * [#11177](https://github.com/webdriverio/webdriverio/pull/11177) (@wdio/config): don't run spec twice if absolute path is given ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#11179](https://github.com/webdriverio/webdriverio/pull/11179) (@wdio/appium-service): Delete error log on success executions ([@MadSandwich](https://github.com/MadSandwich))
+
+#### Committers: 2
+- Artsem Burlai ([@MadSandwich](https://github.com/MadSandwich))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.10 (2023-09-15)
 
 #### :bug: Bug Fix
