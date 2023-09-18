@@ -74,7 +74,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Datenbankunterstützung für jedes RDBMS (Oracle, MySql, TeraData, Vertica usw.), Ausführen beliebiger Abfragen / Abrufen von Ergebnismengen usw. mit Beispielen für E2E-Tests
     - Multiple Reporting (Spec, Xunit/Junit, Allure, JSON) und Hosting von Allure und Xunit/Junit Reporting auf WebServer.
     - Beispiele mit Demo-App https://search.yahoo.com/ und http://the-internet.herokuapp.com.
-    - BrowserStack-, Sauce Labs-, LambdaTest- und Appium-spezifische `.config` Datei (für die Wiedergabe auf Mobilgeräten). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    - BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -87,7 +87,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Multiple Reporting (Spec, Xunit/Junit, Allure, JSON) und Hosting von Allure und Xunit/Junit Reporting auf WebServer.
     -  Beispiele für Lese-/Schreibdaten aus MS-Excel zur einfachen Testdatenverwaltung aus externen Datenquellen mit Beispielen
     -  Beispiele für DB-Verbindungen zu beliebigen RDBMS (Oracle, MySql, TeraData, Vertica usw.), jeder Abfrageausführung / Abrufen von Ergebnismengen usw. mit Beispielen für E2E-Tests
-    -  BrowserStack-, Sauce Labs-, LambdaTest- und Appium-spezifische `.config` Datei (für die Wiedergabe auf Mobilgeräten). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -100,7 +100,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Multiple Reporting (Spec, Xunit/Junit, Allure, JSON) und Hosting von Allure und Xunit/Junit Reporting auf WebServer.
     -  Beispiele für Lese-/Schreibdaten aus MS-Excel zur einfachen Testdatenverwaltung aus externen Datenquellen mit Beispielen
     -  Beispiele für DB-Verbindungen zu beliebigen RDBMS (Oracle, MySql, TeraData, Vertica usw.), jeder Abfrageausführung / Abrufen von Ergebnismengen usw. mit Beispielen für E2E-Tests
-    -  BrowserStack-, Sauce Labs-, LambdaTest- und Appium-spezifische `.config` Datei (für die Wiedergabe auf Mobilgeräten). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). Informationen zum Appium-Setup mit einem Klick auf einem lokalen Computer für iOS und Android finden Sie unter [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -330,5 +330,6 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Multiple Reports integrated including Allure
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
-
-
+ 
+      
+      
