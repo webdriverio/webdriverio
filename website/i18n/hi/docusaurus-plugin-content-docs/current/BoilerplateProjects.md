@@ -74,7 +74,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - किसी भी RDBMS (Oracle, MySql, TeraData, Vertica आदि) के लिए डेटाबेस समर्थन, E2E टेस्ट के लिए उदाहरणों के साथ किसी भी प्रश्न को निष्पादित करना / परिणाम सेट प्राप्त करना आदि।
     - बसर्वर पर मल्टीपल रिपोर्टिंग (Spec, Xunit/Junit, Allure, JSON) और Hosting Allure और Xunit/Junit रिपोर्टिंग वे।
     - डेमो ऐप https://search.yahoo.com/ और http://the-internet.herokuapp.com के उदाहरण।
-    - BrowserStack, सॉसL लेब्स, LambdaTest और एपियम विशिष्ट `.config` फ़ाइल (मोबाइल डिवाइस पर प्लेबैक के लिए)। आईओएस और एंड्रॉइड के लिए स्थानीय मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
+    - BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). आईओएस और एंड्रॉइड के लिए स्थानीय मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -87,7 +87,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  वेबसर्वर पर मल्टीपल रिपोर्टिंग (Spec, Xunit/Junit, Allure, JSON) और Hosting Allure और Xunit/Junit रिपोर्टिंग।
     -  बाहरी डेटा स्रोतों से आसान टेस्ट डेटा प्रबंधन के लिए उदाहरणों के साथ एमएस-एक्सेल से डेटा पढ़ने/लिखने के उदाहरण
     -  किसी भी RDBMS (Oracle, MySql, TeraData, Vertica आदि) के लिए डेटाबेस समर्थन, E2E टेस्ट के लिए उदाहरणों के साथ किसी भी प्रश्न को निष्पादित करना / परिणाम सेट प्राप्त करना आदि।
-    -  BrowserStack, सॉसL लेब्स, LambdaTest और एपियम विशिष्ट `.config` फ़ाइल (मोबाइल डिवाइस पर प्लेबैक के लिए)। आईओएस और एंड्रॉइड के लिए लोकल मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). आईओएस और एंड्रॉइड के लिए लोकल मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -100,7 +100,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  वेबसर्वर पर मल्टीपल रिपोर्टिंग (Spec, Xunit/Junit, Allure, JSON) और Hosting Allure और Xunit/Junit रिपोर्टिंग।
     -  बाहरी डेटा स्रोतों से आसान टेस्ट डेटा प्रबंधन के लिए उदाहरणों के साथ एमएस-एक्सेल से डेटा पढ़ने/लिखने के उदाहरण
     -  किसी भी RDBMS (Oracle, MySql, TeraData, Vertica आदि) के लिए डेटाबेस समर्थन, E2E टेस्ट के लिए उदाहरणों के साथ किसी भी प्रश्न को निष्पादित करना / परिणाम सेट प्राप्त करना आदि।
-    -  BrowserStack, सॉसL लेब्स, LambdaTest और एपियम विशिष्ट `.config` फ़ाइल (मोबाइल डिवाइस पर प्लेबैक के लिए)। आईओएस और एंड्रॉइड के लिए लोकल मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). आईओएस और एंड्रॉइड के लिए लोकल मशीन पर एक क्लिक ऐपियम सेटअप के लिए [ऐपियम-सेटअप-मेड-ईज़ी-ओएसएक्स](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)देखें।
 
 ## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -330,5 +330,6 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Multiple Reports integrated including Allure
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
-
-
+ 
+      
+      
