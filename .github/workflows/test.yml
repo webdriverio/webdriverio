@@ -19,6 +19,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
     steps:
