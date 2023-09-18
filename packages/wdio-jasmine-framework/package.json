@@ -41,7 +41,7 @@
     "jasmine": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jasmine": "4.3.5"
+    "@types/jasmine": "4.3.6"
   },
   "publishConfig": {
     "access": "public"
