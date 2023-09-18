@@ -248,6 +248,23 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
 
                             throw new Error(errMsg)
                         }
+
+                        /**
+                         * Jasmine uses `toJSON` to parse the target object for information.
+                         * Since WebdriverIo doesn't have this method on the Element object
+                         * we need to mimic it here
+                         */
+                        if (prop === 'toJSON') {
+                            return { ELEMENT: elem.elementId }
+                        }
+
+                        /**
+                         * provide a better error message than "TypeError: elem[prop] is not a function"
+                         */
+                        if (typeof elem[prop] !== 'function') {
+                            throw new Error(`Can't call "${prop}" on element with selector "${elem.selector}", it is not a function`)
+                        }
+
                         return elem[prop](...args)
                     })
                 }
