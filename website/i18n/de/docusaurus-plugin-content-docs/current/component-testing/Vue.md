@@ -65,7 +65,42 @@ export default {
 </script>
 ```
 
-Verwenden Sie in Ihrem Test die Methode `render` aus `@testing-library/vue` , um die Komponente an die Testseite anzuhängen. Um mit der Komponente zu interagieren, empfehlen wir die Verwendung von WebdriverIO-Befehlen, da sie sich näher an tatsächlichen Benutzerinteraktionen verhalten, z.B.:
+In your test render the component into the DOM and run assertions on it. We recommend to either use [`@vue/test-utils`](https://test-utils.vuejs.org/) or [`@testing-library/vue`](https://testing-library.com/docs/vue-testing-library/intro/) to attach the component to the test page. To interact with the component use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+
+<Tabs
+  defaultValue="utils"
+  values={[
+    {label: '@vue/test-utils', value: 'utils'},
+ {label: '@testing-library/vue', value: 'testinglib'}
+ ]
+}>
+<TabItem value="utils">
+
+```ts title="vue.test.js"
+import { $, expect } from '@wdio/globals'
+import { mount } from '@vue/test-utils'
+import Component from './components/Component.vue'
+
+describe('Vue Component Testing', () => {
+    it('increments value on click', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const wrapper = mount(Component, { attachTo: document.body })
+        expect(wrapper.text()).toContain('Times clicked: 0')
+
+        const button = await $('aria/increment')
+
+        // Dispatch a native click event to our button element.
+        await button.click()
+        await button.click()
+
+        expect(wrapper.text()).toContain('Times clicked: 2')
+        await expect($('p=Times clicked: 2')).toExist() // same assertion with WebdriverIO
+    })
+})
+```
+
+</TabItem>
+<TabItem value="testinglib">
 
 ```ts title="vue.test.js"
 import { $, expect } from '@wdio/globals'
@@ -92,6 +127,9 @@ describe('Vue Component Testing', () => {
     })
 })
 ```
+
+</TabItem>
+</Tabs>
 
 Ein vollständiges Beispiel einer Testsuite für WebdriverIO-Komponenten für Vue.js finden Sie in unserem [Beispiel-Repository](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
 
@@ -131,15 +169,11 @@ export function wrapInSuspense(
 ): ReturnType<typeof defineComponent> {
   return defineComponent({
     render() {
-        console.log('RENDER ME AS WELL', Suspense);
-
       return h(
         'div',
         { id: 'root' },
         h(Suspense, null, {
           default() {
-            console.log('RENDER ME', component, props);
-
             return h(component, props)
           },
           fallback: h('div', 'fallback'),
