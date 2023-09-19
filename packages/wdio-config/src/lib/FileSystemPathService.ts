@@ -6,6 +6,13 @@ import { sync as globSync } from 'glob'
 import RequireLibrary from './RequireLibrary.js'
 import type { PathService, ModuleImportService } from '../types.js'
 
+/**
+ * lower case windows driver letter
+ */
+function lowercaseWinDriveLetter (p: string): string {
+    return p.replace(/^[A-Za-z]:\\/, (match: string) => match.toLowerCase())
+}
+
 export default class FileSystemPathService implements PathService {
     #moduleRequireService: ModuleImportService = new RequireLibrary()
 
@@ -40,7 +47,12 @@ export default class FileSystemPathService implements PathService {
          * and globResult doesn't contain the fileName
          * and file should be available
          */
-        if (!pattern.includes('*') && !globResult.includes(pattern) && !globResult.includes(fileName) && fs.existsSync(fileName)) {
+        if (
+            !pattern.includes('*') &&
+            !globResult.includes(pattern) &&
+            !globResult.map(lowercaseWinDriveLetter).includes(lowercaseWinDriveLetter(fileName)) &&
+            fs.existsSync(fileName)
+        ) {
             globResult.push(fileName)
         }
 
