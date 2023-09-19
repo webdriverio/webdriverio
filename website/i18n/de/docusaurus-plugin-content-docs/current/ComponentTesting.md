@@ -42,6 +42,10 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 Indem Sie verschiedene [Capabilities](/docs/configuration#capabilities) definieren, können Sie Ihre Tests in verschiedenen Browsern ausführen, falls gewünscht auch parallel.
 
+If you are still unsure how everything works, watch the following tutorial on how to get started with Component Testing in WebdriverIO:
+
+<LiteYouTubeEmbed id="5vp_3tGtnMc" title="Getting Started with Component Testing in WebdriverIO" />
+
 ## Test Setup
 
 Es liegt ganz bei Ihnen, was Sie Ihre Tests ausführen möchten und wie Sie die Komponenten rendern möchten. Wir empfehlen jedoch, die [Testing Library](https://testing-library.com/) als Hilfs-Framework zu verwenden, da sie Plugins für verschiedene Frameworks wie React, Preact, Svelte und Vue bereitstellt. Es ist sehr nützlich zum Rendern von Komponenten in die Testseite und bereinigt diese automatisch nach jedem Test.
