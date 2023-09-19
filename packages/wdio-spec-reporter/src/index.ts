@@ -1,8 +1,8 @@
 import { format } from 'node:util'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
-import type { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import WDIOReporter, { TestStats } from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
@@ -291,12 +291,28 @@ export default class SpecReporter extends WDIOReporter {
     getEventsToReport (suite: SuiteStats) {
         return [
             /**
-             * report all tests and only hooks that failed
+             * Generate a report that shows all tests except those that failed but passed on retry, and only display failed hooks.
              */
-            ...suite.hooksAndTests
-                .filter((item) => {
-                    return item.type === 'test' || Boolean(item.error)
-                })
+            ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
+                if (currentItem instanceof TestStats) {
+                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    if (existingTestIndex === -1) {
+                        accumulator.push(currentItem)
+                    } else {
+                        const existingTest = accumulator[existingTestIndex] as TestStats
+                        if (currentItem.retries !== undefined && existingTest.retries !== undefined) {
+                            if (currentItem.retries > existingTest.retries) {
+                                accumulator.splice(existingTestIndex, 1, currentItem)
+                            }
+                        }
+                    }
+                } else {
+                    accumulator.push(currentItem)
+                }
+                return accumulator
+            }, [] as (HookStats | TestStats)[]).filter((item) => Object.keys(item).length > 0).filter((item) => {
+                return item.type === 'test' || Boolean(item.error)
+            })
         ]
     }
 
@@ -344,12 +360,12 @@ export default class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const testTitle = test.title
+                const testTitle = `${test.title} ${(test instanceof TestStats && test.retries && test.retries > 0) ? `(${test.retries} retries)` : ''}`
                 const state = test.state
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle.trim()}`)
 
                 // print cucumber data table cells and docstring
                 const arg = (test as TestStats).argument

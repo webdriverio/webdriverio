@@ -149,7 +149,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
     }
 
-    private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
+    private _startAppium(command: string, args: Array<string>, callback: (err: Error | undefined, result: any) => void): void {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
@@ -157,19 +157,23 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         process.stdout.on('data', (data) => {
             if (data.includes('Appium REST http interface listener started')) {
                 log.info(`Appium started with ID: ${process.pid}`)
-                callback(null, process)
+                callback(undefined, process)
             }
         })
 
         /**
          * only capture first error to print it in case Appium failed to start.
          */
-        process.stderr.once('data', err => { error = err })
+        process.stderr.once('data', (err) => { error = err })
 
         process.once('exit', exitCode => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode === 2) {
-                errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
+                errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
+            } else if (error) {
+                errorMessage += `\n${error.toString()}`
+            }
+            if (exitCode !== 0) {
                 log.error(errorMessage)
             }
             callback(new Error(errorMessage), null)

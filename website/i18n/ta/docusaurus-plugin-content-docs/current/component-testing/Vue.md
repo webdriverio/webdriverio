@@ -3,11 +3,11 @@ id: vue
 title: Vue.js
 ---
 
-[Vue.js](https://vuejs.org/) என்பது இணைய பயனர் இடைமுகங்களை உருவாக்குவதற்கான அணுகக்கூடிய, செயல்திறன் மற்றும் பல்துறை பிரமேஒர்க் ஆகும். WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner)பயன்படுத்தி Vue.js காம்போனென்டுகளை உண்மையான பிரௌசரில் நேரடியாகச் சோதிக்கலாம்.
+[Vue.js](https://vuejs.org/) என்பது இணைய பயனர் இடைமுகங்களை உருவாக்குவதற்கான அணுகக்கூடிய, செயல்திறன் மற்றும் பல்துறை பிரமேஒர்க் ஆகும். WebdriverIO மற்றும் அதன் [browser runner](/docs/runner#browser-runner) பயன்படுத்தி Vue.js காம்போனென்டுகளை உண்மையான பிரௌசரில் நேரடியாகச் சோதிக்கலாம்.
 
 ## செட்அப்
 
-உங்கள் Vue.js திட்டத்தில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் </a>instructions வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் முன்னமைவாக `vue` ஐத் தேர்ந்தெடுக்கவும், எ.கா.:</p> 
+உங்கள் Vue.js திட்டத்தில் WebdriverIO ஐ அமைக்க, எங்கள் காம்போனென்ட் டெஸ்ட் ஆவணத்தின் [instructions](/docs/component-testing#set-up) வழிமுறைகளைப் பின்பற்றவும். உங்கள் ரன்னர் விருப்பங்களுக்குள் முன்னமைவாக `vue` ஐத் தேர்ந்தெடுக்கவும், எ.கா.:
 
 
 
@@ -27,7 +27,7 @@ export const config = {
 
 நீங்கள் ஏற்கனவே [Vite](https://vitejs.dev/) டெவலப்மென்ட் சர்வராகப் பயன்படுத்துகிறீர்கள் என்றால், உங்கள் WebdriverIO கட்டமைப்பிற்குள் `vite.config.ts` இல் உங்கள் கட்டமைப்பை மீண்டும் பயன்படுத்தலாம். மேலும் தகவலுக்கு, `viteConfig` இன் [runner options](/docs/runner#runner-options)ஐப் பார்க்கவும்.
 
-:::  
+:::
 
 Vue முன்னமைவுக்கு `@vitejs/plugin-vue` நிறுவ வேண்டும். டெஸ்ட் பக்கத்தில் காம்போனென்டுகளை வழங்குவதற்கு [Testing Library](https://testing-library.com/) ஐப் பயன்படுத்தவும் பரிந்துரைக்கிறோம். எனவே நீங்கள் பின்வரும் கூடுதல் சார்புகளை நிறுவ வேண்டும்:
 
@@ -155,15 +155,11 @@ export function wrapInSuspense(
 ): ReturnType<typeof defineComponent> {
   return defineComponent({
     render() {
-        console.log('RENDER ME AS WELL', Suspense);
-
       return h(
         'div',
         { id: 'root' },
         h(Suspense, null, {
           default() {
-            console.log('RENDER ME', component, props);
-
             return h(component, props)
           },
           fallback: h('div', 'fallback'),
@@ -222,7 +218,7 @@ __Reasons for that are:__
 
 WebdriverIO also provides a service for running e2e tests on Nuxt applications, see [`webdriverio-community/wdio-nuxt-service`](https://github.com/webdriverio-community/wdio-nuxt-service) for information.
 
-:::  
+:::
 
 
 

@@ -94,7 +94,7 @@ To become a TSC member:
 * Work in a helpful and collaborative way with the community.
 * Have given good feedback on others' submissions and displayed an overall understanding of the code quality standards for the project.
 * Commit to being a part of the community for the long-term.
-* Have submitted a minimum of 20 qualifying pull requests.
+* Have submitted a minimum of 30 qualifying pull requests.
 
 A Committer is invited to become a TSC member by existing TSC members. A nomination will result in discussion and then a decision by the TSC.
 
