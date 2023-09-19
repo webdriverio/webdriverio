@@ -155,15 +155,11 @@ export function wrapInSuspense(
 ): ReturnType<typeof defineComponent> {
   return defineComponent({
     render() {
-        console.log('RENDER ME AS WELL', Suspense);
-
       return h(
         'div',
         { id: 'root' },
         h(Suspense, null, {
           default() {
-            console.log('RENDER ME', component, props);
-
             return h(component, props)
           },
           fallback: h('div', 'fallback'),
