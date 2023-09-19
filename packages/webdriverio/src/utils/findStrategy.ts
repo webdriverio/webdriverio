@@ -255,7 +255,12 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         ] = match.slice(1)
 
         if (prefix) {
-            conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
+            if (prefix === '.') {
+                // trick to match a class name exactly
+                conditions.push(`contains(concat(" ",@${PREFIX_NAME[prefix]}," "), " ${name} ")`)
+            } else {
+                conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
+            }
         }
         if (attrName) {
             conditions.push(
