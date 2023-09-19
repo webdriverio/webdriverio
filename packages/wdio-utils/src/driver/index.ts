@@ -128,7 +128,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
+        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['0.0.0.0'] })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
@@ -139,7 +139,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
+        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
             return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
         })
