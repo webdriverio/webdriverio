@@ -65,7 +65,42 @@ export default {
 </script>
 ```
 
-Dans votre test, utilisez la méthode `rend` de `@testing-library/react` pour attacher le composant à la page de test. Pour interagir avec le composant, nous recommandons d'utiliser les commandes WebdriverIO car elles se comportent plus près des interactions utilisateur réelles, par exemple .:
+In your test render the component into the DOM and run assertions on it. We recommend to either use [`@vue/test-utils`](https://test-utils.vuejs.org/) or [`@testing-library/vue`](https://testing-library.com/docs/vue-testing-library/intro/) to attach the component to the test page. To interact with the component use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+
+<Tabs
+  defaultValue="utils"
+  values={[
+    {label: '@vue/test-utils', value: 'utils'},
+ {label: '@testing-library/vue', value: 'testinglib'}
+ ]
+}>
+<TabItem value="utils">
+
+```ts title="vue.test.js"
+import { $, expect } from '@wdio/globals'
+import { mount } from '@vue/test-utils'
+import Component from './components/Component.vue'
+
+describe('Vue Component Testing', () => {
+    it('increments value on click', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const wrapper = mount(Component, { attachTo: document.body })
+        expect(wrapper.text()).toContain('Times clicked: 0')
+
+        const button = await $('aria/increment')
+
+        // Dispatch a native click event to our button element.
+        await button.click()
+        await button.click()
+
+        expect(wrapper.text()).toContain('Times clicked: 2')
+        await expect($('p=Times clicked: 2')).toExist() // same assertion with WebdriverIO
+    })
+})
+```
+
+</TabItem>
+<TabItem value="testinglib">
 
 ```ts title="vue.test.js"
 import { $, expect } from '@wdio/globals'
@@ -92,6 +127,9 @@ describe('Vue Component Testing', () => {
     })
 })
 ```
+
+</TabItem>
+</Tabs>
 
 Vous pouvez trouver un exemple complet d'une suite de tests de composants WebdriverIO pour Lit dans notre référentiel [exemples](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
 
@@ -131,15 +169,11 @@ export function wrapInSuspense(
 ): ReturnType<typeof defineComponent> {
   return defineComponent({
     render() {
-        console.log('RENDER ME AS WELL', Suspense);
-
       return h(
         'div',
         { id: 'root' },
         h(Suspense, null, {
           default() {
-            console.log('RENDER ME', component, props);
-
             return h(component, props)
           },
           fallback: h('div', 'fallback'),
