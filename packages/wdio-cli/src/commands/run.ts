@@ -149,6 +149,10 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
         })
 }
 
+function nodeMajorVersion(): number {
+    return process.versions.node.split('.').map(Number)[0]
+}
+
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
@@ -178,6 +182,12 @@ export async function handler(argv: RunCommandArguments) {
     )
     if (isTSFile && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        if (nodeMajorVersion() >= 20) {
+            // Changes in Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
+            // - https://github.com/webdriverio/webdriverio/issues/10901
+            // - https://github.com/TypeStrong/ts-node/issues/2053
+            NODE_OPTIONS += ' -r ts-node/register'
+        }
         const tsNodeProjectFromEnvVar = process.env.TS_NODE_PROJECT &&
             path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
         const tsNodeProjectFromParams = params.autoCompileOpts?.tsNodeOpts?.project &&
