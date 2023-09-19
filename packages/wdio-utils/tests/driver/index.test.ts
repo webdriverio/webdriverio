@@ -148,7 +148,8 @@ describe('startWebDriver', () => {
         expect(startGeckodriver).toBeCalledWith({
             port: 1234,
             foo: 'bar',
-            cacheDir: expect.any(String)
+            cacheDir: expect.any(String),
+            allowHosts: ['0.0.0.0'],
         })
     })
 
@@ -177,7 +178,8 @@ describe('startWebDriver', () => {
         expect(startEdgedriver).toBeCalledWith({
             foo: 'bar',
             port: 1234,
-            cacheDir: expect.any(String)
+            cacheDir: expect.any(String),
+            allowedIps: ['0.0.0.0'],
         })
         expect(options.capabilities.browserName).toBe('MicrosoftEdge')
     })
@@ -258,6 +260,7 @@ describe('startWebDriver', () => {
         expect(res).toBe('geckodriver')
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
+            allowHosts: ['0.0.0.0'],
             customGeckoDriverPath: '/my/geckodriver',
             port: 1234
         })
@@ -275,6 +278,7 @@ describe('startWebDriver', () => {
         expect(res).toBe('edgedriver')
         expect(startEdgedriver).toBeCalledWith({
             cacheDir: expect.any(String),
+            allowedIps: ['0.0.0.0'],
             customEdgeDriverPath: '/my/edgedriver',
             port: 1234
         })
