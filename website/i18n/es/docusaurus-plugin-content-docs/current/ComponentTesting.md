@@ -42,6 +42,10 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 Definiendo diferentes [capacidades](/docs/configuration#capabilities) puede ejecutar sus pruebas en un navegador diferente, en paralelo si lo desea.
 
+If you are still unsure how everything works, watch the following tutorial on how to get started with Component Testing in WebdriverIO:
+
+<LiteYouTubeEmbed id="5vp_3tGtnMc" title="Getting Started with Component Testing in WebdriverIO" />
+
 ## Arnés de prueba
 
 Depende totalmente de usted lo que quiera ejecutar en sus pruebas y cómo le guste renderizar los componentes. Sin embargo, recomendamos usar la [Biblioteca de Pruebas](https://testing-library.com/) como framework de utilidad ya que proporciona plugins para varios frameworks de componentes, como React, Preact, Svelte o Vue. Es muy útil para renderizar componentes en la página de prueba y limpia automáticamente estos componentes después de cada prueba.
