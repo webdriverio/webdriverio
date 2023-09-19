@@ -165,7 +165,7 @@ describe('Lit Component testing', () => {
                 html`<div class="bar"><div class="foo-bar"></div><div><div>Find me</div></div></div>`,
                 document.body
             )
-            expect(await $('.bar*=Find').getHTML(false)).toBe('<div class="mdc-tab__ripple"></div>')
+            expect(await $('.bar*=Find').getHTML(false)).toBe('<div class="foo-bar"></div><div><div>Find me</div></div>')
         })
 
         it('fetches inner element by content correctly with nested class names', async () => {
