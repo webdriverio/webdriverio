@@ -70,6 +70,7 @@
   "devDependencies": {
     "@octokit/rest": "^19.0.13",
     "@preact/preset-vite": "^2.5.0",
+    "@serenity-js/core": "^3.10.3",
     "@stencil/core": "^4.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.4.4",
     "@tsconfig/node18": "^18.2.0",
