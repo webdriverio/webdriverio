@@ -32,6 +32,6 @@ describe('Vue Component Testing', () => {
     it('supports @vue/test-utils', async () => {
         const wrapper = mount(Component, { attachTo: document.body })
         await $('aria/increment').click()
-        await expect(wrapper.text()).toContain('Times clicked: 1')
+        expect(wrapper.text()).toContain('Times clicked: 1')
     })
 })
