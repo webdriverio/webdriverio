@@ -42,6 +42,10 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 विभिन्न [क्षमताओं](/docs/configuration#capabilities) को परिभाषित करके आप अलग-अलग ब्राउज़र में अपने परीक्षण चला सकते हैं, यदि वांछित हो तो समानांतर में।
 
+If you are still unsure how everything works, watch the following tutorial on how to get started with Component Testing in WebdriverIO:
+
+<LiteYouTubeEmbed id="5vp_3tGtnMc" title="Getting Started with Component Testing in WebdriverIO" />
+
 ## हर्नेस परिक्षण
 
 यह पूरी तरह आप पर निर्भर है कि आप अपने परीक्षणों में क्या चलाना चाहते हैं और आप कॉम्पोनेन्ट को कैसे प्रस्तुत करना पसंद करते हैं। हालाँकि हम [टेस्टिंग लाइब्रेरी](https://testing-library.com/) को यूटिलिटी फ्रेमवर्क के रूप में उपयोग करने की सलाह देते हैं क्योंकि यह विभिन्न घटक फ्रेमवर्क के लिए प्लगइन्स प्रदान करता है, जैसे कि React, Preact, Svelte और Vue। परीक्षण पेज में कॉम्पोनेन्ट को प्रस्तुत करने के लिए यह बहुत उपयोगी है और यह प्रत्येक परीक्षण के बाद स्वचालित रूप से इन कॉम्पोनेन्ट को क्लीन करता है।
