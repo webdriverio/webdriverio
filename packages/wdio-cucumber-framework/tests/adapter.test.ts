@@ -542,4 +542,31 @@ describe('CucumberAdapter', () => {
         expect(result).toBe(0)
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
+
+    it('should skip test if `skip` tag condition is matched', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature',
+            ],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            ['progress']
+        )
+
+        expect(adapter._specs).toHaveLength(0)
+        expect(adapter.hasTests()).toBe(false)
+
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.loadFiles = vi.fn()
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
 })
