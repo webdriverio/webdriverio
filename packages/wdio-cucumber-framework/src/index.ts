@@ -30,7 +30,6 @@ import type {
 import {
     loadConfiguration,
     loadSources,
-    loadSupport,
     runCucumber
 } from '@cucumber/cucumber/api'
 
@@ -278,14 +277,10 @@ class CucumberAdapter {
                 environment
             )
 
-            const support = await loadSupport(runConfiguration, environment)
-
-            const _support = { ...supportCodeLibrary, originalCoordinates: support.originalCoordinates }
-
             const { success } = await runCucumber(
                 {
                     ...runConfiguration,
-                    support: supportCodeLibrary ? _support : runConfiguration.support,
+                    support: supportCodeLibrary || runConfiguration.support,
                 },
                 environment
             )
