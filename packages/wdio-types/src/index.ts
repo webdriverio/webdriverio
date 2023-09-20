@@ -26,6 +26,10 @@ interface DriverOptions {
      * path to custom driver binary
      */
     binary?: string
+    /**
+    * path to the log file
+    */
+    logPath?: string
 }
 
 declare global {
