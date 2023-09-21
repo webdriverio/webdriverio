@@ -1,5 +1,7 @@
 import path from 'node:path'
 
+import memoize from 'lodash.memoize'
+
 import logger from '@wdio/logger'
 import { deepmerge } from 'deepmerge-ts'
 import type { Capabilities, Options, Services } from '@wdio/types'
@@ -253,7 +255,8 @@ export default class ConfigParser {
      * determine what specs to run based on the spec(s), suite(s), exclude
      * attributes from CLI, config and capabilities
      */
-    getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
+    getSpecs: (capSpecs?: Spec[], capExclude?: Spec[]) => Spec[] = memoize(this.#getSpecs)
+    #getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
         const isSpecParamPassed = Array.isArray(this._config.spec)
         const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
