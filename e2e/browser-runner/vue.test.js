@@ -1,5 +1,7 @@
 import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
+import { mount } from '@vue/test-utils'
+
 import Component from './components/Component.vue'
 
 describe('Vue Component Testing', () => {
@@ -25,5 +27,11 @@ describe('Vue Component Testing', () => {
         const { getByText } = render(Component)
         const elem = await $(getByText('Times clicked: 0'))
         await expect(elem).toHaveStyle({ color: 'rgba(217,119,6,1)' })
+    })
+
+    it('supports @vue/test-utils', async () => {
+        const wrapper = mount(Component, { attachTo: document.body })
+        await $('aria/increment').click()
+        expect(wrapper.text()).toContain('Times clicked: 1')
     })
 })

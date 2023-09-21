@@ -248,6 +248,23 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
 
                             throw new Error(errMsg)
                         }
+
+                        /**
+                         * Jasmine uses `toJSON` to parse the target object for information.
+                         * Since WebdriverIo doesn't have this method on the Element object
+                         * we need to mimic it here
+                         */
+                        if (prop === 'toJSON') {
+                            return { ELEMENT: elem.elementId }
+                        }
+
+                        /**
+                         * provide a better error message than "TypeError: elem[prop] is not a function"
+                         */
+                        if (typeof elem[prop] !== 'function') {
+                            throw new Error(`Can't call "${prop}" on element with selector "${elem.selector}", it is not a function`)
+                        }
+
                         return elem[prop](...args)
                     })
                 }
@@ -296,14 +313,20 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
+        let done = false
         const result = await Promise.race([
             fn.apply(this, args),
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
                 setTimeout(() => {
-                    reject(new Error('Timeout'))
+                    if (done) {
+                        resolve()
+                    } else {
+                        reject(new Error('Timeout'))
+                    }
                 }, _timeout)
             })
         ])
+        done = true
 
         if (result && typeof result.finally === 'function') {
             result.catch((err: any) => err)

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "8.16.9",
+  "version": "8.16.11",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
@@ -42,6 +42,7 @@
     "import-meta-resolve": "^3.0.0",
     "locate-app": "^2.1.0",
     "safaridriver": "^0.1.0",
+    "split2": "^4.2.0",
     "wait-port": "^1.0.4"
   },
   "publishConfig": {
