@@ -164,7 +164,7 @@ describe('Lit Component testing', () => {
         const innerClassLists = ['foo-bar-baz', 'bar-foo-baz', 'bar-baz-foo']
         for (const outerClassList of outerClassLists) {
             for (const innerClassList of innerClassLists) {
-                it(`fetches element by content correctly with nested class names where the outer classlist is "${innerClassList}" and the outer classlist is "${outerClassList}"`, async () => {
+                it(`fetches element by content correctly with nested class names where the inner classlist is "${innerClassList}" and the outer classlist is "${outerClassList}"`, async () => {
                     render(
                         html`<div class="${outerClassList}"><div class="${innerClassList}"></div><div><div>Find me</div></div></div>`,
                         document.body
