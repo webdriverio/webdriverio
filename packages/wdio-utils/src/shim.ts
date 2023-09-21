@@ -316,7 +316,7 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         let done = false
         const result = await Promise.race([
             fn.apply(this, args),
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
                 setTimeout(() => {
                     if (done) {
                         resolve()
