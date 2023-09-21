@@ -24,8 +24,8 @@ const STACKTRACE_FILTER = [
  * @param   {object} after          afterFn and afterFnArgs
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
- * @param   {string} hookName       the hook name
  * @return  {*}                     specFn result
+ * @param   {string} hookName       the hook name
  */
 export const testFnWrapper = function (
     this: unknown,
@@ -52,8 +52,8 @@ export const testFnWrapper = function (
  * @param   {object} after          afterFn and afterFnArgs function
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
- * @param   {string} hookName       the hook name
  * @return  {*}                     specFn result
+ * @param   {string} hookName       the hook name
  */
 export const testFrameworkFnWrapper = async function (
     this: unknown,
@@ -88,9 +88,6 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
-    if (type === 'Hook' && hookName) {
-        afterArgs.push(hookName)
-    }
     afterArgs.push({
         retries,
         error,
@@ -98,6 +95,10 @@ export const testFrameworkFnWrapper = async function (
         duration,
         passed: !error
     })
+
+    if (type === 'Hook' && hookName) {
+        afterArgs.push(hookName)
+    }
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 

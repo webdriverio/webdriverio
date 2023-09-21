@@ -356,7 +356,7 @@ export const config = {
      * Hook that gets executed _after_ every hook within the suite ends.
      * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      */
-    afterHook: function (test, context, hookName, { error, result, duration, passed, retries }) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)

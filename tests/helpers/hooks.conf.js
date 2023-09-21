@@ -33,7 +33,7 @@ export const config = Object.assign({}, baseConfig, {
             throw new Error('wdio beforeHook error: ' + test.title)
         }
     },
-    async afterHook (test, context, hookName, { error, duration, passed }) {
+    async afterHook(test, context, { error, duration, passed }) {
         await browser.pause(20)
         let throwError = false
         if (global.WDIO_SERVICE_TEST_HOOK_DURATION === 0) {
