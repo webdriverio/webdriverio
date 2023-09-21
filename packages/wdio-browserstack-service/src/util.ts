@@ -956,13 +956,12 @@ export function patchConsoleLogs() {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
-        const origMethod = (console[method] as any).bind(console);
+        const origMethod = (console[method] as any).bind(console)
 
         // Make sure we don't override Constructors
         // Arrow functions are not construable
         if (typeof console[method] === 'function'
-            && method !== 'constructor'
-            && method !== "Console"
+            && method !== 'Console'
         ) {
             (console as any)[method] = (...args: unknown[]) => {
                 origMethod(...args);
