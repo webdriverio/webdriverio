@@ -1,8 +1,5 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
-import type TagExpressionParser from '@cucumber/tag-expressions'
-import { compile } from '@cucumber/gherkin'
-import { IdGenerator } from '@cucumber/messages'
 
 import type {
     TableRow,
@@ -11,8 +8,7 @@ import type {
     TestStep,
     Feature,
     Pickle,
-    TestStepResultStatus,
-    GherkinDocument
+    TestStepResultStatus
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
 import type { ReporterStep } from './types.js'
@@ -175,15 +171,6 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
         }
         return step
     })
-}
-
-export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
-    if (!doc.feature) {
-        return false
-    }
-    const pickles = compile(doc, '', IdGenerator.uuid())
-    const tags = pickles.map((pickle) => pickle.tags.map((tag) => tag.name))
-    return tags.some((tag) => tagParser.evaluate(tag))
 }
 
 /**

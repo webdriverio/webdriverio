@@ -12,10 +12,9 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
-import TagExpressionParser from '@cucumber/tag-expressions'
 
 import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities, shouldRun } from './utils.js'
+import { generateSkipTagsFromCapabilities } from './utils.js'
 
 import type {
     CucumberOptions,
@@ -30,6 +29,7 @@ import type {
     IRunEnvironment } from '@cucumber/cucumber/api'
 import {
     loadConfiguration,
+    loadSources,
     runCucumber
 } from '@cucumber/cucumber/api'
 
@@ -190,40 +190,6 @@ class CucumberAdapter {
         })
     }
 
-    filterSpecsByTagExpression(
-        specs: Options.Testrunner['specs'] = [],
-        tagExpression = this._cucumberOpts.tags ?? ''
-    ): typeof specs {
-        if (!tagExpression) {
-            return specs
-        }
-
-        const tagParser = TagExpressionParser(tagExpression)
-
-        const filteredSpecs: Options.Testrunner['specs'] =
-            this.getGherkinDocuments([this._specs])
-                .map((specDoc: GherkinDocument | GherkinDocument[]) => {
-                    const [doc, ...etc] = [specDoc]
-                        .flat(1)
-                        .filter((doc) => shouldRun(doc, tagParser))
-
-                    const ret = Array.isArray(specDoc)
-                        ? // Return group only if its not empty
-                        doc && [doc, ...etc]
-                        : doc
-
-                    return ret as GherkinDocument | GherkinDocument[]
-                })
-                .filter((doc: GherkinDocument) => !!doc)
-                .map((doc) => {
-                    // Get URIs from Gherkin documents to run
-                    const [uri, ...etc] = [doc].flat(1).map((doc) => doc.uri!)
-                    return Array.isArray(doc) ? [uri, ...etc] : uri
-                })
-
-        return filteredSpecs
-    }
-
     generateDynamicSkipTags() {
         return this.getGherkinDocuments([this._specs])
             .map((specDoc: GherkinDocument | GherkinDocument[]) => {
@@ -243,13 +209,22 @@ class CucumberAdapter {
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
-        if (this._cucumberOpts.tags) {
-            this._specs = this.filterSpecsByTagExpression([this._specs]).flat(1)
-        }
+        const { plan } = await loadSources({
+            paths: this._specs,
+            defaultDialect: this._cucumberOpts.language,
+            order: this._cucumberOpts.order,
+            names: this._cucumberOpts.name,
+            tagExpression: this._cucumberOpts.tags,
+        })
+        this._specs = plan?.map((pl) => path.resolve(pl.uri))
+
         // Filter the specs according to line numbers
         if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
             this._specs = this._config.cucumberFeaturesWithLineNumbers!
         }
+
+        this._specs = [...new Set(this._specs)]
+
         this._cucumberOpts.paths = this._specs
         this._hasTests = this._specs.length > 0
         return this
