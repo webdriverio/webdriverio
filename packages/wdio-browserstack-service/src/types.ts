@@ -1,4 +1,4 @@
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
@@ -146,7 +146,15 @@ export interface TestMeta {
     steps?: StepData[],
     feature?: { name: string, path?: string, description: string | null },
     scenario?: { name: string },
-    examples?: string[]
+    examples?: string[],
+    hookType?: string,
+    testRunId?: string
+}
+
+export interface CurrentRunInfo {
+    uuid?: string,
+    test?: Frameworks.Test,
+    finished?: boolean
 }
 
 export interface TestData {
@@ -190,6 +198,16 @@ export interface UploadType {
     hook_run?: TestData,
     test_run?: TestData,
     logs?: any[]
+}
+
+export interface StdLog {
+    timestamp: string,
+    kind: string
+    level?: string,
+    message?: string,
+    http_response?: any,
+    test_run_uuid?: string,
+    hook_run_uuid?: string
 }
 
 export interface LaunchResponse {
