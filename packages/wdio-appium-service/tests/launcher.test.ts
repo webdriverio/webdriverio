@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import url from 'node:url'
+import util from 'node:util'
 import path from 'node:path'
-import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
+import type cp from 'node:child_process'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -81,7 +82,7 @@ describe('Appium launcher', () => {
 
     beforeEach(() => {
         vi.mocked(spawn).mockClear()
-        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as ChildProcess)
+        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as cp.ChildProcess)
     })
 
     describe('onPrepare', () => {
@@ -367,7 +368,7 @@ describe('Appium launcher', () => {
 
         test('should fail if Appium exits', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 1)')
@@ -376,7 +377,7 @@ describe('Appium launcher', () => {
 
         test('should fail and error message if Appium already runs', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
@@ -386,7 +387,7 @@ describe('Appium launcher', () => {
 
         test('should fail with Appium error message', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
@@ -447,6 +448,18 @@ describe('Appium launcher', () => {
         test('should throw if appium is not installed', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
             await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
+        })
+    })
+
+    describe('_startAppium', () => {
+        test('should propagate error messgae', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(util.promisify(launcher['_startAppium'])(
+                'node',
+                ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()']
+            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))
         })
     })
 

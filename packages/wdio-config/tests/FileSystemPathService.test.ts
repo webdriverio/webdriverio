@@ -12,6 +12,16 @@ vi.mock('glob', () => ({
     sync: vi.fn(() => 'glob result')
 }))
 
+vi.mock('node:path', async (origMod) => {
+    const p = await origMod() as typeof path
+    return {
+        default: {
+            ...p,
+            resolve: vi.fn(p.resolve)
+        }
+    }
+})
+
 vi.mock('node:fs', async () => {
     return {
         default: {
@@ -77,6 +87,15 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             expect(svc.glob('./examples/wdio/mocha/*.test.js', '/foo/bar'))
                 .toEqual(['a.test.js', 'c.test.js', 'f.test.js'])
+        })
+
+        it('should not return duplicated files with different upper/lower case', function () {
+            vi.mocked(globSync).mockReturnValue(['D:\\data\\case-repos\\Project\\case1.spec.ts'])
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(path.resolve).mockImplementationOnce((_, file) => file)
+            const svc = new FileSystemPathService()
+            expect(svc.glob('d:\\data\\case-repos\\Project\\case1.spec.ts', ''))
+                .toEqual(['D:\\data\\case-repos\\Project\\case1.spec.ts'])
         })
     })
 

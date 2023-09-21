@@ -15,7 +15,7 @@ Les définitions de types basées sur [JSDoc](http://usejsdoc.org/) sont utilis�
 
 ![Auto-complétion](/img/autocompletion/1.png)
 
-Utilisez les raccourcis standards <kbd><unk> + <unk> + SPACE</kbd> sur la plate-forme IntelliJ pour voir la documentation disponible :
+Utilisez les raccourcis standards <kbd>⇧ + ⌥ + SPACE</kbd> sur la plate-forme IntelliJ pour voir la documentation disponible :
 
 ![Auto-complétion](/img/autocompletion/2.png)
 
