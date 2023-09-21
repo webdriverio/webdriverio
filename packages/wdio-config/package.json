@@ -43,6 +43,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/lodash.memoize": "^4.1.7",
     "minimatch": "^9.0.0",
     "tsconfig-paths": "^4.1.0"
   }
