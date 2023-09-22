@@ -39,7 +39,9 @@ import {
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     createAccessibilityTestRun,
-    isTrue
+    isTrue,
+    frameworkSupportsHook,
+    getFailureObject
 } from '../src/util'
 
 const log = logger('test')
@@ -947,6 +949,50 @@ describe('o11yErrorHandler', () => {
             const newFunc = o11yErrorHandler(func)
             await newFunc(0, 0)
             expect(spy).toBeCalledTimes(1)
+        })
+    })
+})
+
+describe('frameworkSupportsHook', function () {
+    describe('mocha', function () {
+        it('should return true for beforeHook', function () {
+            expect(frameworkSupportsHook('before', 'mocha')).toBe(true)
+        })
+    })
+
+    describe('cucumber', function () {
+        it('should return true for cucumber', function () {
+            expect(frameworkSupportsHook('before', 'cucumber')).toBe(true)
+        })
+    })
+
+    it('should return false for any other framework', function () {
+        expect(frameworkSupportsHook('before', 'jasmine')).toBe(false)
+    })
+})
+
+describe('getFailureObject', function () {
+    it('should return parsed failure object for string error', function () {
+        const error = 'some error'
+        expect(getFailureObject(error)).toEqual({
+            failure: [{ backtrace: [''] }],
+            failure_reason: 'some error',
+            failure_type: 'UnhandledError'
+        })
+    })
+
+    it('should parse for assertion error', function () {
+        const error = new Error('AssertionError: 2 is not equal to 4')
+        expect(getFailureObject(error)).toMatchObject({
+            failure_reason: 'AssertionError: 2 is not equal to 4',
+            failure_type: 'AssertionError'
+        })
+    })
+
+    it ('should get stacktrace for error object', function () {
+        const error = new Error('some error')
+        expect(getFailureObject(error)).toMatchObject({
+            failure: [{ backtrace: [error.stack?.toString()] }]
         })
     })
 })

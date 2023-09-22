@@ -16,9 +16,17 @@ import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import CrashReporter from './crash-reporter'
 import type { ITestCaseHookParameter } from './cucumber-types'
+import logPatcher from './logPatcher'
 
 import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants'
+import {
+    BROWSER_DESCRIPTION,
+    consoleHolder,
+    DATA_ENDPOINT,
+    DATA_EVENT_ENDPOINT,
+    DATA_SCREENSHOT_ENDPOINT,
+    ACCESSIBILITY_API_URL
+} from './constants'
 import RequestQueueHandler from './request-handler'
 
 import PerformanceTester from './performance-tester'
@@ -681,10 +689,55 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
         return true
     }
 
+    if (framework === 'cucumber') {
+        return true
+    }
+
     return false
 }
 
+export function getFailureObject(error: string|Error) {
+    const stack = (error as Error).stack
+    const message = typeof error === 'string' ? error : error.message
+    const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
+
+    return {
+        failure: [{ backtrace: [backtrace] }],
+        failure_reason: removeAnsiColors(message.toString()),
+        failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
+    }
+}
+
+export function patchConsoleLogs() {
+    const BSTestOpsPatcher = new logPatcher({})
+
+    Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        const origMethod = (console[method] as any).bind(console)
+
+        // Make sure we don't override Constructors
+        // Arrow functions are not construable
+        if (typeof console[method] === 'function'
+            && method !== 'Console'
+        ) {
+            (console as any)[method] = (...args: unknown[]) => {
+                origMethod(...args);
+                (BSTestOpsPatcher as any)[method](...args)
+            }
+        }
+    })
+}
+
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
+    if (!requestQueueHandler) {
+        requestQueueHandler = RequestQueueHandler.getInstance()
+    }
+    const req = requestQueueHandler.add(data)
+    if (req.proceed && req.data) {
+        await uploadEventData(req.data, req.url)
+    }
+}
 
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
     try {

@@ -3,6 +3,7 @@ import TestStats from '@wdio/reporter/src/stats/test'
 import WDIOJunitReporter from '../src'
 
 import mochaRunnerLog from './__fixtures__/mocha-runner.json'
+import mochaRunnerNestedArrayOfSuitesLog from './__fixtures__/mocha-runner-nested-array-specs.json'
 import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
 import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json'
 import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json'
@@ -14,6 +15,7 @@ import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
 import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
 import nestedSuites from './__fixtures__/nested-suites.json'
+import nestedArraySuites from './__fixtures__/nested-array-suites.json'
 import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json'
 import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
@@ -248,7 +250,7 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output correctly when the addFileAttribute option is set', () => {
         reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
-        reporter.suites = featuresLog as any
+        reporter.suites = suitesLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
@@ -270,6 +272,11 @@ describe('wdio-junit-reporter', () => {
     it('generates xml output correctly when having nested suites', () => {
         reporter.suites = nestedSuites as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having nested array of suites', () => {
+        reporter.suites = nestedArraySuites as any
+        expect(reporter['_buildJunitXml'](mochaRunnerNestedArrayOfSuitesLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
