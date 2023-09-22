@@ -378,7 +378,8 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation }
+    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation },
+    logLevel?: string
 }
 
 // Selenium Grid specific

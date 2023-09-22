@@ -144,6 +144,14 @@ const config: WebdriverIO.Config = {
             videoName: 'test.mp4'
         }
     }, {
+        'moon:options': {
+            logLevel: 'INFO',
+            mobileDevice: {
+                deviceName: 'Apple iPhone XR',
+                orientation: 'portrait'
+            }
+        }
+    },{
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
