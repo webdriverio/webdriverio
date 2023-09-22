@@ -227,9 +227,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 }, {})
 
-            if (Object.keys(filteredOpts).length > 0) {
-                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
-            }
+            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
         } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
             this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
         }
