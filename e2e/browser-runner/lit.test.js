@@ -160,7 +160,21 @@ describe('Lit Component testing', () => {
             expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
         })
 
-        it('fetches inner element by content correctly with nested class names', async () => {
+        const outerClassLists = ['foo', 'bar foo', 'foo bar baz', 'bar foo baz', 'bar baz foo']
+        const innerClassLists = ['foo-bar-baz', 'bar-foo-baz', 'bar-baz-foo']
+        for (const outerClassList of outerClassLists) {
+            for (const innerClassList of innerClassLists) {
+                it(`fetches element by content correctly with nested class names where the inner classlist is "${innerClassList}" and the outer classlist is "${outerClassList}"`, async () => {
+                    render(
+                        html`<div class="${outerClassList}"><div class="${innerClassList}"></div><div><div>Find me</div></div></div>`,
+                        document.body
+                    )
+                    expect(await $('.foo*=Find').getHTML(false)).toBe(`<div class="${innerClassList}"></div><div><div>Find me</div></div>`)
+                })
+            }
+        }
+
+        it('fetches element by content correctly with nested class names', async () => {
             /**
              * <div class="foo" id="#bar">
              *     <div>

@@ -113,25 +113,25 @@ describe('selector strategies helper', () => {
     it('should find an element by tag name + class + content', () => {
         const element = findStrategy('div.some-class=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@class, "some-class") and normalize-space(text()) = "some random text with "§$%&/()div=or others"] | .//div[contains(@class, "some-class") and not(.//div[contains(@class, "some-class") and normalize-space(text()) = "some random text with "§$%&/()div=or others"]) and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe('.//div[contains(concat(" ",@class," "), " some-class ") and normalize-space(text()) = "some random text with "§$%&/()div=or others"] | .//div[contains(concat(" ",@class," "), " some-class ") and not(.//div[contains(concat(" ",@class," "), " some-class ") and normalize-space(text()) = "some random text with "§$%&/()div=or others"]) and normalize-space() = "some random text with "§$%&/()div=or others"]')
     })
 
     it('should find an element class + content', () => {
         const element = findStrategy('.some-class=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@class, "some-class") and normalize-space(text()) = "some random text with "§$%&/()div=or others"] | .//*[contains(@class, "some-class") and not(.//*[contains(@class, "some-class") and normalize-space(text()) = "some random text with "§$%&/()div=or others"]) and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe('.//*[contains(concat(" ",@class," "), " some-class ") and normalize-space(text()) = "some random text with "§$%&/()div=or others"] | .//*[contains(concat(" ",@class," "), " some-class ") and not(.//*[contains(concat(" ",@class," "), " some-class ") and normalize-space(text()) = "some random text with "§$%&/()div=or others"]) and normalize-space() = "some random text with "§$%&/()div=or others"]')
     })
 
     it('should find an element by tag name + class + similar content', () => {
         const element = findStrategy('div.some-class*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others") and not(.//div[contains(@class, "some-class")])]')
+        expect(element.value).toBe('.//div[contains(concat(" ",@class," "), " some-class ") and contains(., "some random text with "§$%&/()div=or others") and not(.//div[contains(concat(" ",@class," "), " some-class ")])]')
     })
 
     it('should find an element by class + similar content', () => {
         const element = findStrategy('.some-class*=some random text with "§$%&/()div=or others')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others") and not(.//*[contains(@class, "some-class")])]')
+        expect(element.value).toBe('.//*[contains(concat(" ",@class," "), " some-class ") and contains(., "some random text with "§$%&/()div=or others") and not(.//*[contains(concat(" ",@class," "), " some-class ")])]')
     })
 
     it('should find an element by tag name + id + content', () => {
