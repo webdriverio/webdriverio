@@ -21,6 +21,34 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.12 (2023-09-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11206](https://github.com/webdriverio/webdriverio/pull/11206) (webdriverio): fix findStrategy for querying elements by classname and partial text ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cucumber-framework`
+  * [#11211](https://github.com/webdriverio/webdriverio/pull/11211) filter spec by loadSources cucumber interface ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-cli`
+  * [#11202](https://github.com/webdriverio/webdriverio/pull/11202) Support for running WebdriverIO TypeScript tests on Node 20. Closes [#10901](https://github.com/webdriverio/webdriverio/issues/10901) ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#11207](https://github.com/webdriverio/webdriverio/pull/11207) (@wdio/utils): apply fix to the gecko and edge drivers ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#11214](https://github.com/webdriverio/webdriverio/pull/11214) Add property logLevel in moon:options ([@sushantsoni5392](https://github.com/sushantsoni5392))
+* Other
+  * [#11203](https://github.com/webdriverio/webdriverio/pull/11203) (test): add docs on using `@vue/test-utils` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Sushant Soni ([@sushantsoni5392](https://github.com/sushantsoni5392))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.11 (2023-09-18)
 
 #### :bug: Bug Fix
