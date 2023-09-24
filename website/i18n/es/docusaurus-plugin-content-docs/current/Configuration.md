@@ -3,7 +3,7 @@ id: configuration
 title: Configuración
 ---
 
-Basado en el tipo de configuración [Setup-Type](/docs/setuptypes) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## Opciones de WebDriver
 
@@ -19,13 +19,13 @@ Tipo: `String`<br /> Predeterminado: `localhost`
 
 Anfitrión de su servidor de controladores.
 
-Tipo: `String`<br /> Predeterminado: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 Puerto en el que está el servidor del conductor.
 
-Type: `Number`<br /> Default: `100` (ms)
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -37,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 Parámetros de consulta que se propagan al servidor de controladores.
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 
@@ -199,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-Si se ejecuta en Sauce Labs, puede ejecutar pruebas entre diferentes data centers: EE. UU. o UE. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. Para cambiar tu región a la UE, añade `región: 'eu'` a tu configuración.
 
 __Nota:__ Esto solo tiene efecto si proporcionas `usuario` y `opciones de clave` que están conectadas a tu cuenta de Sauce Labs.
 

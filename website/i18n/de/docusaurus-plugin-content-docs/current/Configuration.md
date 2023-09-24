@@ -3,11 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-<<<<<<< HEAD
-Basierend auf dem [Setup-Type](/docs/setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
-=======
 Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
->>>>>>> eedb047cd (New translations Configuration.md (German))
 
 ## WebDriver-Optionen
 
@@ -23,13 +19,13 @@ Type: `String`<br /> Default: `http`
 
 Host Ihres Browser Treibers.
 
-Type: `String`<br /> Default: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 Port für den Browser Treiber.
 
-Type: `Number`<br /> Default: `4444`
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -41,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 Queryparameter, die an den Browser Treiber weitergegeben werden.
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 Ihr Cloud-Service-Benutzername (funktioniert nur für [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) oder [LambdaTest](https://www.lambdatest.com) Konten). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 Ihr Cloud-Service-Benutzername (funktioniert nur für [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) oder [LambdaTest](https://www.lambdatest.com) Konten). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 

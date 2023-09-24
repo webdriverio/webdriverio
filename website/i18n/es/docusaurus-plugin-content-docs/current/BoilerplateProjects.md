@@ -74,7 +74,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Soporte de base de datos a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecutando cualquier consulta / obtención de resultados etc. con ejemplos de pruebas E2E
     - Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y reportes de Allure y Xunit/Junit en el servidor web.
     - Ejemplos de aplicación de demostración https://search.yahoo.com/ y http://the-internet.herokuapp.com.
-    - BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para la reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    - BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -87,7 +87,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de lectura/escritura de datos de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo ( para reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -100,7 +100,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de datos de lectura/escritura de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para reproducción en el dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -330,5 +330,6 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Multiple Reports integrated including Allure
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
-
-
+ 
+      
+      

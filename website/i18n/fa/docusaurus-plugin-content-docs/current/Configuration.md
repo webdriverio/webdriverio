@@ -3,7 +3,7 @@ id: configuration
 title: پیکربندی
 ---
 
-بر اساس [تنظیم نوع](/docs/setuptypes) (مثلاً با استفاده از اتصال پروتکل خام، WebdriverIO به عنوان بسته مستقل و اجرا کننده تست WDIO) مجموعه متفاوتی از گزینه ها برای کنترل محیط وجود دارد.
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## گزینه های WebDriver
 
@@ -19,13 +19,13 @@ Type: `String`<br /> Default: `http`
 
 میزبان سرور درایور شما.
 
-Type: `String`<br /> Default: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 پورتی که سرور درایور شما روی آن است.
 
-Type: `Number`<br /> Default: `4444`
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -37,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 پارامترهای درخواست که به سرور درایور انتشار می یابند.
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 نام کاربری سرویس ابری شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 کلید دسترسی به سرویس ابری یا کلید مخفی شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 

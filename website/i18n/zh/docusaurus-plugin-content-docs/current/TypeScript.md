@@ -21,6 +21,7 @@ You can provide custom `ts-node` options through the environment (by default it 
 # run wdio testrunner with custom options
 TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
+
 The minimum TypeScript version is `v4.0.5`.
 
 ## Framework Setup
