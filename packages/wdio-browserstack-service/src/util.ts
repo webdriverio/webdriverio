@@ -11,6 +11,7 @@ import { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import got, { HTTPError } from 'got'
+import type { Method } from 'got'
 import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import CrashReporter from './crash-reporter'
@@ -23,11 +24,13 @@ import {
     consoleHolder,
     DATA_ENDPOINT,
     DATA_EVENT_ENDPOINT,
-    DATA_SCREENSHOT_ENDPOINT
+    DATA_SCREENSHOT_ENDPOINT,
+    ACCESSIBILITY_API_URL
 } from './constants'
 import RequestQueueHandler from './request-handler'
 
 import PerformanceTester from './performance-tester'
+import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -117,6 +120,21 @@ function processError(error: any, fn: Function, args: any[]) {
         argsString = util.inspect(args, { depth: 2 })
     }
     CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+}
+
+export function errorHandler(fn: Function) {
+    return function (...args: any) {
+        try {
+            const functionToHandle = fn
+            const result = functionToHandle(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => log.error(`Error in executing ${fn.name} with args ${args}: ${error}`))
+            }
+            return result
+        } catch (error) {
+            log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+        }
+    }
 }
 
 export function o11yErrorHandler(fn: Function) {
@@ -379,6 +397,33 @@ export function getCiInfo () {
     }
     // if no matches, return null
     return null
+}
+
+export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
+    try {
+        const response: Object = await got(`${apiUrl}/${apiEndpoint}`, {
+            method: requestType,
+            timeout: {
+                request: timeout
+            },
+            ...options
+        }).json()
+        return response
+    } catch (error : any) {
+        if (error instanceof HTTPError && error.response) {
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null
+            if (errorMessage) {
+                log.error(`${errorMessage} - ${error.stack}`)
+            } else {
+                log.error(`${error.stack}`)
+            }
+            throw error
+        } else {
+            log.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            throw error
+        }
+    }
 }
 
 export async function getGitMetaData () {
@@ -692,4 +737,252 @@ export async function pushDataToQueue(data: UploadType, requestQueueHandler: Req
     if (req.proceed && req.data) {
         await uploadEventData(req.data, req.url)
     }
+}
+
+export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
+    try {
+        if (deviceName) {
+            log.warn('Accessibility Automation will run only on Desktop browsers.')
+            return false
+        }
+
+        if (platformMeta?.browser_name?.toLowerCase() !== 'chrome') {
+            log.warn('Accessibility Automation will run only on Chrome browsers.')
+            return false
+        }
+        const browserVersion = platformMeta?.browser_version
+        if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
+            log.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
+            return false
+        }
+
+        if (chromeOptions?.args?.includes('--headless')) {
+            log.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+            return false
+        }
+        return true
+    } catch (error) {
+        log.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
+    }
+    return false
+}
+
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }) => {
+    try {
+        const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
+        const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
+
+        const fullTestName = suiteTitle + ' ' + testTitle
+        const excluded = excludeTags?.some((exclude) => fullTestName.includes(exclude))
+        const included = includeTags?.length === 0 || includeTags?.some((include) => fullTestName.includes(include))
+
+        return !excluded && included
+    } catch (error) {
+        log.debug('Error while validating test case for accessibility before scanning. Error : ', error)
+    }
+    return false
+}
+
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+    try {
+        const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
+        return accessibilityFlag && hasA11yJwtToken
+    } catch (error) {
+        log.debug(`Exception in verifying the Accessibility session with error : ${error}`)
+    }
+    return false
+}
+
+export const createAccessibilityTestRun = errorHandler(async function createAccessibilityTestRun(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+    const userName = getBrowserStackUser(config)
+    const accessKey = getBrowserStackKey(config)
+
+    if (isUndefined(userName) || isUndefined(accessKey)) {
+        log.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
+        return null
+    }
+
+    const data = {
+        'projectName': bsConfig.projectName,
+        'buildName': bsConfig.buildName ||
+          path.basename(path.resolve(process.cwd())),
+        'startTime': (new Date()).toISOString(),
+        'description': '',
+        'source': {
+            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkVersion: bsConfig.bstackServiceVersion,
+            sdkVersion: bsConfig.bstackServiceVersion
+        },
+        'settings': bsConfig.accessibilityOptions || {},
+        'versionControl': await getGitMetaData(),
+        'ciInfo': getCiInfo(),
+        'hostInfo': {
+            hostname: hostname(),
+            platform: platform(),
+            type: type(),
+            version: version(),
+            arch: arch()
+        },
+        'browserstackAutomation': true,
+    }
+
+    const requestOptions = {
+        json: data,
+        username: getBrowserStackUser(config),
+        password: getBrowserStackKey(config),
+    }
+
+    try {
+        const response: any = await nodeRequest(
+            'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
+        )
+
+        log.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
+
+        if (response.data.accessibilityToken) {
+            process.env.BSTACK_A11Y_JWT = response.data.accessibilityToken
+        }
+        if (response.data.id) {
+            process.env.BS_A11Y_TEST_RUN_ID = response.data.id
+        }
+
+        log.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
+
+        return response.data.scannerVersion
+    } catch (error : any) {
+        if (error.response) {
+            log.error(
+                `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                    error.response.status
+                } ${error.response.statusText} ${JSON.stringify(error.response.data)}`
+            )
+        } else {
+            const errorMessage = error.message
+            if (errorMessage === 'Invalid configuration passed.') {
+                log.error(
+                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                        errorMessage || error.stack
+                    }`
+                )
+                for (const errorkey of error.errors){
+                    log.error(errorkey.message)
+                }
+            } else {
+                log.error(
+                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                        errorMessage || error.stack
+                    }`
+                )
+            }
+        }
+        return null
+    }
+})
+
+export const getA11yResults = async (browser: any, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
+    if (!isBrowserStackSession) {
+        log.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
+        return [] // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
+        return []
+    }
+
+    try {
+        const results = await browser.execute(accessibilityResults)
+        return results
+    } catch {
+        log.error('No accessibility results were found.')
+        return []
+    }
+}
+
+export const getA11yResultsSummary = async (browser: any, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
+    if (!isBrowserStackSession) {
+        return {} // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return {}
+    }
+
+    try {
+        const summaryResults = await browser.execute(accessibilityResultsSummary)
+        return summaryResults
+    } catch {
+        log.error('No accessibility summary was found.')
+        return {}
+    }
+}
+
+export const stopAccessibilityTestRun = errorHandler(async function stopAccessibilityTestRun() {
+    const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
+    if (!hasA11yJwtToken) {
+        return {
+            status: 'error',
+            message: 'Build creation had failed.'
+        }
+    }
+
+    const data = {
+        'endTime': (new Date()).toISOString(),
+    }
+
+    const requestOptions = { ...{
+        json: data,
+        headers: {
+            'Authorization': `Bearer ${process.env.BSTACK_A11Y_JWT}`,
+        }
+    } }
+
+    try {
+        const response: any = await nodeRequest(
+            'PUT', 'test_runs/stop', requestOptions, ACCESSIBILITY_API_URL
+        )
+
+        if (response.data && response.data.error) {
+            throw new Error('Invalid request: ' + response.data.error)
+        } else if (response.error) {
+            throw new Error('Invalid request: ' + response.error)
+        } else {
+            log.info(`BrowserStack Accessibility Automation Test Run marked as completed at ${new Date().toISOString()}`)
+            return { status: 'success', message: '' }
+        }
+    } catch (error : any) {
+        if (error.response && error.response.status && error.response.statusText && error.response.data) {
+            log.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+        } else {
+            log.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.message || util.format(error)}`)
+        }
+        return {
+            status: 'error',
+            message: error.message ||
+                (error.response ? `${error.response.status}:${error.response.statusText}` : error)
+        }
+    }
+})
+
+export function getBrowserStackUser(config: Options.Testrunner) {
+    if (process.env.BROWSERSTACK_USERNAME) {
+        return process.env.BROWSERSTACK_USERNAME
+    }
+    return config.user
+}
+
+export function getBrowserStackKey(config: Options.Testrunner) {
+    if (process.env.BROWSERSTACK_ACCESS_KEY) {
+        return process.env.BROWSERSTACK_ACCESS_KEY
+    }
+    return config.key
+}
+
+export function isUndefined(value: any) {
+    return value === undefined || value === null
+}
+
+export function isTrue(value?: any) {
+    return (value + '') === 'true'
 }
