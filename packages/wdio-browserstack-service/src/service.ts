@@ -176,7 +176,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.beforeHook(test, context)
     }
 
-    async afterHook (test: Frameworks.Test|CucumberHook, context: unknown, hookName: string,  result: Frameworks.TestResult) {
+    async afterHook(test: Frameworks.Test | CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 

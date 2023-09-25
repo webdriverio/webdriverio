@@ -243,10 +243,10 @@ export interface HookFunctions {
      * afterEach in Mocha). `stepData` and `world` are Cucumber framework specific.
      * @param test      details to current running test (represents step in Cucumber)
      * @param context   context to current running test (represents World object in Cucumber)
-     * @param hookName  name of the hook
      * @param result    test result
+     * @param hookName  name of the hook
     */
-    afterHook?(test: Test, context: any, hookName: string, result: TestResult): unknown | Promise<unknown>
+    afterHook?(test: Test, context: any, result: TestResult, hookName: string): unknown | Promise<unknown>
 
     /**
      * Runs before a WebdriverIO command gets executed.

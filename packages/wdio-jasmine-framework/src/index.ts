@@ -117,12 +117,11 @@ class JasmineAdapter {
 
         const emitHookEvent = (
             fnName: string,
-            eventType: string
+            eventType: string,
         ) => (
             _test: never,
             _context: never,
-            _hookName: never,
-            { error }: { error?: jasmine.FailedExpectation } = {}
+            { error }: { error?: jasmine.FailedExpectation } = {},
         ) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
             const hook = {
