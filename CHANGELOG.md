@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.13 (2023-09-25)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#11146](https://github.com/webdriverio/webdriverio/pull/11146) fix: Stop BrowserStack service from console patching constructors ([@nextlevelbeard](https://github.com/nextlevelbeard))
+  * [#11224](https://github.com/webdriverio/webdriverio/pull/11224) fix: script timeouts when passing include/exclude keys in options ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### Committers: 2
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.16.12 (2023-09-22)
 
 #### :bug: Bug Fix
