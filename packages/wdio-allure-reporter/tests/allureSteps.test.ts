@@ -28,8 +28,7 @@ describe('reporter allure steps API', () => {
         })
     })
 
-    // TODO: fails on main
-    it.skip('should add failed custom step', async () => {
+    it('should add failed custom step', async () => {
         await AllureReporter.step('custom step', () => (
             Promise.reject(new Error('an error here'))))
 
