@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.14 (2023-09-26)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11247](https://github.com/webdriverio/webdriverio/pull/11247) (@wdio/utils): improve Chrome version detection ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#11245](https://github.com/webdriverio/webdriverio/pull/11245) Screenshot is not attached to Allure report  ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.13 (2023-09-25)
 
 #### :bug: Bug Fix
