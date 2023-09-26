@@ -52,7 +52,11 @@ export function getBuildIdByChromePath(chromePath?: string) {
     }
 
     const versionString = cp.execSync(`"${chromePath}" --version --no-sandbox`).toString()
-    return versionString.trim().split(' ').pop()?.trim()
+    const versionSanitized = versionString.trim().split(' ').find((s) => s.split('.').length === 4)
+    if (!versionSanitized) {
+        throw new Error(`Couldn't find valid Chrome version from "${versionString}", please raise an issue in the WebdriverIO project (https://github.com/webdriverio/webdriverio/issues/new/choose)`)
+    }
+    return versionSanitized
 }
 
 export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
