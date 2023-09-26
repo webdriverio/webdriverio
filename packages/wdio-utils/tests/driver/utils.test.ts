@@ -115,6 +115,13 @@ describe('driver utils', () => {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/my/chrome'
             })
+            await expect(setupPuppeteerBrowser('/foo/bar', {
+                browserVersion: '1.2.3',
+                'goog:chromeOptions': { binary: '/my/chrome' }
+            })).resolves.toEqual({
+                browserVersion: '1.2.3',
+                executablePath: '/my/chrome'
+            })
         })
 
         it('should install chrome stable if browser is not found', async () => {
