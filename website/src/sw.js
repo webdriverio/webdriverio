@@ -1,3 +1,5 @@
+//This file is being use in @docusaurus/plugin-pwa/lib
+
 import { registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
 

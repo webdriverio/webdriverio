@@ -3,7 +3,7 @@ id: team
 title: Команда
 ---
 
-import Card from '@site/src/theme/card.jsx';
+import Card from '@site/src/theme/card.tsx';
 
 Розробкою WebdriverIO керує окрема команда розробників та SDET від різних компаній, а також внески людей з усього світу.
 
