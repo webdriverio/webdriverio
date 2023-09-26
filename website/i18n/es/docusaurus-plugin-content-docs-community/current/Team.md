@@ -3,7 +3,7 @@ id: team
 title: El equipo
 ---
 
-import Card from '@site/src/theme/card.jsx';
+import Card from '@site/src/theme/card.tsx';
 
 El desarrollo de WebdriverIO está dirigido por un equipo dedicado de desarrolladores y SDET de varias empresas, así como contribuciones de personas de todo el mundo.
 

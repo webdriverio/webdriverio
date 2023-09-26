@@ -3,7 +3,7 @@ id: team
 title: टीम
 ---
 
-import Card from '@site/src/theme/card.jsx';
+import Card from '@site/src/theme/card.tsx';
 
 WebdriverIO विकास का नेतृत्व विभिन्न कंपनियों के डेवलपर्स और SDETs की एक समर्पित टीम के साथ-साथ दुनिया भर के लोगों के योगदान से होता है।
 

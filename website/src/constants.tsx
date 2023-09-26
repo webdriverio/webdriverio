@@ -93,9 +93,9 @@ export const features = [{
 }]
 
 export const logos = [{
-/**
- * Page 1
- */
+    /**
+     * Page 1
+     */
     img: 'google.png',
     alt: 'Google',
     url: 'https://developers.google.com/blockly/'

@@ -26,7 +26,7 @@ export default function FooterWrapper(props) {
                     dialogTopMargin: '64px',
                 }}
                 cmdShortcutKey='j'
-                anon_key={customFields.mendableAnonKey}
+                anon_key={customFields.mendableAnonKey as string}
                 dismissPopupAfter={5}
                 dialogPlaceholder='Why Webdriver.IO?'
                 welcomeMessage='Welcome! How can I help?'
