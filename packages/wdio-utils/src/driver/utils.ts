@@ -107,9 +107,14 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     if (typeof browserOptions.binary === 'string') {
         return {
             executablePath: browserOptions.binary,
-            browserVersion: browserName === Browser.CHROME
-                ? getBuildIdByChromePath(browserOptions.binary)
-                : await getBuildIdByFirefoxPath(browserOptions.binary)
+            browserVersion: (
+                caps.browserVersion ||
+                (
+                    browserName === Browser.CHROME
+                        ? getBuildIdByChromePath(browserOptions.binary)
+                        : await getBuildIdByFirefoxPath(browserOptions.binary)
+                )
+            )
         }
     }
 
