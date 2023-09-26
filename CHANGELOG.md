@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.15 (2023-09-26)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11248](https://github.com/webdriverio/webdriverio/pull/11248) (@wdio/utils): respect browserVersion when setting up Chrome or Firefox ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.16.14 (2023-09-26)
 
 #### :bug: Bug Fix
