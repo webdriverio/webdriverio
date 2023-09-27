@@ -84,7 +84,7 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
         return
     }
     const percentage = ((downloadedBytes / totalBytes) * 100).toFixed(2)
-    log.info(`Downloading ${artifact} ${percentage}%`)
+    process.stdout.write(`Downloading ${artifact} ${percentage}%\r`)
     lastTimeCalled = Date.now()
 }
 
@@ -212,6 +212,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
 
         try {
             await install({ ...chromedriverInstallOpts, buildId })
+            log.info(`Download of Chromedriver v${buildId} was successful`)
         } catch (err) {
             /**
              * in case we detect a Chrome browser installed for which there is no Chromedriver available
@@ -233,6 +234,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
 
             loggedBuildId = knownGoodVersion
             await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+            log.info(`Download of Chromedriver v${loggedBuildId} was successful`)
             executablePath = computeExecutablePath({
                 browser: Browser.CHROMEDRIVER,
                 buildId: loggedBuildId,
