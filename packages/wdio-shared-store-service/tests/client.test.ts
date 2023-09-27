@@ -41,6 +41,12 @@ describe('client', () => {
     })
 
     describe('when used in launcher process', () => {
+        it('should not return a value if the server has not been initialized', () => {
+            expect(getValue('*')).rejects.toThrowError('Attempting to use `getValue` before the server has been initialized.')
+            expect(getValueFromPool('*')).rejects.toThrowError('Attempting to use `getValueFromPool` before the server has been initialized.')
+            expect(addValueToPool('*', '')).rejects.toThrowError('Attempting to use `addValueToPool` before the server has been initialized.')
+        })
+
         it('should not post before server has started', async () => {
             const result1 = await setValue('foo', 'bar')
             const result2 = await setValue('bar', 'foo')
