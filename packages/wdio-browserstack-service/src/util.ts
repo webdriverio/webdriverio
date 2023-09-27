@@ -385,7 +385,7 @@ export async function getGitMetaData () {
         return
     }
     const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url }))
+    const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
     return {
         name: 'git',
         sha: info.sha,
