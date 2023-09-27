@@ -41,7 +41,7 @@ describe('client', () => {
     })
 
     describe('when used in launcher process', () => {
-        it('should not return a value if the server has not been initialized', () => {
+        it('Error should be thrown when attempting to retrieve a value before server initialization', () => {
             expect(getValue('*')).rejects.toThrowError('Attempting to use `getValue` before the server has been initialized.')
             expect(getValueFromPool('*')).rejects.toThrowError('Attempting to use `getValueFromPool` before the server has been initialized.')
             expect(addValueToPool('*', '')).rejects.toThrowError('Attempting to use `addValueToPool` before the server has been initialized.')
