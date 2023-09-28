@@ -8,14 +8,32 @@ const INTERVAL_LENGTH = 5000
 const LOGO_WIDTH = 150
 
 let ticks = 0
+type LogoProps = {
+    logos: Array<{
+        img: string
+        alt: string
+        url: string
+    }>
+}
+type LogoState = {
+    position: number;
+    activePage: number;
+    swapInterval: ReturnType<typeof setInterval>;
+    pages: number;
+    margin: number;
+}
 
-export default class LogoCarousel extends React.Component {
-    constructor (props) {
+export default class LogoCarousel extends React.Component<LogoProps, LogoState> {
+    containerRef: React.RefObject<any>
+    list: () => React.JSX.Element
+    buttons: () => React.JSX.Element[]
+
+    constructor(props: LogoProps) {
         super(props)
         this.state = {
             position: -0,
             activePage: 0,
-            swapInterval: 0,
+            swapInterval: null,
             pages: Math.ceil(props.logos ? props.logos.length / 6 : 1),
             margin: 70
         }
@@ -33,17 +51,17 @@ export default class LogoCarousel extends React.Component {
         })
     }
 
-    componentWillUnmount () {
+    componentWillUnmount() {
         clearInterval(this.state.swapInterval)
     }
 
-    animateTo (i) {
+    animateTo(i) {
         const width = this.containerRef.current.getBoundingClientRect().width - this.state.margin
         const x = i * -width
         this.setState({ position: x, activePage: i })
     }
 
-    handleClick (i) {
+    handleClick(i) {
         this.animateTo(i)
         clearInterval(this.state.swapInterval)
         this.setState({
@@ -51,7 +69,7 @@ export default class LogoCarousel extends React.Component {
         })
     }
 
-    nextPage () {
+    nextPage() {
         const pages = this.state.pages - 1
         const direction = Math.floor(ticks / pages) % 2
         this.animateTo(direction
@@ -61,7 +79,7 @@ export default class LogoCarousel extends React.Component {
         ++ticks
     }
 
-    render () {
+    render() {
         if (!this.props || !this.props.logos) {
             return (
                 <div></div>

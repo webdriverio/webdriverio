@@ -67,7 +67,6 @@ function Version() {
     return (
         <Layout
             title="Versions"
-            permalink="/versions"
             description={translate({
                 id: 'versions.description',
                 message: 'Docusaurus 2 Versions page listing all documented site versions'
@@ -107,7 +106,7 @@ function Version() {
                                         </a>
                                     </td>
                                     <td>
-                                        { stableVersion.comment }
+                                        {stableVersion.comment}
                                     </td>
                                 </tr>
                             </tbody>
@@ -139,7 +138,7 @@ function Version() {
                                             </a>
                                         </td>
                                         <td>
-                                            { version.comment }
+                                            {version.comment}
                                         </td>
                                     </tr>
                                 ))}
