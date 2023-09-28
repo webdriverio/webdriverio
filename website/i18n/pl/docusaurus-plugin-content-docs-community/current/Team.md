@@ -3,7 +3,6 @@ id: team
 title: Zespół
 ---
 
-import Card from '@site/src/theme/card.tsx';
 
 Rozwój WebdriverIO jest prowadzony przez dedykowany zespół programistów i specjalistów SDET z różnych firm, a także kontrybutorów z całego świata.
 

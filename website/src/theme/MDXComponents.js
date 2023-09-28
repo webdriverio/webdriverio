@@ -9,6 +9,7 @@ import TabItem from '@theme/TabItem'
 import { CreateProjectAnimation, CreateMacOSProjectAnimation } from '../components/CreateProjectAnimation.tsx'
 import { ImageSwitcher } from '../components/ImageSwitcher.tsx'
 import { CreateFlowcharts } from '../components/CreateFlowcharts.tsx'
+import Card from './card.tsx'
 
 export default {
     // Re-use the default mapping
@@ -20,4 +21,5 @@ export default {
     CreateProjectAnimation,
     CreateMacOSProjectAnimation,
     CreateFlowcharts,
+    Card
 }

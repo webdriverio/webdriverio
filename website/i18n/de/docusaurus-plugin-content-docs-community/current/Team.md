@@ -3,8 +3,6 @@ id: team
 title: Team
 ---
 
-import Card from '@site/src/theme/card.tsx';
-
 Die WebdriverIO Entwicklung wird von einem engagierten Team von Entwicklern und SDETs aus verschiedenen Unternehmen sowie von Menschen aus der ganzen Welt geleitet.
 
 ## Technical Steering Committee
