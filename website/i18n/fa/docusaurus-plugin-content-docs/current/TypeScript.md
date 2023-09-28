@@ -122,6 +122,26 @@ const config: Options.WebdriverIO = {
 }
 ```
 
+## Missing Types
+
+When using Node 20 or above, wdio runs ts-node with different settings as this is required in order to keep things running. These settings can cause your custom types not to be loaded, if this happens there are a few ways you can fix this, of which the easiest I will show below.
+
+Using ts-node's environment variables
+```
+TS_NODE_FILES=true wdio run ./wdio.conf.ts
+```
+
+Using tsconfig
+```
+{
+  "ts-node": {
+    "files": true
+  },
+}
+```
+
+For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
+
 ## نکات و ترفندها
 
 ### کامپایل و Lint
