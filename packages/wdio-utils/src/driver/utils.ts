@@ -84,7 +84,8 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
         return
     }
     const percentage = ((downloadedBytes / totalBytes) * 100).toFixed(2)
-    process.stdout.write(`Downloading ${artifact} ${percentage}%\r`)
+    // @ts-expect-error Invoking custom loglevel
+    log.progress(`Downloading ${artifact} ${percentage}%`)
     lastTimeCalled = Date.now()
 }
 

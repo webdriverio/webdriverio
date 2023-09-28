@@ -17,7 +17,8 @@ const COLORS: Record<string, ColorName> = {
     warn: 'yellow',
     info: 'cyanBright',
     debug: 'green',
-    trace: 'cyan'
+    trace: 'cyan',
+    progress: 'magenta'
 }
 
 const matches = {
@@ -111,6 +112,14 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
     }
 }
 
+const progress = function (this: any, data: string) {
+    const level = 'progress'
+    const timestampFormatter = chalk.gray(new Date().toISOString())
+    const levelFormatter = chalk[COLORS[level]](level.toUpperCase())
+    const nameFormatter = chalk.whiteBright(this.name)
+    process.stdout.write(`${timestampFormatter} ${levelFormatter} ${nameFormatter}: ${data}\r`)
+}
+
 export default function getLogger (name: string) {
     /**
      * check if logger was already initiated
@@ -128,6 +137,8 @@ export default function getLogger (name: string) {
     loggers[name] = log.getLogger(name)
     loggers[name].setLevel(logLevel)
     loggers[name].methodFactory = wdioLoggerMethodFactory
+    // @ts-expect-error Adding custom level
+    loggers[name].progress = progress
     prefix.apply(loggers[name], {
         template: '%t %l %n:',
         timestampFormatter: (date) => chalk.gray(date.toISOString()),
