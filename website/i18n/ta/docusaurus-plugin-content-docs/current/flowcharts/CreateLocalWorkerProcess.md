@@ -3,4 +3,6 @@ id: createlocalworkerprocess
 title: தொழிலாளர் செயல்முறையை உருவாக்கவும்
 ---
 
-இந்த பாய்வு விளக்கப்படம் ஒரு தொழிலாளி செயல்முறை எவ்வாறு உருவாக்கப்படுகிறது என்பதை விளக்குகிறது.
+This flowchart explains how a worker process is created.
+
+<CreateFlowcharts id='createlocalworkerprocess' />

@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import split2 from 'split2'
 import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
@@ -11,6 +12,8 @@ import { start as startEdgedriver } from 'edgedriver'
 import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/driver/index.js'
+
+vi.mock('split2', () => ({ default: vi.fn() }))
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -35,8 +38,8 @@ vi.mock('node:os', async (origMod) => ({
 vi.mock('node:child_process', () => ({
     default: {
         spawn: vi.fn().mockReturnValue({
-            stdout: { pipe: vi.fn() },
-            stderr: { pipe: vi.fn() }
+            stdout: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) },
+            stderr: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) }
         }),
         execSync: vi.fn().mockReturnValue(Buffer.from('115.0.5790.171'))
     }
@@ -45,7 +48,12 @@ vi.mock('node:child_process', () => ({
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
-vi.mock('safaridriver', () => ({ start: vi.fn().mockReturnValue('safaridriver') }))
+vi.mock('safaridriver', () => ({
+    start: vi.fn().mockReturnValue({
+        stdout: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) },
+        stderr: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) }
+    })
+}))
 vi.mock('edgedriver', () => ({
     start: vi.fn().mockResolvedValue('edgedriver'),
     findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
@@ -101,7 +109,10 @@ describe('startWebDriver', () => {
                 'wdio:safaridriverOptions': { foo: 'bar' }
             } as any
         }
-        await expect(startWebDriver(params)).resolves.toBe('safaridriver')
+        await expect(startWebDriver(params)).resolves.toEqual(expect.objectContaining({
+            stdout: expect.any(Object),
+            stderr: expect.any(Object)
+        }))
         await expect(params).toEqual({
             hostname: '0.0.0.0',
             port: 1234,
@@ -121,6 +132,7 @@ describe('startWebDriver', () => {
             foo: 'bar',
             useTechnologyPreview: false
         })
+        expect(split2).toBeCalledTimes(2)
     })
 
     it('should start firefox driver', async () => {
@@ -148,7 +160,8 @@ describe('startWebDriver', () => {
         expect(startGeckodriver).toBeCalledWith({
             port: 1234,
             foo: 'bar',
-            cacheDir: expect.any(String)
+            cacheDir: expect.any(String),
+            allowHosts: ['0.0.0.0'],
         })
     })
 
@@ -177,7 +190,8 @@ describe('startWebDriver', () => {
         expect(startEdgedriver).toBeCalledWith({
             foo: 'bar',
             port: 1234,
-            cacheDir: expect.any(String)
+            cacheDir: expect.any(String),
+            allowedIps: ['0.0.0.0'],
         })
         expect(options.capabilities.browserName).toBe('MicrosoftEdge')
     })
@@ -258,6 +272,7 @@ describe('startWebDriver', () => {
         expect(res).toBe('geckodriver')
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
+            allowHosts: ['0.0.0.0'],
             customGeckoDriverPath: '/my/geckodriver',
             port: 1234
         })
@@ -275,6 +290,7 @@ describe('startWebDriver', () => {
         expect(res).toBe('edgedriver')
         expect(startEdgedriver).toBeCalledWith({
             cacheDir: expect.any(String),
+            allowedIps: ['0.0.0.0'],
             customEdgeDriverPath: '/my/edgedriver',
             port: 1234
         })

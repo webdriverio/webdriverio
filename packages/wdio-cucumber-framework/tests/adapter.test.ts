@@ -73,21 +73,30 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
     })
 
+    it('respects user-defined formatOptions', async () => {
+
+        const formatOptions =  { myFormatter: { MyOption: 'MyValue' } }
+
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { formatOptions } }, [], {}, {}, {}, false)
+
+        expect(adapter._cucumberOpts.formatOptions).toEqual(expect.objectContaining(formatOptions))
+    })
+
     it('throws if parallel cucumber opts is set', async () => {
         await expect(
-            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false)
+            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, ['progress'])
         ).rejects.toEqual(expect.objectContaining({
             message: 'The option "parallel" is not supported by WebdriverIO'
         }))
     })
 
     it('should not initiated with no tests', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(false)
     })
@@ -95,7 +104,7 @@ describe('CucumberAdapter', () => {
     it('can run without errors', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { format: [] }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.registerRequiredModules = vi.fn()
         adapter.addWdioHooksAndWrapSteps = vi.fn()
         adapter.loadFiles = vi.fn()
@@ -120,7 +129,7 @@ describe('CucumberAdapter', () => {
                     }
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(undefined)
@@ -146,13 +155,13 @@ describe('CucumberAdapter', () => {
                     path.join(process.cwd(), '__mocks__', 'module*.ts')
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false)
+        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
 
         expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require)).toHaveLength(4)
     })
 
     it('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.loadFilesWithType = vi.fn().mockReturnValue([process.cwd() + '/__mocks__/moduleC.ts'])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
@@ -175,7 +184,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
         adapter.addWdioHooksAndWrapSteps(
             {
@@ -284,7 +294,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -311,7 +322,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -338,7 +350,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -365,7 +378,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -392,7 +406,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -419,7 +434,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -446,7 +462,8 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -472,9 +489,93 @@ describe('CucumberAdapter', () => {
             {},
             {},
             {},
-            false
+            false,
+            ['progress']
         )
 
         expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+    })
+
+    it('can run when filtering by name', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { name: ['Scenario #2'], format: [], dryRun: true } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {},
+            {},
+            false,
+            ['progress']
+        )
+
+        expect(adapter._specs).toHaveLength(2)
+        expect(adapter._hasTests).toBe(true)
+
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.loadFiles = vi.fn()
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('can run when filtering by name & tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { name: ['Scenario #2'], tags: '@runall', format: [], dryRun: true } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_tags.feature',
+                'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature',
+            ],
+            {},
+            {},
+            {},
+            false,
+            ['progress']
+        )
+
+        expect(adapter._specs).toHaveLength(1)
+        expect(adapter._hasTests).toBe(true)
+
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.loadFiles = vi.fn()
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('should skip test if `skip` tag condition is matched', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true } },
+            [
+                'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature',
+            ],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            ['progress']
+        )
+
+        expect(adapter._specs).toHaveLength(0)
+        expect(adapter.hasTests()).toBe(false)
+
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.loadFiles = vi.fn()
+
+        const result = await adapter.run()
+
+        expect(result).toBe(0)
+        expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 })

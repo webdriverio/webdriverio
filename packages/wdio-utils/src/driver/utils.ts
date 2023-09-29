@@ -51,8 +51,12 @@ export function getBuildIdByChromePath(chromePath?: string) {
         return oldest
     }
 
-    const versionString = cp.execSync(`"${chromePath}" --version`).toString()
-    return versionString.trim().split(' ').pop()?.trim()
+    const versionString = cp.execSync(`"${chromePath}" --version --no-sandbox`).toString()
+    const versionSanitized = versionString.trim().split(' ').find((s) => s.split('.').length === 4)
+    if (!versionSanitized) {
+        throw new Error(`Couldn't find valid Chrome version from "${versionString}", please raise an issue in the WebdriverIO project (https://github.com/webdriverio/webdriverio/issues/new/choose)`)
+    }
+    return versionSanitized
 }
 
 export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
@@ -94,7 +98,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     }
 
     /**
-     * don't set up Chrome if a binary was defined in caps
+     * don't set up Chrome/Firefox if a binary was defined in caps
      */
     const browserOptions = (browserName === Browser.CHROME
         ? caps['goog:chromeOptions']
@@ -103,9 +107,14 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     if (typeof browserOptions.binary === 'string') {
         return {
             executablePath: browserOptions.binary,
-            browserVersion: browserName === Browser.CHROME
-                ? getBuildIdByChromePath(browserOptions.binary)
-                : await getBuildIdByFirefoxPath(browserOptions.binary)
+            browserVersion: (
+                caps.browserVersion ||
+                (
+                    browserName === Browser.CHROME
+                        ? getBuildIdByChromePath(browserOptions.binary)
+                        : await getBuildIdByFirefoxPath(browserOptions.binary)
+                )
+            )
         }
     }
 
@@ -122,7 +131,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
         /**
-         * verify that we have a valid Chrome browser installed
+         * verify that we have a valid Chrome/Firefox browser installed
          */
         if (tag) {
             return {
@@ -133,7 +142,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     }
 
     /**
-     * otherwise download provided Chrome browser version or "stable"
+     * otherwise download provided Chrome/Firefox browser version or "stable"
      */
     const tag = browserName === Browser.CHROME
         ? caps.browserVersion || ChromeReleaseChannel.STABLE

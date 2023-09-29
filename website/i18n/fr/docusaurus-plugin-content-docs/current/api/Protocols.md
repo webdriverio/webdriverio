@@ -36,12 +36,12 @@ Le protocole [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) est la deux
 
 Le projet [Appium](https://appium.io/) fournit des capacités pour automatiser les appareils mobiles, de bureau et tous les autres types d'appareils IoT. Alors que WebDriver se concentre sur le navigateur et le Web, la vision d'Appium est d'utiliser la même approche mais pour n'importe quel appareil arbitraire. En plus des commandes définies par WebDriver, il comporte des commandes spéciales qui sont souvent spécifiques au périphérique distant en cours d'automatisation. Pour les scénarios de test mobile, cela est idéal lorsque vous souhaitez écrire et exécuter les mêmes tests pour les applications Android et iOS.
 
-Selon la documentation [Appium](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en), il a été conçu pour répondre aux besoins d'automatisation mobile selon une philosophie définie par les quatre principes suivants:
+Selon la documentation Appium [](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) , il a été conçu pour répondre aux besoins d'automatisation mobile selon une philosophie définie par les quatre principes suivants :
 
 - Vous ne devriez pas avoir à recompiler votre application ou à la modifier de quelque manière que ce soit pour l'automatiser.
 - Vous ne devez pas être enfermé dans un langage ou un framework spécifique pour écrire et exécuter vos tests.
 - Un framework d'automatisation mobile ne devrait pas réinventer la roue en ce qui concerne les API d'automatisation.
-- Un cadre d'automatisation mobile doit être open source, dans l'esprit et la pratique ainsi que dans le nom!
+- Un cadre d'automatisation mobile doit être open source, dans l'esprit et la pratique ainsi que dans le nom !
 
 ## Chromium
 

@@ -820,7 +820,7 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                 ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
                 : preset === 'vue'
                     ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
-                    : ['src']
+                    : ['test']
         }
         await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
         await fs.writeFile(

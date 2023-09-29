@@ -25,7 +25,7 @@ Visual Studio Code a généralement la prise en charge automatique des types et 
 
 ![Auto-complétion](/img/autocompletion/14.png)
 
-Si vous utilisez JavaScript vanilla et que vous voulez avoir un support de type approprié, vous devez créer un jsconfig `jsconfig.json` à la racine de votre projet et reportez-vous aux paquets wdio utilisés, par exemple:
+Si vous utilisez JavaScript vanilla et que vous voulez avoir un support de type approprié, vous devez créer un jsconfig `. son` à la racine de votre projet et reportez-vous aux paquets wdio utilisés, par exemple:
 
 ```json title="jsconfig.json"
 {

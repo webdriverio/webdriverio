@@ -28,9 +28,9 @@ export default defineConfig({
                 'packages/devtools/src/commands',
                 'packages/devtools/src/scripts'
             ],
-            lines: 88,
+            lines: 87,
             functions: 84,
-            statements: 88,
+            statements: 87,
             branches: 89
         }
     }

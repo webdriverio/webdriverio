@@ -71,7 +71,7 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-प्रोटोकॉल पैकेज के समान (`webdriver` और `devtools`) आप सत्रों को प्रबंधित करने के लिए WebdriverIO पैकेज API का भी उपयोग कर सकते हैं। एपीआई को `import { remote, attach, multiremote } from 'webdriverio'` का उपयोग करके आयात किया जा सकता है और इसमें निम्न कार्यक्षमता शामिल है:
+प्रोटोकॉल पैकेज के समान (`webdriver` और `devtools`) आप सत्रों को प्रबंधित करने के लिए WebdriverIO पैकेज API का भी उपयोग कर सकते हैं। एपीआई को `webdriverio` ' से `import { remote, attach, multiremote }` का उपयोग करके आयात किया जा सकता है और इसमें निम्न कार्यक्षमता शामिल है:
 
 #### `remote(options, modifier)`
 

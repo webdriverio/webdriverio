@@ -51,9 +51,15 @@ Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ##### `binary`
 
-Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the driver you are using.
+Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
 
 Type: `string`
+
+:::caution
+
+If the driver `binary` is set, WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
+
+:::
 
 #### Browser Specific Driver Options
 
@@ -240,27 +246,64 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 ```ts
 {
     browserName: 'chrome',
-    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'latest', 'dev', 'canary', 'beta'
+}
+```
+
+If you like to test a manually downloaded browser, you can provide a binary path to the browser via:
+
+```ts
+{
+    browserName: 'chrome',
+    'goog:chromeOptions': {
+        binary: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
+    }
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'chrome',
+    'wdio:chromedriverOptions': {
+        binary: '/path/to/chromdriver'
+    }
 }
 ```
 
 </TabItem>
 <TabItem value="firefox">
 
-When testing on Firefox, you can let WebdriverIO setup Firefox Nightly for you by providing `latest` as `browserVersion`:
+When testing on Firefox, WebdriverIO will automatically download the desired browser version and driver for you based on the defined `browserVersion`, e.g.:
 
 ```ts
+{
     browserName: 'firefox',
-    browserVersion: 'latest'
+    browserVersion: '119.0a1' // or 'latest'
+}
 ```
 
 If you like to test a manually downloaded version you can provide a binary path to the browser via:
 
 ```ts
+{
     browserName: 'firefox',
     'moz:firefoxOptions': {
-        bin: '/Applications/Firefox\ Nightly.app/Contents/MacOS/firefox'
+        binary: '/Applications/Firefox\ Nightly.app/Contents/MacOS/firefox'
     }
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'firefox',
+    'wdio:geckodriverOptions': {
+        binary: '/path/to/geckodriver'
+    }
+}
 ```
 
 </TabItem>
@@ -269,10 +312,32 @@ If you like to test a manually downloaded version you can provide a binary path 
 When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
+{
     browserName: 'msedge',
     'ms:edgeOptions': {
-        bin: '/Applications/Microsoft\ Edge\ Canary.app/Contents/MacOS/Microsoft\ Edge\ Canary'
+        binary: '/Applications/Microsoft\ Edge\ Canary.app/Contents/MacOS/Microsoft\ Edge\ Canary'
     }
+}
+```
+
+WebdriverIO will automatically download the desired driver version for you based on the defined `browserVersion`, e.g.:
+
+```ts
+{
+    browserName: 'msedge',
+    browserVersion: '109' // or '109.0.1467.0', 'stable', 'dev', 'canary', 'beta'
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'msedge',
+    'wdio:edgedriverOptions': {
+        binary: '/path/to/msedgedriver'
+    }
+}
 ```
 
 </TabItem>
@@ -281,7 +346,9 @@ When testing on Microsoft Edge, make sure you have the desired browser version i
 When testing on Safari, make sure you have the [Safari Technology Preview](https://developer.apple.com/safari/technology-preview/) installed on your machine. You can point WebdriverIO to that version via:
 
 ```ts
+{
     browserName: 'safari technology preview'
+}
 ```
 
 </TabItem>

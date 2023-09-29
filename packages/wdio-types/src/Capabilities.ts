@@ -162,6 +162,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    'browserstack.accessibility'?: boolean
+    'browserstack.accessibilityOptions'?: { [key: string]: any; }
     /**
      * @private
      */
@@ -376,7 +378,8 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation }
+    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation },
+    logLevel?: string
 }
 
 // Selenium Grid specific
@@ -1263,8 +1266,14 @@ export interface BrowserStackCapabilities {
      * Specify an identifier for a build consists group of tests.
      */
     buildIdentifier?: string
+
+    accessibility?: boolean
+    accessibilityOptions?: { [key: string]: any; }
+
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
+    'browserstack.accessibility'?: boolean
+    'browserstack.accessibilityOptions'?: { [key: string]: any; }
 }
 
 export interface SauceLabsVisualCapabilities {
