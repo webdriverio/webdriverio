@@ -17,7 +17,8 @@ const COLORS: Record<string, ColorName> = {
     warn: 'yellow',
     info: 'cyanBright',
     debug: 'green',
-    trace: 'cyan'
+    trace: 'cyan',
+    progress: 'magenta'
 }
 
 const matches = {
@@ -54,7 +55,15 @@ const SERIALIZERS = [{
     serialize: (log: string) => chalk.cyan(log)
 }]
 
-const loggers = log.getLoggers()
+interface LoggerInterface extends log.Logger {
+    progress(...msg: any[]): void;
+}
+
+interface Loggers {
+    [name: string]: LoggerInterface
+}
+
+const loggers: Loggers = log.getLoggers() as Loggers
 let logLevelsConfig: Record<string, log.LogLevelDesc> = {}
 const logCache = new Set()
 let logFile: fs.WriteStream | null
@@ -111,6 +120,18 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
     }
 }
 
+const progress = function (this: any, data: string) {
+    if (process.stdout.isTTY && this.getLevel() <= log.levels.INFO) {
+        const level = 'progress'
+        const timestampFormatter = chalk.gray(new Date().toISOString())
+        const levelFormatter = chalk[COLORS[level]](level.toUpperCase())
+        const nameFormatter = chalk.whiteBright(this.name)
+        const _data = data.length > 0 ? `${timestampFormatter} ${levelFormatter} ${nameFormatter}: ${data}` : '\r\x1b[K'
+        process.stdout.write('\u001B[?25l') // Disable cursor in terminal
+        process.stdout.write(`${_data}\r`)
+    }
+}
+
 export default function getLogger (name: string) {
     /**
      * check if logger was already initiated
@@ -125,9 +146,10 @@ export default function getLogger (name: string) {
         logLevel = logLevelsConfig[logLevelName]
     }
 
-    loggers[name] = log.getLogger(name)
+    loggers[name] = log.getLogger(name) as LoggerInterface
     loggers[name].setLevel(logLevel)
     loggers[name].methodFactory = wdioLoggerMethodFactory
+    loggers[name].progress = progress
     prefix.apply(loggers[name], {
         template: '%t %l %n:',
         timestampFormatter: (date) => chalk.gray(date.toISOString()),
@@ -191,4 +213,4 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
 }
 const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
 
-export type Logger = log.Logger
+export type Logger = LoggerInterface

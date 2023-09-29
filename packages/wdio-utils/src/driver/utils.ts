@@ -84,8 +84,26 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
         return
     }
     const percentage = ((downloadedBytes / totalBytes) * 100).toFixed(2)
-    log.info(`Downloading ${artifact} ${percentage}%`)
+    log.progress(`Downloading ${artifact} ${percentage}%`)
     lastTimeCalled = Date.now()
+}
+
+/**
+ * Installs a package using the provided installation options and clears the progress log afterward.
+ *
+ * @description
+ * When installing a package, progress updates are logged using `log.progress`.
+ * To ensure the formatting of subsequent logs is not disrupted, it's essential to clear the progress log after the installation is complete.
+ * This method combines the installation step and the clearing of the progress log.
+ *
+ * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#custom-log-levels} for more information.
+ *
+ * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
+ * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
+ */
+const _install = async (args: InstallOptions & { unpack?: true | undefined }): Promise<void> => {
+    await install(args)
+    log.progress('')
 }
 
 export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities.Capabilities) {
@@ -162,7 +180,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    await install(installOptions)
+    await _install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, browserVersion: buildId }
 }
@@ -211,7 +229,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         }
 
         try {
-            await install({ ...chromedriverInstallOpts, buildId })
+            await _install({ ...chromedriverInstallOpts, buildId })
+            log.info(`Download of Chromedriver v${buildId} was successful`)
         } catch (err) {
             /**
              * in case we detect a Chrome browser installed for which there is no Chromedriver available
@@ -232,7 +251,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             }
 
             loggedBuildId = knownGoodVersion
-            await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+            await _install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+            log.info(`Download of Chromedriver v${loggedBuildId} was successful`)
             executablePath = computeExecutablePath({
                 browser: Browser.CHROMEDRIVER,
                 buildId: loggedBuildId,
