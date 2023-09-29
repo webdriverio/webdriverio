@@ -88,7 +88,20 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
     lastTimeCalled = Date.now()
 }
 
-const _install = async (args: InstallOptions & { unpack?: true | undefined }) => {
+/**
+ * Installs a package using the provided installation options and clears the progress log afterward.
+ *
+ * @description
+ * When installing a package, progress updates are logged using `log.progress`.
+ * To ensure the formatting of subsequent logs is not disrupted, it's essential to clear the progress log after the installation is complete.
+ * This method combines the installation step and the clearing of the progress log.
+ *
+ * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#custom-log-levels} for more information.
+ *
+ * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
+ * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
+ */
+const _install = async (args: InstallOptions & { unpack?: true | undefined }): Promise<void> => {
     await install(args)
     log.progress('')
 }
