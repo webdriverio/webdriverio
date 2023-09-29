@@ -254,7 +254,7 @@ export default class ConfigParser {
      * attributes from CLI, config and capabilities
      */
     getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
-        const isSpecParamPassed = Array.isArray(this._config.spec)
+        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length >= 1
         const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
