@@ -21,6 +21,36 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.16 (2023-09-29)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11260](https://github.com/webdriverio/webdriverio/pull/11260) fix: Respect user-provided Cucumber formatter options ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-browserstack-service`
+  * [#11257](https://github.com/webdriverio/webdriverio/pull/11257) Fix git exception when no remote ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#10974](https://github.com/webdriverio/webdriverio/pull/10974) fix: Deal with new W3C spec Error response ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-shared-store-service`
+  * [#11254](https://github.com/webdriverio/webdriverio/pull/11254) Throw err if getter's is used before server init ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11258](https://github.com/webdriverio/webdriverio/pull/11258) Update $.ts ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+
+#### :house: Internal
+* [#11259](https://github.com/webdriverio/webdriverio/pull/11259) (website): convert website to ts ([@AnthonyQuy](https://github.com/AnthonyQuy))
+
+#### Committers: 6
+- Anthony  ([@AnthonyQuy](https://github.com/AnthonyQuy))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- JOSIAS VALENTIM DE FIGUEREDO ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.15 (2023-09-26)
 
 #### :bug: Bug Fix
