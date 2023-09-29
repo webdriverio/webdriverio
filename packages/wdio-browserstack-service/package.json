@@ -33,7 +33,7 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "got": "^11.0.2",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.1",
     "webdriverio": "7.32.4",
     "winston-transport": "^4.5.0"
   },

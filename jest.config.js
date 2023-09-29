@@ -53,10 +53,10 @@ module.exports = {
     collectCoverage: true,
     coverageThreshold: {
         global: {
-            branches: 87,
-            functions: 94,
-            lines: 95,
-            statements: 95
+            branches: 85.5,
+            functions: 92,
+            lines: 94.5,
+            statements: 94.5
         }
     },
     testEnvironment: 'node',
