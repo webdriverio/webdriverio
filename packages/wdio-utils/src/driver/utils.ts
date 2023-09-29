@@ -84,9 +84,13 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
         return
     }
     const percentage = ((downloadedBytes / totalBytes) * 100).toFixed(2)
-    // @ts-expect-error Invoking custom loglevel
     log.progress(`Downloading ${artifact} ${percentage}%`)
     lastTimeCalled = Date.now()
+}
+
+const _install = async (args: InstallOptions & { unpack?: true | undefined }) => {
+    await install(args)
+    log.progress('')
 }
 
 export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities.Capabilities) {
@@ -163,7 +167,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    await install(installOptions)
+    await _install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
     return { executablePath, browserVersion: buildId }
 }
@@ -212,7 +216,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         }
 
         try {
-            await install({ ...chromedriverInstallOpts, buildId })
+            await _install({ ...chromedriverInstallOpts, buildId })
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } catch (err) {
             /**
@@ -234,7 +238,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             }
 
             loggedBuildId = knownGoodVersion
-            await install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
+            await _install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
             log.info(`Download of Chromedriver v${loggedBuildId} was successful`)
             executablePath = computeExecutablePath({
                 browser: Browser.CHROMEDRIVER,
