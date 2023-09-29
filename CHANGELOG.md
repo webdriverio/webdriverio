@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.17 (2023-09-29)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#11271](https://github.com/webdriverio/webdriverio/pull/11271) Fixes issue 10140 ([@KierenLWoods](https://github.com/KierenLWoods))
+
+#### :nail_care: Polish
+* `wdio-logger`, `wdio-utils`
+  * [#11255](https://github.com/webdriverio/webdriverio/pull/11255) Updating driver download logs ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Kieren Woods ([@KierenLWoods](https://github.com/KierenLWoods))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.16 (2023-09-29)
 
 #### :bug: Bug Fix
