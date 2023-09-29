@@ -823,6 +823,14 @@ describe('ConfigParser', () => {
             ])
         })
 
+        it('should not include spec if blank spec parameter passed', async ()=> {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['mobile'], spec: [] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+        })
+
         it('should include specs from suite 3 times with mulit-run', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['functional'], multiRun: 3 })
