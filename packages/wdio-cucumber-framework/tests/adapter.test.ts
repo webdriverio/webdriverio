@@ -78,6 +78,15 @@ describe('CucumberAdapter', () => {
         expect(adapter.hasTests()).toBe(true)
     })
 
+    it('respects user-defined formatOptions', async () => {
+
+        const formatOptions =  { myFormatter: { MyOption: 'MyValue' } }
+
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { formatOptions } }, [], {}, {}, {}, false)
+
+        expect(adapter._cucumberOpts.formatOptions).toEqual(expect.objectContaining(formatOptions))
+    })
+
     it('throws if parallel cucumber opts is set', async () => {
         await expect(
             CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, ['progress'])

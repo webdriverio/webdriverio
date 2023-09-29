@@ -124,8 +124,17 @@ class CucumberAdapter {
 
         /**
          * formatting options used by custom cucumberFormatter
+         * https://github.com/cucumber/cucumber-js/blob/3a945b1077d4539f8a363c955a0506e088ff4271/docs/formatters.md#options
          */
         this._cucumberOpts.formatOptions = {
+
+            // We need to pass the user provided Formatter options
+            // Example: JUnit formatter https://github.com/cucumber/cucumber-js/blob/3a945b1077d4539f8a363c955a0506e088ff4271/docs/formatters.md#junit
+            // { junit: { suiteName: "MySuite" } }
+            ...(this._cucumberOpts.formatOptions ?? {}),
+
+            // Our Cucumber Formatter options
+            // Put last so that user does not override them
             _reporter: this._reporter,
             _cid: this._cid,
             _specs: this._specs,
