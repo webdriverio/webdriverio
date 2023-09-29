@@ -7,7 +7,7 @@ import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigfor
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 
 const log = logger('@wdio/browserstack-service')
-type Dict = {[key: string]: any};
+type Dict = Record<string, any>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
