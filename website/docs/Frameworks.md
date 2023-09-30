@@ -443,6 +443,38 @@ import { Given, When, Then } from '@wdio/cucumber-framework'
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
 
+### Publishing Report
+
+Cucumber provides a feature to publish your test run reports to `https://reports.cucumber.io/`, which can be controlled either by setting the `publish` flag in `cucumberOpts` or by configuring the `CUCUMBER_PUBLISH_TOKEN` environment variable. However, when you use `WebdriverIO` for test execution, there's a limitation with this approach. It updates the reports separately for each feature file, making it difficult to view a consolidated report.
+
+To overcome this limitation, we've introduced a promise-based method called `publishCucumberReport` within `@wdio/cucumber-framework`. This method should be called in the `onComplete` hook, which is the optimal place to invoke it. `publishCucumberReport` requires the input of the report directory where cucumber message reports are stored.
+
+You can generate `cucumber message` reports by configuring the `format` option in your `cucumberOpts`. It's highly recommended to provide a dynamic file name within the `cucumber message` format option to prevent overwriting reports and ensure that each test run is accurately recorded.
+
+Before using this function, make sure to set the following environment variables:
+- CUCUMBER_PUBLISH_REPORT_URL: The URL where you want to publish the Cucumber report. If not provided, the default URL 'https://messages.cucumber.io/api/reports' will be used.
+- CUCUMBER_PUBLISH_REPORT_TOKEN: The authorization token required to publish the report. If this token is not set, the function will exit without publishing the report.
+
+Here's an example of the necessary configurations and code samples for implementation:
+
+```javascript
+import { v4 as uuidv4 } from 'uuid'
+import { publishCucumberReport } from '@wdio/cucumber-framework';
+
+export const config = {
+    // ... Other Configuration Options
+    cucumberOpts: {
+        // ... Cucumber Options Configuration
+        format: [['message', `./reports/${uuidv4()}.ndjson`]]
+    },
+    async onComplete() {
+        await publishCucumberReport('./reports');
+    }
+}
+```
+
+Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
+
 ## Using Serenity/JS
 
 [Serenity/JS](https://serenity-js.org?pk_campaign=wdio8&pk_source=webdriver.io) is an open-source framework designed to make acceptance and regression testing of complex software systems faster, more collaborative, and easier to scale.

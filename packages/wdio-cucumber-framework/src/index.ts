@@ -8,6 +8,8 @@ import logger from '@wdio/logger'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 import { executeHooksWithArgs } from '@wdio/utils'
+import got from 'got'
+import { readdir, readFile } from 'node:fs/promises'
 
 import * as Cucumber from '@cucumber/cucumber'
 import Gherkin from '@cucumber/gherkin'
@@ -481,6 +483,39 @@ class CucumberAdapter {
         })
     }
 }
+/**
+ * Publishes a Cucumber report to a specified URL using NDJSON files from a directory.
+ * @async
+ * @param {string} cucumberMessageDir - The directory path that holds Cucumber NDJSON files.
+ * @returns {Promise<void>} - A Promise that resolves when the report is successfully published.
+ * @throws {Error} - Throws an error if there are issues with file reading or the publishing process.
+ */
+const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> => {
+    const url = process.env.CUCUMBER_PUBLISH_REPORT_URL || 'https://messages.cucumber.io/api/reports'
+    const token = process.env.CUCUMBER_PUBLISH_REPORT_TOKEN
+    if (!token) {
+        return
+    }
+
+    const { headers } = await got(url, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    })
+
+    const { location } = headers
+
+    const files = (await readdir(path.resolve(cucumberMessageDir))).filter((file) => path.extname(file) === '.ndjson')
+
+    const cucumberMessage = (await Promise.all(files.map((file) => readFile(path.resolve(`${cucumberMessageDir}/${file}`), 'utf8')))).join('')
+
+    await got.put(location as string, {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: `${cucumberMessage}`
+    })
+}
 
 const _CucumberAdapter = CucumberAdapter
 const adapterFactory: { init?: Function } = {}
@@ -521,7 +556,9 @@ export {
     setDefinitionFunctionWrapper,
     setWorldConstructor,
     defineParameterType,
-    defineStep
+    defineStep,
+
+    publishCucumberReport
 }
 
 declare global {
