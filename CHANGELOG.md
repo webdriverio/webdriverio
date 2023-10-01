@@ -53,6 +53,8 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 #### :memo: Documentation
 * `webdriverio`
   * [#11258](https://github.com/webdriverio/webdriverio/pull/11258) Update $.ts ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+* `typescript`
+  * [#11263](https://github.com/webdriverio/webdriverio/pull/11263) update TypeScript documentation for missing types ([@erwinheitzman](https://github.com/erwinheitzman))
 
 #### :house: Internal
 * [#11259](https://github.com/webdriverio/webdriverio/pull/11259) (website): convert website to ts ([@AnthonyQuy](https://github.com/AnthonyQuy))
