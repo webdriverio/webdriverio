@@ -103,7 +103,7 @@ export async function scrollIntoView (
     deltaY = Math.round(deltaY - scrollY)
 
     try {
-        return await browser.action('wheel')
+        await browser.action('wheel')
             .scroll({ duration: 0, x: deltaX, deltaY, origin: this })
             .perform()
     } catch (err: any) {
@@ -111,6 +111,6 @@ export async function scrollIntoView (
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${err.message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'
         )
-        return scrollIntoViewWeb.call(this, options)
+        await scrollIntoViewWeb.call(this, options)
     }
 }
