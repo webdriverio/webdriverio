@@ -12,6 +12,9 @@ updates:
     - dependency-name: "lighthouse"
     # doesn't support glob anymore in v4 (Windows)
     - dependency-name: "rimraf"
+    # these packages don't support Node.js v16 anymore
+    - dependency-name: "ky"
+    - dependency-name: "@octokit/rest"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
@@ -24,6 +27,7 @@ updates:
     # packages we don't update for v7 anymore
     - dependency-name: "@types/jasmine"
     - dependency-name: "ky"
+    - dependency-name: "glob"
     - dependency-name: "jasmine"
     - dependency-name: "minimatch"
     - dependency-name: "puppeteer-core"

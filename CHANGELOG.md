@@ -21,6 +21,36 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.18 (2023-10-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11276](https://github.com/webdriverio/webdriverio/pull/11276) (webdriverio): fix - handle out of bounds error when retrieving element rect during scrollIntoView ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-local-runner`
+  * [#11273](https://github.com/webdriverio/webdriverio/pull/11273) (@wdio/local-runner): fix ts-node related issue when using Node 20 ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11275](https://github.com/webdriverio/webdriverio/pull/11275) (docs): update Babel documentation with info for monorepos ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
+## v8.16.17 (2023-09-29)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#11271](https://github.com/webdriverio/webdriverio/pull/11271) Fixes issue 10140 ([@KierenLWoods](https://github.com/KierenLWoods))
+
+#### :nail_care: Polish
+* `wdio-logger`, `wdio-utils`
+  * [#11255](https://github.com/webdriverio/webdriverio/pull/11255) Updating driver download logs ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Kieren Woods ([@KierenLWoods](https://github.com/KierenLWoods))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.16 (2023-09-29)
 
 #### :bug: Bug Fix
@@ -38,6 +68,8 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 #### :memo: Documentation
 * `webdriverio`
   * [#11258](https://github.com/webdriverio/webdriverio/pull/11258) Update $.ts ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+* `typescript`
+  * [#11263](https://github.com/webdriverio/webdriverio/pull/11263) update TypeScript documentation for missing types ([@erwinheitzman](https://github.com/erwinheitzman))
 
 #### :house: Internal
 * [#11259](https://github.com/webdriverio/webdriverio/pull/11259) (website): convert website to ts ([@AnthonyQuy](https://github.com/AnthonyQuy))
