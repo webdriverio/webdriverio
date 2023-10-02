@@ -24,6 +24,7 @@ updates:
     # packages we don't update for v7 anymore
     - dependency-name: "@types/jasmine"
     - dependency-name: "ky"
+    - dependency-name: "glob"
     - dependency-name: "jasmine"
     - dependency-name: "minimatch"
     - dependency-name: "puppeteer-core"
