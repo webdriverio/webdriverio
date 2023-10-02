@@ -68,7 +68,7 @@
     "postinstall:husky": "husky install"
   },
   "devDependencies": {
-    "@octokit/rest": "^19.0.13",
+    "@octokit/rest": "^20.0.2",
     "@preact/preset-vite": "^2.5.0",
     "@serenity-js/core": "^3.10.3",
     "@stencil/core": "^4.0.4",
