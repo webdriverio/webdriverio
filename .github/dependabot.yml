@@ -14,6 +14,7 @@ updates:
     - dependency-name: "rimraf"
     # these packages don't support Node.js v16 anymore
     - dependency-name: "ky"
+    - dependency-name: "@octokit/rest"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
