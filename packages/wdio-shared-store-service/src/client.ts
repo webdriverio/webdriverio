@@ -7,7 +7,7 @@ const log = logger('@wdio/shared-store-service')
 
 const WAIT_INTERVAL = 100
 const pendingValues = new Map<string, any>()
-let waitTimeout: NodeJS.Timer
+let waitTimeout: NodeJS.Timeout
 
 let baseUrl: string | undefined
 export const setPort = (port: string) => { baseUrl = `http://localhost:${port}` }
