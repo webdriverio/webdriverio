@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SharedStoreService > should update capabilities correctly > using multiremote caps 1`] = `
+{
+  "browserA": {
+    "capabilities": {
+      "browserName": "chrome",
+      "wdio:sharedStoreServicePort": 3000,
+    },
+  },
+  "browserB": {
+    "capabilities": {
+      "browserName": "firefox",
+      "wdio:sharedStoreServicePort": 3000,
+    },
+  },
+}
+`;
+
+exports[`SharedStoreService > should update capabilities correctly > using parallel multiremote caps 1`] = `
+[
+  {
+    "browserA": {
+      "capabilities": {
+        "browserName": "chrome",
+        "wdio:sharedStoreServicePort": 3000,
+      },
+    },
+    "browserB": {
+      "capabilities": {
+        "browserName": "firefox",
+        "wdio:sharedStoreServicePort": 3000,
+      },
+    },
+  },
+]
+`;
+
+exports[`SharedStoreService > should update capabilities correctly > using standard caps 1`] = `
+[
+  {
+    "browserName": "chrome",
+    "wdio:sharedStoreServicePort": 3000,
+  },
+]
+`;
+
+exports[`SharedStoreService > should update capabilities correctly > using w3c caps 1`] = `
+[
+  {
+    "alwaysMatch": {
+      "browserName": "chrome",
+      "wdio:sharedStoreServicePort": 3000,
+    },
+    "firstMatch": [],
+  },
+]
+`;
