@@ -12,6 +12,8 @@ updates:
     - dependency-name: "lighthouse"
     # doesn't support glob anymore in v4 (Windows)
     - dependency-name: "rimraf"
+    # these packages don't support Node.js v16 anymore
+    - dependency-name: "ky"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
