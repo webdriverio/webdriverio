@@ -39,7 +39,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@cucumber/cucumber": "9.5.1",
-    "@cucumber/gherkin": "26.2.0",
+    "@cucumber/gherkin": "27.0.0",
     "@cucumber/messages": "22.0.0",
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.16.17",
