@@ -494,6 +494,7 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
     const url = process.env.CUCUMBER_PUBLISH_REPORT_URL || 'https://messages.cucumber.io/api/reports'
     const token = process.env.CUCUMBER_PUBLISH_REPORT_TOKEN
     if (!token) {
+        log.debug('Publishing reports are skipped because `CUCUMBER_PUBLISH_REPORT_TOKEN` environment variable value is not set.')
         return
     }
 
@@ -505,9 +506,18 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
 
     const { location } = headers
 
-    const files = (await readdir(path.resolve(cucumberMessageDir))).filter((file) => path.extname(file) === '.ndjson')
+    const files = (await readdir(path.normalize(cucumberMessageDir))).filter((file) => path.extname(file) === '.ndjson')
 
-    const cucumberMessage = (await Promise.all(files.map((file) => readFile(path.resolve(`${cucumberMessageDir}/${file}`), 'utf8')))).join('')
+    const cucumberMessage = (
+        await Promise.all(
+            files.map((file) =>
+                readFile(
+                    path.normalize(path.join(cucumberMessageDir, file)),
+                    'utf8'
+                )
+            )
+        )
+    ).join('')
 
     await got.put(location as string, {
         headers: {

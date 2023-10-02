@@ -369,6 +369,29 @@ Only retries the features or scenarios with tags matching the expression (repeat
 
 Type: `RegExp`
 
+#### language
+Default language for your feature files
+
+Type: `String`<br />
+Default: `en`
+
+#### order
+Run tests in defined / random order
+
+Type: `String`<br />
+Default: `defined`
+
+#### format
+Name and output file path of formatter to use.
+WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
+
+Type: `string[]`<br />
+
+#### formatOptions
+Options to be provided to formatters
+
+Type: `object`<br />
+
 #### tagsInTitle
 Add cucumber tags to feature or scenario name
 
@@ -465,7 +488,10 @@ export const config = {
     // ... Other Configuration Options
     cucumberOpts: {
         // ... Cucumber Options Configuration
-        format: [['message', `./reports/${uuidv4()}.ndjson`]]
+        format: [
+            ['message', `./reports/${uuidv4()}.ndjson`],
+            ['json', './reports/test-report.json']
+        ]
     },
     async onComplete() {
         await publishCucumberReport('./reports');
