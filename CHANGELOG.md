@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.18 (2023-10-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11276](https://github.com/webdriverio/webdriverio/pull/11276) (webdriverio): fix - handle out of bounds error when retrieving element rect during scrollIntoView ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-local-runner`
+  * [#11273](https://github.com/webdriverio/webdriverio/pull/11273) (@wdio/local-runner): fix ts-node related issue when using Node 20 ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11275](https://github.com/webdriverio/webdriverio/pull/11275) (docs): update Babel documentation with info for monorepos ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v8.16.17 (2023-09-29)
 
 #### :bug: Bug Fix
