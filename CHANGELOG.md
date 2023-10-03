@@ -21,6 +21,38 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.19 (2023-10-03)
+
+#### :rocket: New Feature
+* `wdio-devtools-service`
+  * [#11059](https://github.com/webdriverio/webdriverio/pull/11059) devtools commands for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#11341](https://github.com/webdriverio/webdriverio/pull/11341) (@wdio/shared-store-service): support multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11269](https://github.com/webdriverio/webdriverio/pull/11269) [v8] [browserstack-service] Fix E2Bug exception on linux ([@sriteja777](https://github.com/sriteja777))
+* `wdio-cli`
+  * [#11344](https://github.com/webdriverio/webdriverio/pull/11344) Add coerce to framework cli args ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11342](https://github.com/webdriverio/webdriverio/pull/11342) (@wdio/cli): add @testing-library/webdriverio to plugin section in CLI wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#11340](https://github.com/webdriverio/webdriverio/pull/11340) (docs): better document bail option on WDIO config level ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11345](https://github.com/webdriverio/webdriverio/pull/11345) Update $.ts ([@Thenlie](https://github.com/Thenlie))
+
+#### Committers: 5
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Leithen ([@Thenlie](https://github.com/Thenlie))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.18 (2023-10-01)
 
 #### :bug: Bug Fix
