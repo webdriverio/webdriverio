@@ -2,8 +2,6 @@ import url from 'node:url'
 import path from 'node:path'
 import type { Options } from '@wdio/types'
 
-import DevtoolsService from '../../packages/wdio-devtools-service/build/index.js'
-
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export const config: Options.Testrunner = {
@@ -22,7 +20,7 @@ export const config: Options.Testrunner = {
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
     bail: 1,
-    services: [[DevtoolsService, {}]],
+    services: ['devtools'],
 
     /**
      * test configurations
