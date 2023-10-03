@@ -13,6 +13,17 @@ export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
 
+const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
+    for (const key in opts) {
+        if (opts[key] === 'true') {
+            opts[key] = true
+        } else if (opts[key] === 'false') {
+            opts[key] = false
+        }
+    }
+    return opts
+}
+
 export const cmdArgs = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
@@ -87,13 +98,16 @@ export const cmdArgs = {
         type: 'number'
     },
     mochaOpts: {
-        desc: 'Mocha options'
+        desc: 'Mocha options',
+        coerce: coerceOpts
     },
     jasmineOpts: {
-        desc: 'Jasmine options'
+        desc: 'Jasmine options',
+        coerce: coerceOpts
     },
     cucumberOpts: {
-        desc: 'Cucumber options'
+        desc: 'Cucumber options',
+        coerce: coerceOpts
     },
     autoCompileOpts: {
         desc: 'Auto compilation options'
