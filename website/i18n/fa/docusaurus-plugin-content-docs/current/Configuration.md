@@ -267,7 +267,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-اگر می خواهید اجرای تست‌های شما پس از تعداد معینی از شکست متوقف شود، از `bail` استفاده کنید. (به طور پیش‌فرض روی `0`قرار می‌گیرد، که همه تست‌ها را بدون توجه به هر اتفاقی اجرا می‌کند.) **توجه:** لطفاً توجه داشته باشید که هنگام استفاده از اجرا کننده تست شخص ثالث (مانند موکا)، ممکن است به پیکربندی اضافی نیاز باشد.
+اگر می خواهید اجرای تست‌های شما پس از تعداد معینی از شکست متوقف شود، از `bail` استفاده کنید. (به طور پیش‌فرض روی `0`قرار می‌گیرد، که همه تست‌ها را بدون توجه به هر اتفاقی اجرا می‌کند.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
