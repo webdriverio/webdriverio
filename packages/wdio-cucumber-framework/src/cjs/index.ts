@@ -51,7 +51,12 @@ const adapterFactory = {
     setDefinitionFunctionWrapper,
     setWorldConstructor,
     defineParameterType,
-    defineStep
+    defineStep,
+
+    publishCucumberReport: async function (cucumberMessageDir: string) {
+        const { publishCucumberReport } = await import('../index.js')
+        await publishCucumberReport(cucumberMessageDir)
+    }
 }
 
 module.exports = adapterFactory
