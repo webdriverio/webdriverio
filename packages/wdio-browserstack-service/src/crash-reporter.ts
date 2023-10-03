@@ -85,7 +85,7 @@ export default class CrashReporter {
         })
     }
 
-    static recursivelyRedactKeysFromObject(obj?: Dict | Array<Dict>, keys: string[]) {
+    static recursivelyRedactKeysFromObject(obj: Dict | Array<Dict>, keys: string[]) {
         if (!obj) {
             return
         }
