@@ -13,7 +13,7 @@ export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
 
-const coerceOpts = (opts: { [x: string]: boolean | string }) => {
+const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
     for (const key in opts) {
         if (opts[key] === 'true') {
             opts[key] = true
