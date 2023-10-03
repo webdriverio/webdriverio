@@ -21,7 +21,7 @@
  * ```js
  * // print all image sources
  * for await (const img of $$('img')) {
- *   console.log(await img.getAttribute('src))
+ *   console.log(await img.getAttribute('src'))
  * }
  * ```
  *
