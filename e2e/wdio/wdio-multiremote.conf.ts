@@ -49,6 +49,6 @@ export const config = {
     /**
      * include shared store service for e2e tests
      */
-    services: ['shared-store'],
+    services: ['shared-store', 'devtools'],
     onPrepare: () => setValue('foo', 'bar')
 }
