@@ -35,11 +35,7 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
             }
 
             const w3cCaps = c as Capabilities.W3CCapabilities
-            if (w3cCaps.alwaysMatch) {
-                return w3cCaps.alwaysMatch
-            }
-
-            return c as Capabilities.Capabilities
+            return w3cCaps.alwaysMatch || c as Capabilities.Capabilities
         })
         caps.forEach((c) => { c[CUSTOM_CAP] = port })
         log.info(`Started shared server on port ${port}`)
