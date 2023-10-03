@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { Capabilities, Services } from '@wdio/types'
 
 import { setPort } from './client.js'
+import { CUSTOM_CAP } from './constants.js'
 import type { SharedStoreServiceCapabilities } from './types.js'
 
 const log = logger('@wdio/shared-store-service')
@@ -40,7 +41,7 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
 
             return c as Capabilities.Capabilities
         })
-        caps.forEach((c) => { c['wdio:sharedStoreServicePort'] = port })
+        caps.forEach((c) => { c[CUSTOM_CAP] = port })
         log.info(`Started shared server on port ${port}`)
     }
 

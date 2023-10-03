@@ -36,4 +36,10 @@ describe('main suite 1', () => {
         const score = await browser.checkPWA()
         expect(Object.keys(score).length).toBe(2)
     })
+
+    it('can access shared store', async () => {
+        expect(await browser.sharedStore.get('foo')).toBe('bar')
+        expect(await browserA.sharedStore.get('foo')).toBe('bar')
+        expect(await browserB.sharedStore.get('foo')).toBe('bar')
+    })
 })

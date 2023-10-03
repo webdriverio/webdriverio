@@ -56,7 +56,7 @@ describe('SharedStoreService', () => {
 
     describe('should close the server in onComplete hook', () => {
         it('using parallel caps', async () => {
-            const app = {
+            const app: any = {
                 server: { close: vi.fn((cb) => process.nextTick(cb)) }
             }
             storeLauncher['_app'] = app
