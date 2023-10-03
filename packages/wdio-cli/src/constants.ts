@@ -95,8 +95,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'light', value: 'wdio-light-reporter--$light' }
     ],
     plugin: [
-        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
-        { name: 'angular-component-harnesses', value: '@badisi/wdio-harness$--$harness' }
+        { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
+        { name: 'angular-component-harnesses: support for Angular component test harnesses\n   > https://www.npmjs.com/package/@badisi/wdio-harness', value: '@badisi/wdio-harness$--$harness' },
+        { name: 'Testing Library: utilities that encourage good testing practices laid down by dom-testing-library.\n   > https://testing-library.com/docs/webdriverio-testing-library/intro', value: '@testing-library/webdriverio$--$testing-library' }
     ],
     service: [
         // internal or community driver services
