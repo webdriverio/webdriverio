@@ -267,7 +267,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-यदि आप चाहते हैं कि परीक्षण विफलताओं की एक विशिष्ट संख्या के बाद आपका परीक्षण बंद हो जाए, तो `bail`का उपयोग करें। (यह `0`के लिए डिफ़ॉल्ट है, जो सभी परीक्षणों को चलाता है चाहे कुछ भी हो।) **नोट:** कृपया ध्यान रखें कि तीसरे पक्ष के टेस्ट रनर (जैसे मोचा) का उपयोग करते समय, अतिरिक्त कॉन्फ़िगरेशन की आवश्यकता हो सकती है।
+यदि आप चाहते हैं कि परीक्षण विफलताओं की एक विशिष्ट संख्या के बाद आपका परीक्षण बंद हो जाए, तो `bail`का उपयोग करें। (यह `0`के लिए डिफ़ॉल्ट है, जो सभी परीक्षणों को चलाता है चाहे कुछ भी हो।) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
