@@ -267,7 +267,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-Wenn Sie möchten, dass Ihr Testlauf nach einer bestimmten Anzahl von Testfehlern beendet wird, verwenden Sie `bail`. (Der Standardwert ist `0`, wodurch alle Tests ausgeführt werden, egal was passiert.) **Hinweis:** Bitte beachten Sie, dass bei Verwendung eines Test-Runners eines Drittanbieters (z. B. Mocha) möglicherweise eine zusätzliche Konfiguration erforderlich ist.
+Wenn Sie möchten, dass Ihr Testlauf nach einer bestimmten Anzahl von Testfehlern beendet wird, verwenden Sie `bail`. (Der Standardwert ist `0`, wodurch alle Tests ausgeführt werden, egal was passiert.) **Hinweis:** Bitte beachten Sie, dass bei Verwendung eines Test-Runners eines Drittanbieters (z. B. **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
