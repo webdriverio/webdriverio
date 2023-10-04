@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.21 (2023-10-04)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-jasmine-framework`, `wdio-sauce-service`, `wdio-types`, `wdio-utils`
+  * [#11148](https://github.com/webdriverio/webdriverio/pull/11148) Issue #11132 - adding hookName to beforeHook and afterHook ([@HananArgov](https://github.com/HananArgov))
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#11352](https://github.com/webdriverio/webdriverio/pull/11352) #11351 Allure step() not working in failures. ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+
+
 ## v8.16.20 (2023-10-04)
 
 #### :bug: Bug Fix
