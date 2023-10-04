@@ -9,7 +9,7 @@ import type { Readable } from 'node:stream'
 
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
-import { isCloudCapability } from '@wdio/config'
+import { isCloudCapability, isAppiumCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
@@ -77,7 +77,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             for (const [, capability] of Object.entries(this._capabilities)) {
                 const cap = (capability.capabilities as Capabilities.W3CCapabilities) || capability
                 const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
-                !isCloudCapability(c) && Object.assign(
+                !isCloudCapability(c) && isAppiumCapability(c) && Object.assign(
                     capability,
                     DEFAULT_CONNECTION,
                     'port' in this._args ? { port: this._args.port } : {},
@@ -96,7 +96,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
                     Object.values(cap).forEach(c => {
                         const capa = (c.capabilities as Capabilities.W3CCapabilities).alwaysMatch || (c.capabilities as Capabilities.W3CCapabilities) || c
-                        !isCloudCapability(capa) && Object.assign(
+                        !isCloudCapability(capa) && isAppiumCapability(capa) && Object.assign(
                             c,
                             DEFAULT_CONNECTION,
                             'port' in this._args ? { port: this._args.port } : {},
@@ -106,7 +106,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     }
                     )
                 } else {
-                    !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
+                    !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && isAppiumCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
                         cap,
                         DEFAULT_CONNECTION,
                         'port' in this._args ? { port: this._args.port } : {},

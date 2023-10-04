@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import got from 'got'
+import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
 import { executeHooksWithArgs } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
@@ -7,7 +8,7 @@ import type * as Messages from '@cucumber/messages'
 
 import * as packageExports from '../src/index.js'
 
-import CucumberAdapter from '../src/index.js'
+import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
@@ -76,6 +77,15 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
+    })
+
+    it('respects user-defined formatOptions', async () => {
+
+        const formatOptions =  { myFormatter: { MyOption: 'MyValue' } }
+
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { formatOptions } }, [], {}, {}, {}, false)
+
+        expect(adapter._cucumberOpts.formatOptions).toEqual(expect.objectContaining(formatOptions))
     })
 
     it('throws if parallel cucumber opts is set', async () => {
@@ -568,5 +578,47 @@ describe('CucumberAdapter', () => {
 
         expect(result).toBe(0)
         expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+})
+
+describe('publishCucumberReport', () => {
+    beforeAll(() => {
+        vi.mock('fs/promises', () => ({
+            readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
+            readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
+        }))
+        vi.mock('got')
+    })
+
+    it('should not publish report if CUCUMBER_PUBLISH_REPORT_TOKEN is not set', async () => {
+        await publishCucumberReport('/some/directory')
+        expect(got).not.toHaveBeenCalled()
+    })
+
+    it('should publish report successfully', async () => {
+        process.env.CUCUMBER_PUBLISH_REPORT_TOKEN = 'some-token'
+        process.env.CUCUMBER_PUBLISH_REPORT_URL = 'https://example.com/api/reports'
+
+        // @ts-expect-error mock feature
+        got.customResponseFor(/\/api\/reports/, {
+            headers: {
+                location: 'https://example.com/reports/12345'
+            }
+        })
+
+        await publishCucumberReport('./')
+
+        expect(got).toHaveBeenCalledWith('https://example.com/api/reports', {
+            headers: {
+                Authorization: 'Bearer some-token'
+            }
+        })
+
+        expect(got.put).toHaveBeenCalledWith('https://example.com/reports/12345', {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: '{"message": "Test 1"}{"message": "Test 2"}'
+        })
     })
 })

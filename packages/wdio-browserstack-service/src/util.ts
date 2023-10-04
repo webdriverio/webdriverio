@@ -656,7 +656,7 @@ export async function getGitMetaData () {
         return
     }
     const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url }))
+    const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
     return {
         name: 'git',
         sha: info.sha,
@@ -956,10 +956,17 @@ export function patchConsoleLogs() {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
-        const origMethod = (console[method] as any).bind(console);
-        (console as any)[method] = (...args: unknown[]) => {
-            origMethod(...args);
-            (BSTestOpsPatcher as any)[method](...args)
+        const origMethod = (console[method] as any).bind(console)
+
+        // Make sure we don't override Constructors
+        // Arrow functions are not construable
+        if (typeof console[method] === 'function'
+            && method !== 'Console'
+        ) {
+            (console as any)[method] = (...args: unknown[]) => {
+                origMethod(...args);
+                (BSTestOpsPatcher as any)[method](...args)
+            }
         }
     })
 }

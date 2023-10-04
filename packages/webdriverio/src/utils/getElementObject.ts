@@ -13,6 +13,26 @@ interface GetElementProps {
     isShadowElement?: boolean
 }
 
+interface WebDriverErrorResponse {
+    error: string,
+    message: string
+    stacktrace: string,
+}
+
+class WebDriverError extends Error {
+    constructor(obj: Error | WebDriverErrorResponse) {
+
+        const { name, stack } = obj as Error
+        const { error, stacktrace } = obj as WebDriverErrorResponse
+
+        super(error || name || '')
+        Object.assign(this, {
+            message: obj.message,
+            stack: stacktrace || stack,
+        })
+    }
+}
+
 /**
  * transforms a findElement response into a WDIO element
  * @param  {string} selector  selector that was used to query the element
@@ -91,7 +111,7 @@ export const getElement = function findElement(
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    elemResponse: (ElementReference | Error)[],
+    elemResponse: (ElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): ElementArray {
     const browser = getBrowserObject(this as WebdriverIO.Element)
@@ -109,7 +129,7 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res: ElementReference | Element | Error, i) => {
+    const elements = [elemResponse].flat(1).map((res: ElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
          */
@@ -133,7 +153,8 @@ export const getElements = function getElements(
                 const elementKey = this.isW3C ? ELEMENT_KEY : 'ELEMENT'
                 client[elementKey] = elementId
             } else {
-                client.error = res as Error
+                res = res as WebDriverError | Error
+                client.error = res instanceof Error ? res : new WebDriverError(res)
             }
 
             client.selector = Array.isArray(selector)

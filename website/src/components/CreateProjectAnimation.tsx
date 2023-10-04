@@ -3,7 +3,7 @@ import BrowserOnly from '@docusaurus/BrowserOnly'
 import { translate } from '@docusaurus/Translate'
 import { useColorMode } from '@docusaurus/theme-common'
 
-export function CreateProjectAnimation () {
+export function CreateProjectAnimation() {
     return (
         <BrowserOnly>
             {() => {
@@ -26,7 +26,7 @@ export function CreateProjectAnimation () {
     )
 }
 
-export function CreateMacOSProjectAnimation () {
+export function CreateMacOSProjectAnimation() {
     return (
         <BrowserOnly>
             {() => {

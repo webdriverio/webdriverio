@@ -21,6 +21,145 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.20 (2023-10-04)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-config`
+  * [#11349](https://github.com/webdriverio/webdriverio/pull/11349) fix appium multiremote session connect ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 1
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.19 (2023-10-03)
+
+#### :rocket: New Feature
+* `wdio-devtools-service`
+  * [#11059](https://github.com/webdriverio/webdriverio/pull/11059) devtools commands for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#11341](https://github.com/webdriverio/webdriverio/pull/11341) (@wdio/shared-store-service): support multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11269](https://github.com/webdriverio/webdriverio/pull/11269) [v8] [browserstack-service] Fix E2Bug exception on linux ([@sriteja777](https://github.com/sriteja777))
+* `wdio-cli`
+  * [#11344](https://github.com/webdriverio/webdriverio/pull/11344) Add coerce to framework cli args ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11342](https://github.com/webdriverio/webdriverio/pull/11342) (@wdio/cli): add @testing-library/webdriverio to plugin section in CLI wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#11340](https://github.com/webdriverio/webdriverio/pull/11340) (docs): better document bail option on WDIO config level ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11345](https://github.com/webdriverio/webdriverio/pull/11345) Update $.ts ([@Thenlie](https://github.com/Thenlie))
+
+#### Committers: 5
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Leithen ([@Thenlie](https://github.com/Thenlie))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.18 (2023-10-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11276](https://github.com/webdriverio/webdriverio/pull/11276) (webdriverio): fix - handle out of bounds error when retrieving element rect during scrollIntoView ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-local-runner`
+  * [#11273](https://github.com/webdriverio/webdriverio/pull/11273) (@wdio/local-runner): fix ts-node related issue when using Node 20 ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11275](https://github.com/webdriverio/webdriverio/pull/11275) (docs): update Babel documentation with info for monorepos ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
+## v8.16.17 (2023-09-29)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#11271](https://github.com/webdriverio/webdriverio/pull/11271) Fixes issue 10140 ([@KierenLWoods](https://github.com/KierenLWoods))
+
+#### :nail_care: Polish
+* `wdio-logger`, `wdio-utils`
+  * [#11255](https://github.com/webdriverio/webdriverio/pull/11255) Updating driver download logs ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 2
+- Kieren Woods ([@KierenLWoods](https://github.com/KierenLWoods))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.16 (2023-09-29)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11260](https://github.com/webdriverio/webdriverio/pull/11260) fix: Respect user-provided Cucumber formatter options ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-browserstack-service`
+  * [#11257](https://github.com/webdriverio/webdriverio/pull/11257) Fix git exception when no remote ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#10974](https://github.com/webdriverio/webdriverio/pull/10974) fix: Deal with new W3C spec Error response ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-shared-store-service`
+  * [#11254](https://github.com/webdriverio/webdriverio/pull/11254) Throw err if getter's is used before server init ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11258](https://github.com/webdriverio/webdriverio/pull/11258) Update $.ts ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+* `typescript`
+  * [#11263](https://github.com/webdriverio/webdriverio/pull/11263) update TypeScript documentation for missing types ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :house: Internal
+* [#11259](https://github.com/webdriverio/webdriverio/pull/11259) (website): convert website to ts ([@AnthonyQuy](https://github.com/AnthonyQuy))
+
+#### Committers: 6
+- Anthony  ([@AnthonyQuy](https://github.com/AnthonyQuy))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- JOSIAS VALENTIM DE FIGUEREDO ([@josiasvfigueredo1985](https://github.com/josiasvfigueredo1985))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.15 (2023-09-26)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11248](https://github.com/webdriverio/webdriverio/pull/11248) (@wdio/utils): respect browserVersion when setting up Chrome or Firefox ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.16.14 (2023-09-26)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11247](https://github.com/webdriverio/webdriverio/pull/11247) (@wdio/utils): improve Chrome version detection ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#11245](https://github.com/webdriverio/webdriverio/pull/11245) Screenshot is not attached to Allure report  ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.16.13 (2023-09-25)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#11146](https://github.com/webdriverio/webdriverio/pull/11146) fix: Stop BrowserStack service from console patching constructors ([@nextlevelbeard](https://github.com/nextlevelbeard))
+  * [#11224](https://github.com/webdriverio/webdriverio/pull/11224) fix: script timeouts when passing include/exclude keys in options ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### Committers: 2
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.16.12 (2023-09-22)
 
 #### :bug: Bug Fix

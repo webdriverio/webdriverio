@@ -92,7 +92,7 @@ describe('Appium launcher', () => {
                 command:'path/to/my_custom_appium',
                 args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
-            const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
+            const capabilities = [{ port: 1234, deviceName: 'baz' }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -127,6 +127,7 @@ describe('Appium launcher', () => {
                     expect.any(Object)
                 )
             }
+
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
@@ -140,8 +141,8 @@ describe('Appium launcher', () => {
                 args: { address: 'bar' }
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: {} },
-                browserB: { capabilities: {} }
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -162,11 +163,11 @@ describe('Appium launcher', () => {
                 args: { address: 'bar' }
             }
             const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
-                browserA: { port: 1234, capabilities: {} },
-                browserB: { capabilities: {} }
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
             }, {
-                browserC: { port: 5678, capabilities: {} },
-                browserD: { capabilities: {} }
+                browserC: { port: 5678, capabilities: { deviceName: 'baz' } },
+                browserD: { capabilities: { deviceName: 'baz' } }
             }]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -195,7 +196,7 @@ describe('Appium launcher', () => {
                 installArgs : { bar : 'bar' },
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: {} },
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -217,7 +218,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address:'bar', port: 1234 }
             }
-            const capabilities = [{} as Capabilities.DesiredCapabilities]
+            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
@@ -237,7 +238,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
@@ -402,6 +403,81 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher(options, [], {} as any)
             const expectedError = new Error('Args should be an object')
             await expect(launcher.onPrepare()).rejects.toEqual(expectedError)
+        })
+
+        test('should not set host, port and path for non Appium capabilities', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
+            }
+            const capabilities = [{ browserName: 'baz' } as Capabilities.DesiredCapabilities]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            launcher['_startAppium'] = vi.fn().mockImplementation(
+                (cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(launcher['_logPath']).toBe('./')
+            expect(capabilities[0].protocol).toBeUndefined()
+            expect(capabilities[0].hostname).toBeUndefined()
+            expect(capabilities[0].port).toBeUndefined()
+            expect(capabilities[0].path).toBeUndefined()
+        })
+
+        test('should not set host, port and path for non Appium capabilities using multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities = {
+                browserA: { capabilities: { browserName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities.browserA.protocol).toBeUndefined()
+            expect(capabilities.browserA.hostname).toBeUndefined()
+            expect(capabilities.browserA.port).toBeUndefined()
+            expect(capabilities.browserA.path).toBeUndefined()
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('127.0.0.1')
+            expect(capabilities.browserB.port).toBe(4723)
+            expect(capabilities.browserB.path).toBe('/')
+        })
+
+        test('should not set host, port and path for non Appium capabilities using parallel multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { browserName: 'baz' } }
+            }, {
+                browserC: { port: 5678, capabilities: { browserName: 'baz' } },
+                browserD: { capabilities: { deviceName: 'baz' } }
+            }]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities[0].browserA.protocol).toBe('http')
+            expect(capabilities[0].browserA.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserA.port).toBe(1234)
+            expect(capabilities[0].browserA.path).toBe('/')
+            expect(capabilities[0].browserB.protocol).toBeUndefined()
+            expect(capabilities[0].browserB.hostname).toBeUndefined()
+            expect(capabilities[0].browserB.port).toBeUndefined()
+            expect(capabilities[0].browserB.path).toBeUndefined()
+            expect(capabilities[1].browserC.protocol).toBeUndefined()
+            expect(capabilities[1].browserC.hostname).toBeUndefined()
+            expect(capabilities[1].browserC.port).toBe(5678)
+            expect(capabilities[1].browserC.path).toBeUndefined()
+            expect(capabilities[1].browserD.protocol).toBe('http')
+            expect(capabilities[1].browserD.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserD.port).toBe(4723)
+            expect(capabilities[1].browserD.path).toBe('/')
         })
     })
 

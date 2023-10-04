@@ -40,6 +40,14 @@ export function isCloudCapability(caps: Capabilities.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
 
+export function isAppiumCapability(caps: Capabilities.Capabilities) {
+    return Boolean(
+        caps &&
+        // @ts-expect-error outdated jsonwp cap
+        (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
+    )
+}
+
 /**
  * validates configurations based on default values
  * @param  {Object} defaults  object describing all allowed properties

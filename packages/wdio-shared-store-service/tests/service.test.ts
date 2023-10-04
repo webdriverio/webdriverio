@@ -1,8 +1,9 @@
-import { describe, expect, vi, beforeEach, afterEach, it } from 'vitest'
+import { describe, expect, vi, afterEach, it } from 'vitest'
 
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from '../src/client.js'
 import SharedStoreService from '../src/service.js'
-import type { SharedStoreServiceCapabilities } from '../build/types.js'
+import { CUSTOM_CAP } from '../src/constants.js'
+import type { SharedStoreServiceCapabilities } from '../src/types.js'
 
 vi.mock('../src/client', () => ({
     getValue: vi.fn(),
@@ -14,21 +15,34 @@ vi.mock('../src/client', () => ({
 }))
 
 describe('SharedStoreService', () => {
-    let storeService: SharedStoreService
+    const capabilities = {
+        browserName: 'chrome',
+        [CUSTOM_CAP]: 65209
+    } as SharedStoreServiceCapabilities
 
-    beforeEach(() => {
-        const capabilities = {
-            browserName: 'chrome',
-            'wdio:sharedStoreServicePort': 65209
-        } as SharedStoreServiceCapabilities
-        storeService = new SharedStoreService(null as never, capabilities)
-    })
+    describe('sets port correctly', () => {
+        it('using standard caps', async () => {
+            new SharedStoreService(null as never, capabilities)
+            expect(setPort).toBeCalledWith(65209)
+        })
 
-    it('constructor', async () => {
-        expect(setPort).toBeCalledWith(65209)
+        it('using w3c caps', async () => {
+            const c = { alwaysMatch: capabilities, firstMatch: [] }
+            new SharedStoreService(null as never, c)
+            expect(setPort).toBeCalledWith(65209)
+        })
+
+        it('using multiremote caps', async () => {
+            new SharedStoreService(null as never, {
+                browserA: { capabilities },
+                browserB: { capabilities }
+            })
+            expect(setPort).toBeCalledWith(65209)
+        })
     })
 
     it('beforeSession', () => {
+        const storeService = new SharedStoreService(null as never, capabilities)
         const browser = { call: (fn: Function) => fn() }
         storeService.before({} as never, [] as never, browser as any)
         storeService['_browser']?.sharedStore.get('foobar')
