@@ -350,23 +350,23 @@ export const config = {
      * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      *
      */
-    beforeHook: function (test, context) {
+    beforeHook: function (test, context, hookName) {
     },
     /**
      * Hook that gets executed _after_ every hook within the suite ends.
      * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      */
-     आफ्टरहुक: फ़ंक्शन (परीक्षण, संदर्भ, {त्रुटि, परिणाम, अवधि, उत्तीर्ण, पुनर्प्रयास}) {
-     },
-     /**
-      * परीक्षण से पहले क्रियान्वित होने वाला कार्य (केवल मोचा/जेसमीन में)
-      * @ param {object} टेस्ट टेस्ट ऑब्जेक्ट
-      * @param {object} संदर्भ स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
-      */
-     पहले टेस्ट: फ़ंक्शन (परीक्षण, संदर्भ) {
-     },
-     /**
-      * WebdriverIO कमांड निष्पादित होने से पहले चलता है।
+    afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
+    },
+    /**
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {object} test    test object
+     * @param {object} context scope object the test was executed with
+     */
+    beforeTest: function (test, context) {
+    },
+    /**
+     * Runs before a WebdriverIO command is executed.
      * @param {string} commandName hook command name
      * @param {Array} args arguments that the command would receive
      */
