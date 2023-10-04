@@ -1,12 +1,13 @@
 /* istanbul ignore file */
 
 import { DEFAULT_CONFIGS } from './constants.js'
-import { validateConfig, isCloudCapability } from './utils.js'
+import { validateConfig, isCloudCapability, isAppiumCapability } from './utils.js'
 import ConfigParser from './lib/ConfigParser.js'
 
 export {
     validateConfig,
     isCloudCapability,
+    isAppiumCapability,
     ConfigParser,
 
     /**
