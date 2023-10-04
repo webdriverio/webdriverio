@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.20 (2023-10-04)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-config`
+  * [#11349](https://github.com/webdriverio/webdriverio/pull/11349) fix appium multiremote session connect ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 1
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.19 (2023-10-03)
 
 #### :rocket: New Feature
