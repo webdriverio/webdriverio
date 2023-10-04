@@ -455,6 +455,7 @@ Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
+- `hookName` (`string`): the hook name
 
 ### afterHook
 
@@ -465,6 +466,7 @@ Parameters:
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `hookName` (`string`): the hook name
 
 ### beforeTest
 
