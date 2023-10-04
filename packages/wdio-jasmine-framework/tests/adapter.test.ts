@@ -162,9 +162,9 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
     allHooks.forEach((hookName) => {
         const hookIdx = INTERFACES.bdd.indexOf(hookName)
         adapter['_reporter'].startedSuite = true as any
-        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][BEFORE_HOOK_IDX] as Function[]).pop()!(null, null, null, undefined)
+        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][BEFORE_HOOK_IDX] as Function[]).pop()!(null, null, undefined)
         adapter['_reporter'].startedSuite = false as any
-        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][AFTER_HOOK_IDX] as Function[]).pop()!(null, null, null, { error: new Error(hookName) })
+        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][AFTER_HOOK_IDX] as Function[]).pop()!(null, null, { error: new Error(hookName) })
     })
 
     expect(adapter['_reporter'].emit).toHaveBeenCalledTimes(4)

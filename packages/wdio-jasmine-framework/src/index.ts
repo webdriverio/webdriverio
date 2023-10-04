@@ -149,7 +149,7 @@ class JasmineAdapter {
          */
         INTERFACES.bdd.forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
-            const beforeHook = [...this._config.beforeHook]
+            const beforeHook = [...this._config.beforeHook] as ((test: any, context: any) => void)[]
             const afterHook = [...this._config.afterHook]
 
             /**

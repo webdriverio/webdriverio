@@ -962,12 +962,12 @@ test('afterHook', () => {
     expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
 
     // @ts-expect-error
-    service.afterHook(undefined, undefined, undefined, { passed: true })
+    service.afterHook(undefined, undefined, { passed: true })
     expect(service['_failures']).toBe(0)
     expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
 
     // @ts-expect-error
-    service.afterHook(undefined, undefined, undefined, {
+    service.afterHook(undefined, undefined, {
         error: new Error('foo'),
         passed: false
     })
