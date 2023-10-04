@@ -29,9 +29,12 @@ describe('reporter allure steps API', () => {
     })
 
     it('should add failed custom step', async () => {
-        await AllureReporter.step('custom step', () => (
-            Promise.reject(new Error('an error here'))))
-
+        const stepWithError = async () =>
+            await AllureReporter.step(
+                'custom step',
+                async () => (Promise.reject(new Error('an error here')))
+            )
+        await expect(stepWithError).rejects.toThrowError(/an error here/)
         const [, call] = vi.mocked(process.emit).mock.calls[0] as any
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(call.steps).toHaveLength(1)
