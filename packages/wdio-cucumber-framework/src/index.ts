@@ -37,6 +37,8 @@ import {
 
 import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
 
+import { DataTable, World, Status } from '@cucumber/cucumber'
+
 export const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/cucumber-framework')
@@ -53,12 +55,6 @@ const {
     Given,
     When,
     Then,
-
-    DataTable,
-
-    World,
-
-    Status,
 
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
