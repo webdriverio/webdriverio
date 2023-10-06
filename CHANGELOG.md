@@ -21,6 +21,77 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.22 (2023-10-06)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11356](https://github.com/webdriverio/webdriverio/pull/11356) Export dataTabels, world & status from cucumber ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* [#11357](https://github.com/webdriverio/webdriverio/pull/11357) Fix typo in Browser Object Docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.21 (2023-10-04)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-jasmine-framework`, `wdio-sauce-service`, `wdio-types`, `wdio-utils`
+  * [#11148](https://github.com/webdriverio/webdriverio/pull/11148) Issue #11132 - adding hookName to beforeHook and afterHook ([@HananArgov](https://github.com/HananArgov))
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#11352](https://github.com/webdriverio/webdriverio/pull/11352) #11351 Allure step() not working in failures. ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+
+
+## v8.16.20 (2023-10-04)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-config`
+  * [#11349](https://github.com/webdriverio/webdriverio/pull/11349) fix appium multiremote session connect ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 1
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
+## v8.16.19 (2023-10-03)
+
+#### :rocket: New Feature
+* `wdio-devtools-service`
+  * [#11059](https://github.com/webdriverio/webdriverio/pull/11059) devtools commands for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#11341](https://github.com/webdriverio/webdriverio/pull/11341) (@wdio/shared-store-service): support multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11269](https://github.com/webdriverio/webdriverio/pull/11269) [v8] [browserstack-service] Fix E2Bug exception on linux ([@sriteja777](https://github.com/sriteja777))
+* `wdio-cli`
+  * [#11344](https://github.com/webdriverio/webdriverio/pull/11344) Add coerce to framework cli args ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11342](https://github.com/webdriverio/webdriverio/pull/11342) (@wdio/cli): add @testing-library/webdriverio to plugin section in CLI wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#11340](https://github.com/webdriverio/webdriverio/pull/11340) (docs): better document bail option on WDIO config level ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11345](https://github.com/webdriverio/webdriverio/pull/11345) Update $.ts ([@Thenlie](https://github.com/Thenlie))
+
+#### Committers: 5
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Leithen ([@Thenlie](https://github.com/Thenlie))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.18 (2023-10-01)
 
 #### :bug: Bug Fix

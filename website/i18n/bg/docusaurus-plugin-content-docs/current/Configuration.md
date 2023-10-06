@@ -267,7 +267,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -455,6 +455,7 @@ Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
+- `hookName` (`string`): the hook name
 
 ### afterHook
 
@@ -465,6 +466,7 @@ Parameters:
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `hookName` (`string`): the hook name
 
 ### beforeTest
 

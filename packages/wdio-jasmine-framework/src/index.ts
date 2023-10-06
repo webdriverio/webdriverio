@@ -117,11 +117,11 @@ class JasmineAdapter {
 
         const emitHookEvent = (
             fnName: string,
-            eventType: string
+            eventType: string,
         ) => (
             _test: never,
             _context: never,
-            { error }: { error?: jasmine.FailedExpectation } = {}
+            { error }: { error?: jasmine.FailedExpectation } = {},
         ) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
             const hook = {
@@ -149,7 +149,7 @@ class JasmineAdapter {
          */
         INTERFACES.bdd.forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
-            const beforeHook = [...this._config.beforeHook]
+            const beforeHook = [...this._config.beforeHook] as ((test: any, context: any) => void)[]
             const afterHook = [...this._config.afterHook]
 
             /**

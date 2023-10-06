@@ -25,6 +25,7 @@ const STACKTRACE_FILTER = [
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
  * @return  {*}                     specFn result
+ * @param   {string} hookName       the hook name
  */
 export const testFnWrapper = function (
     this: unknown,
@@ -34,7 +35,8 @@ export const testFnWrapper = function (
         BeforeHookParam<unknown>,
         AfterHookParam<unknown>,
         string,
-        number
+        number,
+        string?
     ]
 ) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
@@ -51,6 +53,7 @@ export const testFnWrapper = function (
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
  * @return  {*}                     specFn result
+ * @param   {string} hookName       the hook name
  */
 export const testFrameworkFnWrapper = async function (
     this: unknown,
@@ -60,10 +63,14 @@ export const testFrameworkFnWrapper = async function (
     { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
     { afterFn, afterFnArgs }: AfterHookParam<unknown>,
     cid: string,
-    repeatTest = 0
+    repeatTest = 0,
+    hookName?: string
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
+    if (type === 'Hook' && hookName) {
+        beforeArgs.push(hookName)
+    }
     await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
 
     let result
@@ -81,7 +88,6 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
-
     afterArgs.push({
         retries,
         error,
@@ -89,6 +95,10 @@ export const testFrameworkFnWrapper = async function (
         duration,
         passed: !error
     })
+
+    if (type === 'Hook' && hookName) {
+        afterArgs.push(hookName)
+    }
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
