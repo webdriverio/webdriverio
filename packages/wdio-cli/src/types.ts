@@ -9,6 +9,7 @@ export interface Questionnair {
     electronAppBinaryPath?: string
     electronBuildTool?: ElectronBuildToolChoice
     electronBuilderConfigLocation?: ElectronBuilderConfigLocationChoice
+    electronBuilderConfigPath: string
     electronAppRepoPath?: string
     backend?: BackendChoice
     hostname?: string
