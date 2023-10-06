@@ -172,6 +172,18 @@ export enum BackendChoice {
     Grid = 'I have my own Selenium cloud'
 }
 
+export enum ElectronBuildToolChoice {
+    ElectronBuilder = 'electron-builder',
+    ElectronForge = 'Electron Forge',
+    SomethingElse = 'Something else'
+}
+
+export enum ElectronBuilderConfigLocationChoice {
+    PackageJson = 'package.json',
+    ElectronBuilderJson = 'electron-builder.json',
+    SomewhereElse = 'Somewhere else'
+}
+
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -267,11 +279,32 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
+    type: 'list',
+    name: 'electronBuildTool',
+    message: 'Which tool are you using to build your Electron app?',
+    choices: Object.values(ElectronBuildToolChoice),
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+}, {
     type: 'input',
-    name: 'appPath',
-    message: 'What is the path to your compiled Electron app?',
-    default: './dist',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+    name: 'electronAppBinaryPath',
+    message: 'What is the path to the binary of your built Electron app?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse)
+}, {
+    type: 'input',
+    name: 'electronAppRepoPath',
+    message: 'What is the path to the repo of your Electron app?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
+}, {
+    type: 'list',
+    name: 'electronBuilderConfigLocation',
+    message: 'Where is your electron-builder configuration located?',
+    choices: Object.values(ElectronBuilderConfigLocationChoice),
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder && answers.electronAppRepoPath
+}, {
+    type: 'input',
+    name: 'electronBuilderConfigPath',
+    message: 'What is the path to your electron-builder configuration',
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse
 }, {
     type: 'list',
     name: 'backend',
