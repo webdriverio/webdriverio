@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.16.22 (2023-10-06)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#11356](https://github.com/webdriverio/webdriverio/pull/11356) Export dataTabels, world & status from cucumber ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* [#11357](https://github.com/webdriverio/webdriverio/pull/11357) Fix typo in Browser Object Docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.16.21 (2023-10-04)
 
 #### :rocket: New Feature
