@@ -1,10 +1,15 @@
 <%
+const electronBuilderConfigIsJson = () => answers.electronBuilderConfigLocation.endsWith('.json') || answers.electronBuilderConfigPath.endsWith('.json')
+
 if (answers.purpose === 'electron') {
-    if (answers.electronBuildTool === 'electron-builder') {
+    if (answers.electronBuildTool === 'electron-builder' && electronBuilderConfigIsJson()) {
         %>import fs from 'node:fs'
+<%  }
+    if (['package.json', 'electron-builder.json'].includes(answers.electronBuilderConfigLocation)) { 
+        %>import path from 'node:path'
 
 <%  }
-    if (answers.electronBuildTool === 'electron-builder' && answers.electronAppRepoPath) {
+    if (answers.electronBuildTool === 'electron-builder' && !answers.electronAppBinaryPath) {
         %>import { getBinaryPath } from 'wdio-electron-service/utils'
 
 <%  }
@@ -17,16 +22,16 @@ if (answers.isUsingTypeScript) {
 
 if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
     if (answers.electronBuilderConfigLocation === 'electron-builder.json') { 
-        %>const electronBuilderJson = JSON.parse(fs.readFileSync('./electron-builder.json', 'utf-8'))
+        %>const electronBuilderJson = JSON.parse(fs.readFileSync(path.join('<%- answers.electronAppRepoPath %>', 'electron-builder.json'), 'utf-8'))
 const productName = electronBuilderJson.productName
 
 <%  } else if (answers.electronBuilderConfigLocation === 'package.json') { 
-        %>const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
+        %>const packageJson = JSON.parse(fs.readFileSync(path.join('<%- answers.electronAppRepoPath %>', 'package.json'), 'utf-8'))
 const productName = packageJson.build.productName
 
-<%  } else {
-    %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>', 'utf-8'))
-const productName = packageJson.build.productName
+<%  } else if (electronBuilderConfigIsJson()) {
+    %>const electronBuilderJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>', 'utf-8'))
+const productName = electronBuilderJson.productName
 
 <%  }
 }
