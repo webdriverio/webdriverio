@@ -221,6 +221,10 @@ function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
 }
 
+function electronBuilderConfigIsJson (answers: Questionnair) {
+    return answers.electronBuilderConfigLocation?.endsWith('.json') || answers.electronBuilderConfigPath?.endsWith('.json')
+}
+
 export const isNuxtProject = await Promise.all(
     [
         path.join(process.cwd(), 'nuxt.config.js'),
@@ -305,7 +309,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'electronAppBinaryPath',
     message: 'What is the path to the binary of your built Electron app?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse)
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || !electronBuilderConfigIsJson(answers))
 }, {
     type: 'list',
     name: 'backend',
