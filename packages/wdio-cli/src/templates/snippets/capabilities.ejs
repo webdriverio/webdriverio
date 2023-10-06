@@ -40,7 +40,7 @@ capabilities: [{<%
     } else if (answers.purpose === 'electron') { %>
         browserName: 'electron',
         'wdio:electronServiceOptions': {
-            appBinaryPath: <%- answers.electronAppRepoPath ? `getBinaryPath('${answers.electronAppRepoPath}', productName)` : `'${answers.electronAppBinaryPath}'` %>,
+            appBinaryPath: <%- answers.electronAppBinaryPath ? `'${answers.electronAppBinaryPath}'` : `getBinaryPath('${answers.electronAppRepoPath}', productName)` %>,
             appArgs: ['foo', 'bar=baz']
         }<%
     } else {
