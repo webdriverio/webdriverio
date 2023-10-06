@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "7.31.1",
+  "version": "7.33.0",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -25,8 +25,8 @@
   "dependencies": {
     "@types/glob": "^8.1.0",
     "@wdio/logger": "7.26.0",
-    "@wdio/types": "7.30.2",
-    "@wdio/utils": "7.30.2",
+    "@wdio/types": "7.33.0",
+    "@wdio/utils": "7.33.0",
     "deepmerge": "^4.0.0",
     "glob": "^8.0.3"
   },

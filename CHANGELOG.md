@@ -19,6 +19,28 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.33.0 (2023-10-06)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`, `wdio-types`
+  * [#11217](https://github.com/webdriverio/webdriverio/pull/11217) [v7] Browserstack Accessibility support with WebdriverIO 🚀 ([@kamal-kaur04](https://github.com/kamal-kaur04))
+* `wdio-browserstack-service`
+  * [#10961](https://github.com/webdriverio/webdriverio/pull/10961) [v7] Console logs and cucumber hooks support ([@sriteja777](https://github.com/sriteja777))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#11270](https://github.com/webdriverio/webdriverio/pull/11270) [v7] [browserstack-service] Fix git exception when no remote ([@sriteja777](https://github.com/sriteja777))
+* `wdio-sauce-service`
+  * [#11223](https://github.com/webdriverio/webdriverio/pull/11223) Pin saucelabs package to 7.2.2 ([@sriteja777](https://github.com/sriteja777))
+* `wdio-junit-reporter`
+  * [#10978](https://github.com/webdriverio/webdriverio/pull/10978) Fix junit reporter test duplication issue for WDIO v7 ([@jemishgopani](https://github.com/jemishgopani))
+
+#### Committers: 3
+- Jemish Gopani ([@jemishgopani](https://github.com/jemishgopani))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.32.3 (2023-07-24)
 
 #### :bug: Bug Fix
