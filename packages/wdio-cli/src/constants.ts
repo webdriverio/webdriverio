@@ -287,11 +287,6 @@ export const QUESTIONNAIRE = [{
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
 }, {
     type: 'input',
-    name: 'electronAppBinaryPath',
-    message: 'What is the path to the binary of your built Electron app?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse)
-}, {
-    type: 'input',
     name: 'electronAppRepoPath',
     message: 'What is the path to the repo of your Electron app?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
@@ -304,8 +299,13 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'electronBuilderConfigPath',
-    message: 'What is the path to your electron-builder configuration',
+    message: 'What is the path to your electron-builder configuration?',
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse
+}, {
+    type: 'input',
+    name: 'electronAppBinaryPath',
+    message: 'What is the path to the binary of your built Electron app?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse)
 }, {
     type: 'list',
     name: 'backend',
