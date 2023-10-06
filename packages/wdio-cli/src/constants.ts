@@ -174,8 +174,8 @@ export enum BackendChoice {
 }
 
 export enum ElectronBuildToolChoice {
-    ElectronBuilder = 'electron-builder',
     ElectronForge = 'Electron Forge',
+    ElectronBuilder = 'electron-builder',
     SomethingElse = 'Something else'
 }
 
