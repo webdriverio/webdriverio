@@ -15,7 +15,7 @@ if (answers.isUsingTypeScript) {
 
 <% }
 
-if (answers.purpose === 'electron') {
+if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
     if (answers.electronBuilderConfigLocation === 'electron-builder.json') { 
         %>const electronBuilderJson = JSON.parse(fs.readFileSync('./electron-builder.json', 'utf-8'))
 const productName = electronBuilderJson.productName
