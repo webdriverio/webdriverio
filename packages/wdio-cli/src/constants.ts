@@ -293,6 +293,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'electronAppRepoPath',
     message: 'What is the path to the repo of your Electron app?',
+    default: process.cwd(),
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
 }, {
     type: 'list',
