@@ -179,12 +179,6 @@ export enum ElectronBuildToolChoice {
     SomethingElse = 'Something else'
 }
 
-export enum ElectronBuilderConfigLocationChoice {
-    PackageJson = 'package.json',
-    ElectronBuilderJson = 'electron-builder.json',
-    SomewhereElse = 'Somewhere else'
-}
-
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -222,7 +216,7 @@ function getTestingPurpose (answers: Questionnair) {
 }
 
 function electronBuilderConfigIsJson (answers: Questionnair) {
-    return answers.electronBuilderConfigLocation?.endsWith('.json') || answers.electronBuilderConfigPath?.endsWith('.json')
+    return answers.electronBuilderConfigPath?.endsWith('.json')
 }
 
 export const isNuxtProject = await Promise.all(
@@ -291,21 +285,10 @@ export const QUESTIONNAIRE = [{
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
 }, {
     type: 'input',
-    name: 'electronAppRepoPath',
-    message: 'What is the path to the repo of your Electron app?',
-    default: process.cwd(),
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
-}, {
-    type: 'list',
-    name: 'electronBuilderConfigLocation',
-    message: 'Where is your electron-builder configuration located?',
-    choices: Object.values(ElectronBuilderConfigLocationChoice),
-    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder && answers.electronAppRepoPath
-}, {
-    type: 'input',
     name: 'electronBuilderConfigPath',
     message: 'What is the path to your electron-builder configuration?',
-    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuilderConfigLocation === ElectronBuilderConfigLocationChoice.SomewhereElse
+    default: `${process.cwd()}/package.json`,
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
 }, {
     type: 'input',
     name: 'electronAppBinaryPath',
