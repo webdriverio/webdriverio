@@ -26,10 +26,12 @@ if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-bu
     if (electronBuilderConfigIsPackageJson()) { 
         %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>'), 'utf-8'))
 const productName = packageJson.build.productName
+const electronBuilderOutputDirectory = packageJson.build.directories?.output
 
 <%  } else if (electronBuilderConfigIsJson()) {
     %>const electronBuilderJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>', 'utf-8'))
 const productName = electronBuilderJson.productName
+const electronBuilderOutputDirectory = electronBuilderJson.directories?.output
 
 <%  }
 }
