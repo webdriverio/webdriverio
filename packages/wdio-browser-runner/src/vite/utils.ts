@@ -54,9 +54,9 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
 
-    const mochaPath = await resolve('mocha', `${rootFileUrl}/node_modules`);
-    const mochaCSSHref = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.css');
-    const mochaJSSrc = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.js');
+    const mochaPath = await resolve('mocha', `${rootFileUrl}/node_modules`)
+    const mochaCSSHref = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.css')
+    const mochaJSSrc = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.js')
 
     return /* html */`
     <!doctype html>
