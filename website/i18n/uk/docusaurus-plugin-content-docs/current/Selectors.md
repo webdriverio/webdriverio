@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Елемент з певним текстом
 
-Цю ж техніку можна застосувати і до елементів.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Наприклад, ось запит для заголовка рівня 1 із текстом "Welcome to my Page":
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 Або використовуючи пошук за частковим збігом тексту:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Те саме працює для атрибутів `id` та `class`:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Примітка:__ Ви не можете поєднувати кілька типів пошуку в одному селекторі. Використовуйте кілька послідовних пошуків елементів для досягнення цієї мети, наприклад:
@@ -277,7 +277,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Маючи вебзастосунок із такою структурою:
 
-![Приклад Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Приклад Chrome")
+![Приклад Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 За допомогою цього селектора ви можете знайти елемент `<button />`, який розташований в іншому тіньову DOM, наприклад:
 
