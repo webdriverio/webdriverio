@@ -173,6 +173,12 @@ export enum BackendChoice {
     Grid = 'I have my own Selenium cloud'
 }
 
+export enum ElectronBuildToolChoice {
+    ElectronForge = 'Electron Forge',
+    ElectronBuilder = 'electron-builder',
+    SomethingElse = 'Something else'
+}
+
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -207,6 +213,10 @@ function isBrowserRunner (answers: Questionnair) {
 
 function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
+}
+
+function electronBuilderConfigIsJson (answers: Questionnair) {
+    return answers.electronBuilderConfigPath?.endsWith('.json')
 }
 
 export const isNuxtProject = await Promise.all(
@@ -268,11 +278,22 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
+    type: 'list',
+    name: 'electronBuildTool',
+    message: 'Which tool are you using to build your Electron app?',
+    choices: Object.values(ElectronBuildToolChoice),
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+}, {
     type: 'input',
-    name: 'appPath',
-    message: 'What is the path to your compiled Electron app?',
-    default: './dist',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+    name: 'electronBuilderConfigPath',
+    message: 'What is the path to your electron-builder configuration?',
+    default: `${process.cwd()}/package.json`,
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
+}, {
+    type: 'input',
+    name: 'electronAppBinaryPath',
+    message: 'What is the path to the binary of your built Electron app?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || !electronBuilderConfigIsJson(answers))
 }, {
     type: 'list',
     name: 'backend',

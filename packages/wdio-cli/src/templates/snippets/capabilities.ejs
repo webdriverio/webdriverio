@@ -38,8 +38,11 @@ capabilities: [{<%
             }
         }<%
     } else if (answers.purpose === 'electron') { %>
-        // no need to define any capabilities for local Electron web tests
-        // since service plugin takes care of setting everything up<%
+        browserName: 'electron',
+        'wdio:electronServiceOptions': {
+            appBinaryPath: <%- answers.electronAppBinaryPath ? `'${answers.electronAppBinaryPath}'` : 'getBinaryPath(electronAppRepoPath, productName, electronBuilderOutputDirectory)' %>,
+            appArgs: ['foo', 'bar=baz']
+        }<%
     } else {
         %>
         // capabilities for local browser web tests

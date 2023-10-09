@@ -1,17 +1,40 @@
 <%
+const electronBuilderConfigIsJson = () => answers.electronBuilderConfigPath.endsWith('.json')
+const electronBuilderConfigIsPackageJson = () => answers.electronBuilderConfigPath.endsWith('package.json')
+
 if (answers.purpose === 'electron') {
-    %>import fs from 'node:fs'
-<% }
+    if (answers.electronBuildTool === 'electron-builder' && electronBuilderConfigIsJson()) {
+        %>import fs from 'node:fs'
+<%  }
+    if (answers.electronBuildTool === 'electron-builder' && !answers.electronAppBinaryPath) {
+        %>import path from 'node:path'
+        
+import { getBinaryPath } from 'wdio-electron-service/utils'
+
+<%  }
+}
 
 if (answers.isUsingTypeScript) {
     %>import type { Options } from '@wdio/types'
+
 <% }
 
-if (answers.purpose === 'electron') { %>
-const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
+if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
+    if (electronBuilderConfigIsJson()) {
+        %>const electronAppRepoPath = path.dirname('<%- answers.electronBuilderConfigPath %>')
+<%  }
+    if (electronBuilderConfigIsPackageJson()) { 
+        %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>'), 'utf-8'))
 const productName = packageJson.build.productName
+const electronBuilderOutputDirectory = packageJson.build.directories?.output
 
-<% }
+<%  } else if (electronBuilderConfigIsJson()) {
+    %>const electronBuilderJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>', 'utf-8'))
+const productName = electronBuilderJson.productName
+const electronBuilderOutputDirectory = electronBuilderJson.directories?.output
+
+<%  }
+}
 
 if (answers.isUsingTypeScript) {
     %>export const config: Options.Testrunner = {<%

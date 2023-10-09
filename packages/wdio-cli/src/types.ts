@@ -1,12 +1,14 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BackendChoice, RegionOptions, CompilerOptions } from './constants.js'
+import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice } from './constants.js'
 
 export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
-    appPath?: string
+    electronAppBinaryPath?: string
+    electronBuildTool?: ElectronBuildToolChoice
+    electronBuilderConfigPath: string
     backend?: BackendChoice
     hostname?: string
     port?: string
