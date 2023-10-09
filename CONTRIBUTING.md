@@ -14,7 +14,8 @@ You can participate by:
 
 - contributing code
 - improving documentation
-- help out in the [Discord](https://discord.webdriver.io) support channel
+- help us [translate](https://translate.webdriver.io/project/webdriver-io) the project to more languages
+- answer questions and provide help in the [Discord](https://discord.webdriver.io) support channel
 - create educational content (blog posts, tutorials, videos, etc.)
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
