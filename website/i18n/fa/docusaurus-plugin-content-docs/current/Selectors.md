@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## عنصر با متن خاص
 
-همین تکنیک را می توان برای عناصر نیز به کار برد.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 به عنوان مثال، در اینجا یک درخواست برای عنوان سطح 1 با متن "به صفحه من خوش آمدید" وجود دارد:
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 می توانید این عنصر را با فراخوانی فرمان زیر درخواست کنید:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 یا با استفاده از درخواست بخشی از متن:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 همین کار برای `id` و `نام کلاس` هم کار می کند:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 می توانید این عنصر را با فراخوانی فرمان زیر درخواست کنید:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __نکته:__ شما نمی‌توانید چند استراتژی انتخابگر را در یک انتخابگر ترکیب کنید. برای رسیدن به یک هدف، از درخواست های چند عنصر زنجیره ای استفاده کنید، به عنوان مثال:
@@ -277,7 +277,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 فرض کنید یک برنامه با ساختار زیر داریم:
 
-![مثال کروم](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "مثال کروم")
+![مثال کروم](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 با استفاده از این انتخابگر می توانید عنصر `<button />` را که در یک Shadow DOM دیگر قرار دارد، جستجو کنید، به عنوان مثال:
 
