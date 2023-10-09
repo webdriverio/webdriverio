@@ -19,6 +19,8 @@ const XPATH_SELECTOR_REGEXP = [
     /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
     // optional [attribute-name="attribute-selector"]
     /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+    // optional case insensitive
+    /(\.)?/,
     // *=query or =query
     /(\*)?=(.+)$/,
 ]
@@ -251,6 +253,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             tag,
             prefix, name,
             attrName, attrValue,
+            insensitive,
             partial, query
         ] = match.slice(1)
 
@@ -270,16 +273,21 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             )
         }
         const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
-        conditions.push(
-            partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`
-        )
+        if (insensitive) {
+            conditions.push(
+                partial
+                    ? `contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${query.toLowerCase()}")${partialNot}`
+                    : `normalize-space(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")) = "${query.toLowerCase()}"`)
+        } else {
+            conditions.push(partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`)
+        }
         const getValue = () => `.//${tag || '*'}[${conditions.join(' and ')}]`
         value = getValue()
         if (!partial) {
             conditions.pop()
             conditions.push(
                 `not(${value})`,
-                `normalize-space() = "${query}"`
+                `normalize-space() = "${insensitive? query.toLowerCase() : query}"`
             )
             value = value + ' | ' + getValue()
         }
