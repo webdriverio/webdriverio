@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Element mit bestimmtem Text
 
-Die gleiche Technik kann auch auf Elemente angewendet werden.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Hier ist zum Beispiel eine Abfrage für eine Überschrift der Ebene 1 mit dem Text „Welcome to my page“:
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 Oder verwenden Sie die Teiltext-Abfrage:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Das gleiche funktioniert für `id` und `class` Namen:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Hinweis:__ Sie können nicht mehrere Selektorstrategien in einem Selektor mischen. Verwenden Sie mehrere verkettete Elementabfragen, um dasselbe Ziel zu erreichen, z. B.:
@@ -279,7 +279,7 @@ Viele Frontend-Anwendungen verlassen sich stark auf Elemente mit [Shadow DOM](ht
 
 Angenommen, wir haben eine Anwendung mit der folgenden Struktur:
 
-![Chrome-Beispiel](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome-Beispiel")
+![Chrome-Beispiel](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 Mit diesem Selektor können Sie das `<button />` Element abfragen, das in einem anderen Schatten-DOM verschachtelt ist, z.B.:
 
