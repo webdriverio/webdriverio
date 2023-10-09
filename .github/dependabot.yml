@@ -15,6 +15,7 @@ updates:
     # these packages don't support Node.js v16 anymore
     - dependency-name: "ky"
     - dependency-name: "@octokit/rest"
+    - dependency-name: "@cucumber/cucumber"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
