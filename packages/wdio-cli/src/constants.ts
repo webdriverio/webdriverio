@@ -488,7 +488,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these files be located?',
+    message: 'What should be the location of your spec files?',
     default: /* istanbul ignore next */ (answers: Questionnair) => {
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
@@ -497,13 +497,13 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these feature files be located?',
+    message: 'What should be the location of your feature files?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/**/*.feature'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
-    message: 'Where should these step definitions be located?',
+    message: 'What should be the location of your step definitions?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/step-definitions/steps'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
