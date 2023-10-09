@@ -39,56 +39,60 @@ export interface ProxyObject {
     noProxy?: string[];
 }
 
-export interface Capabilities extends VendorExtensions, ConnectionOptions {
-    /**
-     * Identifies the user agent.
-     */
-    browserName?: string;
-    /**
-     * Identifies the version of the user agent.
-     */
-    browserVersion?: string;
-    /**
-     * Identifies the operating system of the endpoint node.
-     */
-    platformName?: string;
-    /**
-     * Indicates whether untrusted and self-signed TLS certificates are implicitly trusted on navigation for the duration of the session.
-     */
-    acceptInsecureCerts?: boolean;
-    /**
-     * Defines the current session’s page load strategy.
-     */
-    pageLoadStrategy?: PageLoadingStrategy;
-    /**
-     * Defines the current session’s proxy configuration.
-     */
-    proxy?: ProxyObject;
-    /**
-     * Indicates whether the remote end supports all of the resizing and repositioning commands.
-     */
-    setWindowRect?: boolean;
-    /**
-     * Describes the timeouts imposed on certain session operations.
-     */
-    timeouts?: Timeouts;
-    /**
-     * Defines the current session’s strict file interactability.
-     */
-    strictFileInteractability?: boolean,
-    /**
-     * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
-     */
-    unhandledPromptBehavior?: string;
-    /**
-     * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
-     */
-    webSocketUrl?: boolean
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities extends VendorExtensions, ConnectionOptions {
+            /**
+             * Identifies the user agent.
+             */
+            browserName?: string;
+            /**
+             * Identifies the version of the user agent.
+             */
+            browserVersion?: string;
+            /**
+             * Identifies the operating system of the endpoint node.
+             */
+            platformName?: string;
+            /**
+             * Indicates whether untrusted and self-signed TLS certificates are implicitly trusted on navigation for the duration of the session.
+             */
+            acceptInsecureCerts?: boolean;
+            /**
+             * Defines the current session’s page load strategy.
+             */
+            pageLoadStrategy?: PageLoadingStrategy;
+            /**
+             * Defines the current session’s proxy configuration.
+             */
+            proxy?: ProxyObject;
+            /**
+             * Indicates whether the remote end supports all of the resizing and repositioning commands.
+             */
+            setWindowRect?: boolean;
+            /**
+             * Describes the timeouts imposed on certain session operations.
+             */
+            timeouts?: Timeouts;
+            /**
+             * Defines the current session’s strict file interactability.
+             */
+            strictFileInteractability?: boolean,
+            /**
+             * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
+             */
+            unhandledPromptBehavior?: string;
+            /**
+             * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
+             */
+            webSocketUrl?: boolean
+        }
+    }
 }
 
 export interface W3CCapabilities {
-    alwaysMatch: Capabilities;
-    firstMatch: Capabilities[];
+    alwaysMatch: WebdriverIO.Capabilities;
+    firstMatch: WebdriverIO.Capabilities[];
 }
 
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[];
@@ -99,7 +103,10 @@ export interface MultiRemoteCapabilities {
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
+/**
+ * @deprecated use `WebdriverIO.Capabilities` instead
+ */
+export interface DesiredCapabilities extends WebdriverIO.Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
     TestingbotCapabilities, SeleniumRCCapabilities, GeckodriverCapabilities, IECapabilities,
     AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities,
     ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
@@ -378,7 +385,10 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation },
+    mobileDevice?: {
+        deviceName: string
+        orientation: MoonMobileDeviceOrientation
+    }
     logLevel?: string
 }
 

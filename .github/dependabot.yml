@@ -15,6 +15,7 @@ updates:
     # these packages don't support Node.js v16 anymore
     - dependency-name: "ky"
     - dependency-name: "@octokit/rest"
+    - dependency-name: "@cucumber/cucumber"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
@@ -51,6 +52,7 @@ updates:
     - dependency-name: "dateformat"
     - dependency-name: "strip-ansi"
     - dependency-name: "supports-color"
+    - dependency-name: "chrome-launcher"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Chalk v5 is ESM only

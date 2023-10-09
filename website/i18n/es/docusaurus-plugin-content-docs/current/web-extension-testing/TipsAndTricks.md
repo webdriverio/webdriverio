@@ -13,7 +13,7 @@ En Chrome esto funciona recuperando el ID de extensión y abriendo la página em
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
-  if ((this.capabilities as Capabilities.Capabilities).browserName !== 'chrome') {
+  if ((this.capabilities as WebdriverIO.Capabilities).browserName !== 'chrome') {
     throw new Error('This command only works with Chrome')
   }
   await this.url('chrome://extensions/')

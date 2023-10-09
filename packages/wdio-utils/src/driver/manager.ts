@@ -10,7 +10,7 @@ import {
 const log = logger('@wdio/utils')
 const UNDEFINED_BROWSER_VERSION = null
 
-type SetupTaskFunction = (cap: Capabilities.Capabilities) => Promise<unknown>
+type SetupTaskFunction = (cap: WebdriverIO.Capabilities) => Promise<unknown>
 
 enum BrowserDriverTaskLabel {
     BROWSER = 'browser binaries',
@@ -35,11 +35,11 @@ function mapCapabilities (
                             return
                         }
                         return c.capabilities
-                    }) as Capabilities.Capabilities[]
+                    }) as WebdriverIO.Capabilities[]
                 } else if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
-                return cap as Capabilities.Capabilities
+                return cap as WebdriverIO.Capabilities
             }).flat()
             : Object.values(caps as Capabilities.MultiRemoteCapabilities).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
@@ -49,7 +49,7 @@ function mapCapabilities (
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
-                return mrOpts.capabilities as Capabilities.Capabilities
+                return mrOpts.capabilities as WebdriverIO.Capabilities
             })
     ).flat().filter((cap) => (
         /**
@@ -67,7 +67,7 @@ function mapCapabilities (
         !getDriverOptions(cap).binary &&
         // - user is not defining "devtools" as automation protocol
         options.automationProtocol !== 'devtools'
-    )) as Capabilities.Capabilities[]
+    )) as WebdriverIO.Capabilities[]
 
     /**
      * nothing to setup
@@ -84,7 +84,7 @@ function mapCapabilities (
             return queue
         }
         if (!queue.has(cap.browserName)) {
-            queue.set(cap.browserName, new Map<string, Capabilities.Capabilities>())
+            queue.set(cap.browserName, new Map<string, WebdriverIO.Capabilities>())
         }
         const browserVersion = cap.browserVersion || UNDEFINED_BROWSER_VERSION
         queue.get(cap.browserName)!.set(browserVersion, cap)
@@ -108,7 +108,7 @@ function mapCapabilities (
 }
 
 export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
-    return mapCapabilities(options, caps, async (cap: Capabilities.Capabilities) => {
+    return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
             return setupEdgedriver(cacheDir, cap.browserVersion)
@@ -125,7 +125,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
 }
 
 export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
-    return mapCapabilities(options, caps, async (cap: Capabilities.Capabilities) => {
+    return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
             // not yet implemented

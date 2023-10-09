@@ -49,9 +49,4 @@ declare global {
         interface EdgedriverOptions extends DriverOptions {}
         interface SafaridriverOptions {}
     }
-
-    namespace WebDriver {
-        interface Capabilities extends Capabilities.Capabilities, Capabilities.WebdriverIOCapabilities {}
-        interface DesiredCapabilities extends Capabilities.DesiredCapabilities, Capabilities.WebdriverIOCapabilities {}
-    }
 }

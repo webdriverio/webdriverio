@@ -1,5 +1,3 @@
-import type { Capabilities } from '@wdio/types'
-
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
@@ -76,7 +74,7 @@ export async function isDisplayed (this: WebdriverIO.Element) {
         (
             await browser.isW3C &&
             !browser.isMobile &&
-            noW3CEndpoint.includes((browser.capabilities as Capabilities.Capabilities).browserName?.toLowerCase()!)
+            noW3CEndpoint.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!)
         )
     )
 

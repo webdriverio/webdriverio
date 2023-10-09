@@ -56,7 +56,7 @@ export async function startWebDriver (options: Options.WebDriver) {
     let driverProcess: ChildProcess
     let driver = ''
     const start = Date.now()
-    const caps = (options.capabilities as Capabilities.W3CCapabilities).alwaysMatch || options.capabilities as Capabilities.Capabilities
+    const caps = (options.capabilities as Capabilities.W3CCapabilities).alwaysMatch || options.capabilities as WebdriverIO.Capabilities
 
     /**
      * session might be a mobile session so don't do anything

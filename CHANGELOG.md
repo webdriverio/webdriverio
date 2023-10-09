@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.17.0 (2023-10-09)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-firefox-profile-service`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-spec-reporter`, `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#11367](https://github.com/webdriverio/webdriverio/pull/11367) (@wdio/types): allow to extend capability interface ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11358](https://github.com/webdriverio/webdriverio/pull/11358) (webdriverio): Add case insensitive text match feature #4951 ([@AnthonyQuy](https://github.com/AnthonyQuy))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11362](https://github.com/webdriverio/webdriverio/pull/11362) CLI update for wdio-electron-service v5 ([@goosewobbler](https://github.com/goosewobbler))
+
+#### Committers: 3
+- Anthony  ([@AnthonyQuy](https://github.com/AnthonyQuy))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@goosewobbler](https://github.com/goosewobbler)
+
+
 ## v8.16.22 (2023-10-06)
 
 #### :bug: Bug Fix

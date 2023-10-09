@@ -1,6 +1,6 @@
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
-import type { Capabilities, Services, Options } from '@wdio/types'
+import type { Services, Options } from '@wdio/types'
 
 import cbt from 'cbt_tunnels'
 import logger from '@wdio/logger'
@@ -15,7 +15,7 @@ export default class CrossBrowserTestingLauncher implements Services.ServiceInst
 
     constructor (
         private _options: CrossBrowserTestingConfig,
-        private _caps: Capabilities.Capabilities,
+        private _caps: WebdriverIO.Capabilities,
         private _config: Options.Testrunner
     ) {
         this._cbtTunnelOpts = Object.assign({

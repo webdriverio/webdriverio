@@ -35,7 +35,7 @@ class _AccessibilityHandler {
         private _accessibilityAutomation?: boolean | string,
         private _accessibilityOpts?: { [key: string]: any; }
     ) {
-        const caps = (this._browser as WebdriverIO.Browser).capabilities as Capabilities.Capabilities
+        const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
 
         this._platformA11yMeta = {
             browser_name: caps.browserName,
@@ -56,27 +56,27 @@ class _AccessibilityHandler {
     _getCapabilityValue(caps: Capabilities.RemoteCapability, capType: string, legacyCapType: string) {
         if (caps) {
             if (capType === 'accessibility') {
-                if ((caps as Capabilities.Capabilities)['bstack:options'] && (isTrue((caps as Capabilities.Capabilities)['bstack:options']?.accessibility))) {
-                    return (caps as Capabilities.Capabilities)['bstack:options']?.accessibility
-                } else if (isTrue((caps as Capabilities.Capabilities)['browserstack.accessibility'])) {
-                    return (caps as Capabilities.Capabilities)['browserstack.accessibility']
+                if ((caps as WebdriverIO.Capabilities)['bstack:options'] && (isTrue((caps as WebdriverIO.Capabilities)['bstack:options']?.accessibility))) {
+                    return (caps as WebdriverIO.Capabilities)['bstack:options']?.accessibility
+                } else if (isTrue((caps as WebdriverIO.Capabilities)['browserstack.accessibility'])) {
+                    return (caps as WebdriverIO.Capabilities)['browserstack.accessibility']
                 }
             } else if (capType === 'deviceName') {
-                if ((caps as Capabilities.Capabilities)['bstack:options'] && (caps as Capabilities.Capabilities)['bstack:options']?.deviceName) {
-                    return (caps as Capabilities.Capabilities)['bstack:options']?.deviceName
-                } else if ((caps as Capabilities.Capabilities)['bstack:options'] && (caps as Capabilities.Capabilities)['bstack:options']?.device) {
-                    return (caps as Capabilities.Capabilities)['bstack:options']?.device
-                } else if ((caps as Capabilities.Capabilities)['appium:deviceName']) {
-                    return (caps as Capabilities.Capabilities)['appium:deviceName']
+                if ((caps as WebdriverIO.Capabilities)['bstack:options'] && (caps as WebdriverIO.Capabilities)['bstack:options']?.deviceName) {
+                    return (caps as WebdriverIO.Capabilities)['bstack:options']?.deviceName
+                } else if ((caps as WebdriverIO.Capabilities)['bstack:options'] && (caps as WebdriverIO.Capabilities)['bstack:options']?.device) {
+                    return (caps as WebdriverIO.Capabilities)['bstack:options']?.device
+                } else if ((caps as WebdriverIO.Capabilities)['appium:deviceName']) {
+                    return (caps as WebdriverIO.Capabilities)['appium:deviceName']
                 }
-            } else if (capType === 'goog:chromeOptions' && (caps as Capabilities.Capabilities)['goog:chromeOptions']) {
-                return (caps as Capabilities.Capabilities)['goog:chromeOptions']
+            } else if (capType === 'goog:chromeOptions' && (caps as WebdriverIO.Capabilities)['goog:chromeOptions']) {
+                return (caps as WebdriverIO.Capabilities)['goog:chromeOptions']
             } else {
-                const bstackOptions = (caps as Capabilities.Capabilities)['bstack:options']
+                const bstackOptions = (caps as WebdriverIO.Capabilities)['bstack:options']
                 if ( bstackOptions && bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]) {
                     return bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]
-                } else if ((caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]) {
-                    return (caps as Capabilities.Capabilities)[legacyCapType as keyof Capabilities.Capabilities]
+                } else if ((caps as WebdriverIO.Capabilities)[legacyCapType as keyof WebdriverIO.Capabilities]) {
+                    return (caps as WebdriverIO.Capabilities)[legacyCapType as keyof WebdriverIO.Capabilities]
                 }
             }
         }

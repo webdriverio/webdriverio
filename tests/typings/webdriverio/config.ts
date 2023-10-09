@@ -1,8 +1,22 @@
 import { expectType } from 'tsd'
+import type { Capabilities } from '@wdio/types'
 
 class CustomService {
     onPrepare() {
         // TODO: something before all workers launch
+    }
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            'wdio:customCaps'?: {
+                // a foo cap
+                foo: string
+                // a bar cap
+                bar: number
+            }
+        }
     }
 }
 
@@ -148,14 +162,19 @@ const config: WebdriverIO.Config = {
             logLevel: 'INFO',
             mobileDevice: {
                 deviceName: 'Apple iPhone XR',
-                orientation: 'portrait'
+                orientation: 'portrait' as Capabilities.MoonMobileDeviceOrientation
             }
         }
-    },{
+    }, {
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
-    }] as WebDriver.DesiredCapabilities[],
+    }, {
+        'wdio:customCaps': {
+            foo: 'bar',
+            bar: 123
+        }
+    }],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',

@@ -3,7 +3,7 @@ import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import type { Options, Services } from '@wdio/types'
 
 import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices.js'
 import { safeImport } from '../src/utils.js'
@@ -21,8 +21,8 @@ interface TestLauncherService extends Services.ServiceInstance {
 class CustomService {
     options: Record<string, any>
     config: Options.Testrunner
-    caps: Capabilities.Capabilities
-    constructor (options: Record<string, any>, caps: Capabilities.Capabilities, config: Options.Testrunner) {
+    caps: WebdriverIO.Capabilities
+    constructor (options: Record<string, any>, caps: WebdriverIO.Capabilities, config: Options.Testrunner) {
         this.options = options
         this.config = config
         this.caps = caps

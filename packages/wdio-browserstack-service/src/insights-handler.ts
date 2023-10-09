@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Frameworks } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
@@ -54,7 +54,7 @@ class _InsightsHandler {
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
-        const caps = (this._browser as WebdriverIO.Browser).capabilities as Capabilities.Capabilities
+        const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._platformMeta = {

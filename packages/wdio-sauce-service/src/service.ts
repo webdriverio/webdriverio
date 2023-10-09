@@ -70,7 +70,7 @@ export default class SauceService implements Services.ServiceInstance {
         // `this._browser.capabilities` returns the process data from Sauce which is without
         // the postfix
         const capabilities = (this._browser as WebdriverIO.Browser).requestedCapabilities || {}
-        this._isRDC = isRDC(capabilities as Capabilities.Capabilities)
+        this._isRDC = isRDC(capabilities as WebdriverIO.Capabilities)
     }
 
     async beforeSuite (suite: Frameworks.Suite) {
@@ -266,7 +266,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
             const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
-            const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as Capabilities.Capabilities)
+            const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as WebdriverIO.Capabilities)
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
             await this._uploadLogs(multiRemoteBrowser.sessionId)
             // Sauce Unified Platform (RDC) can not be updated with an API.
@@ -351,7 +351,7 @@ export default class SauceService implements Services.ServiceInstance {
             body.name += ` (${testCnt})`
         }
 
-        const caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
+        const caps = (this._capabilities as WebdriverIO.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
 
         for (const prop of jobDataProperties) {
             if (!caps[prop]) {

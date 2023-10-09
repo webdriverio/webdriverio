@@ -64,7 +64,7 @@ export async function initialiseInstance (
         /**
          * propagate connection details defined by services or user in capabilities
          */
-        const caps = capabilities as Capabilities.Capabilities
+        const caps = capabilities as WebdriverIO.Capabilities
         const connectionProps = {
             protocol: caps.protocol || config.protocol,
             hostname: caps.hostname || config.hostname,
