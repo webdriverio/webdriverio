@@ -35,7 +35,7 @@ WebdriverIO with capability array:
 export const config = {
     // ...
     capabilities:[{
-        browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+        browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`, `MicrosoftEdge`
         browserVersion: '27.0', // browser version
         platformName: 'Windows 10' // OS platform
     }]
