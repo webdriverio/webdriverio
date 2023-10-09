@@ -1,4 +1,5 @@
 import { expectType } from 'tsd'
+import type { Capabilities } from '@wdio/types'
 
 class CustomService {
     onPrepare() {
@@ -161,18 +162,17 @@ const config: WebdriverIO.Config = {
             logLevel: 'INFO',
             mobileDevice: {
                 deviceName: 'Apple iPhone XR',
-                orientation: 'portrait'
+                orientation: 'portrait' as Capabilities.MoonMobileDeviceOrientation
             }
         }
-    },{
+    }, {
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
     }, {
         'wdio:customCaps': {
             foo: 'bar',
-            // @ts-expect-error
-            bar: 'foo'
+            bar: 123
         }
     }],
 

@@ -21,7 +21,6 @@ import {
     DEFAULT_Y_POSITION,
     VENDOR_PREFIX
 } from './constants.js'
-import type { ExtendedCapabilities, DevToolsOptions } from './types.js'
 
 const log = logger('devtools')
 
@@ -32,10 +31,10 @@ const DEVICE_NAMES = Object.keys(KnownDevices)
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome (capabilities: ExtendedCapabilities) {
+async function launchChrome (capabilities: WebdriverIO.Capabilities) {
     const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
     const chromeOptionsArgs = (chromeOptions.args || []).map((arg) => (
         arg.startsWith('--') ? arg : `--${arg}`
     ))
@@ -147,10 +146,10 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     return browser
 }
 
-function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
+function launchBrowser (capabilities: WebdriverIO.Capabilities, browserType: 'edge' | 'firefox') {
     const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
     const vendorCapKey = VENDOR_PREFIX[browserType]
-    const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -205,7 +204,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
+function connectBrowser (connectionUrl: string, capabilities: WebdriverIO.Capabilities) {
     const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
     const options: ConnectOptions = {
@@ -215,7 +214,7 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
     return puppeteer.connect(options) as unknown as Promise<Browser>
 }
 
-export default async function launch (capabilities: ExtendedCapabilities) {
+export default async function launch (capabilities: WebdriverIO.Capabilities) {
     try {
         Puppeteer.unregisterCustomQueryHandler('shadow')
     } catch {

@@ -18,18 +18,18 @@ import seleniumstandalone4Response from './__fixtures__/standaloneserver4.respon
 import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
-    const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
-    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
-    const geckoCaps = geckodriverResponse.value.capabilities as WebDriver.Capabilities
-    const edgeCaps = edgedriverResponse.value.capabilities as WebDriver.Capabilities
-    const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
-    const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
-    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebDriver.Capabilities // absent capability.platformName
-    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebDriver.Capabilities // absent capability.browserVersion
-    const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
-    const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
-    const standalonev4Caps = seleniumstandalone4Response.value as WebDriver.DesiredCapabilities
+    const chromeCaps = chromedriverResponse.value as WebdriverIO.Capabilities
+    const appiumCaps = appiumResponse.value.capabilities as WebdriverIO.Capabilities
+    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebdriverIO.Capabilities
+    const geckoCaps = geckodriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const edgeCaps = edgedriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const phantomCaps = ghostdriverResponse.value as WebdriverIO.Capabilities
+    const safariCaps = safaridriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.platformName
+    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.browserVersion
+    const safariLegacyCaps = safaridriverLegacyResponse.value as WebdriverIO.Capabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as Capabilities.DesiredCapabilities
+    const standalonev4Caps = seleniumstandalone4Response.value as Capabilities.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }

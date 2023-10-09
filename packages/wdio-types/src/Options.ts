@@ -300,7 +300,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```js
      * // wdio.conf.js
      * export const config = {
-     *   // ...
+     *   // define parallel running capabilities
      *   capabilities: [{
      *     browserName: 'safari',
      *     platformName: 'MacOS 10.13',
@@ -317,7 +317,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```
      * // wdio.conf.js
      * export const config = {
-     *   // ...
+     *   // multiremote example
      *   capabilities: {
      *     browserA: {
      *       browserName: 'chrome',
