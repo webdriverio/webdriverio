@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## निश्चित लेख वाला तत्व
 
-उसी तकनीक को तत्वों पर भी लागू किया जा सकता है।
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 उदाहरण के लिए, यहाँ "मेरे पृष्ठ में आपका स्वागत है" पाठ के साथ स्तर 1 शीर्षक के लिए एक प्रश्न है:
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 या क्वेरी आंशिक पाठ का उपयोग करना:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 वही `id` और `class` नामों के लिए काम करता है:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __नोट:__ आप एक चयनकर्ता में एकाधिक चयनकर्ता रणनीतियों को मिश्रित नहीं कर सकते हैं। एक ही लक्ष्य तक पहुँचने के लिए कई श्रृंखलित तत्व प्रश्नों का उपयोग करें, उदाहरण के लिए:
@@ -277,7 +277,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 देखते हुए हमारे पास निम्नलिखित संरचना के साथ एक आवेदन है:
 
-![क्रोम उदाहरण](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "क्रोम उदाहरण")
+![क्रोम उदाहरण](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 इस चयनकर्ता के साथ आप `<button />` तत्व को क्वेरी कर सकते हैं जो किसी अन्य छाया DOM में नेस्टेड है, उदाहरण के लिए:
 
