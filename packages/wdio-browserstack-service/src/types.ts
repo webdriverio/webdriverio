@@ -149,7 +149,7 @@ export interface PlatformMeta {
     browserName?: string,
     browserVersion?: string,
     platformName?: string,
-    caps?: Capabilities.Capabilities,
+    caps?: WebdriverIO.Capabilities,
     product?: string
 }
 
@@ -248,7 +248,7 @@ export interface CredentialsForCrashReportUpload {
 }
 
 interface IntegrationObject {
-    capabilities?: Capabilities.Capabilities,
+    capabilities?: WebdriverIO.Capabilities,
     session_id?: string
     browser?: string
     browser_version?: string

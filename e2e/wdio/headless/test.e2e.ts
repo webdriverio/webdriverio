@@ -1,9 +1,8 @@
 import os from 'node:os'
-import type { Capabilities } from '../../../packages/wdio-types'
 
 describe('main suite 1', () => {
     it('foobar test', async () => {
-        const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
+        const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName)
     })

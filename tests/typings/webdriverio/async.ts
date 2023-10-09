@@ -333,8 +333,8 @@ async function bar() {
 
     // test access to base client properties
     expectType<string>(browser.sessionId)
-    expectType<string>((browser.capabilities as WebDriver.Capabilities).browserName)
-    expectType<string>((browser.requestedCapabilities as WebDriver.Capabilities).browserName)
+    expectType<string>((browser.capabilities as WebdriverIO.Capabilities).browserName)
+    expectType<string>((browser.requestedCapabilities as WebdriverIO.Capabilities).browserName)
     expectType<boolean>(browser.isMobile)
     expectType<boolean>(browser.isAndroid)
     expectType<boolean>(browser.isIOS)

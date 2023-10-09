@@ -63,14 +63,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    _updateCaps (fn: (caps: Capabilities.Capabilities | Capabilities.DesiredCapabilities) => void) {
+    _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
         const multiRemoteCap = this._caps as Capabilities.MultiRemoteCapabilities
 
         if (multiRemoteCap.capabilities) {
-            return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as Capabilities.Capabilities))
+            return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as WebdriverIO.Capabilities))
         }
 
-        return fn(this._caps as Capabilities.Capabilities)
+        return fn(this._caps as WebdriverIO.Capabilities)
     }
 
     beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {

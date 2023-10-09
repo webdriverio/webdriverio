@@ -65,20 +65,20 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  */
 export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
     if (!browser.isMultiremote) {
-        return { ...browser.capabilities, ...caps } as Capabilities.Capabilities
+        return { ...browser.capabilities, ...caps } as WebdriverIO.Capabilities
     }
 
     const multiCaps = caps as Capabilities.MultiRemoteCapabilities
     const globalCap = browserName && browser.getInstance(browserName) ? browser.getInstance(browserName).capabilities : {}
     const cap = browserName && multiCaps[browserName] ? multiCaps[browserName].capabilities : {}
-    return { ...globalCap, ...cap } as Capabilities.Capabilities
+    return { ...globalCap, ...cap } as WebdriverIO.Capabilities
 }
 
 /**
  * check for browserstack W3C capabilities. Does not support legacy capabilities
  * @param cap browser capabilities
  */
-export function isBrowserstackCapability(cap?: Capabilities.Capabilities) {
+export function isBrowserstackCapability(cap?: WebdriverIO.Capabilities) {
     return Boolean(
         cap &&
             cap['bstack:options'] &&

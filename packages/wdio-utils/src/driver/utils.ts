@@ -15,7 +15,7 @@ import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
 import { locateChrome, locateFirefox } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../constants.js'
 
@@ -106,7 +106,7 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }): P
     log.progress('')
 }
 
-export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities.Capabilities) {
+export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
     const browserName = caps.browserName === Browser.FIREFOX ? Browser.FIREFOX : Browser.CHROME
@@ -185,7 +185,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: Capabilities
     return { executablePath, browserVersion: buildId }
 }
 
-export function getDriverOptions (caps: Capabilities.Capabilities) {
+export function getDriverOptions (caps: WebdriverIO.Capabilities) {
     return (
         caps['wdio:chromedriverOptions'] ||
         caps['wdio:geckodriverOptions'] ||
@@ -196,7 +196,7 @@ export function getDriverOptions (caps: Capabilities.Capabilities) {
     )
 }
 
-export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: Capabilities.Capabilities) {
+export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: WebdriverIO.Capabilities) {
     const driverOptions = getDriverOptions(caps)
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
 }
