@@ -352,3 +352,39 @@ When testing on Safari, make sure you have the [Safari Technology Preview](https
 
 </TabItem>
 </Tabs>
+
+## Extend Custom Capabilities
+
+If you like to define your own set of capabilities in order to e.g. store arbitrary data to be used within the tests for that specific capability, you can do so by e.g. setting:
+
+```js title=wdio.conf.ts
+export const config = {
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        'custom:caps': {
+            // custom configurations
+        }
+    }]
+}
+```
+
+It is advised to follow the [W3C protocol](https://w3c.github.io/webdriver/#dfn-extension-capability) when it comes to capability naming which requires a `:` (colon) character, denoting an implementation specific namespace. Within your tests you can access your custom capability through, e.g.:
+
+```ts
+browser.capabilities['custom:caps']
+```
+
+In order to ensure type safety you can extend WebdriverIOs capability interface via:
+
+```ts
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            'custom:caps': {
+                // ...
+            }
+        }
+    }
+}
+```
