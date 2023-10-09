@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Elemento con un texto determinado
 
-También se puede aplicar la misma técnica a los elementos.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Por ejemplo, aquí hay una consulta para un encabezado de nivel 1 con el texto "Bienvenido a mi página":
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Puede consultar este elemento llamando:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 O usando texto parcial de la consulta:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Lo mismo funciona para los nombres de la clase `id` y ``:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Puede consultar este elemento llamando:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Nota:__ No puede mezclar múltiples estrategias de selector en un selector. Usar múltiples consultas encadenadas de elementos para alcanzar el mismo objetivo, por ejemplo.:
@@ -277,7 +277,7 @@ Muchas aplicaciones de frontend dependen en gran medida de elementos con [shadow
 
 Dado que tenemos una aplicación con la siguiente estructura:
 
-![Ejemplo Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Ejemplo Chrome")
+![Ejemplo Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 Con este selector puedes consultar el elemento `<button />` que está anidado dentro de otro DOM, por ejemplo.:
 
