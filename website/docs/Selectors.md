@@ -76,7 +76,7 @@ const elem = await $('header').$('*=driver')
 
 ## Element with certain text
 
-The same technique can be applied to elements as well. Additionally, we also allow case-insensitive matching with `.=` or `.*=` query.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 For example, here's a query for a level 1 heading with the text "Welcome to my Page":
 
