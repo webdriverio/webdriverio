@@ -76,7 +76,7 @@ const elem = await $('header').$('*=driver')
 
 ## Element with certain text
 
-The same technique can be applied to elements as well.
+The same technique can be applied to elements as well. Additionally, we also allow case-insensitive matching with `.=` or `.*=` query.
 
 For example, here's a query for a level 1 heading with the text "Welcome to my Page":
 
@@ -87,13 +87,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 You can query this element by calling:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 Or using query partial text:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L67
 ```
 
 The same works for `id` and `class` names:
