@@ -6,13 +6,24 @@ import { vi, test, expect, afterEach, beforeEach } from 'vitest'
 import inquirer from 'inquirer'
 
 import {
-    handler, builder, parseAnswers, missingConfigurationPrompt, runConfigCommand,
-    canAccessConfigPath
+    builder,
+    canAccessConfigPath,
+    handler,
+    missingConfigurationPrompt,
+    parseAnswers,
+    runConfigCommand,
 } from '../../src/commands/config.js'
 import {
-    getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig,
-    createWDIOScript, runAppiumInstaller
+    createPackageJSON,
+    createWDIOConfig,
+    createWDIOScript,
+    getAnswers,
+    npmInstall,
+    runAppiumInstaller,
+    setupBabel,
+    setupTypeScript,
 } from '../../src/utils.js'
+import { CompilerOptions } from '../../src/constants.js'
 
 const consoleLog = console.log.bind(console)
 beforeEach(() => {
@@ -22,6 +33,8 @@ afterEach(() => {
     console.log = consoleLog
 })
 
+const isUsingWindows = os.platform() === 'win32'
+
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockRejectedValue('Yay')
@@ -29,26 +42,29 @@ vi.mock('node:fs/promises', () => ({
 }))
 vi.mock('inquirer')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('../../src/utils.js', () => ({
-    convertPackageHashToObject: vi.fn((param) => ({ short: param })),
-    getAnswers: vi.fn(),
-    getPathForFileGeneration: vi.fn().mockReturnValue({}),
-    getProjectProps: vi.fn().mockResolvedValue({
-        path: '/foo/bar',
-        esmSupported: true,
-        packageJson: {
-            name: 'my-module'
-        }
-    }),
-    getProjectRoot: vi.fn().mockReturnValue('/foo/bar'),
-    createPackageJSON: vi.fn(),
-    setupTypeScript: vi.fn(),
-    setupBabel: vi.fn(),
-    npmInstall: vi.fn(),
-    createWDIOConfig: vi.fn(),
-    createWDIOScript: vi.fn(),
-    runAppiumInstaller: vi.fn()
-}))
+vi.mock('../../src/utils.js', async () => {
+    const actual = await vi.importActual('../../src/utils.js') as Promise<object>
+    return {
+        ...actual,
+        getAnswers: vi.fn(),
+        getPathForFileGeneration: vi.fn().mockReturnValue({}),
+        getProjectProps: vi.fn().mockResolvedValue({
+            path: '/foo/bar',
+            esmSupported: true,
+            packageJson: {
+                name: 'my-module'
+            }
+        }),
+        getProjectRoot: vi.fn().mockReturnValue('/foo/bar'),
+        createPackageJSON: vi.fn(),
+        setupTypeScript: vi.fn(),
+        setupBabel: vi.fn(),
+        npmInstall: vi.fn(),
+        createWDIOConfig: vi.fn(),
+        createWDIOScript: vi.fn(),
+        runAppiumInstaller: vi.fn()
+    }
+})
 
 test('builder', () => {
     const yargs = {} as any
@@ -62,19 +78,14 @@ test('builder', () => {
     expect(yargs.help).toBeCalledTimes(1)
 })
 
-test('parseAnswers', async () => {
-    // skip for Windows
-    if (os.platform() === 'win32') {
-        return
-    }
-
+test.skipIf(isUsingWindows)('parseAnswers', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         specs: '/tmp/foobar/specs',
         pages: '/tmp/foobar/pageobjects',
         generateTestFiles: true,
         usePageObjects: true,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -106,15 +117,11 @@ test('runConfigCommand', async () => {
     expect(vi.mocked(console.log).mock.calls).toMatchSnapshot()
 })
 
-test('handler', async () => {
-    // skip for Windows
-    if (os.platform() === 'win32') {
-        return
-    }
+test.skipIf(isUsingWindows)('handler', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -133,7 +140,7 @@ test('missingConfigurationPrompt does not init wizard if user does not want to',
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -153,7 +160,7 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
