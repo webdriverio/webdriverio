@@ -2,7 +2,11 @@
 
 exports[`handler 1`] = `
 {
-  "installedPackages": [],
+  "installedPackages": [
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@sveltejs/vite-plugin-svelte",
+  ],
   "parsedAnswers": {
     "_async": "async ",
     "_await": "await ",
@@ -11,7 +15,7 @@ exports[`handler 1`] = `
     "destPageObjectRootPath": undefined,
     "destSpecRootPath": undefined,
     "esmSupport": true,
-    "framework": "@wdio/mocha-framework$--$mocha",
+    "framework": "mocha",
     "generateTestFiles": false,
     "hasRootTSConfig": false,
     "installTestingLibrary": false,
@@ -20,9 +24,13 @@ exports[`handler 1`] = `
     "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
     "isUsingTypeScript": true,
     "npmInstall": true,
-    "packagesToInstall": [],
+    "packagesToInstall": [
+      "@wdio/local-runner",
+      "@wdio/mocha-framework",
+      "@sveltejs/vite-plugin-svelte",
+    ],
     "plugins": [],
-    "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
+    "preset": "svelte",
     "projectRootDir": "/foo/bar",
     "purpose": undefined,
     "rawAnswers": {
@@ -40,7 +48,7 @@ exports[`handler 1`] = `
     },
     "relativePath": undefined,
     "reporters": [],
-    "runner": "@wdio/local-runner$--$local",
+    "runner": "local",
     "services": [],
     "specs": undefined,
     "stepDefinitions": undefined,
@@ -63,7 +71,7 @@ exports[`parseAnswers 1`] = `
   "destPageObjectRootPath": undefined,
   "destSpecRootPath": undefined,
   "esmSupport": true,
-  "framework": "@wdio/mocha-framework$--$mocha",
+  "framework": "mocha",
   "generateTestFiles": true,
   "hasRootTSConfig": false,
   "installTestingLibrary": false,
@@ -72,12 +80,19 @@ exports[`parseAnswers 1`] = `
   "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
   "isUsingTypeScript": true,
   "npmInstall": true,
-  "packagesToInstall": [],
+  "packagesToInstall": [
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@sveltejs/vite-plugin-svelte",
+    "@wdio/spec-reporter",
+    "wdio-wait-for",
+    "@wdio/sauce-service",
+  ],
   "pages": "/tmp/foobar/pageobjects",
   "plugins": [
-    "wdio-wait-for$--$wait-for",
+    "wait-for",
   ],
-  "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
+  "preset": "svelte",
   "projectRootDir": "/foo/bar",
   "purpose": undefined,
   "rawAnswers": {
@@ -104,11 +119,11 @@ exports[`parseAnswers 1`] = `
   },
   "relativePath": undefined,
   "reporters": [
-    "@wdio/spec-reporter$--$spec",
+    "spec",
   ],
-  "runner": "@wdio/local-runner$--$local",
+  "runner": "local",
   "services": [
-    "@wdio/sauce-service$--$sauce",
+    "sauce",
   ],
   "specs": "./../../tmp/foobar/specs",
   "stepDefinitions": undefined,
