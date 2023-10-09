@@ -6,6 +6,19 @@ class CustomService {
     }
 }
 
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            'wdio:customCaps'?: {
+                // a foo cap
+                foo: string
+                // a bar cap
+                bar: number
+            }
+        }
+    }
+}
+
 const configA: WebdriverIO.Config = {
     // @ts-expect-error should not be available
     beforeFeature () {
@@ -155,7 +168,13 @@ const config: WebdriverIO.Config = {
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
-    }] as WebDriver.DesiredCapabilities[],
+    }, {
+        'wdio:customCaps': {
+            foo: 'bar',
+            // @ts-expect-error
+            bar: 'foo'
+        }
+    }],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',

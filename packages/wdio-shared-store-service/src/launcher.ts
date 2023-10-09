@@ -30,12 +30,12 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
             if (!multiremote.browserName && multiremote[Object.keys(multiremote)[0]].capabilities) {
                 return Object.values(multiremote).map((options) =>
                     (options.capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
-                    (options.capabilities as Capabilities.Capabilities)
+                    (options.capabilities as WebdriverIO.Capabilities)
                 )
             }
 
             const w3cCaps = c as Capabilities.W3CCapabilities
-            return w3cCaps.alwaysMatch || c as Capabilities.Capabilities
+            return w3cCaps.alwaysMatch || c as WebdriverIO.Capabilities
         })
         caps.forEach((c) => { c[CUSTOM_CAP] = port })
         log.info(`Started shared server on port ${port}`)

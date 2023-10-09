@@ -2,7 +2,7 @@ import type http from 'node:http'
 import type https from 'node:https'
 import type { URL } from 'node:url'
 
-import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities.js'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
@@ -575,7 +575,7 @@ export interface RunnerStart {
     isMultiremote: boolean
     instanceOptions: Record<string, WebdriverIO>
     sessionId: string
-    capabilities: Capabilities
+    capabilities: WebdriverIO.Capabilities
     retry?: number
     failures?: number
     retries?: number

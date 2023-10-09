@@ -216,8 +216,8 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Remo
         const matched = tag.match(skipTag)
         if (matched) {
             const isSkip = [parse(matched[1] ?? '')]
-                .find((filter: Capabilities.Capabilities) => Object.keys(filter)
-                    .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
+                .find((filter: WebdriverIO.Capabilities) => Object.keys(filter)
+                    .every((key: keyof WebdriverIO.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
             if (isSkip) {
                 generatedTags.push(`(not ${tag.replace(/(\(|\))/g, '\\$1')})`)
             }

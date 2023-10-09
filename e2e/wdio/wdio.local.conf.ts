@@ -1,7 +1,7 @@
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -62,7 +62,7 @@ export const config: Options.Testrunner = {
 }
 
 if (os.platform() === 'darwin') {
-    (config.capabilities as Capabilities.Capabilities[]).push({
+    (config.capabilities as WebdriverIO.Capabilities[]).push({
         browserName: 'safari'
     })
 }

@@ -10,7 +10,7 @@ import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types
 
 const DEFAULT_INDENT = '   '
 
-interface CapabilitiesWithSessionId extends Capabilities.Capabilities {
+interface CapabilitiesWithSessionId extends WebdriverIO.Capabilities {
     sessionId: string
 }
 

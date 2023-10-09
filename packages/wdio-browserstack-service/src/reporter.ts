@@ -3,7 +3,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import type { SuiteStats, TestStats, RunnerStats, HookStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 import * as url from 'node:url'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -24,7 +24,7 @@ import RequestQueueHandler from './request-handler.js'
 const log = logger('@wdio/browserstack-service')
 
 class _TestReporter extends WDIOReporter {
-    private _capabilities: Capabilities.Capabilities = {}
+    private _capabilities: WebdriverIO.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability = true
     private _sessionId?: string
@@ -38,7 +38,7 @@ class _TestReporter extends WDIOReporter {
     private _currentTest: CurrentRunInfo = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
-        this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
+        this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') {

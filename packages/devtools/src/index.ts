@@ -67,10 +67,10 @@ export default class DevTools {
          */
         type ValueOf<T> = T[keyof T]
         const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
-        const vendorCapPrefix = Object.keys(params.capabilities as Capabilities.Capabilities)
+        const vendorCapPrefix = Object.keys(params.capabilities as WebdriverIO.Capabilities)
             .find(
                 (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
-            ) as keyof Capabilities.Capabilities
+            ) as keyof WebdriverIO.Capabilities
             ||
             VENDOR_PREFIX[userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX]
 

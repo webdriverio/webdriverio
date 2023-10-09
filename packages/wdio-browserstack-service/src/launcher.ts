@@ -95,23 +95,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
-                            if (!isUndefined((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])) {
-                                this._accessibilityAutomation ||= isTrue((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility'])
+                            (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
+                            if (!isUndefined((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])) {
+                                this._accessibilityAutomation ||= isTrue((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])
                             } else if (isTrue(this._options.accessibility)) {
-                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
+                                (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
                             }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
+                            (caps.capabilities as WebdriverIO.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                         }
                     }
-                    this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
+                    this._buildIdentifier = (caps.capabilities as WebdriverIO.Capabilities)['browserstack.buildIdentifier']
                 } else {
-                    const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
+                    const bstackOptions = (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']
                     bstackOptions!.wdioService = BSTACK_SERVICE_VERSION
                     this._buildName = bstackOptions!.buildName
                     this._projectName = bstackOptions!.projectName
@@ -446,34 +446,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     })
             } else if (typeof capabilities === 'object') {
                 Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-                    if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                    if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
                             if (capType === 'accessibilityOptions' && value) {
-                                (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { accessibilityOptions: value }
+                                (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { accessibilityOptions: value }
                             }
                         } else if (capType === 'accessibilityOptions') {
                             if (value) {
                                 const accessibilityOpts = { ...value }
-                                if ((caps.capabilities as Capabilities.Capabilities)['browserstack.accessibility']) {
+                                if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']) {
                                     accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                     accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
                                 }
-                                (caps.capabilities as Capabilities.Capabilities)['browserstack.accessibilityOptions'] = accessibilityOpts
+                                (caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibilityOptions'] = accessibilityOpts
                             } else {
-                                delete (caps.capabilities as Capabilities.Capabilities)['browserstack.accessibilityOptions']
+                                delete (caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibilityOptions']
                             }
                         }
                     } else if (capType === 'accessibilityOptions') {
                         if (value) {
                             const accessibilityOpts = { ...value }
-                            if ((caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibility) {
+                            if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility) {
                                 accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                 accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
                             }
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibilityOptions = accessibilityOpts
+                            (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibilityOptions = accessibilityOpts
                         } else {
-                            delete (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.accessibilityOptions
+                            delete (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibilityOptions
                         }
                     }
                 })
@@ -533,41 +533,41 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
+                            (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { local: true }
                         } else if (capType === 'app') {
-                            (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                            (caps.capabilities as WebdriverIO.Capabilities)['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildIdentifier: value }
+                            (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { buildIdentifier: value }
                         }
                     } else if (capType === 'local'){
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
+                        (caps.capabilities as WebdriverIO.Capabilities)['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                        (caps.capabilities as WebdriverIO.Capabilities)['appium:app'] = value
                     } else if (capType === 'buildIdentifier') {
                         if (value) {
-                            (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier'] = value
+                            (caps.capabilities as WebdriverIO.Capabilities)['browserstack.buildIdentifier'] = value
                         } else {
-                            delete (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
+                            delete (caps.capabilities as WebdriverIO.Capabilities)['browserstack.buildIdentifier']
                         }
                     } else if (capType === 'localIdentifier') {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.localIdentifier'] = value
+                        (caps.capabilities as WebdriverIO.Capabilities)['browserstack.localIdentifier'] = value
                     }
                 } else if (capType === 'local'){
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
+                    (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.local = true
                 } else if (capType === 'app') {
-                    (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                    (caps.capabilities as WebdriverIO.Capabilities)['appium:app'] = value
                 } else if (capType === 'buildIdentifier') {
                     if (value) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildIdentifier = value
+                        (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.buildIdentifier = value
                     } else {
-                        delete (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildIdentifier
+                        delete (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.buildIdentifier
                     }
                 } else if (capType === 'localIdentifier') {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.localIdentifier = value
+                    (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.localIdentifier = value
                 }
             })
         } else {

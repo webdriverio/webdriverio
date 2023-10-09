@@ -49,7 +49,7 @@ export interface SessionStartedMessage {
         headers: Record<string, string>
         isMultiremote: boolean
         injectGlobals: boolean
-        capabilities: Capabilities.Capabilities
+        capabilities: WebdriverIO.Capabilities
     },
     cid?: string
 }

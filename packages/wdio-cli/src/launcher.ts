@@ -16,7 +16,7 @@ const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
     cid: number
-    caps: Capabilities.Capabilities
+    caps: WebdriverIO.Capabilities
     specs: WorkerSpecs[]
     availableInstances: number
     runningInstances: number
@@ -74,7 +74,7 @@ class Launcher {
          */
         this._args.autoCompileOpts = config.autoCompileOpts
 
-        const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
+        const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapability
         this.isParallelMultiremote = Array.isArray(capabilities) &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
@@ -229,7 +229,7 @@ class Launcher {
 
                 this._schedule.push({
                     cid: cid++,
-                    caps: capabilities as (Capabilities.Capabilities | Capabilities.MultiRemoteCapabilities),
+                    caps: capabilities as (WebdriverIO.Capabilities | Capabilities.MultiRemoteCapabilities),
                     specs: this._formatSpecs(capabilities, specFileRetries),
                     availableInstances,
                     runningInstances: 0
