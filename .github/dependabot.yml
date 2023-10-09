@@ -51,6 +51,7 @@ updates:
     - dependency-name: "dateformat"
     - dependency-name: "strip-ansi"
     - dependency-name: "supports-color"
+    - dependency-name: "chrome-launcher"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Chalk v5 is ESM only
