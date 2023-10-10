@@ -289,6 +289,35 @@ describe('Serenity/JS project generation', () => {
                 'rimraf',
             ])
         })
+
+        it('supports TypeScript projects', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber',
+                specs: 'features/**/*.feature',
+                stepDefinitions: 'features/step-definitions/steps',
+                isUsingCompiler: CompilerOptions.TS,
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('cucumber')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@cucumber/cucumber',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/cucumber',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                '@types/node',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
     })
 
     describe('with Jasmine', () => {
@@ -338,6 +367,7 @@ describe('Serenity/JS project generation', () => {
                 '@serenity-js/serenity-bdd',
                 '@serenity-js/web',
                 '@types/jasmine',
+                '@types/node',
                 'jasmine',
                 'npm-failsafe',
                 'rimraf',
@@ -395,6 +425,7 @@ describe('Serenity/JS project generation', () => {
                 '@serenity-js/serenity-bdd',
                 '@serenity-js/web',
                 '@types/mocha',
+                '@types/node',
                 'mocha',
                 'npm-failsafe',
                 'rimraf',
