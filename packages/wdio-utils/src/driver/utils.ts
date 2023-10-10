@@ -202,35 +202,30 @@ export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps:
 }
 
 export function getMajorVersionFromString(fullVersion:string) {
-    let prefix;
-  
+    let prefix
     if (fullVersion) {
-      prefix = fullVersion.match(/^[+-]?([0-9]+)/);
+        prefix = fullVersion.match(/^[+-]?([0-9]+)/)
     }
-    return prefix && prefix.length > 0 ? prefix[0] : '';
-  }
+    return prefix && prefix.length > 0 ? prefix[0] : ''
+}
 
 export async function checkKnownBuild (build: string) {
     try {
         const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
-
-        const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version === build).pop();
-    
-        if(versionMatch && versionMatch.version) {
+        const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version === build).pop()
+        if (versionMatch && versionMatch.version) {
             return versionMatch.version as string
         } else {
-            log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`);
-            const majorVersion = getMajorVersionFromString(build);
+            log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
+            const majorVersion = getMajorVersionFromString(build)
             const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-    
             if(versionMatchMajor && versionMatchMajor.version) {
                 return versionMatchMajor.version as string;
-            } else {
-                return '';
             }
+            return ''
         }
     } catch {
-        return '';
+        return ''
     }
 }
 
@@ -239,7 +234,6 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
-
     const version = driverVersion || getBuildIdByChromePath(await locateChrome()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     let executablePath = computeExecutablePath({
@@ -260,7 +254,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
         const knownBuild = await checkKnownBuild(buildId);
-        if(knownBuild && getMajorVersionFromString(knownBuild)) {
+        if (knownBuild && getMajorVersionFromString(knownBuild)) {
             await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
             log.info(`Download of Chromedriver v${knownBuild} was successful`)
         } else {
@@ -268,7 +262,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
                 await _install({ ...chromedriverInstallOpts, buildId })
                 log.info(`Download of Chromedriver v${buildId} was successful`)
             } catch (err: any) {
-                throw new Error(`Couldn't download Chromedriver v${buildId}: ${err.message}`);
+                throw new Error(`Couldn't download Chromedriver v${buildId}: ${err.message}`)
             }
         }         
         executablePath = computeExecutablePath({
@@ -280,7 +274,6 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }
-
     return { executablePath }
 }
 
