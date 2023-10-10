@@ -273,6 +273,7 @@ export function getSerenityPackages(answers: Questionnair): string[] {
             '@serenity-js/rest',
             '@serenity-js/serenity-bdd',
             '@serenity-js/web',
+            isUsingTypeScript && '@types/node',
             'npm-failsafe',
             'rimraf',
         ]
