@@ -233,6 +233,31 @@ describe('Serenity/JS project generation', () => {
         expect(parsedAnswers.projectName).toEqual('my-module')
     })
 
+    describe.skipIf(isUsingWindows)('serenityLibPath', () => {
+
+        it('supports a relative path', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
+                serenityLibPath: './serenity',
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+        })
+
+        it('supports an absolute path', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
+                serenityLibPath: '/foo/bar/src/serenity',
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/src/serenity')
+        })
+    })
+
     describe('with Cucumber', () => {
 
         it('adds necessary packages', async () => {
@@ -247,7 +272,6 @@ describe('Serenity/JS project generation', () => {
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('cucumber')
             expect(parsedAnswers.destSpecRootPath).toEqual('/foo/bar/features')
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
@@ -275,7 +299,6 @@ describe('Serenity/JS project generation', () => {
 
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('jasmine')
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
@@ -302,7 +325,6 @@ describe('Serenity/JS project generation', () => {
 
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('jasmine')
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
@@ -333,7 +355,6 @@ describe('Serenity/JS project generation', () => {
 
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('mocha')
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
@@ -361,7 +382,6 @@ describe('Serenity/JS project generation', () => {
 
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('mocha')
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
