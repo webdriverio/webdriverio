@@ -2,7 +2,7 @@ import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
-import { vi, test, expect, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import inquirer from 'inquirer'
 
 import {
@@ -23,7 +23,8 @@ import {
     setupBabel,
     setupTypeScript,
 } from '../../src/utils.js'
-import { CompilerOptions } from '../../src/constants.js'
+import { BackendChoice, CompilerOptions } from '../../src/constants.js'
+import type { Questionnair } from '../../build/types'
 
 const consoleLog = console.log.bind(console)
 beforeEach(() => {
@@ -47,7 +48,6 @@ vi.mock('../../src/utils.js', async () => {
     return {
         ...actual,
         getAnswers: vi.fn(),
-        getPathForFileGeneration: vi.fn().mockReturnValue({}),
         getProjectProps: vi.fn().mockResolvedValue({
             path: '/foo/bar',
             esmSupported: true,
@@ -80,7 +80,7 @@ test('builder', () => {
 
 test.skipIf(isUsingWindows)('parseAnswers', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
-        backend: 'On my local machine',
+        backend: BackendChoice.Local,
         specs: '/tmp/foobar/specs',
         pages: '/tmp/foobar/pageobjects',
         generateTestFiles: true,
@@ -119,7 +119,7 @@ test('runConfigCommand', async () => {
 
 test.skipIf(isUsingWindows)('handler', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
-        backend: 'On my local machine',
+        backend: BackendChoice.Local,
         generateTestFiles: false,
         isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
@@ -138,7 +138,7 @@ test.skipIf(isUsingWindows)('handler', async () => {
 
 test('missingConfigurationPrompt does not init wizard if user does not want to', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
-        backend: 'On my local machine',
+        backend: BackendChoice.Local,
         generateTestFiles: false,
         isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
@@ -158,7 +158,7 @@ test('missingConfigurationPrompt does not init wizard if user does not want to',
 
 test('missingConfigurationPrompt does run config if user agrees', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
-        backend: 'On my local machine',
+        backend: BackendChoice.Local,
         generateTestFiles: false,
         isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
@@ -188,4 +188,195 @@ test('canAccessConfigPath', async () => {
     expect(fs.access).toBeCalledWith('/foo/bar.ts')
     expect(fs.access).toBeCalledWith('/foo/bar.mjs')
     expect(fs.access).toBeCalledWith('/foo/bar.mts')
+})
+
+describe('Serenity/JS project generation', () => {
+
+    const defaultAnswers: Questionnair = {
+        runner: '@wdio/local-runner$--$local$--$e2e',
+        framework: undefined,   // overridden in the tests
+        backend: BackendChoice.Local,
+        e2eEnvironment: 'web',
+        browserEnvironment: ['chrome'],
+        specs: '/foo/bar/specs',
+        pages: '/foo/bar/pageobjects',
+        generateTestFiles: true,
+        usePageObjects: true,
+        baseUrl: 'http://localhost',
+        reporters: [],
+        plugins: [],
+        services: [],
+        npmInstall: true,
+        isUsingCompiler: CompilerOptions.Nil,
+    }
+
+    it('marks serenityAdapter as false and destSerenityLibRootPath as blank if not using Serenity/JS', async () => {
+        vi.mocked(getAnswers).mockResolvedValue({
+            ...defaultAnswers,
+            framework: '@wdio/mocha-framework$--$mocha',
+        })
+        const parsedAnswers = await parseAnswers(true)
+
+        expect(parsedAnswers.framework).toEqual('mocha')
+        expect(parsedAnswers.serenityAdapter).toEqual(false)
+        expect(parsedAnswers.destSerenityLibRootPath).toEqual('')
+    })
+
+    it('adds projectName so that it can be used in templates', async () => {
+        vi.mocked(getAnswers).mockResolvedValue({
+            ...defaultAnswers,
+            framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
+            serenityLibPath: './serenity',
+        })
+        const parsedAnswers = await parseAnswers(true)
+
+        expect(parsedAnswers.projectName).toEqual('my-module')
+    })
+
+    describe('with Cucumber', () => {
+
+        it('adds necessary packages', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber',
+                specs: 'features/**/*.feature',
+                stepDefinitions: 'features/step-definitions/steps'
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('cucumber')
+            expect(parsedAnswers.destSpecRootPath).toEqual('/foo/bar/features')
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@cucumber/cucumber',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/cucumber',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
+    })
+
+    describe('with Jasmine', () => {
+        it('adds necessary packages', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine',
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('jasmine')
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/jasmine',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                'jasmine',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
+
+        it('supports TypeScript projects', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine',
+                isUsingCompiler: CompilerOptions.TS,
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('jasmine')
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/jasmine',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                '@types/jasmine',
+                'jasmine',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
+    })
+
+    describe('with Mocha', () => {
+
+        it('adds necessary packages', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
+                serenityLibPath: './serenity',
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('mocha')
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/mocha',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                'mocha',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
+
+        it('supports TypeScript projects', async () => {
+            vi.mocked(getAnswers).mockResolvedValue({
+                ...defaultAnswers,
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
+                serenityLibPath: './serenity',
+                isUsingCompiler: CompilerOptions.TS,
+            })
+            const parsedAnswers = await parseAnswers(true)
+
+            expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
+            expect(parsedAnswers.serenityAdapter).toEqual('mocha')
+            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.packagesToInstall).toEqual([
+                '@wdio/local-runner',
+                '@serenity-js/webdriverio',
+                '@serenity-js/assertions',
+                '@serenity-js/console-reporter',
+                '@serenity-js/core',
+                '@serenity-js/mocha',
+                '@serenity-js/rest',
+                '@serenity-js/serenity-bdd',
+                '@serenity-js/web',
+                '@types/mocha',
+                'mocha',
+                'npm-failsafe',
+                'rimraf',
+            ])
+        })
+    })
 })

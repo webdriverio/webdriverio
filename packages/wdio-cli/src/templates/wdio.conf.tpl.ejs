@@ -8,22 +8,25 @@ if (answers.purpose === 'electron') {
 <%  }
     if (answers.electronBuildTool === 'electron-builder' && !answers.electronAppBinaryPath) {
         %>import path from 'node:path'
-        
+
 import { getBinaryPath } from 'wdio-electron-service/utils'
 
 <%  }
 }
 
-if (answers.isUsingTypeScript) {
+if (answers.isUsingTypeScript && ! answers.serenityAdapter) {
     %>import type { Options } from '@wdio/types'
+<% }
 
+if (answers.isUsingTypeScript && answers.serenityAdapter) {
+%>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
 
 if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
     if (electronBuilderConfigIsJson()) {
         %>const electronAppRepoPath = path.dirname('<%- answers.electronBuilderConfigPath %>')
 <%  }
-    if (electronBuilderConfigIsPackageJson()) { 
+    if (electronBuilderConfigIsPackageJson()) {
         %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>'), 'utf-8'))
 const productName = packageJson.build.productName
 const electronBuilderOutputDirectory = packageJson.build.directories?.output
@@ -37,7 +40,7 @@ const electronBuilderOutputDirectory = electronBuilderJson.directories?.output
 }
 
 if (answers.isUsingTypeScript) {
-    %>export const config: Options.Testrunner = {<%
+    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'Options.Testrunner' %> = {<%
 } else if (answers.esmSupport) {
     %>export const config = {<%
 } else {
@@ -221,7 +224,23 @@ if (answers.isUsingTypeScript) {
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: '<%- answers.framework %>',
-    //
+    <% if(answers.framework === '@serenity-js/webdriverio') { %>//
+    // Serenity/JS config, see https://serenity-js.org/handbook/getting-started/serenity-js-with-webdriverio/
+    serenity: {
+        runner: '<%- answers.serenityAdapter %>',
+
+        // Configure reporting services, see: https://serenity-js.org/handbook/reporting/
+        crew: [
+            '@serenity-js/console-reporter',
+            '@serenity-js/serenity-bdd',
+            [ '@serenity-js/core:ArtifactArchiver', { outputDirectory: 'target/site/serenity' } ],
+            [ '@serenity-js/web:Photographer',      {
+                // strategy: 'TakePhotosOfFailures'  // fast execution, screenshots only when tests fail
+                strategy: 'TakePhotosOfInteractions' // slower execution, more comprehensive reports
+            } ],
+        ]
+    },
+    <% } %>//
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
     //
@@ -232,13 +251,26 @@ if (answers.isUsingTypeScript) {
     // specFileRetriesDeferred: false,
     //
     <%- include('snippets/reporters', { reporters: answers.reporters }) %>
-    <% if(answers.framework === 'mocha') { %>
+    <% if(answers.serenityAdapter === 'mocha') { %>//
+    // Mocha config, see https://serenity-js.org/api/mocha-adapter/interface/MochaConfig/
+    mochaOpts: {
+        timeout: 60000,
+    },<%
+    }
+    if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
+    },<%
+    }
+    if(answers.serenityAdapter === 'jasmine') {%>
+    //
+    // Jasmine config, see https://serenity-js.org/api/jasmine-adapter/interface/JasmineConfig
+    jasmineOpts: {
+        defaultTimeoutInterval: 60000,
     },<%
     }
     if(answers.framework === 'jasmine') { %>
@@ -254,6 +286,27 @@ if (answers.isUsingTypeScript) {
         expectationResultHandler: function(passed, assertion) {
             // do something
         }
+    },
+    <% }
+    if(answers.serenityAdapter === 'cucumber') { %>//
+    // Cucumber config, see https://serenity-js.org/api/cucumber-adapter/interface/CucumberConfig/
+    cucumberOpts: {
+        // <string[]> (file/dir) require files before executing features
+        import: [
+            <% if (answers.stepDefinitions) {
+                %>'<%- answers.stepDefinitions %>',
+            <% } %>'./features/support/*.<%- answers.isUsingTypeScript ? 'ts' : 'js' %>',
+        ],
+        // <string[]> (type[:path]) specify native Cucumber.js output format, if needed. Optionally supply PATH to redirect formatter output (repeatable)
+        format: [ ],
+        // <string> (name) specify the profile to use
+        profile: '',
+        // <boolean> fail if there are any undefined or pending steps
+        strict: false,
+        // <string[] | string> (expression) only execute the features or scenarios with tags matching the expression
+        tags: [],
+        // <number> timeout for step definitions
+        timeout: 60000,
     },
     <% }
     if(answers.framework === 'cucumber') { %>//
