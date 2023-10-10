@@ -201,6 +201,39 @@ export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps:
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
 }
 
+export function getMajorVersionFromString(fullVersion:string) {
+    let prefix;
+  
+    if (fullVersion) {
+      prefix = fullVersion.match(/^[+-]?([0-9]+)/);
+    }
+    return prefix && prefix.length > 0 ? prefix[0] : '';
+  }
+
+export async function checkKnownBuild (build: string) {
+    try {
+        const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
+
+        const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version === build).pop();
+    
+        if(versionMatch && versionMatch.version) {
+            return versionMatch.version as string
+        } else {
+            log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`);
+            const majorVersion = getMajorVersionFromString(build);
+            const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
+    
+            if(versionMatchMajor && versionMatchMajor.version) {
+                return versionMatchMajor.version as string;
+            } else {
+                return '';
+            }
+        }
+    } catch {
+        return '';
+    }
+}
+
 export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
@@ -215,7 +248,6 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         platform,
         cacheDir
     })
-    let loggedBuildId = buildId
     const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
@@ -227,39 +259,24 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-
-        try {
-            await _install({ ...chromedriverInstallOpts, buildId })
-            log.info(`Download of Chromedriver v${buildId} was successful`)
-        } catch (err) {
-            /**
-             * in case we detect a Chrome browser installed for which there is no Chromedriver available
-             * we are falling back to the latest known good version
-             */
-            log.warn(`Couldn't download Chromedriver v${buildId}: ${(err as Error).message}, trying to find known good version...`)
-            let knownGoodVersion: string
-            if (buildId.includes('.')) {
-                const majorVersion = buildId.split('.')[0]
-                const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
-                const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-                if (!versionMatch) {
-                    throw new Error(`Couldn't find known good version for Chromedriver v${majorVersion}`)
-                }
-                knownGoodVersion = versionMatch.version
-            } else {
-                knownGoodVersion = await resolveBuildId(Browser.CHROMEDRIVER, platform, buildId)
+        const knownBuild = await checkKnownBuild(buildId);
+        if(knownBuild && getMajorVersionFromString(knownBuild)) {
+            await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+            log.info(`Download of Chromedriver v${knownBuild} was successful`)
+        } else {
+            try{
+                await _install({ ...chromedriverInstallOpts, buildId })
+                log.info(`Download of Chromedriver v${buildId} was successful`)
+            } catch {
+                throw new Error(`Couldn't have founded known good version for Chromedriver v${buildId}`);
             }
-
-            loggedBuildId = knownGoodVersion
-            await _install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
-            log.info(`Download of Chromedriver v${loggedBuildId} was successful`)
-            executablePath = computeExecutablePath({
-                browser: Browser.CHROMEDRIVER,
-                buildId: loggedBuildId,
-                platform,
-                cacheDir
-            })
-        }
+        }         
+        executablePath = computeExecutablePath({
+            browser: Browser.CHROMEDRIVER,
+            buildId: knownBuild,
+            platform,
+            cacheDir
+        })
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }
