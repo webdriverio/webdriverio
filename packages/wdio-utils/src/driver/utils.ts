@@ -244,7 +244,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-        let knownBuild = buildId;
+        let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
             await _install({ ...chromedriverInstallOpts, buildId })
             log.info(`Download of Chromedriver v${buildId} was successful`)
