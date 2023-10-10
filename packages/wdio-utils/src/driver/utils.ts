@@ -210,9 +210,6 @@ export function getMajorVersionFromString(fullVersion:string) {
 }
 
 export async function getKnownBuild (build: string) {
-    if (await canDownload(build)) {
-        return build
-    }
     log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
     const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
     const majorVersion = getMajorVersionFromString(build)
@@ -247,12 +244,18 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-        const knownBuild = await getKnownBuild(buildId)
-        if (knownBuild) {
-            await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
-            log.info(`Download of Chromedriver v${knownBuild} was successful`)
+        let knownBuild = buildId;
+        if (await canDownload(chromedriverInstallOpts)) {
+            await _install({ ...chromedriverInstallOpts, buildId })
+            log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
-            throw new Error(`Couldn't download Chromedriver v${buildId}`)
+            knownBuild = await getKnownBuild(buildId)
+            if (knownBuild) {
+                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+                log.info(`Download of Chromedriver v${knownBuild} was successful`)
+            } else {
+                throw new Error(`Couldn't download Chromedriver v${buildId}`)
+            }
         }
         executablePath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
