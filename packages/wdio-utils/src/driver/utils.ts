@@ -209,23 +209,18 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function checkKnownBuild (build: string) {
-    try {
-        const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
-        const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version === build).pop()
-        if (versionMatch && versionMatch.version) {
-            return versionMatch.version as string
-        }
-        log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
-        const majorVersion = getMajorVersionFromString(build)
-        const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-        if (versionMatchMajor && versionMatchMajor.version) {
-            return versionMatchMajor.version as string
-        }
-        return ''
-    } catch {
-        return ''
+export async function getKnownBuild (build: string) {
+    if (await canDownload(build)) {
+        return build
     }
+    log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
+    const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
+    const majorVersion = getMajorVersionFromString(build)
+    const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
+    if (versionMatchMajor && versionMatchMajor.version) {
+        return versionMatchMajor.version as string
+    }
+    return ''
 }
 
 export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
@@ -252,17 +247,12 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-        const knownBuild = await checkKnownBuild(buildId)
-        if (knownBuild && getMajorVersionFromString(knownBuild)) {
+        const knownBuild = await getKnownBuild(buildId)
+        if (knownBuild) {
             await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
             log.info(`Download of Chromedriver v${knownBuild} was successful`)
         } else {
-            try {
-                await _install({ ...chromedriverInstallOpts, buildId })
-                log.info(`Download of Chromedriver v${buildId} was successful`)
-            } catch (err: any) {
-                throw new Error(`Couldn't download Chromedriver v${buildId}: ${err.message}`)
-            }
+            throw new Error(`Couldn't download Chromedriver v${buildId}`)
         }
         executablePath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
