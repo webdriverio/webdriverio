@@ -215,15 +215,14 @@ export async function checkKnownBuild (build: string) {
         const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version === build).pop()
         if (versionMatch && versionMatch.version) {
             return versionMatch.version as string
-        } else {
-            log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
-            const majorVersion = getMajorVersionFromString(build)
-            const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-            if(versionMatchMajor && versionMatchMajor.version) {
-                return versionMatchMajor.version as string;
-            }
-            return ''
         }
+        log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
+        const majorVersion = getMajorVersionFromString(build)
+        const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
+        if (versionMatchMajor && versionMatchMajor.version) {
+            return versionMatchMajor.version as string
+        }
+        return ''
     } catch {
         return ''
     }
@@ -253,18 +252,18 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-        const knownBuild = await checkKnownBuild(buildId);
+        const knownBuild = await checkKnownBuild(buildId)
         if (knownBuild && getMajorVersionFromString(knownBuild)) {
             await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
             log.info(`Download of Chromedriver v${knownBuild} was successful`)
         } else {
-            try{
+            try {
                 await _install({ ...chromedriverInstallOpts, buildId })
                 log.info(`Download of Chromedriver v${buildId} was successful`)
             } catch (err: any) {
                 throw new Error(`Couldn't download Chromedriver v${buildId}: ${err.message}`)
             }
-        }         
+        }
         executablePath = computeExecutablePath({
             browser: Browser.CHROMEDRIVER,
             buildId: knownBuild,
