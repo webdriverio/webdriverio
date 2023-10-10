@@ -233,7 +233,7 @@ describe('Serenity/JS project generation', () => {
         expect(parsedAnswers.projectName).toEqual('my-module')
     })
 
-    describe.skipIf(isUsingWindows)('serenityLibPath', () => {
+    describe('serenityLibPath', () => {
 
         it('supports a relative path', async () => {
             vi.mocked(getAnswers).mockResolvedValue({
@@ -243,7 +243,8 @@ describe('Serenity/JS project generation', () => {
             })
             const parsedAnswers = await parseAnswers(true)
 
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/serenity')
+            expect(parsedAnswers.destSerenityLibRootPath.split(path.sep))
+                .toEqual(expect.arrayContaining(['foo', 'bar', 'serenity']))
         })
 
         it('supports an absolute path', async () => {
@@ -254,7 +255,8 @@ describe('Serenity/JS project generation', () => {
             })
             const parsedAnswers = await parseAnswers(true)
 
-            expect(parsedAnswers.destSerenityLibRootPath).toEqual('/foo/bar/src/serenity')
+            expect(parsedAnswers.destSerenityLibRootPath.split(path.sep))
+                .toEqual(expect.arrayContaining(['foo', 'bar', 'src', 'serenity']))
         })
     })
 
@@ -271,7 +273,7 @@ describe('Serenity/JS project generation', () => {
 
             expect(parsedAnswers.framework).toEqual('@serenity-js/webdriverio')
             expect(parsedAnswers.serenityAdapter).toEqual('cucumber')
-            expect(parsedAnswers.destSpecRootPath).toEqual('/foo/bar/features')
+            expect(parsedAnswers.destSpecRootPath.split(path.sep)).toEqual(expect.arrayContaining(['foo', 'bar', 'features']))
             expect(parsedAnswers.packagesToInstall).toEqual([
                 '@wdio/local-runner',
                 '@serenity-js/webdriverio',
