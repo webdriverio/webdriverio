@@ -267,8 +267,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             try{
                 await _install({ ...chromedriverInstallOpts, buildId })
                 log.info(`Download of Chromedriver v${buildId} was successful`)
-            } catch {
-                throw new Error(`Couldn't have founded known good version for Chromedriver v${buildId}`);
+            } catch (err: any) {
+                throw new Error(`Couldn't download Chromedriver v${buildId}: ${err.message}`);
             }
         }         
         executablePath = computeExecutablePath({
