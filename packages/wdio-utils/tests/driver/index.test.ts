@@ -318,7 +318,6 @@ describe('startWebDriver', () => {
         }
         vi.mocked(install)
             .mockResolvedValueOnce({} as any)
-            .mockRejectedValueOnce(new Error('boom'))
             .mockResolvedValue({} as any)
         await startWebDriver(options)
         expect(install).toBeCalledTimes(1)

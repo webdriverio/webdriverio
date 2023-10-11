@@ -4,7 +4,6 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import cp from 'node:child_process'
 
-import got from 'got'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
@@ -201,12 +200,19 @@ export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps:
     return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
 }
 
+export function getMajorVersionFromString(fullVersion:string) {
+    let prefix
+    if (fullVersion) {
+        prefix = fullVersion.match(/^[+-]?([0-9]+)/)
+    }
+    return prefix && prefix.length > 0 ? prefix[0] : ''
+}
+
 export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
-
     const version = driverVersion || getBuildIdByChromePath(await locateChrome()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     let executablePath = computeExecutablePath({
@@ -215,7 +221,6 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         platform,
         cacheDir
     })
-    let loggedBuildId = buildId
     const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
@@ -227,43 +232,29 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             unpack: true,
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
-
-        try {
+        let knownBuild = buildId
+        if (await canDownload(chromedriverInstallOpts)) {
             await _install({ ...chromedriverInstallOpts, buildId })
             log.info(`Download of Chromedriver v${buildId} was successful`)
-        } catch (err) {
-            /**
-             * in case we detect a Chrome browser installed for which there is no Chromedriver available
-             * we are falling back to the latest known good version
-             */
-            log.warn(`Couldn't download Chromedriver v${buildId}: ${(err as Error).message}, trying to find known good version...`)
-            let knownGoodVersion: string
-            if (buildId.includes('.')) {
-                const majorVersion = buildId.split('.')[0]
-                const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
-                const versionMatch = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-                if (!versionMatch) {
-                    throw new Error(`Couldn't find known good version for Chromedriver v${majorVersion}`)
-                }
-                knownGoodVersion = versionMatch.version
+        } else {
+            log.warn(`Chromedriver v${buildId} don't exist, trying to find known good version...`)
+            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
+            if (knownBuild) {
+                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+                log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
-                knownGoodVersion = await resolveBuildId(Browser.CHROMEDRIVER, platform, buildId)
+                throw new Error(`Couldn't download any known good version from Chromedriver major v${getMajorVersionFromString(version)}, requested full version - v${version}`)
             }
-
-            loggedBuildId = knownGoodVersion
-            await _install({ ...chromedriverInstallOpts, buildId: loggedBuildId })
-            log.info(`Download of Chromedriver v${loggedBuildId} was successful`)
-            executablePath = computeExecutablePath({
-                browser: Browser.CHROMEDRIVER,
-                buildId: loggedBuildId,
-                platform,
-                cacheDir
-            })
         }
+        executablePath = computeExecutablePath({
+            browser: Browser.CHROMEDRIVER,
+            buildId: knownBuild,
+            platform,
+            cacheDir
+        })
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }
-
     return { executablePath }
 }
 
