@@ -7,7 +7,7 @@ import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
-const REGEX_SCRIPT_NAME = /return \((async )*function (\w+)/
+const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 
 /**
  * overwrite native element commands with user defined
