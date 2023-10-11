@@ -1,13 +1,12 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import util from 'node:util'
 
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION
+    configHelperSuccessMessage, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_SERENITY_BANNER,
 } from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
@@ -152,12 +151,13 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
     /**
      * print success message
      */
-    console.log(util.format(
-        CONFIG_HELPER_SUCCESS_MESSAGE,
-        parsedAnswers.projectRootDir,
-        parsedAnswers.projectRootDir,
-        parsedAnswers.serenityAdapter ? 'serenity' : 'wdio'
-    ))
+    console.log(
+        configHelperSuccessMessage({
+            projectRootDir: parsedAnswers.projectRootDir,
+            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
+            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
+        }),
+    )
 
     await runAppiumInstaller(parsedAnswers)
 }

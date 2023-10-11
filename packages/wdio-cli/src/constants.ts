@@ -23,18 +23,23 @@ export const CONFIG_HELPER_INTRO = `
 `
 
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
-export const CONFIG_HELPER_SUCCESS_MESSAGE = `
-🤖 Successfully setup project at %s 🎉
+export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
+🤖 Successfully setup project at ${ projectRootDir } 🎉
 
 Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
   🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio
-
+${ extraInfo }
 To run your tests, execute:
-$ cd %s
-$ npm run %s
+$ cd ${ projectRootDir }
+$ npm run ${ runScript }
+`
+
+export const CONFIG_HELPER_SERENITY_BANNER = `
+Learn more about Serenity/JS:
+  🔗 https://serenity-js.org
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
