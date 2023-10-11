@@ -4,7 +4,6 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import cp from 'node:child_process'
 
-import got from 'got'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
@@ -209,17 +208,6 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function getKnownBuild (build: string) {
-    log.warn(`Chromedriver v${build} don't exist, trying to find known good version...`)
-    const knownGoodVersions: any = await got('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json').json()
-    const majorVersion = getMajorVersionFromString(build)
-    const versionMatchMajor = knownGoodVersions.versions.filter(({ version }: { version: string }) => version.startsWith(majorVersion)).pop()
-    if (versionMatchMajor && versionMatchMajor.version) {
-        return versionMatchMajor.version as string
-    }
-    return ''
-}
-
 export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
@@ -249,12 +237,13 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             await _install({ ...chromedriverInstallOpts, buildId })
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
-            knownBuild = await getKnownBuild(buildId)
+            log.warn(`Chromedriver v${buildId} don't exist, trying to find known good version...`)
+            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
             if (knownBuild) {
                 await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
-                throw new Error(`Couldn't download Chromedriver v${buildId}`)
+                throw new Error(`Couldn't download any known good version from Chromedriver major v${getMajorVersionFromString(version)}, requested full version - v${version}`)
             }
         }
         executablePath = computeExecutablePath({
