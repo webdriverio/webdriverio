@@ -1,4 +1,4 @@
-    //
+<%  if (answers.framework === 'jasmine') { %>
     // Options to be passed to Jasmine.
     jasmineOpts: {
         // Jasmine default timeout
@@ -10,4 +10,11 @@
         expectationResultHandler: function(passed, assertion) {
             // do something
         }
-    }
+    },
+<% } else if (answers.serenityAdapter === 'jasmine') { %>
+    // Jasmine configuration, see:
+    //  https://serenity-js.org/api/jasmine-adapter/interface/JasmineConfig
+    jasmineOpts: {
+        defaultTimeoutInterval: 60000,
+    },
+<% } %>

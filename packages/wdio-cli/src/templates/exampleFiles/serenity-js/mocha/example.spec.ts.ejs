@@ -1,11 +1,11 @@
-import { describe, it } from 'mocha'
+<%- _.import('describe, it', 'mocha') %>
 
-import { Ensure, equals } from '@serenity-js/assertions'
-import { actorCalled } from '@serenity-js/core'
-import { By, Navigate, PageElement, Text } from '@serenity-js/web'
+<%- _.import('Ensure, equals', '@serenity-js/assertions') %>
+<%- _.import('actorCalled', '@serenity-js/core') %>
+<%- _.import('By, Navigate, PageElement, Text', '@serenity-js/web') %>
 
-import { GitHubStatus } from '../serenity/github-api/GitHubStatus'
-import { TodoList } from '../serenity/todo-list-app/TodoList'
+<%- _.import('GitHubStatus', '../serenity/github-api/GitHubStatus') %>
+<%- _.import('TodoList', '../serenity/todo-list-app/TodoList') %>
 
 /**
  * Serenity/JS Screenplay Pattern test scenarios use one or more actors to represent people and external systems

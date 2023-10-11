@@ -1,9 +1,9 @@
-import { defineParameterType } from '@cucumber/cucumber'
-import { actorCalled, actorInTheSpotlight } from '@serenity-js/core'
+<%- _.import('defineParameterType', '@cucumber/cucumber') %>
+<%- _.import('actorCalled, actorInTheSpotlight', '@serenity-js/core') %>
 
 defineParameterType({
     regexp: /[A-Z][a-z]+/,
-    transformer(name: string) {
+    transformer(<%- _.param('name', 'string') %>) {
         return actorCalled(name)
     },
     name: 'actor',

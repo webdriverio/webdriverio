@@ -18,7 +18,7 @@ import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
 import {
     ANDROID_CONFIG,
@@ -38,6 +38,7 @@ import type {
     ReplCommandArguments,
     SupportedPackage,
 } from './types.js'
+import { EjsHelpers } from './templates/EjsHelpers.js'
 
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -478,8 +479,6 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 }
 
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
-    const ignores = answers.isUsingTypeScript ? ['*.js.ejs'] : ['*.ts.ejs']
-
     const templateDirectories = {
         [answers.projectRootDir]:           path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
         [answers.destSpecRootPath]:         path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
@@ -487,11 +486,18 @@ async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
     }
 
     for (const [destinationRootDir, templateRootDir] of Object.entries(templateDirectories)) {
-        const pathsToTemplates = await readDir(templateRootDir, ignores)
+        const pathsToTemplates = await readDir(templateRootDir)
 
         for (const pathToTemplate of pathsToTemplates) {
-            const destination = path.join(destinationRootDir, path.relative(templateRootDir, pathToTemplate)).replace(/\.ejs$/, '')
-            const contents = await renderFile(pathToTemplate, { answers })
+            const extension = answers.isUsingTypeScript ? '.ts' : '.js'
+            const destination = path.join(destinationRootDir, path.relative(templateRootDir, pathToTemplate))
+                .replace(/\.ejs$/, '')
+                .replace(/\.ts$/, extension)
+
+            const contents = await renderFile(
+                pathToTemplate,
+                { answers, _: new EjsHelpers({ useEsm: answers.esmSupport, useTypeScript: answers.isUsingTypeScript }) },
+            )
 
             await fs.mkdir(path.dirname(destination), { recursive: true })
             await fs.writeFile(destination, contents)
@@ -977,7 +983,10 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
         const tplPath = path.resolve(__dirname, 'templates', 'wdio.conf.tpl.ejs')
-        const renderedTpl = await renderFile(tplPath, { answers: parsedAnswers })
+        const renderedTpl = await renderFile(tplPath, {
+            answers: parsedAnswers,
+            _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
+        })
         await fs.writeFile(parsedAnswers.wdioConfigPath, renderedTpl)
         console.log(chalk.green.bold('✔ Success!\n'))
 

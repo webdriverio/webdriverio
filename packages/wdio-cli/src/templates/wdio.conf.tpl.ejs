@@ -224,7 +224,7 @@ if (answers.isUsingTypeScript) {
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: '<%- answers.framework %>',
-    <%- answers.framework === '@serenity-js/webdriverio' ? include('snippets/serenity-js/serenity', { answers }) : '' %>
+    <%- answers.framework === '@serenity-js/webdriverio' ? include('snippets/serenity', { answers }) : '' %>
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -236,12 +236,9 @@ if (answers.isUsingTypeScript) {
     // specFileRetriesDeferred: false,
     //
     <%- include('snippets/reporters', { reporters: answers.reporters })
-    %><%- answers.serenityAdapter   === 'mocha'    ? include('snippets/serenity-js/mocha', { answers }) : ''
-    %><%- answers.framework         === 'mocha'    ? include('snippets/mocha', { answers }) : ''
-    %><%- answers.serenityAdapter   === 'jasmine'  ? include('snippets/serenity-js/jasmine', { answers }) : ''
-    %><%- answers.framework         === 'jasmine'  ? include('snippets/jasmine', { answers }) : ''
-    %><%- answers.serenityAdapter   === 'cucumber' ? include('snippets/serenity-js/cucumber', { answers }) : ''
-    %><%- answers.framework         === 'cucumber' ? include('snippets/cucumber', { answers }) : ''
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('mocha'), include('snippets/mocha', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('jasmine'), include('snippets/jasmine', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('cucumber'), include('snippets/cucumber', { answers }))
     %>
     //
     // =====

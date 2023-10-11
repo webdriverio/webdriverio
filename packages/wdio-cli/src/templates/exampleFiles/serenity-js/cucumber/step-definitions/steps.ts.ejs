@@ -1,28 +1,27 @@
-import { Given, When, Then, DataTable } from '@cucumber/cucumber'
-import { Ensure, equals } from '@serenity-js/assertions'
-import { Actor } from '@serenity-js/core'
+<%- _.import('Given, When, Then, type DataTable', '@cucumber/cucumber') %>
+<%- _.import('Ensure, equals', '@serenity-js/assertions') %>
+<%- _.import('type Actor', '@serenity-js/core') %>
+<%- _.import('TodoList', '../../serenity/todo-list-app/TodoList') %>
 
-import { TodoList } from '../../serenity/todo-list-app/TodoList'
-
-Given('{actor} starts/started with a list containing:', async (actor: Actor, table: DataTable) => {
+Given('{actor} starts/started with a list containing:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
     await actor.attemptsTo(
         TodoList.createListContaining(itemsFrom(table)),
     )
 })
 
-When('{pronoun} marks/marked the following item(s) as completed:', async (actor: Actor, table: DataTable) => {
+When('{pronoun} marks/marked the following item(s) as completed:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
     await actor.attemptsTo(
         TodoList.markAsCompleted(itemsFrom(table)),
     )
 })
 
-When('{pronoun} marks/marked the following item(s) as outstanding:', async (actor: Actor, table: DataTable) => {
+When('{pronoun} marks/marked the following item(s) as outstanding:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
     await actor.attemptsTo(
         TodoList.markAsOutstanding(itemsFrom(table)),
     )
 })
 
-Then('{pronoun} should see that she has {int} item(s) outstanding', async (actor: Actor, expectedCount: number) => {
+Then('{pronoun} should see that she has {int} item(s) outstanding', async (<%- _.param('actor', 'Actor') %>, <%- _.param('expectedCount', 'number') %>) => {
     await actor.attemptsTo(
         Ensure.that(TodoList.outstandingItemsCount(), equals(expectedCount)),
     )
@@ -33,6 +32,6 @@ Then('{pronoun} should see that she has {int} item(s) outstanding', async (actor
  *
  * @param table
  */
-function itemsFrom(table: DataTable): string[] {
+function itemsFrom(<%- _.param('table', 'DataTable') %>)<%- _.returns('string[]') %> {
     return table.raw().map(row => row[0])
 }
