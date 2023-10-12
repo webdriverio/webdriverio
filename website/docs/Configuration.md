@@ -80,7 +80,7 @@ Default: `null`
 
 ```js
 {
-    browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+    browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`
     browserVersion: '27.0', // browser version
     platformName: 'Windows 10' // OS platform
 }
