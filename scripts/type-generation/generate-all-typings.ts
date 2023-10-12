@@ -13,6 +13,7 @@ const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocol
 
 const INDENTATION = ' '.repeat(4)
 const EXAMPLE_INDENTATION = `${INDENTATION} * `
+const DEPRECATED_INDENTATION = `\n${INDENTATION} * @deprecated`
 const jsDocTemplate = `
 ${INDENTATION}/**
 ${INDENTATION} * {PROTOCOL} Protocol Command
@@ -42,7 +43,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
     for (const methods of Object.values(definition)) {
         for (const description of Object.values(methods)) {
-            const { command, parameters = [], variables = [], returns, ref, examples } = description
+            const { command, parameters = [], variables = [], returns, ref, deprecated, examples } = description
             if (!ref) {
                 throw new Error(`missing ref for command ${command} in ${protocolName}`)
             }
@@ -95,6 +96,8 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                         .join(`\n${EXAMPLE_INDENTATION}`.trim())
                 )
                 )
+                // Conditionally adds the '@deprecated' tag next to '{REF}' if 'deprecated' value is passed, otherwise leaves it unchanged.
+                .replace('{REF}', deprecated ? `{REF}${DEPRECATED_INDENTATION} ${deprecated}` : '{REF}')
                 .replace('{REF}', ref)
             lines.push(jsDoc)
             lines.push(`${INDENTATION}${command}(${varsAndParams.join(', ')}): Promise<${returnValue}>;`)

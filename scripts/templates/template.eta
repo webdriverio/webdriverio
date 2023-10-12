@@ -13,6 +13,14 @@ title: <%= it.command %>
 
 <%= it.description %>
 
+<% if (it.deprecated) { %>
+:::caution
+
+<%= it.deprecated %>
+
+:::
+<% } %>
+
 <% if (it.alternativeCommands && it.alternativeCommands.length) { %>
 :::info
 

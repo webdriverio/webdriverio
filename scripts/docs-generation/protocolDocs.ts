@@ -78,6 +78,10 @@ export function generateProtocolDocs (sidebars: any) {
                     description.description = protocolNote
                 }
 
+                if (description.deprecated) {
+                    description.deprecated = `This protocol command is deprecated<br />${description.deprecated}`
+                }
+
                 const markdown = eta.render('./template', { ...description, path })
                 if (!protocolDocs[protocolName]) {
                     protocolDocs[protocolName] = [[
