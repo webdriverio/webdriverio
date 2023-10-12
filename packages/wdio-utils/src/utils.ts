@@ -7,7 +7,7 @@ import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
-const REGEX_SCRIPT_NAME = /return \(function (\w+)/
+const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 
 /**
  * overwrite native element commands with user defined
@@ -61,7 +61,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  */
 export function commandCallStructure (commandName: string, args: any[], unfurl = false) {
     const callArgs = args.map((arg) => {
-        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
+        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function') || arg.startsWith('return (async function'))) {
             arg = '<fn>'
         } else if (
             typeof arg === 'string' &&
@@ -103,7 +103,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
     } else if (typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
     } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
-        const newScript = result.script.match(REGEX_SCRIPT_NAME)![1]
+        const newScript = result.script.match(REGEX_SCRIPT_NAME)![2]
         return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
         return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
