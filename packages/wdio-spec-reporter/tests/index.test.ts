@@ -217,7 +217,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it.only('should print jobs of all instance when run with multiremote', () => {
+            it('should print jobs of all instance when run with multiremote', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',

@@ -583,7 +583,9 @@ export default class SpecReporter extends WDIOReporter {
     getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false) {
         if (isMultiremote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
-            const browserName = `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
+            const browserName = browserNames.length > 1
+                ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
+                : browserNames.pop()
             return `MultiremoteBrowser on ${browserName}`
         }
         const caps = (
