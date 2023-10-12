@@ -705,6 +705,18 @@ describe('getPathForFileGeneration', () => {
         expect(generatedPaths.relativePath).toEqual('../pages')
     })
 
+    it('Cucumber with answer that is not a path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'y',
+            pages: 'h',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../h')
+    })
+
     it('Mocha with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
             runner: 'local',
