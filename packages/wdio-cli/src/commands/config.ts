@@ -1,18 +1,17 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import util from 'node:util'
 
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION
+    configHelperSuccessMessage, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_SERENITY_BANNER,
 } from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
-    createWDIOConfig, createWDIOScript, runAppiumInstaller
+    createWDIOConfig, createWDIOScript, runAppiumInstaller, getSerenityPackages
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
@@ -55,6 +54,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const pluginPackages = answers.plugins.map((plugin) => convertPackageHashToObject(plugin))
+    const serenityPackages = getSerenityPackages(answers)
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const projectProps = await getProjectProps(process.cwd())
@@ -66,7 +66,8 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         presetPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
         ...pluginPackages.map(plugin => plugin.package),
-        ...servicePackages.map(service => service.package)
+        ...servicePackages.map(service => service.package),
+        ...serenityPackages,
     ].filter(Boolean)
 
     /**
@@ -99,6 +100,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
 
     return {
+        projectName: projectProps?.packageJson.name || 'Test Suite',
         // default values required in templates
         ...({
             usePageObjects: false,
@@ -111,6 +113,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         preset: presetPackage.short,
         framework: frameworkPackage.short,
         purpose: runnerPackage.purpose,
+        serenityAdapter: frameworkPackage.package === '@serenity-js/webdriverio' && frameworkPackage.purpose,
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),
@@ -126,6 +129,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         projectRootDir,
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
+        destSerenityLibRootPath: parsedPaths.destSerenityLibRootPath,
         relativePath: parsedPaths.relativePath,
         hasRootTSConfig,
         tsConfigFilePath,
@@ -147,11 +151,13 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
     /**
      * print success message
      */
-    console.log(util.format(
-        CONFIG_HELPER_SUCCESS_MESSAGE,
-        parsedAnswers.projectRootDir,
-        parsedAnswers.projectRootDir
-    ))
+    console.log(
+        configHelperSuccessMessage({
+            projectRootDir: parsedAnswers.projectRootDir,
+            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
+            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
+        }),
+    )
 
     await runAppiumInstaller(parsedAnswers)
 }

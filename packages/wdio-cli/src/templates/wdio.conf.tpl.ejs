@@ -8,22 +8,25 @@ if (answers.purpose === 'electron') {
 <%  }
     if (answers.electronBuildTool === 'electron-builder' && !answers.electronAppBinaryPath) {
         %>import path from 'node:path'
-        
+
 import { getBinaryPath } from 'wdio-electron-service/utils'
 
 <%  }
 }
 
-if (answers.isUsingTypeScript) {
+if (answers.isUsingTypeScript && ! answers.serenityAdapter) {
     %>import type { Options } from '@wdio/types'
+<% }
 
+if (answers.isUsingTypeScript && answers.serenityAdapter) {
+%>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
 
 if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
     if (electronBuilderConfigIsJson()) {
         %>const electronAppRepoPath = path.dirname('<%- answers.electronBuilderConfigPath %>')
 <%  }
-    if (electronBuilderConfigIsPackageJson()) { 
+    if (electronBuilderConfigIsPackageJson()) {
         %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>'), 'utf-8'))
 const productName = packageJson.build.productName
 const electronBuilderOutputDirectory = packageJson.build.directories?.output
@@ -37,7 +40,7 @@ const electronBuilderOutputDirectory = electronBuilderJson.directories?.output
 }
 
 if (answers.isUsingTypeScript) {
-    %>export const config: Options.Testrunner = {<%
+    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'Options.Testrunner' %> = {<%
 } else if (answers.esmSupport) {
     %>export const config = {<%
 } else {
@@ -221,6 +224,7 @@ if (answers.isUsingTypeScript) {
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: '<%- answers.framework %>',
+    <%- answers.framework === '@serenity-js/webdriverio' ? include('snippets/serenity', { answers }) : '' %>
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -231,58 +235,11 @@ if (answers.isUsingTypeScript) {
     // Whether or not retried spec files should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
     //
-    <%- include('snippets/reporters', { reporters: answers.reporters }) %>
-    <% if(answers.framework === 'mocha') { %>
-    //
-    // Options to be passed to Mocha.
-    // See the full list at http://mochajs.org/
-    mochaOpts: {
-        ui: 'bdd',
-        timeout: 60000
-    },<%
-    }
-    if(answers.framework === 'jasmine') { %>
-    //
-    // Options to be passed to Jasmine.
-    jasmineOpts: {
-        // Jasmine default timeout
-        defaultTimeoutInterval: 60000,
-        //
-        // The Jasmine framework allows interception of each assertion in order to log the state of the application
-        // or website depending on the result. For example, it is pretty handy to take a screenshot every time
-        // an assertion fails.
-        expectationResultHandler: function(passed, assertion) {
-            // do something
-        }
-    },
-    <% }
-    if(answers.framework === 'cucumber') { %>//
-    // If you are using Cucumber you need to specify the location of your step definitions.
-    cucumberOpts: {
-        // <string[]> (file/dir) require files before executing features
-        require: ['<%- answers.stepDefinitions %>'],
-        // <boolean> show full backtrace for errors
-        backtrace: false,
-        // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        requireModule: [],
-        // <boolean> invoke formatters without executing steps
-        dryRun: false,
-        // <boolean> abort the run on first failure
-        failFast: false,
-        // <boolean> hide step definition snippets for pending steps
-        snippets: true,
-        // <boolean> hide source uris
-        source: true,
-        // <boolean> fail if there are any undefined or pending steps
-        strict: false,
-        // <string> (expression) only execute the features or scenarios with tags matching the expression
-        tagExpression: '',
-        // <number> timeout for step definitions
-        timeout: 60000,
-        // <boolean> Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false
-    },
-    <% } %>
+    <%- include('snippets/reporters', { reporters: answers.reporters })
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('mocha'), include('snippets/mocha', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('jasmine'), include('snippets/jasmine', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('cucumber'), include('snippets/cucumber', { answers }))
+    %>
     //
     // =====
     // Hooks

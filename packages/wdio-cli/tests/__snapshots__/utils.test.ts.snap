@@ -134,6 +134,10 @@ exports[`setupTypeScript 1`] = `
         \\"moduleResolution\\": \\"node\\",
         \\"module\\": \\"ESNext\\",
         \\"target\\": \\"es2022\\",
+        \\"lib\\": [
+            \\"es2022\\",
+            \\"dom\\"
+        ],
         \\"types\\": [
             \\"node\\",
             \\"@wdio/globals/types\\",

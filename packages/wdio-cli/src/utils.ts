@@ -1,14 +1,12 @@
 import fs from 'node:fs/promises'
-import util from 'node:util'
-import { dirname } from 'node:path'
+import util, { promisify } from 'node:util'
+import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { SpawnOptions } from 'node:child_process'
 import { execSync, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
 
 import ejs from 'ejs'
 import chalk from 'chalk'
-import path from 'node:path'
 import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
@@ -20,13 +18,27 @@ import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
 import {
-    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, CompilerOptions,
-    TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
+    ANDROID_CONFIG,
+    CompilerOptions,
+    DEPENDENCIES_INSTALLATION_MESSAGE,
+    IOS_CONFIG,
+    pkg,
+    QUESTIONNAIRE,
+    TESTING_LIBRARY_PACKAGES,
+    usesSerenity,
 } from './constants.js'
-import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
+import type {
+    OnCompleteResult,
+    ParsedAnswers,
+    ProjectProps,
+    Questionnair,
+    ReplCommandArguments,
+    SupportedPackage,
+} from './types.js'
+import { EjsHelpers } from './templates/EjsHelpers.js'
 
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -231,6 +243,49 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     return { package: p, short, purpose }
 }
 
+export function getSerenityPackages(answers: Questionnair): string[] {
+    const framework = convertPackageHashToObject(answers.framework)
+
+    if (framework.package !== '@serenity-js/webdriverio') {
+        return []
+    }
+
+    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
+
+    const packages: Record<string, Array<string | false>> = {
+        cucumber: [
+            '@cucumber/cucumber',
+            '@serenity-js/cucumber',
+        ],
+        mocha: [
+            '@serenity-js/mocha',
+            'mocha',
+            isUsingTypeScript && '@types/mocha',
+        ],
+        jasmine: [
+            '@serenity-js/jasmine',
+            'jasmine',
+            isUsingTypeScript && '@types/jasmine',
+        ],
+        common: [
+            '@serenity-js/assertions',
+            '@serenity-js/console-reporter',
+            '@serenity-js/core',
+            '@serenity-js/rest',
+            '@serenity-js/serenity-bdd',
+            '@serenity-js/web',
+            isUsingTypeScript && '@types/node',
+            'npm-failsafe',
+            'rimraf',
+        ]
+    }
+
+    return [
+        ...packages[framework.purpose],
+        ...packages.common,
+    ].filter(Boolean).sort() as string[]
+}
+
 export async function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
         platformVersion: arg.platformVersion,
@@ -345,6 +400,10 @@ export async function hasPackage(pkg: string) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles(answers: ParsedAnswers) {
+    if (answers.serenityAdapter) {
+        return generateSerenityExamples(answers)
+    }
+
     if (answers.runner === 'local') {
         return generateLocalRunnerTestFiles(answers)
     }
@@ -416,6 +475,33 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
         await fs.writeFile(destPath, renderedTpl)
+    }
+}
+
+async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
+    const templateDirectories = {
+        [answers.projectRootDir]:           path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
+        [answers.destSpecRootPath]:         path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
+        [answers.destSerenityLibRootPath]:  path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
+    }
+
+    for (const [destinationRootDir, templateRootDir] of Object.entries(templateDirectories)) {
+        const pathsToTemplates = await readDir(templateRootDir)
+
+        for (const pathToTemplate of pathsToTemplates) {
+            const extension = answers.isUsingTypeScript ? '.ts' : '.js'
+            const destination = path.join(destinationRootDir, path.relative(templateRootDir, pathToTemplate))
+                .replace(/\.ejs$/, '')
+                .replace(/\.ts$/, extension)
+
+            const contents = await renderFile(
+                pathToTemplate,
+                { answers, _: new EjsHelpers({ useEsm: answers.esmSupport, useTypeScript: answers.isUsingTypeScript }) },
+            )
+
+            await fs.mkdir(path.dirname(destination), { recursive: true })
+            await fs.writeFile(destination, contents)
+        }
     }
 }
 
@@ -514,6 +600,9 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
             projectRootDir,
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
+    const destSerenityLibRootPath = usesSerenity(answers)
+        ? path.resolve(projectRootDir, answers.serenityLibPath || 'serenity')
+        : ''
     const relativePath = (answers.generateTestFiles && answers.usePageObjects)
         ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
             ? path.relative(destSpecRootPath, destPageObjectRootPath)
@@ -524,6 +613,7 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
         destSpecRootPath: destSpecRootPath,
         destStepRootPath: destStepRootPath,
         destPageObjectRootPath: destPageObjectRootPath,
+        destSerenityLibRootPath: destSerenityLibRootPath,
         relativePath: relativePath.replaceAll(path.sep, '/')
     }
 }
@@ -747,16 +837,18 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
+
     const types = [
         'node',
         '@wdio/globals/types',
         'expect-webdriverio',
-        frameworkPackage.package,
+        ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages
             .map(service => service.package)
             /**
-             * given that we know that all "offical" services have
+             * given that we know that all "official" services have
              * typescript support we only include them
              */
             .filter(service => service.startsWith('@wdio'))
@@ -770,6 +862,7 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                 moduleResolution: 'node',
                 module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
                 target: 'es2022',
+                lib: ['es2022', 'dom'],
                 types,
                 skipLibCheck: true,
                 // bundler
@@ -890,7 +983,10 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
         const tplPath = path.resolve(__dirname, 'templates', 'wdio.conf.tpl.ejs')
-        const renderedTpl = await renderFile(tplPath, { answers: parsedAnswers })
+        const renderedTpl = await renderFile(tplPath, {
+            answers: parsedAnswers,
+            _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
+        })
         await fs.writeFile(parsedAnswers.wdioConfigPath, renderedTpl)
         console.log(chalk.green.bold('✔ Success!\n'))
 
@@ -907,21 +1003,40 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
 export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
     const projectProps = await getProjectProps(process.cwd())
 
-    const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-    const args = ['pkg', 'set', `scripts.wdio=${script}`]
-    try {
-        console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
-        await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
-        console.log(chalk.green.bold('✔ Success!'))
-        return true
-    } catch (err: any) {
-        const [preArgs, scriptPath] = args.join(' ').split('=')
-        console.error(
-            `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
-            `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
-        )
-        return false
+    const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
+
+    const wdioScripts = {
+        'wdio': `wdio run ${ pathToWdioConfig }`,
     }
+
+    const serenityScripts = {
+        'serenity': 'failsafe serenity:update serenity:clean wdio serenity:report',
+        'serenity:update': 'serenity-bdd update',
+        'serenity:clean': 'rimraf target',
+        'wdio': `wdio run ${ pathToWdioConfig }`,
+        'serenity:report': 'serenity-bdd run',
+    }
+
+    const scripts = parsedAnswers.serenityAdapter ? serenityScripts : wdioScripts
+
+    for (const [script, command] of Object.entries(scripts)) {
+
+        const args = ['pkg', 'set', `scripts.${ script }=${ command }`]
+
+        try {
+            console.log(`Adding ${chalk.bold(`"${ script }"`)} script to package.json`)
+            await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
+        } catch (err: any) {
+            const [preArgs, scriptPath] = args.join(' ').split('=')
+            console.error(
+                `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
+                `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
+            )
+            return false
+        }
+    }
+    console.log(chalk.green.bold('✔ Success!'))
+    return true
 }
 
 export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {

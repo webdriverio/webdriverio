@@ -8,7 +8,7 @@ export interface Questionnair {
     installTestingLibrary?: boolean
     electronAppBinaryPath?: string
     electronBuildTool?: ElectronBuildToolChoice
-    electronBuilderConfigPath: string
+    electronBuilderConfigPath?: string
     backend?: BackendChoice
     hostname?: string
     port?: string
@@ -32,6 +32,7 @@ export interface Questionnair {
     isUsingCompiler: CompilerOptions
     reporters: string[]
     services: string[]
+    serenityLibPath?: string
     plugins: string[]
     outputDir?: string
     baseUrl: string
@@ -47,6 +48,7 @@ export interface Questionnair {
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
     rawAnswers: Questionnair
     runner: 'local' | 'browser'
+    projectName: string
     framework: string
     purpose: string
     reporters: string[]
@@ -55,6 +57,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     packagesToInstall: string[]
     isUsingTypeScript: boolean
     isUsingBabel: boolean
+    serenityAdapter: string | false
     esmSupport: boolean
     isSync: boolean
     _async: string
@@ -62,6 +65,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     projectRootDir: string
     destSpecRootPath: string
     destPageObjectRootPath: string
+    destSerenityLibRootPath: string
     relativePath: string
     hasRootTSConfig: boolean
     tsConfigFilePath: string

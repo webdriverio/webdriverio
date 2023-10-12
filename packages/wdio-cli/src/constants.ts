@@ -2,7 +2,13 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 
-import { detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
+import {
+    detectCompiler,
+    getDefaultFiles,
+    convertPackageHashToObject,
+    getProjectProps,
+    getProjectRoot,
+} from './utils.js'
 import type { Questionnair } from './types.js'
 
 const require = createRequire(import.meta.url)
@@ -17,18 +23,23 @@ export const CONFIG_HELPER_INTRO = `
 `
 
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
-export const CONFIG_HELPER_SUCCESS_MESSAGE = `
-🤖 Successfully setup project at %s 🎉
+export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
+🤖 Successfully setup project at ${ projectRootDir } 🎉
 
 Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
   🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio
-
+${ extraInfo }
 To run your tests, execute:
-$ cd %s
-$ npm run wdio
+$ cd ${ projectRootDir }
+$ npm run ${ runScript }
+`
+
+export const CONFIG_HELPER_SERENITY_BANNER = `
+Learn more about Serenity/JS:
+  🔗 https://serenity-js.org
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
@@ -70,8 +81,11 @@ export const SUPPORTED_PACKAGES = {
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
+        { name: 'Mocha with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha' },
         { name: 'Jasmine (https://jasmine.github.io/)', value: '@wdio/jasmine-framework$--$jasmine' },
-        { name: 'Cucumber (https://cucumber.io/)', value: '@wdio/cucumber-framework$--$cucumber' }
+        { name: 'Jasmine with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine' },
+        { name: 'Cucumber (https://cucumber.io/)', value: '@wdio/cucumber-framework$--$cucumber' },
+        { name: 'Cucumber with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber' },
     ],
     reporter: [
         { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
@@ -209,6 +223,10 @@ export const BROWSER_ENVIRONMENTS = [
 
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
+export function usesSerenity (answers: Questionnair) {
+    return answers.framework.includes('serenity-js')
 }
 
 function getTestingPurpose (answers: Questionnair) {
@@ -488,7 +506,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these files be located?',
+    message: 'What should be the location of your spec files?',
     default: /* istanbul ignore next */ (answers: Questionnair) => {
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
@@ -497,13 +515,13 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these feature files be located?',
+    message: 'What should be the location of your feature files?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/**/*.feature'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
-    message: 'Where should these step definitions be located?',
+    message: 'What should be the location of your step definitions?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/step-definitions/steps'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
@@ -521,7 +539,12 @@ export const QUESTIONNAIRE = [{
          * and also not needed when running VS Code tests since the service comes with
          * its own page object implementation, nor when running Electron or MacOS tests
          */
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
+        /**
+         * Serenity/JS generates Lean Page Objects by default, so there's no need to ask about it
+         * See https://serenity-js.org/handbook/web-testing/page-objects-pattern/
+         */
+        !usesSerenity(answers)
     )
 }, {
     type: 'input',
@@ -533,6 +556,18 @@ export const QUESTIONNAIRE = [{
             : getDefaultFiles(answers, 'features/pageobjects/**/*')
     ),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.usePageObjects
+}, {
+    type: 'input',
+    name: 'serenityLibPath',
+    message: 'What should be the location of your Serenity/JS Screenplay Pattern library?',
+    default: /* istanbul ignore next */ async (answers: Questionnair) => {
+        const projectProps   = await getProjectProps()
+        const projectRootDir = getProjectRoot(answers, projectProps)
+        const specsDir = path.resolve(projectRootDir, path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+
+        return path.resolve(specsDir, '..', 'serenity')
+    },
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && usesSerenity(answers)
 }, {
     type: 'checkbox',
     name: 'reporters',
