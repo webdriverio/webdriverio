@@ -581,6 +581,11 @@ export default class SpecReporter extends WDIOReporter {
      * @return {String}          Enviroment string
      */
     getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false) {
+        if (isMultiremote) {
+            const browserNames = Object.values(capability).map((c) => c.browserName)
+            const browserName = `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
+            return `MultiremoteBrowser on ${browserName}`
+        }
         const caps = (
             ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
             (capability as Capabilities.DesiredCapabilities)
@@ -588,7 +593,7 @@ export default class SpecReporter extends WDIOReporter {
         const device = caps['appium:deviceName']
         const app = ((caps['appium:app'] || (caps as any).app) || '').replace('sauce-storage:', '')
         const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
-        const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser || appName)
+        const browser = caps.browserName || caps.browser || appName
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -603,9 +608,7 @@ export default class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = isMultiremote
-            ? ''
-            : caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+        const platform = caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
@@ -619,10 +622,6 @@ export default class SpecReporter extends WDIOReporter {
 
         if (!verbose) {
             return (browser + (version ? ` ${version} ` : ' ') + (platform)).trim()
-        }
-
-        if (isMultiremote) {
-            return browser + (version ? ` (v${version})` : '') + ` on ${Object.values(capability).map((c) => c.browserName).join(', ')}`
         }
 
         return browser + (version ? ` (v${version})` : '') + (` on ${platform}`)
