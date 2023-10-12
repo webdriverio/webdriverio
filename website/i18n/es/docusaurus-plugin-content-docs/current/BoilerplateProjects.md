@@ -12,8 +12,8 @@ Con el tiempo, nuestra comunidad ha desarrollado varios proyectos que usted pued
 Nuestra propia boilerplate para las salas de pruebas de pepinos. Hemos creado más de 150 definiciones de pasos predefinidos para usted, así que puede empezar a escribir archivos de características en su proyecto inmediatamente.
 
 - Framework
-    - Cucumber (v8)
-    - WebdriverIO (v8)
+    - Cucumber
+    - WebdriverIO
 - Funcionalidades
     - Más de 150 pasos predefinidos que cubren casi todo lo necesario
     - Integra la funcionalidad multiremoto de WebdriverIO
@@ -23,11 +23,20 @@ Nuestra propia boilerplate para las salas de pruebas de pepinos. Hemos creado m�
 Proyecto Boilerplate para ejecutar pruebas WebdriverIO con Jasmine usando las características Babel y el patrón de objetos de página.
 
 - Frameworks
-    - WebdriverIO (v8)
-    - Jasmine (v4)
+    - WebdriverIO
+    - Jasmine
 - Funcionalidades
     - Patrón de objetos de página
     - Integración de Sauce Labs
+
+## [webdriverio/electron-boilerplate](https://github.com/webdriverio/electron-boilerplate)
+Boilerplate project to run WebdriverIO tests on a minimal Electron application.
+
+- Frameworks
+    - WebdriverIO
+    - Mocha
+- Funcionalidades
+    - Electron API mocking
 
 ## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
 
@@ -249,7 +258,7 @@ Boilerplate proyecto para ejecutar pruebas de appium para navegador nativo y mó
     - Cucumber v7
     - Appium
 
-- Funcionalidades
+- Features
     - Aplicaciones nativas de Android e iOS
     - Navegador de Android Chrome
     - Navegador Safari iOS
