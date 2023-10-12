@@ -44,7 +44,7 @@ capabilities: [{<%
         'wdio:electronServiceOptions': {<%
             if (answers.electronAppBinaryPath) { %>
             // custom path to app binary
-            appBinaryPath: '${answers.electronAppBinaryPath}',<%
+            appBinaryPath: '<%- answers.electronAppBinaryPath %>',<%
             } %>
             // custom application args
             appArgs: []
