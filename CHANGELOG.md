@@ -21,6 +21,30 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.18.0 (2023-10-12)
+
+#### :rocket: New Feature
+* `wdio-cli`
+  * [#11368](https://github.com/webdriverio/webdriverio/pull/11368) WebdriverIO project generator for Serenity/JS ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11406](https://github.com/webdriverio/webdriverio/pull/11406) (@wdio/cli): Simplified Electron setup ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#11403](https://github.com/webdriverio/webdriverio/pull/11403) (@wdio/utils): better transform function command arguments ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11397](https://github.com/webdriverio/webdriverio/pull/11397) changed order for preventing some errors ([@udarrr](https://github.com/udarrr))
+
+#### :memo: Documentation
+* `wdio-protocols`
+  * [#11407](https://github.com/webdriverio/webdriverio/pull/11407) Updating appium protocols ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.17.0 (2023-10-09)
 
 #### :rocket: New Feature
