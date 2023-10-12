@@ -128,6 +128,10 @@ export interface CommandEndpoint {
      */
     ref: string
     /**
+     * description for the deprecated command
+     */
+    deprecated?: string
+    /**
      * supported command parameters
      */
     parameters: CommandParameters[]
