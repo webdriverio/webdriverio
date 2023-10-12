@@ -49,6 +49,8 @@ export const config = {
 };
 ```
 
+**Note:** the `browserName` capability needs to be `electron` to have the service set up the automation session properly.
+
 The service will attempt to find the path to your bundled Electron application if you use [Electron Forge](https://www.electronforge.io/) or [Electron Builder](https://www.electron.build/) as bundler. You can provide a custom path to the binary via custom service capabilities, e.g.:
 
 ```ts
