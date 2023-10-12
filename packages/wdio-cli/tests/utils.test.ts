@@ -679,7 +679,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../pageobjects')
+        expect(generatedPaths.relativePath).toEqual('../../pageobjects/**/*.js')
     })
 
     it('Cucumber with pageobjects default different path', () => {
@@ -691,7 +691,18 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../page/objects')
+        expect(generatedPaths.relativePath).toEqual('../../page/objects/**/*.js')
+    })
+    it('Cucumber with pageobjects and steps different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'cucumber/features/steps',
+            pages: 'cucumber/features/pages',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../pages')
     })
 
     it('Mocha with pageobjects default values', () => {
@@ -703,7 +714,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$mocha'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../pageobjects')
+        expect(generatedPaths.relativePath).toEqual('../../../pageobjects/**/*.js')
     })
 
     it('Mocha with pageobjects different path', () => {
@@ -715,7 +726,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$mocha'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../../pageobjects')
+        expect(generatedPaths.relativePath).toEqual('../../../../pageobjects/**/*.js')
     })
 
     it('Do not auto generate file', () => {
