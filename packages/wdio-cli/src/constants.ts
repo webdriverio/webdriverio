@@ -188,8 +188,8 @@ export enum BackendChoice {
 }
 
 export enum ElectronBuildToolChoice {
-    ElectronForge = 'Electron Forge',
-    ElectronBuilder = 'electron-builder',
+    ElectronForge = 'Electron Forge (https://www.electronforge.io/)',
+    ElectronBuilder = 'electron-builder (https://www.electron.build/)',
     SomethingElse = 'Something else'
 }
 
@@ -231,10 +231,6 @@ export function usesSerenity (answers: Questionnair) {
 
 function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
-}
-
-function electronBuilderConfigIsJson (answers: Questionnair) {
-    return answers.electronBuilderConfigPath?.endsWith('.json')
 }
 
 export const isNuxtProject = await Promise.all(
@@ -303,15 +299,9 @@ export const QUESTIONNAIRE = [{
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
 }, {
     type: 'input',
-    name: 'electronBuilderConfigPath',
-    message: 'What is the path to your electron-builder configuration?',
-    default: `${process.cwd()}/package.json`,
-    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && answers.electronBuildTool === ElectronBuildToolChoice.ElectronBuilder
-}, {
-    type: 'input',
     name: 'electronAppBinaryPath',
     message: 'What is the path to the binary of your built Electron app?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool !== ElectronBuildToolChoice.ElectronBuilder || !electronBuilderConfigIsJson(answers))
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
 }, {
     type: 'list',
     name: 'backend',

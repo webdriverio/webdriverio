@@ -1,43 +1,11 @@
 <%
-const electronBuilderConfigIsJson = () => answers.electronBuilderConfigPath.endsWith('.json')
-const electronBuilderConfigIsPackageJson = () => answers.electronBuilderConfigPath.endsWith('package.json')
-
-if (answers.purpose === 'electron') {
-    if (answers.electronBuildTool === 'electron-builder' && electronBuilderConfigIsJson()) {
-        %>import fs from 'node:fs'
-<%  }
-    if (answers.electronBuildTool === 'electron-builder' && !answers.electronAppBinaryPath) {
-        %>import path from 'node:path'
-
-import { getBinaryPath } from 'wdio-electron-service/utils'
-
-<%  }
-}
-
-if (answers.isUsingTypeScript && ! answers.serenityAdapter) {
+if (answers.isUsingTypeScript && !answers.serenityAdapter) {
     %>import type { Options } from '@wdio/types'
 <% }
 
 if (answers.isUsingTypeScript && answers.serenityAdapter) {
 %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
-
-if (answers.purpose === 'electron' && answers.electronBuildTool === 'electron-builder') {
-    if (electronBuilderConfigIsJson()) {
-        %>const electronAppRepoPath = path.dirname('<%- answers.electronBuilderConfigPath %>')
-<%  }
-    if (electronBuilderConfigIsPackageJson()) {
-        %>const packageJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>'), 'utf-8'))
-const productName = packageJson.build.productName
-const electronBuilderOutputDirectory = packageJson.build.directories?.output
-
-<%  } else if (electronBuilderConfigIsJson()) {
-    %>const electronBuilderJson = JSON.parse(fs.readFileSync('<%- answers.electronBuilderConfigPath %>', 'utf-8'))
-const productName = electronBuilderJson.productName
-const electronBuilderOutputDirectory = electronBuilderJson.directories?.output
-
-<%  }
-}
 
 if (answers.isUsingTypeScript) {
     %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'Options.Testrunner' %> = {<%

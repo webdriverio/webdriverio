@@ -39,9 +39,15 @@ capabilities: [{<%
         }<%
     } else if (answers.purpose === 'electron') { %>
         browserName: 'electron',
-        'wdio:electronServiceOptions': {
-            appBinaryPath: <%- answers.electronAppBinaryPath ? `'${answers.electronAppBinaryPath}'` : 'getBinaryPath(electronAppRepoPath, productName, electronBuilderOutputDirectory)' %>,
-            appArgs: ['foo', 'bar=baz']
+        // Electron service options
+        // see https://webdriver.io/docs/wdio-electron-service/#configuration
+        'wdio:electronServiceOptions': {<%
+            if (answers.electronAppBinaryPath) { %>
+            // custom path to app binary
+            appBinaryPath: '${answers.electronAppBinaryPath}',<%
+            } %>
+            // custom application args
+            appArgs: []
         }<%
     } else {
         %>
