@@ -17,6 +17,7 @@ import type * as elementCommands from './commands/element.js'
 
 export * from './types.js'
 export * from './utils/interception/types.js'
+export { findStrategy } from './utils/findStrategy.js'
 
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
@@ -34,7 +35,7 @@ export const SevereServiceError = SevereServiceErrorImport
  * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function(
+export const remote = async function (
     params: RemoteOptions,
     remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
