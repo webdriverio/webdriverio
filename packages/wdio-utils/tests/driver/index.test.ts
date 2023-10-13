@@ -359,7 +359,8 @@ describe('startWebDriver', () => {
     it('should not start or download driver for appium capabilities', async () => {
         const options = {
             hostname: '0.0.0.0',
-            port: 4723,
+            protocol: 'http',
+            path: '/',
             capabilities: {
                 'appium:automationName': 'appium'
             } as any
@@ -368,7 +369,8 @@ describe('startWebDriver', () => {
         expect(res).toBe(undefined)
         expect(options).toEqual({
             hostname: '0.0.0.0',
-            port: 4723,
+            protocol: 'http',
+            path: '/',
             capabilities: {
                 'appium:automationName': 'appium'
             }
