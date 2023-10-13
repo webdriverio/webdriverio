@@ -35,7 +35,7 @@ export const SevereServiceError = SevereServiceErrorImport
  * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function (
+export const remote = async function(
     params: RemoteOptions,
     remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
