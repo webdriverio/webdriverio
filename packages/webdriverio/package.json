@@ -56,6 +56,13 @@
       },
       "./build/cjs/index.js"
     ],
+    "./public": [
+      {
+        "types": "./build/public.d.ts",
+        "import": "./build/public.js"
+      },
+      "./build/public.js"
+    ],
     "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
