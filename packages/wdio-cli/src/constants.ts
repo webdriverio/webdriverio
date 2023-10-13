@@ -661,3 +661,11 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want me to run `npm install`',
     default: true
 }]
+
+export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
+    'wdio-electron-service',
+    'wdio-vscode-service',
+    'wdio-nuxt-service',
+    'wdio-vite-service',
+    'wdio-gmail-service'
+]
