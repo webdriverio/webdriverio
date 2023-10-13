@@ -16,7 +16,7 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
 
-import { isAppiumCapability } from '../index.js'
+import { isAppiumCapability } from '../utils.js'
 
 import {
     parseParams, setupPuppeteerBrowser, definesRemoteDriver, setupChromedriver,
