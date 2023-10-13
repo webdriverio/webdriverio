@@ -287,3 +287,17 @@ export const canAccess = (file?: string) => {
  * @param {number=0} ms number in ms to sleep
  */
 export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Checks if the provided WebdriverIO capabilities object is related to Appium.
+ *
+ * @param {WebdriverIO.Capabilities} caps - The capabilities object to check.
+ * @returns {boolean} Returns true if the provided capabilities are related to Appium, false otherwise.
+*/
+export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
+    return Boolean(
+        caps &&
+        // @ts-expect-error outdated jsonwp cap
+        (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
+    )
+}

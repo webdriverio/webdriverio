@@ -9,9 +9,10 @@ import type { Readable } from 'node:stream'
 
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
-import { isCloudCapability, isAppiumCapability } from '@wdio/config'
+import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
+import { isAppiumCapability } from '@wdio/utils'
 
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'

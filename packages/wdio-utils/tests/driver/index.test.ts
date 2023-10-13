@@ -12,6 +12,7 @@ import { start as startEdgedriver } from 'edgedriver'
 import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/driver/index.js'
+import { SUPPORTED_BROWSERNAMES } from '../../src/constants.js'
 
 vi.mock('split2', () => ({ default: vi.fn() }))
 
@@ -96,6 +97,7 @@ describe('startWebDriver', () => {
         vi.mocked(fsp.mkdir).mockClear()
         vi.mocked(cp.spawn).mockClear()
         vi.mocked(startGeckodriver).mockClear()
+        vi.mocked(fs.createWriteStream).mockClear()
     })
 
     afterEach(() => {
@@ -351,6 +353,44 @@ describe('startWebDriver', () => {
         expect(fs.createWriteStream).toBeCalledWith(
             expect.stringContaining('wdio-1-2-chromedriver.log'),
             { flags: 'w' }
+        )
+    })
+
+    it('should not start or download driver for appium capabilities', async () => {
+        const options = {
+            hostname: '0.0.0.0',
+            protocol: 'http',
+            path: '/',
+            capabilities: {
+                'appium:automationName': 'appium'
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(res).toBe(undefined)
+        expect(options).toEqual({
+            hostname: '0.0.0.0',
+            protocol: 'http',
+            path: '/',
+            capabilities: {
+                'appium:automationName': 'appium'
+            }
+        })
+        expect(cp.spawn).not.toBeCalled()
+        expect(fs.createWriteStream).not.toBeCalled()
+    })
+
+    it('should throw an error if the provided capabilities do not include browserName', async () => {
+        const options = {
+            capabilities: {
+                browserVersion: '100'
+            } as any
+        }
+        await expect(async () => await startWebDriver(options)).rejects.toThrow(
+            new Error(
+                'No "browserName" defined in capabilities nor hostname or port found!\n' +
+                'If you like to run a local browser session make sure to pick from one of ' +
+                `the following browser names: ${Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)}`
+            )
         )
     })
 })
