@@ -142,7 +142,8 @@ exports[`setupTypeScript 1`] = `
             \\"node\\",
             \\"@wdio/globals/types\\",
             \\"expect-webdriverio\\",
-            \\"foo\\"
+            \\"foo\\",
+            \\"wdio-electron-service\\"
         ],
         \\"skipLibCheck\\": true,
         \\"noEmit\\": true,
