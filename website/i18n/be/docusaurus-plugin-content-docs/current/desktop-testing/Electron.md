@@ -134,4 +134,4 @@ console.log(someValue); // outputs: "such api"
 
 ## More Information
 
-You can learn more about how to configure the [`wdio-electron-service`](https://www.npmjs.com/package/wdio-electron-service) in the [service docs](/docs/wdio-electron-service). Make sure to check out our [Electron boilerplate project](https://github.com/webdriverio/electron-boilerplate/actions/runs/6490587562/job/17626575914) that showcases how to intergate WebdriverIO in an example application.
+You can learn more about how to configure the [`wdio-electron-service`](https://www.npmjs.com/package/wdio-electron-service) in the [service docs](/docs/wdio-electron-service). Make sure to check out our [Electron boilerplate project](https://github.com/webdriverio/electron-boilerplate) that showcases how to intergate WebdriverIO in an example application.
