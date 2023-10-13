@@ -33,7 +33,6 @@
     "@puppeteer/browsers": "^1.6.0",
     "@wdio/logger": "8.16.17",
     "@wdio/types": "8.17.0",
-    "@wdio/config": "8.18.0",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^5.1.0",
     "edgedriver": "^5.3.5",

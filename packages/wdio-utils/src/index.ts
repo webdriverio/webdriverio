@@ -5,7 +5,7 @@ import { initialiseWorkerService, initialiseLauncherService } from './initialise
 import webdriverMonad from './monad.js'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
-    isFunctionAsync, transformCommandLogResult, canAccess, sleep
+    isFunctionAsync, transformCommandLogResult, canAccess, sleep, isAppiumCapability
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
@@ -30,6 +30,7 @@ export {
     safeImport,
     canAccess,
     sleep,
+    isAppiumCapability,
     startWebDriver,
     setupBrowser,
     setupDriver,
