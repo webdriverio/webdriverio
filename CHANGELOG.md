@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.18.1 (2023-10-13)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#11413](https://github.com/webdriverio/webdriverio/pull/11413) (@wdio/spec-reporter): don't throw if multiremote instance name matches a capability like 'app' ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.18.0 (2023-10-12)
 
 #### :rocket: New Feature
