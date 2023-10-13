@@ -16,6 +16,8 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
 
+import { isAppiumCapability } from '@wdio/config'
+
 import {
     parseParams, setupPuppeteerBrowser, definesRemoteDriver, setupChromedriver,
     isChrome, isFirefox, isEdge, isSafari, getCacheDir
@@ -61,11 +63,14 @@ export async function startWebDriver (options: Options.WebDriver) {
     /**
      * session might be a mobile session so don't do anything
      */
+    if (isAppiumCapability(caps)) {
+        return
+    }
+
     if (!caps.browserName) {
         throw new Error(
             'No "browserName" defined in capabilities nor hostname or port found!\n' +
-            'If you like to run a mobile session with Appium, make sure to set "hostname" and "port" in your ' +
-            'WebdriverIO options. If you like to run a local browser session make sure to pick from one of ' +
+            'If you like to run a local browser session make sure to pick from one of ' +
             `the following browser names: ${Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)}`
         )
     }
