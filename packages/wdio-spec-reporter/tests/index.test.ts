@@ -225,8 +225,8 @@ describe('SpecReporter', () => {
                 }
                 const runner = getRunnerConfig({
                     capabilities: {
-                        browserA: { sessionId: 'foobar' },
-                        browserB: { sessionId: 'barfoo' }
+                        browserA: { browserName: 'chrome' },
+                        browserB: { browserName: 'firefox' }
                     },
                     isMultiremote: true
                 })
@@ -822,6 +822,15 @@ describe('SpecReporter', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
                 myBrowser: {
+                    browserName: 'chrome',
+                    platform: 'Windows 8.1'
+                }
+            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
+        })
+
+        it('should not throw if mutliremote name is "app"', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                app: {
                     browserName: 'chrome',
                     platform: 'Windows 8.1'
                 }
