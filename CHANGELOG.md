@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.18.2 (2023-10-13)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-config`, `wdio-utils`
+  * [#11415](https://github.com/webdriverio/webdriverio/pull/11415) Skip startWebDriver for Appium Capabilities ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-cli`
+  * [#11416](https://github.com/webdriverio/webdriverio/pull/11416) (@wdio/cli): ensure that communoty packages get correctly typed ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.18.1 (2023-10-13)
 
 #### :bug: Bug Fix
