@@ -156,7 +156,8 @@ exports[`setupTypeScript 1`] = `
         \\"noFallthroughCasesInSwitch\\": true
     },
     \\"include\\": [
-        \\"test\\"
+        \\"test\\",
+        \\"wdio.conf.ts\\"
     ]
 }"
 `;
