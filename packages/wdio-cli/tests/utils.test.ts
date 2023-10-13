@@ -747,7 +747,7 @@ test('getProjectRoot', () => {
 })
 
 test('hasBabelConfig', async () => {
-    vi.mocked(fs.access).mockResolvedValue({})
+    vi.mocked(fs.access).mockResolvedValue({} as any)
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
@@ -861,7 +861,10 @@ test('setupTypeScript', async () => {
         esmSupport: true,
         rawAnswers: {
             framework: 'foo',
-            services: []
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
         },
         packagesToInstall: [],
         tsConfigFilePath: '/foobar/tsconfig.json'

@@ -28,6 +28,7 @@ import {
     pkg,
     QUESTIONNAIRE,
     TESTING_LIBRARY_PACKAGES,
+    COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
     usesSerenity,
 } from './constants.js'
 import type {
@@ -829,7 +830,11 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
  * add ts-node if TypeScript is desired but not installed
  */
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.isUsingTypeScript) {
+    /**
+     * don't create a `tsconfig.json` if user doesn't want to use TypeScript
+     * or if a `tsconfig.json` already exists
+     */
+    if (!parsedAnswers.isUsingTypeScript || parsedAnswers.hasRootTSConfig) {
         return
     }
 
@@ -847,80 +852,85 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages
             .map(service => service.package)
-            /**
-             * given that we know that all "official" services have
-             * typescript support we only include them
-             */
-            .filter(service => service.startsWith('@wdio'))
+            .filter(service => (
+                /**
+                 * given that we know that all "official" services have
+                 * typescript support we only include them
+                 */
+                service.startsWith('@wdio') ||
+                /**
+                 * also include community maintained packages with known
+                 * support for TypeScript
+                 */
+                COMMUNITY_PACKAGES_WITH_TS_SUPPORT.includes(service)
+            ))
     ]
 
-    if (!parsedAnswers.hasRootTSConfig) {
-        const preset = getPreset(parsedAnswers)
-        const config = {
-            compilerOptions: {
-                // compiler
-                moduleResolution: 'node',
-                module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
-                target: 'es2022',
-                lib: ['es2022', 'dom'],
-                types,
-                skipLibCheck: true,
-                // bundler
-                noEmit: true,
-                allowImportingTsExtensions: true,
-                resolveJsonModule: true,
-                isolatedModules: true,
-                // linting
-                strict: true,
-                noUnusedLocals: true,
-                noUnusedParameters: true,
-                noFallthroughCasesInSwitch: true,
-                ...Object.assign(
-                    preset === 'lit'
-                        ? {
-                            experimentalDecorators: true,
-                            useDefineForClassFields: false
-                        }
-                        : {},
-                    preset === 'react'
-                        ? {
-                            jsx: 'react-jsx'
-                        }
-                        : {},
-                    preset === 'preact'
-                        ? {
-                            jsx: 'react-jsx',
-                            jsxImportSource: 'preact'
-                        }
-                        : {},
-                    preset === 'solid'
-                        ? {
-                            jsx: 'preserve',
-                            jsxImportSource: 'solid-js'
-                        }
-                        : {},
-                    preset === 'stencil'
-                        ? {
-                            experimentalDecorators: true,
-                            jsx: 'react',
-                            jsxFactory: 'h',
-                            jsxFragmentFactory: 'Fragment'
-                        }
-                        : {}
-                )
-            },
-            include: preset === 'svelte'
-                ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
-                : preset === 'vue'
-                    ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
-                    : ['test']
-        }
-        await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
-        await fs.writeFile(
-            parsedAnswers.tsConfigFilePath,
-            JSON.stringify(config, null, 4)
-        )
+    const preset = getPreset(parsedAnswers)
+    const config = {
+        compilerOptions: {
+            // compiler
+            moduleResolution: 'node',
+            module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+            target: 'es2022',
+            lib: ['es2022', 'dom'],
+            types,
+            skipLibCheck: true,
+            // bundler
+            noEmit: true,
+            allowImportingTsExtensions: true,
+            resolveJsonModule: true,
+            isolatedModules: true,
+            // linting
+            strict: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            noFallthroughCasesInSwitch: true,
+            ...Object.assign(
+                preset === 'lit'
+                    ? {
+                        experimentalDecorators: true,
+                        useDefineForClassFields: false
+                    }
+                    : {},
+                preset === 'react'
+                    ? {
+                        jsx: 'react-jsx'
+                    }
+                    : {},
+                preset === 'preact'
+                    ? {
+                        jsx: 'react-jsx',
+                        jsxImportSource: 'preact'
+                    }
+                    : {},
+                preset === 'solid'
+                    ? {
+                        jsx: 'preserve',
+                        jsxImportSource: 'solid-js'
+                    }
+                    : {},
+                preset === 'stencil'
+                    ? {
+                        experimentalDecorators: true,
+                        jsx: 'react',
+                        jsxFactory: 'h',
+                        jsxFragmentFactory: 'Fragment'
+                    }
+                    : {}
+            )
+        },
+        include: preset === 'svelte'
+            ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+            : preset === 'vue'
+                ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+                : ['test', 'wdio.conf.ts']
     }
+    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+    await fs.writeFile(
+        parsedAnswers.tsConfigFilePath,
+        JSON.stringify(config, null, 4)
+    )
 
     console.log(chalk.green.bold('✔ Success!\n'))
 }
