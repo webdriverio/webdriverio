@@ -90,8 +90,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     return mod
                 }
             </script>
-            <link rel="stylesheet" href="${mochaCSSHref}">
-            <script type="module" src="${mochaJSSrc}"></script>
+            <link rel="stylesheet" href="/@fs/${mochaCSSHref}">
+            <script type="module" src="/@fs/${mochaJSSrc}"></script>
             ${sourceMapScript}
             <script type="module">
                 ${sourceMapSetupCommand}
