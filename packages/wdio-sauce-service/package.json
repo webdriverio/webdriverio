@@ -34,7 +34,7 @@
     "@wdio/types": "8.17.0",
     "@wdio/utils": "8.18.2",
     "ip": "^1.1.8",
-    "saucelabs": "7.2.2",
+    "saucelabs": "7.4.0",
     "webdriverio": "8.18.2"
   },
   "devDependencies": {
