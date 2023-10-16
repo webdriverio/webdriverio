@@ -67,6 +67,7 @@
         "frameworks",
         "assertion",
         "organizingsuites",
+        "sharding",
         "retry",
         "watcher",
         "customreporter",
