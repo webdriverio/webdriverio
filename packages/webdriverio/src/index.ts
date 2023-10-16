@@ -91,7 +91,16 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     }
     const prototype = getPrototype('browser')
     const { Driver } = await getProtocolDriver(params as Options.WebdriverIO)
-    return (Driver as typeof WebDriver).attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
+
+    const driver = Driver.attachToSession(
+        params,
+        undefined,
+        prototype,
+        wrapCommand
+    ) as WebdriverIO.Browser
+
+    driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
+    return driver
 }
 
 /**
