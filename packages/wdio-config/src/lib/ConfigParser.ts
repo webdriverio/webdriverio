@@ -306,7 +306,9 @@ export default class ConfigParser {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
-        return this.filterSpecs(specs, <string[]>exclude)
+        return this.shard(
+            this.filterSpecs(specs, <string[]>exclude)
+        )
     }
 
     /**
@@ -464,5 +466,17 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
+    }
+
+    shard (specs: Spec[]) {
+        if (!this._config.shard || this._config.shard.total === 1) {
+            return specs
+        }
+
+        const { total, current } = this._config.shard
+        const totalSpecs = specs.length
+        const specsPerShard = Math.max(Math.round(totalSpecs / total), 1)
+        const end = current === total ? undefined : specsPerShard * current
+        return specs.slice(current * specsPerShard - specsPerShard, end)
     }
 }

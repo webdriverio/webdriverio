@@ -325,7 +325,24 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'object',
         validate: (param: string[]) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "filesToWatch" options needs to be a list of strings')
+                throw new Error('the "filesToWatch" option needs to be a list of strings')
+            }
+        }
+    },
+    shard: {
+        type: 'object',
+        validate: (param: unknown) => {
+            if (typeof param !== 'object') {
+                throw new Error('the "shard" options needs to be an object')
+            }
+
+            const p = param as { current: number, total: number }
+            if (typeof p.current !== 'number' || typeof p.total !== 'number') {
+                throw new Error('the "shard" option needs to have "current" and "total" properties with number values')
+            }
+
+            if (p.current < 0 || p.current > p.total) {
+                throw new Error('the "shard.current" value has to be between 0 and "shard.total"')
             }
         }
     },

@@ -35,6 +35,17 @@ export interface RequestLibResponse {
     rawBody?: Buffer
 }
 
+export interface ShardOptions {
+    /**
+     * Total number of shards
+     */
+    total: number
+    /**
+     * Shard index to start from (starts with index 1)
+     */
+    current: number
+}
+
 /**
  * WebdriverIO allows to connect to different WebDriver endpoints by capability
  * so these connection options need to be part of capabilities
@@ -449,6 +460,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * flags
      */
     watch?: boolean
+    /**
+     * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
+     */
+    shard?: ShardOptions
     /**
      * framework options
      */
