@@ -225,7 +225,7 @@ export interface MultiRemoteBrowserOptions {
 
 export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
-export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload'> {
+export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.

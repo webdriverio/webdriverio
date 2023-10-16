@@ -936,8 +936,6 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     beforeSuite: HOOK_DEFINITION,
     beforeHook: HOOK_DEFINITION,
     beforeTest: HOOK_DEFINITION,
-    beforeCommand: HOOK_DEFINITION,
-    afterCommand: HOOK_DEFINITION,
     afterTest: HOOK_DEFINITION,
     afterHook: HOOK_DEFINITION,
     afterSuite: HOOK_DEFINITION,

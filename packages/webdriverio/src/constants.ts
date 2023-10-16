@@ -89,7 +89,9 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO> = {
     /**
      * Hooks
      */
-    onReload: HOOK_DEFINITION
+    onReload: HOOK_DEFINITION,
+    beforeCommand: HOOK_DEFINITION,
+    afterCommand: HOOK_DEFINITION
 }
 
 export const W3C_SELECTOR_STRATEGIES = ['css selector', 'link text', 'partial link text', 'tag name', 'xpath']
