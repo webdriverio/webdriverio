@@ -13,7 +13,7 @@ import {
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
     devtoolsEnvironmentDetector as devtoolsEnvDetector
 } from '../../packages/wdio-utils/src/envDetector.js'
-import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG } from '../../packages/wdio-utils/src/constants.js'
+import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_DEFINITION_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
 class DotReporter {
     options: any
@@ -111,6 +111,7 @@ export const transformCommandLogResult = vi.fn().mockImplementation((data) => da
 export const canAccess = vi.fn()
 export const sleep = vi.fn().mockImplementation(sleepOrig)
 export const UNICODE_CHARACTERS = UNICODE_CHARACTERS_ORIG
+export const HOOK_DEFINITION = HOOK_DEFINITION_ORIG
 
 export const startWebDriver = vi.fn((params) => {
     params.hostname = '0.0.0.0'
