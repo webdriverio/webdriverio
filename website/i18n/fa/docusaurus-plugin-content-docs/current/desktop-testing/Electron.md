@@ -32,12 +32,7 @@ That's it 🎉
 
 To use the service you need to add `electron` to your services array and set an Electron capability, e.g.:
 
-```js
-// wdio.conf.js
-import url from 'node:url';
-import path from 'node:path';
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+```js title=wdio.conf.js
 export const config = {
   outputDir: 'logs',
   // ...
