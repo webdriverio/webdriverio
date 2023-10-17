@@ -256,11 +256,7 @@ describe('WebdriverIO module interface', () => {
         })
     })
 
-    /**
-     * fails due to vitest bug
-     * https://github.com/vitest-dev/vitest/issues/1563
-     */
-    describe.skip('attach', () => {
+    describe('attach', () => {
         it('attaches', async () => {
             const browser = {
                 sessionId: 'foobar',
@@ -275,6 +271,21 @@ describe('WebdriverIO module interface', () => {
             await attach(browser)
             expect(WebDriver.attachToSession).toBeCalledTimes(1)
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
+        })
+
+        it('should have defined locatorStrategy', async () => {
+            const browser = {
+                sessionId: 'foobar',
+                capabilities: {
+                    browserName: 'chrome',
+                    platformName: 'MacOS'
+                },
+                requestedCapabilities: {
+                    browserName: 'chrome'
+                }
+            }
+            const newBrowser = await attach(browser)
+            expect(newBrowser).toHaveProperty('addLocatorStrategy')
         })
     })
 
