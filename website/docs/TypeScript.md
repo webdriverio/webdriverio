@@ -46,12 +46,12 @@ Depending on the framework you use, you will need to add the types for that fram
 For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
 <Tabs
-defaultValue="mocha"
-values={[
-{label: 'Mocha', value: 'mocha'},
-{label: 'Jasmine', value: 'jasmine'},
-{label: 'Cucumber', value: 'cucumber'},
-]
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'},
+  ]
 }>
 <TabItem value="mocha">
 
@@ -129,13 +129,11 @@ When using Node 20 or above, wdio runs ts-node with different settings as this i
 These settings can cause your custom types not to be loaded, if this happens there are a few ways you can fix this, of which the easiest I will show below.
 
 Using ts-node's environment variables
-
 ```
 TS_NODE_FILES=true wdio run ./wdio.conf.ts
 ```
 
 Using tsconfig
-
 ```
 {
   "ts-node": {
@@ -147,7 +145,6 @@ Using tsconfig
 ## Paths
 
 When you are using `tsconfig-paths`, you can register the paths by running your tests like this:
-
 ```
 NODE_OPTIONS=' -r tsconfig-paths/register' wdio run ./wdio.conf.ts
 ```
