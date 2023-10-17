@@ -35,6 +35,17 @@ export interface RequestLibResponse {
     rawBody?: Buffer
 }
 
+export interface ShardOptions {
+    /**
+     * Total number of shards
+     */
+    total: number
+    /**
+     * Shard index to start from (starts with index 1)
+     */
+    current: number
+}
+
 /**
  * WebdriverIO allows to connect to different WebDriver endpoints by capability
  * so these connection options need to be part of capabilities
@@ -214,7 +225,7 @@ export interface MultiRemoteBrowserOptions {
 
 export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
-export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
+export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -450,6 +461,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     watch?: boolean
     /**
+     * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
+     */
+    shard?: ShardOptions
+    /**
      * framework options
      */
     mochaOpts?: WebdriverIO.MochaOpts
@@ -563,7 +578,7 @@ export type Definition<T> = {
         type: 'string' | 'number' | 'object' | 'boolean' | 'function'
         default?: T[k]
         required?: boolean
-        validate?: (option: T[k]) => void
+        validate?: (option: T[k], keysToKeep?: (keyof T)[]) => void
         match?: RegExp
     }
 }

@@ -15,7 +15,7 @@ import {
 } from './envDetector.js'
 import { startWebDriver } from './driver/index.js'
 import { setupDriver, setupBrowser } from './driver/manager.js'
-import { UNICODE_CHARACTERS } from './constants.js'
+import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 
 export {
     initialisePlugin,
@@ -55,5 +55,6 @@ export {
     /**
      * constants
      */
-    UNICODE_CHARACTERS
+    UNICODE_CHARACTERS,
+    HOOK_DEFINITION
 }

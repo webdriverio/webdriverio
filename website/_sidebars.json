@@ -68,6 +68,7 @@
         "assertion",
         "organizingsuites",
         "parameterize-tests",
+        "sharding",
         "retry",
         "watcher",
         "customreporter",
