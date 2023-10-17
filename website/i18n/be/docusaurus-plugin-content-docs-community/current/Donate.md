@@ -20,22 +20,22 @@ title: Donate
 
 ### Выдаткі на мерапрыемства
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+Калі вы праводзіце мерапрыемства, на якім дакладчык распавядае аб выкарыстаньні WebdriverIO і яго функцыі, вы можаце выдаткаваць да __$100__. Патрабаваньні да кампэнсацыі выдаткаў на мерапрыемства ўключаюць:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- Вы або ўліковы запіс мерапрыемства павінны падзяліцца праектам у сацыяльных сетках (Twitter, Facebook або LinkedIn) як мінімум 3 разы
+- Старонка мерапрыемства павінен мець лягатып WebdriverIO і спасылку на старонку праекта
+- Вы павінны выкарыстоўваць сродкі для кваліфікаваных выдаткаў на мерапрыемствы, такіх як ежа, напоі, арэнда памяшкання або абсталявання.
+- Вы павінны падаць чэкі разам з запытам на кампэнсацыю.
 
 
 
-### Development Expenses
+### Выдаткі на распрацоўку
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+Калі вы праводзілі працу па распрацоўцы любога з рэпазіторыяў арганізацыі WebdriverIO на GitHub, вы можаце кампэнсаваць да __$1000__ калі выкананы наступныя патрабаваньні:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
-- You must submit links to all issues you’ve closed due to your pull requests
+- Вы павінны адправіць адпаведныя pull request, якія закрылі як мінімум 10 праблем, пазначаных [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- Кожнае дадатковае закрыцьцё праблем з такой пазнакаю, можа быць аплачана ў памеры $100
+- Вы павінны дадаваць спасылкі на ўсе праблемы, якія закрылі з-за вашых pull request
 - In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
 - Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
 - You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
