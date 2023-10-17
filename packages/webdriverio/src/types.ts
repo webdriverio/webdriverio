@@ -79,7 +79,7 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<Element | WebdriverIO.Element | undefined>
+    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
 
     /**
      * Unwrap the nth element of the element list.
