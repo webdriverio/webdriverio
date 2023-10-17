@@ -3,9 +3,9 @@ id: parameterize-tests
 title: Parameterize Tests
 ---
 
-You can simply parameterize tests on a test level, e.g.:
+You can simply parameterize tests on a test level, via simple `for` loops e.g.:
 
-```ts title=example.spec.ts
+```ts title=example.spec.js
 const people = ['Alice', 'Bob']
 describe('my tests', () => {
     for (const name of people) {
@@ -13,6 +13,24 @@ describe('my tests', () => {
             // ...
         })
     }
+})
+```
+
+or by extracting tests into dynamic functions, e.g.:
+
+```js title=dynamic.spec.js
+import { browser } from '@wdio/globals'
+
+function testComponent(componentName, options) {
+  it(`should test my ${componentName}`, async () => {
+    await browser.url(`/${componentName}`)
+    await expect($('input')).toHaveValue(options.expectedValue)
+  })
+}
+
+describe('page components', () => {
+    testComponent('component-a', { expectedValue: 'some expected value' })
+    testComponent('component-b', { expectedValue: 'some other expected value' })
 })
 ```
 
