@@ -144,9 +144,16 @@ Using tsconfig
 
 ## Paths
 
-When you are using `tsconfig-paths`, you can register the paths by running your tests like this:
+When you are using `tsconfig-paths`, you can register the paths by setting the `NODE_OPTIONS` environment variable.
+
+You do this by adding it directly to your script:
 ```
 NODE_OPTIONS=' -r tsconfig-paths/register' wdio run ./wdio.conf.ts
+```
+Or by setting it before you run the script:
+```
+NODE_OPTIONS=' -r tsconfig-paths/register'
+npm run wdio
 ```
 
 For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
