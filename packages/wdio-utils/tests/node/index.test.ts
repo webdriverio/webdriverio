@@ -11,7 +11,7 @@ import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver } from 'edgedriver'
 import { install } from '@puppeteer/browsers'
 
-import { startWebDriver } from '../../src/driver/index.js'
+import { startWebDriver } from '../../src/node/index.js'
 import { SUPPORTED_BROWSERNAMES } from '../../src/constants.js'
 
 vi.mock('split2', () => ({ default: vi.fn() }))
@@ -74,13 +74,7 @@ vi.mock('@puppeteer/browsers', () => ({
     install: vi.fn().mockResolvedValue({})
 }))
 
-vi.mock('../../src/driver/detectBackend.js', () => ({
-    default: vi.fn().mockReturnValue({
-        hostname: 'cloudprovider.com'
-    })
-}))
-
-vi.mock('../../src/driver/utils.js', async (actualMod) => ({
+vi.mock('../../src/node/utils.js', async (actualMod) => ({
     ...(await actualMod() as any),
     setupPuppeteerBrowser: vi.fn().mockResolvedValue({
         executablePath: '/path/to/browser',

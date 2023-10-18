@@ -4,9 +4,9 @@ import fs from 'node:fs'
 import { sync as globSync } from 'glob'
 import { vi, describe, it, expect, afterEach } from 'vitest'
 
-import FileSystemPathService from '../src/node/FileSystemPathService.js'
+import FileSystemPathService from '../../src/node/FileSystemPathService.js'
 
-const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
+const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'node', 'index.ts')
 
 vi.mock('glob', () => ({
     sync: vi.fn(() => 'glob result')

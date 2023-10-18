@@ -51,9 +51,9 @@ interface WorkerMockRunPayload extends Partial<Workers.WorkerRunPayload> {
 class WorkerMock extends EventEmitter implements Workers.Worker {
     cid: string
     specs: any
-    caps: WebDriver.DesiredCapabilities
+    caps: WebdriverIO.Capabilities
     config: Options.Testrunner
-    capabilities: WebDriver.DesiredCapabilities
+    capabilities: WebdriverIO.Capabilities
     sessionId: string
     isBusy: boolean
     postMessage = vi.fn()

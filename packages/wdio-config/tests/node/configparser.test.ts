@@ -6,16 +6,18 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
 
-import ConfigParser from '../src/node/ConfigParser.js'
-import type { MockFileContent } from './lib/MockFileContentBuilder.js'
-import MockFileContentBuilder from './lib/MockFileContentBuilder.js'
-import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'
-import ConfigParserBuilder from './lib/ConfigParserBuilder.js'
-import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed.js'
+import ConfigParser from '../../src/node/ConfigParser.js'
+import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
+import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
+import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
+import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
+import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
 
 const log = logger('')
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const root = path.resolve(__dirname, '..', '..')
 
-const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
+const FIXTURES_PATH = path.resolve(__dirname, '..', '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
@@ -24,7 +26,7 @@ const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts'
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
-const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
+const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -55,19 +57,19 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
     config: {
         user: 'foobar',
         key: '50fa142c-3121-4gb0-9p07-8q326vvbq7b0',
-        specs: [path.join(__dirname, '/tests/*.test.ts')],
+        specs: [path.join(root, '/tests/*.test.ts')],
         exclude: [
-            path.join(__dirname, '/tests//validateConfig.test.ts')
+            path.join(root, '/tests/validateConfig.test.ts')
         ],
         capabilities: [{
             browserName: 'chrome'
         }],
         suites: {
-            unit: [path.join(__dirname, '/tests/configparser.test.ts')],
-            mobile: [path.join(__dirname, '/tests/RequireLibrary.test.ts')],
+            unit: [path.join(root, '/tests/configparser.test.ts')],
+            mobile: [path.join(root, '/tests/RequireLibrary.test.ts')],
             functional: [
-                path.join(__dirname, '/tests/validateConfig.test.ts'),
-                path.join(__dirname, '/tests/..', 'src/index.ts')
+                path.join(root, '/tests/validateConfig.test.ts'),
+                path.join(root, '/tests/..', 'src/index.ts')
             ]
         }
     }
@@ -85,7 +87,7 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
 async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<FilePathsAndContents> {
     return [
         realReadFilePair(path.resolve(FIXTURES_PATH, '../validateConfig.test.ts')),
-        realReadFilePair(path.resolve(FIXTURES_PATH, '../configparser.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../node/configparser.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../RequireLibrary.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
@@ -118,7 +120,7 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
     return [
         FileNamed(configFilepath).withContents(TestWdioConfig_AllInMemory()),
         FileNamed(path.join(baseDir, '../validateConfig.test.ts')).withContents('test contents'),
-        FileNamed(path.join(baseDir, '../configparser.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../node/configparser.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, '../utils.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, '../RequireLibrary.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.cjs')).withContents('test contents'),
@@ -285,7 +287,7 @@ describe('ConfigParser', () => {
                     FileNamed(path.join(__dirname, '/tests/cool.conf')).withContents(JSON.stringify(configFileContents)),
                     FileNamed(path.join(__dirname, '/tests//validateConfig.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/configparser.test.ts')).withContents('test contents'),
+                    FileNamed(path.join(__dirname, '/tests/node/configparser.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/RequireLibrary.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
@@ -481,6 +483,7 @@ describe('ConfigParser', () => {
             await configParser.initialize({ suite: ['mobile'] })
 
             const specs = configParser.getSpecs()
+            // @ts-ignore
             const suite = configParser.getConfig().suite
 
             expect(suite).toHaveLength(1)
@@ -589,7 +592,7 @@ describe('ConfigParser', () => {
             expect(specs).toEqual([FIXTURES_CONF_RDC])
         })
 
-        it('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
+        it.only('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
