@@ -679,7 +679,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../../pageobjects/**/*.js')
+        expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
 
     it('Cucumber with pageobjects default different path', () => {
@@ -691,7 +691,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../../page/objects/**/*.js')
+        expect(generatedPaths.relativePath).toEqual('../page/objects')
     })
     it('Cucumber with pageobjects and steps different path', () => {
         const generatedPaths = getPathForFileGeneration({
@@ -702,7 +702,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../pages')
+        expect(generatedPaths.relativePath).toEqual('')
     })
 
     it('Cucumber with answer that is not a path', () => {
@@ -726,7 +726,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$mocha'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../../../pageobjects/**/*.js')
+        expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
 
     it('Mocha with pageobjects different path', () => {
@@ -738,7 +738,7 @@ describe('getPathForFileGeneration', () => {
             usePageObjects: true,
             framework: '@wdio/cucumber-service$--$mocha'
         } as any, '/foo/bar')
-        expect(generatedPaths.relativePath).toEqual('../../../../pageobjects/**/*.js')
+        expect(generatedPaths.relativePath).toEqual('../../pageobjects')
     })
 
     it('Do not auto generate file', () => {

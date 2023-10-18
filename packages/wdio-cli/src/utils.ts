@@ -551,14 +551,14 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
     const destSpecRootPath = path.resolve(
         projectRootDir,
-        path.resolve(answers.specs || '').replace(/\*\*$/, ''))
+        (path.dirname(answers.specs || '') === '.' ? path.resolve(answers.specs || '') : path.dirname(answers.specs || '')).replace(/\*\*$/, ''))
 
-    const destStepRootPath = path.resolve(projectRootDir, path.resolve(answers.stepDefinitions || ''))
+    const destStepRootPath = path.resolve(projectRootDir, (path.dirname(answers.stepDefinitions || '') === '.' ? path.resolve(answers.stepDefinitions || '') : path.dirname(answers.stepDefinitions || '')))
 
     const destPageObjectRootPath = answers.usePageObjects
         ? path.resolve(
             projectRootDir,
-            path.resolve(answers.pages || '').replace(/\*\*$/, ''))
+            (path.dirname(answers.pages || '') === '.' ? path.resolve(answers.pages || '') : path.dirname(answers.pages || '')).replace(/\*\*$/, ''))
         : ''
     const relativePath = (answers.generateTestFiles && answers.usePageObjects)
         ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
