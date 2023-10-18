@@ -103,4 +103,5 @@ export interface FormattedMessage {
     currentTest?: string
     error?: MochaError
     context?: any
+    body?: string
 }

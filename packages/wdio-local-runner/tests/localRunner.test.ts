@@ -25,7 +25,7 @@ test('should fork a new process', async () => {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -64,7 +64,7 @@ test('should shut down worker processes', async () => {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
-    const worker1 = runner.run({
+    const worker1 = await runner.run({
         cid: '0-4',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -76,7 +76,7 @@ test('should shut down worker processes', async () => {
     })
     worker1['_handleMessage']({ name: 'ready' } as any)
     await sleep()
-    const worker2 = runner.run({
+    const worker2 = await runner.run({
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -114,7 +114,7 @@ test('should avoid shutting down if worker is not busy', async () => {
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
 
-    runner.run({
+    await runner.run({
         cid: '0-8',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -138,7 +138,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         watch: true,
     } as any)
 
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-6',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -179,7 +179,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         watch: true,
     } as any)
 
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-7',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',

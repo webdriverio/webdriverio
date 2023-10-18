@@ -225,7 +225,7 @@ export interface HookFunctions {
      * @param {*}       result.result    return object of test function
      * @param {number}  result.duration  duration of test
      * @param {boolean} result.passed    true if test has passed, otherwise false
-     * @param {object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest?(test: Test, context: any, result: TestResult): unknown | Promise<unknown>
 
@@ -234,8 +234,9 @@ export interface HookFunctions {
      * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
      * @param test      details to current running test (represents step in Cucumber)
      * @param context   context to current running test (represents World object in Cucumber)
-     */
-    beforeHook?(test: any, context: any): unknown | Promise<unknown>
+     * @param hookName  name of the hook
+    */
+    beforeHook?(test: any, context: any, hookName: string): unknown | Promise<unknown>
 
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
@@ -243,8 +244,9 @@ export interface HookFunctions {
      * @param test      details to current running test (represents step in Cucumber)
      * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
-     */
-    afterHook?(test: Test, context: any, result: TestResult): unknown | Promise<unknown>
+     * @param hookName  name of the hook
+    */
+    afterHook?(test: Test, context: any, result: TestResult, hookName: string): unknown | Promise<unknown>
 
     /**
      * Runs before a WebdriverIO command gets executed.

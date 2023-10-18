@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import ip from 'ip'
-import type { SauceLabsOptions, Job } from 'saucelabs'
-import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
+import SauceLabs from 'saucelabs'
+import type { SauceLabsOptions, Job } from 'saucelabs'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 
 import { isRDC, ansiRegex } from './utils.js'
@@ -43,7 +42,7 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * gather information about runner
      */
-    beforeSession (config: Options.Testrunner, __: never, ___: never, cid: string) {
+    beforeSession (_: Options.Testrunner, __: never, ___: never, cid: string) {
         this._cid = cid
 
         /**
@@ -59,16 +58,9 @@ export default class SauceService implements Services.ServiceInstance {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
         }
-
-        /**
-         * update baseUrl if localhost so it can be reached by Sauce Connect
-         */
-        if (config.baseUrl && config.baseUrl.includes('localhost')) {
-            config.baseUrl = config.baseUrl.replace(/(localhost|127\.0\.0\.1)/, ip.address())
-        }
     }
 
-    before (caps: unknown, specs: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    before (_: unknown, __: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
@@ -78,7 +70,7 @@ export default class SauceService implements Services.ServiceInstance {
         // `this._browser.capabilities` returns the process data from Sauce which is without
         // the postfix
         const capabilities = (this._browser as WebdriverIO.Browser).requestedCapabilities || {}
-        this._isRDC = isRDC(capabilities as Capabilities.Capabilities)
+        this._isRDC = isRDC(capabilities as WebdriverIO.Capabilities)
     }
 
     async beforeSuite (suite: Frameworks.Suite) {
@@ -178,7 +170,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
-    afterHook (test: never, context: never, results: Frameworks.TestResult) {
+    afterHook(test: never, context: never, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          */
@@ -274,7 +266,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
             const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
-            const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as Capabilities.Capabilities)
+            const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as WebdriverIO.Capabilities)
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
             await this._uploadLogs(multiRemoteBrowser.sessionId)
             // Sauce Unified Platform (RDC) can not be updated with an API.
@@ -359,7 +351,7 @@ export default class SauceService implements Services.ServiceInstance {
             body.name += ` (${testCnt})`
         }
 
-        const caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
+        const caps = (this._capabilities as WebdriverIO.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
 
         for (const prop of jobDataProperties) {
             if (!caps[prop]) {

@@ -8,19 +8,21 @@ import type { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
-import { initCount } from '../src/bidi.js'
+import { initCount } from '../src/bidi/core.js'
 import type { Client } from '../src/types.js'
 
+vi.mock('geckodriver', () => ({ start: vi.fn() }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fs')
+vi.mock('wait-port')
 vi.mock('ws')
 vi.mock('got')
 
-vi.mock('../src/bidi', () => {
+vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
-        BidiHandler: class BidiHandlerMock {
+        BidiCore: class BidiHandlerMock {
             connect = vi.fn()
             constructor () {
                 ++initCount
@@ -305,10 +307,10 @@ describe('WebDriver', () => {
         })
 
         it('should apply default connection details', () => {
-            const client = WebDriver.attachToSession({ sessionId: '123' })
+            const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('localhost')
-            expect(client.options.port).toBe(4444)
+            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
 
@@ -317,6 +319,7 @@ describe('WebDriver', () => {
                 ...sessionOptions,
                 capabilities: {
                     'appium:automationName': 'foo',
+                    'platformName': 'ios',
                 }
             }) as any as TestClient
             expect(client.isMobile).toBe(true)

@@ -79,7 +79,7 @@ export const SUITES_NO_TESTS = [
 
 export const REPORT = `yellow ========= Your concise report ==========
 chrome
-Test failed (1):
+❌ Test failed (1):
   Fail : red a failed test
     AssertionError [ERR_ASSERTION] : yellow 'Google' == 'Google2'
 `

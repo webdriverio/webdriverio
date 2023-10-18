@@ -338,6 +338,27 @@ describe('loadFiles', () => {
         expect(adapter['_specLoadError']!.message)
             .toContain('Unable to load spec files')
     })
+
+    test('should decorate file with esmDecorator', async () => {
+        const adapter = adapterFactory({})
+
+        adapter['_mocha']! = {
+            loadFilesAsync: vi.fn()
+        } as any
+
+        await adapter._loadFiles({})
+
+        expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
+
+        const loadFilesOptions: any = vi.mocked(adapter['_mocha']!.loadFilesAsync).mock.lastCall?.at(0)
+        expect(loadFilesOptions).toBeDefined()
+
+        const mockFilePath = '/foo/bar.test.js'
+        const decoratedFilePath = loadFilesOptions.esmDecorator(mockFilePath)
+
+        expect(decoratedFilePath).toContain(mockFilePath)
+        expect(decoratedFilePath).toContain('?invalidateCache=')
+    })
 })
 
 describe('hasTests', () => {

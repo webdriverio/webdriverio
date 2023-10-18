@@ -1,0 +1,37 @@
+<%- _.import('Given, When, Then, type DataTable', '@cucumber/cucumber') %>
+<%- _.import('Ensure, equals', '@serenity-js/assertions') %>
+<%- _.import('type Actor', '@serenity-js/core') %>
+<%- _.import('TodoList', '../../serenity/todo-list-app/TodoList') %>
+
+Given('{actor} starts/started with a list containing:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
+    await actor.attemptsTo(
+        TodoList.createListContaining(itemsFrom(table)),
+    )
+})
+
+When('{pronoun} marks/marked the following item(s) as completed:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
+    await actor.attemptsTo(
+        TodoList.markAsCompleted(itemsFrom(table)),
+    )
+})
+
+When('{pronoun} marks/marked the following item(s) as outstanding:', async (<%- _.param('actor', 'Actor') %>, <%- _.param('table', 'DataTable') %>) => {
+    await actor.attemptsTo(
+        TodoList.markAsOutstanding(itemsFrom(table)),
+    )
+})
+
+Then('{pronoun} should see that she has {int} item(s) outstanding', async (<%- _.param('actor', 'Actor') %>, <%- _.param('expectedCount', 'number') %>) => {
+    await actor.attemptsTo(
+        Ensure.that(TodoList.outstandingItemsCount(), equals(expectedCount)),
+    )
+})
+
+/**
+ * Extracts the data from a single-column Cucumber DataTable and returns it as an `Array<string>`
+ *
+ * @param table
+ */
+function itemsFrom(<%- _.param('table', 'DataTable') %>)<%- _.returns('string[]') %> {
+    return table.raw().map(row => row[0])
+}

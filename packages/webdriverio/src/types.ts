@@ -1,7 +1,6 @@
 import type { EventEmitter } from 'node:events'
-import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { Protocol } from 'devtools-protocol'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -10,6 +9,8 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
 import type { Matches } from './utils/interception/types.js'
+
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -78,7 +79,7 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<Element | WebdriverIO.Element | undefined>
+    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
 
     /**
      * Unwrap the nth element of the element list.
@@ -236,7 +237,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
-export interface Browser extends BrowserBase, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -370,7 +371,7 @@ interface KeyActionEntity {
 
 export interface Action {
     id: string
-    actions: (NoneActionEntity & PointerActionEntity & KeyActionEntity)[]
+    actions: (NoneActionEntity | PointerActionEntity | KeyActionEntity)[]
     type?: 'pointer' | 'key'
     parameters?: {
         pointerType: 'mouse' | 'pen' | 'touch'
@@ -480,18 +481,16 @@ interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, '
 type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}
 
-export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities'>, Omit<WebDriverAttachOptions, 'capabilities'> {
-    options?: {
-        automationProtocol?: Options.SupportedProtocols,
-    }
-    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
-    requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
+export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
+    options: Options.WebdriverIO
+    capabilities: WebDriverAttachOptions['capabilities'],
+    requestedCapabilities?: WebDriverAttachOptions['capabilities'],
 }
 
 declare global {
     namespace WebdriverIO {
-        interface Browser extends BrowserBase, BrowserCommandsType, ProtocolCommands {}
-        interface Element extends ElementBase, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+        interface Browser extends BrowserBase, BidiHandler, ProtocolCommands, BrowserCommandsType {}
+        interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }

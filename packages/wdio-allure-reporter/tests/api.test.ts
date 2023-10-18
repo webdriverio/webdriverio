@@ -7,7 +7,7 @@ import { clean } from './helpers/wdio-allure-helper.js'
 import AllureReporter, {
     addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory,
-    addEnvironment, addDescription, addAttachment, startStep, endStep,
+    addDescription, addAttachment, startStep, endStep,
     addStep, addArgument, addAllureId, step,
 } from '../src/index.js'
 import { events } from '../src/constants.js'
@@ -54,7 +54,6 @@ describe('reporter api', () => {
         expect(typeof addIssue).toBe('function')
         expect(typeof addTestId).toBe('function')
         expect(typeof addStory).toBe('function')
-        expect(typeof addEnvironment).toBe('function')
         expect(typeof addDescription).toBe('function')
         expect(typeof addAttachment).toBe('function')
         expect(typeof startStep).toBe('function')
@@ -146,12 +145,6 @@ describe('reporter api', () => {
         AllureReporter.addTestId('2')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addTestId, { testId: '2' })
-    })
-
-    it('should pass correct data from addEnvironment', () => {
-        AllureReporter.addEnvironment('foo', 'bar')
-        expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addEnvironment, { name: 'foo', value: 'bar' })
     })
 
     it('should pass correct data from addDescription', () => {

@@ -57,7 +57,7 @@ The Browser runner allows following configurations:
 
 If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`.
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br />
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br />
 __Example:__
 
 ```js title="wdio.conf.js"

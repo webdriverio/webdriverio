@@ -1,6 +1,6 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
-import type { Services } from '@wdio/types'
+import type { Services, Options } from '@wdio/types'
 
 import WebDriverMock from './WebDriverMock.js'
 
@@ -35,6 +35,11 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getElementRect(ELEMENT_ALT).times(3).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
         this._mock.command.getElementRect(ELEMENT_REFETCHED).times(1).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this._mock.command.getLogTypes().reply(200, { value: [] })
+    }
+
+    beforeSession(config: Omit<Options.Testrunner, 'capabilities'>): void {
+        config.hostname = 'localhost'
+        config.port = 4444
     }
 
     before (

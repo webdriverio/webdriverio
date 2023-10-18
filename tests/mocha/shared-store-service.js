@@ -6,6 +6,12 @@ describe('Shared store service', () => {
         assert.equal(caps.browserName, browser.capabilities.browserName)
     })
 
+    it('should be able to set values', async () => {
+        assert.equal(await browser.sharedStore.getValueFromPool('availableUrls'), 'url01.com')
+        assert.equal(await browser.sharedStore.getValueFromPool('availableUrls'), 'url02.com')
+        assert.equal(await browser.sharedStore.get('testKey'), 'testValue')
+    })
+
     it('should allow various types of values', async () => {
         await browser.sharedStore.set('boolean', true)
         await browser.sharedStore.set('number', 123)
@@ -21,6 +27,7 @@ describe('Shared store service', () => {
     it('should be able to fetch all key/value pairs', async () => {
         const keys = Object.keys(await browser.sharedStore.get('*'))
         expect(keys).toEqual([
+            'testKey',
             browser.sessionId,
             'boolean', 'number', 'string', 'null'
         ])

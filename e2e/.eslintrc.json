@@ -1,7 +1,12 @@
 {
   "plugins": ["wdio"],
+  "env": {
+    "mocha": true,
+    "browser": true
+  },
   "extends": [
     "eslint:recommended",
-    "plugin:wdio/recommended"
+    "plugin:wdio/recommended",
+    "../.eslintrc.cjs"
   ]
 }

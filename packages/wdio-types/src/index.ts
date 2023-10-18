@@ -17,6 +17,21 @@ export type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ?
 export type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
 export type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
 
+interface DriverOptions {
+    /**
+     * directory where browser and driver should be stored
+     */
+    cacheDir?: string
+    /**
+     * path to custom driver binary
+     */
+    binary?: string
+    /**
+    * path to the log file
+    */
+    logPath?: string
+}
+
 declare global {
     namespace WebdriverIO {
         interface MochaOpts { [key: string]: any }
@@ -29,10 +44,9 @@ declare global {
         interface WDIODevtoolsOptions {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
-    }
-
-    namespace WebDriver {
-        interface Capabilities extends Capabilities.Capabilities {}
-        interface DesiredCapabilities extends Capabilities.DesiredCapabilities {}
+        interface ChromedriverOptions extends DriverOptions {}
+        interface GeckodriverOptions extends DriverOptions {}
+        interface EdgedriverOptions extends DriverOptions {}
+        interface SafaridriverOptions {}
     }
 }

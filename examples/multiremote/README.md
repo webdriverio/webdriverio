@@ -2,14 +2,6 @@
 
 The multiremote examples demonstrate how you can use more than one browser to test a specific thing. This feature is not meant to run tests in parallel, it helps you test interactive features (e.g. a chat system) where you need more than one browser to test.
 
-__Note:__ in order to run these examples you need to have two Chromedriver instances running:
-
-```sh
-chromedriver --port=4444
-# in an other terminal window
-$ chromedriver --port=4445
-```
-
 ## webrtc.js
 
 Run this test by executing the file using node. It opens up a WebRTC page with two Chrome browser. Both browser will connect to each other and will have a two seconds long call.

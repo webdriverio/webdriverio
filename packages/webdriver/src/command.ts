@@ -1,9 +1,10 @@
+import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import type { BidiHandler } from './bidi.js'
+import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { BaseClient } from './types.js'
 
@@ -12,6 +13,7 @@ const BIDI_COMMANDS = ['send', 'sendAsync'] as const
 
 interface BaseClientWithEventHandler extends BaseClient {
     eventMiddleware: BidiHandler
+    _driverProcess?: ChildProcess
 }
 
 export default function (
@@ -23,6 +25,7 @@ export default function (
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
+        const isBidiCommand = this.sessionId && this.eventMiddleware && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function'
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -40,7 +43,7 @@ export default function (
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        if (!isBidiCommand && args.length < minAllowedParams || args.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -57,6 +60,9 @@ export default function (
          * parameter type check
          */
         for (const [it, arg] of Object.entries(args)) {
+            if (isBidiCommand) {
+                break
+            }
             const i = parseInt(it, 10)
             const commandParam = commandParams[i]
 
@@ -97,12 +103,9 @@ export default function (
         /**
          * Handle Bidi calls
          */
-        if (this.sessionId && BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])) {
-            if (!this.eventMiddleware) {
-                throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
-            }
-
-            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params)
+        if (isBidiCommand) {
+            log.info('BIDI COMMAND', commandCallStructure(command, args, true))
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](args[0]) as any
         }
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
@@ -124,8 +127,37 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
-                logger.clearLogger()
+            if (command === 'deleteSession') {
+                /**
+                 * kill driver process if there is one
+                 */
+                if (this._driverProcess && body.deleteSessionOpts?.shutdownDriver !== false) {
+                    log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
+                    const killedSuccessfully = this._driverProcess.kill('SIGKILL')
+                    if (!killedSuccessfully) {
+                        log.warn('Failed to kill driver process, manully clean-up might be required')
+                    }
+                    this._driverProcess = undefined
+
+                    setTimeout(() => {
+                        /**
+                         * clear up potential leaked TLS Socket handles
+                         * see https://github.com/puppeteer/puppeteer/pull/10667
+                         */
+                        for (const handle of process._getActiveHandles()) {
+                            if (handle.servername && handle.servername.includes('edgedl.me')) {
+                                handle.destroy()
+                            }
+                        }
+                    }, 10)
+                }
+
+                /**
+                 * clear logger stream if session has been terminated
+                 */
+                if (!process.env.WDIO_WORKER_ID) {
+                    logger.clearLogger()
+                }
             }
             return result.value
         })

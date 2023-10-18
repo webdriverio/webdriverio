@@ -26,6 +26,10 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     execArgv: [],
     runnerEnv: {},
     runner: 'local' as const,
+    shard: {
+        current: 1,
+        total: 1
+    },
     specFileRetries: 0,
     specFileRetriesDelay: 0,
     specFileRetriesDeferred: false,
@@ -94,7 +98,7 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
 ]
 
 export const SUPPORTED_FILE_EXTENSIONS = [
-    '.js', '.jsx', '.mjs', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs'
+    '.js', '.jsx', '.mjs', '.mts', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs'
 ]
 
 export const NO_NAMED_CONFIG_EXPORT = (

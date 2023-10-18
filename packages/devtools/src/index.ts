@@ -14,12 +14,7 @@ import DevToolsDriver from './devtoolsdriver.js'
 import launch from './launcher.js'
 import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants.js'
 import { getPrototype, patchDebug } from './utils.js'
-import type {
-    Client,
-    AttachOptions,
-    ExtendedCapabilities,
-    WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
-} from './types.js'
+import type { Client, AttachOptions, DevToolsOptions as WDIODevtoolsOptionsExtension } from './types.js'
 
 const log = logger('devtools:puppeteer')
 
@@ -55,7 +50,7 @@ export default class DevTools {
         log.info('Initiate new session using the DevTools protocol')
 
         const requestedCapabilities = { ...params.capabilities }
-        const browser = await launch(params.capabilities as ExtendedCapabilities)
+        const browser = await launch(params.capabilities as WebdriverIO.Capabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
@@ -67,10 +62,10 @@ export default class DevTools {
          */
         type ValueOf<T> = T[keyof T]
         const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
-        const vendorCapPrefix = Object.keys(params.capabilities as Capabilities.Capabilities)
+        const vendorCapPrefix = Object.keys(params.capabilities as WebdriverIO.Capabilities)
             .find(
                 (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
-            ) as keyof Capabilities.Capabilities
+            ) as keyof WebdriverIO.Capabilities
             ||
             VENDOR_PREFIX[userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX]
 
@@ -144,7 +139,7 @@ export default class DevTools {
         userPrototype = {},
         customCommandWrapper?: Function
     ): Promise<Client> {
-        const browser = await launch(options.capabilities as ExtendedCapabilities)
+        const browser = await launch(options.capabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()

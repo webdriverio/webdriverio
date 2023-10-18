@@ -192,11 +192,11 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
      */
     for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
-            eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
-
+            const method = eventCommand as keyof EventEmitter
+            eventHandler[method]?.(...args as [never, any])
             if (prototype.eventMiddleware) {
-                if (typeof prototype.eventMiddleware[eventCommand as keyof EventEmitter] === 'function') {
-                    prototype.eventMiddleware.socket[eventCommand as keyof EventEmitter]!(...args as [never, any])
+                if (typeof prototype.eventMiddleware[method] === 'function') {
+                    prototype.eventMiddleware.socket[method]!(...args as [never, any])
                 }
             }
 

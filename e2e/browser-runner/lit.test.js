@@ -10,8 +10,7 @@ import { someExport, namedExports } from '@testing-library/user-event'
 import { SimpleGreeting } from './components/LitComponent.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
-mock('./components/constants.ts', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('./components/constants.ts', async (mod) => {
     return {
         GREETING: mod.GREETING + ' Sir'
     }
@@ -24,8 +23,7 @@ mock('graphql-request', () => ({
     }
 }))
 
-mock('@testing-library/user-event', async (getOrigModule) => {
-    const mod = await getOrigModule()
+mock('@testing-library/user-event', async (mod) => {
     return {
         someExport: 'foobarloo',
         namedExports: Object.keys(mod)
@@ -162,7 +160,21 @@ describe('Lit Component testing', () => {
             expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
         })
 
-        it('fetches inner element by content correctly with nested class names', async () => {
+        const outerClassLists = ['foo', 'bar foo', 'foo bar baz', 'bar foo baz', 'bar baz foo']
+        const innerClassLists = ['foo-bar-baz', 'bar-foo-baz', 'bar-baz-foo']
+        for (const outerClassList of outerClassLists) {
+            for (const innerClassList of innerClassLists) {
+                it(`fetches element by content correctly with nested class names where the inner classlist is "${innerClassList}" and the outer classlist is "${outerClassList}"`, async () => {
+                    render(
+                        html`<div class="${outerClassList}"><div class="${innerClassList}"></div><div><div>Find me</div></div></div>`,
+                        document.body
+                    )
+                    expect(await $('.foo*=Find').getHTML(false)).toBe(`<div class="${innerClassList}"></div><div><div>Find me</div></div>`)
+                })
+            }
+        }
+
+        it('fetches element by content correctly with nested class names', async () => {
             /**
              * <div class="foo" id="#bar">
              *     <div>
@@ -232,6 +244,22 @@ describe('Lit Component testing', () => {
             expect((await $(() => document.body).getTagName()).toLowerCase()).toBe('body')
         })
 
+        it('can save a screenshot', async () => {
+            expect((await browser.saveScreenshot('./screenshot.png')).type)
+                .toBe('Buffer')
+        })
+
+        it('can save a pdf', async () => {
+            /**
+             * Safari does not support 'POST /session/<sessionId>/print' command
+             */
+            if (browser.capabilities.browserName.toLowerCase() === 'safari') {
+                return
+            }
+            expect((await browser.savePDF('./screenshot.pdf')).type)
+                .toBe('Buffer')
+        })
+
         describe('a11y selectors', () => {
             it('aria label is received from element content', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
@@ -242,7 +270,7 @@ describe('Lit Component testing', () => {
                 expect(await $('aria/Find me').getHTML(false)).toBe('Find me')
             })
 
-            it(' images with an alt tag', async () => {
+            it('images with an alt tag', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`<img alt="foo" src="Find me">`,
@@ -338,5 +366,11 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveText('Click Me!')
             })
         })
+    })
+
+    it('should support WASM', async () => {
+        const source = fetch('/browser-runner/wasm/add.wasm')
+        const wasmModule = await WebAssembly.instantiateStreaming(source)
+        expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
     })
 })

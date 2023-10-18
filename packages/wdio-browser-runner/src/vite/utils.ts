@@ -1,8 +1,10 @@
+/* eslint-disable quotes */
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
+import type { InlineConfig } from 'vite'
 
 import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
@@ -13,6 +15,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
+    const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
+    const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
 
     let vueDeps = ''
     if (options.preset === 'vue') {
@@ -50,13 +54,44 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
 
+    const mochaPath = await resolve('mocha', `${rootFileUrl}/node_modules`)
+    const mochaCSSHref = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.css')
+    const mochaJSSrc = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.js')
+
     return /* html */`
     <!doctype html>
     <html>
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <script type="module" src="/node_modules/mocha/mocha.js"></script>
+            ${usesTailwindCSS ? /*html*/`<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">` : ''}
+            <script type="module">
+                const alias = ${JSON.stringify(alias)}
+                window.__wdioMockCache__ = new Map()
+                window.wdioImport = function (modName, mod) {
+                    /**
+                     * attempt to resolve direct import
+                     */
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+
+                    /**
+                     * if above fails, check if we have an alias for it
+                     */
+                    for (const [aliasName, aliasPath] of Object.entries(alias)) {
+                        if (modName.slice(0, aliasName.length) === aliasName) {
+                            modName = modName.replace(aliasName, aliasPath)
+                        }
+                    }
+                    if (window.__wdioMockCache__.get(modName)) {
+                        return window.__wdioMockCache__.get(modName)
+                    }
+                    return mod
+                }
+            </script>
+            <link rel="stylesheet" href="/@fs/${mochaCSSHref}">
+            <script type="module" src="/@fs/${mochaJSSrc}"></script>
             ${sourceMapScript}
             <script type="module">
                 ${sourceMapSetupCommand}
@@ -84,7 +119,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     env: ${JSON.stringify(p.env)},
                     stdout: {},
                     stderr: {},
-                    cwd: () => '${p.cwd()}',
+                    cwd: () => ${JSON.stringify(p.cwd())},
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
@@ -177,6 +212,18 @@ export async function getManualMocks(automockDir: string) {
     }
 
     return mockedModulesList
+}
+
+const EXTENSION = ['.js', '.ts', '.mjs', '.cjs', '.mts']
+export async function hasFileByExtensions (p: string, extensions = EXTENSION) {
+    return (await Promise.all([
+        fs.access(p).then(() => p, () => undefined),
+        ...extensions.map((ext) => fs.access(p + ext).then(() => p + ext, () => undefined))
+    ])).filter(Boolean)[0]
+}
+
+export function hasDir (p: string) {
+    return fs.stat(p).then((s) => s.isDirectory(), () => false)
 }
 
 export function getErrorTemplate(filename: string, error: Error) {

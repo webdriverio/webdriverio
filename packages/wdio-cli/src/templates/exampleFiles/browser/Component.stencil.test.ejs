@@ -1,0 +1,43 @@
+import { h } from '@stencil/core'
+import { render } from '@wdio/browser-runner/stencil'
+import { $, expect } from '@wdio/globals'
+
+import { MyElement } from './Component.js'
+
+describe('Lit component testing', () => {
+    it('should increment value on click automatically', async () => {
+        await render({
+            components: [MyElement],
+            autoApplyChanges: true,
+            template: () => (
+                <my-element count={42}>WebdriverIO Component Testing</my-element>
+            )
+        })
+
+        const button = await $('my-element').$('>>>button')
+        await expect(button).toHaveText('count is 42')
+
+        await button.click()
+        await button.click()
+
+        await expect(button).toHaveText('count is 44')
+    })
+
+    it('should increment value on click after flush', async () => {
+        const { flushAll } = await render({
+            components: [MyElement],
+            template: () => (
+                <my-element count={42}>WebdriverIO Component Testing</my-element>
+            )
+        })
+
+        const button = await $('my-element').$('>>>button')
+        await expect(button).toHaveText('count is 42')
+
+        await button.click()
+        await button.click()
+        flushAll()
+
+        await expect(button).toHaveText('count is 44')
+    })
+})

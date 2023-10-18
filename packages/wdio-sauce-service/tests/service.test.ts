@@ -773,7 +773,7 @@ test('getBody', () => {
         passed: true
     })
 
-    service['_capabilities'] = {} as Capabilities.Capabilities
+    service['_capabilities'] = {} as WebdriverIO.Capabilities
     expect(service.getBody(1)).toEqual({
         passed: false
     })

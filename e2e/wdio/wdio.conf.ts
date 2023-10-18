@@ -1,25 +1,26 @@
 import url from 'node:url'
 import path from 'node:path'
-
-import DevtoolsService from '../../packages/wdio-devtools-service/build/index.js'
+import type { Options } from '@wdio/types'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-export const config = {
+export const config: Options.Testrunner = {
     /**
      * specify test files
      */
     specs: [path.join(__dirname, 'headless', '*.e2e.ts')],
+    exclude: [path.join(__dirname, 'headless', 'multiremoteTest.e2e.ts')],
 
     /**
      * capabilities
      */
     capabilities: [{
         browserName: 'chrome',
+        browserVersion: 'stable',
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
-
-    services: [[DevtoolsService, {}]],
+    bail: 1,
+    services: ['devtools'],
 
     /**
      * test configurations

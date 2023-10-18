@@ -53,10 +53,11 @@ export default class ConciseReporter extends WDIOReporter {
      */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
-
         return failedTestsCount > 0
-            ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
-            : 'All went well !!'
+            ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
+            : this.counts.tests === 0
+                ? '❌ Failed to setup tests, no tests found'
+                : '✅ All went well!'
     }
 
     /**

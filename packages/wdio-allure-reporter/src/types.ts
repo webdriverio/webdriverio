@@ -42,6 +42,11 @@ export interface AllureReporterOptions {
     * @default false
     */
     addConsoleLogs?: boolean
+    /**
+    * Set this option to display the environment variables in the report.
+    * Note that setting this does not modify the actual environment variables.
+    */
+    reportedEnvironmentVars?: Record<string, string>
 }
 
 export interface AddLabelEventArgs {
@@ -103,11 +108,6 @@ export interface AddIssueEventArgs {
 export interface AddTestIdEventArgs {
     testId: string
     linkName?: string
-}
-
-export interface AddEnvironmentEventArgs {
-    name: string
-    value: string
 }
 
 export enum TYPE {

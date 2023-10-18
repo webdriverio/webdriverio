@@ -20,8 +20,9 @@ import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors,
-    hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState.js'
+    hookStart, hookFailed,
+    testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart
+} from './__fixtures__/testState.js'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
 } from './__fixtures__/command.js'
@@ -50,6 +51,10 @@ describe('Passing tests', () => {
             outputDir,
             issueLinkTemplate: 'https://example.org/issues/{}',
             tmsLinkTemplate: 'https://example.org/tests/{}',
+            reportedEnvironmentVars:{
+                jenkins: '1.2.3',
+                OS: 'Mocked'
+            }
         })
         const step = {
             step: {
@@ -71,7 +76,6 @@ describe('Passing tests', () => {
         reporter.addSeverity({ severity: 'baz' })
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
-        reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
         reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
@@ -86,7 +90,7 @@ describe('Passing tests', () => {
 
         expect(results).toHaveLength(1)
         expect(containers).toHaveLength(1)
-        expect(Object.values(environmentInfo)).toHaveLength(1)
+        expect(Object.values(environmentInfo)).toHaveLength(2)
 
         allureResult = results[0]
         allureContainer = containers[0]
@@ -162,8 +166,11 @@ describe('Passing tests', () => {
         expect(tms[0].url).toEqual('https://example.org/tests/2')
     })
 
-    it('should add environment variable', () => {
-        expect(allureEnvInfo).toEqual({ jenkins: '1.2.3' })
+    it('should contain environment variables', () => {
+        expect(allureEnvInfo).toEqual({
+            jenkins: '1.2.3',
+            OS: 'Mocked'
+        })
     })
 
     it('should start end custom step', () => {
@@ -393,7 +400,7 @@ describe('Pending tests', () => {
     })
 })
 
-describe('Hook start', () => {
+describe('Hook reporting', () => {
     let outputDir: any
 
     beforeEach(() => {
@@ -404,36 +411,77 @@ describe('Hook start', () => {
         clean(outputDir)
     })
 
-    for (const hookFirst of [true, false]) {
-        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst ? 'first' : 'second'}`, () => {
-            const reporter = new AllureReporter({ outputDir })
-            const runnerEvent = runnerStart()
+    it('should report failed all hook', () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
 
-            delete runnerEvent.capabilities.browserName
-            delete runnerEvent.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
-            reporter.onRunnerStart(runnerEvent)
-            reporter.onSuiteStart(suiteStart())
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
-            if (hookFirst) {
-                reporter.onHookStart(hookStartWithCurrentTest())
-                reporter.onTestStart(testStart())
-            } else {
-                reporter.onTestStart(testStart())
-                reporter.onHookStart(hookStartWithCurrentTest())
-            }
+        const { results } = getResults(outputDir)
 
-            reporter.onTestFail(testFailed())
-            reporter.onSuiteEnd(suiteEnd())
-            reporter.onRunnerEnd(runnerEnd())
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(results[0].status).toEqual(Status.BROKEN)
+    })
 
-            const { results } = getResults(outputDir)
+    it('should report failed before each hook', () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
 
-            expect(results).toHaveLength(1)
-            expect(results[0].name).toEqual('should can do something')
-            expect(results[0].status).toEqual(Status.FAILED)
-        })
-    }
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onHookStart(eachHookStart())
+        reporter.onHookEnd(eachHookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(2)
+
+        const testCaseStep = results.find((tc => tc.name === 'My Login application'))
+        expect(testCaseStep).toBeDefined()
+        expect(testCaseStep.status).toEqual(Status.BROKEN)
+
+        const hookCase = results.find((tc => tc.name === '"before each" hook'))
+        expect(hookCase).toBeDefined()
+        expect(hookCase.status).toEqual(Status.BROKEN)
+    })
+
+    it('should report failed before each hook with disableMochaHooks', () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onHookStart(eachHookStart())
+        reporter.onHookEnd(eachHookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.FAILED)
+        expect(results[0].steps[0].name).toEqual('"before each" hook')
+        expect(results[0].steps[0].status).toEqual(Status.FAILED)
+    })
 })
 
 const assertionResults: any = {
@@ -638,6 +686,33 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(screenshotAttachments).toHaveLength(1)
         })
 
+        it('should add step with screenshot command when disableWebdriverStepsReporting=true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
+            const screenshotAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+            expect(screenshotAttachments).toHaveLength(1)
+        })
+
         it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
             const allureOptions = {
                 stdout: true,
@@ -674,27 +749,32 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
+                disableWebdriverStepsReporting: true
             }
             const reporter = new AllureReporter(allureOptions)
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
             reporter.onHookStart(hookStart())
+            reporter.onTestStart(testStart())
             reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
             reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
             reporter.onHookEnd(hookFailed())
+            reporter.onTestPass()
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+            expect(results).toHaveLength(2)
 
-            expect(results).toHaveLength(1)
+            const result = results.find( res => res.attachments.length === 1)
+            expect(result).toBeDefined()
 
-            const screenshotAttachments = results[0].attachments.filter(
+            const screenshotAttachments = result.attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 
-            expect(screenshotAttachments).toHaveLength(0)
+            expect(screenshotAttachments).toHaveLength(1)
         })
 
         it('should attach console log for passing test', () => {

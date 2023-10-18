@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import url from 'node:url'
+import util from 'node:util'
 import path from 'node:path'
-import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
+import type cp from 'node:child_process'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -81,7 +82,7 @@ describe('Appium launcher', () => {
 
     beforeEach(() => {
         vi.mocked(spawn).mockClear()
-        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as ChildProcess)
+        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as cp.ChildProcess)
     })
 
     describe('onPrepare', () => {
@@ -89,9 +90,9 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command:'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
-            const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
+            const capabilities = [{ port: 1234, deviceName: 'baz' }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -105,8 +106,10 @@ describe('Appium launcher', () => {
                         'path/to/my_custom_appium',
                         '--base-path',
                         '/',
-                        '--foo',
-                        'bar'
+                        '--address',
+                        'bar',
+                        '--default-capabilities',
+                        '{"foo":"bar"}'
                     ],
                     expect.any(Object)
                 )
@@ -116,12 +119,15 @@ describe('Appium launcher', () => {
                     [
                         '--base-path',
                         '/',
-                        '--foo',
-                        'bar'
+                        '--address',
+                        'bar',
+                        '--default-capabilities',
+                        '{"foo":"bar"}'
                     ],
                     expect.any(Object)
                 )
             }
+
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
@@ -132,11 +138,11 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: {} },
-                browserB: { capabilities: {} }
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -150,14 +156,47 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
+        test('should set correct config properties using parallel multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
+            }, {
+                browserC: { port: 5678, capabilities: { deviceName: 'baz' } },
+                browserD: { capabilities: { deviceName: 'baz' } }
+            }]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities[0].browserA.protocol).toBe('http')
+            expect(capabilities[0].browserA.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserA.port).toBe(1234)
+            expect(capabilities[0].browserA.path).toBe('/')
+            expect(capabilities[0].browserB.protocol).toBe('http')
+            expect(capabilities[0].browserB.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserB.port).toBe(4723)
+            expect(capabilities[0].browserB.path).toBe('/')
+            expect(capabilities[1].browserC.protocol).toBe('http')
+            expect(capabilities[1].browserC.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserC.port).toBe(5678)
+            expect(capabilities[1].browserC.path).toBe('/')
+            expect(capabilities[1].browserD.protocol).toBe('http')
+            expect(capabilities[1].browserD.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserD.port).toBe(4723)
+            expect(capabilities[1].browserD.path).toBe('/')
+        })
+
         test('should not override cloud config using multiremote', async () => {
             const options = {
                 logPath : './',
-                args : { foo : 'foo' },
+                args : { address: 'foo' },
                 installArgs : { bar : 'bar' },
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: {} },
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -177,9 +216,9 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+                args: { address:'bar', port: 1234 }
             }
-            const capabilities = [{} as Capabilities.DesiredCapabilities]
+            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
@@ -197,9 +236,9 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
+                args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
@@ -221,7 +260,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
@@ -232,7 +271,7 @@ describe('Appium launcher', () => {
                     'path/to/my_custom_appium',
                     '--base-path',
                     '/',
-                    '--foo',
+                    '--address',
                     'bar'
                 ],
                 expect.any(Object)
@@ -248,7 +287,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
@@ -261,7 +300,7 @@ describe('Appium launcher', () => {
 
             const launcher = new AppiumLauncher({
                 logPath: './',
-                args: { foo: 'bar' }
+                args: { address: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
@@ -272,7 +311,7 @@ describe('Appium launcher', () => {
                         expect.any(String),
                         '--base-path',
                         '/',
-                        '--foo',
+                        '--address',
                         'bar'
                     ],
                     expect.any(Object)
@@ -284,7 +323,7 @@ describe('Appium launcher', () => {
                         '/foo/bar/appium',
                         '--base-path',
                         '/',
-                        '--foo',
+                        '--address',
                         'bar'
                     ],
                     expect.any(Object)
@@ -324,13 +363,13 @@ describe('Appium launcher', () => {
         })
 
         test('should start Appium', async () => {
-            const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {} as any)
+            const launcher = new AppiumLauncher({ args: { localTimezone: true } }, [], {} as any)
             await launcher.onPrepare()
         })
 
         test('should fail if Appium exits', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 1)')
@@ -339,7 +378,7 @@ describe('Appium launcher', () => {
 
         test('should fail and error message if Appium already runs', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
@@ -349,11 +388,96 @@ describe('Appium launcher', () => {
 
         test('should fail with Appium error message', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
             expect(error).toEqual(expectedError)
+        })
+
+        test('should result in an error when args is not of object type', async () => {
+            const options = {
+                args: []
+            }
+            // @ts-ignore test invalid param type!
+            const launcher = new AppiumLauncher(options, [], {} as any)
+            const expectedError = new Error('Args should be an object')
+            await expect(launcher.onPrepare()).rejects.toEqual(expectedError)
+        })
+
+        test('should not set host, port and path for non Appium capabilities', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
+            }
+            const capabilities = [{ browserName: 'baz' } as Capabilities.DesiredCapabilities]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            launcher['_startAppium'] = vi.fn().mockImplementation(
+                (cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(launcher['_logPath']).toBe('./')
+            expect(capabilities[0].protocol).toBeUndefined()
+            expect(capabilities[0].hostname).toBeUndefined()
+            expect(capabilities[0].port).toBeUndefined()
+            expect(capabilities[0].path).toBeUndefined()
+        })
+
+        test('should not set host, port and path for non Appium capabilities using multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities = {
+                browserA: { capabilities: { browserName: 'baz' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities.browserA.protocol).toBeUndefined()
+            expect(capabilities.browserA.hostname).toBeUndefined()
+            expect(capabilities.browserA.port).toBeUndefined()
+            expect(capabilities.browserA.path).toBeUndefined()
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('127.0.0.1')
+            expect(capabilities.browserB.port).toBe(4723)
+            expect(capabilities.browserB.path).toBe('/')
+        })
+
+        test('should not set host, port and path for non Appium capabilities using parallel multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+                browserB: { capabilities: { browserName: 'baz' } }
+            }, {
+                browserC: { port: 5678, capabilities: { browserName: 'baz' } },
+                browserD: { capabilities: { deviceName: 'baz' } }
+            }]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities[0].browserA.protocol).toBe('http')
+            expect(capabilities[0].browserA.hostname).toBe('127.0.0.1')
+            expect(capabilities[0].browserA.port).toBe(1234)
+            expect(capabilities[0].browserA.path).toBe('/')
+            expect(capabilities[0].browserB.protocol).toBeUndefined()
+            expect(capabilities[0].browserB.hostname).toBeUndefined()
+            expect(capabilities[0].browserB.port).toBeUndefined()
+            expect(capabilities[0].browserB.path).toBeUndefined()
+            expect(capabilities[1].browserC.protocol).toBeUndefined()
+            expect(capabilities[1].browserC.hostname).toBeUndefined()
+            expect(capabilities[1].browserC.port).toBe(5678)
+            expect(capabilities[1].browserC.path).toBeUndefined()
+            expect(capabilities[1].browserD.protocol).toBe('http')
+            expect(capabilities[1].browserD.hostname).toBe('127.0.0.1')
+            expect(capabilities[1].browserD.port).toBe(4723)
+            expect(capabilities[1].browserD.path).toBe('/')
         })
     })
 
@@ -400,6 +524,18 @@ describe('Appium launcher', () => {
         test('should throw if appium is not installed', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
             await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
+        })
+    })
+
+    describe('_startAppium', () => {
+        test('should propagate error messgae', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(util.promisify(launcher['_startAppium'])(
+                'node',
+                ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()']
+            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))
         })
     })
 

@@ -17,6 +17,7 @@ export interface Test {
     fullTitle: string
     pending: boolean
     file?: string
+    body?: string
     duration?: number
     cid: string
     specs: string[]
@@ -64,6 +65,7 @@ export default class TestStats extends RunnableStats {
     pendingReason?: string
     errors?: Error[]
     error?: Error
+    body?: string
 
     constructor(test: Test) {
         super('test')
@@ -74,7 +76,9 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
         this.retries = test.retries
-        this.parent= test.parent
+        this.parent = test.parent
+        // Mocha only
+        this.body = test.body
 
         /**
          * initial test state is pending

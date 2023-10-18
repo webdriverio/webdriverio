@@ -23,14 +23,10 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
     return absolutePath
 }
 
-export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
-    if (Array.isArray(args)) {
-        return args.map(arg => sanitizeCliOptionValue(arg))
-    }
-
+export function formatCliArgs(args: KeyValueArgs): string[] {
     const cliArgs = []
     for (const key in args) {
-        const value: ArgValue | ArgValue[] = args[key]
+        const value: ArgValue = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
             continue
@@ -46,7 +42,7 @@ export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
 }
 
 export function sanitizeCliOptionValue (value: ArgValue) {
-    const valueString = String(value)
+    const valueString = typeof value === 'object' ? JSON.stringify(value) : String(value)
     // Encapsulate the value string in single quotes if it contains a white space
     return /\s/.test(valueString) ? `'${valueString}'` : valueString
 }

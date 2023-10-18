@@ -1,6 +1,6 @@
 import got from 'got'
 import logger from '@wdio/logger'
-import type { Capabilities, Services, Options, Frameworks } from '@wdio/types'
+import type { Services, Options, Frameworks } from '@wdio/types'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
@@ -16,7 +16,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     constructor(
         private _config: Options.Testrunner,
-        private _capabilities: Capabilities.Capabilities
+        private _capabilities: WebdriverIO.Capabilities
     ) {
         this._cbtUsername = this._config.user as string
         this._cbtAuthkey = this._config.key as string
@@ -24,7 +24,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     }
 
     before (
-        caps: Capabilities.Capabilities,
+        caps: WebdriverIO.Capabilities,
         specs: string[],
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {

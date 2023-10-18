@@ -12,6 +12,16 @@ vi.mock('glob', () => ({
     sync: vi.fn(() => 'glob result')
 }))
 
+vi.mock('node:path', async (origMod) => {
+    const p = await origMod() as typeof path
+    return {
+        default: {
+            ...p,
+            resolve: vi.fn(p.resolve)
+        }
+    }
+})
+
 vi.mock('node:fs', async () => {
     return {
         default: {
@@ -61,7 +71,7 @@ describe('FileSystemPathService', () => {
             vi.mocked(globSync).mockReturnValue(['glob result'])
             const svc = new FileSystemPathService()
             expect(svc.glob('globtrotter', '/foo/bar')).toEqual(['glob result'])
-            expect(globSync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar' })
+            expect(globSync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar', matchBase: true })
         })
         it('should process file name with []', function () {
             vi.mocked(globSync).mockReturnValue([])
@@ -77,6 +87,15 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             expect(svc.glob('./examples/wdio/mocha/*.test.js', '/foo/bar'))
                 .toEqual(['a.test.js', 'c.test.js', 'f.test.js'])
+        })
+
+        it('should not return duplicated files with different upper/lower case', function () {
+            vi.mocked(globSync).mockReturnValue(['D:\\data\\case-repos\\Project\\case1.spec.ts'])
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(path.resolve).mockImplementationOnce((_, file) => file)
+            const svc = new FileSystemPathService()
+            expect(svc.glob('d:\\data\\case-repos\\Project\\case1.spec.ts', ''))
+                .toEqual(['D:\\data\\case-repos\\Project\\case1.spec.ts'])
         })
     })
 
@@ -103,7 +122,7 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             const error = await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')
                 .catch((err) => err) as Error
-            expect(error.message).toContain('Failed to load')
+            expect(error.message).toContain('Failed to load url')
         })
     })
 })

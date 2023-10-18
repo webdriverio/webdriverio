@@ -1,33 +1,15 @@
 [
   {
-    "packageName": "wdio-chromedriver-service",
-    "title": "ChromeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
-  },
-  {
-    "packageName": "wdio-geckodriver-service",
-    "title": "Geckodriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
-  },
-  {
-    "packageName": "wdio-safaridriver-service",
-    "title": "SafariDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-safaridriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-safaridriver-service"
-  },
-  {
-    "packageName": "wdio-edgedriver-service",
-    "title": "EdgeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
-  },
-  {
     "packageName": "wdio-vscode-service",
     "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
+  },
+  {
+    "packageName": "wdio-nuxt-service",
+    "title": "WDIO Nuxt Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
   },
   {
     "packageName": "wdio-intercept-service",
@@ -223,5 +205,11 @@
     "title": "Vitaq AI",
     "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
+  },
+  {
+    "packageName": "wdio-robonut-service",
+    "title": "Robonut",
+    "githubUrl": "https://github.com/udarrr/wdio-robonut-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-robonut-service"
   }
 ]

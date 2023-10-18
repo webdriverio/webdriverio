@@ -1,8 +1,6 @@
-import http from 'node:http'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type { Capabilities, Options } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from '../src/constants.js'
@@ -17,9 +15,7 @@ import {
     getElementRect,
     getAbsoluteFilepath,
     assertDirectoryExists,
-    validateUrl,
-    getAutomationProtocol,
-    updateCapabilities
+    validateUrl
 } from '../src/utils/index.js'
 
 vi.mock('http', () => {
@@ -523,58 +519,6 @@ describe('utils', () => {
                 .toEqual('data:text/html, <html contenteditable>')
             expect(() => validateUrl('_I.am.I:nvalid'))
                 .toThrowError('Invalid URL: _I.am.I:nvalid')
-        })
-    })
-
-    describe('getAutomationProtocol', () => {
-        it('should not default to devtools if there is an indication not to', async () => {
-            expect(await getAutomationProtocol({ hostname: 'foobar', automationProtocol: 'webdriver', capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ port: 1234, automationProtocol: 'webdriver', capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ user: 'a', key: 'b', automationProtocol: 'webdriver', capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ capabilities: { alwaysMatch: { browserName: 'chrome' } } as Capabilities.W3CCapabilities }))
-                .toBe('webdriver')
-        })
-
-        it('should switch if /status returns with 200', async () => {
-            expect(await getAutomationProtocol({ capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ automationProtocol: 'webdriver', capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ automationProtocol: 'devtools', capabilities: {} }))
-                .toBe('devtools')
-        })
-
-        it('should default to devtools if /status request fails and browser name is valid', async () => {
-            // @ts-ignore mock feature
-            http.setResponse({ statusCode: 404 })
-            expect(await getAutomationProtocol({ capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ automationProtocol: 'webdriver', capabilities: {} }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome' } }))
-                .toBe('devtools')
-            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', 'appium:deviceName': 'iPhone' } }))
-                .toBe('webdriver')
-            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', 'appium:app': 'some app' } }))
-                .toBe('webdriver')
-        })
-
-        it('should default to webdriver if browserName is not supported with DevTools automation protocol', async () => {
-            // @ts-ignore mock feature
-            http.setResponse({ statusCode: 404 })
-            expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
-                .toBe('webdriver')
-        })
-    })
-
-    describe('updateCapabilities', () => {
-        it('should do nothing if no browser specified', () => {
-            const params: Options.WebdriverIO = { capabilities: {} }
-            updateCapabilities(params)
-            expect(params).toMatchSnapshot()
         })
     })
 })

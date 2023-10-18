@@ -1,0 +1,41 @@
+<%- _.import('Ensure, equals', '@serenity-js/assertions' ) %>
+<%- _.import('Task', '@serenity-js/core' ) %>
+<%- _.import('GetRequest, LastResponse, Send', '@serenity-js/rest' ) %>
+
+/**
+ * Learn more about API testing with Serenity/JS
+ *  https://serenity-js.org/handbook/api-testing/
+ */
+<%- _.export('class', 'GitHubStatus') %> {
+    static #baseApiUrl = 'https://www.githubstatus.com/api/v2/'
+    static #statusJson = this.#baseApiUrl + 'status.json'
+
+    static ensureAllSystemsOperational = () =>
+        Task.where(`#actor ensures all GitHub systems are operational`,
+            Send.a(GetRequest.to(this.#statusJson)),
+            Ensure.that(LastResponse.status(), equals(200)),
+            Ensure.that(
+                LastResponse.body<%- _.ifTs('<StatusResponse>') %>().status.description.describedAs('GitHub Status'),
+                equals('All Systems Operational')
+            ),
+        )
+}
+<% if (_.useTypeScript) { %>
+/**
+ * Interfaces describing a simplified response structure returned by the GitHub Status Summary API:
+ *  https://www.githubstatus.com/api/v2/summary.json
+ */
+interface StatusResponse {
+    page: {
+        id: string
+        name: string
+        url: string
+        time_zone: string
+        updated_at: string
+    }
+    status: {
+        indicator: string
+        description: string
+    }
+}
+<% } %>

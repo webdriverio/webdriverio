@@ -3,7 +3,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import decamelize from 'decamelize'
 import { resolve } from 'import-meta-resolve'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import type { ModuleImportService } from './types.js'
 
@@ -36,7 +36,7 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(caps: Capabilities.Capabilities) {
+export function isCloudCapability(caps: WebdriverIO.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
 
@@ -182,7 +182,10 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            : path.resolve(process.cwd(), file))
+            : file.includes('/')
+                ? path.resolve(process.cwd(), file)
+                : file
+        )
     }
 
     return returnFiles

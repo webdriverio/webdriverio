@@ -109,6 +109,18 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
+## Install CLI Manually
+
+You can also add the CLI package to your project manually via:
+
+```sh
+npm i --save-dev @wdio/cli
+npx wdio --version # prints e.g. `8.13.10`
+
+# run configuration wizard
+npx wdio config
+```
+
 ## اجرای تست
 
 __توجه:__ همه دستورهای WebdriverIO ناهمزمان هستند و باید با استفاده از [`async/await`](https://javascript.info/async-await) به درستی مدیریت شوند.

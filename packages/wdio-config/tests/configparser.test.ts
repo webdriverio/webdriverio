@@ -823,6 +823,14 @@ describe('ConfigParser', () => {
             ])
         })
 
+        it('should not include spec if blank spec parameter passed', async ()=> {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['mobile'], spec: [] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+        })
+
         it('should include specs from suite 3 times with mulit-run', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['functional'], multiRun: 3 })
@@ -936,5 +944,25 @@ describe('ConfigParser', () => {
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')
         })
+    })
+
+    it('shard', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+
+        let specs: any = ['1', '2', '3', '4', '5']
+        await configParser.initialize({ shard: { current: 1, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['1', '2'])
+        await configParser.initialize({ shard: { current: 2, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['3', '4'])
+        await configParser.initialize({ shard: { current: 3, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['5'])
+
+        specs = ['1', ['2.1', '2.2', '2.3'], '3', ['4.1', '4.2']]
+        await configParser.initialize({ shard: { current: 1, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['1'])
+        await configParser.initialize({ shard: { current: 2, total: 3 } })
+        expect(configParser.shard(specs)).toEqual([['2.1', '2.2', '2.3']])
+        await configParser.initialize({ shard: { current: 3, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['3', ['4.1', '4.2']])
     })
 })

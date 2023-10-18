@@ -5,8 +5,14 @@ describe('smoke test multiremote', () => {
         assert.equal(
             JSON.stringify(await browser.getTitle()),
             JSON.stringify(['Mock Page Title', 'Mock Page Title']))
-        assert.equal(await browser.browserB.getTitle(), 'Mock Page Title')
-        assert.equal(await browser.browserA.getTitle(), 'Mock Page Title')
+
+        if (browser.browserA) {
+            assert.equal(await browser.browserB.getTitle(), 'Mock Page Title')
+            assert.equal(await browser.browserA.getTitle(), 'Mock Page Title')
+        } else {
+            assert.equal(await browser.browserC.getTitle(), 'Mock Page Title')
+            assert.equal(await browser.browserD.getTitle(), 'Mock Page Title')
+        }
     })
 
     it('should allow to chain element calls', async () => {
@@ -33,12 +39,19 @@ describe('smoke test multiremote', () => {
 
         it('should respect promises if command was added to single browser', async () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
-            global.browserA.addCommand('foobar', async () => {
-                const title = await global.browserA.getTitle()
+            let browserObj = global.browserA,
+                anotherBrowserObj  = global.browserB
+            if (browser.browserC) {
+                browserObj = global.browserC
+                anotherBrowserObj  = global.browserD
+            }
+
+            browserObj.addCommand('foobar', async () => {
+                const title = await browserObj.getTitle()
                 return `Title: ${title}`
             })
-            assert.strictEqual(await global.browserA.foobar(), 'Title: Mock Page Title')
-            assert.equal(typeof global.browserB.foobar, 'undefined')
+            assert.strictEqual(await browserObj.foobar(), 'Title: Mock Page Title')
+            assert.equal(typeof anotherBrowserObj.foobar, 'undefined')
         })
 
         it('should throw if promise rejects', async () => {
@@ -81,11 +94,18 @@ describe('smoke test multiremote', () => {
 
         it('should allow to overwrite element commands of a single browser', async () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
-            global.browserA.overwriteCommand('getTitle', async function (origCommand) {
+            let browserObj = global.browserA,
+                anotherBrowserObj  = global.browserB
+            if (browser.browserC) {
+                browserObj = global.browserC
+                anotherBrowserObj  = global.browserD
+            }
+
+            browserObj.overwriteCommand('getTitle', async function (origCommand) {
                 return `Title: ${await origCommand()}`
             })
-            assert.equal(await global.browserA.getTitle(), 'Title: Mock Page Title')
-            assert.equal(await global.browserB.getTitle(), 'Mock Page Title')
+            assert.equal(await browserObj.getTitle(), 'Title: Mock Page Title')
+            assert.equal(await anotherBrowserObj.getTitle(), 'Mock Page Title')
         })
 
         it('should allow to overwrite element commands', async () => {

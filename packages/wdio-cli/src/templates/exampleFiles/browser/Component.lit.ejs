@@ -1,26 +1,47 @@
 import { LitElement, css, html } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
-
+<%- answers.isUsingTypeScript ? `import { customElement, property } from 'lit/decorators.js'\n` : ''
+%>
 /**
  * An example element.
  *
  * @slot - This element has a slot
  * @csspart button - The button
  */
-@customElement('my-element')
-export class MyElement extends LitElement {
+<%- answers.isUsingTypeScript ? `@customElement('my-element')\n` : ''
+%>export class MyElement extends LitElement {<%
+if (answers.isUsingTypeScript) { %>
     /**
      * Copy for the read the docs hint.
      */
     @property()
-    docsHint = 'Click on the Vite and Lit logos to learn more'
+    docsHint = 'Click on the WebdriverIO logo to learn more!'
 
     /**
      * The number of times the button has been clicked.
      */
     @property({ type: Number })
     count = 0
+<% } else { %>
+    static get properties() {
+        return {
+            /**
+            * Copy for the read the docs hint.
+            */
+            docsHint: { type: String },
 
+            /**
+            * The number of times the button has been clicked.
+            */
+            count: { type: Number },
+        }
+    }
+
+    constructor() {
+        super()
+        this.docsHint = 'Click on the WebdriverIO logo to learn more!'
+        this.count = 0
+    }
+<% } %>
     render() {
         return html`
         <div>
@@ -37,18 +58,19 @@ export class MyElement extends LitElement {
                 count is ${this.count}
             </button>
             <p>
-                Edit <code>src/Component.test.tsx</code> and save to test HMR
+                Edit <code>src/Component.test.<%- answers.isUsingTypeScript ? `ts` : 'js' %></code> and save to test HMR
             </p>
         </div>
         <p class="read-the-docs">${this.docsHint}</p>
     `
     }
 
-    private _onClick() {
+    <%- answers.isUsingTypeScript ? `private ` : ''%>_onClick() {
         this.count++
     }
 
-    static styles = css`
+    <% if (answers.isUsingTypeScript) { %>static styles = css`<% } else { %>static get styles() {
+        return css`<% } %>
     :host {
       max-width: 1280px;
       margin: 0 auto;
@@ -119,10 +141,14 @@ export class MyElement extends LitElement {
       }
     }
   `
+  <% if (!answers.isUsingTypeScript) { %>}<% } %>
 }
-
+<% if (answers.isUsingTypeScript) { %>
 declare global {
     interface HTMLElementTagNameMap {
         'my-element': MyElement
     }
-}
+}<%
+} else { %>
+window.customElements.define('my-element', MyElement)<%
+} %>

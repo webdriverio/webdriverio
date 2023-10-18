@@ -64,14 +64,15 @@ export async function initialiseInstance (
         /**
          * propagate connection details defined by services or user in capabilities
          */
-        const caps = capabilities as Capabilities.Capabilities
+        const caps = capabilities as WebdriverIO.Capabilities
         const connectionProps = {
             protocol: caps.protocol || config.protocol,
             hostname: caps.hostname || config.hostname,
             port: caps.port || config.port,
             path: caps.path || config.path
         }
-        return attach({ ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>)
+        const params = { ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>
+        return attach({ ...params, options: params })
     }
 
     if (!isMultiremote) {

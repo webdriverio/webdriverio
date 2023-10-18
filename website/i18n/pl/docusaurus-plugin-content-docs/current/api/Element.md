@@ -68,7 +68,7 @@ Możesz bezpośrednio wywoływać metody należące do tablic w łańcuchu eleme
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO wykorzystuje bibliotekę [`p-iteration`](https://www.npmjs.com/package/p-iteration#api), więc wszystkie polecenia API należące do niej są również dostępne dla tych przypadków.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### Niestandardowe polecenia
 

@@ -5,7 +5,7 @@ title: जीथब क्रियाएँ
 
 यदि आपकी रिपॉजिटरी को जीथब पर होस्ट किया गया है, तो आप जीथब के बुनियादी ढांचे पर अपने परीक्षण चलाने के लिए [जीथब एक्शन](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) का उपयोग कर सकते हैं।
 
-1. हर बार जब आप परिवर्तनों को दबाते हैं
+1. every time you push changes
 2. प्रत्येक पुल अनुरोध निर्माण पर
 3. निर्धारित समय पर
 4. मैनुअल ट्रिगर द्वारा

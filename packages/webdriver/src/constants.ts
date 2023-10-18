@@ -1,3 +1,4 @@
+import os from 'node:os'
 import type { Options } from '@wdio/types'
 
 export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
@@ -14,14 +15,13 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
      */
     hostname: {
         type: 'string',
-        default: 'localhost'
+        default: '0.0.0.0'
     },
     /**
      * port of automation driver
      */
     port: {
-        type: 'number',
-        default: 4444
+        type: 'number'
     },
     /**
      * path to WebDriver endpoints
@@ -137,6 +137,14 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     strictSSL: {
         type: 'boolean',
         default: true
+    },
+    /**
+     * The path to the root of the cache directory. This directory is used to store all drivers that are downloaded
+     * when attempting to start a session.
+     */
+    cacheDir: {
+        type: 'string',
+        default: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()
     }
 }
 

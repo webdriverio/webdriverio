@@ -49,7 +49,7 @@ describe('timer', () => {
         it('should be rejected without promise', async () => {
             const timer = new Timer(20, 30, () => 0)
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('return value was never truthy') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
         })
 
         it('should be fulfilled without promise', async () => {

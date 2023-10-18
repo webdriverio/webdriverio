@@ -1,7 +1,8 @@
 export interface ReporterOptions {
     cid: string
     specs: string[]
-    cleanStack?: boolean
+    cleanStack?: boolean,
+    jasmineOpts: JasmineOpts
 }
 
 export interface ParentSuite {

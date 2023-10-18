@@ -1,4 +1,3 @@
-import type { Capabilities } from '@wdio/types'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
 import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
@@ -8,14 +7,6 @@ import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
 import type { RequestPayload } from './handler/network.js'
 import type { GathererDriver } from './types.js'
 
-const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
-const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
-    'chrome': 63,
-    'chromium' : 63,
-    'googlechrome': 63,
-    'google chrome': 63,
-    'firefox': 86
-}
 const CUSTOM_COMMANDS = [
     'cdp',
     'getNodeId',
@@ -54,53 +45,6 @@ export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
  */
 export function isSupportedUrl (url: string) {
     return IGNORED_URLS.filter((ignoredUrl) => url.startsWith(ignoredUrl)).length === 0
-}
-
-/**
- * check if browser version is lower than `minVersion`
- * @param {object} caps capabilities
- * @param {number} minVersion minimal chrome browser version
- */
-export function isBrowserVersionLower (caps: Capabilities.Capabilities, minVersion: number) {
-    const versionProp = VERSION_PROPS.find(
-        (prop: keyof Capabilities.Capabilities) => caps[prop]
-    ) as 'browserVersion'
-    const browserVersion = getBrowserMajorVersion(caps[versionProp])
-    return typeof browserVersion === 'number' && browserVersion < minVersion
-}
-
-/**
- * get chromedriver major version
- * @param   {string|*}      version chromedriver version like `78.0.3904.11` or just `78`
- * @return  {number|*}              either major version, ex `78`, or whatever value is passed
- */
-export function getBrowserMajorVersion (version?: string | number) {
-    if (typeof version === 'string') {
-        const majorVersion = Number(version.split('.')[0])
-        return isNaN(majorVersion) ? parseInt(version, 10) : majorVersion
-    }
-    return version
-}
-
-/**
- * check if browser is supported based on caps.browserName and caps.version
- * @param {object} caps capabilities
- */
-export function isBrowserSupported(caps: Capabilities.Capabilities) {
-    if (
-        !caps.browserName ||
-        !(caps.browserName.toLowerCase() in SUPPORTED_BROWSERS_AND_MIN_VERSIONS) ||
-        isBrowserVersionLower(
-            caps,
-            SUPPORTED_BROWSERS_AND_MIN_VERSIONS[
-                caps.browserName.toLowerCase() as keyof typeof SUPPORTED_BROWSERS_AND_MIN_VERSIONS
-            ]
-        )
-    ) {
-        return false
-    }
-
-    return true
 }
 
 /**

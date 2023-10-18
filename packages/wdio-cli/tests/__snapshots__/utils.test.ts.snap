@@ -12,10 +12,8 @@ exports[`getAnswers 1`] = `
   "reporters": [
     "@wdio/spec-reporter$--$spec",
   ],
-  "runner": "@wdio/local-runner$--$local",
-  "services": [
-    "wdio-chromedriver-service$--$chromedriver",
-  ],
+  "runner": "@wdio/local-runner$--$local$--$e2e",
+  "services": [],
   "usePageObjects": true,
 }
 `;
@@ -23,7 +21,6 @@ exports[`getAnswers 1`] = `
 exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
 {
   "capabilities": {
-    "acceptInsecureCerts": true,
     "browserName": "chrome",
     "goog:chromeOptions": {
       "args": [
@@ -136,13 +133,31 @@ exports[`setupTypeScript 1`] = `
     \\"compilerOptions\\": {
         \\"moduleResolution\\": \\"node\\",
         \\"module\\": \\"ESNext\\",
+        \\"target\\": \\"es2022\\",
+        \\"lib\\": [
+            \\"es2022\\",
+            \\"dom\\"
+        ],
         \\"types\\": [
             \\"node\\",
             \\"@wdio/globals/types\\",
             \\"expect-webdriverio\\",
-            \\"foo\\"
+            \\"foo\\",
+            \\"wdio-electron-service\\"
         ],
-        \\"target\\": \\"es2022\\"
-    }
+        \\"skipLibCheck\\": true,
+        \\"noEmit\\": true,
+        \\"allowImportingTsExtensions\\": true,
+        \\"resolveJsonModule\\": true,
+        \\"isolatedModules\\": true,
+        \\"strict\\": true,
+        \\"noUnusedLocals\\": true,
+        \\"noUnusedParameters\\": true,
+        \\"noFallthroughCasesInSwitch\\": true
+    },
+    \\"include\\": [
+        \\"test\\",
+        \\"wdio.conf.ts\\"
+    ]
 }"
 `;

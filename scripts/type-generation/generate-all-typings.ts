@@ -13,6 +13,7 @@ const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocol
 
 const INDENTATION = ' '.repeat(4)
 const EXAMPLE_INDENTATION = `${INDENTATION} * `
+const DEPRECATED_INDENTATION = `\n${INDENTATION} * @deprecated`
 const jsDocTemplate = `
 ${INDENTATION}/**
 ${INDENTATION} * {PROTOCOL} Protocol Command
@@ -30,6 +31,9 @@ if (!fs.existsSync(TYPINGS_PATH)) {
 }
 
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
+    if (protocolName === 'webdriverBidi') {
+        continue
+    }
     const interfaceName = protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
     const customTypes = new Set()
     const lines = ['']
@@ -39,7 +43,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
     for (const methods of Object.values(definition)) {
         for (const description of Object.values(methods)) {
-            const { command, parameters = [], variables = [], returns, ref, examples } = description
+            const { command, parameters = [], variables = [], returns, ref, deprecated, examples } = description
             if (!ref) {
                 throw new Error(`missing ref for command ${command} in ${protocolName}`)
             }
@@ -49,12 +53,17 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p, idx) => {
-                const paramType =
+                const hasCustomType = (
                     paramTypeMap[command as keyof typeof paramTypeMap] &&
                     paramTypeMap[command as keyof typeof paramTypeMap][idx] &&
                     paramTypeMap[command as keyof typeof paramTypeMap][idx].name === p.name
-                        ? paramTypeMap[command as keyof typeof paramTypeMap][idx].type
-                        : p.type.toLowerCase()
+                )
+                const paramType = hasCustomType
+                    ? paramTypeMap[command as keyof typeof paramTypeMap][idx].type
+                    : p.type.toLowerCase()
+                if (hasCustomType && Boolean(paramTypeMap[command as keyof typeof paramTypeMap][idx].requiresImport)) {
+                    customTypes.add(paramType)
+                }
                 return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
             })
             const varsAndParams = vars.concat(params)
@@ -87,6 +96,8 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                         .join(`\n${EXAMPLE_INDENTATION}`.trim())
                 )
                 )
+                // Conditionally adds the '@deprecated' tag next to '{REF}' if 'deprecated' value is passed, otherwise leaves it unchanged.
+                .replace('{REF}', deprecated ? `{REF}${DEPRECATED_INDENTATION} ${deprecated}` : '{REF}')
                 .replace('{REF}', ref)
             lines.push(jsDoc)
             lines.push(`${INDENTATION}${command}(${varsAndParams.join(', ')}): Promise<${returnValue}>;`)

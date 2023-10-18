@@ -1,0 +1,18 @@
+//
+    // Serenity/JS configuration, see:
+    //  https://serenity-js.org/handbook/getting-started/serenity-js-with-webdriverio/
+    serenity: {
+        runner: '<%- answers.serenityAdapter %>',
+
+        // Configure reporting services, see:
+        //  https://serenity-js.org/handbook/reporting/
+        crew: [
+            '@serenity-js/console-reporter',
+            '@serenity-js/serenity-bdd',
+            [ '@serenity-js/core:ArtifactArchiver', { outputDirectory: 'target/site/serenity' } ],
+            [ '@serenity-js/web:Photographer',      {
+                // strategy: 'TakePhotosOfFailures'  // fast execution, screenshots only when tests fail
+                strategy: 'TakePhotosOfInteractions' // slower execution, more comprehensive reports
+            } ],
+        ]
+    },

@@ -1,0 +1,57 @@
+capabilities: [{<%
+    if (answers.expEnvAccessKey) { %>
+        // Experitest Access Key
+        // get more information at https://docs.experitest.com/display/TE/Obtaining+Access+Key
+        'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%
+    }
+    if (answers.browserEnvironment && answers.browserEnvironment.length) { %>
+        <%- answers.browserEnvironment.map((browserName) => {
+            return `browserName: '${browserName}'`
+        }).join('\n    }, {\n        ') %><%
+    } else if (answers.mobileEnvironment === 'android') { %>
+        // capabilities for local Appium web tests on an Android Emulator
+        platformName: 'Android',
+        browserName: 'Chrome',
+        'appium:deviceName': 'Android GoogleAPI Emulator',
+        'appium:platformVersion': '12.0',
+        'appium:automationName': 'UiAutomator2'<%
+    } else if (answers.mobileEnvironment === 'ios') { %>
+        // capabilities for local Appium web tests on iOS
+        platformName: 'iOS',
+        browserName: 'Safari',
+        'appium:deviceName': 'iPhone Simulator',
+        'appium:platformVersion': '16.4',
+        'appium:automationName': 'XCUITest'<%
+    } else if (answers.purpose === 'macos') { %>
+        platformName: 'Mac',
+        'appium:automationName': 'Mac2',
+        'appium:bundleId': '<%= answers.generateTestFiles ? 'com.apple.calculator' : '...' %>'<%
+    } else if (answers.purpose === 'vscode') { %>
+        browserName: 'vscode',
+        browserVersion: 'stable', // also possible: "insiders" or a specific version e.g. "1.80.0"
+        'wdio:vscodeOptions': {
+            // points to directory where extension package.json is located
+            extensionPath: __dirname,
+            // optional VS Code settings
+            userSettings: {
+                "editor.fontSize": 14
+            }
+        }<%
+    } else if (answers.purpose === 'electron') { %>
+        browserName: 'electron',
+        // Electron service options
+        // see https://webdriver.io/docs/wdio-electron-service/#configuration
+        'wdio:electronServiceOptions': {<%
+            if (answers.electronAppBinaryPath) { %>
+            // custom path to app binary
+            appBinaryPath: '<%- answers.electronAppBinaryPath %>',<%
+            } %>
+            // custom application args
+            appArgs: []
+        }<%
+    } else {
+        %>
+        // capabilities for local browser web tests
+        browserName: 'chrome' // or "firefox", "microsoftedge", "safari"<%
+    } %>
+    }],
