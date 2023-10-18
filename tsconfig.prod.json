@@ -12,7 +12,7 @@
     "strictFunctionTypes": false,
     "experimentalDecorators": true,
     "esModuleInterop": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Node16",
     "module": "NodeNext",
     "lib": ["dom", "es2021"],
     "types": ["node", "mocha"]
@@ -23,7 +23,6 @@
     "__mocks__",
     "packages/**/node_modules",
     "**/*.spec.ts",
-    "**/cjs/**",
     "coverage",
     "examples",
     "/*.js"

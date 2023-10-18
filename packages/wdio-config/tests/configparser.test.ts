@@ -6,7 +6,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
 
-import ConfigParser from '../src/lib/ConfigParser.js'
+import ConfigParser from '../src/node/ConfigParser.js'
 import type { MockFileContent } from './lib/MockFileContentBuilder.js'
 import MockFileContentBuilder from './lib/MockFileContentBuilder.js'
 import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'

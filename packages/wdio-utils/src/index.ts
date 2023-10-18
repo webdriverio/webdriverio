@@ -1,8 +1,9 @@
 /* istanbul ignore file */
 
-import initialisePlugin from './initialisePlugin.js'
-import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices.js'
 import webdriverMonad from './monad.js'
+import initialisePlugin from './initialisePlugin.js'
+import { startWebDriver } from './startWebDriver.js'
+import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices.js'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability
@@ -16,6 +17,7 @@ import {
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 
 export {
+    startWebDriver,
     initialisePlugin,
     initialiseLauncherService,
     initialiseWorkerService,

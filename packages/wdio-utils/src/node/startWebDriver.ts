@@ -16,13 +16,9 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
 
-import { isAppiumCapability } from '../../utils.js'
-
-import {
-    parseParams, setupPuppeteerBrowser, definesRemoteDriver, setupChromedriver,
-    isChrome, isFirefox, isEdge, isSafari, getCacheDir
-} from './utils.js'
-import { SUPPORTED_BROWSERNAMES } from '../../constants.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
+import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
+import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
@@ -44,14 +40,6 @@ export async function startWebDriver (options: Options.WebDriver) {
     if (process.env.WDIO_SKIP_DRIVER_SETUP) {
         options.hostname = '0.0.0.0'
         options.port = 4321
-        return
-    }
-
-    /**
-     * if any of the connection parameter are set, don't start any driver
-     */
-    if (definesRemoteDriver(options)) {
-        log.info(`Connecting to existing driver at ${options.protocol}://${options.hostname}:${options.port}${options.path}`)
         return
     }
 

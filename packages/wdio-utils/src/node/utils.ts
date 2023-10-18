@@ -16,10 +16,26 @@ import { locateChrome, locateFirefox } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
-import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../../constants.js'
-
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
+
+/**
+ * Helper utility to check file access
+ * @param {string} file file to check access for
+ * @return              true if file can be accessed
+ */
+export const canAccess = (file?: string) => {
+    if (!file) {
+        return false
+    }
+
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (err: any) {
+        return false
+    }
+}
 
 export function parseParams(params: EdgedriverParameters) {
     return Object.entries(params)
@@ -264,35 +280,4 @@ export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
 
 export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
     return downloadEdgedriver(driverVersion, cacheDir)
-}
-
-/**
- * helper method to determine if we need to setup a browser driver
- * which is:
- *   - whenever the user has set connection options that differ
- *     from the default, or a port is set
- *   - whenever the user defines `user` and `key` which later will
- *     update the connection options
- */
-export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'key' | 'protocol' | 'hostname' | 'port' | 'path'>) {
-    return Boolean(
-        (options.protocol && options.protocol !== DEFAULT_PROTOCOL) ||
-        (options.hostname && options.hostname !== DEFAULT_HOSTNAME) ||
-        Boolean(options.port) ||
-        (options.path && options.path !== DEFAULT_PATH) ||
-        Boolean(options.user && options.key)
-    )
-}
-
-export function isChrome (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.chrome.includes(browserName.toLowerCase()))
-}
-export function isSafari (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.safari.includes(browserName.toLowerCase()))
-}
-export function isFirefox (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.firefox.includes(browserName.toLowerCase()))
-}
-export function isEdge (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
 }

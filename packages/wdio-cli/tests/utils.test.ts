@@ -10,7 +10,7 @@ import readDir from 'recursive-readdir'
 import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 
 import {
     runLauncherHook,

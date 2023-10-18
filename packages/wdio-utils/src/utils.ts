@@ -1,4 +1,6 @@
-import type { Services, Clients } from '@wdio/types'
+import type { Options, Services, Clients } from '@wdio/types'
+
+import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
@@ -294,4 +296,35 @@ export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
         // @ts-expect-error outdated jsonwp cap
         (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
     )
+}
+
+/**
+ * helper method to determine if we need to setup a browser driver
+ * which is:
+ *   - whenever the user has set connection options that differ
+ *     from the default, or a port is set
+ *   - whenever the user defines `user` and `key` which later will
+ *     update the connection options
+ */
+export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'key' | 'protocol' | 'hostname' | 'port' | 'path'>) {
+    return Boolean(
+        (options.protocol && options.protocol !== DEFAULT_PROTOCOL) ||
+        (options.hostname && options.hostname !== DEFAULT_HOSTNAME) ||
+        Boolean(options.port) ||
+        (options.path && options.path !== DEFAULT_PATH) ||
+        Boolean(options.user && options.key)
+    )
+}
+
+export function isChrome (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.chrome.includes(browserName.toLowerCase()))
+}
+export function isSafari (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.safari.includes(browserName.toLowerCase()))
+}
+export function isFirefox (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.firefox.includes(browserName.toLowerCase()))
+}
+export function isEdge (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
 }
