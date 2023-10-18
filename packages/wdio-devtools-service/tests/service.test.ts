@@ -1,10 +1,9 @@
 import path from 'node:path'
-import { EventEmitter } from 'node:events'
 import { expect, test, vi, beforeEach } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src/index.js'
-import Auditor from '../src/auditor.js'
+import { setUnsupportedCommand } from '../src/utils.js'
 
 import logger from '@wdio/logger'
 
@@ -16,6 +15,16 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('../src/commands', () => {
     class CommandHandlerMock {
         cdp = vi.fn()
+        _initCommand = vi.fn()
+        _beforeCmd = vi.fn()
+        _afterCmd = vi.fn()
+        enablePerformanceAudits = vi.fn()
+        disablePerformanceAudits = vi.fn()
+        setThrottlingProfile = vi.fn()
+        emulateDevice = vi.fn()
+        checkPWA = vi.fn()
+        getCoverageReport = vi.fn()
+        _logCoverage = vi.fn()
     }
 
     return { default: CommandHandlerMock }
@@ -38,7 +47,6 @@ vi.mock('../src/auditor', () => {
 })
 
 vi.mock('../src/utils', async () => {
-    const { isBrowserSupported } = await vi.importActual('../src/utils.js') as any
     let wasCalled = false
 
     return {
@@ -49,92 +57,52 @@ vi.mock('../src/utils', async () => {
             }
             throw new Error('boom')
         }),
-        isBrowserSupported,
         setUnsupportedCommand: vi.fn(),
         getLighthouseDriver: vi.fn()
     }
 })
 
-vi.mock('../src/gatherer/coverage', () => {
-    const instances: any[] = []
-    return {
-        default: class {
-            getCoverageReport = vi.fn()
-            init = vi.fn()
-
-            constructor () {
-                instances.push(this)
-            }
-        }
-    }
-})
-
-const pageMock = {
-    setCacheEnabled: vi.fn(),
-    emulate: vi.fn()
-}
 const sessionMock = { send: vi.fn() }
 const log = logger('')
 
 let browser: WebdriverIO.Browser
+let multiBrowser: WebdriverIO.MultiRemoteBrowser
 beforeEach(() => {
     browser = {
+        sessionId: vi.fn(),
         getPuppeteer: vi.fn(() => puppeteer.connect({})),
         addCommand: vi.fn(),
         emit: vi.fn()
+    } as any
+
+    multiBrowser = {
+        instances: ['1', '2'],
+        getInstance: () => {
+            return {
+                sessionId: vi.fn(),
+                getPuppeteer: vi.fn(() => puppeteer.connect({})),
+                addCommand: vi.fn(),
+                emit: vi.fn()
+            }
+        },
+        addCommand: vi.fn(),
     } as any
 
     sessionMock.send.mockClear()
     vi.mocked(log.error).mockClear()
 })
 
-test('beforeSession', () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, {})
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 85 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '85' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 62 })
-    expect(service['_isSupported']).toBe(false)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '62' })
-    expect(service['_isSupported']).toBe(false)
-
-    // @ts-ignore test with outdated version capability
-    service.beforeSession({}, { browserName: 'chrome', version: 65 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'chrome', browserVersion: '65' })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox' })
-    expect(service['_isSupported']).toBe(true)
-
-    // @ts-expect-error invalid param
-    service.beforeSession({}, { browserName: 'firefox', version: 86 })
-    expect(service['_isSupported']).toBe(true)
-
-    service.beforeSession({}, { browserName: 'firefox', browserVersion: '86' })
-    expect(service['_isSupported']).toBe(true)
-})
-
 test('if not supported by browser', async () => {
     const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_isSupported'] = false
+    service['_browser'] = {
+        sessionId: vi.fn(),
+        addCommand: vi.fn(),
+        getPuppeteer: vi.fn(() => Promise.reject(new Error('ups')))
+    } as any
 
     await service._setupHandler()
-    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(0)
+    expect(setUnsupportedCommand).toBeCalledTimes(1)
+    expect(vi.mocked(service['_browser']!.addCommand!).mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
@@ -144,11 +112,8 @@ test('if supported by browser', async () => {
         }
     })
     service['_browser'] = browser
-    service['_isSupported'] = true
     await service._setupHandler()
-    expect(service['_session']?.send).toBeCalledWith('Network.enable')
-    expect(service['_session']?.send).toBeCalledWith('Runtime.enable')
-    expect(service['_session']?.send).toBeCalledWith('Page.enable')
+
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'enablePerformanceAudits', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
@@ -157,129 +122,26 @@ test('if supported by browser', async () => {
         'emulateDevice', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'checkPWA', expect.any(Function))
-
-    service['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
-    service['_propagateWSEvents']({ method: 'foo', params: 'bar' })
-    expect(service['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
-    expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
-    expect((service['_browser'] as any).emit).toBeCalledTimes(1)
-    expect((service['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
-    expect(service['_coverageGatherer']!.init).toBeCalledTimes(1)
 })
 
-test('beforeCommand', () => {
+test('beforeCommand', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    service['_traceGatherer'] = { startTracing: vi.fn() } as any
-    service._setThrottlingProfile = vi.fn()
-
-    service['_networkThrottling'] = 'offline'
-    service['_cpuThrottling'] = 2
-    service['_cacheEnabled'] = true
+    await service._setupHandler()
 
     // @ts-ignore test without paramater
     service.beforeCommand()
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(0)
-
-    service['_shouldRunPerformanceAudits'] = true
-    // @ts-ignore test without paramater
-    service.beforeCommand()
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(0)
-
-    // @ts-ignore test with only one paramater
-    service.beforeCommand('foobar')
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(0)
-
-    service.beforeCommand('navigateTo', ['some page'])
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(1)
-    expect(service['_traceGatherer']?.startTracing).toBeCalledWith('some page')
-    expect(service._setThrottlingProfile).toBeCalledWith('offline', 2, true)
-
-    service.beforeCommand('url', ['next page'])
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(2)
-    expect(service['_traceGatherer']?.startTracing).toBeCalledWith('next page')
-    expect(service._setThrottlingProfile).toBeCalledWith('offline', 2, true)
-
-    service.beforeCommand('click', ['some other page'])
-    expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(3)
-    expect(service['_traceGatherer']?.startTracing).toBeCalledWith('click transition')
+    expect(service['_command'][0]._beforeCmd).toBeCalledTimes(1)
 })
 
-test('afterCommand', () => {
+test('afterCommand', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    service['_traceGatherer'] = { once: vi.fn() } as any
+    await service._setupHandler()
 
     // @ts-ignore test without paramater
     service.afterCommand()
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    // @ts-ignore access mock
-    service['_traceGatherer']['isTracing'] = true
-    // @ts-ignore test without paramater
-    service.afterCommand()
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    service.afterCommand('foobar')
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    service.afterCommand('navigateTo')
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(3)
-
-    service.afterCommand('url')
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(6)
-
-    service.afterCommand('click')
-    expect(service['_traceGatherer']?.once).toBeCalledTimes(9)
-})
-
-test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    service['_traceGatherer']['isTracing'] = true
-    service['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
-    service['_browser'] = 'some browser' as any
-    service.afterCommand('url')
-    service['_traceGatherer']?.emit('tracingComplete', { some: 'events' })
-
-    const auditor = new Auditor()
-    expect(auditor.updateCommands).toBeCalledWith('some browser')
-})
-
-test('afterCommand: should update browser commands even if failed', () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    service['_traceGatherer']['isTracing'] = true
-    service['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
-    service['_browser'] = 'some browser' as any
-    service.afterCommand('url')
-    service['_traceGatherer']?.emit('tracingError', new Error('boom'))
-
-    const auditor = new Auditor()
-    expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
-})
-
-test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    service['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    service['_traceGatherer']['isTracing'] = true
-    service._setThrottlingProfile = vi.fn()
-
-    const start = Date.now()
-    setTimeout(() => service['_traceGatherer']?.emit('tracingFinished'), 100)
-    await service.afterCommand('navigateTo')
-
-    expect(Date.now() - start).toBeGreaterThan(98)
-    expect(service._setThrottlingProfile).toBeCalledWith('online', 0, true)
+    expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
 })
 
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
@@ -293,36 +155,30 @@ test('_enablePerformanceAudits: throws if network or cpu properties have wrong t
     ).toThrow(/CPU throttling rate needs to be typeof number/)
 })
 
-test('_enablePerformanceAudits: applies some default values', () => {
+test('_enablePerformanceAudits', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
+    await service._setupHandler()
     service._enablePerformanceAudits()
 
-    expect(service['_networkThrottling']).toBe('online')
-    expect(service['_cpuThrottling']).toBe(0)
-    expect(service['_cacheEnabled']).toBe(false)
-    expect(service['_formFactor']).toBe('desktop')
+    expect(service['_command'][0].enablePerformanceAudits).toBeCalledTimes(1)
 })
 
-test('_enablePerformanceAudits: applies some custom values', () => {
+test('_enablePerformanceAudits for multiremote', async () => {
     const service = new DevToolsService({})
-    service['_browser'] = browser
-    service._enablePerformanceAudits({
-        networkThrottling: 'Regular 2G',
-        cpuThrottling: 42,
-        cacheEnabled: true,
-        formFactor: 'mobile'
-    })
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+    service._enablePerformanceAudits()
 
-    expect(service['_networkThrottling']).toBe('Regular 2G')
-    expect(service['_cpuThrottling']).toBe(42)
-    expect(service['_cacheEnabled']).toBe(true)
-    expect(service['_formFactor']).toBe('mobile')
+    expect(service['_command'].length).toBe(2)
+    expect(service['_command'][0].enablePerformanceAudits).toBeCalledTimes(1)
+    expect(service['_command'][1].enablePerformanceAudits).toBeCalledTimes(1)
 })
 
-test('_disablePerformanceAudits', () => {
+test('_disablePerformanceAudits', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
+    await service._setupHandler()
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
@@ -330,62 +186,120 @@ test('_disablePerformanceAudits', () => {
         formFactor: 'mobile'
     })
     service._disablePerformanceAudits()
-    expect(service['_shouldRunPerformanceAudits']).toBe(false)
+    expect(service['_command'][0].disablePerformanceAudits).toBeCalledTimes(1)
+})
+
+test('_disablePerformanceAudits for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+    service._enablePerformanceAudits({
+        networkThrottling: 'Regular 2G',
+        cpuThrottling: 42,
+        cacheEnabled: true,
+        formFactor: 'mobile'
+    })
+    service._disablePerformanceAudits()
+
+    expect(service['_command'][0].disablePerformanceAudits).toBeCalledTimes(1)
+    expect(service['_command'][1].disablePerformanceAudits).toBeCalledTimes(1)
 })
 
 test('_setThrottlingProfile', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    const err = await service._setThrottlingProfile('Good 3G', 4, true)
-        .catch((err: Error) => err) as Error
-    expect(err.message).toContain('No page')
+    await service._setupHandler()
 
-    service['_page'] = pageMock as any
-    service['_session'] = sessionMock as any
+    await service._setThrottlingProfile('Good 3G', 4, true)
+    expect(service['_command'][0].setThrottlingProfile).toBeCalledTimes(1)
+})
 
-    await service._setThrottlingProfile('GPRS', 42, true)
-    expect(pageMock.setCacheEnabled).toBeCalledWith(true)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 42 })
-    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: 6400,
-        latency: 500,
-        offline: false,
-        uploadThroughput: 2560
-    })
+test('_setThrottlingProfile for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+    await service._setThrottlingProfile('Good 3G', 4, true)
 
-    pageMock.setCacheEnabled.mockClear()
-    sessionMock.send.mockClear()
-    await service._setThrottlingProfile()
-    expect(pageMock.setCacheEnabled).toBeCalledWith(false)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 0 })
-    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: -1,
-        latency: 0,
-        offline: false,
-        uploadThroughput: -1
-    })
+    expect(service['_command'][0].setThrottlingProfile).toBeCalledTimes(1)
+    expect(service['_command'][1].setThrottlingProfile).toBeCalledTimes(1)
 })
 
 test('_emulateDevice', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    const err = await service._emulateDevice('Nexus 6P')
-        .catch((err: Error) => err) as Error
-    expect(err.message).toContain('No page')
+    await service._setupHandler()
 
-    service['_page'] = pageMock as any
-    service['_session'] = sessionMock as any
+    await service._emulateDevice('Nexus 6P')
+    expect(service['_command'][0].emulateDevice).toBeCalledTimes(1)
+})
+
+test('_emulateDevice for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
     await service._emulateDevice('Nexus 6P')
 
-    expect(pageMock.emulate.mock.calls).toMatchSnapshot()
-    pageMock.emulate.mockClear()
-    await service._emulateDevice({ foo: 'bar' } as any)
-    expect(pageMock.emulate.mock.calls).toEqual([[{ foo: 'bar' }]])
+    expect(service['_command'][0].emulateDevice).toBeCalledTimes(1)
+    expect(service['_command'][1].emulateDevice).toBeCalledTimes(1)
+})
 
-    const isSuccessful = await service._emulateDevice('not existing').then(
-        () => true,
-        () => false)
-    expect(isSuccessful).toBe(false)
+test('_checkPWA', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = browser
+    await service._setupHandler()
+
+    await service._checkPWA()
+    expect(service['_command'][0].checkPWA).toBeCalledTimes(1)
+})
+
+test('_checkPWA for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+    await service._checkPWA()
+
+    expect(service['_command'][0].checkPWA).toBeCalledTimes(1)
+    expect(service['_command'][1].checkPWA).toBeCalledTimes(1)
+})
+
+test('_getCoverageReport', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = browser
+    await service._setupHandler()
+
+    await service._getCoverageReport()
+    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
+})
+
+test('_getCoverageReport for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+    await service._getCoverageReport()
+
+    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
+    expect(service['_command'][1].getCoverageReport).toBeCalledTimes(1)
+})
+
+test('_cdp', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = browser
+    await service._setupHandler()
+
+    // @ts-ignore test without paramater
+    await service._cdp()
+    expect(service['_command'][0].cdp).toBeCalledTimes(1)
+})
+
+test('_cdp for multiremote', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = multiBrowser
+    await service._setupHandler()
+
+    // @ts-ignore test without paramater
+    await service._cdp()
+    expect(service['_command'][0].cdp).toBeCalledTimes(1)
+    expect(service['_command'][1].cdp).toBeCalledTimes(1)
 })
 
 test('before hook', async () => {
@@ -406,9 +320,9 @@ test('onReload hook', async () => {
 
 test('after hook', async () => {
     const service = new DevToolsService({})
-    await service.after()
+    service['_browser'] = browser
+    await service._setupHandler()
 
-    service['_coverageGatherer'] = { logCoverage: vi.fn() } as any
     await service.after()
-    expect(service['_coverageGatherer']!.logCoverage).toHaveBeenCalledTimes(1)
+    expect(service['_command'][0]._logCoverage).toBeCalledTimes(1)
 })

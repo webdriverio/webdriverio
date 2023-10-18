@@ -41,6 +41,7 @@ export default {
         GET: {
             command: 'getPageIndex',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#mobile-json-wire-protocol-endpoints',
+            deprecated: 'In Appium 2.0, this method is marked as deprecated and currently has no available alternatives.',
             parameters: [],
             returns: {
                 type: 'string',

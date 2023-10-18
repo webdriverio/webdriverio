@@ -129,6 +129,32 @@ describe('Firefox profile service', () => {
             expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
         })
 
+        test('should set capabilities when in parallel multiremote', async () => {
+            const options = {
+                'browser.startup.homepage': 'https://webdriver.io',
+            }
+
+            const capabilities: WebdriverIO.MultiRemoteCapabilities[] = [{
+                firefox0 : {
+                    capabilities : {
+                        browserName : 'firefox',
+                    }
+                }
+            }, {
+                firefox1 : {
+                    capabilities : {
+                        browserName : 'firefox',
+                    }
+                }
+            }]
+
+            const service = new Launcher(options)
+            await service.onPrepare({} as never, capabilities)
+
+            expect(capabilities[0].firefox0.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+            expect(capabilities[1].firefox1.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+        })
+
         test('should not set capabilities when an object and not firefox', async () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',

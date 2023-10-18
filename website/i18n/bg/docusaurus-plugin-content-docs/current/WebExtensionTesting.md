@@ -17,7 +17,7 @@ These docs leave out Safari web extensions as their support for it is way behind
 
 ### Chrome
 
-Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capaiblities as following:
+Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -79,7 +79,7 @@ const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
 export const config = {
     // ...
     before: async (capabilities) => {
-        const browserName = (capabilities as Capabilities.Capabilities).browserName
+        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
         if (browserName === 'firefox') {
             const extension = await fs.readFile(extensionPath)
             await browser.installAddOn(extension.toString('base64'), true)

@@ -13,7 +13,6 @@ exports.config = {
     reporters: ['spec'],
     services: ['devtools'],
     capabilities: [{
-        acceptInsecureCerts: true,
         browserName: 'chrome'
     }],
     mochaOpts: {

@@ -11,6 +11,11 @@ Der Browser Runner verwendet [Vite](https://vitejs.dev/) , um eine Testseite zu 
 
 Der Vite-Server wird vom WebdriverIO-Testrunner gestartet und so konfiguriert, dass Sie alle Reporter und Dienste wie gewohnt bei normalen e2e-Tests verwenden können. Darüber hinaus initialisiert es eine [`Browser-Instanz`](/docs/api/browser) , die es Ihnen ermöglicht, auf die [WebdriverIO-API](/docs/api) zuzugreifen, um mit beliebigen Elementen auf der Seite zu interagieren. Ähnlich wie bei e2e-Tests können Sie auf die Browser API über die globale Variable `browser` zugreifen, oder Sie können diese aus `@wdio/globals` importieren, je nachdem, wie [`injectGlobals`](/docs/api/globals) gesetzt ist.
 
+WebdriverIO has built-in support for the following frameworks:
+
+- [__Nuxt__](https://nuxt.com/): WebdriverIO's testrunner detects a Nuxt application and automatically sets up your project composables and helps mock out the Nuxt backend, read more in the [Nuxt docs](/docs/component-testing/vue#testing-vue-components-in-nuxt)
+- [__TailwindCSS__](https://tailwindcss.com/): WebdriverIO's testrunner detects if you are using TailwindCSS and loads the environment properly into the test page
+
 ## Einrichten
 
 Um WebdriverIO für Unit- oder Komponententests im Browser einzurichten, initiieren Sie ein neues WebdriverIO-Projekt über:
@@ -103,7 +108,7 @@ Dadurch werden zunächst alle Tests durchlaufen. Sie können dann Änderungen an
 
 ## Debuggen
 
-Während es (noch) nicht möglich ist, Debugging Points in Ihrer IDE zu setzen und sie vom Remote-Browser erkennen zu lassen, können Sie den Test jederzeit mit dem Befehl [`debug`](/docs/api/browser/debug) stoppen. Auf diese Weise können Sie DevTools öffnen, um den Test dann zu debuggen, indem Sie Haltepunkte auf der Registerkarte [Sources](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools) festlegen.
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognized by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. Auf diese Weise können Sie DevTools öffnen, um den Test dann zu debuggen, indem Sie Haltepunkte auf der Registerkarte [Sources](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools) festlegen.
 
 Wenn der Befehl `debug` aufgerufen wird, erhalten Sie auch eine Node.js-Repl-Schnittstelle in Ihrem Terminal, die besagt:
 

@@ -32,7 +32,7 @@ describe('utils', () => {
                 maxInstances: 2,
                 hostname: 'foobar'
             })
-            expect(attach).toBeCalledWith({
+            const attachParams = {
                 sessionId: '123',
                 foo: 'bar',
                 hostname: 'foobar',
@@ -41,7 +41,8 @@ describe('utils', () => {
                     maxInstances: 2,
                     browserName: 'chrome'
                 }
-            })
+            }
+            expect(attach).toBeCalledWith({ ...attachParams, options: attachParams })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toHaveBeenCalledTimes(0)

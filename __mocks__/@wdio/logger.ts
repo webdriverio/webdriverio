@@ -5,7 +5,8 @@ export const logMock = {
     debug: vi.fn(),
     warn: vi.fn(),
     info: vi.fn(),
-    trace: vi.fn()
+    trace: vi.fn(),
+    progress: vi.fn()
 }
 const mock = () => logMock
 mock.setLevel = vi.fn()

@@ -14,8 +14,7 @@ export const config = {
      * capabilities
      */
     capabilities: [{
-        browserName: 'chrome',
-        acceptInsecureCerts: true
+        browserName: 'chrome'
     }],
 
     /**

@@ -56,7 +56,7 @@ await client.deleteSession()
 To connect to the WebDriver Bidi protocol you have to send along a `webSocketUrl` flag to tell the browser driver to opt-in to the protocol:
 
 ```js
-import WebDriver from './packages/webdriver/build/index.js'
+import WebDriver from 'webdriver'
 
 const browser = await WebDriver.newSession({
     capabilities: {
@@ -65,10 +65,7 @@ const browser = await WebDriver.newSession({
     }
 })
 
-await browser.send({
-    method: 'session.subscribe',
-    params: { events: ['log.entryAdded'] }
-})
+await browser.sessionSubscribe({ events: ['log.entryAdded'] })
 
 /**
  * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}
@@ -114,13 +111,13 @@ Options: *http* | *https*
 Host of your WebDriver server.
 
 Type: `String`<br />
-Default: *localhost*
+Default: *0.0.0.0*
 
 ### port
 Port your WebDriver server is on.
 
 Type: `Number`<br />
-Default: *4444*
+Default: `undefined`
 
 ### path
 Path to WebDriver endpoint or grid server.
@@ -132,7 +129,7 @@ Default: */*
 Query parameters that are propagated to the driver server.
 
 Type: `Object`
-Default: `null`
+Default: `undefined`
 
 ### connectionRetryTimeout
 Timeout for any WebDriver request to a driver or grid.
@@ -144,7 +141,7 @@ Default: *120000*
 Count of request retries to the Selenium server.
 
 Type: `Number`<br />
-Default: *2*
+Default: *3*
 
 ### agent
 

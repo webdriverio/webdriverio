@@ -66,9 +66,9 @@ function isChrome(capabilities?: Capabilities.DesiredCapabilities) {
 }
 
 /**
- * check if session is run by Chromedriver
+ * check if session is run by Geckodriver
  * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run by Chromedriver
+ * @return {Boolean}               true if run by Geckodriver
  */
 function isFirefox(capabilities?: Capabilities.DesiredCapabilities) {
     if (!capabilities) {
@@ -86,7 +86,7 @@ function isFirefox(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile(capabilities: Capabilities.Capabilities) {
+function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
 
     /**
@@ -94,9 +94,11 @@ function isMobile(capabilities: Capabilities.Capabilities) {
      */
     return Boolean(
         /**
-         * there are any Appium vendor capabilties
+         * If the device is ios, tvos or android, the device might be mobile.
          */
-        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
+        capabilities.platformName && capabilities.platformName.match(/ios/i) ||
+        capabilities.platformName && capabilities.platformName.match(/tvos/i) ||
+        capabilities.platformName && capabilities.platformName.match(/android/i) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -133,7 +135,7 @@ function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on Android device
  */
-function isAndroid(capabilities?: Capabilities.Capabilities) {
+function isAndroid(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -146,7 +148,6 @@ function isAndroid(capabilities?: Capabilities.Capabilities) {
 
 /**
  * detects if session is run on Sauce with extended debugging enabled
- * @param  {string}  hostname     hostname of session request
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
@@ -166,6 +167,23 @@ function isSauce(capabilities?: Capabilities.RemoteCapability) {
             caps['sauce:options'].extendedDebugging
         )
     )
+}
+
+/**
+ * detects if session has support for WebDriver Bidi
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session has WebDriver Bidi support
+ */
+function isBidi(capabilities?: Capabilities.RemoteCapability) {
+    if (!capabilities) {
+        return false
+    }
+
+    const caps: Capabilities.DesiredCapabilities = (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        : capabilities as Capabilities.DesiredCapabilities
+
+    return Boolean(caps.webSocketUrl)
 }
 
 /**
@@ -195,7 +213,7 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capabilities, automationProtocol: string) {
+export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities, automationProtocol: string) {
     return automationProtocol === 'devtools'
         ? devtoolsEnvironmentDetector(capabilities)
         : webdriverEnvironmentDetector(capabilities)
@@ -209,7 +227,7 @@ export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capab
  */
 export function sessionEnvironmentDetector({ capabilities, requestedCapabilities }:
     { capabilities: Capabilities.RemoteCapability, requestedCapabilities: Capabilities.RemoteCapability }) {
-    const cap: Capabilities.Capabilities = 'alwaysMatch' in capabilities
+    const cap: WebdriverIO.Capabilities = 'alwaysMatch' in capabilities
         ? capabilities.alwaysMatch
         : capabilities
     return {
@@ -220,7 +238,8 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isIOS: isIOS(cap),
         isAndroid: isAndroid(cap),
         isSauce: isSauce(requestedCapabilities),
-        isSeleniumStandalone: isSeleniumStandalone(cap)
+        isSeleniumStandalone: isSeleniumStandalone(cap),
+        isBidi: isBidi(capabilities)
     }
 }
 
@@ -229,7 +248,7 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
  * @param  {Object}  capabilities           caps of session response
  * @return {Object}                         object with environment flags
  */
-export function devtoolsEnvironmentDetector({ browserName }: Capabilities.Capabilities) {
+export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabilities) {
     return {
         isDevTools: true,
         isW3C: true,
@@ -240,6 +259,7 @@ export function devtoolsEnvironmentDetector({ browserName }: Capabilities.Capabi
         isChrome: browserName === 'chrome',
         isSauce: false,
         isSeleniumStandalone: false,
+        isBidi: false
     }
 }
 
@@ -249,13 +269,14 @@ export function devtoolsEnvironmentDetector({ browserName }: Capabilities.Capabi
  * @param  {Object}  capabilities           caps provided by user
  * @return {Object}                         object with environment flags
  */
-export function webdriverEnvironmentDetector(capabilities: Capabilities.Capabilities) {
+export function webdriverEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities)
+        isSauce: isSauce(capabilities),
+        isBidi: isBidi(capabilities)
     }
 }

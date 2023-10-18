@@ -31,7 +31,7 @@ html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink {
 
 .docusaurus-theme-github-codeblock .runmeLink:before {
     content: '';
-    background: url(https://runme.dev/img/logo.svg) no-repeat;
+    background: url(https://runme.dev/runme_logo.svg) no-repeat;
     width: 20px;
     height: 15px;
     display: inline-block;

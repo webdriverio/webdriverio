@@ -12,17 +12,17 @@ import {
 } from 'allure-js-commons'
 import {
     addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
-    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId, isMochaBeforeEachHook,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddAttachmentEventArgs, AddDescriptionEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
     AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
@@ -73,6 +73,9 @@ export default class AllureReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+
+        const { reportedEnvironmentVars } = this._options
+        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
     }
 
     attachLogs() {
@@ -280,7 +283,6 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
-        process.on(events.addEnvironment, this.addEnvironment.bind(this))
         process.on(events.addAttachment, this.addAttachment.bind(this))
         process.on(events.addDescription, this.addDescription.bind(this))
         process.on(events.startStep, this.startStep.bind(this))
@@ -404,22 +406,14 @@ export default class AllureReporter extends WDIOReporter {
 
     onTestStart(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
-
         this._consoleOutput = ''
-
-        const testTitle = test.currentTest ? test.currentTest : test.title
-
-        if (this._state.currentTest?.wrappedItem.name === testTitle) {
-            // Test already in progress, most likely started by a before each hook
-            return
-        }
 
         if (useCucumberStepReporter) {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
 
-            this._startStep(testTitle)
+            this._startStep(test.title)
 
             if (dataTable) {
                 this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
@@ -427,7 +421,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this._startTest(testTitle, test.cid)
+        this._startTest(test.title, test.cid)
     }
 
     onTestPass() {
@@ -496,21 +490,18 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        if (!this._state.currentAllureTestOrStep || this._isMultiremote) {
-            return
-        }
-
-        const isScreenshot = isScreenshotCommand(command)
         const { value: commandResult } = command?.result || {}
-
+        const isScreenshot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
         }
 
-        if (!disableWebdriverStepsReporting) {
-            this.attachJSON('Response', commandResult)
-            this._endTest(AllureStatus.PASSED)
+        if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
+            return
         }
+
+        this.attachJSON('Response', commandResult)
+        this.endStep(AllureStatus.PASSED)
     }
 
     onHookStart(hook: HookStats) {
@@ -545,7 +536,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks
         if (!hook.parent || !this._state.currentSuite) {
@@ -562,20 +553,44 @@ export default class AllureReporter extends WDIOReporter {
         // set beforeEach / afterEach hook (step) status
         if (disableMochaHooks && isMochaEachHook) {
             this._endTest(hook.error ? AllureStatus.FAILED : AllureStatus.PASSED, hook.error)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && hook.error) {
+                const fakeTestStat = Object.assign({}, hook, { title: hook.currentTest }) as TestStats
+                this._endTest(fakeTestStat.error ? AllureStatus.FAILED : AllureStatus.PASSED, fakeTestStat.error)
+            }
             return
         }
 
         if (hook.error) {
             // add hook as test to suite for mocha all hooks, when it didn't start before
-            if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+            if (disableMochaHooks && isMochaAllHook) {
                 this.onTestStart(hook)
             }
 
             this.onTestFail(hook)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && !disableMochaHooks) {
+                this.onTestFail(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+            }
+
             return
         }
 
         this.onTestPass()
+
+        if (useCucumberStepReporter) {
+            // remove hook from suite if it has no steps or attachments
+            const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
+            if (currentItem) {
+                const currentStep = currentItem.steps[currentItem.steps.length-1]
+
+                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                    currentItem.steps.pop()
+                }
+            }
+        }
     }
 
     addLabel({
@@ -733,15 +748,6 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    addEnvironment({
-        name,
-        value
-    }: AddEnvironmentEventArgs) {
-        this._allure.writeEnvironmentInfo({
-            [name]: value,
-        })
-    }
-
     addDescription({
         description,
         descriptionType
@@ -883,7 +889,6 @@ export default class AllureReporter extends WDIOReporter {
     static addParentSuite = addParentSuite
     static addTestId = addTestId
     static addStory = addStory
-    static addEnvironment = addEnvironment
     static addDescription = addDescription
     static addAttachment = addAttachment
     static startStep = startStep

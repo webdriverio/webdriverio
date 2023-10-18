@@ -42,6 +42,7 @@
       "type": "category",
       "label": "Guides",
       "items": [
+        "bestpractices",
         "selectors",
         "timeouts",
         "accessibility",
@@ -66,10 +67,21 @@
         "frameworks",
         "assertion",
         "organizingsuites",
+        "parameterize-tests",
+        "sharding",
         "retry",
         "watcher",
         "customreporter",
         "customservices"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Desktop Testing",
+      "items": [
+        "desktop-testing/macos",
+        "desktop-testing/windows",
+        "desktop-testing/electron"
       ]
     },
     {
@@ -89,7 +101,8 @@
             "component-testing/svelte",
             "component-testing/solid",
             "component-testing/react",
-            "component-testing/preact"
+            "component-testing/preact",
+            "component-testing/stencil"
           ]
         },
         "component-testing/coverage",
@@ -98,13 +111,10 @@
     },
     {
       "type": "category",
-      "label": "Web Extension Testing",
-      "link": {
-        "type": "doc",
-        "id": "web-extension-testing"
-      },
+      "label": "Extension Testing",
       "items": [
-        "web-extension-testing/tips-and-tricks"
+        "extension-testing/web-extensions",
+        "extension-testing/vscode-extensions"
       ]
     },
     {

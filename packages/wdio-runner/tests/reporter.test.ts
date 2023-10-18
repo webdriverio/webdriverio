@@ -20,7 +20,7 @@ class CustomReporter {
     }
 }
 
-const capability: Capabilities.Capabilities = { browserName: 'foo' }
+const capability: Capabilities.WebdriverIO = { browserName: 'foo' }
 
 process.send = vi.fn()
 

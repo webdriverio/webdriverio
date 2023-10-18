@@ -11,32 +11,15 @@ title: टाइपस्क्रिप्ट सेटअप
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO स्वचालित रूप से पता लगाएगा कि क्या ये निर्भरताएँ स्थापित हैं और आपके लिए आपके कॉन्फ़िगरेशन और परीक्षणों को संकलित करेगा। `tsconfig.json` उसी डायरेक्टरी में रखना सुनिश्चित करें जिसमें आप WDIO कॉन्फिगर करते हैं। यदि आपको कॉन्फ़िगर करने की आवश्यकता है कि ts-नोड कैसे चलता है तो कृपया [ts-नोड](https://www.npmjs.com/package/ts-node#options) के लिए पर्यावरण चर का उपयोग करें या wdio कॉन्फिग के [autoCompileOpts सेक्शन](configurationfile) का उपयोग करें।
+WebdriverIO स्वचालित रूप से पता लगाएगा कि क्या ये निर्भरताएँ स्थापित हैं और आपके लिए आपके कॉन्फ़िगरेशन और परीक्षणों को संकलित करेगा। `tsconfig.json` उसी डायरेक्टरी में रखना सुनिश्चित करें जिसमें आप WDIO कॉन्फिगर करते हैं। If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](configurationfile) .
 
 ## कॉन्फ़िगरेशन
 
-आप अपने `wdio.conf.ts`के माध्यम से कस्टम `ts-node` विकल्प प्रदान कर सकते हैं, जैसे:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: './tsconfig.json'
-        }
-    }
-}
-```
-
-या उन्हें पर्यावरण के माध्यम से लागू करें:
+You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
 
 ```sh
-# run wdio testrunner with custom tsconfig.json location
-TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+# run wdio testrunner with custom options
+TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
 न्यूनतम टाइपस्क्रिप्ट संस्करण `v4.0.5`है।

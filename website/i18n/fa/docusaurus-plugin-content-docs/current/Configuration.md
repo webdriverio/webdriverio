@@ -3,7 +3,7 @@ id: configuration
 title: پیکربندی
 ---
 
-بر اساس [تنظیم نوع](setuptypes) (مثلاً با استفاده از اتصال پروتکل خام، WebdriverIO به عنوان بسته مستقل و اجرا کننده تست WDIO) مجموعه متفاوتی از گزینه ها برای کنترل محیط وجود دارد.
+بر اساس [تنظیم نوع](/docs/setuptypes) (مثلاً با استفاده از اتصال پروتکل خام، WebdriverIO به عنوان بسته مستقل و اجرا کننده تست WDIO) مجموعه متفاوتی از گزینه ها برای کنترل محیط وجود دارد.
 
 ## گزینه های WebDriver
 
@@ -72,7 +72,7 @@ Type: `Object`<br /> Default: `null`
 
 ```js
 {
-    browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+    browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`
     browserVersion: '27.0', // browser version
     platformName: 'Windows 10' // OS platform
 }
@@ -155,6 +155,12 @@ Type: `Boolean`<br /> Default: `true`
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -193,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-اگر در Sauce Labs اجرا می‌شود، می‌توانید تست‌ها را بین مراکز داده مختلف اجرا کنید: ایالات متحده یا اتحادیه اروپا. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
 
 __توجه:__ این فقط در صورتی تأثیر می گذارد که `user` و `key` را ارائه دهید که به حساب Sauce Labs شما متصل شده باشند.
 
@@ -209,7 +215,7 @@ Type: `String`<br /> Default: `us`
 
 ### specs
 
-تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. همه مسیرها از مسیر فایل پیکربندی به صورت نسبی دیده می شوند.
+تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
@@ -279,7 +285,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-اینکه آیا فایل‌های تکرار شده باید فوراً دوباره امتحان شوند یا به انتهای صف موکول شوند.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -411,7 +417,7 @@ Parameters:
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of retries used
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -435,7 +441,7 @@ Parameters:
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameters:
 
@@ -501,12 +507,12 @@ Parameters:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameters:
 

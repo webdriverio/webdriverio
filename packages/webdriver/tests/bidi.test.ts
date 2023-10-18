@@ -1,20 +1,20 @@
 import path from 'node:path'
 import { describe, it, vi, expect } from 'vitest'
-import { BidiHandler } from '../src/bidi.js'
+import { BidiCore } from '../src/bidi/core.js'
 
 vi.mock('ws')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('BidiHandler', () => {
+describe('BidiCore', () => {
     it('iniates with a WebSocket', () => {
-        const handler = new BidiHandler('ws://foo/bar')
+        const handler = new BidiCore('ws://foo/bar')
         // @ts-expect-error "wsUrl" is a mock property
         expect(handler.socket.wsUrl).toBe('ws://foo/bar')
         expect(handler.isConnected).toBe(false)
     })
 
     it('can connect', async () => {
-        const handler = new BidiHandler('ws://foo/bar')
+        const handler = new BidiCore('ws://foo/bar')
         handler.connect()
         expect(handler.socket.on).toBeCalledWith('open', expect.any(Function))
 
@@ -25,13 +25,13 @@ describe('BidiHandler', () => {
 
     describe('send', () => {
         it('fails if sending a message while not connected', async () => {
-            const handler = new BidiHandler('ws://foo/bar')
+            const handler = new BidiCore('ws://foo/bar')
             await expect(async () => handler.send({ method: 'session.new', params: {} }))
                 .rejects.toMatchSnapshot()
         })
 
         it('sends and waits for result', async () => {
-            const handler = new BidiHandler('ws://foo/bar')
+            const handler = new BidiCore('ws://foo/bar')
             handler.connect()
             const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
             cb.call(this as  any)
@@ -50,19 +50,19 @@ describe('BidiHandler', () => {
 
     describe('sendAsync', () => {
         it('fails if sending a message while not connected', async () => {
-            const handler = new BidiHandler('ws://foo/bar')
+            const handler = new BidiCore('ws://foo/bar')
             await expect(async () => handler.sendAsync({ method: 'session.new', params: {} }))
                 .rejects.toMatchSnapshot()
         })
 
         it('can send without getting an result', async () => {
-            const handler = new BidiHandler('ws://foo/bar')
+            const handler = new BidiCore('ws://foo/bar')
             handler.connect()
             const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
             cb.call(this as  any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
-                .toEqual(undefined)
+                .toEqual(1)
             expect(vi.mocked(handler.socket.send).mock.calls).toMatchSnapshot()
         })
     })

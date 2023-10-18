@@ -6,7 +6,7 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
   "path/to/my_custom_appium",
   "--base-path",
   "/",
-  "--foo",
+  "--address",
   "bar",
 ]
 `;
@@ -15,7 +15,7 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
 [
   "--base-path",
   "/",
-  "--foo",
+  "--address",
   "bar",
 ]
 `;
@@ -24,7 +24,7 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
 [
   "--base-path",
   "/",
-  "--foo",
+  "--address",
   "bar",
 ]
 `;

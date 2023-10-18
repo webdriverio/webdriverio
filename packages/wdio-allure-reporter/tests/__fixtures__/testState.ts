@@ -85,7 +85,7 @@ export function testPending() {
     return Object.assign(testState(), { state: 'pending', end: '2018-05-14T15:17:21.631Z', _duration: 0 })
 }
 
-const hookState = () => ({
+const allHookState = () => ({
     type: 'hook',
     start: '2018-05-14T15:17:18.914Z',
     _duration: 0,
@@ -95,16 +95,27 @@ const hookState = () => ({
     parent: 'Login',
 } as any)
 
+const eachHookState = () => ({
+    type: 'hook',
+    start: '2018-05-14T15:17:18.914Z',
+    _duration: 0,
+    uid: 'hook-00-0',
+    cid: '0-0',
+    title: '"before each" hook',
+    currentTest: 'My Login application',
+    parent: 'Login',
+} as any)
+
 export function hookStart(): WDIOReporter.Hook {
-    return hookState()
+    return allHookState()
 }
 
-export function hookStartWithCurrentTest() {
-    return Object.assign(hookState(), { currentTest: testState().title })
+export function eachHookStart(): WDIOReporter.Hook {
+    return eachHookState()
 }
 
 export function hookPassed(): WDIOReporter.Hook {
-    return Object.assign(hookState(), { state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+    return Object.assign(allHookState(), { state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
 export function hookFailed(): WDIOReporter.Hook {
@@ -114,5 +125,15 @@ export function hookFailed(): WDIOReporter.Hook {
         stack: 'Error: element ("body") still existing after 100ms',
         type: 'Error',
     }
-    return Object.assign(hookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+    return Object.assign(allHookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}
+
+export function eachHookFailed(): WDIOReporter.Hook {
+    const error =
+        {
+            message: 'element ("body") still existing after 100ms',
+            stack: 'Error: element ("body") still existing after 100ms',
+            type: 'Error',
+        }
+    return Object.assign(eachHookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }

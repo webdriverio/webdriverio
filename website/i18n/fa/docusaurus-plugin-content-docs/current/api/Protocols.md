@@ -36,7 +36,7 @@ $('#lst-ib').getText()
 
 پروژه [Appium](https://appium.io/) قابلیت هایی را برای خودکارسازی موبایل، دسکتاپ و سایر انواع دستگاه های IoT فراهم می کند. در حالی که WebDriver بر مرورگر و وب تمرکز می کند، چشم انداز Appium استفاده از همان رویکرد اما برای هر دستگاه دلخواه است. این پروتکل، علاوه بر دستوراتی که WebDriver تعریف می کند، دستورات خاصی دارد که اغلب مختص دستگاه remote است که در حال خودکار شدن است. این پروتکل برای سناریوهای تست تلفن همراه، زمانی که می خواهید تست های مشابهی را برای برنامه های اندروید و iOS بنویسید و اجرا کنید، ایده آل است.
 
-بر اساس اسناد [Appium](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en)، برای برآوردن نیازهای اتوماسیون موبایل مطابق با فلسفه ای طراحی شده است که توسط چهار اصل زیر مشخص شده است:
+According to Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/intro/?lang=en) it was designed to meet mobile automation needs according to a philosophy outlined by the following four tenets:
 
 - برای خودکارسازی آن، مجبور نیستید برنامه خود را دوباره کامپایل کنید یا به هیچ وجه آن را تغییر دهید.
 - برای نوشتن و اجرای تست‌های خود نباید به زبان یا فریمورک خاصی مجبور شوید.

@@ -4,6 +4,7 @@
 @import url(buttons.css);
 @import url(codeblock.css);
 @import url(youtube.css);
+@import url(flowcharts.css);
 
 :root {
     --ifm-color-primary: #ea5906;
@@ -246,6 +247,10 @@ div[role="tabpanel"] .prism-code {
 
 a code {
     background-color: transparent;
+}
+
+td > pre {
+    margin-bottom: 0!important;
 }
 
 .highlightSection .token-line {

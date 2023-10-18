@@ -46,9 +46,10 @@ export interface SessionStartedMessage {
         hostname: string
         port: number
         path: string
+        headers: Record<string, string>
         isMultiremote: boolean
         injectGlobals: boolean
-        capabilities: Capabilities.Capabilities
+        capabilities: WebdriverIO.Capabilities
     },
     cid?: string
 }

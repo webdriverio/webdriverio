@@ -28,6 +28,7 @@ Feature: Test Feature
     When a step passes
     Then a step passes
 
+    @runExample
     Examples: 
       | param |
       | input |

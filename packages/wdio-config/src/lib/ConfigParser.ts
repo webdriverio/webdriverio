@@ -197,7 +197,7 @@ export default class ConfigParser {
             /**
              * `this._config.spec` is string instead of Array in watch mode
              */
-            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
+            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...new Set(this._config.spec)] : [this._config.spec]
         }
 
         /**
@@ -254,7 +254,7 @@ export default class ConfigParser {
      * attributes from CLI, config and capabilities
      */
     getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
-        const isSpecParamPassed = Array.isArray(this._config.spec)
+        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length >= 1
         const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
@@ -306,7 +306,9 @@ export default class ConfigParser {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
-        return this.filterSpecs(specs, <string[]>exclude)
+        return this.shard(
+            this.filterSpecs(specs, <string[]>exclude)
+        )
     }
 
     /**
@@ -442,7 +444,7 @@ export default class ConfigParser {
                 if (filenames.length === 0) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-                files = [...files, ...filenames]
+                files = [...files, ...new Set(filenames)]
             }
         }
         return files
@@ -464,5 +466,17 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
+    }
+
+    shard (specs: Spec[]) {
+        if (!this._config.shard || this._config.shard.total === 1) {
+            return specs
+        }
+
+        const { total, current } = this._config.shard
+        const totalSpecs = specs.length
+        const specsPerShard = Math.max(Math.round(totalSpecs / total), 1)
+        const end = current === total ? undefined : specsPerShard * current
+        return specs.slice(current * specsPerShard - specsPerShard, end)
     }
 }

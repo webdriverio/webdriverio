@@ -13,6 +13,7 @@ vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 describe('utils', () => {
     it('commandCallStructure', () => {
         const stringFunction = 'return (function () => { })()'
+        const asyncStringFunction = 'return (async function () => { })()'
         const anotherStringFunction = '!function(t,e){}'
         expect(commandCallStructure(
             'foobar',
@@ -23,12 +24,13 @@ describe('utils', () => {
                 { a: 123 },
                 () => true,
                 stringFunction,
+                asyncStringFunction,
                 anotherStringFunction,
                 null,
                 undefined,
                 (Buffer.from('some screenshot')).toString('base64')
             ]
-        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
             .toBe('foobar("<Screenshot[base64]>")')
         expect(commandCallStructure('findElement', ['/html/body/a']))
@@ -53,6 +55,8 @@ describe('utils', () => {
         expect(transformCommandLogResult({ script: 'return foobar' })).toEqual({ script: 'return foobar' })
         expect(transformCommandLogResult({ script: 'return (function isElementDisplayed(element) {\n...' }))
             .toEqual({ script: 'isElementDisplayed(...) [50 bytes]' })
+        expect(transformCommandLogResult({ script: 'return (async function isElementDisplayed(element) {\n...' }))
+            .toEqual({ script: 'isElementDisplayed(...) [56 bytes]' })
 
         expect(transformCommandLogResult({ script: '!function(t,e){"object"==typeof exports&&"object"==typeof mod...' }))
             .toEqual({ script: '<minified function> [64 bytes]' })

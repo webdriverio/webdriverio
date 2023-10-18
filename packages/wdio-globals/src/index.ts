@@ -24,7 +24,12 @@ function proxyHandler (key: SupportedGlobals) {
                 throw new Error(GLOBALS_ERROR_MESSAGE)
             }
 
-            return globals.get(key)[prop]
+            const receiver = globals.get(key)
+            const field = receiver[prop]
+
+            return typeof field === 'function'
+                ? field.bind(receiver)
+                : field
         }
     }
 }

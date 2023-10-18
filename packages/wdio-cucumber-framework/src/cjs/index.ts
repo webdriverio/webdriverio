@@ -2,22 +2,25 @@ const {
     After,
     AfterAll,
     AfterStep,
+
     Before,
     BeforeAll,
     BeforeStep,
 
     Given,
-    Then,
     When,
+    Then,
 
-    defineParameterType,
-    defineStep,
+    DataTable,
+
+    World,
+
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
+    defineParameterType,
+    defineStep
 
-    DataTable,
-    World,
 } = require('@cucumber/cucumber')
 
 const adapterFactory = {
@@ -31,22 +34,29 @@ const adapterFactory = {
     After,
     AfterAll,
     AfterStep,
+
     Before,
     BeforeAll,
     BeforeStep,
 
     Given,
-    Then,
     When,
+    Then,
 
-    defineParameterType,
-    defineStep,
+    DataTable,
+
+    World,
+
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
+    defineParameterType,
+    defineStep,
 
-    DataTable,
-    World,
+    publishCucumberReport: async function (cucumberMessageDir: string) {
+        const { publishCucumberReport } = await import('../index.js')
+        await publishCucumberReport(cucumberMessageDir)
+    }
 }
 
 module.exports = adapterFactory

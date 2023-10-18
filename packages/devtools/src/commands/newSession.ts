@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid'
 
 import launch from '../launcher.js'
 import { sessionMap } from '../index.js'
-import type { ExtendedCapabilities } from '../types.js'
 import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
@@ -17,7 +16,7 @@ import type DevToolsDriver from '../devtoolsdriver.js'
  */
 export default async function newSession (
     this: DevToolsDriver,
-    { capabilities }: { capabilities: ExtendedCapabilities }
+    { capabilities }: { capabilities: WebdriverIO.Capabilities }
 ) {
     const browser = await launch(capabilities)
     const sessionId = uuidv4()

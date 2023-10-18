@@ -97,7 +97,7 @@
     ],
     "uid": "suite-0-0",
     "cid": "0-0",
-    "file": "test.js",
+    "file": "/path/to/project/test/specs/sync.spec.js",
     "title": "testsuite",
     "fullTitle": "testsuite",
     "parent": "",

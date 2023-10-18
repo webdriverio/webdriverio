@@ -7,6 +7,7 @@ import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigfor
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 
 const log = logger('@wdio/browserstack-service')
+type Dict = Record<string, any>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -24,10 +25,11 @@ export default class CrashReporter {
 
     static setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
         const configWithoutPII = this.filterPII(userConfig)
+        const filteredCapabilities = this.filterCapabilities(capabilities)
         this.userConfigForReporting = {
             framework: userConfig.framework,
             services: configWithoutPII.services,
-            capabilities: capabilities,
+            capabilities: filteredCapabilities,
             env: {
                 'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
                 'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
@@ -83,11 +85,34 @@ export default class CrashReporter {
         })
     }
 
+    static recursivelyRedactKeysFromObject(obj: Dict | Array<Dict>, keys: string[]) {
+        if (!obj) {
+            return
+        }
+        if (Array.isArray(obj)) {
+            obj.map(ele => this.recursivelyRedactKeysFromObject(ele, keys))
+        } else {
+            for (const prop in obj) {
+                if (keys.includes(prop.toLowerCase())) {
+                    obj[prop] = '[REDACTED]'
+                } else if (typeof obj[prop] === 'object') {
+                    this.recursivelyRedactKeysFromObject(obj[prop], keys)
+                }
+            }
+        }
+    }
+
     static deletePIIKeysFromObject(obj: {[key: string]: any}) {
         if (!obj) {
             return
         }
         ['user', 'username', 'key', 'accessKey'].forEach(key => delete obj[key])
+    }
+
+    static filterCapabilities(capabilities: Capabilities.RemoteCapability) {
+        const capsCopy = JSON.parse(JSON.stringify(capabilities))
+        this.recursivelyRedactKeysFromObject(capsCopy, ['extensions'])
+        return capsCopy
     }
 
     static filterPII(userConfig: Options.Testrunner) {

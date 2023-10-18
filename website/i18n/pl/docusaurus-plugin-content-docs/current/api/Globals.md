@@ -1,17 +1,17 @@
 ---
 id: globals
-title: Globals
+title: Obiekty globalne
 ---
 
-In your test files, WebdriverIO puts each of these methods and objects into the global environment. You don't have to import anything to use them. However, if you prefer explicit imports, you can do `import { browser, $, $$, expect } from '@wdio/globals'` and set `injectGlobals: false` in your WDIO configuration.
+W plikach testowych WebdriverIO umieszcza każdą z tych metod i obiektów w środowisku globalnym. Nie musisz niczego importować, aby z nich korzystać. Jeśli jednak wolisz jawne importowanie, możesz wykorzystać `import { browser, $, $$, expect } from „@wdio/globals”` oraz ustawić `injectGlobals: false` w konfiguracji WDIO.
 
-The following global objects are set if not configured otherwise:
+Obiekty globalne mają następujące wartości, jeśli nie skonfigurowano ich inaczej:
 
-- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/api/browser)
-- `driver`: alias to `browser` (used when running mobile tests)
-- `multiremotebrowser`: alias to `browser` or `driver` but only set for [Multiremote](/docs/multiremote) sessions
-- `$`: command to fetch an element (see more in [API docs](/docs/api/browser/$))
-- `$$`: command to fetch elements (see more in [API docs](/docs/api/browser/$$))
-- `expect`: assertion framework for WebdriverIO (see [API docs](/docs/api/expect-webdriverio))
+- `browser`: [Obiekt przeglądarki](https://webdriver.io/docs/api/browser) WebdriverIO
+- `driver`: alias `przeglądarki` (używany podczas uruchamiania testów mobilnych)
+- `multiremotebrowser`: alias `przeglądarki` lub `sterownika` ale ustawiony tylko w ramach [sesji Multiremote](/docs/multiremote)
+- `$`: polecenie pobrania elementu (zobacz więcej w [dokumentacji API](/docs/api/browser/$))
+- `$`: polecenie pobrania elementów (zobacz więcej w [dokumentacji API](/docs/api/browser/$$))
+- `expect`: framework asercji dla WebdriverIO (zobacz [dokumentację API](/docs/api/expect-webdriverio))
 
-__Note:__ WebdriverIO has no control of used frameworks (e.g. Mocha or Jasmine) setting global variables when bootstrapping their environment.
+__Uwaga:__ WebdriverIO nie ma kontroli nad wykorzystywanymi frameworkami (np. Mocha lub Jasmine) ustawiającymi zmienne globalne podczas ładowania ich środowiska.

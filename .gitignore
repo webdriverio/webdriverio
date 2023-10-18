@@ -72,8 +72,10 @@ packages/**/cjs/
 /*.ts
 devtools.d.ts
 !.eslintrc.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
+e2e/screenshot.pdf
 
 website/translated_docs
 website/build/
@@ -104,3 +106,7 @@ tests/.retry_succeeded
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md
+scripts/bidi/cddl
+browserstack.err
+e2e/tailwind.config.js
+packages/webdriverio/.chrome

@@ -191,6 +191,43 @@ describe('waitUntil', () => {
         }
     })
 
+    it.each([false, '', 0])('Should throw a custom error message when the waitUntil always returns false: %i', async (n) => {
+        let error
+        let val
+        // @ts-ignore uses expect-webdriverio
+        expect.assertions(2)
+        try {
+            val = await browser.waitUntil(() => n, {
+                timeout: 500,
+                timeoutMsg: 'Custom error message',
+                interval: 200
+            })
+        } catch (err: any) {
+            error = err
+        } finally {
+            expect(error.message).toContain('Custom error message')
+            expect(val).toBeUndefined()
+        }
+    })
+
+    it.each([false, '', 0])('if no timeousMsg is given, Should throw a default error message when the waitUntil always returns false: %i', async (n) => {
+        let error
+        let val
+        // @ts-ignore uses expect-webdriverio
+        expect.assertions(2)
+        try {
+            val = await browser.waitUntil(() => n, {
+                timeout: 500,
+                interval: 200
+            })
+        } catch (err: any) {
+            error = err
+        } finally {
+            expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
+            expect(val).toBeUndefined()
+        }
+    })
+
     afterEach(() => {
         vi.mocked(got).mockClear()
     })

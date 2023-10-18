@@ -3,7 +3,7 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import type { HookError } from './utils.js'
+import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
@@ -78,6 +78,10 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onStart()
     }
 
+    #hasShard () {
+        return this._config.shard && this._config.shard.total !== 1
+    }
+
     setup() {
         this._jobs = new Map()
         this._start = new Date()
@@ -100,7 +104,10 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onStart() {
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers started at`), this._start.toISOString())
+        const shardNote = this.#hasShard()
+            ? ` (Shard ${this._config.shard!.current} of ${this._config.shard!.total})`
+            : ''
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers${shardNote} started at`), this._start.toISOString())
         if (this._inDebugMode) {
             this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
         }
@@ -211,8 +218,11 @@ export default class WDIOCLInterface extends EventEmitter {
         return args
     }
 
-    logHookError (error: HookError) {
-        return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
+    logHookError (error: Error | HookError) {
+        if (error instanceof HookError) {
+            return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
+        }
+        return this.log(`${chalk.red(error.name)}: ${chalk.red(error.stack || error.message)}`)
     }
 
     /**
@@ -304,6 +314,9 @@ export default class WDIOCLInterface extends EventEmitter {
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            this.#hasShard()
+                ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
+                : undefined,
             '\n'
         )
     }

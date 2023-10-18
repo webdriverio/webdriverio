@@ -15,28 +15,11 @@ WebdriverIO will automatically detect if these dependencies are installed and wi
 
 ## Configuration
 
-You can provide custom `ts-node` options through your `wdio.conf.ts`, e.g.:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: './tsconfig.json'
-        }
-    }
-}
-```
-
-Or apply them through the environment:
+You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
 
 ```sh
-# run wdio testrunner with custom tsconfig.json location
-TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+# run wdio testrunner with custom options
+TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
 The minimum TypeScript version is `v4.0.5`.
@@ -139,6 +122,27 @@ const config: Options.WebdriverIO = {
     }
 }
 ```
+
+## Missing Types
+
+When using Node 20 or above, wdio runs ts-node with different settings as this is required in order to keep things running.
+These settings can cause your custom types not to be loaded, if this happens there are a few ways you can fix this, of which the easiest I will show below.
+
+Using ts-node's environment variables
+```
+TS_NODE_FILES=true wdio run ./wdio.conf.ts
+```
+
+Using tsconfig
+```
+{
+  "ts-node": {
+    "files": true
+  },
+}
+```
+
+For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
 
 ## Tips and Hints
 

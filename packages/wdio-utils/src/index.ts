@@ -5,7 +5,7 @@ import { initialiseWorkerService, initialiseLauncherService } from './initialise
 import webdriverMonad from './monad.js'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
-    isFunctionAsync, transformCommandLogResult, canAccess, sleep
+    isFunctionAsync, transformCommandLogResult, canAccess, sleep, isAppiumCapability
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
@@ -13,7 +13,9 @@ import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
 } from './envDetector.js'
-import { UNICODE_CHARACTERS } from './constants.js'
+import { startWebDriver } from './driver/index.js'
+import { setupDriver, setupBrowser } from './driver/manager.js'
+import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 
 export {
     initialisePlugin,
@@ -28,6 +30,10 @@ export {
     safeImport,
     canAccess,
     sleep,
+    isAppiumCapability,
+    startWebDriver,
+    setupBrowser,
+    setupDriver,
 
     /**
      * runner shim
@@ -49,5 +55,6 @@ export {
     /**
      * constants
      */
-    UNICODE_CHARACTERS
+    UNICODE_CHARACTERS,
+    HOOK_DEFINITION
 }

@@ -5,6 +5,7 @@
     "_duration": 745,
     "uid": "My awesome feature2",
     "cid": "0-0",
+    "file": "/path/to/project/test/specs/sync.spec.js",
     "title": "My awesome feature",
     "fullTitle": "My awesome feature",
     "tests": [
@@ -253,6 +254,7 @@
     "_duration": 745,
     "uid": "My awesome feature3",
     "cid": "0-0",
+    "file": "/path/to/project/test/specs/sync.spec.js",
     "title": "My awesome feature3",
     "fullTitle": "My awesome feature3",
     "tests": [

@@ -1,9 +1,9 @@
 import { describe, expect, vi, it, afterAll } from 'vitest'
 
-import supportsColor from 'supports-color'
+import supportsColor from '../src/supportsColor.js'
 import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils.js'
 
-vi.mock('supports-color', () => {
+vi.mock('../src/supportsColor.js', () => {
     return {
         default: new Proxy({
             stdout: false

@@ -1,12 +1,6 @@
 import path from 'node:path'
-
 import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
-import type TagExpressionParser from '@cucumber/tag-expressions'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 
-import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import type { World } from '@cucumber/cucumber'
 import type {
     TableRow,
     TableCell,
@@ -14,15 +8,10 @@ import type {
     TestStep,
     Feature,
     Pickle,
-    TestStepResultStatus,
-    GherkinDocument,
-    FeatureChild,
-    RuleChild
+    TestStepResultStatus
 } from '@cucumber/messages'
-
 import type { Capabilities } from '@wdio/types'
-import type { ReporterStep } from './constants.js'
-import type { TestHookDefinitionConfig } from './types.js'
+import type { ReporterStep } from './types.js'
 
 const log = logger('@wdio/cucumber-framework:utils')
 
@@ -134,67 +123,6 @@ export function buildStepPayload(
 }
 
 /**
- * wrap every user defined hook with function named `userHookFn`
- * to identify later on is function a step, user hook or wdio hook.
- * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
- */
-export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
-    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
-        options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
-            const hookFn = testRunHookDefinition.code
-            if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
-                }
-                const userHookFn = function (this: World, ...args: any) {
-                    return hookFn.apply(this, args)
-                }
-                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
-            }
-        })
-    })
-}
-
-/**
- * Returns true/false if testCase should be kept for current capabilities
- * according to tag in the syntax  @skip([conditions])
- * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
- * @param {*} testCase
- */
-export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip$|^@skip\((.*)\)$/
-
-    const match = (value: string, expr: RegExp) => {
-        if (Array.isArray(expr)) {
-            return expr.indexOf(value) >= 0
-        } else if (expr instanceof RegExp) {
-            return expr.test(value)
-        }
-        return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
-    }
-
-    const parse = (skipExpr: string) =>
-        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
-            const pos = splitItem.indexOf('=')
-            if (pos > 0) {
-                try {
-                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-                } catch (err: any) {
-                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
-                }
-            }
-            return acc
-        }, {})
-
-    return !(pickle && pickle.tags && pickle.tags
-        .map(p => p.name?.match(skipTag))
-        .filter(Boolean)
-        .map(m => parse(m![1] ?? ''))
-        .find((filter: Capabilities.Capabilities) => Object.keys(filter)
-            .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
-}
-
-/**
  * The reporters need to have the rule.
  * They are NOT available on the scenario, they ARE on the feature.
  * This will add them to it
@@ -245,54 +173,64 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
     })
 }
 
-export function hasTags(
-    msg: GherkinDocument | FeatureChild | RuleChild,
-    { tagParser, lineOnFile }: { tagParser: ReturnType<typeof TagExpressionParser>, lineOnFile: number | undefined }
-) {
-    const type = (
-        (msg as GherkinDocument).feature
-        ?? (msg as FeatureChild).rule
-        ?? (msg as RuleChild).scenario
-    )
+/**
+ * Generates skip tags based on capabilities and provided tags.
+ *
+ * @param {Capabilities.RemoteCapability} capabilities - The capabilities for which skip tags will be generated.
+ * @param {string[][]} tags - The original tags of scenarios.
+ * @returns {string[]} - An array of generated skip tags in Cucumber tag expression format.
+ */
+export function generateSkipTagsFromCapabilities(capabilities: Capabilities.RemoteCapability, tags: string[][]): string[] {
+    const generatedTags: string[] = []
 
-    if (type) {
-        const matches = tagParser.evaluate(type.tags.map(t => t.name))
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
-        return lineOnFile
-            // Evaluate only specific line
-            ? type.location.line === lineOnFile && matches
-            : matches
+    const match = (value: string, expr: RegExp) => {
+        if (Array.isArray(expr)) {
+            return expr.indexOf(value) >= 0
+        } else if (expr instanceof RegExp) {
+            return expr.test(value)
+        }
+        return (
+            (expr && ('' + expr).toLowerCase()) ===
+            (value && ('' + value).toLowerCase())
+        )
     }
-    return false
+
+    const parse = (skipExpr: string) =>
+        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
+            const pos = splitItem.indexOf('=')
+            if (pos > 0) {
+                try {
+                    acc[splitItem.substring(0, pos)] = eval(
+                        splitItem.substring(pos + 1)
+                    )
+                } catch (err: any) {
+                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
+                }
+            }
+            return acc
+        }, {})
+
+    tags.flat(1).forEach((tag) => {
+        const matched = tag.match(skipTag)
+        if (matched) {
+            const isSkip = [parse(matched[1] ?? '')]
+                .find((filter: WebdriverIO.Capabilities) => Object.keys(filter)
+                    .every((key: keyof WebdriverIO.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
+            if (isSkip) {
+                generatedTags.push(`(not ${tag.replace(/(\(|\))/g, '\\$1')})`)
+            }
+        }
+    })
+
+    return generatedTags
 }
 
-export function shouldRun(doc: GherkinDocument, tagParser: ReturnType<typeof TagExpressionParser>) {
-
-    if (!doc.feature) {
-        return false
-    }
-
-    const ext = path.extname(doc.uri!)
-
-    const lineOnFile = ext.startsWith('feature:')
-        ? Number(ext.split('feature:').pop())
-        : undefined
-
-    return (
-        // Check if Feature has matching tags
-        hasTags(doc, { tagParser, lineOnFile })
-
-        // Check if some root Scenarios have matching tags
-        || doc.feature.children.filter(c => c.scenario).some(child => hasTags(child, { tagParser, lineOnFile }))
-
-        // Check if some Rules have matching tags
-        || doc.feature.children.filter(c => c.rule).some(child => hasTags(child, { tagParser, lineOnFile }))
-
-        // Check if some Scenarios within Rules have matching tags
-        || doc.feature.children
-            .filter(c => c.rule)
-            .map(c => c.rule!.children.filter(c => c.scenario))
-            .flat(1)
-            .some(child => hasTags(child, { tagParser, lineOnFile }))
-    )
+/**
+ * Retrives scenario description if available.
+ */
+export function getScenarioDescription(feature: Feature, scenarioId: string){
+    const children = feature.children?.find((child) => child?.scenario?.id === scenarioId)!
+    return children?.scenario?.description || ''
 }

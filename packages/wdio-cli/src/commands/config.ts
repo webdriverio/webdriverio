@@ -1,15 +1,17 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import util from 'node:util'
 
 import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
-import { CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS, SUPPORTED_PACKAGES, CONFIG_HELPER_SUCCESS_MESSAGE } from '../constants.js'
+import {
+    CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
+    configHelperSuccessMessage, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_SERENITY_BANNER,
+} from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
-    createWDIOConfig, createWDIOScript, runAppiumInstaller
+    createWDIOConfig, createWDIOScript, runAppiumInstaller, getSerenityPackages
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
@@ -52,6 +54,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const pluginPackages = answers.plugins.map((plugin) => convertPackageHashToObject(plugin))
+    const serenityPackages = getSerenityPackages(answers)
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const projectProps = await getProjectProps(process.cwd())
@@ -63,7 +66,8 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         presetPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
         ...pluginPackages.map(plugin => plugin.package),
-        ...servicePackages.map(service => service.package)
+        ...servicePackages.map(service => service.package),
+        ...serenityPackages,
     ].filter(Boolean)
 
     /**
@@ -91,21 +95,25 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
              */
             : path.resolve(projectRootDir, `tsconfig.${runnerPackage.short === 'local' ? 'e2e' : 'wdio'}.json`)
     const parsedPaths = getPathForFileGeneration(answers, projectRootDir)
-    const isUsingTypeScript = answers.isUsingCompiler === COMPILER_OPTIONS.ts
+    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
     const wdioConfigFilename = `wdio.conf.${isUsingTypeScript ? 'ts' : 'js'}`
     const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
 
     return {
+        projectName: projectProps?.packageJson.name || 'Test Suite',
         // default values required in templates
         ...({
             usePageObjects: false,
             installTestingLibrary: false
         }),
         ...answers,
+        useSauceConnect: isNuxtProject || answers.useSauceConnect,
         rawAnswers: answers,
         runner: runnerPackage.short as 'local' | 'browser',
         preset: presetPackage.short,
         framework: frameworkPackage.short,
+        purpose: runnerPackage.purpose,
+        serenityAdapter: frameworkPackage.package === '@serenity-js/webdriverio' && frameworkPackage.purpose,
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),
@@ -113,15 +121,16 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
-        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        isUsingBabel: answers.isUsingCompiler === CompilerOptions.Babel,
         esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',
         _await: 'await ',
         projectRootDir,
         destSpecRootPath: parsedPaths.destSpecRootPath,
-        destStepRootPath:parsedPaths.destStepRootPath,
+        destStepRootPath: parsedPaths.destStepRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
+        destSerenityLibRootPath: parsedPaths.destSerenityLibRootPath,
         relativePath: parsedPaths.relativePath,
         hasRootTSConfig,
         tsConfigFilePath,
@@ -143,11 +152,13 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
     /**
      * print success message
      */
-    console.log(util.format(
-        CONFIG_HELPER_SUCCESS_MESSAGE,
-        parsedAnswers.projectRootDir,
-        parsedAnswers.projectRootDir
-    ))
+    console.log(
+        configHelperSuccessMessage({
+            projectRootDir: parsedAnswers.projectRootDir,
+            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
+            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
+        }),
+    )
 
     await runAppiumInstaller(parsedAnswers)
 }
@@ -178,13 +189,15 @@ export async function formatConfigFilePaths(config: string) {
 /**
  * Helper utility used in `run` and `install` command to check whether a config file currently exists
  * @param configPath the file path to the WDIO config file
+ * @returns {string} the path to the config file that exists, otherwise undefined
  */
 export async function canAccessConfigPath(configPath: string) {
-    return await fs.access(`${configPath}.js`).then(
-        () => true,
-        () => fs.access(`${configPath}.ts`).then(
-            () => true, () => false
-        )
+    return Promise.all(SUPPORTED_CONFIG_FILE_EXTENSION.map(async (supportedExtension) => {
+        const configPathWithExtension = `${configPath}.${supportedExtension}`
+        return fs.access(configPathWithExtension).then(() => configPathWithExtension, () => undefined)
+    })).then(
+        (configFilePaths) => configFilePaths.find(Boolean),
+        () => undefined
     )
 }
 

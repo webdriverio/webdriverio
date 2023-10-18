@@ -1,3 +1,6 @@
+import { TestStats } from '@wdio/reporter'
+import type { Test } from '@wdio/reporter'
+
 export const RUNNER = {
     cid: '0-0',
     _duration: 5032,
@@ -246,6 +249,42 @@ export const SUITES_WITH_DOC_STRING = {
     }
 }
 Object.values(SUITES_WITH_DOC_STRING).forEach(suite => {
+    // @ts-expect-error
+    suite.hooksAndTests = [...suite.tests]
+})
+
+const createTestStatsInstance = (uid: string, title: string, type: 'pass' | 'fail' | 'skip', retries: number = 0) => {
+    const testStat = new TestStats({
+        uid,
+        title,
+        fullTitle: title,
+        retries: retries
+    } as Test)
+    if (type === 'pass') {
+        testStat.pass()
+    }
+    if (type === 'fail') {
+        testStat.fail()
+    }
+    return testStat
+}
+
+export const SUITES_WITH_RETRY = {
+    [suiteIds[0]]: {
+        uid: suiteIds[0],
+        title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
+        hooks: [],
+        tests: [
+            createTestStatsInstance('foo1', 'foo', 'pass'),
+            createTestStatsInstance('bar1', 'bar', 'pass'),
+            createTestStatsInstance('loo1', 'loo', 'fail'),
+            createTestStatsInstance('loo1', 'loo', 'pass', 1),
+            createTestStatsInstance('baz1', 'baz', 'skip')
+        ]
+    }
+}
+Object.values(SUITES_WITH_RETRY).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })

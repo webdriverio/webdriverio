@@ -7,7 +7,7 @@ Un objet élément est un objet représentant un élément sur l'agent utilisate
 
 ## Propriétés
 
-Un objet `element` possède les propriétés suivantes:
+Un objet `element` possède les propriétés suivantes :
 
 | Nom         | Type     | Détails                                                                                                                                                                                                                                                             |
 | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +32,7 @@ En plus de cela, les commandes suivantes sont disponibles :
 
 ### Chaîne d'éléments
 
-Lorsque vous travaillez avec des éléments, WebdriverIO fournit une syntaxe spéciale pour simplifier leur interrogation et les recherches d'éléments imbriqués complexes. Comme les objets d'élément vous permettent de trouver des éléments dans leur branche d'arborescence à l'aide de méthodes de requête courantes, les utilisateurs peuvent récupérer des éléments imbriqués comme suit:
+Lorsque vous travaillez avec des éléments, WebdriverIO fournit une syntaxe spéciale pour simplifier leur interrogation et les recherches d'éléments imbriqués complexes. Comme les objets d'élément vous permettent de trouver des éléments dans leur branche d'arborescence à l'aide de méthodes de requête courantes, les utilisateurs peuvent récupérer des éléments imbriqués comme suit :
 
 ```js
 const header = await $('#header')
@@ -40,7 +40,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-Avec des structures imbriquées profondes, assigner n'importe quel élément imbriqué à un tableau pour ensuite l'utiliser peut être assez verbeux. À cet effet, WebdriverIO a le concept de requêtes d'éléments chaînés qui permettent de récupérer des éléments imbriqués comme ceci:
+Avec des structures imbriquées profondes, assigner n'importe quel élément imbriqué à un tableau pour ensuite l'utiliser peut être assez verbeux. À cet effet, WebdriverIO a le concept de requêtes d'éléments chaînés qui permettent de récupérer des éléments imbriqués comme ceci :
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -68,7 +68,7 @@ Vous pouvez appeler directement les méthodes Array sur la chaîne d'éléments,
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO utilise [`p-itération`](https://www.npmjs.com/package/p-iteration#api) afin que toutes les commandes de leur API soient également prises en charge pour ces cas d'utilisation.
+WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
 
 ### Commandes personnalisées
 

@@ -15,20 +15,21 @@ import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.respo
 import edgedriverResponse from './__fixtures__/edgedriver.response.json' assert { type: 'json' }
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' assert { type: 'json' }
 import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' assert { type: 'json' }
+import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
-    const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
-    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
-    const geckoCaps = geckodriverResponse.value.capabilities as WebDriver.Capabilities
-    const edgeCaps = edgedriverResponse.value.capabilities as WebDriver.Capabilities
-    const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
-    const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
-    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebDriver.Capabilities // absent capability.platformName
-    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebDriver.Capabilities // absent capability.browserVersion
-    const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
-    const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
-    const standalonev4Caps = seleniumstandalone4Response.value as WebDriver.DesiredCapabilities
+    const chromeCaps = chromedriverResponse.value as WebdriverIO.Capabilities
+    const appiumCaps = appiumResponse.value.capabilities as WebdriverIO.Capabilities
+    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebdriverIO.Capabilities
+    const geckoCaps = geckodriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const edgeCaps = edgedriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const phantomCaps = ghostdriverResponse.value as WebdriverIO.Capabilities
+    const safariCaps = safaridriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.platformName
+    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.browserVersion
+    const safariLegacyCaps = safaridriverLegacyResponse.value as WebdriverIO.Capabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as Capabilities.DesiredCapabilities
+    const standalonev4Caps = seleniumstandalone4Response.value as Capabilities.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
@@ -41,8 +42,18 @@ describe('sessionEnvironmentDetector', () => {
         // doesn't matter if there are Appium capabilities if returned session details don't show signs of Appium
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumReqCaps }).isMobile).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumW3CCaps }).isMobile).toBe(false)
+
+        // expected to be false since it has apppium: but no mobile related platform name info
         const newCaps = { ...chromeCaps, 'appium:options': {} }
-        expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(false)
+
+        // match with Appium if it had
+        const iosCaps = { ...chromeCaps, 'platformName': 'ios' }
+        expect(sessionEnvironmentDetector({ capabilities: iosCaps, requestedCapabilities }).isMobile).toBe(true)
+        const tvOSCaps = { ...chromeCaps, 'platformName': 'tvOS' }
+        expect(sessionEnvironmentDetector({ capabilities: tvOSCaps, requestedCapabilities }).isMobile).toBe(true)
+        const androidCaps = { ...chromeCaps, 'platformName': 'Android' }
+        expect(sessionEnvironmentDetector({ capabilities: androidCaps, requestedCapabilities }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
@@ -77,6 +88,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isFirefox).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isFirefox).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isFirefox).toBe(false)
+    })
+
+    it('isBidi', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
     })
 
     it('isSauce', () => {

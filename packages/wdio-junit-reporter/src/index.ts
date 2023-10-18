@@ -1,9 +1,9 @@
+import url from 'node:url'
+
 import junit from 'junit-report-builder'
 import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
-
-const FILE_PROTOCOL_REGEX = /^file:\/\//
 
 import { limit } from './utils.js'
 import type { JUnitReporterOptions } from './types.js'
@@ -269,13 +269,12 @@ class JunitReporter extends WDIOReporter {
             if (suiteKey.match(/^"before all"/)) {
                 continue
             }
+
             const suite = this.suites[suiteKey]
-
-            const sameFeature = isCucumberFrameworkRunner && specFileName.replace(FILE_PROTOCOL_REGEX, '') === suite.file.replace(FILE_PROTOCOL_REGEX, '')
-
-            if (isCucumberFrameworkRunner && suite.type === type && sameFeature) {
+            const sameSpecFileName = this._sameFileName(specFileName, suite.file)
+            if (isCucumberFrameworkRunner && suite.type === type && sameSpecFileName) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
-            } else if (!isCucumberFrameworkRunner) {
+            } else if (!isCucumberFrameworkRunner && sameSpecFileName) {
                 builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
             }
         }
@@ -304,6 +303,13 @@ class JunitReporter extends WDIOReporter {
 
     private _format (val: any) {
         return JSON.stringify(limit(val))
+    }
+
+    private _sameFileName(file1?: string, file2?: string) {
+        // ensure both files are not a file URL
+        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1
+        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2
+        return file1 === file2
     }
 }
 

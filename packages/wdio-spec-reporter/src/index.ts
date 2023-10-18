@@ -1,8 +1,8 @@
 import { format } from 'node:util'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
-import type { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import WDIOReporter, { TestStats } from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
@@ -10,7 +10,7 @@ import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types
 
 const DEFAULT_INDENT = '   '
 
-interface CapabilitiesWithSessionId extends Capabilities.Capabilities {
+interface CapabilitiesWithSessionId extends WebdriverIO.Capabilities {
     sessionId: string
 }
 
@@ -143,22 +143,21 @@ export default class SpecReporter extends WDIOReporter {
 
         const suiteStartBanner = (stat.type === 'feature' || stat.type === 'suite' || stat.type === 'suite:start') ?
             `${this._preface} ${divider}\n`+
-            `${this._preface} Suite started : \n`+
+            `${this._preface} Suite started: \n`+
             `${this._preface}   » ${this._suiteName}\n` : '\n'
 
-        const contentNonTest = stat.type!=='hook' ?
-            `${suiteStartBanner}${this._preface} ${title}` :
-            `${this._preface} Hook executed : ${title}`
+        const content = stat.type === 'test'
+            ? `${this._preface} ${indent}` +
+              `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
+              ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+            : stat.type !== 'hook' ?
+                `${suiteStartBanner}${this._preface} ${title}` :
+                title
+                    ? `${this._preface} Hook executed: ${title}`
+                    : undefined
 
-        const contentTest = `${this._preface} ${indent}` +
-            `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
-            ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
-
-        if (process.send) {
-            process.send({
-                name: 'reporterRealTime',
-                content: stat.type === 'test' ? contentTest : contentNonTest
-            })
+        if (process.send && content) {
+            process.send({ name: 'reporterRealTime', content })
         }
     }
 
@@ -292,12 +291,28 @@ export default class SpecReporter extends WDIOReporter {
     getEventsToReport (suite: SuiteStats) {
         return [
             /**
-             * report all tests and only hooks that failed
+             * Generate a report that shows all tests except those that failed but passed on retry, and only display failed hooks.
              */
-            ...suite.hooksAndTests
-                .filter((item) => {
-                    return item.type === 'test' || Boolean(item.error)
-                })
+            ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
+                if (currentItem instanceof TestStats) {
+                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    if (existingTestIndex === -1) {
+                        accumulator.push(currentItem)
+                    } else {
+                        const existingTest = accumulator[existingTestIndex] as TestStats
+                        if (currentItem.retries !== undefined && existingTest.retries !== undefined) {
+                            if (currentItem.retries > existingTest.retries) {
+                                accumulator.splice(existingTestIndex, 1, currentItem)
+                            }
+                        }
+                    }
+                } else {
+                    accumulator.push(currentItem)
+                }
+                return accumulator
+            }, [] as (HookStats | TestStats)[]).filter((item) => Object.keys(item).length > 0).filter((item) => {
+                return item.type === 'test' || Boolean(item.error)
+            })
         ]
     }
 
@@ -322,7 +337,7 @@ export default class SpecReporter extends WDIOReporter {
             const suiteIndent = this.indent(suite.uid)
 
             // Display file path of spec
-            if (!specFileReferences.includes(suite.file)) {
+            if (suite.file && !specFileReferences.includes(suite.file)) {
                 output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
                 specFileReferences.push(suite.file)
             }
@@ -345,12 +360,12 @@ export default class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const testTitle = test.title
+                const testTitle = `${test.title} ${(test instanceof TestStats && test.retries && test.retries > 0) ? `(${test.retries} retries)` : ''}`
                 const state = test.state
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle.trim()}`)
 
                 // print cucumber data table cells and docstring
                 const arg = (test as TestStats).argument
@@ -488,6 +503,30 @@ export default class SpecReporter extends WDIOReporter {
             }
         }
 
+        /**
+         * ensure we include root suite hook errors
+         */
+        const rootSuite = this.currentSuites[0]
+        if (rootSuite) {
+            const baseRootSuite = {
+                ...rootSuite,
+                type: 'suite',
+                title: '(root)',
+                fullTitle: '(root)',
+                suites: []
+            }
+            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
+            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: beforeAllHooks,
+                hooksAndTests: beforeAllHooks
+            }))
+            this._orderedSuites.push(Object.assign({} as SuiteStats, baseRootSuite, {
+                hooks: afterAllHooks,
+                hooksAndTests: afterAllHooks
+            }))
+        }
+
         return this._orderedSuites
     }
 
@@ -542,12 +581,21 @@ export default class SpecReporter extends WDIOReporter {
      * @return {String}          Enviroment string
      */
     getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false) {
+        if (isMultiremote) {
+            const browserNames = Object.values(capability).map((c) => c.browserName)
+            const browserName = browserNames.length > 1
+                ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
+                : browserNames.pop()
+            return `MultiremoteBrowser on ${browserName}`
+        }
         const caps = (
             ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
             (capability as Capabilities.DesiredCapabilities)
         )
         const device = caps['appium:deviceName']
-        const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
+        const app = ((caps['appium:app'] || (caps as any).app) || '').replace('sauce-storage:', '')
+        const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
+        const browser = caps.browserName || caps.browser || appName
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -562,13 +610,11 @@ export default class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = isMultiremote
-            ? ''
-            : caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+        const platform = caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
-            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
+            const program = appName || caps.browserName
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`
@@ -578,10 +624,6 @@ export default class SpecReporter extends WDIOReporter {
 
         if (!verbose) {
             return (browser + (version ? ` ${version} ` : ' ') + (platform)).trim()
-        }
-
-        if (isMultiremote) {
-            return browser + (version ? ` (v${version})` : '') + ` on ${Object.values(capability).map((c) => c.browserName).join(', ')}`
         }
 
         return browser + (version ? ` (v${version})` : '') + (` on ${platform}`)

@@ -301,20 +301,8 @@ cucumberOpts: {
  }
  ```
 
-#### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
-
-Type: `boolean`<br />
-Default: `false`
-
 #### failFast
 Abort the run on first failure.
-
-Type: `boolean`<br />
-Default: `false`
-
-#### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
 
 Type: `boolean`<br />
 Default: `false`
@@ -323,12 +311,6 @@ Default: `false`
 Only execute the scenarios with name matching the expression (repeatable).
 
 Type: `RegExp[]`<br />
-Default: `[]`
-
-#### profile
-Specify the profile to use.
-
-Type: `string[]`<br />
 Default: `[]`
 
 #### require
@@ -344,23 +326,18 @@ cucumberOpts: {
 }
 ```
 
-#### snippetSyntax
-Specify a custom snippet syntax.
+#### import
+Paths to where your support code is, for ESM.
 
-Type: `string`<br />
-Default: `null`
+Type: `String[]`<br />
+Default: `[]`
+Example: 
 
-#### snippets
-Hide step definition snippets for pending steps.
-
-Type: `boolean`<br />
-Default: `true`
-
-#### source
-Hide source uris.
-
-Type: `boolean`<br />
-Default: `true`
+```js
+cucumberOpts: {
+    import: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
 
 #### strict
 Fail if there are any undefined or pending steps.
@@ -368,23 +345,93 @@ Fail if there are any undefined or pending steps.
 Type: `boolean`<br />
 Default: `false`
 
-#### tagExpression
-Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+#### tags
+Only execute the features or scenarios with tags matching the expression.
+Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
-Type: `string`<br />
-Default: `null`
-
-#### tagsInTitle
-Add cucumber tags to feature or scenario name.
-
-Type: `boolean`<br />
-Default: `false`
+Type: `String`<br />
+Default: ``
 
 #### timeout
 Timeout in milliseconds for step definitions.
 
-Type: `number`<br />
+Type: `Number`<br />
 Default: `30000`
+
+#### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br />
+Default: `0`
+
+#### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
+
+#### language
+Default language for your feature files
+
+Type: `String`<br />
+Default: `en`
+
+#### order
+Run tests in defined / random order
+
+Type: `String`<br />
+Default: `defined`
+
+#### format
+Name and output file path of formatter to use.
+WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
+
+Type: `string[]`<br />
+
+#### formatOptions
+Options to be provided to formatters
+
+Type: `object`<br />
+
+#### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean`<br />
+Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### ignoreUndefinedDefinitions
+Treat undefined definitions as warnings.
+
+Type: `Boolean`<br />
+Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### failAmbiguousDefinitions
+Treat ambiguous definitions as errors.
+
+Type: `Boolean`<br />
+Default: `false`
+
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### tagExpression
+Only execute the features or scenarios with tags matching the expression.
+Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br />
+Default: ``
+
+***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
+
+#### profile
+Specify the profile to use.
+
+Type: `string[]`<br />
+Default: `[]`
+
+***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### Skipping tests in cucumber
 
@@ -401,7 +448,7 @@ Here you have some examples of this syntax:
 - `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
-- `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+- `@skip(browserName=/i.*explorer/)`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
 
 ### Import Step Definition Helper
 
@@ -418,6 +465,41 @@ import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
+
+### Publishing Report
+
+Cucumber provides a feature to publish your test run reports to `https://reports.cucumber.io/`, which can be controlled either by setting the `publish` flag in `cucumberOpts` or by configuring the `CUCUMBER_PUBLISH_TOKEN` environment variable. However, when you use `WebdriverIO` for test execution, there's a limitation with this approach. It updates the reports separately for each feature file, making it difficult to view a consolidated report.
+
+To overcome this limitation, we've introduced a promise-based method called `publishCucumberReport` within `@wdio/cucumber-framework`. This method should be called in the `onComplete` hook, which is the optimal place to invoke it. `publishCucumberReport` requires the input of the report directory where cucumber message reports are stored.
+
+You can generate `cucumber message` reports by configuring the `format` option in your `cucumberOpts`. It's highly recommended to provide a dynamic file name within the `cucumber message` format option to prevent overwriting reports and ensure that each test run is accurately recorded.
+
+Before using this function, make sure to set the following environment variables:
+- CUCUMBER_PUBLISH_REPORT_URL: The URL where you want to publish the Cucumber report. If not provided, the default URL 'https://messages.cucumber.io/api/reports' will be used.
+- CUCUMBER_PUBLISH_REPORT_TOKEN: The authorization token required to publish the report. If this token is not set, the function will exit without publishing the report.
+
+Here's an example of the necessary configurations and code samples for implementation:
+
+```javascript
+import { v4 as uuidv4 } from 'uuid'
+import { publishCucumberReport } from '@wdio/cucumber-framework';
+
+export const config = {
+    // ... Other Configuration Options
+    cucumberOpts: {
+        // ... Cucumber Options Configuration
+        format: [
+            ['message', `./reports/${uuidv4()}.ndjson`],
+            ['json', './reports/test-report.json']
+        ]
+    },
+    async onComplete() {
+        await publishCucumberReport('./reports');
+    }
+}
+```
+
+Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
 
 ## Using Serenity/JS
 

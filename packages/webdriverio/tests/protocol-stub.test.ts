@@ -19,13 +19,14 @@ describe('newSession', () => {
                 foo: 'bar'
             }
         })
-        expect(Object.keys(session)).toHaveLength(14)
+        expect(Object.keys(session)).toHaveLength(15)
         expect(session.isAndroid).toBe(false)
         expect(session.isChrome).toBe(false)
         expect(session.isFirefox).toBe(false)
         expect(session.isIOS).toBe(true)
         expect(session.isMobile).toBe(true)
         expect(session.isSauce).toBe(false)
+        expect(session.isBidi).toBe(false)
         expect(session.capabilities).toEqual({
             deviceName: 'Some Device',
             platformName: 'iOS',

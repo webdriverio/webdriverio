@@ -14,6 +14,13 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
     });
  * </example>
  *
+ * When running from a hook, make sure to explicitly define the hook as async:
+ * <example>
+  :wdio.conf.js
+  afterTest: async function(test) {
+      await browser.saveScreenshot('./some/path/screenshot.png');
+  }
+ * </example>
  * @alias browser.saveScreenshot
  * @param   {String}  filepath  path to the generated image (`.png` suffix is required) relative to the execution directory
  * @return  {Buffer}            screenshot buffer
@@ -34,7 +41,16 @@ export async function saveScreenshot (
     const absoluteFilepath = getAbsoluteFilepath(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    const screenBuffer = await this.takeScreenshot()
+    let screenBuffer: string
+    if (this.isBidi) {
+        const { contexts } = await this.browsingContextGetTree({})
+        const { data } = await this.browsingContextCaptureScreenshot({
+            context: contexts[0].context
+        })
+        screenBuffer = data
+    } else {
+        screenBuffer = await this.takeScreenshot()
+    }
     const screenshot = Buffer.from(screenBuffer, 'base64')
     fs.writeFileSync(absoluteFilepath, screenshot)
 

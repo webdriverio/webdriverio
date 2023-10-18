@@ -14,7 +14,6 @@ const { multiremote } = require('../../packages/webdriverio/build/index.js')
         browserA: {
             capabilities: {
                 browserName: 'chrome',
-                acceptInsecureCerts: true,
                 'goog:chromeOptions': {
                     args: [
                         'use-fake-device-for-media-stream',
@@ -27,7 +26,6 @@ const { multiremote } = require('../../packages/webdriverio/build/index.js')
             port: 4445,
             capabilities: {
                 browserName: 'chrome',
-                acceptInsecureCerts: true,
                 'goog:chromeOptions': {
                     args: [
                         'use-fake-device-for-media-stream',

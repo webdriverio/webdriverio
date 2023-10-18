@@ -18,7 +18,7 @@ declare global {
         __wdioEvents__: any[]
         __wdioSocket__: WebSocket
         __wdioConnectPromise__: Promise<WebSocket>
-        __wdioMockFactories__: Record<string, any>
+        __wdioMockCache__: Map<string, any>
     }
 }
 
@@ -56,5 +56,18 @@ _setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 const mochaFramework = document.querySelector('mocha-framework') as MochaFramework
 if (mochaFramework) {
     const socket = await connectPromise
-    mochaFramework.run(socket)
+    mochaFramework.run(socket).catch((err) => {
+        /**
+         * On MacOS importing the spec file might fail with a null error object.
+         * This is Vite doing a hot reload and the error is not relevant for us.
+         */
+        if (!err.stack) {
+            return
+        }
+
+        return window.__wdioErrors__.push({
+            message: `${err.message}: ${err.stack}`,
+            filename: mochaFramework.spec
+        })
+    })
 }
