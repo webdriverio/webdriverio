@@ -458,7 +458,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
             file.endsWith('page.js.ejs')
                 ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? answers.stepDefinitions!
+                    ? path.join(answers.destStepRootPath, path.basename(file))
                     : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 

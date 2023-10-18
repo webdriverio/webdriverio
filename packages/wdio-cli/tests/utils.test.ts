@@ -606,7 +606,8 @@ describe('generateTestFiles', () => {
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
             generateTestFiles: true,
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
+            destStepRootPath: '/tests/stepDefinitions'
         }
         await generateTestFiles(answers as any)
 
@@ -637,7 +638,7 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
-            stepDefinitions: '/some/step',
+            destStepRootPath: '/tests/stepDefinitions',
             destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'

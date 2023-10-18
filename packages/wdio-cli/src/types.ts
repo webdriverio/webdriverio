@@ -55,6 +55,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     projectRootDir: string
     destSpecRootPath: string
     destPageObjectRootPath: string
+    destStepRootPath: string;
     relativePath: string
     hasRootTSConfig: boolean
     tsConfigFilePath: string

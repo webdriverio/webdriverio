@@ -120,6 +120,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         _await: 'await ',
         projectRootDir,
         destSpecRootPath: parsedPaths.destSpecRootPath,
+        destStepRootPath:parsedPaths.destStepRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
         relativePath: parsedPaths.relativePath,
         hasRootTSConfig,
