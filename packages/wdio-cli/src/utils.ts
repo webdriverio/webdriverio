@@ -549,16 +549,20 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 }
 
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
+    const specAnswer = answers.specs || ''
+    const stepDefinitionAnswer = answers.stepDefinitions || ''
+    const pageObjectAnswer = answers.pages || ''
+
     const destSpecRootPath = path.resolve(
         projectRootDir,
-        (path.dirname(answers.specs || '') === '.' ? path.resolve(answers.specs || '') : path.dirname(answers.specs || '')).replace(/\*\*$/, ''))
+        (path.dirname(specAnswer) === '.' ? path.resolve(specAnswer) : path.dirname(specAnswer)).replace(/\*\*$/, ''))
 
-    const destStepRootPath = path.resolve(projectRootDir, (path.dirname(answers.stepDefinitions || '') === '.' ? path.resolve(answers.stepDefinitions || '') : path.dirname(answers.stepDefinitions || '')))
+    const destStepRootPath = path.resolve(projectRootDir, (path.dirname(stepDefinitionAnswer) === '.' ? path.resolve(stepDefinitionAnswer) : path.dirname(stepDefinitionAnswer)))
 
     const destPageObjectRootPath = answers.usePageObjects
         ? path.resolve(
             projectRootDir,
-            (path.dirname(answers.pages || '') === '.' ? path.resolve(answers.pages || '') : path.dirname(answers.pages || '')).replace(/\*\*$/, ''))
+            (path.dirname(pageObjectAnswer) === '.' ? path.resolve(pageObjectAnswer) : path.dirname(pageObjectAnswer)).replace(/\*\*$/, ''))
         : ''
     const relativePath = (answers.generateTestFiles && answers.usePageObjects)
         ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
