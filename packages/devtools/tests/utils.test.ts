@@ -5,7 +5,7 @@ import type path from 'node:path'
 import debug from 'debug'
 import which from 'which'
 import { launch } from 'chrome-launcher'
-import { canAccess } from '@wdio/utils'
+import { canAccess } from '@wdio/utils/node'
 
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,

@@ -1,7 +1,8 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+import { startWebDriver } from '@wdio/utils/node'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
@@ -139,3 +140,5 @@ export default class WebDriver {
 export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
 export * from './bidi/handler.js'
+export * as local from './bidi/localTypes.js'
+export * as remote from './bidi/remoteTypes.js'

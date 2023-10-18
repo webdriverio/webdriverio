@@ -73,7 +73,7 @@ export class ViteServer extends EventEmitter {
 
         if (options.coverage && options.coverage.enabled) {
             log.info('Capturing test coverage enabled')
-            this.#viteConfig.plugins?.push(istanbulPlugin({
+            this.#viteConfig.plugins?.push(istanbulPlugin.default({
                 cwd: config.rootDir,
                 include: DEFAULT_INCLUDE,
                 extension: DEFAULT_FILE_EXTENSIONS,

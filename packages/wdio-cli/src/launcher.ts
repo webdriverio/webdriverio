@@ -4,7 +4,8 @@ import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser, validateConfig } from '@wdio/config'
-import { initialisePlugin, initialiseLauncherService, sleep, setupDriver, setupBrowser } from '@wdio/utils'
+import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
+import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'

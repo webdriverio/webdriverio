@@ -16,13 +16,13 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities, Options } from '@wdio/types'
 
-import { isAppiumCapability } from '../utils.js'
+import { isAppiumCapability } from '../../utils.js'
 
 import {
     parseParams, setupPuppeteerBrowser, definesRemoteDriver, setupChromedriver,
     isChrome, isFirefox, isEdge, isSafari, getCacheDir
 } from './utils.js'
-import { SUPPORTED_BROWSERNAMES } from '../constants.js'
+import { SUPPORTED_BROWSERNAMES } from '../../constants.js'
 
 export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {

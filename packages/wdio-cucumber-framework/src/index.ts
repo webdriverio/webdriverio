@@ -35,8 +35,6 @@ import {
     runCucumber
 } from '@cucumber/cucumber/api'
 
-import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
-
 import { DataTable, World, Status } from '@cucumber/cucumber'
 
 export const FILE_PROTOCOL = 'file://'
@@ -61,7 +59,6 @@ const {
     setWorldConstructor,
     defineParameterType,
     defineStep,
-    supportCodeLibraryBuilder,
 } = Cucumber
 
 const uuidFn = IdGenerator.uuid()
@@ -249,19 +246,19 @@ class CucumberAdapter {
 
         try {
             await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+            Cucumber.supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
                 requireModules: this._cucumberOpts.requireModule,
                 requirePaths: this._cucumberOpts.require,
                 importPaths: this._cucumberOpts.import,
             })
 
-            this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
+            this.addWdioHooksAndWrapSteps(this._config, Cucumber.supportCodeLibraryBuilder)
 
             setDefaultTimeout(this._cucumberOpts.timeout)
 
             await this.loadFiles()
 
-            const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
+            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
             outStream = new Writable({
                 write(chunk, encoding, callback) {
@@ -400,7 +397,7 @@ class CucumberAdapter {
      */
     addWdioHooksAndWrapSteps(
         config: Options.Testrunner,
-        supportCodeLibraryBuilder: SupportCodeLibraryBuilder
+        supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
         const params: { uri?: string; feature?: Feature } = {}
         this._eventEmitter.on('getHookParams', (payload: typeof params) => {

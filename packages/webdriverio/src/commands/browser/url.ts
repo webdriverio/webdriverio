@@ -50,10 +50,11 @@ export async function url (
 
     if (this.isBidi) {
         const { contexts } = await this.browsingContextGetTree({})
-        return this.browsingContextNavigate({
+        const res = await this.browsingContextNavigate({
             context: contexts[0].context,
             url: path
         })
+        return res.url
     }
 
     return this.navigateTo(validateUrl(path))

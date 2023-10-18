@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, describe, beforeAll, test, vi } from 'vitest'
-import { canAccess } from '@wdio/utils'
+import { canAccess } from '@wdio/utils/node'
 
 import getFinder from '../../src/finder/index.js'
 import edgeFinder from '../../src/finder/edge.js'

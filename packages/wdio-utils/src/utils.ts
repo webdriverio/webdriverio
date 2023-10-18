@@ -1,13 +1,20 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { resolve } from 'import-meta-resolve'
-
 import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
+const SLASH = '/'
+
+function assertPath(path?: any) {
+    if (typeof path !== 'string') {
+        throw new TypeError('Path must be a string. Received ' + JSON.stringify(path))
+    }
+}
+
+export function isAbsolute(p: string) {
+    assertPath(p)
+    return p.length > 0 && p.charCodeAt(0) === SLASH.codePointAt(0)
+}
 
 /**
  * overwrite native element commands with user defined
@@ -181,17 +188,22 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * then we also need to search in the project, we do that by defining
          * 'localNodeModules' and searching from that also.
          *
-         * Note that import-meta-resolve will resolve to CJS no ESM export is found
+         * Note that import-meta-resolve will resolve to CJS no ESM export is found.
+         * Only in Node.js environments
          */
-        const localNodeModules = path.join(process.cwd(), 'node_modules')
-
-        try {
-            importPath = await resolve(name, import.meta.url)
-        } catch (err: any) {
+        if (!globalThis.window) {
+            const { resolve } = await import('import-meta-resolve')
             try {
-                importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
-                return null
+                const { join } = await import('node:path')
+                const { pathToFileURL } = await import('node:url')
+                const localNodeModules = join(process.cwd(), 'node_modules')
+                try {
+                    importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                } catch (err: any) {
+                    return null
+                }
             }
         }
     } catch (err: any) {
@@ -262,24 +274,6 @@ export function isBase64(str: string) {
         firstPaddingChar === len - 1 ||
         (firstPaddingChar === len - 2 && str[len - 1] === '=')
     )
-}
-
-/**
- * Helper utility to check file access
- * @param {string} file file to check access for
- * @return              true if file can be accessed
- */
-export const canAccess = (file?: string) => {
-    if (!file) {
-        return false
-    }
-
-    try {
-        fs.accessSync(file)
-        return true
-    } catch (err: any) {
-        return false
-    }
 }
 
 /**

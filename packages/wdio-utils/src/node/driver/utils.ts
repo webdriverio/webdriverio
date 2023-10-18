@@ -16,7 +16,7 @@ import { locateChrome, locateFirefox } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
-import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../constants.js'
+import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../../constants.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
