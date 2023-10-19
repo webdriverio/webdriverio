@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 
 import type { MockedFunction } from 'vitest'
@@ -14,7 +15,7 @@ import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
 
 const log = logger('')
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const root = path.resolve(__dirname, '..', '..')
 
 const FIXTURES_PATH = path.resolve(__dirname, '..', '__fixtures__')
