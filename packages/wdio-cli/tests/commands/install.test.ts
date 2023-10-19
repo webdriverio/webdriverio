@@ -65,8 +65,7 @@ describe('Command: install', () => {
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith(
             'install',
-            '/absolute/path/to/wdio.conf',
-            undefined
+            '/absolute/path/to/wdio.conf'
         )
     })
 
@@ -87,7 +86,7 @@ describe('Command: install', () => {
 
         await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service" using npm.')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
@@ -116,7 +115,7 @@ describe('Command: install', () => {
 
         await installCmd.handler({ type: 'service', name: 'vite', config: './path/to/wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service" using npm.')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()

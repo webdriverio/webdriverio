@@ -85,7 +85,7 @@ export async function handler(argv: InstallCommandArguments) {
     const wdioConfPath = await canAccessConfigPath(wdioConfPathWithNoExtension)
     if (!wdioConfPath) {
         try {
-            await missingConfigurationPrompt('install', wdioConfPathWithNoExtension, yarn)
+            await missingConfigurationPrompt('install', wdioConfPathWithNoExtension)
             return handler(argv)
         } catch {
             process.exit(1)
@@ -110,7 +110,7 @@ export async function handler(argv: InstallCommandArguments) {
 
     const pm = await detect({ cwd: projectRoot })
     console.log(`Installing "${selectedPackage.package}" using ${pm}.`)
-    const success = installPackages(projectRoot, pkgsToInstall, true)
+    const success = await installPackages(projectRoot, pkgsToInstall, true)
 
     if (!success) {
         process.exit(1)

@@ -138,7 +138,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     }
 }
 
-export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
@@ -164,7 +164,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
 
 export async function handler(argv: ConfigCommandArguments, runConfigCmd = runConfigCommand) {
     const parsedAnswers = await parseAnswers(argv.yes)
-    await runConfigCmd(parsedAnswers, argv.yarn, argv.npmTag)
+    await runConfigCmd(parsedAnswers, argv.npmTag)
     return {
         success: true,
         parsedAnswers,
@@ -207,7 +207,7 @@ export async function canAccessConfigPath(configPath: string) {
  * @param {boolean}  useYarn        parameter set to true if yarn is used
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
-export async function missingConfigurationPrompt(command: string, configPath: string, useYarn = false, runConfigCmd = runConfigCommand) {
+export async function missingConfigurationPrompt(command: string, configPath: string, runConfigCmd = runConfigCommand) {
 
     const message = (
         `Could not execute "${command}" due to missing configuration, file ` +
@@ -234,5 +234,5 @@ export async function missingConfigurationPrompt(command: string, configPath: st
     }
 
     const parsedAnswers = await parseAnswers(false)
-    await runConfigCmd(parsedAnswers, useYarn, 'latest')
+    await runConfigCmd(parsedAnswers, 'latest')
 }

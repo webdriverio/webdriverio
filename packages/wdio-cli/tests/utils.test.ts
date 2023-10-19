@@ -46,7 +46,12 @@ import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')
-vi.mock('recursive-readdir')
+vi.mock('recursive-readdir', () => ({
+    default: vi.fn().mockResolvedValue([
+        '/foo/bar/loo/page.js.ejs',
+        '/foo/bar/example.e2e.js'
+    ] as any)
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => {
     const m = {
@@ -59,7 +64,7 @@ vi.mock('child_process', () => {
 
 vi.mock('read-pkg-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
-        path: '/foo/bar',
+        path: '/foo/package.json',
         packageJson: {
             name: 'cool-test-module',
             type: 'module'
@@ -486,10 +491,6 @@ describe('generateTestFiles', () => {
     })
 
     it('jasmine with page objects', async () => {
-        vi.mocked(readDir).mockResolvedValue([
-            '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
-        ] as any)
         const answers = {
             runner: 'local',
             framework: 'jasmine',
@@ -743,13 +744,13 @@ test('specifyVersionIfNeeded', () => {
 })
 
 test('getProjectRoot', async () => {
-    expect(await getProjectRoot()).toBe('/foo/bar')
+    expect(await getProjectRoot()).toBe('/foo')
     expect(await getProjectRoot({
         projectRootCorrect: true
-    } as any)).toBe('/foo/bar')
+    } as any)).toBe('/foo')
     expect(await getProjectRoot({
         projectRootCorrect: false,
-        projectRoot: 'bar/foo'
+        projectRoot: '/bar/foo'
     } as any)).toBe('/bar/foo')
 })
 
@@ -834,6 +835,8 @@ test('npmInstall', async () => {
             services: ['foo$--$bar'],
             preset: 'barfoo$--$vue'
         },
+        projectRootCorrect: false,
+        projectRoot: '/foo/bar',
         isUsingTypeScript: true,
         framework: 'jasmine',
         installTestingLibrary: true,
@@ -842,7 +845,7 @@ test('npmInstall', async () => {
     } as any
     await npmInstall(parsedAnswers, 'next')
     expect(installPackages).toBeCalledTimes(1)
-    expect(vi.mocked(installPackages).mock.calls[0][0]).toMatchSnapshot()
+    expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
 })
 
 test('not npmInstall', async () => {
@@ -902,7 +905,6 @@ test('setup Babel', async () => {
 
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
-    answers.projectRootDir = '/foo/bar'
     answers.destSpecRootPath = '/tests/specs'
     answers.destPageObjectRootPath = '/tests/specs'
     answers.stepDefinitions = './foo/bar'
@@ -912,7 +914,7 @@ test('createWDIOConfig', async () => {
     expect(
         vi.mocked(fs.writeFile).mock.calls[0][0]
             .toString()
-            .endsWith(path.resolve('/foo/wdio.conf.js'))
+            .endsWith(path.resolve('/wdio.conf.js'))
     ).toBe(true)
 })
 
