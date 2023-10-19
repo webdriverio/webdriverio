@@ -72,6 +72,7 @@ exports[`parseAnswers 1`] = `
   "backend": "On my local machine",
   "baseUrl": "http://localhost",
   "destPageObjectRootPath": "/tmp/foobar",
+  "destStepRootPath":"/tmp/foobar",
   "destSerenityLibRootPath": "",
   "destSpecRootPath": "/tmp/foobar",
   "esmSupport": true,
