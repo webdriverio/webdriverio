@@ -914,7 +914,7 @@ test('createWDIOConfig', async () => {
     expect(
         vi.mocked(fs.writeFile).mock.calls[0][0]
             .toString()
-            .endsWith(path.resolve('/wdio.conf.js'))
+            .endsWith(path.resolve('wdio.conf.js'))
     ).toBe(true)
 })
 
