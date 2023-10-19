@@ -365,4 +365,18 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_sameFileName'](file1Path, undefined)).toBeFalsy()
         expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
     })
+
+    it('_sameFileName when one path relative', () => {
+        reporter = new WDIOJunitReporter({ stdout: true });
+
+        const relativeFilePath = 'features/dir/mysuite.feature';
+        const absoluteFilePath = '/home/path/dev/features/dir/mysuite.feature';
+
+        expect(
+            reporter['_sameFileName'](relativeFilePath, absoluteFilePath)
+        ).toBeTruthy();
+        expect(
+            reporter['_sameFileName'](absoluteFilePath, relativeFilePath)
+        ).toBeTruthy();
+    });
 })

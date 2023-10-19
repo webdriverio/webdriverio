@@ -1,4 +1,5 @@
 import url from 'node:url'
+import path from 'node:path'
 
 import junit from 'junit-report-builder'
 import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
@@ -306,10 +307,20 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _sameFileName(file1?: string, file2?: string) {
+        // if either file is undefined, return false
+        if (!file1 || !file2) {
+            return false;
+        }
+
         // ensure both files are not a file URL
-        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2
-        return file1 === file2
+        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1;
+        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2;
+
+        // ensure both paths are absolute before comparing
+        file1 = !path.isAbsolute(file1) ? path.resolve(file1) : file1;
+        file2 = !path.isAbsolute(file2) ? path.resolve(file2) : file2;
+
+        return file1 === file2;
     }
 }
 
