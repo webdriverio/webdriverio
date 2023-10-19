@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
-import type { Label, Parameter, Link, StepResult } from 'allure-js-commons'
-import { Status, LabelName, LinkType, Stage } from 'allure-js-commons'
+import type { Label, Parameter, Link, StepResult }                    from 'allure-js-commons'
+import { Status, LabelName, LinkType, Stage }                                   from 'allure-js-commons'
 
 import { temporaryDirectory } from 'tempy'
 
@@ -70,10 +70,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
                 reporter.onRunnerEnd(runnerEnd())
 
-                const { results, attachments, containers } = getResults(outputDir)
+                const { results, containers } = getResults(outputDir)
 
                 expect(results).toHaveLength(1)
-                expect(attachments).toHaveLength(1)
+                expect(results[0].steps.find((step: StepResult) => step.attachments.length).attachments).toHaveLength(1)
                 expect(containers).toHaveLength(1)
 
                 allureResult = results[0]
@@ -208,7 +208,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             beforeEach(() => {
                 nonHookSteps = allureResult.steps.filter((step: StepResult) => step.name !== 'Hook')
-
                 expect(nonHookSteps).toHaveLength(1)
             })
 
@@ -531,7 +530,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onSuiteStart(cucumberHelper.scenarioStart())
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.onHookEnd(cucumberHelper.hookFail())
-            reporter.onTestStart(cucumberHelper.testStart())
             reporter.onTestSkip(cucumberHelper.testSkipped())
 
             const suiteResults: any = { tests: [cucumberHelper.testSkipped()], hooks: [cucumberHelper.hookFail()] }

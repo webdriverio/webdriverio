@@ -4,7 +4,7 @@ import type { Options } from '@wdio/types'
 import type { Label, AllureTest, AllureGroup  } from 'allure-js-commons'
 import { Status as AllureStatus, md5 } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
-import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
+import { eachHooks, allHooks, linkPlaceholder } from './constants.js'
 
 /**
  * Get allure test status by TestStat object
@@ -52,31 +52,40 @@ export const isEmpty = (object: any) =>
     !object || Object.keys(object).length === 0
 
 /**
- * Is mocha beforeEach hook
+ * Is mocha/jasmine beforeEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaBeforeEachHook = (title: string) =>
-    title.includes(mochaEachHooks[0])
+export const isBeforeEachTypeHook = (title: string) =>
+    title.includes(eachHooks[0])
 
 /**
- * Is mocha beforeEach / afterEach hook
+ * Is mocha/jasmine beforeAll / beforeEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaEachHooks = (title: string) =>
-    mochaEachHooks.some((hook) => title.includes(hook))
+export const isBeforeTypeHook = (title: string) =>
+    title.includes(allHooks[0]) || title.includes(eachHooks[0])
 
 /**
- * Is mocha beforeAll / afterAll hook
+ * Is mocha/jasmine beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaAllHooks = (title: string) =>
-    mochaAllHooks.some((hook) => title.includes(hook))
+export const isEachTypeHooks = (title: string) =>
+    eachHooks.some((hook) => title.includes(hook))
+
+/**
+ * Is mocha/jasmine beforeAll / afterAll hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isAllTypeHooks = (title: string) =>
+    allHooks.some((hook) => title.includes(hook))
 
 /**
  * Properly format error from different test runners

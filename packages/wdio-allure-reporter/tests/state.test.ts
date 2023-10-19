@@ -74,8 +74,8 @@ describe('state', () => {
 
             expect(state.currentTest).not.toBeUndefined()
             expect(state.currentTest?.wrappedItem?.name).toEqual('second')
-            expect(state.currentAllureTestOrStep).not.toBeUndefined()
-            expect(state.currentAllureTestOrStep?.wrappedItem?.name).toEqual('second')
+            expect(state.currentAllureStepableEntity).not.toBeUndefined()
+            expect(state.currentAllureStepableEntity?.wrappedItem?.name).toEqual('second')
         })
     })
 
@@ -97,8 +97,8 @@ describe('state', () => {
 
             expect(state.currentStep).not.toBeUndefined()
             expect(state.currentStep?.wrappedItem?.name).toEqual('second')
-            expect(state.currentAllureTestOrStep).not.toBeUndefined()
-            expect(state.currentAllureTestOrStep?.wrappedItem?.name).toEqual('second')
+            expect(state.currentAllureStepableEntity).not.toBeUndefined()
+            expect(state.currentAllureStepableEntity?.wrappedItem?.name).toEqual('second')
         })
     })
 

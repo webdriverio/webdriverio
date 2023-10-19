@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { log } from 'node:console'
 import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
-import type { Label, Parameter, Link, Attachment } from 'allure-js-commons'
-import { LabelName } from 'allure-js-commons'
+import type { Label, Parameter, Link, Attachment }                 from 'allure-js-commons'
+import { LabelName }                                                            from 'allure-js-commons'
 import { Status, LinkType, Stage } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
@@ -425,10 +425,10 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(containers[0].befores[0].steps[0].name).toEqual('"before all" hook for "should login with valid credentials"')
         expect(results[0].status).toEqual(Status.BROKEN)
     })
 
@@ -447,20 +447,20 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
-        expect(results).toHaveLength(2)
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        expect(containers[0].befores[0].steps).toHaveLength(1)
 
-        const testCaseStep = results.find((tc => tc.name === 'My Login application'))
-        expect(testCaseStep).toBeDefined()
-        expect(testCaseStep.status).toEqual(Status.BROKEN)
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.BROKEN)
 
-        const hookCase = results.find((tc => tc.name === '"before each" hook'))
-        expect(hookCase).toBeDefined()
-        expect(hookCase.status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].steps[0]).toBeDefined()
+        expect(containers[0].befores[0].steps[0].name).toEqual('"before each" hook')
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
     })
 
     it('should report failed before each hook with disableMochaHooks', () => {
-        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const reporter = new AllureReporter({ outputDir, disableHooks: true })
         const runnerEvent = runnerStart()
 
         delete runnerEvent.capabilities.browserName
@@ -474,13 +474,13 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(results[0].status).toEqual(Status.FAILED)
-        expect(results[0].steps[0].name).toEqual('"before each" hook')
-        expect(results[0].steps[0].status).toEqual(Status.FAILED)
+        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].steps[0].name).toEqual('"before each" hook')
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
     })
 })
 
@@ -755,8 +755,8 @@ for (const protocol of ['webdriver', 'devtools']) {
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
-            reporter.onHookStart(hookStart())
             reporter.onTestStart(testStart())
+            reporter.onHookStart(hookStart())
             reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
             reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
             reporter.onHookEnd(hookFailed())
@@ -764,13 +764,12 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
 
-            const { results } = getResults(outputDir)
-            expect(results).toHaveLength(2)
+            const { results, containers } = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            expect(containers[0].befores).toHaveLength(1)
+            expect(containers[0].befores[0].steps[0].attachments.length).toEqual(1)
 
-            const result = results.find( res => res.attachments.length === 1)
-            expect(result).toBeDefined()
-
-            const screenshotAttachments = result.attachments.filter(
+            const screenshotAttachments = containers[0].befores[0].steps[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 

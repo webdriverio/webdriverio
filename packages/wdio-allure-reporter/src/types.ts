@@ -1,3 +1,4 @@
+import type { AllureStep, AllureTest, ExecutableItemWrapper, Status as AllureStatus } from 'allure-js-commons'
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
  */
@@ -17,7 +18,7 @@ export interface AllureReporterOptions {
      * optional parameter (`false` by default), set it to true in order to not fetch the `before/after`
      * stacktrace/screenshot/result hooks into the Allure Reporter.
      */
-    disableMochaHooks?: boolean
+    disableHooks?: boolean
     /**
      * optional parameter(`false` by default), in order to log only custom steps to the reporter.
      */
@@ -47,6 +48,10 @@ export interface AllureReporterOptions {
     * Note that setting this does not modify the actual environment variables.
     */
     reportedEnvironmentVars?: Record<string, string>
+    /**
+     * Status when a hook fail. Default: skipped
+     */
+    testStatusFailedHook?: AllureStatus
 }
 
 export interface AddLabelEventArgs {
@@ -142,6 +147,8 @@ export interface Attachment {
     end(status: Status, error: Error, timestamp?: number): void;
     toXML(): string;
 }
+
+export type AllureStepableUnit = AllureTest | AllureStep | ExecutableItemWrapper
 
 declare global {
     namespace WebdriverIO {

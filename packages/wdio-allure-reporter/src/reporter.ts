@@ -1,35 +1,100 @@
-import { stringify } from 'csv-stringify/sync'
+import { stringify }  from 'csv-stringify/sync'
 import type {
-    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument
-} from '@wdio/reporter'
+    AfterCommandArgs,
+    Argument,
+    BeforeCommandArgs,
+    HookStats,
+    RunnerStats,
+    SuiteStats,
+    TestStats
+}                   from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities, Options } from '@wdio/types'
-import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import {
-    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
-    LinkType, ContentType, AllureCommandStepExecutable,
-} from 'allure-js-commons'
-import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
-    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
-} from './common/api.js'
-import { AllureReporterState } from './state.js'
-import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId, isMochaBeforeEachHook,
-} from './utils.js'
-import { events } from './constants.js'
 import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs,
-    AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
-    AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions } from './types.js'
+    Capabilities,
+    Options
+}                   from '@wdio/types'
+import type {
+    Label,
+    MetadataMessage
+}                   from 'allure-js-commons'
+import {
+    ExecutableItemWrapper,
+    AllureCommandStepExecutable,
+    AllureGroup,
+    AllureRuntime,
+    AllureStep,
+    AllureTest,
+    ContentType,
+    LabelName,
+    LinkType,
+    Stage,
+    Status,
+    Status as AllureStatus,
+}                   from 'allure-js-commons'
+import {
+    addAllureId,
+    addArgument,
+    addAttachment,
+    addDescription,
+    addEpic,
+    addFeature,
+    addIssue,
+    addLabel,
+    addLink,
+    addOwner,
+    addParentSuite,
+    addSeverity,
+    addStep,
+    addStory,
+    addSubSuite,
+    addSuite,
+    addTag,
+    addTestId,
+    endStep,
+    startStep,
+    step,
+}                   from './common/api.js'
+import {
+    AllureReporterState
+}                   from './state.js'
+import {
+    getErrorFromFailedTest,
+    getLinkByTemplate,
+    getSuiteLabels,
+    getTestStatus,
+    isEmpty,
+    isAllTypeHooks,
+    isBeforeTypeHook,
+    isEachTypeHooks,
+    isScreenshotCommand,
+    setHistoryId,
+}                   from './utils.js'
+import {
+    events
+}                   from './constants.js'
+import type {
+    AddAllureIdEventArgs,
+    AddAttachmentEventArgs,
+    AddDescriptionEventArgs,
+    AddEpicEventArgs,
+    AddFeatureEventArgs,
+    AddIssueEventArgs,
+    AddLabelEventArgs,
+    AddLinkEventArgs,
+    AddOwnerEventArgs,
+    AddParentSuiteEventArgs,
+    AddSeverityEventArgs,
+    AddStoryEventArgs,
+    AddSubSuiteEventArgs,
+    AddSuiteEventArgs,
+    AddTagEventArgs,
+    AddTestIdEventArgs,
+    AllureReporterOptions,
+    AllureStepableUnit
+}                   from './types.js'
 import {
     TYPE as DescriptionType
-} from './types.js'
+}                   from './types.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
@@ -79,14 +144,14 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     attachLogs() {
-        if (!this._consoleOutput || !this._state.currentAllureTestOrStep) {
+        if (!this._consoleOutput || !this._state.currentAllureStepableEntity) {
             return
         }
 
         const logsContent = `.........Console Logs.........\n\n${this._consoleOutput}`
         const attachmentFilename = this._allure.writeAttachment(logsContent, ContentType.TEXT)
 
-        this._state.currentAllureTestOrStep.addAttachment(
+        this._state.currentAllureStepableEntity.addAttachment(
             'Console Logs',
             {
                 contentType: ContentType.TEXT,
@@ -96,13 +161,13 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     attachFile(name: string, content: string | Buffer, contentType: ContentType) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             throw new Error("There isn't any active test!")
         }
 
         const attachmentFilename = this._allure.writeAttachment(content, contentType)
 
-        this._state.currentAllureTestOrStep.addAttachment(
+        this._state.currentAllureStepableEntity.addAttachment(
             name,
             {
                 contentType,
@@ -135,13 +200,13 @@ export default class AllureReporter extends WDIOReporter {
             throw new Error("There isn't any active suite!")
         }
 
-        while (this._state.currentAllureTestOrStep) {
-            const currentTest = this._state.pop() as AllureTest | AllureStep
+        while (this._state.currentAllureStepableEntity) {
+            const currentTest = this._state.pop() as AllureGroup | AllureStepableUnit
 
             if (currentTest instanceof AllureTest) {
                 setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
-            } else {
+            } else if (currentTest instanceof AllureStep) {
                 currentTest.endStep()
             }
         }
@@ -161,7 +226,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _skipTest() {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -179,11 +244,11 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _endTest(status: AllureStatus, error?: Error) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
-        const currentSpec = this._state.pop() as AllureTest | AllureStep
+        const currentSpec = this._state.pop() as AllureStepableUnit
 
         currentSpec.stage = Stage.FINISHED
         currentSpec.status = status
@@ -196,17 +261,17 @@ export default class AllureReporter extends WDIOReporter {
         if (currentSpec instanceof AllureTest) {
             setHistoryId(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
-        } else {
+        } else if (currentSpec instanceof AllureStep){
             currentSpec.endStep()
         }
     }
 
-    _startStep(testTitle: string) {
-        if (!this._state.currentAllureTestOrStep) {
-            throw new Error("There isn't any active test!")
+    _startStep(testTitle: string): void {
+        if (!this._state.currentAllureStepableEntity) {
+            throw new Error("There isn't any active stepable entities!")
         }
 
-        const newStep = this._state.currentAllureTestOrStep.startStep(testTitle)
+        const newStep = this._state.currentAllureStepableEntity.startStep(testTitle)
 
         this._state.push(newStep)
     }
@@ -305,7 +370,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._state.currentFile = suite.file
 
-        // handle cucumber scenario as allure "case" instead of "suite"
+        // handle a cucumber scenario as allure "case" instead of "suite"
         if (useCucumberStepReporter && isScenario) {
             this._startTest(suite.title, suite.cid)
 
@@ -387,7 +452,7 @@ export default class AllureReporter extends WDIOReporter {
             const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isPassed || isPartiallySkipped) {
-                const currentTest = this._state.pop() as AllureTest
+                const currentTest = this._state.currentTest as AllureTest
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
@@ -441,10 +506,10 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             this.onTestStart(test)
         } else {
-            this._state.currentAllureTestOrStep.name = test.title
+            this._state.currentAllureStepableEntity.name = test.title
         }
 
         this.attachLogs()
@@ -455,19 +520,22 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats) {
+        const { useCucumberStepReporter } = this._options
         this.attachLogs()
 
-        if (!this._state.currentAllureTestOrStep || this._state.currentAllureTestOrStep.wrappedItem.name !== test.title) {
-            this._startTest(test.title, test.cid)
-            this._skipTest()
-            return
+        if (!this._state.currentAllureStepableEntity || this._state.currentAllureStepableEntity.wrappedItem.name !== test.title) {
+            if (useCucumberStepReporter) {
+                this.onTestStart(test)
+            } else {
+                this._startTest(test.title, test.cid)
+            }
         }
 
         this._skipTest()
     }
 
     onBeforeCommand(command: BeforeCommandArgs) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -505,88 +573,135 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookStart(hook: HookStats) {
-        const { disableMochaHooks } = this._options
+        const { disableHooks, useCucumberStepReporter } = this._options
 
-        // ignore global hooks
+        // ignore global hooks or hooks when option is set in false
+        // any hook is skipped if there is not a suite created.
         if (!hook.parent || !this._state.currentSuite) {
             return
         }
 
-        const isMochaAllHook = isMochaAllHooks(hook.title)
-        const isMochaEachHook = isMochaEachHooks(hook.title)
+        const isAllHook = isAllTypeHooks(hook.title) // if the hook is before* for mocha/jasmine
+        const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
 
-        // don't add hook as test to suite for mocha each hooks if no current test
-        if (disableMochaHooks && isMochaEachHook && !this._state.currentAllureTestOrStep) {
-            return
+        // if the hook is before/after from mocha/jasmine
+        if ((isAllHook || isEachHook) && !disableHooks) {
+            const hookExecutable = isBeforeTypeHook(hook.title) ? this._state.currentSuite.addBefore() : this._state.currentSuite.addAfter()
+            const hookStep = hookExecutable.startStep(hook.title)
+            this._state.push(hookExecutable)
+            this._state.push(hookStep)
+        // if the hook is custom by default, it will be reported as test (not usual)
+        } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
+            const customHookTest = this._state.currentSuite.startTest(`hook:${hook.title}`)
+            this._state.push(customHookTest)
+        } else if (useCucumberStepReporter) {
+            this.onTestStart(hook)
         }
-
-        // add beforeEach / afterEach hook as step to test
-        if (disableMochaHooks && isMochaEachHook && this._state.currentAllureTestOrStep) {
-            this._startStep(hook.title)
-            return
-        }
-
-        // don't add hook as test to suite for mocha All hooks
-        if (disableMochaHooks && isMochaAllHook) {
-            return
-        }
-
-        // add hook as test to suite
-        this.onTestStart(hook)
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks, useCucumberStepReporter } = this._options
+        const { disableHooks, useCucumberStepReporter } = this._options
 
-        // ignore global hooks
+        // ignore global hooks or hooks when option is set in false
+        // any hook is skipped if there is not a suite created.
         if (!hook.parent || !this._state.currentSuite) {
             return
         }
 
-        const isMochaAllHook = isMochaAllHooks(hook.title)
-        const isMochaEachHook = isMochaEachHooks(hook.title)
+        const isAllHook = isAllTypeHooks(hook.title) // if the hook is before* for mocha/jasmine
+        const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
 
-        if (disableMochaHooks && !isMochaAllHook && !this._state.currentAllureTestOrStep) {
-            return
-        }
+        // if the hook is before/after from mocha/jasmine
+        if ((isAllHook || isEachHook) && !disableHooks) {
+            // getting the root step
+            const currentHookRootStep = this._state.pop()
+            // getting before/after hook element
+            const currentHookRoot = this._state.pop()
+            if (currentHookRootStep || currentHookRoot) {
+                if (currentHookRootStep instanceof AllureStep && currentHookRoot instanceof ExecutableItemWrapper) {
+                    // stage to finish for all hook.
+                    currentHookRoot.stage = currentHookRootStep.stage = Stage.FINISHED
+                    // set status values
+                    switch (hook.state) {
+                    case 'passed':
+                        currentHookRoot.status = currentHookRootStep.status = Status.PASSED
+                        break
+                    case 'failed':
+                        currentHookRoot.status = currentHookRootStep.status = Status.FAILED
+                        break
+                    default:
+                        currentHookRoot.status = currentHookRootStep.status = Status.BROKEN
+                    }
+                    // set error data
+                    currentHookRoot.detailsMessage = currentHookRootStep.detailsMessage = hook.error?.message
+                    currentHookRoot.detailsTrace = currentHookRootStep.detailsTrace = hook.error?.stack
 
-        // set beforeEach / afterEach hook (step) status
-        if (disableMochaHooks && isMochaEachHook) {
-            this._endTest(hook.error ? AllureStatus.FAILED : AllureStatus.PASSED, hook.error)
-            // mocha doesn't fire onTestEnd for failed beforeEach hook
-            // we have to force mark test as failed test
-            if (isMochaBeforeEachHook(hook.title) && hook.error) {
-                const fakeTestStat = Object.assign({}, hook, { title: hook.currentTest }) as TestStats
-                this._endTest(fakeTestStat.error ? AllureStatus.FAILED : AllureStatus.PASSED, fakeTestStat.error)
+                    // if there is not a test case implemented, it will create one for reporting the hook's result
+                    if (!this._state.currentTest) {
+                        this.onTestStart(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+                    }
+                    // force broken status when hook fails
+                    if (hook.error){
+                        this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.BROKEN : AllureStatus.PASSED, hook.error)
+                    }
+                } else {
+                    // should not pop test case if no steps and before hook (put them back to the list)
+                    if (currentHookRoot){
+                        this._state.push(currentHookRoot)
+                    }
+                    if (currentHookRootStep) {
+                        this._state.push(currentHookRootStep)
+                    }
+                }
             }
-            return
-        }
+        } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
+            // getting the lates element
+            const lastElement = this._state.pop()
+            if (lastElement) {
+                const isCustomHook = lastElement instanceof AllureTest && lastElement.wrappedItem.name?.startsWith('hook:')
+                this._state.push(lastElement)
+                if (isCustomHook) {
+                    // we end the test case that represent the custom hook call
+                    this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.SKIPPED : AllureStatus.PASSED, hook.error)
+                }
+            }
+        } else if (useCucumberStepReporter) {
+            hook.error ? this.onTestFail(hook) : this.onTestPass()
+        } else if (disableHooks && hook.error) { // only if the hook fails, it will be reported
+            const hookExecutable = isBeforeTypeHook(hook.title) ? this._state.currentSuite.addBefore() : this._state.currentSuite.addAfter()
+            const hookStep = hookExecutable.startStep(hook.title)
 
-        if (hook.error) {
-            // add hook as test to suite for mocha all hooks, when it didn't start before
-            if (disableMochaHooks && isMochaAllHook) {
-                this.onTestStart(hook)
+            // to cover the before/after all hook.
+            if (!this._state.currentTest) {
+                this.onTestStart(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
             }
 
-            this.onTestFail(hook)
-            // mocha doesn't fire onTestEnd for failed beforeEach hook
-            // we have to force mark test as failed test
-            if (isMochaBeforeEachHook(hook.title) && !disableMochaHooks) {
-                this.onTestFail(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+            // set error information
+            hookExecutable.stage = hookStep.stage = Stage.FINISHED
+            hookExecutable.detailsMessage = hookStep.detailsMessage = hook.error.message
+            hookExecutable.detailsTrace = hookStep.detailsTrace = hook.error.stack
+            // set status
+            switch (hook.state) {
+            case 'passed':
+                hookExecutable.status = hookStep.status = Status.PASSED
+                break
+            case 'failed':
+                hookExecutable.status = hookStep.status = Status.FAILED
+                break
+            default:
+                hookExecutable.status = hookStep.status = Status.BROKEN
             }
-
-            return
+            // force skipped status when hook fails
+            this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.BROKEN: AllureStatus.PASSED, hook.error)
         }
-
-        this.onTestPass()
 
         if (useCucumberStepReporter) {
             // remove hook from suite if it has no steps or attachments
-            const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
+            const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
             if (currentItem) {
                 const currentStep = currentItem.steps[currentItem.steps.length-1]
 
-                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                if (currentStep && currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0 && currentStep.status === Status.PASSED) {
                     currentItem.steps.pop()
                 }
             }
@@ -769,7 +884,7 @@ export default class AllureReporter extends WDIOReporter {
         content,
         type = ContentType.TEXT
     }: AddAttachmentEventArgs) {
-        if (!this._state.currentTest) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -782,7 +897,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     startStep(title: string) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -790,7 +905,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     endStep(status: AllureStatus) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -800,7 +915,7 @@ export default class AllureReporter extends WDIOReporter {
     addStep({
         step
     }: any) {
-        if (!this._state.currentAllureTestOrStep) {
+        if (!this._state.currentAllureStepableEntity) {
             return
         }
 
@@ -825,7 +940,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     addAllureStep(metadata: MetadataMessage) {
-        const { currentAllureTestOrStep: currentAllureSpec } = this._state
+        const { currentAllureStepableEntity: currentAllureSpec } = this._state
 
         if (!currentAllureSpec) {
             throw new Error("Couldn't add step: no test case running!")

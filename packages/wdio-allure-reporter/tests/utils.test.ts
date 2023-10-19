@@ -6,14 +6,14 @@ import CompoundError from '../src/compoundError.js'
 import {
     getTestStatus,
     isEmpty,
-    isMochaEachHooks,
+    isEachTypeHooks,
     getErrorFromFailedTest,
-    isMochaAllHooks,
+    isAllTypeHooks,
     getLinkByTemplate,
     findLast,
     isScreenshotCommand,
     getSuiteLabels,
-    isMochaBeforeEachHook,
+    isBeforeEachTypeHook,
 } from '../src/utils.js'
 import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -83,17 +83,17 @@ describe('utils', () => {
     })
 
     it('isMochaEachHooks filter hook by title', () => {
-        expect(isMochaEachHooks('"before all" hook')).toEqual(false)
-        expect(isMochaEachHooks('"after all" hook')).toEqual(false)
-        expect(isMochaEachHooks('"before each" hook')).toEqual(true)
-        expect(isMochaEachHooks('"after each" hook')).toEqual(true)
+        expect(isEachTypeHooks('"before all" hook')).toEqual(false)
+        expect(isEachTypeHooks('"after all" hook')).toEqual(false)
+        expect(isEachTypeHooks('"before each" hook')).toEqual(true)
+        expect(isEachTypeHooks('"after each" hook')).toEqual(true)
     })
 
     it('isMochaBeforeEachHook filter hook by title', () => {
-        expect(isMochaBeforeEachHook('"before all" hook')).toEqual(false)
-        expect(isMochaBeforeEachHook('"after all" hook')).toEqual(false)
-        expect(isMochaBeforeEachHook('"before each" hook')).toEqual(true)
-        expect(isMochaBeforeEachHook('"after each" hook')).toEqual(false)
+        expect(isBeforeEachTypeHook('"before all" hook')).toEqual(false)
+        expect(isBeforeEachTypeHook('"after all" hook')).toEqual(false)
+        expect(isBeforeEachTypeHook('"before each" hook')).toEqual(true)
+        expect(isBeforeEachTypeHook('"after each" hook')).toEqual(false)
     })
 
     describe('isEmpty', () => {
@@ -108,15 +108,15 @@ describe('utils', () => {
 
     describe('isMochaHooks', () => {
         it('should filter hook by title', () => {
-            expect(isMochaEachHooks('"before all" hook')).toEqual(false)
-            expect(isMochaEachHooks('"after all" hook')).toEqual(false)
-            expect(isMochaEachHooks('"before each" hook')).toEqual(true)
-            expect(isMochaEachHooks('"after each" hook')).toEqual(true)
+            expect(isEachTypeHooks('"before all" hook')).toEqual(false)
+            expect(isEachTypeHooks('"after all" hook')).toEqual(false)
+            expect(isEachTypeHooks('"before each" hook')).toEqual(true)
+            expect(isEachTypeHooks('"after each" hook')).toEqual(true)
 
-            expect(isMochaAllHooks('"before all" hook')).toEqual(true)
-            expect(isMochaAllHooks('"after all" hook')).toEqual(true)
-            expect(isMochaAllHooks('"before each" hook')).toEqual(false)
-            expect(isMochaAllHooks('"after each" hook')).toEqual(false)
+            expect(isAllTypeHooks('"before all" hook')).toEqual(true)
+            expect(isAllTypeHooks('"after all" hook')).toEqual(true)
+            expect(isAllTypeHooks('"before each" hook')).toEqual(false)
+            expect(isAllTypeHooks('"after each" hook')).toEqual(false)
         })
     })
 

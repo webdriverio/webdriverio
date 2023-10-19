@@ -1,10 +1,11 @@
-import { sep } from 'node:path'
-import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
-import { findLast } from './utils.js'
+import { sep }                                                      from 'node:path'
+import { AllureGroup, AllureTest, AllureStep, ExecutableItemWrapper } from 'allure-js-commons'
+import { findLast }                                                 from './utils.js'
+import type { AllureStepableUnit }                                         from 'src/types'
 
 export class AllureReporterState {
     currentFile?: string
-    runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
+    runningUnits: Array<AllureGroup | AllureStepableUnit> = []
 
     get currentSuite(): AllureGroup | undefined {
         return findLast(this.runningUnits, (unit) => unit instanceof AllureGroup) as AllureGroup | undefined
@@ -18,8 +19,12 @@ export class AllureReporterState {
         return findLast(this.runningUnits, (unit) => unit instanceof AllureStep) as AllureStep | undefined
     }
 
-    get currentAllureTestOrStep(): AllureTest | AllureStep | undefined {
-        return findLast(this.runningUnits, (unit) => unit instanceof AllureTest || unit instanceof AllureStep) as AllureTest | AllureStep | undefined
+    get currentHook(): ExecutableItemWrapper | undefined {
+        return findLast(this.runningUnits, (unit) => unit instanceof ExecutableItemWrapper) as ExecutableItemWrapper | undefined
+    }
+
+    get currentAllureStepableEntity(): AllureStepableUnit | undefined {
+        return findLast(this.runningUnits, (unit) => unit instanceof AllureTest || unit instanceof AllureStep || unit instanceof ExecutableItemWrapper) as AllureTest | AllureStep | ExecutableItemWrapper | undefined
     }
 
     get currentPackageLabel(): string | undefined {
@@ -30,11 +35,11 @@ export class AllureReporterState {
         return this.currentFile.replaceAll(sep, '.')
     }
 
-    push(unit: AllureGroup | AllureTest | AllureStep) {
+    push(unit: AllureGroup | AllureStepableUnit) {
         this.runningUnits.push(unit)
     }
 
-    pop(): AllureGroup | AllureTest | AllureStep | undefined {
+    pop(): AllureGroup | AllureStepableUnit | undefined {
         return this.runningUnits.pop()
     }
 }
