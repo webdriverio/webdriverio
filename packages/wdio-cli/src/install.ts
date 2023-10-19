@@ -3,14 +3,14 @@ import { detect, type PM } from 'detect-package-manager'
 
 const installCommand: Record<PM, string> = {
     npm: 'install',
-    pnpm: 'install',
+    pnpm: 'add',
     yarn: 'add',
     bun: 'install'
 }
 
 const devFlag: Record<PM, string> = {
     npm: '--save-dev',
-    pnpm: '--dev',
+    pnpm: '--save-dev',
     yarn: '--dev',
     bun: '--dev'
 }
@@ -18,7 +18,15 @@ const devFlag: Record<PM, string> = {
 export async function installPackages (cwd: string, packages: string[], dev: boolean) {
     const pm = await detect({ cwd })
     const devParam = dev ? devFlag[pm] : ''
-    const { stdout, stderr, exitCode } = await execa(pm, [installCommand[pm], ...packages, devParam], { cwd })
+
+    console.log('\n')
+    const p = execa(pm, [installCommand[pm], ...packages, devParam], {
+        cwd,
+        stdout: process.stdout,
+        stderr: process.stderr
+    })
+    const { stdout, stderr, exitCode } = await p
+
     if (exitCode !== 0) {
         const cmd = getInstallCommand(pm, packages, dev)
         const customError = (

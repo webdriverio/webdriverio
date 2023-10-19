@@ -793,14 +793,14 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
     const cwd = await getProjectRoot(parsedAnswers)
+    const pm = await detect({ cwd })
     if (parsedAnswers.npmInstall) {
-        console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))
+        console.log(`Installing packages using ${pm}:\n-${parsedAnswers.packagesToInstall.join('\n- ')}`)
         const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
         if (success) {
             console.log(chalk.green.bold('✔ Success!\n'))
         }
     } else {
-        const pm = await detect({ cwd })
         const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
         console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
     }

@@ -105,9 +105,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
-        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
+        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
         { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
-        { name: 'light', value: 'wdio-light-reporter--$light' }
+        { name: 'light', value: 'wdio-light-reporter$--$light' }
     ],
     plugin: [
         { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
@@ -136,7 +136,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
-        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
+        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--$ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },

@@ -72,10 +72,14 @@ export async function handler(argv: InstallCommandArguments) {
     /**
      * verify if the name of the `type` is valid
      */
-    if (!supportedInstallations[type].find(pkg => pkg.short === name)) {
-        console.log(`${name} is not a supported ${type}.`)
+    const options = supportedInstallations[type].map((pkg) => pkg.short)
+    if (!options.find((pkg) => pkg === name)) {
+        console.log(
+            `Error: ${name} is not a supported ${type}.\n\n` +
+            `Available options for a ${type} are:\n` +
+            `- ${options.join('\n- ')}`
+        )
         process.exit(0)
-        return
     }
 
     const defaultPath = path.resolve(process.cwd(), 'wdio.conf')
