@@ -633,8 +633,9 @@ export default class AllureReporter extends WDIOReporter {
                         currentHookRoot.status = currentHookRootStep.status = Status.BROKEN
                     }
                     // set error data
-                    currentHookRoot.detailsMessage = currentHookRootStep.detailsMessage = hook.error?.message
-                    currentHookRoot.detailsTrace = currentHookRootStep.detailsTrace = hook.error?.stack
+                    const formattedError = getErrorFromFailedTest(hook)
+                    currentHookRoot.detailsMessage = currentHookRootStep.detailsMessage = formattedError?.message
+                    currentHookRoot.detailsTrace = currentHookRootStep.detailsTrace = formattedError?.stack
 
                     // if there is not a test case implemented, it will create one for reporting the hook's result
                     if (!this._state.currentTest) {
@@ -678,8 +679,9 @@ export default class AllureReporter extends WDIOReporter {
 
             // set error information
             hookExecutable.stage = hookStep.stage = Stage.FINISHED
-            hookExecutable.detailsMessage = hookStep.detailsMessage = hook.error.message
-            hookExecutable.detailsTrace = hookStep.detailsTrace = hook.error.stack
+            const formattedError = getErrorFromFailedTest(hook)
+            hookExecutable.detailsMessage = hookStep.detailsMessage = formattedError?.message
+            hookExecutable.detailsTrace = hookStep.detailsTrace = formattedError?.stack
             // set status
             switch (hook.state) {
             case 'passed':
