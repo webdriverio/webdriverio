@@ -15,6 +15,7 @@ exports[`handler 1`] = `
     "destPageObjectRootPath": "",
     "destSerenityLibRootPath": "",
     "destSpecRootPath": "/foo/bar",
+    "destStepRootPath":"/tmp/foobar",
     "esmSupport": true,
     "framework": "mocha",
     "generateTestFiles": false,
