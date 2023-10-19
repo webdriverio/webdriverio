@@ -637,14 +637,6 @@ export default class AllureReporter extends WDIOReporter {
                     currentHookRoot.detailsMessage = currentHookRootStep.detailsMessage = formattedError?.message
                     currentHookRoot.detailsTrace = currentHookRootStep.detailsTrace = formattedError?.stack
 
-                    // if there is not a test case implemented, it will create one for reporting the hook's result
-                    if (!this._state.currentTest) {
-                        this.onTestStart(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
-                    }
-                    // force broken status when hook fails
-                    if (hook.error){
-                        this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.BROKEN : AllureStatus.PASSED, hook.error)
-                    }
                 } else {
                     // should not pop test case if no steps and before hook (put them back to the list)
                     if (currentHookRoot){
@@ -656,7 +648,7 @@ export default class AllureReporter extends WDIOReporter {
                 }
             }
         } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
-            // getting the lates element
+            // getting the latest element
             const lastElement = this._state.pop()
             if (lastElement) {
                 const isCustomHook = lastElement instanceof AllureTest && lastElement.wrappedItem.name?.startsWith('hook:')
