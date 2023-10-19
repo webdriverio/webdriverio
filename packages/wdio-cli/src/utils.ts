@@ -11,8 +11,8 @@ import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
-import yarnInstall from 'yarn-install'
 import { $ } from 'execa'
+import { detect } from 'detect-package-manager'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -20,6 +20,7 @@ import { ConfigParser } from '@wdio/config/node'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
+import { installPackages, getInstallCommand } from './install.js'
 import {
     ANDROID_CONFIG,
     CompilerOptions,
@@ -337,23 +338,6 @@ export async function getCapabilities(arg: ReplCommandArguments) {
 }
 
 /**
- * Get project root directory based on questionair answers
- * @param answers questionair answers
- * @param projectProps project properties received via `getProjectProps`
- * @returns project root path
- */
-export function getProjectRoot(answers: Questionnair, projectProps?: ProjectProps) {
-    return (
-        answers.projectRoot ||
-        (
-            typeof projectProps === 'undefined'
-                ? process.cwd()
-                : projectProps.path
-        )
-    )
-}
-
-/**
  * Checks if certain directory has babel configuration files
  * @param rootDir directory where this function checks for Babel signs
  * @returns true, if a babel config was found, otherwise false
@@ -374,8 +358,7 @@ export function hasBabelConfig(rootDir: string) {
  * detect if project has a compiler file
  */
 export async function detectCompiler(answers: Questionnair) {
-    const projectProps = await getProjectProps(process.cwd())
-    const root = getProjectRoot(answers, projectProps)
+    const root = await getProjectRoot(answers)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
     return (await hasBabelConfig(root))
         ? CompilerOptions.Babel // default to Babel
@@ -620,8 +603,7 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
 }
 
 export async function getDefaultFiles(answers: Questionnair, pattern: string) {
-    const projectProps = await getProjectProps()
-    const rootdir = getProjectRoot(answers, projectProps)
+    const rootdir = await getProjectRoot(answers)
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const isJSX = TSX_BASED_FRAMEWORKS.includes(presetPackage.short || '')
     const val = pattern.endsWith('.feature')
@@ -734,7 +716,7 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
 /**
  * run npm install only if required by the user
  */
-export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
 
@@ -810,18 +792,16 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
       */
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
+    const cwd = await getProjectRoot(parsedAnswers)
+    const pm = await detect({ cwd })
     if (parsedAnswers.npmInstall) {
-        console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))
-        const result = yarnInstall({ deps: parsedAnswers.packagesToInstall, dev: true, respectNpm5: !useYarn })
-        if (result.status !== 0) {
-            const customError = '⚠️ An unknown error happened! Please retry ' +
-                `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
-                `${parsedAnswers.packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
-            console.error(customError)
+        console.log(`Installing packages using ${pm}:\n-${parsedAnswers.packagesToInstall.join('\n- ')}`)
+        const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
+        if (success) {
+            console.log(chalk.green.bold('✔ Success!\n'))
         }
-        console.log(chalk.green.bold('✔ Success!\n'))
     } else {
-        const installationCommand = `${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ${parsedAnswers.packagesToInstall.join(' ')}`
+        const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
         console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
     }
 }
@@ -1010,10 +990,26 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     }
 }
 
-export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
-    const projectProps = await getProjectProps(process.cwd())
+/**
+ * Get project root directory based on questionair answers
+ * @param answers questionair answers
+ * @param projectProps project properties received via `getProjectProps`
+ * @returns project root path
+ */
+export async function getProjectRoot (parsedAnswers?: Questionnair) {
+    const root = (await getProjectProps())?.path
+    if (!root) {
+        throw new Error('Could not find project root directory with a package.json')
+    }
 
-    const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
+    return !parsedAnswers || parsedAnswers.projectRootCorrect
+        ? root
+        : parsedAnswers.projectRoot || process.cwd()
+}
+
+export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
+    const rootDir = await getProjectRoot(parsedAnswers)
+    const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(rootDir, ''))}`
 
     const wdioScripts = {
         'wdio': `wdio run ${ pathToWdioConfig }`,
