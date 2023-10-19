@@ -23,6 +23,10 @@ vi.mock('@wdio/utils', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils'))
 })
+vi.mock('@wdio/utils/node', async () => {
+    const pathModule = await vi.importActual('node:path') as typeof path
+    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils', 'node'))
+})
 vi.mock('pptrDebug', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', 'pptrDebug'))

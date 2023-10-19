@@ -172,7 +172,8 @@ export default class ConfigParser {
          */
         if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs as string[]
-        } else if (object.exclude && object.exclude.length > 0) {
+        }
+        if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
         }
 

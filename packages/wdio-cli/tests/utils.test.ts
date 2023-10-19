@@ -77,7 +77,7 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 
-vi.mock('@wdio/config', () => ({
+vi.mock('@wdio/config/node', () => ({
     ConfigParser: class ConfigParserMock {
         initialize() { }
         getCapabilities() { }
