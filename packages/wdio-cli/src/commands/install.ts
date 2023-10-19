@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+// @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
 import { detect } from 'detect-package-manager'
 import type { Argv } from 'yargs'
 

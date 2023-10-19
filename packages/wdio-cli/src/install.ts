@@ -1,4 +1,5 @@
 import { execa } from 'execa'
+// @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
 import { detect, type PM } from 'detect-package-manager'
 
 const installCommand: Record<PM, string> = {

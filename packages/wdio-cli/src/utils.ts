@@ -12,6 +12,7 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { $ } from 'execa'
+// @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
 import { detect } from 'detect-package-manager'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
