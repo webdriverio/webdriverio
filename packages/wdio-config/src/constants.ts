@@ -26,6 +26,10 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     execArgv: [],
     runnerEnv: {},
     runner: 'local' as const,
+    shard: {
+        current: 1,
+        total: 1
+    },
     specFileRetries: 0,
     specFileRetriesDelay: 0,
     specFileRetriesDeferred: false,

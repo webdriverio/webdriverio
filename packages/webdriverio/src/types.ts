@@ -79,7 +79,7 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<Element | WebdriverIO.Element | undefined>
+    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
 
     /**
      * Unwrap the nth element of the element list.
@@ -280,7 +280,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     error?: Error
 }
-export interface Element extends ElementBase, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+export interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**

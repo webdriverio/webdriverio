@@ -10,6 +10,7 @@ vi.mock('@wdio/utils', () => {
     let syncSupport = false
 
     return {
+        HOOK_DEFINITION: {},
         default: {
             setSyncSupport: (val: boolean) => (syncSupport = val),
             get hasWdioSyncSupport () {
