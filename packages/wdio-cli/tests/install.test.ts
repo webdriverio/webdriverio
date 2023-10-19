@@ -26,6 +26,6 @@ describe('install', () => {
 
     it('getInstallCommand', () => {
         expect(getInstallCommand('pnpm', ['foo', 'bar'], true))
-            .toBe('pnpm install foo bar --dev')
+            .toBe('pnpm add foo bar --save-dev')
     })
 })
