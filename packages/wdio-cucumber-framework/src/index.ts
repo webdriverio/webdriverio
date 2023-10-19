@@ -14,9 +14,7 @@ import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
-import { } from '@cucumber/cucumber'
 import {
-    default as Cucumber,
     After,
     AfterAll,
     AfterStep,
@@ -31,6 +29,7 @@ import {
 
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
+    supportCodeLibraryBuilder,
     setWorldConstructor,
     defineParameterType,
     defineStep,
@@ -42,7 +41,7 @@ import {
 import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type { Feature, GherkinDocument } from '@cucumber/messages'
-import type { ITestCaseHookParameter } from '@cucumber/cucumber'
+import type Cucumber from '@cucumber/cucumber'
 import type { IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
@@ -61,7 +60,7 @@ const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
 
 function getResultObject(
-    world: ITestCaseHookParameter
+    world: Cucumber.ITestCaseHookParameter
 ): Frameworks.PickleResult {
     return {
         passed:
@@ -239,19 +238,19 @@ class CucumberAdapter {
 
         try {
             await this.registerRequiredModules()
-            Cucumber.supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
                 requireModules: this._cucumberOpts.requireModule,
                 requirePaths: this._cucumberOpts.require,
                 importPaths: this._cucumberOpts.import,
             })
 
-            this.addWdioHooksAndWrapSteps(this._config, Cucumber.supportCodeLibraryBuilder)
+            this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
 
             setDefaultTimeout(this._cucumberOpts.timeout)
 
             await this.loadFiles()
 
-            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
+            const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
             outStream = new Writable({
                 write(chunk, encoding, callback) {
