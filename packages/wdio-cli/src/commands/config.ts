@@ -58,7 +58,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const projectProps = await getProjectProps(process.cwd())
-    const projectRootDir = getProjectRoot(answers, projectProps)
+    const projectRootDir = await getProjectRoot(answers)
 
     const packagesToInstall: string[] = [
         runnerPackage.package,
@@ -144,7 +144,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: bo
     await createPackageJSON(parsedAnswers)
     await setupTypeScript(parsedAnswers)
     await setupBabel(parsedAnswers)
-    await npmInstall(parsedAnswers, useYarn, npmTag)
+    await npmInstall(parsedAnswers, npmTag)
     await createWDIOConfig(parsedAnswers)
     await createWDIOScript(parsedAnswers)
 

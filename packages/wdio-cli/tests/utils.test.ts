@@ -7,7 +7,6 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
@@ -42,6 +41,7 @@ import {
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
+import { installPackages } from '../src/install.js'
 import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
@@ -67,8 +67,6 @@ vi.mock('read-pkg-up', () => ({
     })
 }))
 
-vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 }) }))
-
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockRejectedValue(new Error('ENOENT')),
@@ -86,6 +84,11 @@ vi.mock('@wdio/config', () => ({
 
 vi.mock('execa', () => ({
     $: vi.fn().mockReturnValue(async (sh: string) => sh)
+}))
+
+vi.mock('../src/install', () => ({
+    installPackages: vi.fn(),
+    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
 
 beforeEach(() => {
@@ -739,11 +742,15 @@ test('specifyVersionIfNeeded', () => {
     ])
 })
 
-test('getProjectRoot', () => {
-    expect(getProjectRoot({ projectRoot: '/foo/bar' } as any)).toBe('/foo/bar')
-    expect(getProjectRoot({} as any, { path: '/bar/foo' } as any)).toBe('/bar/foo')
-    const projectDir = process.cwd().substring(process.cwd().lastIndexOf(path.sep) + 1)
-    expect(getProjectRoot({} as any).includes(path.join(projectDir))).toBe(true)
+test('getProjectRoot', async () => {
+    expect(await getProjectRoot()).toBe('/foo/bar')
+    expect(await getProjectRoot({
+        projectRootCorrect: true
+    } as any)).toBe('/foo/bar')
+    expect(await getProjectRoot({
+        projectRootCorrect: false,
+        projectRoot: 'bar/foo'
+    } as any)).toBe('/bar/foo')
 })
 
 test('hasBabelConfig', async () => {
@@ -833,9 +840,9 @@ test('npmInstall', async () => {
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: true
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(1)
-    expect(vi.mocked(yarnInstall).mock.calls[0][0]).toMatchSnapshot()
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(1)
+    expect(vi.mocked(installPackages).mock.calls[0][0]).toMatchSnapshot()
 })
 
 test('not npmInstall', async () => {
@@ -848,8 +855,8 @@ test('not npmInstall', async () => {
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: false
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(0)
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(0)
     expect(vi.mocked(console.log).mock.calls[0][0]).toContain('To install dependencies, execute')
 })
 
@@ -955,5 +962,5 @@ afterEach(() => {
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(ejs.renderFile).mockClear()
-    vi.mocked(yarnInstall).mockClear()
+    vi.mocked(installPackages).mockClear()
 })

@@ -2,15 +2,17 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import yarnInstall from 'yarn-install'
+import { detect } from 'detect-package-manager'
 import type { Argv } from 'yargs'
 
 import {
+    getProjectRoot,
     replaceConfig,
     findInConfig,
     addServiceDeps,
     convertPackageHashToObject
 } from '../utils.js'
+import { installPackages } from '../install.js'
 import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
 import type { InstallCommandArguments, SupportedPackage } from '../types.js'
@@ -31,11 +33,6 @@ export const desc = [
 ].join(' ')
 
 export const cmdArgs = {
-    yarn: {
-        desc: 'Install packages using yarn',
-        type: 'boolean',
-        default: false
-    },
     config: {
         desc: 'Location of your WDIO configuration (default: wdio.conf.(js|ts|cjs|mjs))',
     },
@@ -60,9 +57,8 @@ export async function handler(argv: InstallCommandArguments) {
     /**
      * type = service | reporter | framework
      * name = names for the supported service or reporter
-     * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, yarn, config } = argv
+    const { type, name, config } = argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
@@ -99,6 +95,7 @@ export async function handler(argv: InstallCommandArguments) {
 
     const configFile = await fs.readFile(wdioConfPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
+    const projectRoot = await getProjectRoot()
 
     if (match && match[0].includes(name)) {
         console.log(`The ${type} ${name} is already part of your configuration.`)
@@ -111,13 +108,12 @@ export async function handler(argv: InstallCommandArguments) {
 
     addServiceDeps(selectedPackage ? [selectedPackage] : [], pkgsToInstall, true)
 
-    console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
-    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
+    const pm = await detect({ cwd: projectRoot })
+    console.log(`Installing "${selectedPackage.package}" using ${pm}.`)
+    const success = installPackages(projectRoot, pkgsToInstall, true)
 
-    if (install.status !== 0) {
-        console.error('Error installing packages', install.stderr)
+    if (!success) {
         process.exit(1)
-        return
     }
 
     console.log(`Package "${selectedPackage.package}" installed successfully.`)

@@ -8,7 +8,6 @@ import {
     detectCompiler,
     getDefaultFiles,
     convertPackageHashToObject,
-    getProjectProps,
     getProjectRoot,
 } from './utils.js'
 import type { Questionnair } from './types.js'
@@ -553,10 +552,8 @@ export const QUESTIONNAIRE = [{
     name: 'serenityLibPath',
     message: 'What should be the location of your Serenity/JS Screenplay Pattern library?',
     default: /* istanbul ignore next */ async (answers: Questionnair) => {
-        const projectProps   = await getProjectProps()
-        const projectRootDir = getProjectRoot(answers, projectProps)
+        const projectRootDir = await getProjectRoot(answers)
         const specsDir = path.resolve(projectRootDir, path.dirname(answers.specs || '').replace(/\*\*$/, ''))
-
         return path.resolve(specsDir, '..', 'serenity')
     },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && usesSerenity(answers)
