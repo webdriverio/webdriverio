@@ -106,7 +106,7 @@ test.skipIf(isUsingWindows)('parseAnswers', async () => {
 })
 
 test('runConfigCommand', async () => {
-    await runConfigCommand({ projectRootDir: '/foo/bar' } as any, true, 'next')
+    await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')
     expect(createPackageJSON).toBeCalledTimes(1)
     expect(setupTypeScript).toBeCalledTimes(1)
     expect(setupBabel).toBeCalledTimes(1)
@@ -152,7 +152,7 @@ test('missingConfigurationPrompt does not init wizard if user does not want to',
     })
     const runConfigCmd = vi.fn()
     vi.mocked(inquirer.prompt).mockResolvedValue({})
-    await missingConfigurationPrompt('config', 'foobar', true, runConfigCmd)
+    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
     expect(runConfigCmd).toBeCalledTimes(0)
 })
 
@@ -173,7 +173,7 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
     const runConfigCmd = vi.fn()
 
     vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
-    await missingConfigurationPrompt('config', 'foobar', true, runConfigCmd)
+    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
     expect(runConfigCmd).toBeCalledTimes(1)
 })
 
@@ -194,6 +194,7 @@ describe('Serenity/JS project generation', () => {
 
     const defaultAnswers: Questionnair = {
         runner: '@wdio/local-runner$--$local$--$e2e',
+        // @ts-expect-error
         framework: undefined,   // overridden in the tests
         backend: BackendChoice.Local,
         e2eEnvironment: 'web',

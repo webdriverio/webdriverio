@@ -67,8 +67,7 @@
     "read-pkg-up": "10.1.0",
     "recursive-readdir": "^2.2.3",
     "webdriverio": "8.19.0",
-    "yargs": "^17.7.2",
-    "yarn-install": "^1.0.0"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/async-exit-hook": "^2.0.0",
@@ -78,7 +77,8 @@
     "@types/lodash.pickby": "^4.6.7",
     "@types/lodash.union": "^4.6.7",
     "@types/recursive-readdir": "^2.2.1",
-    "@types/yargs": "^17.0.24"
+    "@types/yargs": "^17.0.24",
+    "detect-package-manager": "^3.0.1"
   },
   "publishConfig": {
     "access": "public"

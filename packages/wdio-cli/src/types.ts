@@ -112,7 +112,6 @@ export interface ReplCommandArguments {
 }
 
 export interface InstallCommandArguments {
-    yarn: boolean
     config?: string
     type: 'service' | 'reporter' | 'framework' | 'plugin'
     name: string

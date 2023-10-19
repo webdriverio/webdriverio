@@ -100,17 +100,19 @@ exports[`getCapabilities > should throw config not found error 1`] = `"Config Fi
 exports[`getCapabilities > should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;
 
 exports[`npmInstall 1`] = `
-{
-  "deps": [
-    "foo$--$bar",
-    "bar$--$foo",
-    "@testing-library/vue",
-    "@testing-library/jest-dom",
-    "@types/jasmine",
+[
+  [
+    "/foo/bar",
+    [
+      "foo$--$bar",
+      "bar$--$foo",
+      "@testing-library/vue",
+      "@testing-library/jest-dom",
+      "@types/jasmine",
+    ],
+    true,
   ],
-  "dev": true,
-  "respectNpm5": false,
-}
+]
 `;
 
 exports[`setup Babel 1`] = `
