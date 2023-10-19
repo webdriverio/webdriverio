@@ -1,7 +1,7 @@
 import { sep }                                                      from 'node:path'
 import { AllureGroup, AllureTest, AllureStep, ExecutableItemWrapper } from 'allure-js-commons'
 import { findLast }                                                 from './utils.js'
-import type { AllureStepableUnit }                                         from 'src/types'
+import type { AllureStepableUnit }                                         from './types'
 
 export class AllureReporterState {
     currentFile?: string
