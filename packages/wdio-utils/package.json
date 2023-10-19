@@ -6,11 +6,18 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
   "license": "MIT",
   "type": "module",
-  "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./node": {
+      "import": "./build/node/index.js",
+      "types": "./build/node/index.d.ts"
+    },
     "./package.json": "./package.json"
   },
+  "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
     "node": "^16.13 || >=18"

@@ -2,14 +2,19 @@ import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
 import cp from 'node:child_process'
-import type fs from 'node:fs'
+import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 import { locateChrome } from 'locate-app'
 
-import { parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser, definesRemoteDriver } from '../../src/driver/utils.js'
+import {
+    parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
+    canAccess
+} from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 
 vi.mock('node:os', () => ({
     default: {
@@ -25,6 +30,7 @@ vi.mock('locate-app', () => ({
 
 vi.mock('node:fs', () => ({
     default: {
+        accessSync: vi.fn(),
         readdirSync: vi.fn().mockReturnValue([
             '114.0.5735.199',
             '115.0.5790.110',
@@ -157,15 +163,17 @@ describe('driver utils', () => {
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '1.2.3')
         })
     })
+})
 
-    it('definesRemoteDriver', () => {
-        expect(definesRemoteDriver({})).toBe(false)
-        expect(definesRemoteDriver({ hostname: 'foo' })).toBe(true)
-        expect(definesRemoteDriver({ port: 1 })).toBe(true)
-        expect(definesRemoteDriver({ path: 'foo' })).toBe(true)
-        expect(definesRemoteDriver({ protocol: 'foo' })).toBe(true)
-        expect(definesRemoteDriver({ user: 'foo' })).toBe(false)
-        expect(definesRemoteDriver({ key: 'foo' })).toBe(false)
-        expect(definesRemoteDriver({ user: 'foo', key: 'bar' })).toBe(true)
+describe('utils:canAccess', () => {
+    it('canAccess', () => {
+        expect(canAccess('/foobar')).toBe(true)
+        expect(fs.accessSync).toBeCalledWith('/foobar')
+
+        // @ts-ignore
+        fs.accessSync.mockImplementation(() => {
+            throw new Error('upps')
+        })
+        expect(canAccess('/foobar')).toBe(false)
     })
 })

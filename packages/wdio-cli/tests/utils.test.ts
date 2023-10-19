@@ -9,7 +9,7 @@ import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 
 import {
     runLauncherHook,
@@ -80,7 +80,7 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 
-vi.mock('@wdio/config', () => ({
+vi.mock('@wdio/config/node', () => ({
     ConfigParser: class ConfigParserMock {
         initialize() { }
         getCapabilities() { }

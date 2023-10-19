@@ -27,12 +27,17 @@ export interface Test extends Suite {
     _retries?: number
 }
 
+export interface TestRetries {
+    limit: number
+    attempts: number
+}
+
 export interface TestResult {
     error?: any
     result?: any
     passed: boolean
     duration: number
-    retries: { limit: number, attempts: number }
+    retries: TestRetries
     exception: string
     status: string
 }

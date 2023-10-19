@@ -1,49 +1,20 @@
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
+import { readdir, readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
-import logger from '@wdio/logger'
+
+import got from 'got'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
+
+import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
-import got from 'got'
-import { readdir, readFile } from 'node:fs/promises'
-
-import * as Cucumber from '@cucumber/cucumber'
-import Gherkin from '@cucumber/gherkin'
-import { IdGenerator } from '@cucumber/messages'
-
-import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities } from './utils.js'
-
-import type {
-    CucumberOptions,
-    HookFunctionExtension as HookFunctionExtensionImport,
-    StepDefinitionOptions
-} from './types.js'
-import type { Feature, GherkinDocument } from '@cucumber/messages'
-import type { ITestCaseHookParameter } from '@cucumber/cucumber'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
-import type {
-    IRunEnvironment } from '@cucumber/cucumber/api'
 import {
-    loadConfiguration,
-    loadSources,
-    runCucumber
-} from '@cucumber/cucumber/api'
-
-import type { SupportCodeLibraryBuilder } from '@cucumber/cucumber/lib/support_code_library_builder/index.js'
-
-import { DataTable, World, Status } from '@cucumber/cucumber'
-
-export const FILE_PROTOCOL = 'file://'
-
-const log = logger('@wdio/cucumber-framework')
-
-const {
     After,
     AfterAll,
     AfterStep,
@@ -58,20 +29,38 @@ const {
 
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
+    supportCodeLibraryBuilder,
     setWorldConstructor,
     defineParameterType,
     defineStep,
-    supportCodeLibraryBuilder,
-} = Cucumber
+
+    DataTable,
+    World,
+    Status
+} from '@cucumber/cucumber'
+import Gherkin from '@cucumber/gherkin'
+import { IdGenerator } from '@cucumber/messages'
+import type { Feature, GherkinDocument } from '@cucumber/messages'
+import type Cucumber from '@cucumber/cucumber'
+import type { IRunEnvironment } from '@cucumber/cucumber/api'
+import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
+
+import { DEFAULT_OPTS } from './constants.js'
+import { generateSkipTagsFromCapabilities } from './utils.js'
+import type {
+    CucumberOptions,
+    HookFunctionExtension as HookFunctionExtensionImport,
+    StepDefinitionOptions
+} from './types.js'
+
+export const FILE_PROTOCOL = 'file://'
 
 const uuidFn = IdGenerator.uuid()
-
+const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
 
-const { incrementing } = IdGenerator
-
 function getResultObject(
-    world: ITestCaseHookParameter
+    world: Cucumber.ITestCaseHookParameter
 ): Frameworks.PickleResult {
     return {
         passed:
@@ -84,7 +73,7 @@ function getResultObject(
 
 class CucumberAdapter {
     private _cwd = process.cwd()
-    private _newId = incrementing()
+    private _newId = IdGenerator.incrementing()
     private _cucumberOpts: Required<CucumberOptions>
 
     private _hasTests = true
@@ -400,7 +389,7 @@ class CucumberAdapter {
      */
     addWdioHooksAndWrapSteps(
         config: Options.Testrunner,
-        supportCodeLibraryBuilder: SupportCodeLibraryBuilder
+        supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
         const params: { uri?: string; feature?: Feature } = {}
         this._eventEmitter.on('getHookParams', (payload: typeof params) => {
