@@ -13,7 +13,7 @@ vi.mock('yargs')
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockResolvedValue({}),
-        readFile: vi.fn().mockResolvedValue({}),
+        readFile: vi.fn().mockResolvedValue('export const config = {}'),
         writeFile: vi.fn().mockResolvedValue({})
     }
 }))
@@ -53,7 +53,9 @@ describe('Command: install', () => {
         await installCmd.handler({ type: 'service', name: 'foobar', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalled()
-        expect(console.log).toHaveBeenCalledWith('foobar is not a supported service.')
+        expect(console.log).toHaveBeenCalledWith(
+            expect.stringContaining('Error: foobar is not a supported service.')
+        )
     })
 
     it('should prompt missing configuration', async () => {

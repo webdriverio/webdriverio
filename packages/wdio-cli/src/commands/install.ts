@@ -80,6 +80,8 @@ export async function handler(argv: InstallCommandArguments) {
             `- ${options.join('\n- ')}`
         )
         process.exit(0)
+        // keep return for unit test purposes
+        return
     }
 
     const defaultPath = path.resolve(process.cwd(), 'wdio.conf')
@@ -93,6 +95,7 @@ export async function handler(argv: InstallCommandArguments) {
             return handler(argv)
         } catch {
             process.exit(1)
+            // keep return for unit test purposes
             return
         }
     }
@@ -104,6 +107,7 @@ export async function handler(argv: InstallCommandArguments) {
     if (match && match[0].includes(name)) {
         console.log(`The ${type} ${name} is already part of your configuration.`)
         process.exit(0)
+        // keep return for unit test purposes
         return
     }
 
@@ -118,6 +122,8 @@ export async function handler(argv: InstallCommandArguments) {
 
     if (!success) {
         process.exit(1)
+        // keep return for unit test purposes
+        return
     }
 
     console.log(`Package "${selectedPackage.package}" installed successfully.`)
