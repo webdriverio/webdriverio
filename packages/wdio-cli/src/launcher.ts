@@ -3,13 +3,14 @@ import path from 'node:path'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser, validateConfig } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep, setupDriver, setupBrowser } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import type { HookError } from './utils.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
+import { TESTRUNNER_DEFAULTS } from './constants.js'
+import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
 
 const log = logger('@wdio/cli:launcher')
@@ -74,10 +75,11 @@ class Launcher {
          */
         this._args.autoCompileOpts = config.autoCompileOpts
 
-        const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapability
+        const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
         this.isParallelMultiremote = Array.isArray(capabilities) &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
+        validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         if (config.outputDir) {
             await fs.mkdir(path.join(config.outputDir), { recursive: true })
@@ -244,6 +246,12 @@ class Launcher {
              * fail if no specs were found or specified
              */
             if (Object.values(this._schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
+                const { total, current } = config.shard
+                if (total > 1) {
+                    log.info(`No specs to execute in shard ${current}/${total}, exiting!`)
+                    return resolve(0)
+                }
+
                 log.error('No specs found to run, exiting with failure')
                 return resolve(1)
             }

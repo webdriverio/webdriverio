@@ -21,6 +21,33 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.19.0 (2023-10-17)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#11441](https://github.com/webdriverio/webdriverio/pull/11441) (@wdio/cli): Support for sharding ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11444](https://github.com/webdriverio/webdriverio/pull/11444) removing Element as not needed Closes [#11350](https://github.com/webdriverio/webdriverio/issues/11350) ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+* `wdio-browser-runner`
+  * [#11366](https://github.com/webdriverio/webdriverio/pull/11366) Properly resolve Mocha when using browser-runner ([@FrederikBolding](https://github.com/FrederikBolding))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#11423](https://github.com/webdriverio/webdriverio/pull/11423) Remove deprecated flag due to lack of functionality in the current allure.step() API. ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* [#11424](https://github.com/webdriverio/webdriverio/pull/11424) (docs): add tests on how to parameterize tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Bhanu Agarwal ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Frederik Bolding ([@FrederikBolding](https://github.com/FrederikBolding))
+- Paweł Pohl ([@Pawel1894](https://github.com/Pawel1894))
+
+
 ## v8.18.2 (2023-10-13)
 
 #### :bug: Bug Fix

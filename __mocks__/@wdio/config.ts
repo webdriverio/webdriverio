@@ -1,11 +1,11 @@
 import { vi } from 'vitest'
-import { Options } from '../../packages/wdio-types'
+import type { Options } from '../../packages/wdio-types'
 
-import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../packages/wdio-config/src/constants'
+import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../packages/wdio-config/src/constants.js'
 import {
     isCloudCapability as isCloudCapabilityMock,
     validateConfig as validateConfigMock
-} from '../../packages/wdio-config/src/utils'
+} from '../../packages/wdio-config/src/utils.js'
 
 class ConfigParserMock {
     addService = vi.fn()
@@ -16,6 +16,7 @@ class ConfigParserMock {
 
     getConfig = vi.fn().mockReturnValue({
         runnerEnv: {},
+        shard: { current: 1, total: 1 },
         runner: 'local',
         outputDir: './tempDir'
     })
