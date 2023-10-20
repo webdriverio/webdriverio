@@ -30,11 +30,6 @@ export const config: Options.Testrunner = {
             args: ['headless', 'disable-gpu']
         }
     }, {
-        browserName: 'chromium',
-        'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
-    }, {
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['-headless']
@@ -69,5 +64,14 @@ export const config: Options.Testrunner = {
 if (os.platform() === 'darwin') {
     (config.capabilities as WebdriverIO.Capabilities[]).push({
         browserName: 'safari'
+    })
+}
+
+if (os.platform() !== 'win32') {
+    (config.capabilities as WebdriverIO.Capabilities[]).push({
+        browserName: 'chromium',
+        'goog:chromeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
     })
 }
