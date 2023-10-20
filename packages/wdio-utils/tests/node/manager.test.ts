@@ -1,11 +1,11 @@
 import path from 'node:path'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
-import type * as utils from '../../src/driver/utils.js'
-import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser } from '../../src/driver/utils.js'
-import { setupDriver, setupBrowser } from '../../src/driver/manager.js'
+import type * as utils from '../../src/node/utils.js'
+import { setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser } from '../../src/node/utils.js'
+import { setupDriver, setupBrowser } from '../../src/node/manager.js'
 
-vi.mock('../../src/driver/utils.js', async (orig) => {
+vi.mock('../../src/node/utils.js', async (orig) => {
     const origMod = await orig<typeof utils>()
     return {
         ...origMod,

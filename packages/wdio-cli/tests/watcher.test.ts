@@ -15,7 +15,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('../src/launcher', async () => {
-    const { ConfigParser } = await import('@wdio/config')
+    const { ConfigParser } = await import('@wdio/config/node')
 
     interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
         isMultiremote?: boolean;
@@ -51,9 +51,9 @@ interface WorkerMockRunPayload extends Partial<Workers.WorkerRunPayload> {
 class WorkerMock extends EventEmitter implements Workers.Worker {
     cid: string
     specs: any
-    caps: WebDriver.DesiredCapabilities
+    caps: WebdriverIO.Capabilities
     config: Options.Testrunner
-    capabilities: WebDriver.DesiredCapabilities
+    capabilities: WebdriverIO.Capabilities
     sessionId: string
     isBusy: boolean
     postMessage = vi.fn()

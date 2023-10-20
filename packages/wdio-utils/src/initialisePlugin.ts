@@ -1,7 +1,6 @@
-import path from 'node:path'
 import type { Services } from '@wdio/types'
 
-import { safeImport } from './utils.js'
+import { safeImport, isAbsolute } from './utils.js'
 
 /**
  * initialise WebdriverIO compliant plugins like reporter or services in the following way:
@@ -13,7 +12,7 @@ export default async function initialisePlugin (name: string, type?: string): Pr
     /**
      * directly import packages that are scoped or start with an absolute path
      */
-    if (name[0] === '@' || path.isAbsolute(name)) {
+    if (name[0] === '@' || isAbsolute(name)) {
         const service = await safeImport(name)
 
         if (service) {

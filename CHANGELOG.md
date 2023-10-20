@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.20.0 (2023-10-20)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11476](https://github.com/webdriverio/webdriverio/pull/11476) (@wdio/cli) replace `yarn-install` with a custom install that supports pnpm as well ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11470](https://github.com/webdriverio/webdriverio/pull/11470) fix(types): Element and WebdriverIO.Element definitions do not match ([@Badisi](https://github.com/Badisi))
+
+#### :house: Internal
+* `devtools`, `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-globals`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-smoke-test-cjs-service`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#11469](https://github.com/webdriverio/webdriverio/pull/11469) (@wdio/utils): separate between common and node utils ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@Badisi](https://github.com/Badisi)
+
+
 ## v8.19.0 (2023-10-17)
 
 #### :rocket: New Feature

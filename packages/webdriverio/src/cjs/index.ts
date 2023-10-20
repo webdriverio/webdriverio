@@ -1,7 +1,3 @@
-import type { Options, Capabilities } from '@wdio/types'
-import type * as WebDriverTypes from 'webdriver'
-import type { AttachOptions } from '../types.js'
-
 exports.SevereServiceError = class SevereServiceError extends Error {
     constructor(message = 'Severe Service Error occurred.') {
         super(message)
@@ -69,8 +65,6 @@ exports.Key = {
     ZenkakuHankaku: '\uE040'
 }
 
-export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
-
 /**
  * A method to create a new session with WebdriverIO.
  *
@@ -85,14 +79,14 @@ export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capa
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
 exports.remote = async function(
-    params: RemoteOptions,
-    remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
+    params: any,
+    remoteModifier?: (client: any, options: any) => any
 ): Promise<WebdriverIO.Browser> {
     const { remote } = await import('../index.js')
     return remote(params, remoteModifier)
 }
 
-exports.attach = async function(attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
+exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser> {
     const { attach } = await import('../index.js')
     return attach(attachOptions)
 }
@@ -117,7 +111,7 @@ exports.attach = async function(attachOptions: AttachOptions): Promise<Webdriver
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
 exports.multiremote = async function(
-    params: Capabilities.MultiRemoteCapabilities,
+    params: any,
     { automationProtocol }: { automationProtocol?: string } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
     const { multiremote } = await import('../index.js')

@@ -17,7 +17,7 @@ import type {
     FormFactor,
     GathererDriver,
     PWAAudits
-} from './types'
+} from './types.js'
 import { KnownDevices } from 'puppeteer-core'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 import DevtoolsGatherer from './gatherer/devtools.js'
