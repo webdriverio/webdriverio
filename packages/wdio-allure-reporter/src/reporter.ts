@@ -1,4 +1,4 @@
-import { stringify }  from 'csv-stringify/sync'
+import { stringify } from 'csv-stringify/sync'
 import type {
     AfterCommandArgs,
     Argument,
@@ -6,17 +6,11 @@ import type {
     HookStats,
     RunnerStats,
     SuiteStats,
-    TestStats
-}                   from '@wdio/reporter'
+    TestStats,
+} from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type {
-    Capabilities,
-    Options
-}                   from '@wdio/types'
-import type {
-    Label,
-    MetadataMessage
-}                   from 'allure-js-commons'
+import type { Capabilities, Options } from '@wdio/types'
+import type { Label, MetadataMessage } from 'allure-js-commons'
 import {
     ExecutableItemWrapper,
     AllureCommandStepExecutable,
@@ -30,7 +24,7 @@ import {
     Stage,
     Status,
     Status as AllureStatus,
-}                   from 'allure-js-commons'
+} from 'allure-js-commons'
 import {
     addAllureId,
     addArgument,
@@ -53,10 +47,8 @@ import {
     endStep,
     startStep,
     step,
-}                   from './common/api.js'
-import {
-    AllureReporterState
-}                   from './state.js'
+} from './common/api.js'
+import { AllureReporterState } from './state.js'
 import {
     getErrorFromFailedTest,
     getLinkByTemplate,
@@ -68,10 +60,8 @@ import {
     isEachTypeHooks,
     isScreenshotCommand,
     setHistoryId,
-}                   from './utils.js'
-import {
-    events
-}                   from './constants.js'
+} from './utils.js'
+import { events } from './constants.js'
 import type {
     AddAllureIdEventArgs,
     AddAttachmentEventArgs,
@@ -90,11 +80,9 @@ import type {
     AddTagEventArgs,
     AddTestIdEventArgs,
     AllureReporterOptions,
-    AllureStepableUnit
-}                   from './types.js'
-import {
-    TYPE as DescriptionType
-}                   from './types.js'
+    AllureStepableUnit,
+} from './types.js'
+import { TYPE as DescriptionType } from './types.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
@@ -127,11 +115,18 @@ export default class AllureReporter extends WDIOReporter {
 
         this.registerListeners()
 
-        const processObj:any = process
+        const processObj: any = process
 
         if (options.addConsoleLogs) {
-            processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
-                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+            processObj.stdout.write = (
+                chunk: string,
+                encoding: BufferEncoding,
+                callback: (err?: Error) => void,
+            ) => {
+                if (
+                    typeof chunk === 'string' &&
+                    !chunk.includes('mwebdriver')
+                ) {
                     this._consoleOutput += chunk
                 }
 
@@ -140,7 +135,8 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const { reportedEnvironmentVars } = this._options
-        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
+        reportedEnvironmentVars &&
+            this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
     }
 
     attachLogs() {
@@ -149,7 +145,10 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const logsContent = `.........Console Logs.........\n\n${this._consoleOutput}`
-        const attachmentFilename = this._allure.writeAttachment(logsContent, ContentType.TEXT)
+        const attachmentFilename = this._allure.writeAttachment(
+            logsContent,
+            ContentType.TEXT,
+        )
 
         this._state.currentAllureStepableEntity.addAttachment(
             'Console Logs',
@@ -160,19 +159,26 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    attachFile(name: string, content: string | Buffer, contentType: ContentType) {
+    attachFile(
+        name: string,
+        content: string | Buffer,
+        contentType: ContentType,
+    ) {
         if (!this._state.currentAllureStepableEntity) {
             throw new Error("There isn't any active test!")
         }
 
-        const attachmentFilename = this._allure.writeAttachment(content, contentType)
+        const attachmentFilename = this._allure.writeAttachment(
+            content,
+            contentType,
+        )
 
         this._state.currentAllureStepableEntity.addAttachment(
             name,
             {
                 contentType,
             },
-            attachmentFilename
+            attachmentFilename,
         )
     }
 
@@ -180,7 +186,11 @@ export default class AllureReporter extends WDIOReporter {
         const isStr = typeof json === 'string'
         const content = isStr ? json : JSON.stringify(json, null, 2)
 
-        this.attachFile(name, String(content), isStr ? ContentType.JSON : ContentType.TEXT)
+        this.attachFile(
+            name,
+            String(content),
+            isStr ? ContentType.JSON : ContentType.TEXT,
+        )
     }
 
     attachScreenshot(name: string, content: Buffer) {
@@ -188,7 +198,9 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _startSuite(suiteTitle: string) {
-        const newSuite: AllureGroup = this._state.currentSuite ? this._state.currentSuite.startGroup() : new AllureGroup(this._allure)
+        const newSuite: AllureGroup = this._state.currentSuite
+            ? this._state.currentSuite.startGroup()
+            : new AllureGroup(this._allure)
 
         newSuite.name = suiteTitle
 
@@ -201,7 +213,9 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         while (this._state.currentAllureStepableEntity) {
-            const currentTest = this._state.pop() as AllureGroup | AllureStepableUnit
+            const currentTest = this._state.pop() as
+                | AllureGroup
+                | AllureStepableUnit
 
             if (currentTest instanceof AllureTest) {
                 setHistoryId(currentTest, this._state.currentSuite)
@@ -217,7 +231,9 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _startTest(testTitle: string, cid?: string) {
-        const newTest = this._state.currentSuite ? this._state.currentSuite.startTest() : new AllureTest(this._allure)
+        const newTest = this._state.currentSuite
+            ? this._state.currentSuite.startTest()
+            : new AllureTest(this._allure)
 
         newTest.name = testTitle
 
@@ -261,7 +277,7 @@ export default class AllureReporter extends WDIOReporter {
         if (currentSpec instanceof AllureTest) {
             setHistoryId(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
-        } else if (currentSpec instanceof AllureStep){
+        } else if (currentSpec instanceof AllureStep) {
             currentSpec.endStep()
         }
     }
@@ -271,7 +287,8 @@ export default class AllureReporter extends WDIOReporter {
             throw new Error("There isn't any active stepable entities!")
         }
 
-        const newStep = this._state.currentAllureStepableEntity.startStep(testTitle)
+        const newStep =
+            this._state.currentAllureStepableEntity.startStep(testTitle)
 
         this._state.push(newStep)
     }
@@ -284,16 +301,29 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const caps = this._capabilities as Capabilities.DesiredCapabilities
             const { browserName, desired, device } = caps
-            const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
+            const deviceName =
+                (desired || {}).deviceName ||
+                (desired || {})['appium:deviceName'] ||
+                caps.deviceName ||
+                caps['appium:deviceName']
             let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && deviceName && desired['appium:platformVersion']) {
-                targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
+                targetName = `${device || deviceName} ${
+                    desired['appium:platformVersion']
+                }`
             }
             const browserstackVersion = caps.os_version || caps.osVersion
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps['appium:platformVersion'] || ''
-            const paramName = (deviceName || device) ? 'device' : 'browser'
-            const paramValue = version ? `${targetName}-${version}` : targetName
+            const version =
+                browserstackVersion ||
+                caps.browserVersion ||
+                caps.version ||
+                caps['appium:platformVersion'] ||
+                ''
+            const paramName = deviceName || device ? 'device' : 'browser'
+            const paramValue = version
+                ? `${targetName}-${version}`
+                : targetName
 
             if (!paramValue) {
                 return
@@ -309,7 +339,10 @@ export default class AllureReporter extends WDIOReporter {
         this._state.currentTest.addLabel(LabelName.FRAMEWORK, 'wdio')
 
         if (this._state.currentPackageLabel) {
-            this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
+            this._state.currentTest.addLabel(
+                LabelName.PACKAGE,
+                this._state.currentPackageLabel,
+            )
         }
 
         if (cid) {
@@ -322,15 +355,24 @@ export default class AllureReporter extends WDIOReporter {
 
         // TODO: need to add ability to get labels from allure entitites
         // @ts-ignore
-        const isFeaturePresent = this._state.currentTest.wrappedItem.labels.some((label: Label) => label.name === LabelName.FEATURE)
+        const isFeaturePresent =
+            this._state.currentTest.wrappedItem.labels.some(
+                (label: Label) => label.name === LabelName.FEATURE,
+            )
 
-        this._state.currentTest.addLabel(LabelName.SUITE, this._state.currentSuite.name)
+        this._state.currentTest.addLabel(
+            LabelName.SUITE,
+            this._state.currentSuite.name,
+        )
 
         if (isFeaturePresent) {
             return
         }
 
-        this._state.currentTest.addLabel(LabelName.FEATURE, this._state.currentSuite.name)
+        this._state.currentTest.addLabel(
+            LabelName.FEATURE,
+            this._state.currentSuite.name,
+        )
     }
 
     registerListeners() {
@@ -377,10 +419,16 @@ export default class AllureReporter extends WDIOReporter {
             getSuiteLabels(suite).forEach((label: Label) => {
                 switch (label.name) {
                 case 'issue':
-                    this.addIssue({ issue: label.value, linkName: label.value  })
+                    this.addIssue({
+                        issue: label.value,
+                        linkName: label.value,
+                    })
                     break
                 case 'testId':
-                    this.addTestId({ testId: label.value, linkName: label.value  })
+                    this.addTestId({
+                        testId: label.value,
+                        linkName: label.value,
+                    })
                     break
                 default:
                     this.addLabel(label)
@@ -394,7 +442,9 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const prefix = this._state.currentSuite ? this._state.currentSuite.name + ': ' : ''
+        const prefix = this._state.currentSuite
+            ? this._state.currentSuite.name + ': '
+            : ''
         const suiteTitle = isFeature ? suite.title : prefix + suite.title
 
         this._startSuite(suiteTitle)
@@ -416,7 +466,15 @@ export default class AllureReporter extends WDIOReporter {
             const suiteChildren = [...suite.tests!, ...suite.hooks]
 
             // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
-            const isSkipped = suite.tests.every(item => [AllureStatus.SKIPPED].includes(item.state as AllureStatus)) && suite.hooks.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
+            const isSkipped =
+                suite.tests.every((item) =>
+                    [AllureStatus.SKIPPED].includes(item.state as AllureStatus),
+                ) &&
+                suite.hooks.every((item) =>
+                    [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(
+                        item.state as AllureStatus,
+                    ),
+                )
 
             if (isSkipped) {
                 const currentTest = this._state.pop() as AllureTest
@@ -428,7 +486,9 @@ export default class AllureReporter extends WDIOReporter {
                 return
             }
 
-            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
+            const isFailed = suiteChildren.find(
+                (item) => item.state === AllureStatus.FAILED,
+            )
 
             if (isFailed) {
                 const currentTest = this._state.pop() as AllureTest
@@ -447,9 +507,15 @@ export default class AllureReporter extends WDIOReporter {
                 return
             }
 
-            const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
+            const isPassed = suiteChildren.every(
+                (item) => item.state === AllureStatus.PASSED,
+            )
             // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
-            const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
+            const isPartiallySkipped = suiteChildren.every((item) =>
+                [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(
+                    item.state as AllureStatus,
+                ),
+            )
 
             if (isPassed || isPartiallySkipped) {
                 const currentTest = this._state.currentTest as AllureTest
@@ -476,12 +542,18 @@ export default class AllureReporter extends WDIOReporter {
         if (useCucumberStepReporter) {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
-            const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+            const dataTable = argument?.rows?.map(
+                (a: { cells: string[] }) => a?.cells,
+            )
 
             this._startStep(test.title)
 
             if (dataTable) {
-                this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+                this.attachFile(
+                    'Data Table',
+                    stringify(dataTable),
+                    ContentType.CSV,
+                )
             }
             return
         }
@@ -523,7 +595,11 @@ export default class AllureReporter extends WDIOReporter {
         const { useCucumberStepReporter } = this._options
         this.attachLogs()
 
-        if (!this._state.currentAllureStepableEntity || this._state.currentAllureStepableEntity.wrappedItem.name !== test.title) {
+        if (
+            !this._state.currentAllureStepableEntity ||
+            this._state.currentAllureStepableEntity.wrappedItem.name !==
+                test.title
+        ) {
             if (useCucumberStepReporter) {
                 this.onTestStart(test)
             } else {
@@ -545,7 +621,9 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const stepName = command.method ? `${command.method} ${command.endpoint}` : command.command as string
+        const stepName = command.method
+            ? `${command.method} ${command.endpoint}`
+            : (command.command as string)
         const payload = command.body || command.params
 
         this._startStep(stepName)
@@ -556,15 +634,29 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command: AfterCommandArgs) {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+        const {
+            disableWebdriverStepsReporting,
+            disableWebdriverScreenshotsReporting,
+        } = this._options
 
         const { value: commandResult } = command?.result || {}
         const isScreenshot = isScreenshotCommand(command)
-        if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
-            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+        if (
+            !disableWebdriverScreenshotsReporting &&
+            isScreenshot &&
+            commandResult
+        ) {
+            this.attachScreenshot(
+                'Screenshot',
+                Buffer.from(commandResult, 'base64'),
+            )
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
+        if (
+            disableWebdriverStepsReporting ||
+            this._isMultiremote ||
+            !this._state.currentStep
+        ) {
             return
         }
 
@@ -586,13 +678,17 @@ export default class AllureReporter extends WDIOReporter {
 
         // if the hook is before/after from mocha/jasmine
         if ((isAllHook || isEachHook) && !disableHooks) {
-            const hookExecutable = isBeforeTypeHook(hook.title) ? this._state.currentSuite.addBefore() : this._state.currentSuite.addAfter()
+            const hookExecutable = isBeforeTypeHook(hook.title)
+                ? this._state.currentSuite.addBefore()
+                : this._state.currentSuite.addAfter()
             const hookStep = hookExecutable.startStep(hook.title)
             this._state.push(hookExecutable)
             this._state.push(hookStep)
-        // if the hook is custom by default, it will be reported as test (not usual)
+            // if the hook is custom by default, it will be reported as test (not usual)
         } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
-            const customHookTest = this._state.currentSuite.startTest(`hook:${hook.title}`)
+            const customHookTest = this._state.currentSuite.startTest(
+                `hook:${hook.title}`,
+            )
             this._state.push(customHookTest)
         } else if (useCucumberStepReporter) {
             this.onTestStart(hook)
@@ -618,28 +714,38 @@ export default class AllureReporter extends WDIOReporter {
             // getting before/after hook element
             const currentHookRoot = this._state.pop()
             if (currentHookRootStep || currentHookRoot) {
-                if (currentHookRootStep instanceof AllureStep && currentHookRoot instanceof ExecutableItemWrapper) {
+                if (
+                    currentHookRootStep instanceof AllureStep &&
+                    currentHookRoot instanceof ExecutableItemWrapper
+                ) {
                     // stage to finish for all hook.
-                    currentHookRoot.stage = currentHookRootStep.stage = Stage.FINISHED
+                    currentHookRoot.stage = currentHookRootStep.stage =
+                        Stage.FINISHED
                     // set status values
                     switch (hook.state) {
                     case 'passed':
-                        currentHookRoot.status = currentHookRootStep.status = Status.PASSED
+                        currentHookRoot.status =
+                                currentHookRootStep.status = Status.PASSED
                         break
                     case 'failed':
-                        currentHookRoot.status = currentHookRootStep.status = Status.FAILED
+                        currentHookRoot.status =
+                                currentHookRootStep.status = Status.FAILED
                         break
                     default:
-                        currentHookRoot.status = currentHookRootStep.status = Status.BROKEN
+                        currentHookRoot.status =
+                                currentHookRootStep.status = Status.BROKEN
                     }
                     // set error data
                     const formattedError = getErrorFromFailedTest(hook)
-                    currentHookRoot.detailsMessage = currentHookRootStep.detailsMessage = formattedError?.message
-                    currentHookRoot.detailsTrace = currentHookRootStep.detailsTrace = formattedError?.stack
-
+                    currentHookRoot.detailsMessage =
+                        currentHookRootStep.detailsMessage =
+                            formattedError?.message
+                    currentHookRoot.detailsTrace =
+                        currentHookRootStep.detailsTrace =
+                            formattedError?.stack
                 } else {
                     // should not pop test case if no steps and before hook (put them back to the list)
-                    if (currentHookRoot){
+                    if (currentHookRoot) {
                         this._state.push(currentHookRoot)
                     }
                     if (currentHookRootStep) {
@@ -651,29 +757,46 @@ export default class AllureReporter extends WDIOReporter {
             // getting the latest element
             const lastElement = this._state.pop()
             if (lastElement) {
-                const isCustomHook = lastElement instanceof AllureTest && lastElement.wrappedItem.name?.startsWith('hook:')
+                const isCustomHook =
+                    lastElement instanceof AllureTest &&
+                    lastElement.wrappedItem.name?.startsWith('hook:')
                 this._state.push(lastElement)
                 if (isCustomHook) {
                     // we end the test case that represent the custom hook call
-                    this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.SKIPPED : AllureStatus.PASSED, hook.error)
+                    this._endTest(
+                        hook.error
+                            ? this._options.testStatusFailedHook ||
+                                  AllureStatus.SKIPPED
+                            : AllureStatus.PASSED,
+                        hook.error,
+                    )
                 }
             }
         } else if (useCucumberStepReporter) {
             hook.error ? this.onTestFail(hook) : this.onTestPass()
-        } else if (disableHooks && hook.error) { // only if the hook fails, it will be reported
-            const hookExecutable = isBeforeTypeHook(hook.title) ? this._state.currentSuite.addBefore() : this._state.currentSuite.addAfter()
+        } else if (disableHooks && hook.error) {
+            // only if the hook fails, it will be reported
+            const hookExecutable = isBeforeTypeHook(hook.title)
+                ? this._state.currentSuite.addBefore()
+                : this._state.currentSuite.addAfter()
             const hookStep = hookExecutable.startStep(hook.title)
 
             // to cover the before/after all hook.
             if (!this._state.currentTest) {
-                this.onTestStart(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+                this.onTestStart(
+                    Object.assign({}, hook, {
+                        title: hook.currentTest,
+                    }) as TestStats,
+                )
             }
 
             // set error information
             hookExecutable.stage = hookStep.stage = Stage.FINISHED
             const formattedError = getErrorFromFailedTest(hook)
-            hookExecutable.detailsMessage = hookStep.detailsMessage = formattedError?.message
-            hookExecutable.detailsTrace = hookStep.detailsTrace = formattedError?.stack
+            hookExecutable.detailsMessage = hookStep.detailsMessage =
+                formattedError?.message
+            hookExecutable.detailsTrace = hookStep.detailsTrace =
+                formattedError?.stack
             // set status
             switch (hook.state) {
             case 'passed':
@@ -686,26 +809,36 @@ export default class AllureReporter extends WDIOReporter {
                 hookExecutable.status = hookStep.status = Status.BROKEN
             }
             // force skipped status when hook fails
-            this._endTest(hook.error ? this._options.testStatusFailedHook || AllureStatus.BROKEN: AllureStatus.PASSED, hook.error)
+            this._endTest(
+                hook.error
+                    ? this._options.testStatusFailedHook || AllureStatus.BROKEN
+                    : AllureStatus.PASSED,
+                hook.error,
+            )
         }
 
         if (useCucumberStepReporter) {
             // remove hook from suite if it has no steps or attachments
-            const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
+            const currentItem =
+                this._state.currentAllureStepableEntity?.wrappedItem
             if (currentItem) {
-                const currentStep = currentItem.steps[currentItem.steps.length-1]
+                const currentStep =
+                    currentItem.steps[currentItem.steps.length - 1]
 
-                if (currentStep && currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0 && currentStep.status === Status.PASSED) {
+                if (
+                    currentStep &&
+                    currentStep.steps.length === 0 &&
+                    currentStep.attachments.length === 0 &&
+                    currentItem.attachments.length === 0 &&
+                    currentStep.status === Status.PASSED
+                ) {
                     currentItem.steps.pop()
                 }
             }
         }
     }
 
-    addLabel({
-        name,
-        value
-    }: AddLabelEventArgs) {
+    addLabel({ name, value }: AddLabelEventArgs) {
         if (!this._state.currentTest) {
             return
         }
@@ -713,11 +846,7 @@ export default class AllureReporter extends WDIOReporter {
         this._state.currentTest.addLabel(name, value)
     }
 
-    addLink({
-        name,
-        url,
-        type,
-    }: AddLinkEventArgs) {
+    addLink({ name, url, type }: AddLinkEventArgs) {
         if (!this._state.currentTest) {
             return
         }
@@ -725,121 +854,98 @@ export default class AllureReporter extends WDIOReporter {
         this._state.currentTest.addLink(url, name, type)
     }
 
-    addAllureId({
-        id,
-    }: AddAllureIdEventArgs) {
+    addAllureId({ id }: AddAllureIdEventArgs) {
         this.addLabel({
             name: LabelName.AS_ID,
             value: id,
         })
     }
 
-    addStory({
-        storyName
-    }: AddStoryEventArgs) {
+    addStory({ storyName }: AddStoryEventArgs) {
         this.addLabel({
             name: LabelName.STORY,
             value: storyName,
         })
     }
 
-    addFeature({
-        featureName
-    }: AddFeatureEventArgs) {
+    addFeature({ featureName }: AddFeatureEventArgs) {
         this.addLabel({
             name: LabelName.FEATURE,
             value: featureName,
         })
     }
 
-    addSeverity({
-        severity
-    }: AddSeverityEventArgs) {
+    addSeverity({ severity }: AddSeverityEventArgs) {
         this.addLabel({
             name: LabelName.SEVERITY,
             value: severity,
         })
     }
 
-    addEpic({
-        epicName,
-    }: AddEpicEventArgs) {
+    addEpic({ epicName }: AddEpicEventArgs) {
         this.addLabel({
             name: LabelName.EPIC,
             value: epicName,
         })
     }
 
-    addOwner({
-        owner,
-    }: AddOwnerEventArgs) {
+    addOwner({ owner }: AddOwnerEventArgs) {
         this.addLabel({
             name: LabelName.OWNER,
             value: owner,
         })
     }
 
-    addSuite({
-        suiteName,
-    }: AddSuiteEventArgs) {
+    addSuite({ suiteName }: AddSuiteEventArgs) {
         this.addLabel({
             name: LabelName.SUITE,
             value: suiteName,
         })
     }
 
-    addParentSuite({
-        suiteName,
-    }: AddParentSuiteEventArgs) {
+    addParentSuite({ suiteName }: AddParentSuiteEventArgs) {
         this.addLabel({
             name: LabelName.PARENT_SUITE,
             value: suiteName,
         })
     }
 
-    addSubSuite({
-        suiteName,
-    }: AddSubSuiteEventArgs) {
+    addSubSuite({ suiteName }: AddSubSuiteEventArgs) {
         this.addLabel({
             name: LabelName.SUB_SUITE,
             value: suiteName,
         })
     }
 
-    addTag({
-        tag,
-    }: AddTagEventArgs) {
+    addTag({ tag }: AddTagEventArgs) {
         this.addLabel({
             name: LabelName.TAG,
             value: tag,
         })
     }
 
-    addTestId({
-        testId,
-        linkName,
-    }: AddTestIdEventArgs) {
+    addTestId({ testId, linkName }: AddTestIdEventArgs) {
         if (!this._options.tmsLinkTemplate) {
             this.addLabel({
                 name: 'tms',
-                value: testId
+                value: testId,
             })
             return
         }
 
-        const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, testId)
+        const tmsLink = getLinkByTemplate(
+            this._options.tmsLinkTemplate,
+            testId,
+        )
 
         this.addLink({
             url: tmsLink,
             name: linkName,
-            type: LinkType.TMS
+            type: LinkType.TMS,
         })
     }
 
-    addIssue({
-        issue,
-        linkName,
-    }: AddIssueEventArgs) {
+    addIssue({ issue, linkName }: AddIssueEventArgs) {
         if (!this._options.issueLinkTemplate) {
             this.addLabel({
                 name: 'issue',
@@ -848,19 +954,19 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const issueLink = getLinkByTemplate(this._options.issueLinkTemplate, issue)
+        const issueLink = getLinkByTemplate(
+            this._options.issueLinkTemplate,
+            issue,
+        )
 
         this.addLink({
             url: issueLink,
             name: linkName,
-            type: LinkType.ISSUE
+            type: LinkType.ISSUE,
         })
     }
 
-    addDescription({
-        description,
-        descriptionType
-    }: AddDescriptionEventArgs) {
+    addDescription({ description, descriptionType }: AddDescriptionEventArgs) {
         if (!this._state.currentTest) {
             return
         }
@@ -876,7 +982,7 @@ export default class AllureReporter extends WDIOReporter {
     addAttachment({
         name,
         content,
-        type = ContentType.TEXT
+        type = ContentType.TEXT,
     }: AddAttachmentEventArgs) {
         if (!this._state.currentAllureStepableEntity) {
             return
@@ -887,7 +993,11 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.attachFile(name, Buffer.from(content as string), type as ContentType)
+        this.attachFile(
+            name,
+            Buffer.from(content as string),
+            type as ContentType,
+        )
     }
 
     startStep(title: string) {
@@ -906,9 +1016,7 @@ export default class AllureReporter extends WDIOReporter {
         this._endTest(status)
     }
 
-    addStep({
-        step
-    }: any) {
+    addStep({ step }: any) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -916,16 +1024,17 @@ export default class AllureReporter extends WDIOReporter {
         this._startStep(step.title)
 
         if (step.attachment) {
-            this.attachFile(step.attachment.name, step.attachment.content, step.attachment.type || ContentType.TEXT)
+            this.attachFile(
+                step.attachment.name,
+                step.attachment.content,
+                step.attachment.type || ContentType.TEXT,
+            )
         }
 
         this._endTest(step.status)
     }
 
-    addArgument({
-        name,
-        value
-    }: any) {
+    addArgument({ name, value }: any) {
         if (!this._state.currentTest) {
             return
         }
@@ -953,14 +1062,14 @@ export default class AllureReporter extends WDIOReporter {
         if (description) {
             this.addDescription({
                 description,
-                descriptionType: DescriptionType.MARKDOWN
+                descriptionType: DescriptionType.MARKDOWN,
             })
         }
 
         if (descriptionHtml) {
             this.addDescription({
                 description: descriptionHtml,
-                descriptionType: DescriptionType.HTML
+                descriptionType: DescriptionType.HTML,
             })
         }
 
@@ -977,7 +1086,12 @@ export default class AllureReporter extends WDIOReporter {
             this.addAttachment(attachment)
         })
         steps.forEach((step) => {
-            currentAllureSpec.addStep(AllureCommandStepExecutable.toExecutableItem(this._allure, step))
+            currentAllureSpec.addStep(
+                AllureCommandStepExecutable.toExecutableItem(
+                    this._allure,
+                    step,
+                ),
+            )
         })
     }
 
