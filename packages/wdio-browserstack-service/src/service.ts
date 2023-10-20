@@ -417,9 +417,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
 
-            let browserUrl = response.body.automation_session?.browser_url;
+            let browserUrl = response.body.automation_session?.browser_url
             if (this._turboScale) {
-                browserUrl = response.body.url;
+                browserUrl = response.body.url
             }
             log.info(`${browserString} session: ${browserUrl}`)
         })
