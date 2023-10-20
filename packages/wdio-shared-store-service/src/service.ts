@@ -3,7 +3,7 @@ import type { JsonCompatible, JsonPrimitive, Services, JsonArray, Capabilities }
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 import { CUSTOM_CAP } from './constants.js'
 import type { SharedStoreServiceCapabilities } from './types.js'
-import type { GetValueOptions } from './types'
+import type { GetValueOptions } from './types.js'
 
 export default class SharedStoreService implements Services.ServiceInstance {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser

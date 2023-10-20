@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import ConfigParser from '../../src/lib/ConfigParser.js'
+import ConfigParser from '../../src/node/ConfigParser.js'
 import MockedModules from './MockedModules.js'
 import type { FilePathsAndContents, MockSystemFolderPath } from './MockPathService.js'
 import MockPathService from './MockPathService.js'

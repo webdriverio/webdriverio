@@ -6,7 +6,7 @@ import { _setGlobal } from '@wdio/globals'
 
 import './frameworks/mocha.js'
 import { showPopupWarning } from './utils.js'
-import type { MochaFramework } from './frameworks/mocha'
+import type { MochaFramework } from './frameworks/mocha.js'
 
 type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
 declare global {
