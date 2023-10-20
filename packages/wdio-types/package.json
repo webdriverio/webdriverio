@@ -12,7 +12,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
