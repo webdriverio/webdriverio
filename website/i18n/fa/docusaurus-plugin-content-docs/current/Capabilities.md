@@ -65,7 +65,7 @@ If the driver `binary` is set, WebdriverIO won't attempt to download a driver bu
 
 In order to propagate options to the driver you can use the following custom capabilities:
 
-- Chrome: `wdio:chromedriverOptions`
+- Chrome or Chromium: `wdio:chromedriverOptions`
 - Firefox: `wdio:geckodriverOptions`
 - Microsoft Egde: `wdio:edgedriverOptions`
 - Safari: `wdio:safaridriverOptions`
