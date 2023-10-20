@@ -56,6 +56,7 @@
     "chalk": "^5.2.0",
     "chokidar": "^3.5.3",
     "cli-spinners": "^2.9.0",
+    "detect-package-manager": "^3.0.1",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "execa": "^8.0.1",
@@ -77,8 +78,7 @@
     "@types/lodash.pickby": "^4.6.7",
     "@types/lodash.union": "^4.6.7",
     "@types/recursive-readdir": "^2.2.1",
-    "@types/yargs": "^17.0.24",
-    "detect-package-manager": "^3.0.1"
+    "@types/yargs": "^17.0.24"
   },
   "publishConfig": {
     "access": "public"
