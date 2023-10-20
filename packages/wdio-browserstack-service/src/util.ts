@@ -733,7 +733,7 @@ export function getCiInfo () {
             name: 'Vercel',
             build_url: `http://${env.VERCEL_URL}`,
             job_name: null,
-            build_number: env.VERCEL_GITHUB_DEPLOYMENT,
+            build_number: null,
         }
     }
     // Teamcity
