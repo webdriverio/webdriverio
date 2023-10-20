@@ -717,6 +717,7 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
 /**
  * run npm install only if required by the user
  */
+const SEP = '\n- '
 export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
@@ -796,7 +797,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const cwd = await getProjectRoot(parsedAnswers)
     const pm = await detect({ cwd })
     if (parsedAnswers.npmInstall) {
-        console.log(`Installing packages using ${pm}:\n-${parsedAnswers.packagesToInstall.join('\n- ')}`)
+        console.log(`Installing packages using ${pm}:${SEP}${parsedAnswers.packagesToInstall.join(SEP)}`)
         const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
         if (success) {
             console.log(chalk.green.bold('✔ Success!\n'))
