@@ -59,7 +59,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (process.env.BROWSERSTACK_TURBOSCALE) {
-            this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === "true"
+            this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
 
         // Cucumber specific
