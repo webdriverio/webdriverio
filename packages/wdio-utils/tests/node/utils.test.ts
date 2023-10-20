@@ -5,7 +5,7 @@ import cp from 'node:child_process'
 import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
-import { locateChrome } from 'locate-app'
+import { locateChrome, locateApp } from 'locate-app'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
@@ -25,7 +25,8 @@ vi.mock('node:os', () => ({
 
 vi.mock('locate-app', () => ({
     locateChrome: vi.fn().mockResolvedValue('/path/to/chrome'),
-    locateFirefox: vi.fn().mockResolvedValue('/path/to/firefox')
+    locateFirefox: vi.fn().mockResolvedValue('/path/to/firefox'),
+    locateApp: vi.fn().mockResolvedValue('/path/to/chromium')
 }))
 
 vi.mock('node:fs', () => ({
@@ -63,7 +64,7 @@ vi.mock('node:child_process', () => ({
 }))
 
 vi.mock('@puppeteer/browsers', () => ({
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn(),
     resolveBuildId: vi.fn().mockReturnValue('116.0.5845.110'),
@@ -121,7 +122,6 @@ describe('driver utils', () => {
         })
 
         it('should do nothing if browser binary is defined within caps', async () => {
-            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
             await expect(setupPuppeteerBrowser('/foo/bar', {
                 'goog:chromeOptions': { binary: '/my/chrome' }
             })).resolves.toEqual({
@@ -144,6 +144,22 @@ describe('driver utils', () => {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/stable'
             })
+            expect(resolveBuildId).toBeCalledTimes(1)
+            expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '116.0.5845.110')
+        })
+
+        it('should look for Chromium browser if defined as browser name', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
+            vi.mocked(locateApp).mockResolvedValue('')
+            const caps = { browserName: 'chromium' }
+            await expect(setupPuppeteerBrowser('/foo/bar', caps)).resolves.toEqual( {
+                browserVersion: '116.0.5845.110',
+                executablePath: '/foo/bar/executable'
+            })
+            expect(caps.browserName).toBe('chrome')
+            expect(resolveBuildId).toBeCalledTimes(2)
+            expect(resolveBuildId).toBeCalledWith('chromium', 'windows', 'latest')
+            expect(resolveBuildId).toBeCalledWith('chrome', 'windows', 'latest')
         })
 
         it('should throw if browser version is not found', async () => {

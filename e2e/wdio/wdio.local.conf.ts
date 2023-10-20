@@ -30,6 +30,11 @@ export const config: Options.Testrunner = {
             args: ['headless', 'disable-gpu']
         }
     }, {
+        browserName: 'chromium',
+        'goog:chromeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
+    }, {
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['-headless']
