@@ -175,7 +175,8 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
             : browserName === Browser.CHROMIUM
                 ? await locateApp({
                     appName: Browser.CHROMIUM,
-                    macOsName: Browser.CHROMIUM
+                    macOsName: Browser.CHROMIUM,
+                    linuxWhich: 'chromium-browser'
                 }).catch(() => undefined)
                 : await locateFirefox().catch(() => undefined)
         const tag = isChromeOrChromium
