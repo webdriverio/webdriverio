@@ -94,7 +94,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v18 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v20 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Set up the project:
     First make sure you have the right Node.js version installed. You can find the current defined development version in `.nvmrc` within the root directory of the project. The easiest way to handle multiple Node.js versions is by using [NVM](https://github.com/nvm-sh/nvm). After it is installed you can run:
