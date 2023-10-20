@@ -127,8 +127,5 @@
     "unzipper": "^0.10.14",
     "url-join": "^5.0.0",
     "vitest": "^0.34.1"
-  },
-  "dependencies": {
-    "ky": "^1.1.0"
   }
 }
