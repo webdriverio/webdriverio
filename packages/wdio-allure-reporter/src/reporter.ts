@@ -354,8 +354,8 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         // TODO: need to add ability to get labels from allure entitites
-        // @ts-ignore
         const isFeaturePresent =
+            // @ts-ignore
             this._state.currentTest.wrappedItem.labels.some(
                 (label: Label) => label.name === LabelName.FEATURE,
             )

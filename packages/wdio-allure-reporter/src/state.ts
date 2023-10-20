@@ -6,7 +6,7 @@ import {
     ExecutableItemWrapper,
 } from 'allure-js-commons'
 import { findLast } from './utils.js'
-import type { AllureStepableUnit } from './types'
+import type { AllureStepableUnit } from './types.js'
 
 export class AllureReporterState {
     currentFile?: string
