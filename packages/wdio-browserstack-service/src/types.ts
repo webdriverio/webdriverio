@@ -3,11 +3,14 @@ import type { Options as BSOptions } from 'browserstack-local'
 
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
-    automation_session?: {
+    automation_session: {
         // eslint-disable-next-line camelcase
         browser_url: string
-    },
-    url?: string
+    }
+}
+
+export interface TurboScaleSessionResponse {
+    url: string
 }
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
