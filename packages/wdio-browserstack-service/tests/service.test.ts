@@ -304,6 +304,36 @@ describe('_printSessionURL Appium', () => {
     })
 })
 
+describe('_printSessionURL TurboScale', () => {
+    beforeEach(() => {
+        vi.mocked(got).mockResolvedValue({
+            body: {
+                name: 'Smoke Test',
+                duration: 65,
+                browser_version: '116',
+                browser: 'chrome',
+                status: 'failed',
+                reason: 'CLIENT_STOPPED_SESSION',
+                url: 'https://grid.browserstack.com/dashboard/builds/1/sessions/2'
+            }
+        })
+
+        browser.capabilities = {
+            browserName: 'chrome',
+            browserVersion: '116'
+        }
+    })
+
+    it('should get and log session details', async () => {
+        service['_browser'] = browser
+        service['_turboScale'] = true
+        await service._printSessionURL()
+        expect(log.info).toHaveBeenCalledWith(
+            'chrome 116 session: https://grid.browserstack.com/dashboard/builds/1/sessions/2'
+        )
+    })
+})
+
 describe('before', () => {
     it('should set auth to default values if not provided', async () => {
         let service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
@@ -424,6 +454,34 @@ describe('before', () => {
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
+    })
+
+    it('should initialize correctly for turboScale when option passed', () => {
+        const service = new BrowserstackService({
+            turboScale: true
+        } as any, {}, {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {}
+        })
+        service.before(service['_config'] as any, [], browser)
+
+        expect(service['_failReasons']).toEqual([])
+        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate-turboscale/v1/sessions')
+    })
+
+    it('should initialize correctly for turboScale when env var is set', () => {
+        process.env.BROWSERSTACK_TURBOSCALE = 'true'
+        const service = new BrowserstackService({} as any, {}, {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {}
+        })
+        service.before(service['_config'] as any, [], browser)
+        delete process.env.BROWSERSTACK_TURBOSCALE
+
+        expect(service['_failReasons']).toEqual([])
+        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate-turboscale/v1/sessions')
     })
 })
 

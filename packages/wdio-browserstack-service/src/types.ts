@@ -3,10 +3,11 @@ import type { Options as BSOptions } from 'browserstack-local'
 
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
-    automation_session: {
+    automation_session?: {
         // eslint-disable-next-line camelcase
         browser_url: string
-    }
+    },
+    url?: string
 }
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
@@ -139,6 +140,12 @@ export interface BrowserstackConfig {
      * @default true
      */
     setSessionStatus?: boolean
+    /**
+     * Set this to true while running tests on the automation grid created using BrowserStack Automate TurboScale
+     * to automatically set the session name and status for quick debugging.
+     * @default false
+    */
+    turboScale?: boolean;
 }
 
 /**
