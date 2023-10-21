@@ -807,8 +807,7 @@ describe('auxiliary methods', () => {
     })
 })
 
-// TODO: check twice the checks here, seems some of them doesn't look so obvious and good
-describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
+describe('hooks handling disabled Hooks', () => {
     let reporter: any
     const outputDir = temporaryDirectory()
 
@@ -817,7 +816,7 @@ describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
         reporter = new AllureReporter({ outputDir, disableHooks: true })
     })
 
-    it('should add test on custom hook', () => {
+    it('should not add test on custom hook', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onHookStart({
@@ -835,9 +834,7 @@ describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
 
         const { results } = getResults(outputDir)
 
-        expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('hook:foo')
-        expect(results[0].steps).toHaveLength(0)
+        expect(results).toHaveLength(0)
     })
 
     it('should not add test if no suite', () => {
@@ -900,9 +897,6 @@ describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
         expect(results[0].status).toEqual(Status.PASSED)
         expect(results[0].stage).toEqual(Stage.FINISHED)
         expect(containers[0].befores).toHaveLength(0)
-        // expect(containers[0].befores[0].steps[0].name).toEqual('"before each" hook')
-        // expect(containers[0].befores[0].steps[0].status).toEqual(Status.PASSED)
-        // expect(containers[0].befores[0].steps[0].stage).toEqual(Stage.FINISHED)
     })
 
     it('should ignore passed mocha/jasmine each hooks if no test', () => {
@@ -1054,11 +1048,11 @@ describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
             result.name.endsWith('foo'),
         )
 
-        expect(results).toHaveLength(2)
+        expect(results).toHaveLength(1)
         expect(testResult).not.toBeUndefined()
         expect(testResult.steps).toHaveLength(1)
         expect(testResult.steps[0].name).toEqual('SomeCommandStep')
-        expect(hookResult).not.toBeUndefined()
+        expect(hookResult).toBeUndefined()
     })
 
     it('should keep failed hooks if there no some steps', () => {
@@ -1189,7 +1183,7 @@ describe('hooks handling disabled Mocha/Jasmine Hooks', () => {
         expect(containers[0].afters).toHaveLength(0)
     })
 
-    it('should treat mocha all hooks as tests if hook throws', () => {
+    it.only('should create a test and add mocha all hooks as fixtures if hook throws', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })

@@ -1,8 +1,8 @@
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { Label, AllureTest, AllureGroup  } from 'allure-js-commons'
-import { Status as AllureStatus, md5 } from 'allure-js-commons'
+import type { Label, AllureTest, AllureGroup, FixtureResult, TestResult, AllureStep, ExecutableItemWrapper } from 'allure-js-commons'
+import { Status as AllureStatus, md5, Stage, Status } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { eachHooks, allHooks, linkPlaceholder } from './constants.js'
 
@@ -120,6 +120,55 @@ export const getErrorFromFailedTest = (
     }
 
     return test.error
+}
+
+/**
+ * Update the hook information with the new one, it could be use when a hook ends
+ * @param {HookStats} newHookStats - New information that will be applied to current hook info
+ * @param {ExecutableItemWrapper} hookElement - hook element registered in the report
+ * @param {AllureStep} hookRootStep - root hook step
+ *
+ * @private
+ */
+export const updateHookInfo = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
+    // stage to finish for all hook.
+    hookElement.stage = hookRootStep.stage =
+        Stage.FINISHED
+    // set status values
+    switch (newHookStats.state) {
+    case 'passed':
+        hookElement.status =
+            hookRootStep.status = Status.PASSED
+        break
+    case 'failed':
+        hookElement.status =
+            hookRootStep.status = Status.FAILED
+        break
+    default:
+        hookElement.status =
+            hookRootStep.status = Status.BROKEN
+    }
+    // set error data
+    const formattedError = getErrorFromFailedTest(newHookStats)
+    hookElement.detailsMessage =
+        hookRootStep.detailsMessage =
+            formattedError?.message
+    hookElement.detailsTrace =
+        hookRootStep.detailsTrace =
+            formattedError?.stack
+}
+
+export const cleanCucumberHooks = (hook:  FixtureResult | TestResult) => {
+    const currentStep = hook.steps[hook.steps.length - 1]
+    if (
+        currentStep &&
+        currentStep.steps.length === 0 &&
+        currentStep.attachments.length === 0 &&
+        hook.attachments.length === 0 &&
+        currentStep.status === Status.PASSED
+    ) {
+        hook.steps.pop()
+    }
 }
 
 /**

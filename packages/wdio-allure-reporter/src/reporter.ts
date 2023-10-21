@@ -22,8 +22,7 @@ import {
     LabelName,
     LinkType,
     Stage,
-    Status,
-    Status as AllureStatus,
+    Status as AllureStatus, Status,
 } from 'allure-js-commons'
 import {
     addAllureId,
@@ -59,7 +58,7 @@ import {
     isBeforeTypeHook,
     isEachTypeHooks,
     isScreenshotCommand,
-    setHistoryId,
+    setHistoryId, updateHookInfo, cleanCucumberHooks,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -213,19 +212,25 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         while (this._state.currentAllureStepableEntity) {
-            const currentTest = this._state.pop() as
+            const currentElement = this._state.pop() as
                 | AllureGroup
                 | AllureStepableUnit
 
-            if (currentTest instanceof AllureTest) {
-                setHistoryId(currentTest, this._state.currentSuite)
-                currentTest.endTest()
-            } else if (currentTest instanceof AllureStep) {
-                currentTest.endStep()
+            if (currentElement instanceof AllureTest) {
+                setHistoryId(currentElement, this._state.currentSuite)
+                currentElement.endTest()
+            } else if (currentElement instanceof AllureStep) {
+                currentElement.endStep()
             }
         }
 
         const currentSuite = this._state.pop() as AllureGroup
+        // if a hook was execute without a test the report will need a test to display the hook
+        if (this._state.stats.hooks > 0 && this._state.stats.test === 0) {
+            const test = currentSuite.startTest(currentSuite.name)
+            test.status = Status.BROKEN
+            test.endTest()
+        }
 
         currentSuite.endGroup()
     }
@@ -669,7 +674,7 @@ export default class AllureReporter extends WDIOReporter {
 
         // ignore global hooks or hooks when option is set in false
         // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !this._state.currentSuite) {
+        if (!hook.parent || !this._state.currentSuite || disableHooks) {
             return
         }
 
@@ -677,7 +682,7 @@ export default class AllureReporter extends WDIOReporter {
         const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
 
         // if the hook is before/after from mocha/jasmine
-        if ((isAllHook || isEachHook) && !disableHooks) {
+        if (isAllHook || isEachHook) {
             const hookExecutable = isBeforeTypeHook(hook.title)
                 ? this._state.currentSuite.addBefore()
                 : this._state.currentSuite.addAfter()
@@ -707,53 +712,76 @@ export default class AllureReporter extends WDIOReporter {
         const isAllHook = isAllTypeHooks(hook.title) // if the hook is before* for mocha/jasmine
         const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
 
-        // if the hook is before/after from mocha/jasmine
+        /****
+         * if the hook is before/after from mocha/jasmine and disableHooks=false.
+         */
+        // if the hook is before/after from mocha/jasmine and disableHooks=false.
         if ((isAllHook || isEachHook) && !disableHooks) {
-            // getting the root step
+            // getting the hook root step, and the hook element from stack.
             const currentHookRootStep = this._state.pop()
-            // getting before/after hook element
             const currentHookRoot = this._state.pop()
+            // check if the elements exist
             if (currentHookRootStep || currentHookRoot) {
+                // check if the elements related to hook
                 if (
                     currentHookRootStep instanceof AllureStep &&
                     currentHookRoot instanceof ExecutableItemWrapper
                 ) {
-                    // stage to finish for all hook.
-                    currentHookRoot.stage = currentHookRootStep.stage =
-                        Stage.FINISHED
-                    // set status values
-                    switch (hook.state) {
-                    case 'passed':
-                        currentHookRoot.status =
-                                currentHookRootStep.status = Status.PASSED
-                        break
-                    case 'failed':
-                        currentHookRoot.status =
-                                currentHookRootStep.status = Status.FAILED
-                        break
-                    default:
-                        currentHookRoot.status =
-                                currentHookRootStep.status = Status.BROKEN
-                    }
-                    // set error data
-                    const formattedError = getErrorFromFailedTest(hook)
-                    currentHookRoot.detailsMessage =
-                        currentHookRootStep.detailsMessage =
-                            formattedError?.message
-                    currentHookRoot.detailsTrace =
-                        currentHookRootStep.detailsTrace =
-                            formattedError?.stack
-                } else {
-                    // should not pop test case if no steps and before hook (put them back to the list)
-                    if (currentHookRoot) {
-                        this._state.push(currentHookRoot)
-                    }
-                    if (currentHookRootStep) {
-                        this._state.push(currentHookRootStep)
-                    }
+                    updateHookInfo(hook, currentHookRoot, currentHookRootStep)
+                    return
+                }
+                // put them back to the list
+                if (currentHookRoot) {
+                    this._state.push(currentHookRoot)
+                }
+                if (currentHookRootStep) {
+                    this._state.push(currentHookRootStep)
                 }
             }
-        } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
+        }
+
+        /****
+         * if the hook is before/after from mocha/jasmine or cucumber by setting useCucumberStepReporter=true,
+         * and disableHooks=true with a failed hook.
+         *
+         * Only if the hook fails, it will be reported.
+         */
+        if (disableHooks && hook.error) {
+            // hook is from cucumber
+            if (useCucumberStepReporter){
+                // report a new allure hook (step)
+                this.onTestStart(hook)
+                // set the hook as failed one
+                this.onTestFail(hook)
+
+                // remove cucumber hook (reported as step) from suite if it has no steps or attachments.
+                const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
+
+                if (currentItem) {
+                    cleanCucumberHooks(currentItem)
+                }
+                return
+            }
+
+            // hook is before/after from mocha/jasmine
+            const hookExecutable = isBeforeTypeHook(hook.title)
+                ? this._state.currentSuite.addBefore()
+                : this._state.currentSuite.addAfter()
+            const hookStep = hookExecutable.startStep(hook.title)
+
+            // register the hook
+            this._state.stats.hooks++
+
+            // updating the hook information
+            updateHookInfo(hook, hookExecutable, hookStep)
+            return
+        }
+
+        /****
+         * if the hook is not before/after from mocha/jasmine (custom hook) and useCucumberStepReporter=false
+         * Custom hooks are not affected by "disableHooks" option
+         */
+        if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
             // getting the latest element
             const lastElement = this._state.pop()
             if (lastElement) {
@@ -772,70 +800,25 @@ export default class AllureReporter extends WDIOReporter {
                     )
                 }
             }
-        } else if (useCucumberStepReporter) {
+            return
+        }
+
+        /****
+         * if the hook comes from Cucumber useCucumberStepReporter=true
+         */
+        if (useCucumberStepReporter && !disableHooks) {
+            // closing the cucumber hook (in this case it's reported as a step)
             hook.error ? this.onTestFail(hook) : this.onTestPass()
-        } else if (disableHooks && hook.error) {
-            // only if the hook fails, it will be reported
-            const hookExecutable = isBeforeTypeHook(hook.title)
-                ? this._state.currentSuite.addBefore()
-                : this._state.currentSuite.addAfter()
-            const hookStep = hookExecutable.startStep(hook.title)
 
-            // to cover the before/after all hook.
-            if (!this._state.currentTest) {
-                this.onTestStart(
-                    Object.assign({}, hook, {
-                        title: hook.currentTest,
-                    }) as TestStats,
-                )
-            }
+            // remove cucumber hook (reported as step) from suite if it has no steps or attachments.
+            const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
 
-            // set error information
-            hookExecutable.stage = hookStep.stage = Stage.FINISHED
-            const formattedError = getErrorFromFailedTest(hook)
-            hookExecutable.detailsMessage = hookStep.detailsMessage =
-                formattedError?.message
-            hookExecutable.detailsTrace = hookStep.detailsTrace =
-                formattedError?.stack
-            // set status
-            switch (hook.state) {
-            case 'passed':
-                hookExecutable.status = hookStep.status = Status.PASSED
-                break
-            case 'failed':
-                hookExecutable.status = hookStep.status = Status.FAILED
-                break
-            default:
-                hookExecutable.status = hookStep.status = Status.BROKEN
-            }
-            // force skipped status when hook fails
-            this._endTest(
-                hook.error
-                    ? this._options.testStatusFailedHook || AllureStatus.BROKEN
-                    : AllureStatus.PASSED,
-                hook.error,
-            )
-        }
-
-        if (useCucumberStepReporter) {
-            // remove hook from suite if it has no steps or attachments
-            const currentItem =
-                this._state.currentAllureStepableEntity?.wrappedItem
             if (currentItem) {
-                const currentStep =
-                    currentItem.steps[currentItem.steps.length - 1]
-
-                if (
-                    currentStep &&
-                    currentStep.steps.length === 0 &&
-                    currentStep.attachments.length === 0 &&
-                    currentItem.attachments.length === 0 &&
-                    currentStep.status === Status.PASSED
-                ) {
-                    currentItem.steps.pop()
-                }
+                cleanCucumberHooks(currentItem)
             }
+            return
         }
+
     }
 
     addLabel({ name, value }: AddLabelEventArgs) {

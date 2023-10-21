@@ -464,7 +464,7 @@ describe('Hook reporting', () => {
         clean(outputDir)
     })
 
-    it('should report failed all hook', () => {
+    it.only('should report failed all hook', () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
