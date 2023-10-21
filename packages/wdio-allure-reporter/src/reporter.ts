@@ -728,6 +728,7 @@ export default class AllureReporter extends WDIOReporter {
                     currentHookRoot instanceof ExecutableItemWrapper
                 ) {
                     updateHookInfo(hook, currentHookRoot, currentHookRootStep)
+                    currentHookRootStep.endStep()
                     return
                 }
                 // put them back to the list
@@ -774,6 +775,7 @@ export default class AllureReporter extends WDIOReporter {
 
             // updating the hook information
             updateHookInfo(hook, hookExecutable, hookStep)
+            hookStep.endStep()
             return
         }
 

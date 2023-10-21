@@ -96,7 +96,7 @@ export const isAllTypeHooks = (title: string) =>
 export const getErrorFromFailedTest = (
     test: TestStats | HookStats
 ): Error | CompoundError | undefined => {
-    if (test.errors && Array.isArray(test.errors)) {
+    if (test.errors && Array.isArray(test.errors) && test.errors.length) {
         for (let i = 0; i < test.errors.length; i += 1) {
             if (test.errors[i].message) {
                 test.errors[i].message = stripAnsi(test.errors[i].message)
@@ -134,6 +134,7 @@ export const updateHookInfo = (newHookStats: HookStats, hookElement: ExecutableI
     // stage to finish for all hook.
     hookElement.stage = hookRootStep.stage =
         Stage.FINISHED
+    hookElement.wrappedItem.stop = newHookStats.end?.getTime()
     // set status values
     switch (newHookStats.state) {
     case 'passed':
