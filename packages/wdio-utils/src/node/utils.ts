@@ -12,7 +12,7 @@ import {
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
-import { locateChrome, locateFirefox } from 'locate-app'
+import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
@@ -124,16 +124,29 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }): P
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
-    const browserName = caps.browserName === Browser.FIREFOX ? Browser.FIREFOX : Browser.CHROME
+    const browserName = caps.browserName === Browser.FIREFOX
+        ? Browser.FIREFOX
+        : caps.browserName === Browser.CHROMIUM
+            ? Browser.CHROMIUM
+            : Browser.CHROME
     const exist = await fsp.access(cacheDir).then(() => true, () => false)
+    const isChromeOrChromium = browserName === Browser.CHROME || caps.browserName === Browser.CHROMIUM
     if (!exist) {
         await fsp.mkdir(cacheDir, { recursive: true })
     }
 
     /**
+     * in case we run Chromium tests we have to switch back to browserName: 'chrome'
+     * as 'chromium' is not recognised as a valid browser name by Chromedriver
+     */
+    if (browserName === Browser.CHROMIUM) {
+        caps.browserName = Browser.CHROME
+    }
+
+    /**
      * don't set up Chrome/Firefox if a binary was defined in caps
      */
-    const browserOptions = (browserName === Browser.CHROME
+    const browserOptions = (isChromeOrChromium
         ? caps['goog:chromeOptions']
         : caps['moz:firefoxOptions']
     ) || {}
@@ -143,7 +156,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
             browserVersion: (
                 caps.browserVersion ||
                 (
-                    browserName === Browser.CHROME
+                    isChromeOrChromium
                         ? getBuildIdByChromePath(browserOptions.binary)
                         : await getBuildIdByFirefoxPath(browserOptions.binary)
                 )
@@ -159,8 +172,14 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     if (!caps.browserVersion) {
         const executablePath = browserName === Browser.CHROME
             ? await locateChrome().catch(() => undefined)
-            : await locateFirefox().catch(() => undefined)
-        const tag = browserName === Browser.CHROME
+            : browserName === Browser.CHROMIUM
+                ? await locateApp({
+                    appName: Browser.CHROMIUM,
+                    macOsName: Browser.CHROMIUM,
+                    linuxWhich: 'chromium-browser'
+                }).catch(() => undefined)
+                : await locateFirefox().catch(() => undefined)
+        const tag = isChromeOrChromium
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
         /**
@@ -197,7 +216,18 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     log.info(`Setting up ${browserName} v${buildId}`)
     await _install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
-    return { executablePath, browserVersion: buildId }
+
+    /**
+     * for Chromium browser `resolveBuildId` returns with a useless build id
+     * which will not find a Chromedriver, therefor we need to resolve the
+     * id using Chrome as browser name
+     */
+    let browserVersion = buildId
+    if (browserName === Browser.CHROMIUM) {
+        browserVersion = await resolveBuildId(Browser.CHROME, platform, tag)
+    }
+
+    return { executablePath, browserVersion }
 }
 
 export function getDriverOptions (caps: WebdriverIO.Capabilities) {
