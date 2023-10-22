@@ -1183,7 +1183,7 @@ describe('hooks handling disabled Hooks', () => {
         expect(containers[0].afters).toHaveLength(0)
     })
 
-    it.only('should create a test and add mocha all hooks as fixtures if hook throws', () => {
+    it('should create a test and add mocha all hooks as fixtures if hook throws', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })
