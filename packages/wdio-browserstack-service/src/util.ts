@@ -638,7 +638,7 @@ export function getCiInfo () {
         }
     }
     // Visual Studio Team Services
-    if (isTrue(env.TF_BUILD)) {
+    if (isTrue(env.TF_BUILD) && isTrue(env.TF_BUILD_BUILDNUMBER)) {
         return {
             name: 'Visual Studio Team Services',
             build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
