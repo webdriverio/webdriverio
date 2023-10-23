@@ -88,7 +88,8 @@ function isFirefox(capabilities?: Capabilities.DesiredCapabilities) {
  */
 function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
-
+    const bsOptions = capabilities['bstack:options'] || {}
+    const browserstackBrowserName = (bsOptions.browserName || '').toLowerCase()
     /**
      * we have mobile capabilities if
      */
@@ -99,6 +100,9 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
         capabilities.platformName && capabilities.platformName.match(/ios/i) ||
         capabilities.platformName && capabilities.platformName.match(/tvos/i) ||
         capabilities.platformName && capabilities.platformName.match(/android/i) ||
+        /ios/i.test(bsOptions.platformName) ||
+        /tvos/i.test(bsOptions.platformName) ||
+        /android/i.test(bsOptions.platformName) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -107,10 +111,12 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
          * browserName is empty (and eventually app is defined)
          */
         capabilities.browserName === '' ||
+        capabilities['bstack:options']?.browserName === '' ||
         /**
          * browserName is a mobile browser
          */
-        MOBILE_BROWSER_NAMES.includes(browserName)
+        MOBILE_BROWSER_NAMES.includes(browserName) ||
+        MOBILE_BROWSER_NAMES.includes(browserstackBrowserName)
     )
 }
 
@@ -120,13 +126,16 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
  * @return {Boolean}               true if run on iOS device
  */
 function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
+    const bsOptions = capabilities['bstack:options'] || {}
     if (!capabilities) {
         return false
     }
 
     return Boolean(
         (capabilities.platformName && capabilities.platformName.match(/iOS/i)) ||
-        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i))
+        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i)) ||
+        (/iOS/i.test(bsOptions.platformName)) ||
+        (/(iPad|iPhone)/i.test(bsOptions.deviceName))
     )
 }
 
@@ -136,12 +145,15 @@ function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
  * @return {Boolean}               true if run on Android device
  */
 function isAndroid(capabilities?: WebdriverIO.Capabilities) {
+    const bsOptions = capabilities['bstack:options'] || {}
     if (!capabilities) {
         return false
     }
 
     return Boolean(
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
+        (/Android/i.test(bsOptions.platformName)) ||
+        (/Android/i.test(bsOptions.browserName)) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
 }
