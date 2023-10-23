@@ -19,7 +19,7 @@ If you specify a `browserName`/`browserVersion` combination in the [capabilities
 
 :::caution
 
-Automated browser setup does not support Microsoft Edge. Currently, only Chrome and Firefox are supported.
+Automated browser setup does not support Microsoft Edge. Currently, only Chrome, Chromium and Firefox are supported.
 
 :::
 
@@ -29,7 +29,7 @@ If you have a browser installation on a location that cannot be auto-detected by
 {
     capabilities: [
         {
-            browserName: 'chrome', // or 'firefox',
+            browserName: 'chrome', // or 'firefox'
             'goog:chromeOptions': { // or 'moz:firefoxOptions'
                 binary: '/path/to/chrome'
             },
@@ -46,7 +46,7 @@ WebdriverIO will always do this, unless driver [binary](capabilities#binary) is 
 {
     capabilities: [
         {
-            browserName: 'chrome', // or 'firefox', 'msedge', 'safari'
+            browserName: 'chrome', // or 'firefox', 'msedge', 'safari', 'chromium'
             'wdio:chromedriverOptions': { // or 'wdio:geckodriverOptions', 'wdio:edgedriverOptions'
                 binary: '/path/to/chromedriver' // or 'geckodriver', 'msedgedriver'
             }

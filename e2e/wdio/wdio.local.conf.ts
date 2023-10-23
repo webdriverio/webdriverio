@@ -66,3 +66,12 @@ if (os.platform() === 'darwin') {
         browserName: 'safari'
     })
 }
+
+if (os.platform() !== 'win32') {
+    (config.capabilities as WebdriverIO.Capabilities[]).push({
+        browserName: 'chromium',
+        'goog:chromeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
+    })
+}
