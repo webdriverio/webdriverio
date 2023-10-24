@@ -100,7 +100,7 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
         capabilities.platformName && capabilities.platformName.match(/ios/i) ||
         capabilities.platformName && capabilities.platformName.match(/tvos/i) ||
         capabilities.platformName && capabilities.platformName.match(/android/i) ||
-        /ios/i.test(bsOptions.platformName) ||
+        /ios/i.test(bsOptions.platformName || '') ||
         /tvos/i.test(bsOptions.platformName) ||
         /android/i.test(bsOptions.platformName) ||
         /**
