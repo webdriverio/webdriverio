@@ -517,7 +517,7 @@ describe('Hook reporting', () => {
     })
 
     it('should report failed before each hook with disableMochaHooks', () => {
-        const reporter = new AllureReporter({ outputDir, disableHooks: true })
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
         const runnerEvent = runnerStart()
 
         delete runnerEvent.capabilities.browserName
@@ -859,11 +859,11 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(results).toHaveLength(1)
             expect(containers[0].befores).toHaveLength(1)
             expect(
-                containers[0].befores[0].steps[0].attachments.length,
+                results[0].attachments.length,
             ).toEqual(1)
 
             const screenshotAttachments =
-                containers[0].befores[0].steps[0].attachments.filter(
+                results[0].attachments.filter(
                     (attachment: Attachment) =>
                         attachment.name === 'Screenshot',
                 )

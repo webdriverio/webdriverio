@@ -813,7 +813,7 @@ describe('hooks handling disabled Hooks', () => {
 
     beforeEach(() => {
         clean(outputDir)
-        reporter = new AllureReporter({ outputDir, disableHooks: true })
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
     })
 
     it('should not add test on custom hook', () => {
@@ -1209,7 +1209,7 @@ describe('hooks handling default', () => {
 
     beforeEach(() => {
         clean(outputDir)
-        reporter = new AllureReporter({ outputDir, disableHooks: false })
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
     })
 
     it('should capture mocha/jasmine each hooks ', () => {
@@ -1288,7 +1288,7 @@ describe('nested suite naming', () => {
 
     beforeEach(() => {
         clean(outputDir)
-        reporter = new AllureReporter({ outputDir, disableHooks: false })
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
     })
 
     it('should not end test if no hook ignored', () => {

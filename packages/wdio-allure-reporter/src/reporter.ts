@@ -231,7 +231,6 @@ export default class AllureReporter extends WDIOReporter {
             test.status = Status.BROKEN
             test.endTest()
         }
-
         currentSuite.endGroup()
     }
 
@@ -670,11 +669,11 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookStart(hook: HookStats) {
-        const { disableHooks, useCucumberStepReporter } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks or hooks when option is set in false
         // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !this._state.currentSuite || disableHooks) {
+        if (!hook.parent || !this._state.currentSuite || disableMochaHooks) {
             return
         }
 
@@ -702,7 +701,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableHooks, useCucumberStepReporter } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks
         // any hook is skipped if there is not a suite created.
@@ -714,10 +713,10 @@ export default class AllureReporter extends WDIOReporter {
         const isEachHook = isEachTypeHooks(hook.title) // if the hook is beforeEach or afterEach for mocha/jasmine
 
         /****
-         * if the hook is before/after from mocha/jasmine and disableHooks=false.
+         * if the hook is before/after from mocha/jasmine and disableMochaHooks=false.
          */
-        // if the hook is before/after from mocha/jasmine and disableHooks=false.
-        if ((isAllHook || isEachHook) && !disableHooks) {
+        // if the hook is before/after from mocha/jasmine and disableMochaHooks=false.
+        if ((isAllHook || isEachHook) && !disableMochaHooks) {
             // getting the hook root step, and the hook element from stack.
             const currentHookRootStep = this._state.pop()
             const currentHookRoot = this._state.pop()
@@ -744,11 +743,11 @@ export default class AllureReporter extends WDIOReporter {
 
         /****
          * if the hook is before/after from mocha/jasmine or cucumber by setting useCucumberStepReporter=true,
-         * and disableHooks=true with a failed hook.
+         * and disableMochaHooks=true with a failed hook.
          *
          * Only if the hook fails, it will be reported.
          */
-        if (disableHooks && hook.error) {
+        if (disableMochaHooks && hook.error) {
             // hook is from cucumber
             if (useCucumberStepReporter){
                 // report a new allure hook (step)
@@ -782,7 +781,7 @@ export default class AllureReporter extends WDIOReporter {
 
         /****
          * if the hook is not before/after from mocha/jasmine (custom hook) and useCucumberStepReporter=false
-         * Custom hooks are not affected by "disableHooks" option
+         * Custom hooks are not affected by "disableMochaHooks" option
          */
         if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
             // getting the latest element
@@ -803,7 +802,7 @@ export default class AllureReporter extends WDIOReporter {
         /****
          * if the hook comes from Cucumber useCucumberStepReporter=true
          */
-        if (useCucumberStepReporter && !disableHooks) {
+        if (useCucumberStepReporter && !disableMochaHooks) {
             // closing the cucumber hook (in this case, it's reported as a step)
             hook.error ? this.onTestFail(hook) : this.onTestPass()
 
