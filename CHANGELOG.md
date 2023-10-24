@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.20.3 (2023-10-24)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11492](https://github.com/webdriverio/webdriverio/pull/11492) (@wdio/utils): support chromium as browserName ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.20.0 (2023-10-20)
 
 #### :bug: Bug Fix
