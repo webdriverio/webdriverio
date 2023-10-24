@@ -111,7 +111,7 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
          * browserName is empty (and eventually app is defined)
          */
         capabilities.browserName === '' ||
-        capabilities['bstack:options']?.browserName === '' ||
+        bsOptions.browserName === '' ||
         /**
          * browserName is a mobile browser
          */
