@@ -225,7 +225,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const currentSuite = this._state.pop() as AllureGroup
-        // if a hook was execute without a test the report will need a test to display the hook
+        // if a hook were execute without a test the report will need a test to display the hook
         if (this._state.stats.hooks > 0 && this._state.stats.test === 0) {
             const test = currentSuite.startTest(currentSuite.name)
             test.status = Status.BROKEN
@@ -470,7 +470,7 @@ export default class AllureReporter extends WDIOReporter {
 
             const suiteChildren = [...suite.tests!, ...suite.hooks]
 
-            // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
+            // A scenario is it skipped if every step is skipped and hooks are passed or skipped
             const isSkipped =
                 suite.tests.every((item) =>
                     [AllureStatus.SKIPPED].includes(item.state as AllureStatus),
@@ -577,7 +577,7 @@ export default class AllureReporter extends WDIOReporter {
         if (useCucumberStepReporter) {
             this.attachLogs()
 
-            const testStatus = getTestStatus(test, this._config)
+            const testStatus = getTestStatus(test)
 
             this._endTest(testStatus, getErrorFromFailedTest(test))
             return
@@ -591,7 +591,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this.attachLogs()
 
-        const status = getTestStatus(test, this._config)
+        const status = getTestStatus(test)
 
         this._endTest(status, getErrorFromFailedTest(test))
     }
@@ -678,8 +678,8 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const isAllHook = isAllTypeHooks(hook.title) // if the hook is before* for mocha/jasmine
-        const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
+        const isAllHook = isAllTypeHooks(hook.title) // if the hook is beforeAll or afterAll for mocha/jasmine
+        const isEachHook = isEachTypeHooks(hook.title) // if the hook is beforeEach or afterEach for mocha/jasmine
 
         // if the hook is before/after from mocha/jasmine
         if (isAllHook || isEachHook) {
@@ -695,6 +695,7 @@ export default class AllureReporter extends WDIOReporter {
                 `hook:${hook.title}`,
             )
             this._state.push(customHookTest)
+            // hooks in cucumber mode will be treated as Test/Step
         } else if (useCucumberStepReporter) {
             this.onTestStart(hook)
         }
@@ -703,14 +704,14 @@ export default class AllureReporter extends WDIOReporter {
     onHookEnd(hook: HookStats) {
         const { disableHooks, useCucumberStepReporter } = this._options
 
-        // ignore global hooks or hooks when option is set in false
+        // ignore global hooks
         // any hook is skipped if there is not a suite created.
         if (!hook.parent || !this._state.currentSuite) {
             return
         }
 
-        const isAllHook = isAllTypeHooks(hook.title) // if the hook is before* for mocha/jasmine
-        const isEachHook = isEachTypeHooks(hook.title) // if the hook is after* for mocha/jasmine
+        const isAllHook = isAllTypeHooks(hook.title) // if the hook is beforeAll or afterAll for mocha/jasmine
+        const isEachHook = isEachTypeHooks(hook.title) // if the hook is beforeEach or afterEach for mocha/jasmine
 
         /****
          * if the hook is before/after from mocha/jasmine and disableHooks=false.
@@ -792,14 +793,8 @@ export default class AllureReporter extends WDIOReporter {
                     lastElement.wrappedItem.name?.startsWith('hook:')
                 this._state.push(lastElement)
                 if (isCustomHook) {
-                    // we end the test case that represent the custom hook call
-                    this._endTest(
-                        hook.error
-                            ? this._options.testStatusFailedHook ||
-                                  AllureStatus.SKIPPED
-                            : AllureStatus.PASSED,
-                        hook.error,
-                    )
+                    // we end the test case (custom hook) that represents the custom hook call.
+                    this._endTest(getTestStatus(hook), hook.error)
                 }
             }
             return
@@ -809,10 +804,10 @@ export default class AllureReporter extends WDIOReporter {
          * if the hook comes from Cucumber useCucumberStepReporter=true
          */
         if (useCucumberStepReporter && !disableHooks) {
-            // closing the cucumber hook (in this case it's reported as a step)
+            // closing the cucumber hook (in this case, it's reported as a step)
             hook.error ? this.onTestFail(hook) : this.onTestPass()
 
-            // remove cucumber hook (reported as step) from suite if it has no steps or attachments.
+            // remove cucumber hook (reported as a step) from a suite if it has no steps or attachments.
             const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
 
             if (currentItem) {

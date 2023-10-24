@@ -1159,7 +1159,7 @@ describe('hooks handling disabled Hooks', () => {
 
         expect(results).toHaveLength(1)
         expect(containers[0].befores).toHaveLength(1)
-        expect(containers[0].befores[0].status).toEqual(Status.FAILED)
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
         expect(containers[0].befores[0].stage).toEqual(Stage.FINISHED)
     })
 
@@ -1171,7 +1171,7 @@ describe('hooks handling disabled Hooks', () => {
         reporter.onHookEnd({
             title: '"after all" hook',
             parent: 'foo',
-            state: Status.PASSED,
+            status: Status.PASSED,
         })
         reporter.onTestPass()
         reporter.onSuiteEnd(suiteEnd())

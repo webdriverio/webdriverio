@@ -41,44 +41,34 @@ describe('utils', () => {
     })
 
     describe('getTestStatus', () => {
-        it('return  status for jasmine', () => {
-            const config: any = { framework: 'jasmine' }
-            expect(getTestStatus({} as any, config)).toEqual(Status.FAILED)
-        })
 
         it('broken for test with no error', () => {
-            const config: any = { framework: 'mocha' }
-            expect(getTestStatus({} as any, config)).toEqual(Status.BROKEN)
+            expect(getTestStatus({} as any)).toEqual(Status.BROKEN)
         })
 
         it('failed for AssertionError', () => {
-            const config: any = { framework: 'mocha' }
             const test = { error: { name: 'Error', message: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+            expect(getTestStatus(test as any)).toEqual(Status.FAILED)
         })
 
         it('failed for AssertionError stacktrace', () => {
-            const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+            expect(getTestStatus(test as any)).toEqual(Status.FAILED)
         })
 
         it('broken for not AssertionError', () => {
-            const config: any = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
-            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
+            expect(getTestStatus(test as any)).toEqual(Status.BROKEN)
         })
 
         it('broken for error without stacktrace', () => {
-            const config: any = { framework: 'mocha' }
             const test = { error: {} }
-            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
+            expect(getTestStatus(test as any)).toEqual(Status.BROKEN)
         })
 
         it('failed status for not AssertionError stacktrace', () => {
-            const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
-            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
+            expect(getTestStatus(test as any)).toEqual(Status.BROKEN)
         })
     })
 

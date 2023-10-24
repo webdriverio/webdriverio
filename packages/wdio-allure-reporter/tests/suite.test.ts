@@ -464,7 +464,7 @@ describe('Hook reporting', () => {
         clean(outputDir)
     })
 
-    it.only('should report failed all hook', () => {
+    it('should report failed all hook', () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
@@ -507,7 +507,7 @@ describe('Hook reporting', () => {
         expect(containers[0].befores[0].steps).toHaveLength(1)
 
         expect(results[0].name).toEqual('should can do something')
-        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
 
         expect(containers[0].befores[0].steps[0]).toBeDefined()
         expect(containers[0].befores[0].steps[0].name).toEqual(
@@ -535,7 +535,7 @@ describe('Hook reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
         expect(containers[0].befores[0].steps[0].name).toEqual(
             '"before each" hook',
         )
