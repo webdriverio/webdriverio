@@ -145,7 +145,7 @@ function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
  * @return {Boolean}               true if run on Android device
  */
 function isAndroid(capabilities?: WebdriverIO.Capabilities) {
-    const bsOptions = capabilities['bstack:options'] || {}
+    const bsOptions = capabilities?.['bstack:options'] || {}
     if (!capabilities) {
         return false
     }
