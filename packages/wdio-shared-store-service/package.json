@@ -1,6 +1,6 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "8.20.4",
+  "version": "8.20.5",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
@@ -47,7 +47,7 @@
     "webdriverio": "8.20.4"
   },
   "devDependencies": {
-    "@wdio/globals": "8.20.4"
+    "@wdio/globals": "8.20.5"
   },
   "publishConfig": {
     "access": "public"

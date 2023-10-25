@@ -21,6 +21,15 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.20.5 (2023-10-25)
+
+#### :bug: Bug Fix
+* [#11524](https://github.com/webdriverio/webdriverio/pull/11524) (@wdio/globals): fix type reference annotation ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.20.4 (2023-10-25)
 
 #### :nail_care: Polish
