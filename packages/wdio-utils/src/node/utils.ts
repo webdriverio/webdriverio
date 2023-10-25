@@ -121,6 +121,10 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }): P
     log.progress('')
 }
 
+function locateChromeSafely () {
+    return locateChrome().catch(() => undefined)
+}
+
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
@@ -171,7 +175,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
 
     if (!caps.browserVersion) {
         const executablePath = browserName === Browser.CHROME
-            ? await locateChrome().catch(() => undefined)
+            ? await locateChromeSafely()
             : browserName === Browser.CHROMIUM
                 ? await locateApp({
                     appName: Browser.CHROMIUM,
@@ -259,7 +263,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
-    const version = driverVersion || getBuildIdByChromePath(await locateChrome()) || ChromeReleaseChannel.STABLE
+    const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,

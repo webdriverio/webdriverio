@@ -233,6 +233,10 @@ describe('Passing tests', () => {
         expect(osParams).toHaveLength(1)
         expect(osParams[0].value).toEqual('osx')
     })
+
+    it('should have testCaseId equal to historyId', () => {
+        expect(allureResult.testCaseId).toEqual(allureResult.historyId)
+    })
 })
 
 describe('Failed tests', () => {
@@ -540,6 +544,42 @@ describe('Hook reporting', () => {
             '"before each" hook',
         )
         expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
+    })
+})
+
+describe('Allure ID', () => {
+    const outputDir = temporaryDirectory()
+    let allureResult: Record<string, any>
+
+    beforeAll(() => {
+        const reporter = new AllureReporter({
+            outputDir
+        })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.addAllureId({ id: 'explicitly set allureId' })
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        allureResult = results[0]
+    })
+
+    afterAll(() => {
+        clean(outputDir)
+    })
+
+    it('explicitly set allureId overrides testCaseId ', () => {
+        const labels = mapBy<Label>(allureResult.labels, 'name')
+
+        const allureId = labels[LabelName.AS_ID]
+        expect(allureId).toHaveLength(1)
+        expect(allureId[0].value).toEqual('explicitly set allureId')
+        expect(allureResult.testCaseId).toEqual(undefined)
     })
 })
 
