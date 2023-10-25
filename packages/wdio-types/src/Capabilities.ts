@@ -1102,6 +1102,7 @@ export interface BrowserStackCapabilities {
     osVersion?: string
     desired?: DesiredCapabilities
     device?: string
+    platformName?: string
     /**
      * Specify a name for a logical group of builds.
      */
