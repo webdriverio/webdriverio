@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.20.4 (2023-10-25)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11487](https://github.com/webdriverio/webdriverio/pull/11487) [v8] Support: Setting session status and name when using BrowserStack Automate TurboScale ([@nagpalkaran95](https://github.com/nagpalkaran95))
+* `wdio-cli`, `wdio-protocols`
+  * [#11523](https://github.com/webdriverio/webdriverio/pull/11523) (@wdio/cli): improve bootstrap ElectronJS project ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+
+
 ## v8.20.3 (2023-10-24)
 
 #### :bug: Bug Fix
