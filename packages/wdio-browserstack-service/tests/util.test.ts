@@ -271,8 +271,10 @@ describe('getCiInfo', () => {
 
         it('should return object if any CI being used - TF_BUILD', () => {
             process.env.TF_BUILD = 'True'
+            process.env.TF_BUILD_BUILDNUMBER = '123'
             expect(getCiInfo()).toBeInstanceOf(Object)
             delete process.env.TF_BUILD
+            delete process.env.TF_BUILD_BUILDNUMBER
         })
 
         it('should return object if any CI being used - Appveyor', () => {
