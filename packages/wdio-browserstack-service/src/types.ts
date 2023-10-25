@@ -8,6 +8,10 @@ export interface SessionResponse {
     }
 }
 
+export interface TurboScaleSessionResponse {
+    url: string
+}
+
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
 
 export type AppConfig = {
@@ -138,6 +142,12 @@ export interface BrowserstackConfig {
      * @default true
      */
     setSessionStatus?: boolean
+    /**
+     * Set this to true while running tests on the automation grid created using BrowserStack Automate TurboScale
+     * to automatically set the session name and status for quick debugging.
+     * @default false
+    */
+    turboScale?: boolean;
 }
 
 // Observability types
