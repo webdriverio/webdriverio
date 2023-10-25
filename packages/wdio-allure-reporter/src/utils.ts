@@ -177,7 +177,7 @@ export const getSuiteLabels = ({ tags }: SuiteStats): Label[] => {
     }, [])
 }
 
-export const setHistoryId = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
+export const setAllureIds = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
     if (!test) {
         return
     }
@@ -186,5 +186,7 @@ export const setHistoryId = (test: AllureTest | undefined, suite: AllureGroup | 
         .sort((a, b) => a.name?.localeCompare(b.name))
         .map(it => it.name + it.value)
         .join('')
-    test.historyId = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
+    const hash = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
+    test.historyId = hash
+    test.testCaseId = hash
 }
