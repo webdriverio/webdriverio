@@ -19,14 +19,14 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         // @ts-ignore mock feature
-        got.setMockResponse([undefined, { scrollX: 0, scrollY: 20 }])
+        got.setMockResponse([undefined])
         await elem.moveTo()
 
-        expect(vi.mocked(got).mock.calls[4][0]!.pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(got).mock.calls[4][1]!.json.actions).toHaveLength(1)
-        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].type).toBe('pointer')
-        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions).toHaveLength(1)
-        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions[0].type).toBe('pointer')
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions[0].actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions[0].actions[0])
             .toMatchSnapshot()
     })
 
@@ -40,9 +40,9 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         // @ts-ignore mock feature
-        got.setMockResponse([undefined, { scrollX: 19, scrollY: 0 }])
+        got.setMockResponse([undefined])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions[0].actions[0])
             .toMatchSnapshot()
     })
 
@@ -56,9 +56,9 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         // @ts-ignore mock feature
-        got.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }, { scrollX: 0, scrollY: 0 }])
+        got.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[4][1]!.json.actions[0].actions[0])
             .toMatchSnapshot()
     })
 
@@ -97,22 +97,6 @@ describe('moveTo', () => {
             .toContain('/foobar-123/moveto')
         expect(vi.mocked(got).mock.calls[3][1]!.json)
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
-    })
-
-    it('should return integer values when provided float getScrollPosition params', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-
-        const elem = await browser.$('#elem')
-        // @ts-ignore mock feature
-        got.setMockResponse([{}, { x: 4, y: 9, height: 35, width: 42 }, { scrollX: 2.1, scrollY: 3.3 }])
-        await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
-            .toMatchSnapshot()
     })
 
     afterEach(() => {
