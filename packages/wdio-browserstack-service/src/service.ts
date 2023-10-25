@@ -2,10 +2,11 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import CrashReporter from './crash-reporter'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
 import got from 'got'
+import type { OptionsOfJSONResponseBody } from 'got'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types'
 
 import InsightsHandler from './insights-handler'
@@ -398,11 +399,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._multiRemoteAction(async (sessionId, browserName) => {
             const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
             log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
-            const response = await got<SessionResponse>(sessionUrl, {
+
+            let browserUrl
+            const reqOpts: OptionsOfJSONResponseBody = {
                 username: this._config.user,
                 password: this._config.key,
                 responseType: 'json'
-            })
+            }
+
+            if (this._turboScale) {
+                const response = await got<TurboScaleSessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.url
+            } else {
+                const response = await got<SessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.automation_session.browser_url
+            }
 
             if (!this._browser) {
                 return
@@ -410,11 +421,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
-
-            let browserUrl = response.body.automation_session?.browser_url
-            if (this._turboScale) {
-                browserUrl = response.body.url
-            }
             log.info(`${browserString} session: ${browserUrl}`)
         })
     }
