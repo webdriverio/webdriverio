@@ -30,16 +30,15 @@ export async function moveTo (
     /**
      * get rect of element
      */
-    const { x, y, width, height } = await getElementRect(this)
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const newXOffset = Math.floor(x - scrollX + (typeof xOffset === 'number' ? xOffset : (width / 2)))
-    const newYOffset = Math.floor(y - scrollY + (typeof yOffset === 'number' ? yOffset : (height / 2)))
+    const { width, height } = await getElementRect(this)
+    const newXOffset = Math.floor(typeof xOffset === 'number' ? xOffset : (width / 2))
+    const newYOffset = Math.floor(typeof yOffset === 'number' ? yOffset : (height / 2))
 
     /**
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
-        .move({ x: newXOffset, y: newYOffset })
+        .move({ origin: this, x: newXOffset, y: newYOffset })
         .perform()
 }
