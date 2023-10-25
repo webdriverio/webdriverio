@@ -464,6 +464,15 @@ export const QUESTIONNAIRE = [{
         if (isBrowserRunner(answers)) {
             return SUPPORTED_PACKAGES.framework.slice(0, 1)
         }
+        /**
+         * Serenity tests don't come with proper ElectronJS example files
+         */
+        if (getTestingPurpose(answers) === 'electron') {
+            return SUPPORTED_PACKAGES.framework.filter(
+                ({ value }) => !value.startsWith('@serenity-js')
+            )
+        }
+
         return SUPPORTED_PACKAGES.framework
     }
 }, {
