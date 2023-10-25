@@ -1564,9 +1564,9 @@ export default {
     },
     '/session/:sessionId/appium/execute_driver': {
         POST: {
-            command: 'driverScript',
+            command: 'executeDriverScript',
             description:
-                'This command enables you to specify a WebdriverIO script as a string and transmit it to the Appium server for local execution on the server itself. This approach helps minimize potential latency associated with each command. ***To utilize this command with Appium 2.0, you must have the [`execute-driver-plugin`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin installed.***',
+                'This command enables you to specify a webdriverio script as a string and transmit it to the Appium server for local execution on the server itself. This approach helps minimize potential latency associated with each command. ***To utilize this command with Appium 2.0, you must have the [`execute-driver-plugin`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin installed.***',
             ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md',
             parameters: [
                 {
