@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import got from 'got'
+import type { OptionsOfJSONResponseBody } from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
@@ -11,7 +12,7 @@ import {
     isBrowserstackSession,
     patchConsoleLogs,
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -37,6 +38,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
+    private _turboScale
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -48,6 +50,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
+        this._turboScale = this._options.turboScale
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
@@ -55,6 +58,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
+
+        if (process.env.BROWSERSTACK_TURBOSCALE) {
+            this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
+        }
+
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
@@ -97,6 +105,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._isAppAutomate()) {
             this._sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
+        }
+
+        if (this._turboScale) {
+            this._sessionBaseUrl = 'https://api.browserstack.com/automate-turboscale/v1/sessions'
         }
 
         this._scenariosThatRan = []
@@ -372,6 +384,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
         log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        if (this._turboScale) {
+            return got.patch(sessionUrl, {
+                json: requestBody,
+                username: this._config.user,
+                password: this._config.key
+            })
+        }
         return got.put(sessionUrl, {
             json: requestBody,
             username: this._config.user,
@@ -386,11 +405,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._multiRemoteAction(async (sessionId, browserName) => {
             const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
             log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
-            const response = await got<SessionResponse>(sessionUrl, {
+
+            let browserUrl
+            const reqOpts: OptionsOfJSONResponseBody = {
                 username: this._config.user,
                 password: this._config.key,
                 responseType: 'json'
-            })
+            }
+
+            if (this._turboScale) {
+                const response = await got<TurboScaleSessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.url
+            } else {
+                const response = await got<SessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.automation_session.browser_url
+            }
 
             if (!this._browser) {
                 return
@@ -398,7 +427,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
-            log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
+            log.info(`${browserString} session: ${browserUrl}`)
         })
     }
 
