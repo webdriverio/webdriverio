@@ -79,6 +79,7 @@ describe('Passing tests', () => {
         reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
+        reporter.addAllureId({ id: 'explicitly set allureId' })
         reporter.startStep('bar')
         reporter.endStep(Status.PASSED)
         reporter.addStep(step)
@@ -199,6 +200,18 @@ describe('Passing tests', () => {
 
         expect(osParams).toHaveLength(1)
         expect(osParams[0].value).toEqual('osx')
+    })
+
+    it('should add allureId label when explicitly set', () => {
+        const labels = mapBy<Label>(allureResult.labels, 'name')
+
+        const allureId = labels[LabelName.AS_ID]
+        expect(allureId).toHaveLength(1)
+        expect(allureId[0].value).toEqual('explicitly set allureId')
+    })
+
+    it('should have testCaseId equal to historyId', () => {
+        expect(allureResult.testCaseId).toEqual(allureResult.historyId)
     })
 })
 
