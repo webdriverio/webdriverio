@@ -141,6 +141,25 @@ if (!HAS_WATCH_FLAG) {
         const fileContent = await readFile(filePath, 'utf8')
         await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
     }
+
+    /**
+     * Fix type annotation in `@wdio/globals` package.
+     *
+     * For some reason TypeScript doesn't keep the type annotation comment in
+     * `packages/wdio-globals/src/index.ts` in the first line. After compiling
+     * the package it becomes:
+     *
+     * ```ts
+     * /// <reference types="./standalone.js" />
+     * /// <reference types="types.js" />
+     * ```
+     *
+     * Which can't get resolved by TypeScript. Instead we want the original annotation
+     * comment to be kept.
+     */
+    const filePath = path.join(__dirname, '..', 'packages', 'wdio-globals', 'build', 'index.d.ts')
+    const fileContent = (await readFile(filePath, 'utf8')).toString().replace(/\/\/\/ <reference (types|path)(.*)/g, '')
+    await writeFile(filePath, `/// <reference path="../types.d.ts" />${fileContent}`, 'utf8')
 }
 
 if (esmCode || cjsCode) {
