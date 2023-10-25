@@ -126,7 +126,7 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
  * @return {Boolean}               true if run on iOS device
  */
 function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
-    const bsOptions = capabilities['bstack:options'] || {}
+    const bsOptions = capabilities?.['bstack:options'] || {}
     if (!capabilities) {
         return false
     }
