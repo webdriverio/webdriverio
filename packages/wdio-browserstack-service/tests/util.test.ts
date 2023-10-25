@@ -274,6 +274,83 @@ describe('getCiInfo', () => {
             expect(getCiInfo()).toBeInstanceOf(Object)
             delete process.env.TF_BUILD
         })
+
+        it('should return object if any CI being used - Appveyor', () => {
+            process.env.APPVEYOR = 'True'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.APPVEYOR
+        })
+
+        it('should return object if any CI being used - CodeBuild', () => {
+            process.env.CODEBUILD_BUILD_ID = '1211'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.CODEBUILD_BUILD_ID
+        })
+
+        it('should return object if any CI being used - Bamboo', () => {
+            process.env.bamboo_buildNumber = '123'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.APviwPVEYOR
+        })
+
+        it('should return object if any CI being used - Wercker', () => {
+            process.env.WERCKER = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.WERCKER
+        })
+
+        it('should return object if any CI being used - GCP', () => {
+            process.env.GCP_PROJECT = 'True'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.GCP_PROJECT
+        })
+
+        it('should return object if any CI being used - Shippable', () => {
+            process.env.SHIPPABLE = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.SHIPPABLE
+        })
+
+        it('should return object if any CI being used - Netlify', () => {
+            process.env.NETLIFY = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.NETLIFY
+        })
+
+        it('should return object if any CI being used - Github Actions', () => {
+            process.env.GITHUB_ACTIONS = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.GITHUB_ACTIONS
+        })
+        it('should return object if any CI being used - Vercel', () => {
+            process.env.VERCEL = '1'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.VERCEL
+        })
+
+        it('should return object if any CI being used - Teamcity', () => {
+            process.env.TEAMCITY_VERSION = '3.4'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.TEAMCITY_VERSION
+        })
+
+        it('should return object if any CI being used - Concourse', () => {
+            process.env.CONCOURSE = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.CONCOURSE
+        })
+
+        it('should return object if any CI being used - GoCD', () => {
+            process.env.GO_JOB_NAME = 'job'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.GO_JOB_NAME
+        })
+
+        it('should return object if any CI being used - CodeFresh', () => {
+            process.env.CF_BUILD_ID = 'True'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.CF_BUILD_ID
+        })
     })
 
     it('should return null if no CI being used', () => {
