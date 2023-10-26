@@ -589,21 +589,26 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return inquirer.prompt(questions)
 }
 
+/**
+ * Generates a valid file path from answers provided.
+ * @param answers The answer from which a file path is to be generated.
+ * @param projectRootDir The root directory of the project.
+ * @returns filePath
+ */
+function generatePathfromAnswer(answers:string, projectRootDir:string):string {
+    return path.resolve(
+        projectRootDir, path.dirname(answers) === '.' ? path.resolve(answers) : path.dirname(answers))
+}
+
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
     const specAnswer = answers.specs || ''
     const stepDefinitionAnswer = answers.stepDefinitions || ''
     const pageObjectAnswer = answers.pages || ''
 
-    const destSpecRootPath = path.resolve(
-        projectRootDir,
-        (path.dirname(specAnswer) === '.' ? path.resolve(specAnswer) : path.dirname(specAnswer)).replace(/\*\*$/, ''))
-
-    const destStepRootPath = path.resolve(projectRootDir, (path.dirname(stepDefinitionAnswer) === '.' ? path.resolve(stepDefinitionAnswer) : path.dirname(stepDefinitionAnswer)))
-
+    const destSpecRootPath = generatePathfromAnswer(specAnswer, projectRootDir).replace(/\*\*$/, '')
+    const destStepRootPath = generatePathfromAnswer(stepDefinitionAnswer, projectRootDir)
     const destPageObjectRootPath = answers.usePageObjects
-        ? path.resolve(
-            projectRootDir,
-            (path.dirname(pageObjectAnswer) === '.' ? path.resolve(pageObjectAnswer) : path.dirname(pageObjectAnswer)).replace(/\*\*$/, ''))
+        ? generatePathfromAnswer(pageObjectAnswer, projectRootDir).replace(/\*\*$/, '')
         : ''
     const destSerenityLibRootPath = usesSerenity(answers)
         ? path.resolve(projectRootDir, answers.serenityLibPath || 'serenity')
