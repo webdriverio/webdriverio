@@ -1,4 +1,4 @@
-import { getElementRect, getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,
@@ -26,19 +26,11 @@ export async function moveTo (
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xOffset, yOffset)
     }
-
-    /**
-     * get rect of element
-     */
-    const { width, height } = await getElementRect(this)
-    const newXOffset = Math.floor(typeof xOffset === 'number' ? xOffset : (width / 2))
-    const newYOffset = Math.floor(typeof yOffset === 'number' ? yOffset : (height / 2))
-
     /**
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
-        .move({ origin: this, x: newXOffset, y: newYOffset })
+        .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
         .perform()
 }
