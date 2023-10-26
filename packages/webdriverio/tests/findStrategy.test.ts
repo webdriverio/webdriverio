@@ -29,17 +29,35 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('[name="searchinput"]')
     })
 
-    it('should find an element using "name" method with a . in the name', () => {
-        const element = findStrategy('[name="search.input"]')
-        expect(element.using).toBe('name')
-        expect(element.value).toBe('search.input')
-    })
-
-    it('should find an element using "name" method with an attribute', () => {
-        const element = findStrategy('[name="searchinput[@isDisplayed=\'true\']"]')
-        expect(element.using).toBe('name')
-        expect(element.value).toBe('searchinput[@isDisplayed=\'true\']')
-    })
+    it.each([
+        {
+            selector: '[name="search.with.dot"]',
+            expectedValue: 'search.with.dot',
+        },
+        {
+            selector: '[name="search (with parentheses)"]',
+            expectedValue: 'search (with parentheses)',
+        },
+        {
+            selector: "[name='search with \"double quotes\"']",
+            expectedValue: 'search with "double quotes"',
+        },
+        {
+            selector: "[name=\"search with 'single quotes'\"]",
+            expectedValue: "search with 'single quotes'",
+        },
+        {
+            selector: "[name=\"searchinput[@isDisplayed='true']\"]",
+            expectedValue: "searchinput[@isDisplayed='true']",
+        },
+    ])(
+        'should find an element using "name" method with special characters in the name (using selector %s)',
+        ({ selector, expectedValue }) => {
+            const element = findStrategy(selector)
+            expect(element.using).toBe('name')
+            expect(element.value).toBe(expectedValue)
+        }
+    )
 
     it('should find an element using "name" method by "name" strategy if isMobile is used even when w3c is used', () => {
         const element = findStrategy('[name="searchinput"]', true, true)
