@@ -129,7 +129,9 @@ test.skipIf(isUsingWindows)('handler', async () => {
         reporters: [],
         plugins: [],
         services: [],
-        npmInstall: true
+        npmInstall: true,
+        specs: '/foo/bar',
+        stepDefinitions:'/tmp/foobar'
     })
     const runConfigCmd = vi.fn()
     expect(await handler({} as any, runConfigCmd)).toMatchSnapshot()
