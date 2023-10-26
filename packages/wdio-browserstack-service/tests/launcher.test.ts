@@ -35,6 +35,7 @@ describe('onPrepare', () => {
     }
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     vi.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
+    vi.spyOn(utils, 'getCiInfo').mockImplementation(() => null)
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
@@ -382,6 +383,8 @@ describe('onPrepare', () => {
         const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
         const service = new BrowserstackLauncher({} as any, caps, config)
         const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
+
+        vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
