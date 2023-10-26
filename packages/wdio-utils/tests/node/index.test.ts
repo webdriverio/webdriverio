@@ -157,7 +157,6 @@ describe('startWebDriver', () => {
             port: 1234,
             foo: 'bar',
             cacheDir: expect.any(String),
-            allowHosts: ['localhost'],
         })
     })
 
@@ -186,8 +185,7 @@ describe('startWebDriver', () => {
         expect(startEdgedriver).toBeCalledWith({
             foo: 'bar',
             port: 1234,
-            cacheDir: expect.any(String),
-            allowedIps: ['localhost'],
+            cacheDir: expect.any(String)
         })
         expect(options.capabilities.browserName).toBe('MicrosoftEdge')
     })
@@ -210,8 +208,6 @@ describe('startWebDriver', () => {
                     binary: expect.any(String)
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: ['localhost'],
-                    allowedOrigins: ['*'],
                     'foo': 'bar',
                 },
             }
@@ -220,7 +216,7 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
-            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=localhost']
+            ['--port=1234', '--foo=bar']
         )
     })
 
@@ -243,8 +239,6 @@ describe('startWebDriver', () => {
                     binary: '/my/chrome'
                 },
                 'wdio:chromedriverOptions': {
-                    allowedIps: ['localhost'],
-                    allowedOrigins: ['*'],
                     binary: '/my/chromedriver'
                 },
             }
@@ -252,7 +246,7 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
-            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=localhost']
+            ['--port=1234', '--binary=/my/chromedriver']
         )
     })
 
@@ -268,7 +262,6 @@ describe('startWebDriver', () => {
         expect(res).toBe('geckodriver')
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
-            allowHosts: ['localhost'],
             customGeckoDriverPath: '/my/geckodriver',
             port: 1234
         })
@@ -286,7 +279,6 @@ describe('startWebDriver', () => {
         expect(res).toBe('edgedriver')
         expect(startEdgedriver).toBeCalledWith({
             cacheDir: expect.any(String),
-            allowedIps: ['localhost'],
             customEdgeDriverPath: '/my/edgedriver',
             port: 1234
         })
