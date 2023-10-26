@@ -90,7 +90,7 @@ export class ViteServer extends EventEmitter {
         const [vitePort, wssPort] = await Promise.all([getPort(), getPort()])
         this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
             server: {
-                host: '0.0.0.0',
+                host: 'localhost',
                 port: vitePort,
                 proxy: {
                     '/ws': {

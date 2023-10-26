@@ -361,7 +361,7 @@ $ npm install
 $ npm start
 ```
 
-This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). If you need to run on a different host or port, pass them as additional arguments to npm start, like `-- --host 0.0.0.0`.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). If you need to run on a different host or port, pass them as additional arguments to npm start, like `-- --host localhost`.
 
 You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
 

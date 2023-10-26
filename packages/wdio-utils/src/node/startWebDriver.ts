@@ -38,7 +38,7 @@ export async function startWebDriver (options: Options.WebDriver) {
      * in case we are running unit tests, just return
      */
     if (process.env.WDIO_SKIP_DRIVER_SETUP) {
-        options.hostname = '0.0.0.0'
+        options.hostname = 'localhost'
         options.port = 4321
         return
     }
@@ -80,8 +80,6 @@ export async function startWebDriver (options: Options.WebDriver) {
             { binary: chromeExecuteablePath },
             caps['goog:chromeOptions'] || {}
         )
-        chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
-        chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
         const driverParams = parseParams({ port, ...chromedriverOptions })
         driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams)
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
@@ -122,7 +120,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['0.0.0.0'] })
+        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
@@ -133,7 +131,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
+        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
             return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
         })
@@ -175,7 +173,7 @@ export async function startWebDriver (options: Options.WebDriver) {
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
-    options.hostname = '0.0.0.0'
+    options.hostname = 'localhost'
     options.port = port
     log.info(`Started ${driver} in ${Date.now() - start}ms on port ${port}`)
     return driverProcess
