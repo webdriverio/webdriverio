@@ -58,7 +58,7 @@ describe('ViteServer', () => {
             plugins: ['testrunner plugin', 'mock hoisting plugin'],
             root: expect.any(String),
             server: {
-                host: '0.0.0.0',
+                host: 'localhost',
                 port: 1234,
                 proxy: {
                     '/ws': {
@@ -86,7 +86,7 @@ describe('ViteServer', () => {
             root: expect.any(String),
             server: {
                 port: 1234,
-                host: '0.0.0.0',
+                host: 'localhost',
                 proxy: {
                     '/ws': {
                         target: 'ws://localhost:1234',
@@ -113,7 +113,7 @@ describe('ViteServer', () => {
             root: expect.any(String),
             server: {
                 port: 3210,
-                host: '0.0.0.0',
+                host: 'localhost',
                 proxy: {
                     '/ws': {
                         target: 'ws://localhost:1234',
@@ -140,7 +140,7 @@ describe('ViteServer', () => {
             root: expect.any(String),
             server: {
                 port: 3210,
-                host: '0.0.0.0',
+                host: 'localhost',
                 proxy: {
                     '/ws': {
                         target: 'ws://localhost:1234',
