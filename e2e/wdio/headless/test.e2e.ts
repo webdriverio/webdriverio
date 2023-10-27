@@ -128,6 +128,7 @@ describe('main suite 1', () => {
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
             await browser.switchToFrame(iframe)
+            await (await browser.$('#parent')).scrollIntoView()
             await (await browser.$('#parent')).moveTo()
             const value = await (await browser.$('#text')).getValue()
             expect(value.endsWith('center\n')).toBe(true)
