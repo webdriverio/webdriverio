@@ -98,6 +98,54 @@ describe('main suite 1', () => {
         expect(oldScrollPosition).toEqual([x, y])
     })
 
+    describe('moveTo tests', () => {
+        before(async () => {
+            await browser.url('http://guinea-pig.webdriver.io/')
+            await (await browser.$('a[href="pointer.html"]')).click()
+            await (await browser.$('#parent')).waitForExist()
+        })
+
+        it('moveTo without iframe', async () => {
+            await (await browser.$('#parent')).moveTo()
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo without iframe with 0 offsets', async () => {
+            await (await browser.$('#parent')).moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo without iframe with xOffset and yOffset regarding center', async () => {
+            const elmRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            await (await browser.$('#parent')).moveTo({ xOffset: elmRect.width -  1, yOffset: elmRect.height - 1 })
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('out\n')).toBe(true)
+        })
+
+        it('moveTo in iframe', async () => {
+            const iframe = await browser.$('iframe.code-tabs__result')
+            await browser.switchToFrame(iframe)
+            await (await browser.$('#parent')).moveTo()
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo in iframe with 0 offsets', async () => {
+            await (await browser.$('#parent')).moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo in iframe with xOffset and yOffset regarding center', async () => {
+            const elmRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            await (await browser.$('#parent')).moveTo({ xOffset: elmRect.width - 1, yOffset: elmRect.height - 1 })
+            const value = await (await browser.$('#text')).getValue()
+            expect(value.endsWith('out\n')).toBe(true)
+        })
+    })
+
     const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
         undefined,
         true,
