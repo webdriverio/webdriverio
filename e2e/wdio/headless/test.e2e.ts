@@ -118,8 +118,9 @@ describe('main suite 1', () => {
         })
 
         it('moveTo without iframe with xOffset and yOffset regarding center', async () => {
-            const elmRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            await (await browser.$('#parent')).moveTo({ xOffset: elmRect.width -  1, yOffset: elmRect.height - 1 })
+            const elmRectChild = await browser.getElementRect(await browser.$('#child').elementId)
+            const elmRectParent = await browser.getElementRect(await browser.$('#parent').elementId)
+            await (await browser.$('#parent')).moveTo({ xOffset: elmRectParent.width/2 - elmRectChild.width/2 + 1, yOffset: elmRectParent.height - elmRectChild.height + 1 })
             const value = await (await browser.$('#text')).getValue()
             expect(value.endsWith('out\n')).toBe(true)
         })
@@ -139,8 +140,9 @@ describe('main suite 1', () => {
         })
 
         it('moveTo in iframe with xOffset and yOffset regarding center', async () => {
-            const elmRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            await (await browser.$('#parent')).moveTo({ xOffset: elmRect.width - 1, yOffset: elmRect.height - 1 })
+            const elmRectChild = await browser.getElementRect(await browser.$('#child').elementId)
+            const elmRectParent = await browser.getElementRect(await browser.$('#parent').elementId)
+            await (await browser.$('#parent')).moveTo({ xOffset: elmRectParent.width/2 - elmRectChild.width/2 + 1, yOffset: elmRectParent.height - elmRectChild.height + 1 })
             const value = await (await browser.$('#text')).getValue()
             expect(value.endsWith('out\n')).toBe(true)
         })
