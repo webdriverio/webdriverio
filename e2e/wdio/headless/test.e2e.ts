@@ -4,7 +4,7 @@ describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName)
+        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName ? browserName.replace(' ', '') : browserName)
     })
 
     it('should allow to check for PWA', async () => {
