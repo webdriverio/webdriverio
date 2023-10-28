@@ -461,17 +461,6 @@ export function validateUrl (url: string, origError?: Error): string {
     }
 }
 
-/**
- * get window's scrollX and scrollY
- * @param {object} scope
- */
-export function getScrollPosition (scope: WebdriverIO.Element) {
-    return getBrowserObject(scope)
-        .execute(/* istanbul ignore next */function (this: Window) {
-            return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
-        })
-}
-
 export async function hasElementId (element: WebdriverIO.Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
