@@ -108,19 +108,19 @@ describe('main suite 1', () => {
 
         before(async () => {
             await browser.url('http://guinea-pig.webdriver.io/')
-            await (await browser.$('a[href="pointer.html"]')).click()
-            await (await browser.$('#parent')).waitForExist()
+            await browser.$('a[href="pointer.html"]').click()
+            await browser.$('#parent').waitForExist()
         })
 
         it('moveTo without iframe', async () => {
-            await (await browser.$('#parent')).moveTo()
-            const value = await (await browser.$('#text')).getValue()
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
         it('moveTo without iframe with 0 offsets', async () => {
-            await (await browser.$('#parent')).moveTo({ xOffset: 0, yOffset: 0 })
-            const value = await (await browser.$('#text')).getValue()
+            await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
@@ -132,9 +132,9 @@ describe('main suite 1', () => {
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
-                await (await browser.$('#parent')).moveTo()
+                await browser.$('#parent').moveTo()
                 const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
-                await (await browser.$('#parent')).moveTo(input)
+                await browser.$('#parent').moveTo(input)
                 const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
@@ -144,14 +144,14 @@ describe('main suite 1', () => {
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
             await browser.switchToFrame(iframe)
-            await (await browser.$('#parent')).moveTo()
-            const value = await (await browser.$('#text')).getValue()
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
         it('moveTo in iframe with 0 offsets', async () => {
-            await (await browser.$('#parent')).moveTo({ xOffset: 0, yOffset: 0 })
-            const value = await (await browser.$('#text')).getValue()
+            await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
@@ -163,9 +163,9 @@ describe('main suite 1', () => {
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
-                await (await browser.$('#parent')).moveTo()
+                await browser.$('#parent').moveTo()
                 const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
-                await (await browser.$('#parent')).moveTo(input)
+                await browser.$('#parent').moveTo(input)
                 const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
