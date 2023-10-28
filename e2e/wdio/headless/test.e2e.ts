@@ -99,6 +99,13 @@ describe('main suite 1', () => {
     })
 
     describe('moveTo tests', () => {
+        const inputs = [
+            undefined,
+            { xOffset: 10 },
+            { yOffset: 10 },
+            { xOffset: 25, yOffset: 25 },
+        ]
+
         before(async () => {
             await browser.url('http://guinea-pig.webdriver.io/')
             await (await browser.$('a[href="pointer.html"]')).click()
@@ -117,18 +124,26 @@ describe('main suite 1', () => {
             expect(value.endsWith('center\n')).toBe(true)
         })
 
-        it('moveTo without iframe with xOffset and yOffset regarding center', async () => {
-            const elmRectChild = await browser.getElementRect(await browser.$('#child').elementId)
-            const elmRectParent = await browser.getElementRect(await browser.$('#parent').elementId)
-            await (await browser.$('#parent')).moveTo({ xOffset: elmRectParent.width/2 - elmRectChild.width/2 + 1, yOffset: elmRectParent.height - elmRectChild.height + 1 })
-            const value = await (await browser.$('#text')).getValue()
-            expect(value.endsWith('out\n')).toBe(true)
+        inputs.forEach((input) => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+                await browser.execute(() => {
+                    const mouse = { x:0, y:0 }
+                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    //@ts-ignore
+                    document.mouseMoveTo = mouse
+                })
+                await (await browser.$('#parent')).moveTo()
+                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                await (await browser.$('#parent')).moveTo(input)
+                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
+                expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
+            })
         })
 
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
             await browser.switchToFrame(iframe)
-            await (await browser.$('#parent')).scrollIntoView()
             await (await browser.$('#parent')).moveTo()
             const value = await (await browser.$('#text')).getValue()
             expect(value.endsWith('center\n')).toBe(true)
@@ -140,12 +155,21 @@ describe('main suite 1', () => {
             expect(value.endsWith('center\n')).toBe(true)
         })
 
-        it('moveTo in iframe with xOffset and yOffset regarding center', async () => {
-            const elmRectChild = await browser.getElementRect(await browser.$('#child').elementId)
-            const elmRectParent = await browser.getElementRect(await browser.$('#parent').elementId)
-            await (await browser.$('#parent')).moveTo({ xOffset: elmRectParent.width/2 - elmRectChild.width/2 + 1, yOffset: elmRectParent.height - elmRectChild.height + 1 })
-            const value = await (await browser.$('#text')).getValue()
-            expect(value.endsWith('out\n')).toBe(true)
+        inputs.forEach((input) => {
+            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+                await browser.execute(() => {
+                    const mouse = { x:0, y:0 }
+                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    //@ts-ignore
+                    document.mouseMoveTo = mouse
+                })
+                await (await browser.$('#parent')).moveTo()
+                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                await (await browser.$('#parent')).moveTo(input)
+                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
+                expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
+            })
         })
     })
 
