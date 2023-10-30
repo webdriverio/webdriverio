@@ -40,5 +40,5 @@ export async function throttleCPU (
     const client = await pages[0].target().createCDPSession()
 
     // Set CPU throttling
-    await client.send('Emulation.setCPUThrottlingRate', { rate: factor || 1 })
+    await client.send('Emulation.setCPUThrottlingRate', { rate: factor })
 }
