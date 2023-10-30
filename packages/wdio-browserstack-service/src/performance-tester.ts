@@ -1,7 +1,8 @@
 import { createObjectCsvWriter } from 'csv-writer'
 import fs from 'node:fs'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
-import { BStackLogger, sleep } from './util.js'
+import { sleep } from './util.js'
+import { BStackLogger } from './bstackLogger.js'
 
 export default class PerformanceTester {
     static _observer: PerformanceObserver

@@ -12,10 +12,10 @@ import {
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
-    isTrue,
-    BStackLogger,
+    isTrue
 } from './util.js'
 import { testForceStop, testStartEvent, testStop } from './scripts/test-event-scripts.js'
+import { BStackLogger } from './bstackLogger.js'
 
 class _AccessibilityHandler {
     private _platformA11yMeta: { [key: string]: any; }

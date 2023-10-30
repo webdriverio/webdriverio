@@ -16,10 +16,10 @@ import {
     getGitMetaData,
     removeAnsiColors,
     getHookType,
-    pushDataToQueue,
-    BStackLogger
+    pushDataToQueue
 } from './util.js'
 import RequestQueueHandler from './request-handler.js'
+import { BStackLogger } from './bstackLogger.js'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}

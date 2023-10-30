@@ -1,6 +1,7 @@
 import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL, DATA_BATCH_ENDPOINT, BATCH_EVENT_TYPES, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import type { UploadType } from './types.js'
-import { batchAndPostEvents, BStackLogger } from './util.js'
+import { batchAndPostEvents } from './util.js'
+import { BStackLogger } from './bstackLogger.js'
 
 export default class RequestQueueHandler {
     private queue: UploadType[] = []

@@ -8,7 +8,6 @@ import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook
 import TestReporter from './reporter.js'
 
 import {
-    BStackLogger,
     frameworkSupportsHook,
     getCloudProvider, getFailureObject,
     getGitMetaData,
@@ -33,6 +32,7 @@ import type {
 } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
+import { BStackLogger } from './bstackLogger.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}

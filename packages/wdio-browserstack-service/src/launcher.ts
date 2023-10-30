@@ -16,7 +16,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
-import { BSTACK_SERVICE_VERSION, LOGS_FILE, NOT_ALLOWED_KEYS_IN_CAPS, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, VALID_APP_EXTENSION } from './constants.js'
+import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, VALID_APP_EXTENSION } from './constants.js'
 import {
     launchTestSession,
     createAccessibilityTestRun,
@@ -28,13 +28,13 @@ import {
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
     isTrue,
-    BStackLogger,
     nodeRequest,
     getBrowserStackUser,
     getBrowserStackKey
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { FileStream } from './fileStream.js'
+import { BStackLogger } from './bstackLogger.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
@@ -418,7 +418,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadServiceLogs() {
-        const fileStream = fs.createReadStream(path.join(process.cwd(), LOGS_FILE))
+        const fileStream = fs.createReadStream(BStackLogger.logFilePath)
         const zip = zlib.createGzip({ level: 1 })
         const uploadAddress = UPLOAD_LOGS_ADDRESS
         const clientBuildUuid =this._getClientBuildUuid()
@@ -708,7 +708,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             return process.env.BS_A11Y_TEST_RUN_ID
         }
         const uuid = uuidv4()
-        BStackLogger.debug(`If facing any issues, please contact BrowserStack support with the test run id - ${uuid}`)
+        BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the test run id - ${uuid}`, 'info')
         return uuid
     }
 }

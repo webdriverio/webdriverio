@@ -3,7 +3,8 @@ import got from 'got'
 
 import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
-import { BStackLogger, DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
+import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
+import { BStackLogger } from './bstackLogger.js'
 
 type Dict = Record<string, any>
 

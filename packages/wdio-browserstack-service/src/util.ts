@@ -4,11 +4,9 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
-import fs from 'node:fs'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
-import logger from '@wdio/logger'
 
 import got, { HTTPError } from 'got'
 import type { Method } from 'got'
@@ -16,19 +14,18 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import chalk from 'chalk'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder, LOGS_FILE } from './constants.js'
+import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
+import { BStackLogger } from './bstackLogger.js'
 
 const pGitconfig = promisify(gitconfig)
-const log = logger('@wdio/browserstack-service')
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -1132,68 +1129,3 @@ export async function pushDataToQueue(data: UploadType, requestQueueHandler: Req
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
-
-export abstract class BStackLogger {
-    private static logFile = LOGS_FILE
-    private static logFilePath = path.join(process.cwd(), this.logFile)
-    private static logFolderPath = path.join(process.cwd(), 'logs')
-    private static logFileStream: fs.WriteStream | null
-
-    static logToFile(logMessage: string, logLevel: string) {
-        try {
-            if (!this.logFileStream) {
-                if (!fs.existsSync(this.logFolderPath)){
-                    fs.mkdirSync(this.logFolderPath)
-                }
-                this.logFileStream = fs.createWriteStream(this.logFilePath, { flags: 'a' })
-            }
-            if (this.logFileStream && this.logFileStream.writable) {
-                this.logFileStream.write(this.formatLog(logMessage, logLevel))
-            }
-        } catch (error) {
-            log.debug(`Failed to log to file. Error ${error}`)
-        }
-    }
-
-    private static formatLog(logMessage: string, level: string) {
-        return `${chalk.gray(new Date().toISOString())} ${chalk[COLORS[level]](level.toUpperCase())} ${chalk.whiteBright('@wdio/browserstack-service')} ${logMessage}\n`
-    }
-
-    public static info(message: string) {
-        this.logToFile(message, 'info')
-        log.info(message)
-    }
-
-    public static error(message: string) {
-        this.logToFile(message, 'error')
-        log.error(message)
-    }
-
-    public static debug(message: string) {
-        this.logToFile(message, 'debug')
-        log.debug(message)
-    }
-
-    public static warn(message: string) {
-        this.logToFile(message, 'warn')
-        log.warn(message)
-    }
-
-    public static trace(message: string) {
-        this.logToFile(message, 'trace')
-        log.trace(message)
-    }
-
-    public static clearLogger() {
-        if (this.logFileStream) {
-            this.logFileStream.end()
-        }
-        this.logFileStream = null
-    }
-
-    public static clearLogFile() {
-        if (fs.existsSync(this.logFilePath)) {
-            fs.truncateSync(this.logFilePath)
-        }
-    }
-}
