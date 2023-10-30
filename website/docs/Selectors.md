@@ -29,7 +29,7 @@ We __do__ and __do not__ recommend the following selectors:
 | `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write. |
 | `$('button[name="submission"]')` | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics. |
 | `$('button[data-testid="submit"]')` | ✅ Good | Requires additional attribute, not connected to a11y. |
-| `$('aria/Submit')` or `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page. |
+| `$('aria/Submit')` or `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## CSS Query Selector
 
