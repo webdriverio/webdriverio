@@ -8,6 +8,7 @@ export async function throttle (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
 ) {
+    console.log('Deprecated: use throttleNetwork instead')
     const browser = getBrowserObject(this)
     await browser.throttleNetwork(params)
 }

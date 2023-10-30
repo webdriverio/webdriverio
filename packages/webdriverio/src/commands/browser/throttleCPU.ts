@@ -30,13 +30,20 @@ export async function throttleCPU (
         throw new Error('Invalid factor for "throttleCPU". Expected it to be a number (int)')
     }
 
+    const failedConnectionMessage = 'No Puppeteer connection could be established which is required to use this command'
+
     // Connect to Chrome DevTools
     await this.getPuppeteer()
     if (!this.puppeteer) {
-        throw new Error('No Puppeteer connection could be established which is required to use this command')
+        throw new Error(failedConnectionMessage)
     }
 
     const pages = await this.puppeteer.pages()
+
+    if (!pages.length) {
+        throw new Error(failedConnectionMessage)
+    }
+
     const client = await pages[0].target().createCDPSession()
 
     // Set CPU throttling
