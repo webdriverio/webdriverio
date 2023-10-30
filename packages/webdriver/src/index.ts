@@ -1,4 +1,3 @@
-import path from 'node:path'
 import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
@@ -26,13 +25,6 @@ export default class WebDriver {
 
         if (params.logLevel && (!options.logLevels || !options.logLevels.webdriver)) {
             logger.setLevel('webdriver', params.logLevel)
-        }
-
-        /**
-         * Store all log events in a file
-         */
-        if (params.outputDir && !process.env.WDIO_LOG_PATH) {
-            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
         }
 
         log.info('Initiate new session using the WebDriver protocol')
@@ -139,3 +131,5 @@ export default class WebDriver {
 export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
 export * from './bidi/handler.js'
+export * as local from './bidi/localTypes.js'
+export * as remote from './bidi/remoteTypes.js'

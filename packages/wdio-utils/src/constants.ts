@@ -90,3 +90,29 @@ export const SUPPORTED_BROWSERNAMES = {
 export const DEFAULT_HOSTNAME = '0.0.0.0'
 export const DEFAULT_PROTOCOL = 'http'
 export const DEFAULT_PATH = '/'
+/* istanbul ignore next */
+export const HOOK_DEFINITION = {
+    type: 'object' as const,
+    validate: (param: any) => {
+        /**
+         * option must be an array
+         */
+        if (!Array.isArray(param)) {
+            throw new Error('a hook option needs to be a list of functions')
+        }
+
+        /**
+         * array elements must be functions
+         */
+        for (const option of param) {
+            /**
+             * either a string
+             */
+            if (typeof option === 'function') {
+                continue
+            }
+
+            throw new Error('expected hook to be type of function')
+        }
+    }
+}

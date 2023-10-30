@@ -1,12 +1,9 @@
-import type { RunCommandArguments } from '../types.js'
-
 class Launcher {
-
     #esmLauncher: any
 
     constructor(
         private configFilePath: string,
-        private args: Partial<RunCommandArguments> = {},
+        private args: any = {},
         private isWatchMode = false
     ) {
         this.#esmLauncher = import('../launcher.js').then(

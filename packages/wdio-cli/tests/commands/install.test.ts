@@ -3,22 +3,25 @@ import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
-import yarnInstall from 'yarn-install'
 
 import * as installCmd from '../../src/commands/install.js'
 import * as configCmd from '../../src/commands/config.js'
 import * as utils from '../../src/utils.js'
+import { installPackages } from '../../src/install.js'
 
 vi.mock('yargs')
-vi.mock('yarn-install')
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockResolvedValue({}),
-        readFile: vi.fn().mockResolvedValue({}),
+        readFile: vi.fn().mockResolvedValue('export const config = {}'),
         writeFile: vi.fn().mockResolvedValue({})
     }
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../src/install', () => ({
+    installPackages: vi.fn(),
+    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
+}))
 
 const findInConfigMock = vi.spyOn(utils, 'findInConfig')
 
@@ -50,7 +53,9 @@ describe('Command: install', () => {
         await installCmd.handler({ type: 'service', name: 'foobar', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalled()
-        expect(console.log).toHaveBeenCalledWith('foobar is not a supported service.')
+        expect(console.log).toHaveBeenCalledWith(
+            expect.stringContaining('Error: foobar is not a supported service.')
+        )
     })
 
     it('should prompt missing configuration', async () => {
@@ -62,8 +67,7 @@ describe('Command: install', () => {
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith(
             'install',
-            '/absolute/path/to/wdio.conf',
-            undefined
+            '/absolute/path/to/wdio.conf'
         )
     })
 
@@ -80,11 +84,11 @@ describe('Command: install', () => {
         findInConfigMock.mockReturnValue([''])
         vi.mocked(fs.access).mockResolvedValue()
         vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
-        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
+        vi.mocked(installPackages).mockResolvedValue(true)
 
         await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service" using npm.')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
@@ -95,7 +99,7 @@ describe('Command: install', () => {
     it('should fail if config could not be updated', async () => {
         findInConfigMock.mockReturnValue([''])
         vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
-        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
+        vi.mocked(installPackages).mockResolvedValue(true)
         vi.mocked(utils.replaceConfig).mockRestore()
         vi.spyOn(utils, 'replaceConfig').mockReturnValue('')
 
@@ -109,11 +113,11 @@ describe('Command: install', () => {
         findInConfigMock.mockReturnValue([''])
         vi.mocked(fs.access).mockResolvedValue()
         vi.mocked(fs.readFile).mockResolvedValue('module.config = {}')
-        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 0 }) as any)
+        vi.mocked(installPackages).mockResolvedValue(true)
 
         await installCmd.handler({ type: 'service', name: 'vite', config: './path/to/wdio.conf.js' } as any)
 
-        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service".')
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-vite-service" using npm.')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-vite-service" installed successfully.')
         expect(utils.replaceConfig).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
@@ -124,12 +128,8 @@ describe('Command: install', () => {
     it('should exit if there is an error while installing', async () => {
         findInConfigMock.mockReturnValue([''])
         vi.mocked(fs.access).mockResolvedValue()
-        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 1, stderr: 'test error' } as any))
-        vi.spyOn(console, 'error')
-
+        vi.mocked(installPackages).mockResolvedValue(false)
         await installCmd.handler({ type: 'service', name: 'vite', config: './wdio.conf.js' } as any)
-
-        expect(console.error).toHaveBeenCalledWith('Error installing packages', 'test error')
         expect(process.exit).toHaveBeenCalledWith(1)
     })
 

@@ -8,7 +8,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
-import { canAccess } from '@wdio/utils'
+import { canAccess } from '@wdio/utils/node'
 
 import { sort, findByWhich } from '../utils.js'
 import { darwinGetAppPaths, darwinGetInstallations } from './finder.js'

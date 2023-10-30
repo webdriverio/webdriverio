@@ -6,10 +6,8 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
-import {
-    removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadAutoCompilers, makeRelativeToCWD
-} from '../utils.js'
+import { makeRelativeToCWD, loadAutoCompilers } from './utils.js'
+import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
 import type { PathService, ModuleImportService } from '../types.js'
@@ -174,7 +172,8 @@ export default class ConfigParser {
          */
         if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs as string[]
-        } else if (object.exclude && object.exclude.length > 0) {
+        }
+        if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
         }
 
@@ -306,7 +305,9 @@ export default class ConfigParser {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
-        return this.filterSpecs(specs, <string[]>exclude)
+        return this.shard(
+            this.filterSpecs(specs, <string[]>exclude)
+        )
     }
 
     /**
@@ -464,5 +465,17 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
+    }
+
+    shard (specs: Spec[]) {
+        if (!this._config.shard || this._config.shard.total === 1) {
+            return specs
+        }
+
+        const { total, current } = this._config.shard
+        const totalSpecs = specs.length
+        const specsPerShard = Math.max(Math.round(totalSpecs / total), 1)
+        const end = current === total ? undefined : specsPerShard * current
+        return specs.slice(current * specsPerShard - specsPerShard, end)
     }
 }

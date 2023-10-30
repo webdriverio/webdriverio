@@ -84,6 +84,7 @@ export interface RunCommandArguments {
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
     bail?: number
     baseUrl?: string
+    shard?: Options.ShardOptions
     waitforTimeout?: number
     framework?: string
     reporters?: Reporters.ReporterEntry[]
@@ -111,7 +112,6 @@ export interface ReplCommandArguments {
 }
 
 export interface InstallCommandArguments {
-    yarn: boolean
     config?: string
     type: 'service' | 'reporter' | 'framework' | 'plugin'
     name: string

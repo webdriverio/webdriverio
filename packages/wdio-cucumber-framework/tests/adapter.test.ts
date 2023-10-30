@@ -11,8 +11,30 @@ import * as packageExports from '../src/index.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 
 vi.mock('@wdio/utils')
+vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
-vi.mock('@cucumber/cucumber')
+vi.mock('@cucumber/cucumber', async (orig) => {
+    const origMod = await orig() as typeof Cucumber
+    const mod = {
+        setDefinitionFunctionWrapper: vi.fn(),
+        BeforeAll: vi.fn(),
+        AfterAll: vi.fn(),
+        Before: vi.fn(),
+        After: vi.fn(),
+        BeforeStep: vi.fn(),
+        AfterStep: vi.fn(),
+        setDefaultTimeout: vi.fn(),
+        supportCodeLibraryBuilder: {
+            reset: vi.fn(),
+            finalize: vi.fn()
+        },
+        Status: origMod.Status
+    }
+    return {
+        default: mod,
+        ...mod
+    }
+})
 vi.mock('@cucumber/messages', async () => {
     const module: typeof Messages = await vi.importActual('@cucumber/messages')
 

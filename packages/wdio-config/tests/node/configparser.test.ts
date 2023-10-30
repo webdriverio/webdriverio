@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 
 import type { MockedFunction } from 'vitest'
@@ -6,16 +7,18 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
 
-import ConfigParser from '../src/lib/ConfigParser.js'
-import type { MockFileContent } from './lib/MockFileContentBuilder.js'
-import MockFileContentBuilder from './lib/MockFileContentBuilder.js'
-import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'
-import ConfigParserBuilder from './lib/ConfigParserBuilder.js'
-import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed.js'
+import ConfigParser from '../../src/node/ConfigParser.js'
+import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
+import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
+import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
+import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
+import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
 
 const log = logger('')
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const root = path.resolve(__dirname, '..', '..')
 
-const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
+const FIXTURES_PATH = path.resolve(__dirname, '..', '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
@@ -24,15 +27,11 @@ const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts'
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
-const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
+const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('ts-node', () => ({
-    default: { register: vi.fn() }
-}))
-
-vi.mock('tsconfig-paths', () => ({
     default: { register: vi.fn() }
 }))
 
@@ -55,19 +54,19 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
     config: {
         user: 'foobar',
         key: '50fa142c-3121-4gb0-9p07-8q326vvbq7b0',
-        specs: [path.join(__dirname, '/tests/*.test.ts')],
+        specs: [path.join(root, '/tests/*.test.ts')],
         exclude: [
-            path.join(__dirname, '/tests//validateConfig.test.ts')
+            path.join(root, '/tests/validateConfig.test.ts')
         ],
         capabilities: [{
             browserName: 'chrome'
         }],
         suites: {
-            unit: [path.join(__dirname, '/tests/configparser.test.ts')],
-            mobile: [path.join(__dirname, '/tests/RequireLibrary.test.ts')],
+            unit: [path.join(root, '/tests/configparser.test.ts')],
+            mobile: [path.join(root, '/tests/node/FileSystemPathService.test.ts')],
             functional: [
-                path.join(__dirname, '/tests/validateConfig.test.ts'),
-                path.join(__dirname, '/tests/..', 'src/index.ts')
+                path.join(root, '/tests/validateConfig.test.ts'),
+                path.join(root, '/tests/..', 'src/index.ts')
             ]
         }
     }
@@ -85,9 +84,9 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
 async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<FilePathsAndContents> {
     return [
         realReadFilePair(path.resolve(FIXTURES_PATH, '../validateConfig.test.ts')),
-        realReadFilePair(path.resolve(FIXTURES_PATH, '../configparser.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../node/configparser.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
-        realReadFilePair(path.resolve(FIXTURES_PATH, '../RequireLibrary.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../node/FileSystemPathService.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
@@ -118,9 +117,9 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
     return [
         FileNamed(configFilepath).withContents(TestWdioConfig_AllInMemory()),
         FileNamed(path.join(baseDir, '../validateConfig.test.ts')).withContents('test contents'),
-        FileNamed(path.join(baseDir, '../configparser.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../node/configparser.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, '../utils.test.ts')).withContents('test contents'),
-        FileNamed(path.join(baseDir, '../RequireLibrary.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../node/FileSystemPathService.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.cjs')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.es6')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.java')).withContents('test contents'),
@@ -283,11 +282,10 @@ describe('ConfigParser', () => {
                     }
                 ).withFiles([
                     FileNamed(path.join(__dirname, '/tests/cool.conf')).withContents(JSON.stringify(configFileContents)),
-                    FileNamed(path.join(__dirname, '/tests//validateConfig.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/configparser.test.ts')).withContents('test contents'),
+                    FileNamed(path.join(__dirname, '/tests/node/configparser.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/RequireLibrary.test.ts')).withContents('test contents'),
+                    FileNamed(path.join(__dirname, '/tests/node/FileSystemPathService.test.ts')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/__fixtures__/test.es6')).withContents('test contents'),
                     FileNamed(path.join(__dirname, '/tests/__fixtures__/test.java')).withContents('test contents'),
@@ -423,18 +421,18 @@ describe('ConfigParser', () => {
 
         it('should allow to specify partial matching spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : ['Library'] })
+            await configParser.initialize({ spec : ['PathService'] })
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should handle an array in the config_specs', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
-            await configParser.initialize({ spec : ['Library'] })
+            await configParser.initialize({ spec : ['PathService'] })
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should exclude duplicate spec files', async () => {
@@ -461,7 +459,7 @@ describe('ConfigParser', () => {
             expect(specs).toContain(__filename)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should throw when suite is not defined', async () => {
@@ -481,11 +479,12 @@ describe('ConfigParser', () => {
             await configParser.initialize({ suite: ['mobile'] })
 
             const specs = configParser.getSpecs()
+            // @ts-ignore
             const suite = configParser.getConfig().suite
 
             expect(suite).toHaveLength(1)
             expect(specs).toHaveLength(1)
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should not overwrite host and port if specified in host file', async () => {
@@ -560,7 +559,7 @@ describe('ConfigParser', () => {
             // first validate that the conf fixture 'spec' was merged successfully
             expect(configParser.getSpecs()).toHaveLength(1)
 
-            configParser['merge']({ exclude: [path.join(__dirname, '**', '*conf*').replace(/\\/g, '/')] })
+            configParser['merge']({ exclude: [path.join(__dirname, '..', '**', '*conf*').replace(/\\/g, '/')] })
 
             // then after merging an exclude containing a glob pattern, validate that the exclude
             // attribute contains multiple items and the filtering on the spec attribute works
@@ -591,7 +590,7 @@ describe('ConfigParser', () => {
 
         it('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
+            const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
 
             await configParser.initialize({ suite: ['mobile', 'unit'] })
@@ -718,7 +717,7 @@ describe('ConfigParser', () => {
             await configParser.initialize({ suite: ['unit', 'mobile'] })
 
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
-            const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
+            const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const getSpecs = () => configParser.getSpecs([INDEX_PATH], [requireLibPath])
 
             // verify that the capability exclude was ignored since
@@ -786,7 +785,7 @@ describe('ConfigParser', () => {
             await configParser.initialize({ suite: ['functional'] })
 
             const specs = configParser.getSpecs()
-            expect(specs[0]).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
+            expect(specs[0]).not.toContain(path.join(__dirname, '..', 'validateConfig.test.ts'))
             expect(specs[0]).toContain(INDEX_PATH)
             expect(specs[1].length).toBe(3)
         })
@@ -807,7 +806,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should include spec 3 times with mulit-run', async () => {
@@ -863,7 +862,7 @@ describe('ConfigParser', () => {
                             ],
                             suites: {
                                 mobile: [
-                                    path.resolve(__dirname, 'RequireLibrary.test.ts'),
+                                    path.resolve(__dirname, 'FileSystemPathService.test.ts'),
                                     path.resolve(__dirname, 'validateConfig.test.ts'),
                                     path.resolve(__dirname, 'link.test.ts'),
                                     path.resolve(__dirname, 'ganondorf.test.ts')
@@ -881,7 +880,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
             expect(specs).toContain(path.resolve(__dirname, 'link.test.ts'))
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
             expect(specs).not.toContain(path.resolve(__dirname, 'ganondorf.test.ts'))
@@ -908,8 +907,8 @@ describe('ConfigParser', () => {
                                     browserName: 'chrome'
                                 }],
                                 suites: {
-                                    unit: [path.join(__dirname, '/tests/configparser.test.ts')],
-                                    mobile: [path.join(__dirname, '/tests/RequireLibrary.test.ts')],
+                                    unit: [path.join(__dirname, '/tests/node/configparser.test.ts')],
+                                    mobile: [path.join(__dirname, '/tests/node/FileSystemPathService.test.ts')],
                                     functional: [
                                         path.join(__dirname, '/tests/validateConfig.test.ts'),
                                         path.join(__dirname, '/tests/..', 'src/index.ts')
@@ -919,7 +918,7 @@ describe('ConfigParser', () => {
                                 suite: ['something']
                             }
                         }),
-                        FileNamed(path.join(__dirname, '/tests/only-this-test-one.test.ts')).withContents('what1')
+                        FileNamed(path.join(__dirname, 'tests', 'only-this-test-one.test.ts')).withContents('what1')
                     ]
                 ).build()
             await configParser.initialize()
@@ -927,7 +926,7 @@ describe('ConfigParser', () => {
             expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\" you specified don\'t exist in your config file or doesn\'t contain any files!')
             configParser['merge']({
                 suite: ['something-else'],
-                spec: [path.join(__dirname, '/tests/only-this-test-one.test.ts')]
+                spec: [path.join(__dirname, 'tests', 'only-this-test-one.test.ts')]
             })
             // eslint-disable-next-line no-useless-escape
             expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\", \"something-else\" you specified don\'t exist in your config file or doesn\'t contain any files!')
@@ -944,5 +943,25 @@ describe('ConfigParser', () => {
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')
         })
+    })
+
+    it('shard', async () => {
+        const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+
+        let specs: any = ['1', '2', '3', '4', '5']
+        await configParser.initialize({ shard: { current: 1, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['1', '2'])
+        await configParser.initialize({ shard: { current: 2, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['3', '4'])
+        await configParser.initialize({ shard: { current: 3, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['5'])
+
+        specs = ['1', ['2.1', '2.2', '2.3'], '3', ['4.1', '4.2']]
+        await configParser.initialize({ shard: { current: 1, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['1'])
+        await configParser.initialize({ shard: { current: 2, total: 3 } })
+        expect(configParser.shard(specs)).toEqual([['2.1', '2.2', '2.3']])
+        await configParser.initialize({ shard: { current: 3, total: 3 } })
+        expect(configParser.shard(specs)).toEqual(['3', ['4.1', '4.2']])
     })
 })

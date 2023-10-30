@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WebdriverIO module interface > attach > attaches 1`] = `
+{
+  "automationProtocol": "webdriver",
+  "capabilities": {
+    "browserName": "chrome",
+    "platformName": "MacOS",
+  },
+  "requestedCapabilities": {
+    "browserName": "chrome",
+  },
+  "sessionId": "foobar",
+}
+`;

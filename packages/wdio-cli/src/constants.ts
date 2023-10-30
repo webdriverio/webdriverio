@@ -1,12 +1,13 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
+import { HOOK_DEFINITION } from '@wdio/utils'
+import type { Options, Services, Reporters, Capabilities } from '@wdio/types'
 
 import {
     detectCompiler,
     getDefaultFiles,
     convertPackageHashToObject,
-    getProjectProps,
     getProjectRoot,
 } from './utils.js'
 import type { Questionnair } from './types.js'
@@ -104,9 +105,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
-        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
+        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
         { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
-        { name: 'light', value: 'wdio-light-reporter--$light' }
+        { name: 'light', value: 'wdio-light-reporter$--$light' }
     ],
     plugin: [
         { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
@@ -135,7 +136,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
-        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
+        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--$ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
@@ -463,6 +464,15 @@ export const QUESTIONNAIRE = [{
         if (isBrowserRunner(answers)) {
             return SUPPORTED_PACKAGES.framework.slice(0, 1)
         }
+        /**
+         * Serenity tests don't come with proper ElectronJS example files
+         */
+        if (getTestingPurpose(answers) === 'electron') {
+            return SUPPORTED_PACKAGES.framework.filter(
+                ({ value }) => !value.startsWith('@serenity-js')
+            )
+        }
+
         return SUPPORTED_PACKAGES.framework
     }
 }, {
@@ -551,10 +561,8 @@ export const QUESTIONNAIRE = [{
     name: 'serenityLibPath',
     message: 'What should be the location of your Serenity/JS Screenplay Pattern library?',
     default: /* istanbul ignore next */ async (answers: Questionnair) => {
-        const projectProps   = await getProjectProps()
-        const projectRootDir = getProjectRoot(answers, projectProps)
+        const projectRootDir = await getProjectRoot(answers)
         const specsDir = path.resolve(projectRootDir, path.dirname(answers.specs || '').replace(/\*\*$/, ''))
-
         return path.resolve(specsDir, '..', 'serenity')
     },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && usesSerenity(answers)
@@ -669,3 +677,276 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-vite-service',
     'wdio-gmail-service'
 ]
+
+export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
+    /**
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
+     */
+    specs: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "specs" option needs to be a list of strings')
+            }
+        }
+    },
+    /**
+     * exclude specs from test execution
+     */
+    exclude: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "exclude" option needs to be a list of strings')
+            }
+        }
+    },
+    /**
+     * key/value definition of suites (named by key) and a list of specs as value
+     * to specify a specific set of tests to execute
+     */
+    suites: {
+        type: 'object'
+    },
+    /**
+     * Project root directory path.
+     */
+    rootDir: {
+        type: 'string'
+    },
+    /**
+     * If you only want to run your tests until a specific amount of tests have failed use
+     * bail (default is 0 - don't bail, run all tests).
+     */
+    bail: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * supported test framework by wdio testrunner
+     */
+    framework: {
+        type: 'string'
+    },
+    /**
+     * capabilities of WebDriver sessions
+     */
+    capabilities: {
+        type: 'object',
+        validate: (param: Capabilities.RemoteCapabilities) => {
+            /**
+             * should be an object
+             */
+            if (!Array.isArray(param)) {
+                if (typeof param === 'object') {
+                    return true
+                }
+
+                throw new Error('the "capabilities" options needs to be an object or a list of objects')
+            }
+
+            /**
+             * or an array of objects
+             */
+            for (const option of param) {
+                if (typeof option === 'object') { // Check does not work recursively
+                    continue
+                }
+
+                throw new Error('expected every item of a list of capabilities to be of type object')
+            }
+
+            return true
+        },
+        required: true
+    },
+    /**
+     * list of reporters to use, a reporter can be either a string or an object with
+     * reporter options, e.g.:
+     * [
+     *  'dot',
+     *  {
+     *    name: 'spec',
+     *    outputDir: __dirname + '/reports'
+     *  }
+     * ]
+     */
+    reporters: {
+        type: 'object',
+        validate: (param: Reporters.ReporterEntry[]) => {
+            /**
+             * option must be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "reporters" options needs to be a list of strings')
+            }
+
+            const isValidReporter = (option: string | Function) => (
+                (typeof option === 'string') ||
+                (typeof option === 'function')
+            )
+
+            /**
+             * array elements must be:
+             */
+            for (const option of param) {
+                /**
+                 * either a string or a function (custom reporter)
+                 */
+                if (isValidReporter(option as string)) {
+                    continue
+                }
+
+                /**
+                 * or an array with the name of the reporter as first element and the options
+                 * as second element
+                 */
+                if (
+                    Array.isArray(option) &&
+                    typeof option[1] === 'object' &&
+                    isValidReporter(option[0])
+                ) {
+                    continue
+                }
+
+                throw new Error(
+                    'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
+                    'or a function/class. Please see the docs for more information on custom reporters ' +
+                    '(https://webdriver.io/docs/customreporter)'
+                )
+            }
+
+            return true
+        }
+    },
+    /**
+     * set of WDIO services to use
+     */
+    services: {
+        type: 'object',
+        validate: (param: Services.ServiceEntry[]) => {
+            /**
+             * should be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "services" options needs to be a list of strings and/or arrays')
+            }
+
+            /**
+             * with arrays and/or strings
+             */
+            for (const option of param) {
+                if (!Array.isArray(option)) {
+                    if (typeof option === 'string') {
+                        continue
+                    }
+                    throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                }
+            }
+
+            return true
+        },
+        default: []
+    },
+    /**
+     * Node arguments to specify when launching child processes
+     */
+    execArgv: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "execArgv" options needs to be a list of strings')
+            }
+        },
+        default: []
+    },
+    /**
+     * amount of instances to be allowed to run in total
+     */
+    maxInstances: {
+        type: 'number'
+    },
+    /**
+     * amount of instances to be allowed to run per capability
+     */
+    maxInstancesPerCapability: {
+        type: 'number'
+    },
+    /**
+     * whether or not testrunner should inject `browser`, `$` and `$$` as
+     * global environment variables
+     */
+    injectGlobals: {
+        type: 'boolean'
+    },
+    /**
+     * The number of times to retry the entire specfile when it fails as a whole
+     */
+    specFileRetries: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
+     */
+    specFileRetriesDeferred: {
+        type: 'boolean',
+        default: true
+    },
+    /**
+     * list of strings to watch of `wdio` command is called with `--watch` flag
+     */
+    filesToWatch: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "filesToWatch" option needs to be a list of strings')
+            }
+        }
+    },
+    shard: {
+        type: 'object',
+        validate: (param: unknown) => {
+            if (typeof param !== 'object') {
+                throw new Error('the "shard" options needs to be an object')
+            }
+
+            const p = param as { current: number, total: number }
+            if (typeof p.current !== 'number' || typeof p.total !== 'number') {
+                throw new Error('the "shard" option needs to have "current" and "total" properties with number values')
+            }
+
+            if (p.current < 0 || p.current > p.total) {
+                throw new Error('the "shard.current" value has to be between 0 and "shard.total"')
+            }
+        }
+    },
+
+    /**
+     * hooks
+     */
+    onPrepare: HOOK_DEFINITION,
+    onWorkerStart: HOOK_DEFINITION,
+    onWorkerEnd: HOOK_DEFINITION,
+    before: HOOK_DEFINITION,
+    beforeSession: HOOK_DEFINITION,
+    beforeSuite: HOOK_DEFINITION,
+    beforeHook: HOOK_DEFINITION,
+    beforeTest: HOOK_DEFINITION,
+    afterTest: HOOK_DEFINITION,
+    afterHook: HOOK_DEFINITION,
+    afterSuite: HOOK_DEFINITION,
+    afterSession: HOOK_DEFINITION,
+    after: HOOK_DEFINITION,
+    onComplete: HOOK_DEFINITION,
+    onReload: HOOK_DEFINITION
+}

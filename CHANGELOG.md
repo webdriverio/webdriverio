@@ -21,6 +21,82 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.20.5 (2023-10-25)
+
+#### :bug: Bug Fix
+* [#11524](https://github.com/webdriverio/webdriverio/pull/11524) (@wdio/globals): fix type reference annotation ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.20.4 (2023-10-25)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11487](https://github.com/webdriverio/webdriverio/pull/11487) [v8] Support: Setting session status and name when using BrowserStack Automate TurboScale ([@nagpalkaran95](https://github.com/nagpalkaran95))
+* `wdio-cli`, `wdio-protocols`
+  * [#11523](https://github.com/webdriverio/webdriverio/pull/11523) (@wdio/cli): improve bootstrap ElectronJS project ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+
+
+## v8.20.3 (2023-10-24)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11492](https://github.com/webdriverio/webdriverio/pull/11492) (@wdio/utils): support chromium as browserName ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.20.0 (2023-10-20)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11476](https://github.com/webdriverio/webdriverio/pull/11476) (@wdio/cli) replace `yarn-install` with a custom install that supports pnpm as well ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11470](https://github.com/webdriverio/webdriverio/pull/11470) fix(types): Element and WebdriverIO.Element definitions do not match ([@Badisi](https://github.com/Badisi))
+
+#### :house: Internal
+* `devtools`, `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-globals`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-smoke-test-cjs-service`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#11469](https://github.com/webdriverio/webdriverio/pull/11469) (@wdio/utils): separate between common and node utils ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@Badisi](https://github.com/Badisi)
+
+
+## v8.19.0 (2023-10-17)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#11441](https://github.com/webdriverio/webdriverio/pull/11441) (@wdio/cli): Support for sharding ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11444](https://github.com/webdriverio/webdriverio/pull/11444) removing Element as not needed Closes [#11350](https://github.com/webdriverio/webdriverio/issues/11350) ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+* `wdio-browser-runner`
+  * [#11366](https://github.com/webdriverio/webdriverio/pull/11366) Properly resolve Mocha when using browser-runner ([@FrederikBolding](https://github.com/FrederikBolding))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#11423](https://github.com/webdriverio/webdriverio/pull/11423) Remove deprecated flag due to lack of functionality in the current allure.step() API. ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* [#11424](https://github.com/webdriverio/webdriverio/pull/11424) (docs): add tests on how to parameterize tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Bhanu Agarwal ([@bhanuagarwal73](https://github.com/bhanuagarwal73))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Frederik Bolding ([@FrederikBolding](https://github.com/FrederikBolding))
+- Paweł Pohl ([@Pawel1894](https://github.com/Pawel1894))
+
+
 ## v8.18.2 (2023-10-13)
 
 #### :bug: Bug Fix

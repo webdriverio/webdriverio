@@ -12,14 +12,30 @@ import {
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
-import { locateChrome, locateFirefox } from 'locate-app'
+import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
-import { DEFAULT_HOSTNAME, DEFAULT_PROTOCOL, DEFAULT_PATH, SUPPORTED_BROWSERNAMES } from '../constants.js'
-
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
+
+/**
+ * Helper utility to check file access
+ * @param {string} file file to check access for
+ * @return              true if file can be accessed
+ */
+export const canAccess = (file?: string) => {
+    if (!file) {
+        return false
+    }
+
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (err: any) {
+        return false
+    }
+}
 
 export function parseParams(params: EdgedriverParameters) {
     return Object.entries(params)
@@ -105,19 +121,36 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }): P
     log.progress('')
 }
 
+function locateChromeSafely () {
+    return locateChrome().catch(() => undefined)
+}
+
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
-    const browserName = caps.browserName === Browser.FIREFOX ? Browser.FIREFOX : Browser.CHROME
+    const browserName = caps.browserName === Browser.FIREFOX
+        ? Browser.FIREFOX
+        : caps.browserName === Browser.CHROMIUM
+            ? Browser.CHROMIUM
+            : Browser.CHROME
     const exist = await fsp.access(cacheDir).then(() => true, () => false)
+    const isChromeOrChromium = browserName === Browser.CHROME || caps.browserName === Browser.CHROMIUM
     if (!exist) {
         await fsp.mkdir(cacheDir, { recursive: true })
     }
 
     /**
+     * in case we run Chromium tests we have to switch back to browserName: 'chrome'
+     * as 'chromium' is not recognised as a valid browser name by Chromedriver
+     */
+    if (browserName === Browser.CHROMIUM) {
+        caps.browserName = Browser.CHROME
+    }
+
+    /**
      * don't set up Chrome/Firefox if a binary was defined in caps
      */
-    const browserOptions = (browserName === Browser.CHROME
+    const browserOptions = (isChromeOrChromium
         ? caps['goog:chromeOptions']
         : caps['moz:firefoxOptions']
     ) || {}
@@ -127,7 +160,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
             browserVersion: (
                 caps.browserVersion ||
                 (
-                    browserName === Browser.CHROME
+                    isChromeOrChromium
                         ? getBuildIdByChromePath(browserOptions.binary)
                         : await getBuildIdByFirefoxPath(browserOptions.binary)
                 )
@@ -142,9 +175,15 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
 
     if (!caps.browserVersion) {
         const executablePath = browserName === Browser.CHROME
-            ? await locateChrome().catch(() => undefined)
-            : await locateFirefox().catch(() => undefined)
-        const tag = browserName === Browser.CHROME
+            ? await locateChromeSafely()
+            : browserName === Browser.CHROMIUM
+                ? await locateApp({
+                    appName: Browser.CHROMIUM,
+                    macOsName: Browser.CHROMIUM,
+                    linuxWhich: 'chromium-browser'
+                }).catch(() => undefined)
+                : await locateFirefox().catch(() => undefined)
+        const tag = isChromeOrChromium
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
         /**
@@ -181,7 +220,18 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     log.info(`Setting up ${browserName} v${buildId}`)
     await _install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
-    return { executablePath, browserVersion: buildId }
+
+    /**
+     * for Chromium browser `resolveBuildId` returns with a useless build id
+     * which will not find a Chromedriver, therefor we need to resolve the
+     * id using Chrome as browser name
+     */
+    let browserVersion = buildId
+    if (browserName === Browser.CHROMIUM) {
+        browserVersion = await resolveBuildId(Browser.CHROME, platform, tag)
+    }
+
+    return { executablePath, browserVersion }
 }
 
 export function getDriverOptions (caps: WebdriverIO.Capabilities) {
@@ -213,7 +263,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
-    const version = driverVersion || getBuildIdByChromePath(await locateChrome()) || ChromeReleaseChannel.STABLE
+    const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,
@@ -264,35 +314,4 @@ export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
 
 export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
     return downloadEdgedriver(driverVersion, cacheDir)
-}
-
-/**
- * helper method to determine if we need to setup a browser driver
- * which is:
- *   - whenever the user has set connection options that differ
- *     from the default, or a port is set
- *   - whenever the user defines `user` and `key` which later will
- *     update the connection options
- */
-export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'key' | 'protocol' | 'hostname' | 'port' | 'path'>) {
-    return Boolean(
-        (options.protocol && options.protocol !== DEFAULT_PROTOCOL) ||
-        (options.hostname && options.hostname !== DEFAULT_HOSTNAME) ||
-        Boolean(options.port) ||
-        (options.path && options.path !== DEFAULT_PATH) ||
-        Boolean(options.user && options.key)
-    )
-}
-
-export function isChrome (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.chrome.includes(browserName.toLowerCase()))
-}
-export function isSafari (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.safari.includes(browserName.toLowerCase()))
-}
-export function isFirefox (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.firefox.includes(browserName.toLowerCase()))
-}
-export function isEdge (browserName?: string) {
-    return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
 }

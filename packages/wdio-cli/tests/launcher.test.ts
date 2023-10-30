@@ -7,9 +7,14 @@ import { sleep } from '@wdio/utils'
 vi.mocked(fs.access).mockResolvedValue()
 
 import Launcher from '../src/launcher.js'
+// @ts-expect-error
 import { Launcher as cjsLauncher, run as cjsRun } from '../src/cjs/index.js'
 
-const caps: WebDriver.DesiredCapabilities = { maxInstances: 1, browserName: 'chrome' }
+const caps: WebdriverIO.Capabilities = {
+    // @ts-expect-error missing type
+    maxInstances: 1,
+    browserName: 'chrome'
+}
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -19,6 +24,7 @@ vi.mock('node:fs/promises', () => ({
 }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
+vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/interface', () => ({
     default: class {
@@ -30,6 +36,8 @@ vi.mock('../src/interface', () => ({
         finalise = vi.fn()
     }
 }))
+
+const shard = { current: 1, total: 1 }
 
 describe('launcher', () => {
     const emitSpy = vi.spyOn(process, 'emit')
@@ -63,7 +71,7 @@ describe('launcher', () => {
         it('should fail if no specs were found', async () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.configParser.getSpecs = vi.fn().mockReturnValue([])
-            const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, [caps])
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, [caps])
             expect(launcher['_runSpecs']).toBeCalledTimes(0)
             expect(exitCode).toBe(1)
         })
@@ -71,14 +79,14 @@ describe('launcher', () => {
         it('should fail when no capabilities are passed', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             // @ts-ignore test invalid parameter
-            const exitCode = await launcher['_runMode']({ specs: ['./'] as any })
+            const exitCode = await launcher['_runMode']({ specs: ['./'] as any, shard })
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
         it('should fail when no capabilities are set', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
-            const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, undefined as any)
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, undefined as any)
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
@@ -281,7 +289,7 @@ describe('launcher', () => {
             launcher.runner = { shutdown: vi.fn()
                 .mockReturnValue(Promise.resolve()) } as any
 
-            launcher['_exitHandler()']
+            launcher['_exitHandler']()
 
             expect(launcher['_hasTriggeredExitRoutine']).toBe(false)
             expect(launcher.interface!.sigintTrigger).toBeCalledTimes(0)
@@ -683,15 +691,16 @@ describe('launcher', () => {
                 capabilities: {},
                 runner: 'local',
                 runnerEnv: {},
-                outputDir: 'tempDir'
+                outputDir: 'tempDir',
+                shard
             }
             launcher.configParser = {
-                getCapabilities: vi.fn().mockReturnValue(0),
+                getCapabilities: vi.fn().mockReturnValue({}),
                 getConfig: vi.fn().mockReturnValue(config),
                 initialize: vi.fn()
             } as any
             launcher.runner = { initialise: vi.fn(), shutdown: vi.fn() } as any
-            launcher['_runMode'] = vi.fn().mockImplementation((config, caps) => caps)
+            launcher['_runMode'] = vi.fn().mockImplementation(() => 0)
         })
 
         it('exit code 0', async () => {
@@ -704,8 +713,10 @@ describe('launcher', () => {
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialise).toBeCalledTimes(1)
+            // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher['_runMode']).toBeCalledTimes(1)
+            // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
         })

@@ -114,6 +114,16 @@ export const cmdArgs = {
     },
     coverage: {
         desc: 'Enable coverage for browser runner'
+    },
+    shard: {
+        desc: 'Shard tests and execute only the selected shard. Specify in the one-based form like `--shard x/y`, where x is the current and y the total shard.',
+        coerce: (shard: string) => {
+            const [current, total] = shard.split('/').map(Number)
+            if (Number.isNaN(current) || Number.isNaN(total)) {
+                throw new Error('Shard parameter must be in the form `x/y`, where x and y are positive integers.')
+            }
+            return { current, total }
+        }
     }
 } as const
 
@@ -122,6 +132,7 @@ export const builder = (yargs: Argv) => {
         .options(cmdArgs)
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
+        .example('$0 run wdio.conf.js --shard 1/4', 'Run only the first shard of 4 shards')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
         .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
         .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=./configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')

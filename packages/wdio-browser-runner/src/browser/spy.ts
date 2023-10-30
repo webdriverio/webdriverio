@@ -1,6 +1,6 @@
 import type { MaybeMocked } from '@vitest/spy'
 
-import type { MockFactoryWithHelper } from '../types'
+import type { MockFactoryWithHelper } from '../types.js'
 
 /**
  * re-export mock module

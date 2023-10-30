@@ -12,7 +12,14 @@ WebdriverIO provides an integrated service that simplifies the interaction with 
 - 🔄 Custom mocking of Electron API functionality
 - 👤 Ability to define custom API handlers to modify application behavior under test
 
-You just need a few simple steps to get started.
+You just need a few simple steps to get started. Watch this simple step by step getting started video tutorial from the [WebdriverIO YouTube](https://www.youtube.com/@webdriverio) channel:
+
+<LiteYouTubeEmbed
+    id="iQNxTdWedk0"
+    title="Getting Started with ElectronJS Testing in WebdriverIO"
+/>
+
+Or follow the guide in the following section.
 
 ## Getting Started
 
@@ -32,12 +39,7 @@ That's it 🎉
 
 To use the service you need to add `electron` to your services array and set an Electron capability, e.g.:
 
-```js
-// wdio.conf.js
-import url from 'node:url';
-import path from 'node:path';
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+```js title=wdio.conf.js
 export const config = {
   outputDir: 'logs',
   // ...
