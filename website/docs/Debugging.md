@@ -127,3 +127,37 @@ If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://
 You can create a node.js debug configuration like this:
 ![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)
 Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.
+
+## Debugging flaky tests
+
+
+### Network
+Flaky tests can be really hard to debug so here are some tips how you can try and get that flaky result you got in your CI, reproduced locally.
+To debug network related flakiness use the [throttleNetwork](https://webdriver.io/docs/api/browser/throttleNetwork) command.
+```js
+await browser.throttleNetwork('Regular3G')
+```
+
+### Rendering speed
+To debug device speed related flakiness use the [throttleCPU](https://webdriver.io/docs/api/browser/throttleCPU) command.
+This will cause your pages to render slower which can be caused by many things like running multiple processes in your CI which could be slowing down your tests.
+```js
+await browser.throttleCPU(4)
+```
+
+### Test execution speed
+If your tests do not seem to be affected it is possible that WebdriverIO is faster than the update from the frontend framework / browser.
+This happens when using synchronous assertions, some examples of code that can break because of this:
+```js
+expect(elementList.length).toEqual(7) // list might not be populated at the time of the assertion
+expect(await elem.getText()).toEqual('this button was clicked 3 times') // text might not be updated yet at the time of assertion resulting in an error ("this button was clicked 2 times" does not match the expected "this button was clicked 3 times")
+expect(await elem.isDisplayed()).toBe(true) // might not be displayed yet
+```
+To resolve this problem, asynchronous assertions should be used instead. The above examples would looks like this:
+```js
+await expect(elementList).toBeElementsArrayOfSize(7)
+await expect(elem).toHaveText('this button was clicked 3 times')
+await expect(elem).toBeDisplayed()
+```
+Using these assertions, WebdriverIO will automatically wait until the condition matches. When asserting text this means that the element needs to exist and the text needs to be equal to the expected value.
+We talk more about this in our [Best Practices Guide](https://webdriver.io/docs/bestpractices#use-the-built-in-assertions).
