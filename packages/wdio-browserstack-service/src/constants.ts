@@ -42,3 +42,7 @@ export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 
 export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+
+export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
+export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'

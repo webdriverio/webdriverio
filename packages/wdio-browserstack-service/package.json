@@ -42,7 +42,8 @@
     "got": "^ 12.6.1",
     "uuid": "^9.0.0",
     "webdriverio": "8.18.2",
-    "winston-transport": "^4.5.0"
+    "winston-transport": "^4.5.0",
+    "formdata-node": "5.0.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"

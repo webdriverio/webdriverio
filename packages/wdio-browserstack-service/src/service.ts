@@ -1,4 +1,3 @@
-import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
@@ -10,6 +9,7 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
+    BStackLogger
 } from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -18,8 +18,6 @@ import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
-
-const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -128,7 +126,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     this._currentTest
                 ))
             } catch (err) {
-                log.error(`Error in service class before function: ${err}`)
+                BStackLogger.error(`Error in service class before function: ${err}`)
                 CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
             }
         }
@@ -145,7 +143,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 )
                 await this._accessibilityHandler.before()
             } catch (err) {
-                log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
             }
         }
 
@@ -307,11 +305,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const status = hasReasons ? 'failed' : 'passed'
 
         if (!this._browser.isMultiremote) {
-            log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
+            BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
             const browserName = (this._browser as any as WebdriverIO.MultiRemoteBrowser).instances.filter(
                 (browserName: string) => this._browser && (this._browser as any as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
-            log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
+            BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
         if (setSessionStatus) {
@@ -337,7 +335,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     _updateJob (requestBody: any) {
         return this._multiRemoteAction((sessionId: string, browserName: string) => {
-            log.info(browserName
+            BStackLogger.info(browserName
                 ? `Update multiremote job for browser "${browserName}" and sessionId ${sessionId}`
                 : `Update job with sessionId ${sessionId}`
             )
@@ -371,7 +369,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
-        log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: ${requestBody}`)
         return got.put(sessionUrl, {
             json: requestBody,
             username: this._config.user,
@@ -385,7 +383,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
             const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
-            log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
+            BStackLogger.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
             const response = await got<SessionResponse>(sessionUrl, {
                 username: this._config.user,
                 password: this._config.key,
@@ -398,7 +396,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
-            log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
+            BStackLogger.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
     }
 

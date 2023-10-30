@@ -1,20 +1,22 @@
 import got from 'got'
-import FormData from 'form-data'
+import { FormData } from 'formdata-node'
+import { v4 as uuidv4 } from 'uuid'
+
 import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
-import { SevereServiceError } from 'webdriverio'
 import os from 'node:os'
+import zlib from 'node:zlib'
+import { SevereServiceError } from 'webdriverio'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
-import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
-import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, VALID_APP_EXTENSION } from './constants.js'
+import { BSTACK_SERVICE_VERSION, LOGS_FILE, NOT_ALLOWED_KEYS_IN_CAPS, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, VALID_APP_EXTENSION } from './constants.js'
 import {
     launchTestSession,
     createAccessibilityTestRun,
@@ -25,11 +27,14 @@ import {
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
-    isTrue
+    isTrue,
+    BStackLogger,
+    nodeRequest,
+    getBrowserStackUser,
+    getBrowserStackKey
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
-
-const log = logger('@wdio/browserstack-service')
+import { FileStream } from './fileStream.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
@@ -49,6 +54,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
+        BStackLogger.clearLogFile()
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
@@ -147,7 +153,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
-            log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
+            BStackLogger.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 
@@ -157,7 +163,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
         if (!this._options.app) {
-            log.info('app is not defined in browserstack-service config, skipping ...')
+            BStackLogger.info('app is not defined in browserstack-service config, skipping ...')
         } else {
             let app: App = {}
             const appConfig: AppConfig | string = this._options.app
@@ -171,7 +177,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
                 if (fs.existsSync(app.app!)) {
                     const data: AppUploadResponse = await this._uploadApp(app)
-                    log.info(`app upload completed: ${JSON.stringify(data)}`)
+                    BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
                 } else if (app.customId){
                     app.app = app.customId
@@ -180,7 +186,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
             }
 
-            log.info(`Using app: ${app.app}`)
+            BStackLogger.info(`Using app: ${app.app}`)
             this._updateCaps(capabilities, 'app', app.app)
         }
 
@@ -214,7 +220,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (scannerVersion) {
                 process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
             }
-            log.debug(`Accessibility scannerVersion ${scannerVersion}`)
+            BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         }
 
         if (this._options.accessibilityOptions) {
@@ -233,7 +239,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.testObservability) {
-            log.debug('Sending launch start event')
+            BStackLogger.debug('Sending launch start event')
 
             await launchTestSession(this._options, this._config, {
                 projectName: this._projectName,
@@ -245,7 +251,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (!this._options.browserstackLocal) {
-            return log.info('browserstackLocal is not enabled - skipping...')
+            return BStackLogger.info('browserstackLocal is not enabled - skipping...')
         }
 
         const opts = {
@@ -265,7 +271,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`Browserstack Local successfully started after ${entry.duration}ms`)
+            BStackLogger.info(`Browserstack Local successfully started after ${entry.duration}ms`)
         })
 
         obs.observe({ entryTypes: ['measure'] })
@@ -292,14 +298,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onComplete () {
+        BStackLogger.debug('Inside OnComplete hook..')
         if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
             await stopAccessibilityTestRun().catch((error: any) => {
-                log.error(`Exception in stop accessibility test run: ${error}`)
+                BStackLogger.error(`Exception in stop accessibility test run: ${error}`)
             })
         }
 
         if (this._options.testObservability) {
-            log.debug('Sending stop launch event')
+            BStackLogger.debug('Sending stop launch event')
             await stopBuildUpstream()
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
@@ -313,9 +320,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     return
                 }
                 const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-                log.info(`Total duration is ${duration / 1000 } s`)
+                BStackLogger.info(`Total duration is ${duration / 1000 } s`)
             }
         }
+
+        try {
+            await this._uploadServiceLogs()
+        } catch (error) {
+            BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+        }
+
+        BStackLogger.clearLogger()
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
@@ -352,7 +367,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadApp(app:App): Promise<AppUploadResponse> {
-        log.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
+        BStackLogger.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 
         const form = new FormData()
         if (app.app) {
@@ -400,6 +415,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         return app
+    }
+
+    async _uploadServiceLogs() {
+        const fileStream = fs.createReadStream(path.join(process.cwd(), LOGS_FILE))
+        const zip = zlib.createGzip({ level: 1 })
+        const uploadAddress = UPLOAD_LOGS_ADDRESS
+        const clientBuildUuid =this._getClientBuildUuid()
+
+        fileStream.pipe(zip)
+
+        const formData : any = new FormData()
+        formData.append('data', new FileStream(zip), 'file.gz')
+        formData.append('clientBuildUuid', clientBuildUuid)
+
+        const requestOptions = {
+            body: formData,
+            username: getBrowserStackUser(this._config),
+            password: getBrowserStackKey(this._config),
+            headers: {
+                'Content-Type': 'application/zip'
+            }
+        }
+
+        await nodeRequest(
+            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+        )
+
+        BStackLogger.debug('Logs uploaded Successfully!')
     }
 
     _updateObjectTypeCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: { [key: string]: any; }) {
@@ -479,7 +522,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 })
             }
         } catch (error) {
-            log.debug(`Exception while retrieving capability value. Error - ${error}`)
+            BStackLogger.debug(`Exception while retrieving capability value. Error - ${error}`)
         }
     }
 
@@ -582,7 +625,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if ((!this._buildName || process.env.BROWSERSTACK_BUILD_NAME) && this._buildIdentifier) {
             this._updateCaps(capabilities, 'buildIdentifier')
-            log.warn('Skipping buildIdentifier as buildName is not passed.')
+            BStackLogger.warn('Skipping buildIdentifier as buildName is not passed.')
             return
         }
 
@@ -656,5 +699,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const jsonContent = JSON.parse(fs.readFileSync(filePath).toString())
         jsonContent[buildName] = { 'identifier': buildIdentifier }
         fs.writeFileSync(filePath, JSON.stringify(jsonContent))
+    }
+
+    _getClientBuildUuid() {
+        if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
+            return process.env.BS_TESTOPS_BUILD_HASHED_ID
+        } else if (process.env.BS_A11Y_TEST_RUN_ID) {
+            return process.env.BS_A11Y_TEST_RUN_ID
+        }
+        const uuid = uuidv4()
+        BStackLogger.debug(`If facing any issues, please contact BrowserStack support with the test run id - ${uuid}`)
+        return uuid
     }
 }

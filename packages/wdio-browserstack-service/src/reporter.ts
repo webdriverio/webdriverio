@@ -1,6 +1,5 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
 import type { SuiteStats, TestStats, RunnerStats, HookStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Options } from '@wdio/types'
@@ -17,11 +16,10 @@ import {
     getGitMetaData,
     removeAnsiColors,
     getHookType,
-    pushDataToQueue
+    pushDataToQueue,
+    BStackLogger
 } from './util.js'
 import RequestQueueHandler from './request-handler.js'
-
-const log = logger('@wdio/browserstack-service')
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}
@@ -111,7 +109,7 @@ class _TestReporter extends WDIOReporter {
                     filename = this._suiteName || suiteStats.file
                 }
             } catch (e) {
-                log.debug('Error in decoding file name of suite')
+                BStackLogger.debug('Error in decoding file name of suite')
             }
         }
         this._suiteName = filename
