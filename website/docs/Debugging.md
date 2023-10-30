@@ -130,9 +130,9 @@ Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more
 
 ## Debugging flaky tests
 
+Flaky tests can be really hard to debug so here are some tips how you can try and get that flaky result you got in your CI, reproduced locally.
 
 ### Network
-Flaky tests can be really hard to debug so here are some tips how you can try and get that flaky result you got in your CI, reproduced locally.
 To debug network related flakiness use the [throttleNetwork](https://webdriver.io/docs/api/browser/throttleNetwork) command.
 ```js
 await browser.throttleNetwork('Regular3G')
