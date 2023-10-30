@@ -399,8 +399,8 @@ async function bar() {
     })
 
     // network mocking
-    browser.throttle('Regular2G')
-    browser.throttle({
+    browser.throttleNetwork('Regular2G')
+    browser.throttleNetwork({
         offline: false,
         downloadThroughput: 50 * 1024 / 8,
         uploadThroughput: 20 * 1024 / 8,

@@ -26,14 +26,14 @@ test('should fail if wrong params applied', async () => {
     })
 
     // @ts-expect-error wrong parameter
-    let err: Error = await browser.throttle().catch((err: Error) => err)
-    expect(err.message).toContain('Invalid parameter for "throttle"')
+    let err: Error = await browser.throttleNetwork().catch((err: Error) => err)
+    expect(err.message).toContain('Invalid parameter for "throttleNetwork"')
     // @ts-expect-error wrong parameter
-    err = await browser.throttle(123).catch((err: Error) => err)
-    expect(err.message).toContain('Invalid parameter for "throttle"')
+    err = await browser.throttleNetwork(123).catch((err: Error) => err)
+    expect(err.message).toContain('Invalid parameter for "throttleNetwork"')
     // @ts-expect-error wrong parameter
-    err = await browser.throttle('FOOBAR').catch((err: Error) => err)
-    expect(err.message).toContain('Invalid parameter for "throttle"')
+    err = await browser.throttleNetwork('FOOBAR').catch((err: Error) => err)
+    expect(err.message).toContain('Invalid parameter for "throttleNetwork"')
 })
 
 test('should use WebDriver extension if run on Sauce', async () => {
@@ -46,7 +46,7 @@ test('should use WebDriver extension if run on Sauce', async () => {
         }
     })
 
-    await browser.throttle('Regular3G')
+    await browser.throttleNetwork('Regular3G')
     expect(got.mock.calls[1][0].href)
         .toContain('/sauce/ondemand/throttle/network')
 })
@@ -58,7 +58,7 @@ test('should allow to send strings as param', async () => {
         }
     })
 
-    await browser.throttle('Regular3G')
+    await browser.throttleNetwork('Regular3G')
     expect(cdpSession.send.mock.calls).toMatchSnapshot()
 })
 
@@ -70,7 +70,7 @@ test('should allow to send objects as param', async () => {
     })
 
     // @ts-expect-error wrong parameter
-    await browser.throttle({ foo: 'bar' })
+    await browser.throttleNetwork({ foo: 'bar' })
     expect(cdpSession.send).toBeCalledWith(
         'Network.emulateNetworkConditions',
         { foo: 'bar' })

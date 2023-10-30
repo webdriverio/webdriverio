@@ -1,0 +1,44 @@
+/**
+ * Throttles the CPU to emulate a slower processor.
+ *
+ * :::info
+ *
+ * Note that using the `throttleCPU` command requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
+ * <example>
+    :throttleCPU.js
+    it('should throttle the CPU', async () => {
+        await browser.throttleCPU(2) // 2x slowdown
+    });
+ * </example>
+ *
+ * @alias browser.throttleCPU
+ * @param {number}         factor              slowdown factor (1 is no throttle, 2 is 2x slowdown, etc)
+ * @type utility
+ *
+ */
+
+export async function throttleCPU (
+    this: WebdriverIO.Browser,
+    factor: number
+) {
+    if (typeof factor !== 'number') {
+        throw new Error('Invalid factor for "throttleCPU". Expected it to be a number (int)')
+    }
+
+    // Connect to Chrome DevTools
+    await this.getPuppeteer()
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
+    }
+
+    const pages = await this.puppeteer.pages()
+    const client = await pages[0].target().createCDPSession()
+
+    // Set CPU throttling
+    await client.send('Emulation.setCPUThrottlingRate', { rate: factor || 1 })
+}
