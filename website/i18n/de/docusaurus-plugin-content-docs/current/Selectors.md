@@ -21,15 +21,15 @@ Obwohl so viele verschiedene Selektoren verfügbar sind, bieten nur wenige von i
 
 Empfehlen wir (oder nicht) die folgenden Selektoren:
 
-| Selektor                                      | Empfehlung | Anmerkungen                                                                |
-| --------------------------------------------- | ---------- | -------------------------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Niemals  | Am schlimmsten - zu allgemein, kein Kontext.                               |
-| `$('.btn.btn-large')`                         | 🚨 Niemals  | Weniger Gut. Verbunden mit Styling. Fehler durch Style-Änderungen möglich. |
-| `$('#main')`                                  | ⚠️ Sparsam | Besser. Aber immer noch an Styling oder JS-Event-Listener gekoppelt.       |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparsam | Ermöglicht effektive Abfragen, allerdings komplex zu schreiben.            |
-| `$('button[name="submission"]')`              | ⚠️ Sparsam | Gekoppelt an das Attribut `name`, das HTML-Semantik hat.                   |
-| `$('button[data-testid="submit"]')`           | ✅ Gut      | Erfordert zusätzliches Attribut, das keine weitere Funktion hat.           |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Immer    | Am besten geeignet. Ähnelt, wie der Benutzer mit der Seite interagiert.    |
+| Selektor                                      | Empfehlung | Anmerkungen                                                                                                                                                                                   |
+| --------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Niemals  | Am schlimmsten - zu allgemein, kein Kontext.                                                                                                                                                  |
+| `$('.btn.btn-large')`                         | 🚨 Niemals  | Weniger Gut. Verbunden mit Styling. Fehler durch Style-Änderungen möglich.                                                                                                                    |
+| `$('#main')`                                  | ⚠️ Sparsam | Besser. Aber immer noch an Styling oder JS-Event-Listener gekoppelt.                                                                                                                          |
+| `$(() => document.queryElement('button'))` | ⚠️ Sparsam | Ermöglicht effektive Abfragen, allerdings komplex zu schreiben.                                                                                                                               |
+| `$('button[name="submission"]')`              | ⚠️ Sparsam | Gekoppelt an das Attribut `name`, das HTML-Semantik hat.                                                                                                                                      |
+| `$('button[data-testid="submit"]')`           | ✅ Gut      | Erfordert zusätzliches Attribut, das keine weitere Funktion hat.                                                                                                                              |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Immer    | Am besten geeignet. Ähnelt, wie der Benutzer mit der Seite interagiert. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## CSS-Selektoren
 
