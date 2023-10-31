@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-      - autoscroll_moveto
+      - v7
       - '!l10n_main'
   pull_request:
     branches-ignore:
