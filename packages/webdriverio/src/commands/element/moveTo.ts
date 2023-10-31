@@ -5,7 +5,6 @@ import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 type MoveToOptions = {
     xOffset?: number,
     yOffset?: number,
-    scrollTimeout? : number
 }
 
 /**
