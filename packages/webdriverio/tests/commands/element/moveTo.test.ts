@@ -56,15 +56,15 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         await elem.moveTo()
-        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toContain('/foobar-123/moveto')
-        expect(vi.mocked(got).mock.calls[3][1]!.json)
+        expect(vi.mocked(got).mock.calls[2][1]!.json)
             .toEqual({ element: 'some-elem-123' })
 
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(vi.mocked(got).mock.calls[4][0]!.pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toContain('/foobar-123/moveto')
-        expect(vi.mocked(got).mock.calls[4][1]!.json)
+        expect(vi.mocked(got).mock.calls[3][1]!.json)
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
     })
 

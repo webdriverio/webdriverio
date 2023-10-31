@@ -318,10 +318,10 @@ describe('click test', () => {
         await elem.click({ button: 'right' })
 
         expect(got.mock.calls.length)
-            .toBe(4)
-        expect(got.mock.calls[3][0].pathname)
+            .toBe(5)
+        expect(got.mock.calls[4][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[3][1].method)
+        expect(got.mock.calls[4][1].method)
             .toBe('DELETE')
 
         got.mockClear()
