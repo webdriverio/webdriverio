@@ -21,15 +21,15 @@ Si bien hay tantos selectores diferentes disponibles, solo algunos de ellos brin
 
 Nosotros __hacemos__ y __no__ recomendamos los siguientes selectores:
 
-| Selector                                      | Recomendado     | Observaciones                                                              |
-| --------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Nunca         | El peor - demasiado genérico, sin contexto.                                |
-| `$('.btn.btn-large')`                         | 🚨 Nunca         | Malo. Unido al estilismo. Muy sujeto a cambios.                            |
-| `$('#main')`                                  | ⚠️ Parcialmente | Media-baja. Pero todavía se unieron a los oyentes de estilos o eventos JS. |
-| `$(() => document.queryElement('button'))` | ⚠️ Parcialmente | Consulta efectiva, compleja de escribir.                                   |
-| `$('button[name="submission"]')`              | ⚠️ Parcialmente | Acoplado al atributo `nombre` que tiene semántica HTML.                    |
-| `$('button[data-testid="submit"]')`           | ✅ Bueno         | Requiere atributo adicional, no conectado al a11y.                         |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ El mejor      | Óptimo. Se asemeja a cómo el usuario interactúa con la página.             |
+| Selector                                      | Recomendado     | Observaciones                                                                                                                                                                        |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `$('button')`                                 | 🚨 Nunca         | El peor - demasiado genérico, sin contexto.                                                                                                                                          |
+| `$('.btn.btn-large')`                         | 🚨 Nunca         | Malo. Unido al estilismo. Muy sujeto a cambios.                                                                                                                                      |
+| `$('#main')`                                  | ⚠️ Parcialmente | Media-baja. Pero todavía se unieron a los oyentes de estilos o eventos JS.                                                                                                           |
+| `$(() => document.queryElement('button'))` | ⚠️ Parcialmente | Consulta efectiva, compleja de escribir.                                                                                                                                             |
+| `$('button[name="submission"]')`              | ⚠️ Parcialmente | Acoplado al atributo `nombre` que tiene semántica HTML.                                                                                                                              |
+| `$('button[data-testid="submit"]')`           | ✅ Bueno         | Requiere atributo adicional, no conectado al a11y.                                                                                                                                   |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ El mejor      | Óptimo. Se asemeja a cómo el usuario interactúa con la página. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## Selector de consultas CSS
 
