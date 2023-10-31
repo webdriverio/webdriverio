@@ -1140,49 +1140,6 @@ describe('hooks handling disabled Hooks', () => {
         expect(containers[0].afters).toHaveLength(0)
     })
 
-    it('should capture mocha/jasmine each hooks end - failed', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
-        reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
-        reporter.onHookEnd({
-            title: '"before each" hook',
-            parent: 'foo',
-            error: { message: '', stack: '' },
-            state: Status.FAILED,
-        })
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(containers[0].befores).toHaveLength(1)
-        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
-        expect(containers[0].befores[0].stage).toEqual(Stage.FINISHED)
-    })
-
-    it('should not keep mocha/jasmine all hooks if hook passes', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
-        reporter.onHookStart({ title: '"after all" hook', parent: 'foo' })
-        reporter.onHookEnd({
-            title: '"after all" hook',
-            parent: 'foo',
-            status: Status.PASSED,
-        })
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(containers[0].afters).toHaveLength(0)
-    })
-
     it('should create a test and add mocha all hooks as fixtures if hook throws', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })

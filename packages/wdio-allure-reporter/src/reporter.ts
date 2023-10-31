@@ -50,7 +50,7 @@ import {
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, getErrorFromFailedTest, getLinkByTemplate, isScreenshotCommand, getSuiteLabels,
-    setAllureIds, isAllTypeHooks, isEachTypeHooks, isBeforeTypeHook, cleanCucumberHooks, updateHookInfo,
+    setAllureIds, isAllTypeHooks, isEachTypeHooks, isBeforeTypeHook, cleanCucumberHooks, getHookStatus,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -719,7 +719,7 @@ export default class AllureReporter extends WDIOReporter {
                     currentHookRootStep instanceof AllureStep &&
                     currentHookRoot instanceof ExecutableItemWrapper
                 ) {
-                    updateHookInfo(hook, currentHookRoot, currentHookRootStep)
+                    getHookStatus(hook, currentHookRoot, currentHookRootStep)
                     currentHookRootStep.endStep()
                     return
                 }
@@ -766,7 +766,7 @@ export default class AllureReporter extends WDIOReporter {
             this._state.stats.hooks++
 
             // updating the hook information
-            updateHookInfo(hook, hookExecutable, hookStep)
+            getHookStatus(hook, hookExecutable, hookStep)
             hookStep.endStep()
             return
         }

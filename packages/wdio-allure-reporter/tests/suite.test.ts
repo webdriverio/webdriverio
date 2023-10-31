@@ -22,8 +22,7 @@ import { TYPE } from '../src/types.js'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults, mapBy } from "./helpers/wdio-allure-helper";
-
+import { clean, getResults, mapBy } from "./helpers/wdio-allure-helper.js";
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
@@ -517,7 +516,7 @@ describe('Hook reporting', () => {
         expect(containers[0].befores[0].steps[0].name).toEqual(
             '"before each" hook',
         )
-        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
     })
 
     it('should report failed before each hook with disableMochaHooks', () => {
@@ -543,7 +542,7 @@ describe('Hook reporting', () => {
         expect(containers[0].befores[0].steps[0].name).toEqual(
             '"before each" hook',
         )
-        expect(containers[0].befores[0].steps[0].status).toEqual(Status.FAILED)
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
     })
 })
 

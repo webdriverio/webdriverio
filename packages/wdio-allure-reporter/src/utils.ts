@@ -1,75 +1,41 @@
 import stripAnsi from 'strip-ansi'
 import type { CommandArgs, HookStats, SuiteStats, Tag, TestStats } from '@wdio/reporter'
-import type { AllureGroup, AllureStep, AllureTest, FixtureResult, Label, TestResult } from 'allure-js-commons'
-import { ExecutableItemWrapper, LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
+import type {
+    AllureGroup, AllureStep, AllureTest, ExecutableItemWrapper, FixtureResult, Label, TestResult
+} from 'allure-js-commons'
+import { LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
 
 /**
  * Get allure test status by TestStat object
- * @param stats {Object} - TestStat object
+ * @param test {Object} - TestStat object
  * @private
  */
 export const getTestStatus = (
-    stats: TestStats | HookStats | ExecutableItemWrapper
+    test: TestStats | HookStats,
 ): AllureStatus => {
-    if (stats instanceof ExecutableItemWrapper && stats.wrappedItem) {
-        const hookSteps = stats.wrappedItem.steps
-        if (
-            Array.isArray(hookSteps) &&
-            hookSteps.length &&
-            !stats.status &&
-            !stats.wrappedItem.statusDetails
-        ) {
-            const statusPriority = {
-                [Status.FAILED]: 0,
-                [Status.BROKEN]: 1,
-                [Status.SKIPPED]: 2,
-                [Status.PASSED]: 3,
-            }
-            let finalStatus = Status.PASSED
-            for (const step of hookSteps) {
-                if (step.status && statusPriority[step.status] < statusPriority[finalStatus]) {
-                    finalStatus = step.status
-                }
-            }
-            return finalStatus === Status.FAILED? Status.BROKEN : finalStatus
 
+    if (test.error) {
+        if (test.error.message) {
+            const message = test.error.message.trim().toLowerCase()
+
+            return message.startsWith('assertionerror') ||
+                message.includes('expect')
+                ? AllureStatus.FAILED
+                : AllureStatus.BROKEN
         }
 
-        const errorDetails = stats.wrappedItem.statusDetails
-        const isError = errorDetails !== undefined
-        const state = ('state' in stats)? stats.state : undefined
+        if (test.error.stack) {
+            const stackTrace = test.error.stack.trim().toLowerCase()
 
-        let finalStatus
-        switch (state) {
-        case 'passed':
-            finalStatus = isError ? Status.BROKEN: Status.PASSED
-            break
-        case 'failed':
-            finalStatus = isError ? Status.FAILED: Status.FAILED
-            break
-        default:
-            finalStatus = isError ? Status.BROKEN: stats.status || Status.BROKEN
+            return stackTrace.startsWith('assertionerror') ||
+                stackTrace.includes('expect')
+                ? AllureStatus.FAILED
+                : AllureStatus.BROKEN
         }
-        return finalStatus
-
-    } else if ('error' in stats || 'state' in stats) {
-        const testStats = stats as TestStats
-        const completeErrorStr = `${testStats.error?.message || ''}${testStats.error?.stack || ''}`.trim().toLowerCase()
-        const isError = completeErrorStr.startsWith('assertionerror') || completeErrorStr.includes('expect')
-        let finalStatus
-        switch (testStats.state) {
-        case 'passed':
-            finalStatus = completeErrorStr.length ? isError? Status.FAILED : Status.BROKEN : Status.PASSED
-            break
-        case 'failed':
-            finalStatus = completeErrorStr.length ? isError? Status.FAILED : Status.BROKEN : Status.FAILED
-            break
-        default:
-            finalStatus = completeErrorStr.length ? isError? Status.FAILED : Status.BROKEN : Status.BROKEN
-        }
-        return finalStatus
+    } else if (test.errors) {
+        return AllureStatus.FAILED
     }
     return AllureStatus.BROKEN
 }
@@ -161,7 +127,7 @@ export const getErrorFromFailedTest = (
  *
  * @private
  */
-export const updateHookInfo = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
+export const getHookStatus = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
     // stage to finish for all hook.
     hookElement.stage = hookRootStep.stage =
         Stage.FINISHED
@@ -170,37 +136,28 @@ export const updateHookInfo = (newHookStats: HookStats, hookElement: ExecutableI
     hookElement.detailsMessage = hookRootStep.detailsMessage = formattedError?.message
     hookElement.detailsTrace = hookRootStep.detailsTrace = formattedError?.stack
 
-    // set status
-    hookRootStep.status = getTestStatus(Object.assign(hookRootStep, newHookStats))
-    hookElement.status = getTestStatus(hookElement)
+    let finalStatus = Status.PASSED
+    // set status to hook root step
+    const hookSteps = hookRootStep.wrappedItem.steps
+    if (Array.isArray(hookSteps) && hookSteps.length) {
+        const statusPriority = {
+            [Status.FAILED]: 0,
+            [Status.BROKEN]: 1,
+            [Status.SKIPPED]: 2,
+            [Status.PASSED]: 3,
+        }
+        let stepStatus = Status.PASSED
+        for (const step of hookSteps) {
+            if (step.status && statusPriority[step.status] < statusPriority[finalStatus]) {
+                stepStatus = step.status
+            }
+        }
+        finalStatus = stepStatus === Status.FAILED? Status.BROKEN : stepStatus
+    } else if (newHookStats.error || (Array.isArray(newHookStats.errors) && newHookStats.errors.length)){
+        finalStatus = Status.BROKEN
+    }
 
-    // const hookSteps = hookRootStep.wrappedItem.steps
-
-    // // if error exists the status is set to Broken
-    // if (!formattedError && newHookStats.state) {
-    //     let finalStatus = Status.PASSED
-    //     for (const step of hookSteps) {
-    //         // if the step status is undefined, the step will be passed by default
-    //         if (statusPriority[step.status || Status.PASSED] < statusPriority[finalStatus]) {
-    //             finalStatus = step.status || Status.PASSED
-    //         }
-    //     }
-    //
-    //     hookElement.status = hookRootStep.status = finalStatus
-    // } else {
-    //     let defaultStatus
-    //     switch (newHookStats.state) {
-    //     case 'passed':
-    //         defaultStatus = Status.PASSED
-    //         break
-    //     case 'failed':
-    //         defaultStatus = Status.FAILED
-    //         break
-    //     default:
-    //         defaultStatus = Status.BROKEN
-    //     }
-    //     hookElement.status = hookRootStep.status = defaultStatus
-    // }
+    hookElement.status = hookRootStep.status = finalStatus
 }
 
 export const cleanCucumberHooks = (hook:  FixtureResult | TestResult) => {
