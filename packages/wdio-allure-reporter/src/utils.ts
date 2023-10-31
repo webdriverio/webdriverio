@@ -1,8 +1,7 @@
 import stripAnsi from 'strip-ansi'
-import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
-import type { Options } from '@wdio/types'
-import type { Label, AllureTest, AllureGroup } from 'allure-js-commons'
-import { Status as AllureStatus, md5, LabelName } from 'allure-js-commons'
+import type { CommandArgs, HookStats, SuiteStats, Tag, TestStats } from '@wdio/reporter'
+import type { AllureGroup, AllureStep, AllureTest, FixtureResult, Label, TestResult } from 'allure-js-commons'
+import { ExecutableItemWrapper, LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
 

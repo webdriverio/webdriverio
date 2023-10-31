@@ -49,8 +49,8 @@ import {
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setAllureIds, isMochaBeforeEachHook,
+    getTestStatus, isEmpty, getErrorFromFailedTest, getLinkByTemplate, isScreenshotCommand, getSuiteLabels,
+    setAllureIds, isAllTypeHooks, isEachTypeHooks, isBeforeTypeHook, cleanCucumberHooks, updateHookInfo,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -209,7 +209,7 @@ export default class AllureReporter extends WDIOReporter {
                 | AllureStepableUnit
 
             if (currentElement instanceof AllureTest) {
-                setHistoryId(currentElement, this._state.currentSuite)
+                setAllureIds(currentElement, this._state.currentSuite)
                 currentElement.endTest()
             } else if (currentElement instanceof AllureStep) {
                 currentElement.endStep()
