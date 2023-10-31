@@ -1,8 +1,10 @@
+import { moveInViewport } from '../../utils/inViewport.js'
 import { getBrowserObject } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,
-    yOffset?: number
+    yOffset?: number,
+    scrollTimeout? : number
 }
 
 /**
@@ -21,7 +23,7 @@ type MoveToOptions = {
  */
 export async function moveTo (
     this: WebdriverIO.Element,
-    { xOffset, yOffset }: MoveToOptions = {}
+    { xOffset, yOffset, scrollTimeout }: MoveToOptions = {}
 ) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xOffset, yOffset)
@@ -30,6 +32,7 @@ export async function moveTo (
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
+    await moveInViewport(this, scrollTimeout ? scrollTimeout : 2000)
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
         .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
         .perform()

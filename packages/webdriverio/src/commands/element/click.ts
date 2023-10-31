@@ -1,6 +1,7 @@
 import { getBrowserObject } from '../../utils/index.js'
 import type { ClickOptions } from '../../types.js'
 import type { Button } from '../../utils/actions/index.js'
+import { moveInViewport } from '../../utils/inViewport.js'
 
 /**
  *
@@ -123,6 +124,7 @@ export async function click(
 
     if (this.isW3C) {
         const browser = getBrowserObject(this)
+        await moveInViewport(this, 2000)
         await browser.action('pointer', {
             parameters: { pointerType: 'mouse' }
         })
