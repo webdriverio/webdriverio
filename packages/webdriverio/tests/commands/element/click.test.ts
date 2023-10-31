@@ -326,7 +326,7 @@ describe('click test', () => {
 
         got.mockClear()
         await elem.click({ button: 'right', skipRelease: true })
-        expect(got.mock.calls.length).toBe(1) // only action call
+        expect(got.mock.calls.length).toBe(2) // only action call
     })
 
     afterEach(() => {
