@@ -10,10 +10,8 @@ export async function isInViewport (elm: WebdriverIO.Element) {
     } as any as HTMLElement)
 }
 export async function moveInViewport (elm: WebdriverIO.Element) {
+    await  elm.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
     if (await isInViewport(elm)) {
-        await  elm.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
-        if (await isInViewport(elm)) {
-            await  elm.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
-        }
+        await  elm.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
     }
 }
