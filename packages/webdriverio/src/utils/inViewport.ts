@@ -9,14 +9,11 @@ export async function isInViewport (elm: WebdriverIO.Element) {
         ELEMENT: elm.elementId // jsonwp compatible
     } as any as HTMLElement)
 }
-export async function moveInViewport (elm: WebdriverIO.Element, scrollTimeout  = 2000) {
-    const browser = getBrowserObject(elm)
-    try {
+export async function moveInViewport (elm: WebdriverIO.Element) {
+    if (await isInViewport(elm)) {
+        await  elm.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
         if (await isInViewport(elm)) {
-            await  elm.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
-            await browser.waitUntil(async ()=> await isInViewport(elm), { timeout: scrollTimeout })
+            await  elm.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
         }
-    } catch {
-        await  elm.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
     }
 }

@@ -124,7 +124,7 @@ export async function click(
 
     if (this.isW3C) {
         const browser = getBrowserObject(this)
-        await moveInViewport(this, 2000)
+        await moveInViewport(this)
         await browser.action('pointer', {
             parameters: { pointerType: 'mouse' }
         })

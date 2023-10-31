@@ -23,7 +23,7 @@ type MoveToOptions = {
  */
 export async function moveTo (
     this: WebdriverIO.Element,
-    { xOffset, yOffset, scrollTimeout }: MoveToOptions = {}
+    { xOffset, yOffset }: MoveToOptions = {}
 ) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xOffset, yOffset)
@@ -32,7 +32,7 @@ export async function moveTo (
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
-    await moveInViewport(this, scrollTimeout ? scrollTimeout : 2000)
+    await moveInViewport(this)
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
         .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
         .perform()
