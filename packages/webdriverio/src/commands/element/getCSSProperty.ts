@@ -77,15 +77,12 @@ export async function getCSSProperty (
     cssProperty: string,
     pseudoElement?: PseudoElement,
 ) {
-    const browser = getBrowserObject(this)
-
     if (cssShorthandProps.isShorthand(cssProperty)) {
         const cssValue = await getShorthandPropertyCSSValue.call(
             this,
             {
                 cssProperty,
                 pseudoElement,
-                browser
             }
         )
 
@@ -97,7 +94,6 @@ export async function getCSSProperty (
         {
             cssProperty,
             pseudoElement,
-            browser
         }
     )
 
@@ -106,7 +102,6 @@ export async function getCSSProperty (
 
 type Options = {
     cssProperty: string;
-    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser;
     pseudoElement?: PseudoElement;
 }
 
@@ -114,17 +109,16 @@ async function getShorthandPropertyCSSValue(
     this: WebdriverIO.Element,
     options: Options
 ) {
-    const { pseudoElement, browser, cssProperty } = options
+    const { pseudoElement, cssProperty } = options
     const properties = getShorthandProperties(cssProperty)
 
     if (pseudoElement) {
         const cssValues = await Promise.all(
-            properties.map((cssProperty) => getPseudoElementCSSValue(
+            properties.map((prop) => getPseudoElementCSSValue(
                 this,
                 {
-                    browser,
                     pseudoElement,
-                    cssProperty,
+                    cssProperty: prop,
                 }
             ))
         )
@@ -148,7 +142,10 @@ async function getPropertyCSSValue(
     if (pseudoElement) {
         return await getPseudoElementCSSValue(
             this,
-            options
+            {
+                pseudoElement,
+                cssProperty
+            }
         )
     }
     return await this.getElementCSSValue(this.elementId, cssProperty)
@@ -190,12 +187,13 @@ function mergeEqualSymmetricalValue(cssValues: string[]) {
 
 async function getPseudoElementCSSValue (
     elem: WebdriverIO.Element,
-    options: Options
+    options: Required<Options>
 ): Promise<string> {
-    const { browser, cssProperty, pseudoElement }  = options
+    const browser = getBrowserObject(elem)
+    const { cssProperty, pseudoElement }  = options
     const cssValue = await browser.execute(
         (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement) as any)[cssProperty],
-        elem,
+        elem as unknown as Element,
         pseudoElement,
         cssProperty
     )
