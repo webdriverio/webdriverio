@@ -566,7 +566,7 @@ export function getCiInfo () {
         }
     }
     // CircleCI
-    if (env.CI === 'true' && env.CIRCLECI === 'true') {
+    if (isTrue(env.CI) && isTrue(env.CIRCLECI)) {
         return {
             name: 'CircleCI',
             build_url: env.CIRCLE_BUILD_URL,
@@ -575,7 +575,7 @@ export function getCiInfo () {
         }
     }
     // Travis CI
-    if (env.CI === 'true' && env.TRAVIS === 'true') {
+    if (isTrue(env.CI) && isTrue(env.TRAVIS)) {
         return {
             name: 'Travis CI',
             build_url: env.TRAVIS_BUILD_WEB_URL,
@@ -584,7 +584,7 @@ export function getCiInfo () {
         }
     }
     // Codeship
-    if (env.CI === 'true' && env.CI_NAME === 'codeship') {
+    if (isTrue(env.CI) && env.CI_NAME === 'codeship') {
         return {
             name: 'Codeship',
             build_url: null,
@@ -602,7 +602,7 @@ export function getCiInfo () {
         }
     }
     // Drone
-    if (env.CI === 'true' && env.DRONE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.DRONE)) {
         return {
             name: 'Drone',
             build_url: env.DRONE_BUILD_LINK,
@@ -611,7 +611,7 @@ export function getCiInfo () {
         }
     }
     // Semaphore
-    if (env.CI === 'true' && env.SEMAPHORE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.SEMAPHORE)) {
         return {
             name: 'Semaphore',
             build_url: env.SEMAPHORE_ORGANIZATION_URL,
@@ -620,7 +620,7 @@ export function getCiInfo () {
         }
     }
     // GitLab
-    if (env.CI === 'true' && env.GITLAB_CI === 'true') {
+    if (isTrue(env.CI) && isTrue(env.GITLAB_CI)) {
         return {
             name: 'GitLab',
             build_url: env.CI_JOB_URL,
@@ -629,7 +629,7 @@ export function getCiInfo () {
         }
     }
     // Buildkite
-    if (env.CI === 'true' && env.BUILDKITE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.BUILDKITE)) {
         return {
             name: 'Buildkite',
             build_url: env.BUILDKITE_BUILD_URL,
@@ -638,12 +638,138 @@ export function getCiInfo () {
         }
     }
     // Visual Studio Team Services
-    if (env.TF_BUILD === 'True') {
+    if (isTrue(env.TF_BUILD) && env.TF_BUILD_BUILDNUMBER) {
         return {
             name: 'Visual Studio Team Services',
             build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
             job_name: env.SYSTEM_DEFINITIONID,
             build_number: env.BUILD_BUILDID
+        }
+    }
+    // Appveyor
+    if (isTrue(env.APPVEYOR)) {
+        return {
+            name: 'Appveyor',
+            build_url: `${env.APPVEYOR_URL}/project/${env.APPVEYOR_ACCOUNT_NAME}/${env.APPVEYOR_PROJECT_SLUG}/builds/${env.APPVEYOR_BUILD_ID}`,
+            job_name: env.APPVEYOR_JOB_NAME,
+            build_number: env.APPVEYOR_BUILD_NUMBER
+        }
+    }
+    // Azure CI
+    if (env.AZURE_HTTP_USER_AGENT && env.TF_BUILD) {
+        return {
+            name: 'Azure CI',
+            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
+            job_name: env.BUILD_BUILDID,
+            build_number: env.BUILD_BUILDID
+        }
+    }
+    // AWS CodeBuild
+    if (env.CODEBUILD_BUILD_ID || env.CODEBUILD_RESOLVED_SOURCE_VERSION || env.CODEBUILD_SOURCE_VERSION) {
+        return {
+            name: 'AWS CodeBuild',
+            build_url: env.CODEBUILD_PUBLIC_BUILD_URL,
+            job_name: env.CODEBUILD_BUILD_ID,
+            build_number: env.CODEBUILD_BUILD_ID
+        }
+    }
+    // Bamboo
+    if (env.bamboo_buildNumber) {
+        return {
+            name: 'Bamboo',
+            build_url: env.bamboo_buildResultsUrl,
+            job_name: env.bamboo_shortJobName,
+            build_number: env.bamboo_buildNumber
+        }
+    }
+    // Wercker
+    if (env.WERCKER || env.WERCKER_MAIN_PIPELINE_STARTED) {
+        return {
+            name: 'Wercker',
+            build_url: env.WERCKER_BUILD_URL,
+            job_name: env.WERCKER_MAIN_PIPELINE_STARTED ? 'Main Pipeline' : null,
+            build_number: env.WERCKER_GIT_COMMIT
+        }
+    }
+    // Google Cloud
+    if (env.GCP_PROJECT || env.GCLOUD_PROJECT || env.GOOGLE_CLOUD_PROJECT) {
+        return {
+            name: 'Google Cloud',
+            build_url: null,
+            job_name: env.PROJECT_ID,
+            build_number: env.BUILD_ID,
+        }
+    }
+    // Shippable
+    if (env.SHIPPABLE) {
+        return {
+            name: 'Shippable',
+            build_url: env.SHIPPABLE_BUILD_URL,
+            job_name: env.SHIPPABLE_JOB_ID ? `Job #${env.SHIPPABLE_JOB_ID}` : null,
+            build_number: env.SHIPPABLE_BUILD_NUMBER
+        }
+    }
+    // Netlify
+    if (isTrue(env.NETLIFY)) {
+        return {
+            name: 'Netlify',
+            build_url: env.DEPLOY_URL,
+            job_name: env.SITE_NAME,
+            build_number: env.BUILD_ID
+        }
+    }
+    // Github Actions
+    if (isTrue(env.GITHUB_ACTIONS)) {
+        return {
+            name: 'GitHub Actions',
+            build_url: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
+            job_name: env.GITHUB_WORKFLOW,
+            build_number: env.GITHUB_RUN_ID,
+        }
+    }
+    // Vercel
+    if (isTrue(env.CI) && env.VERCEL === '1') {
+        return {
+            name: 'Vercel',
+            build_url: `http://${env.VERCEL_URL}`,
+            job_name: null,
+            build_number: null,
+        }
+    }
+    // Teamcity
+    if (env.TEAMCITY_VERSION) {
+        return {
+            name: 'Teamcity',
+            build_url: null,
+            job_name: null,
+            build_number: env.BUILD_NUMBER,
+        }
+    }
+    // Concourse
+    if (env.CONCOURSE || env.CONCOURSE_URL || env.CONCOURSE_USERNAME || env.CONCOURSE_TEAM) {
+        return {
+            name: 'Concourse',
+            build_url: null,
+            job_name: env.BUILD_JOB_NAME || null,
+            build_number: env.BUILD_ID || null,
+        }
+    }
+    // GoCD
+    if (env.GO_JOB_NAME) {
+        return {
+            name: 'GoCD',
+            build_url: null,
+            job_name: env.GO_JOB_NAME,
+            build_number: env.GO_PIPELINE_COUNTER,
+        }
+    }
+    // CodeFresh
+    if (env.CF_BUILD_ID) {
+        return {
+            name: 'CodeFresh',
+            build_url: env.CF_BUILD_URL,
+            job_name: env.CF_PIPELINE_NAME,
+            build_number: env.CF_BUILD_ID,
         }
     }
     // if no matches, return null
@@ -937,7 +1063,7 @@ export function isUndefined(value: any) {
 }
 
 export function isTrue(value?: any) {
-    return (value + '') === 'true'
+    return (value + '').toLowerCase() === 'true'
 }
 
 export function frameworkSupportsHook(hook: string, framework?: string) {
