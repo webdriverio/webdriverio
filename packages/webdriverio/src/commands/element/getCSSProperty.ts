@@ -1,10 +1,7 @@
 import cssShorthandProps from 'css-shorthand-properties'
-import { parseCSS } from '../../utils/index.js'
+import { getBrowserObject, parseCSS } from '../../utils/index.js'
 
-type PseudoElement = {
-    target: '::before'|'::after',
-    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
- }
+type PseudoElement = '::before'|'::after'
 
 /**
  *
@@ -54,10 +51,7 @@ type PseudoElement = {
         //      }
         // }
 
-        var width = await elem.getCSSProperty('width', {
-            target: '::before',
-            browser
-        })
+        var width = await elem.getCSSProperty('width', '::before')
         console.log(width)
         // outputs the following:
         // {
@@ -83,11 +77,16 @@ export async function getCSSProperty (
     cssProperty: string,
     pseudoElement?: PseudoElement,
 ) {
+    const browser = getBrowserObject(this)
+
     if (cssShorthandProps.isShorthand(cssProperty)) {
         const cssValue = await getShorthandPropertyCSSValue.call(
             this,
-            cssProperty,
-            pseudoElement,
+            {
+                cssProperty,
+                pseudoElement,
+                browser
+            }
         )
 
         return parseCSS(cssValue, cssProperty)
@@ -95,54 +94,61 @@ export async function getCSSProperty (
 
     const cssValue = await getPropertyCSSValue.call(
         this,
-        cssProperty,
-        pseudoElement,
+        {
+            cssProperty,
+            pseudoElement,
+            browser
+        }
     )
 
     return parseCSS(cssValue, cssProperty)
 }
 
+type Options = {
+    cssProperty: string;
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser;
+    pseudoElement?: PseudoElement;
+}
+
 async function getShorthandPropertyCSSValue(
     this: WebdriverIO.Element,
-    cssProperty: string,
-    pseudoElement?: PseudoElement,
+    options: Options
 ) {
-    let cssValues: string[]
+    const { pseudoElement, browser, cssProperty } = options
     const properties = getShorthandProperties(cssProperty)
 
     if (pseudoElement) {
-        const { browser, target } = pseudoElement
-
-        cssValues = await Promise.all(
-            properties.map((prop) => getPseudoElementCSSValue(
-                browser,
+        const cssValues = await Promise.all(
+            properties.map((cssProperty) => getPseudoElementCSSValue(
                 this,
-                prop,
-                target
+                {
+                    browser,
+                    pseudoElement,
+                    cssProperty,
+                }
             ))
         )
-    } else {
-        cssValues = await Promise.all(
-            properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
-        )
+
+        return mergeEqualSymmetricalValue(cssValues)
     }
+
+    const cssValues = await Promise.all(
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
+    )
 
     return mergeEqualSymmetricalValue(cssValues)
 }
 
 async function getPropertyCSSValue(
     this: WebdriverIO.Element,
-    cssProperty: string,
-    pseudoElement?: PseudoElement,
+    options: Options,
 ) {
-    if (pseudoElement) {
-        const { browser, target } = pseudoElement
+    const { pseudoElement, cssProperty } = options
 
+    if (pseudoElement) {
         return await getPseudoElementCSSValue(
-            browser,
             this,
-            cssProperty,
-            target
+            options
         )
     }
     return await this.getElementCSSValue(this.elementId, cssProperty)
@@ -183,11 +189,10 @@ function mergeEqualSymmetricalValue(cssValues: string[]) {
 }
 
 async function getPseudoElementCSSValue (
-    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     elem: WebdriverIO.Element,
-    cssProperty: string,
-    pseudoElement: string
+    options: Options
 ): Promise<string> {
+    const { browser, cssProperty, pseudoElement }  = options
     const cssValue = await browser.execute(
         (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement) as any)[cssProperty],
         elem,
