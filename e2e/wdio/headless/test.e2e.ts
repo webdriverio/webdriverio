@@ -107,8 +107,7 @@ describe('main suite 1', () => {
         ]
 
         before(async () => {
-            await browser.url('http://guinea-pig.webdriver.io/')
-            await browser.$('a[href="pointer.html"]').click()
+            await browser.url('http://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
         })
 
@@ -170,6 +169,22 @@ describe('main suite 1', () => {
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
+        })
+
+        it('moveTo to parent frame with auto scrolling', async () => {
+            await browser.setWindowSize(500, 500)
+            await browser.switchToParentFrame()
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo to nested iframe with auto scrolling', async () => {
+            const iframe = await browser.$('iframe.code-tabs__result')
+            await browser.switchToFrame(iframe)
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
         })
     })
 
