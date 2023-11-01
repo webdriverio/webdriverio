@@ -38,9 +38,9 @@ export async function moveTo (
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
-    await  this.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
+    await this.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
     if (!(await isIntoView())) {
-        await  this.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
+        await this.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
     }
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
         .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
