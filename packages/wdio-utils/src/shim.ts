@@ -1,30 +1,11 @@
 import logger from '@wdio/logger'
-import type { Clients } from '@wdio/types'
+import type { Clients, Frameworks } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 
 const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
-
-interface Retries {
-    limit: number
-    attempts: number
-}
-
-declare global {
-    // eslint-disable-next-line no-var
-    var expectAsync: any
-}
-
-declare global {
-    namespace NodeJS {
-        interface Global {
-            expect: any
-            expectAsync: any
-        }
-    }
-}
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -37,7 +18,7 @@ const ELEMENT_PROPS = [
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+export async function executeHooksWithArgs<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -98,7 +79,7 @@ const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: a
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
+export function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
@@ -304,7 +285,7 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
  * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = [], timeout: number = 20000): Promise<unknown> {
+export async function executeAsync(this: any, fn: Function, retries: Frameworks.TestRetries, args: any[] = [], timeout: number = 20000): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
@@ -341,10 +322,4 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
 
         throw err
     }
-}
-
-export {
-    executeHooksWithArgs,
-    wrapCommand,
-    executeAsync,
 }

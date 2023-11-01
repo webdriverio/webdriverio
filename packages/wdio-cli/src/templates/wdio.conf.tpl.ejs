@@ -1,10 +1,14 @@
 <%
+if (answers.isUsingTypeScript && answers.purpose === 'electron') {
+    %>/// <reference types="wdio-electron-service" />
+<% }
+
 if (answers.isUsingTypeScript && !answers.serenityAdapter) {
     %>import type { Options } from '@wdio/types'
 <% }
 
 if (answers.isUsingTypeScript && answers.serenityAdapter) {
-%>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
+    %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
 
 if (answers.isUsingTypeScript) {

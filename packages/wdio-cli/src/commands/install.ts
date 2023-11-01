@@ -2,15 +2,18 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import yarnInstall from 'yarn-install'
+// @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
+import { detect } from 'detect-package-manager'
 import type { Argv } from 'yargs'
 
 import {
+    getProjectRoot,
     replaceConfig,
     findInConfig,
     addServiceDeps,
     convertPackageHashToObject
 } from '../utils.js'
+import { installPackages } from '../install.js'
 import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
 import type { InstallCommandArguments, SupportedPackage } from '../types.js'
@@ -31,11 +34,6 @@ export const desc = [
 ].join(' ')
 
 export const cmdArgs = {
-    yarn: {
-        desc: 'Install packages using yarn',
-        type: 'boolean',
-        default: false
-    },
     config: {
         desc: 'Location of your WDIO configuration (default: wdio.conf.(js|ts|cjs|mjs))',
     },
@@ -60,9 +58,8 @@ export async function handler(argv: InstallCommandArguments) {
     /**
      * type = service | reporter | framework
      * name = names for the supported service or reporter
-     * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, yarn, config } = argv
+    const { type, name, config } = argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
@@ -76,9 +73,15 @@ export async function handler(argv: InstallCommandArguments) {
     /**
      * verify if the name of the `type` is valid
      */
-    if (!supportedInstallations[type].find(pkg => pkg.short === name)) {
-        console.log(`${name} is not a supported ${type}.`)
+    const options = supportedInstallations[type].map((pkg) => pkg.short)
+    if (!options.find((pkg) => pkg === name)) {
+        console.log(
+            `Error: ${name} is not a supported ${type}.\n\n` +
+            `Available options for a ${type} are:\n` +
+            `- ${options.join('\n- ')}`
+        )
         process.exit(0)
+        // keep return for unit test purposes
         return
     }
 
@@ -89,20 +92,23 @@ export async function handler(argv: InstallCommandArguments) {
     const wdioConfPath = await canAccessConfigPath(wdioConfPathWithNoExtension)
     if (!wdioConfPath) {
         try {
-            await missingConfigurationPrompt('install', wdioConfPathWithNoExtension, yarn)
+            await missingConfigurationPrompt('install', wdioConfPathWithNoExtension)
             return handler(argv)
         } catch {
             process.exit(1)
+            // keep return for unit test purposes
             return
         }
     }
 
     const configFile = await fs.readFile(wdioConfPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
+    const projectRoot = await getProjectRoot()
 
     if (match && match[0].includes(name)) {
         console.log(`The ${type} ${name} is already part of your configuration.`)
         process.exit(0)
+        // keep return for unit test purposes
         return
     }
 
@@ -111,12 +117,13 @@ export async function handler(argv: InstallCommandArguments) {
 
     addServiceDeps(selectedPackage ? [selectedPackage] : [], pkgsToInstall, true)
 
-    console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
-    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
+    const pm = await detect({ cwd: projectRoot })
+    console.log(`Installing "${selectedPackage.package}" using ${pm}.`)
+    const success = await installPackages(projectRoot, pkgsToInstall, true)
 
-    if (install.status !== 0) {
-        console.error('Error installing packages', install.stderr)
+    if (!success) {
         process.exit(1)
+        // keep return for unit test purposes
         return
     }
 

@@ -162,7 +162,7 @@ export default class ProxyDriver {
         for (const method of CONSOLE_METHODS) {
             const origCommand = console[method].bind(console)
             console[method] = (...args: unknown[]) => {
-                socket.send(stringify(this.#consoleMessage({
+                socket.send(stringify.default(this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
                     args,

@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
@@ -54,6 +56,13 @@ export async function initialiseInstance (
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
+    /**
+     * Store all log events in a file
+     */
+    if (config.outputDir && !process.env.WDIO_LOG_PATH) {
+        process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
+    }
+
     /**
      * check if config has sessionId and attach it to a running session if so
      */

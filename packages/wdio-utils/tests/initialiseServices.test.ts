@@ -10,7 +10,8 @@ import { safeImport } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/utils.js', () => ({
-    safeImport: vi.fn()
+    safeImport: vi.fn(),
+    isAbsolute: vi.fn().mockReturnValue(true)
 }))
 const log = logger('test')
 

@@ -108,7 +108,6 @@ export const sessionEnvironmentDetector = vi.fn().mockImplementation(
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = vi.fn().mockImplementation((data) => data)
-export const canAccess = vi.fn()
 export const sleep = vi.fn().mockImplementation(sleepOrig)
 export const UNICODE_CHARACTERS = UNICODE_CHARACTERS_ORIG
 export const HOOK_DEFINITION = HOOK_DEFINITION_ORIG

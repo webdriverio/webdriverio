@@ -1,8 +1,10 @@
-import { getElementRect, getScrollPosition, getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
+import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
 type MoveToOptions = {
     xOffset?: number,
-    yOffset?: number
+    yOffset?: number,
 }
 
 /**
@@ -26,20 +28,21 @@ export async function moveTo (
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xOffset, yOffset)
     }
-
-    /**
-     * get rect of element
-     */
-    const { x, y, width, height } = await getElementRect(this)
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const newXOffset = Math.floor(x - scrollX + (typeof xOffset === 'number' ? xOffset : (width / 2)))
-    const newYOffset = Math.floor(y - scrollY + (typeof yOffset === 'number' ? yOffset : (height / 2)))
-
+    const isIntoView = async () => {
+        return await browser.execute(isElementInViewportScript, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId // jsonwp compatible
+        } as any as HTMLElement)
+    }
     /**
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
+    await this.scrollIntoView({ block : 'nearest', inline: 'nearest', behavior: 'instant' })
+    if (!(await isIntoView())) {
+        await this.scrollIntoView({ block : 'center', inline: 'center', behavior: 'instant' })
+    }
     return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
-        .move({ x: newXOffset, y: newYOffset })
+        .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
         .perform()
 }
