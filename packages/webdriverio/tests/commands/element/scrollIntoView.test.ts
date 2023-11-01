@@ -73,7 +73,8 @@ describe('scrollIntoView test', () => {
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
             const optionsCenter = vi.mocked(got).mock.calls.slice(-2, -1)[0][1] as any
             expect(optionsCenter.json.actions[0].actions[0].deltaX).toBe(0)
-            expect(optionsCenter.json.actions[0].actions[0].deltaY).toBe(-385)
+            expect(optionsCenter.json.actions[0].actions[0].deltaY).toBe(0)
+            expect(optionsCenter.json.actions[0].actions[0].y).toBe(-385)
         })
 
     })

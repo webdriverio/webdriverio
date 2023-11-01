@@ -7,6 +7,6 @@ describe('main suite 1', () => {
             ? 'headlessedg'
             : caps.browserName!.toLowerCase()
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect((await $('#useragent').getText()).toLowerCase()).toContain(assertionValue)
+        await expect((await $('#useragent').getText()).toLowerCase()).toContain(assertionValue.replace(' ', ''))
     })
 })
