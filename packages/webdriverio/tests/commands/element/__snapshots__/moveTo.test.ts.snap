@@ -8,7 +8,36 @@ exports[`moveTo > should do a moveTo with params 1`] = `
   "duration": 100,
   "height": 0,
   "origin": {
-    "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+    "element-6066-11e4-a52e-4f735466cecf": {
+      "scrollIntoView": [MockFunction spy] {
+        "calls": [
+          [
+            {
+              "behavior": "instant",
+              "block": "nearest",
+              "inline": "nearest",
+            },
+          ],
+          [
+            {
+              "behavior": "instant",
+              "block": "center",
+              "inline": "center",
+            },
+          ],
+        ],
+        "results": [
+          {
+            "type": "return",
+            "value": undefined,
+          },
+          {
+            "type": "return",
+            "value": undefined,
+          },
+        ],
+      },
+    },
   },
   "pressure": 0,
   "tangentialPressure": 0,
@@ -30,7 +59,36 @@ exports[`moveTo > should do a moveTo without params 1`] = `
   "duration": 100,
   "height": 0,
   "origin": {
-    "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+    "element-6066-11e4-a52e-4f735466cecf": {
+      "scrollIntoView": [MockFunction spy] {
+        "calls": [
+          [
+            {
+              "behavior": "instant",
+              "block": "nearest",
+              "inline": "nearest",
+            },
+          ],
+          [
+            {
+              "behavior": "instant",
+              "block": "center",
+              "inline": "center",
+            },
+          ],
+        ],
+        "results": [
+          {
+            "type": "return",
+            "value": undefined,
+          },
+          {
+            "type": "return",
+            "value": undefined,
+          },
+        ],
+      },
+    },
   },
   "pressure": 0,
   "tangentialPressure": 0,
