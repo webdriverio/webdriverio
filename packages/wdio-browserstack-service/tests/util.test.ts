@@ -283,6 +283,14 @@ describe('getCiInfo', () => {
             delete process.env.APPVEYOR
         })
 
+        it('should return object if any CI being used - Azure', () => {
+            process.env.AZURE_HTTP_USER_AGENT = 'Agent'
+            process.env.TF_BUILD = 'True'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.AZURE_HTTP_USER_AGENT
+            delete process.env.TF_BUILD
+        })
+
         it('should return object if any CI being used - CodeBuild', () => {
             process.env.CODEBUILD_BUILD_ID = '1211'
             expect(getCiInfo()).toBeInstanceOf(Object)
@@ -292,13 +300,15 @@ describe('getCiInfo', () => {
         it('should return object if any CI being used - Bamboo', () => {
             process.env.bamboo_buildNumber = '123'
             expect(getCiInfo()).toBeInstanceOf(Object)
-            delete process.env.APviwPVEYOR
+            delete process.env.bamboo_buildNumber
         })
 
         it('should return object if any CI being used - Wercker', () => {
             process.env.WERCKER = 'true'
+            process.env.WERCKER_MAIN_PIPELINE_STARTED = 'true'
             expect(getCiInfo()).toBeInstanceOf(Object)
             delete process.env.WERCKER
+            delete process.env.WERCKER_MAIN_PIPELINE_STARTED
         })
 
         it('should return object if any CI being used - GCP', () => {
