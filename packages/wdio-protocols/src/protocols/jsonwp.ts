@@ -74,6 +74,7 @@ export default {
     '/session/:sessionId': {
         GET: {
             command: 'getSession',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Retrieve the capabilities of the specified session.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionid',
             parameters: [],
