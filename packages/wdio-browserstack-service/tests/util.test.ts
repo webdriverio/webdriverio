@@ -49,6 +49,20 @@ vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+vi.mock('fs', () => ({
+    default: {
+        createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
+        createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+    }
+}))
+
+vi.mock('form-data-node', () => vi.fn().mockReturnValue({
+    append: vi.fn()
+}))
+
+vi.mock('./fileStream')
+
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 
@@ -1284,13 +1298,6 @@ describe('uploadLogs', function () {
         } as any)
     })
     it('should upload the logs', async function () {
-        vi.mock('fs/promises', () => ({
-            default: {
-                createReadStream: vi.fn(),
-                stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
-                pipe: vi.fn()
-            }
-        }))
         vi.mock('form-data-node', () => vi.fn().mockReturnValue({
             append: vi.fn()
         }))

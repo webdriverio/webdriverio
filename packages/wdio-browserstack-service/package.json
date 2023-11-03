@@ -43,7 +43,8 @@
     "uuid": "^9.0.0",
     "webdriverio": "8.21.0",
     "winston-transport": "^4.5.0",
-    "formdata-node": "5.0.1"
+    "formdata-node": "5.0.1",
+    "chalk": "^5.3.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"

@@ -16,11 +16,16 @@ import * as bstackLogger from '../src/bstackLogger.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
-vi.mock('fs/promises', () => ({
+vi.mock('node:fs', () => ({
     default: {
         createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
         createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
         stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
+        existsSync: vi.fn(),
+        truncateSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        writeFileSync: vi.fn()
     }
 }))
 
@@ -37,6 +42,8 @@ vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Pro
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
+
+vi.spyOn(bstackLogger.BStackLogger, 'clearLogFile').mockImplementation(() => {})
 
 const pkg = await vi.importActual('../package.json') as any
 const log = logger('test')
@@ -1248,7 +1255,7 @@ describe('_updateLocalBuildCache', () => {
         expect(parsedBuildCacheFileData['browserstack wdio build test']['identifier']).toEqual(3)
     })
 
-    it('updates buildIdentifier in json file', async() => {
+    it('should not update buildIdentifier in json file', async() => {
         const writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
         writeFileSyncSpy.mockImplementation(() => {})
         vi.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test' : { 'identifier' : 3 } }))
