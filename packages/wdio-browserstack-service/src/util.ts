@@ -1,4 +1,6 @@
 import { hostname, platform, type, version, arch } from 'node:os'
+import fs from 'node:fs'
+import zlib from 'node:zlib'
 import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
@@ -19,11 +21,12 @@ import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder } from './constants.js'
+import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
+import { FileStream } from './fileStream.js'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -158,7 +161,7 @@ export function errorHandler(fn: Function) {
 
 export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
     try {
-        const response: Object = await got(`${apiUrl}/${apiEndpoint}`, {
+        const response: any = await got(`${apiUrl}/${apiEndpoint}`, {
             method: requestType,
             timeout: {
                 request: timeout
@@ -1129,3 +1132,26 @@ export async function pushDataToQueue(data: UploadType, requestQueueHandler: Req
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    const fileStream = fs.createReadStream(BStackLogger.logFilePath)
+    const uploadAddress = UPLOAD_LOGS_ADDRESS
+    const zip = zlib.createGzip({ level: 1 })
+    fileStream.pipe(zip)
+
+    const formData : any = new FormData()
+    formData.append('data', new FileStream(zip), 'logs.gz')
+    formData.append('clientBuildUuid', clientBuildUuid)
+
+    const requestOptions = {
+        body: formData,
+        username: user,
+        password: key
+    }
+
+    const response = await nodeRequest(
+        'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+    )
+
+    return response
+}

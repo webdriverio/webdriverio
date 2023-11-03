@@ -12,9 +12,31 @@ import type { Capabilities, Options } from '@wdio/types'
 import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
+vi.mock('fs/promises', () => ({
+    default: {
+        createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+    }
+}))
+
+vi.mock('form-data-node', () => vi.fn().mockReturnValue({
+    append: vi.fn()
+}))
+
+vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Promise((resolve) => {
+    _user
+    _key
+    _uuid
+    resolve('success')
+}))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 const pkg = await vi.importActual('../package.json') as any
 const log = logger('test')
@@ -1235,5 +1257,62 @@ describe('_updateLocalBuildCache', () => {
 
         service._updateLocalBuildCache(filePath, undefined, 3)
         expect(writeFileSyncSpy).not.toHaveBeenCalled()
+    })
+})
+
+describe('_uploadServiceLogs', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+
+    it('get observability build id', async() => {
+        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        expect(service._getClientBuildUuid()).toEqual('obs123')
+        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+    })
+
+    const service = new BrowserstackLauncher(options as any, caps, config)
+})
+
+describe('_getClientBuildUuid', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+
+    const service = new BrowserstackLauncher(options as any, caps, config)
+
+    it('get observability build id', async() => {
+        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        expect(service._getClientBuildUuid()).toEqual('obs123')
+        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+    })
+
+    it('get accessibility test run id', async() => {
+        process.env.BS_A11Y_TEST_RUN_ID = 'a11y123'
+        expect(service._getClientBuildUuid()).toEqual('a11y123')
+        delete process.env.BS_A11Y_TEST_RUN_ID
+    })
+
+    it('get randomly generated id if both the conditions fail', async() => {
+        vi.mock('uuid', () => ({ v4: () => '123456789' }))
+        expect(service._getClientBuildUuid()).toEqual('123456789')
     })
 })
