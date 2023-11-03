@@ -171,26 +171,25 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             // element has direct aria label
             // https://www.w3.org/TR/accname-1.1/#step2C
             `.//*[@aria-label = "${label}"]`,
-            // inputs with a label
+            // input and textarea with a label
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            // aria label is received by an input placeholder
+            `(.//input|.//textarea)[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            `(.//input|.//textarea)[//ancestor::label[normalize-space() = "${label}"]]`,
+            // aria label is received by a placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@placeholder="${label}"]`,
-            `.//textarea[@placeholder="${label}"]`,
-            // aria label is received by an input placeholder
+            `(.//input|.//textarea)[@placeholder="${label}"]`,
+            // aria label is received by a aria-placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@aria-placeholder="${label}"]`,
-            `.//textarea[@aria-placeholder="${label}"]`,
-            // aria label is received by its title attribute
+            `(.//input|.//textarea)[@aria-placeholder="${label}"]`,
+            // aria label is received by a title
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//*[@title="${label}"]`,
+            `.//*[not(self::label)][@title="${label}"]`,
             // images with an alt tag
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//img[@alt="${label}"]`,
-            // aria label is received from element content
+            // aria label is received from element text content
             // https://www.w3.org/TR/accname-1.1/#step2G
-            `.//*[normalize-space(text()) = "${label}"]`
+            `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
         ]
         using = 'xpath'
         value = conditions.join(' | ')
