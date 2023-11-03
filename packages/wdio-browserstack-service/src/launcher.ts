@@ -1,5 +1,5 @@
 import got from 'got'
-import { FormData } from 'formdata-node'
+import FormData from 'form-data'
 import { v4 as uuidv4 } from 'uuid'
 
 import fs from 'node:fs'

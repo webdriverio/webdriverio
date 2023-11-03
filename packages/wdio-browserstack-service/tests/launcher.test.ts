@@ -29,10 +29,6 @@ vi.mock('node:fs', () => ({
     }
 }))
 
-vi.mock('form-data-node', () => vi.fn().mockReturnValue({
-    append: vi.fn()
-}))
-
 vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Promise((resolve) => {
     _user
     _key

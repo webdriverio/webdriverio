@@ -57,10 +57,6 @@ vi.mock('fs', () => ({
     }
 }))
 
-vi.mock('form-data-node', () => vi.fn().mockReturnValue({
-    append: vi.fn()
-}))
-
 vi.mock('./fileStream')
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
@@ -1298,9 +1294,6 @@ describe('uploadLogs', function () {
         } as any)
     })
     it('should upload the logs', async function () {
-        vi.mock('form-data-node', () => vi.fn().mockReturnValue({
-            append: vi.fn()
-        }))
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(mockedGot).toHaveBeenCalled()
         vi.mocked(got).mockClear()
