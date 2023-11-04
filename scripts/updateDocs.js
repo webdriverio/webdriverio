@@ -3,7 +3,6 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { promisify } from 'node:util'
 import { createRequire } from 'node:module'
 
 import mime from 'mime-types'
@@ -60,31 +59,31 @@ const distributionId = version === PRODUCTION_VERSION
 if (distributionId) {
     console.log(`Invalidate objects from distribution ${distributionId}`)
     const cloudfront = new CloudFront()
-    const { Invalidation } = await promisify(cloudfront.createInvalidation.bind(cloudfront))({
+    const { Invalidation } = await cloudfront.createInvalidation({
         DistributionId: distributionId,
         InvalidationBatch: {
             CallerReference: `${timestamp}`,
             Paths: { Quantity: 1, Items: ['/*'] }
         }
-    })
+    }).promise()
     console.log(`Created new invalidation with ID ${Invalidation.Id}`)
 }
 
 /**
  * delete old assets
  */
-const objects = await promisify(s3.listObjects.bind(s3))({
+const objects = await s3.listObjects({
     Bucket: bucketName
-})
+}).promise()
 const objectsToDelete = objects.Contents.filter((obj) => (
     (obj.LastModified)).getTime() < timestamp)
 console.log(`Found ${objectsToDelete.length} outdated objects to remove...`)
 
 await Promise.all(objectsToDelete.map((obj) => (
-    promisify(s3.deleteObject.bind(s3))({
+    s3.deleteObject({
         Bucket: bucketName,
         Key: obj.Key
-    })
+    }).promise()
 )))
 console.log('Deleted obsolete items successfully')
 console.log('Successfully updated webdriver.io docs')
