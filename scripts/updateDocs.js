@@ -32,21 +32,23 @@ const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${
  * upload assets
  */
 console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
-await Promise.all(files.map((file) => new Promise((resolve, reject) => s3.upload({
-    Bucket: bucketName,
-    Key: file.replace(BUILD_DIR + '/', ''),
-    Body: fs.createReadStream(file),
-    ContentType: mime.lookup(file),
-    ACL: 'public-read'
-}, UPLOAD_OPTIONS, (err, res) => {
-    if (err) {
-        console.error(`Couldn't upload file ${file}: ${err.stack}`)
-        return reject(err)
+await Promise.all(files.map((file) => async () => {
+    try {
+        const res = await s3.upload({
+            Bucket: bucketName,
+            Key: file.replace(BUILD_DIR + '/', ''),
+            Body: fs.createReadStream(file),
+            ContentType: mime.lookup(file),
+            ACL: 'public-read',
+        }, UPLOAD_OPTIONS).promise();
+        console.log(`${file} uploaded`);
+        return res;
+    } catch (err) {
+        console.error(`Couldn't upload file ${file}: ${err.stack}`);
+        throw err;
     }
+}));
 
-    console.log(`${file} uploaded`)
-    return resolve(res)
-}))))
 
 /**
  * invalidate distribution
