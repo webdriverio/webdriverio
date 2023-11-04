@@ -1,10 +1,12 @@
-#!/usr/bin/env nodeimport fs from 'node:fs'
+#!/usr/bin/env node
+
+import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
-import { CloudFront } from "@aws-sdk/client-cloudfront";
-import { Upload } from "@aws-sdk/lib-storage";
-import { S3 } from "@aws-sdk/client-s3";
+import { CloudFront } from '@aws-sdk/client-cloudfront'
+import { S3 } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
 import mime from 'mime-types'
 import readDir from 'recursive-readdir'
 
@@ -36,7 +38,6 @@ await Promise.all(files.map((file) => async () => {
     try {
         const res = await new Upload({
             client: s3,
-
             params: {
                 Bucket: bucketName,
                 Key: file.replace(BUILD_DIR + '/', ''),
@@ -44,16 +45,15 @@ await Promise.all(files.map((file) => async () => {
                 ContentType: mime.lookup(file),
                 ACL: 'public-read',
             },
-
             ...UPLOAD_OPTIONS
-        }).done();
-        console.log(`${file} uploaded`);
-        return res;
+        }).done()
+        console.log(`${file} uploaded`)
+        return res
     } catch (err) {
-        console.error(`Couldn't upload file ${file}: ${err.stack}`);
-        throw err;
+        console.error(`Couldn't upload file ${file}: ${err.stack}`)
+        throw err
     }
-}));
+}))
 
 
 /**
