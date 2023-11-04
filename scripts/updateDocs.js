@@ -1,10 +1,10 @@
-#!/usr/bin/env node
-
-import fs from 'node:fs'
+#!/usr/bin/env nodeimport fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
-import { S3, CloudFront } from 'aws-sdk';
+import { CloudFront } from "@aws-sdk/client-cloudfront";
+import { Upload } from "@aws-sdk/lib-storage";
+import { S3 } from "@aws-sdk/client-s3";
 import mime from 'mime-types'
 import readDir from 'recursive-readdir'
 
@@ -34,13 +34,19 @@ const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${
 console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
 await Promise.all(files.map((file) => async () => {
     try {
-        const res = await s3.upload({
-            Bucket: bucketName,
-            Key: file.replace(BUILD_DIR + '/', ''),
-            Body: fs.createReadStream(file),
-            ContentType: mime.lookup(file),
-            ACL: 'public-read',
-        }, UPLOAD_OPTIONS).promise();
+        const res = await new Upload({
+            client: s3,
+
+            params: {
+                Bucket: bucketName,
+                Key: file.replace(BUILD_DIR + '/', ''),
+                Body: fs.createReadStream(file),
+                ContentType: mime.lookup(file),
+                ACL: 'public-read',
+            },
+
+            ...UPLOAD_OPTIONS
+        }).done();
         console.log(`${file} uploaded`);
         return res;
     } catch (err) {
@@ -65,7 +71,7 @@ if (distributionId) {
             CallerReference: `${timestamp}`,
             Paths: { Quantity: 1, Items: ['/*'] }
         }
-    }).promise()
+    })
     console.log(`Created new invalidation with ID ${Invalidation.Id}`)
 }
 
@@ -74,7 +80,7 @@ if (distributionId) {
  */
 const objects = await s3.listObjects({
     Bucket: bucketName
-}).promise()
+})
 const objectsToDelete = objects.Contents.filter((obj) => (
     (obj.LastModified)).getTime() < timestamp)
 console.log(`Found ${objectsToDelete.length} outdated objects to remove...`)
@@ -83,7 +89,7 @@ await Promise.all(objectsToDelete.map((obj) => (
     s3.deleteObject({
         Bucket: bucketName,
         Key: obj.Key
-    }).promise()
+    })
 )))
 console.log('Deleted obsolete items successfully')
 console.log('Successfully updated webdriver.io docs')
