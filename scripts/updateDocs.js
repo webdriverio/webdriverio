@@ -55,7 +55,6 @@ await Promise.all(files.map((file) => async () => {
     }
 }))
 
-
 /**
  * invalidate distribution
  */
