@@ -3,16 +3,14 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 
+import { S3, CloudFront } from 'aws-sdk';
 import mime from 'mime-types'
 import readDir from 'recursive-readdir'
 
 import pkg from '../lerna.json' assert { type: 'json' }
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const { S3, CloudFront } = require('aws-sdk')
 
 const PKG_VERSION = pkg.version
 const PRODUCTION_VERSION = 'v8'
