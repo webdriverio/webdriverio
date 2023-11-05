@@ -15,7 +15,6 @@ exports[`handler 1`] = `
     "destPageObjectRootPath": "",
     "destSerenityLibRootPath": "",
     "destSpecRootPath": "/home/runner/work/webdriverio/webdriverio",
-+   "destStepRootPath": "/home/runner/work/webdriverio/webdriverio",
     "esmSupport": true,
     "framework": "mocha",
     "generateTestFiles": false,
