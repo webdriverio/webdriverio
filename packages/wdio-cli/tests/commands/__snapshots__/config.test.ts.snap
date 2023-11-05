@@ -14,7 +14,7 @@ exports[`handler 1`] = `
     "baseUrl": "http://localhost",
     "destPageObjectRootPath": "",
     "destSerenityLibRootPath": "",
-    "destSpecRootPath": "/home/runner/work/webdriverio/webdriverio",
+    "destSpecRootPath": "/home/runner/work/webdriverio/webdriverio",  
     "esmSupport": true,
     "framework": "mocha",
     "generateTestFiles": false,

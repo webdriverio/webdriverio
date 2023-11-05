@@ -126,6 +126,7 @@ test.skipIf(isUsingWindows)('handler', async () => {
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        stepDefinitions: '/home/runner/work/webdriverio/webdriverio',
         reporters: [],
         plugins: [],
         services: [],
