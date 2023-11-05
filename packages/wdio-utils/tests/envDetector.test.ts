@@ -54,6 +54,12 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: tvOSCaps, requestedCapabilities }).isMobile).toBe(true)
         const androidCaps = { ...chromeCaps, 'platformName': 'Android' }
         expect(sessionEnvironmentDetector({ capabilities: androidCaps, requestedCapabilities }).isMobile).toBe(true)
+        const iosCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'ios' } }
+        expect(sessionEnvironmentDetector({ capabilities: iosCapsBS, requestedCapabilities }).isMobile).toBe(true)
+        const tvOSCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'tvOS' } }
+        expect(sessionEnvironmentDetector({ capabilities: tvOSCapsBS, requestedCapabilities }).isMobile).toBe(true)
+        const androidCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'Android' } }
+        expect(sessionEnvironmentDetector({ capabilities: androidCapsBS, requestedCapabilities }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
@@ -151,8 +157,26 @@ describe('sessionEnvironmentDetector', () => {
         expect(isAndroid).toEqual(false)
     })
 
+    it('should not detect mobile app for browserName===undefined with BrowserStack Service', function () {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities = { 'bstack:options': {} }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
     it('should not detect mobile app for browserName==="firefox"', function () {
         const capabilities = { browserName: 'firefox' }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
+    it('should not detect mobile app for browserName==="firefox" with BrowserStack Service', function () {
+        const capabilities = { 'bstack:options': { browserName: 'firefox' } }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
@@ -169,8 +193,26 @@ describe('sessionEnvironmentDetector', () => {
         expect(isAndroid).toEqual(false)
     })
 
+    it('should not detect mobile app for browserName==="chrome" with BrowserStack Service', function () {
+        const capabilities = { 'bstack:options': { browserName: 'chrome' } }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
     it('should detect mobile app for browserName===""', function () {
         const capabilities = { browserName: '' }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
+    it('should detect mobile app for browserName==="" with BrowserStack Service', function () {
+        const capabilities =  { 'bstack:options': { browserName: '' } }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
@@ -184,6 +226,26 @@ describe('sessionEnvironmentDetector', () => {
             platformVersion: '4.4',
             deviceName: 'LGVS450PP2a16334',
             app: 'foo.apk'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(true)
+    })
+
+    it('should detect Android mobile app without upload with BrowserStack Service', function () {
+        const capabilities = {
+            'bstack:options':
+            {
+                platformName: 'Android',
+                platformVersion: '4.4',
+                deviceName: 'LGVS450PP2a16334',
+                appPackage: 'com.example',
+                appActivity: 'com.example.gui.LauncherActivity',
+                noReset: true,
+                appWaitActivity: 'com.example.gui.LauncherActivity'
+            }
         }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })

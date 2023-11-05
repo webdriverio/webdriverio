@@ -1,8 +1,12 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
 import ip from 'ip'
-import type { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
-import SauceLabs from 'saucelabs'
+import {
+    default as SauceLabs,
+    type SauceLabsOptions,
+    type SauceConnectOptions,
+    type SauceConnectInstance
+} from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
@@ -14,16 +18,15 @@ const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher implements Services.ServiceInstance {
-    private _api: SauceLabs
+    private _api: SauceLabs.default
     private _sauceConnectProcess?: SauceConnectInstance
 
     constructor (
         private _options: SauceServiceConfig,
-        private _capabilities: unknown,
+        _: never,
         private _config: Options.Testrunner
     ) {
-        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
-        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
+        this._api = new SauceLabs.default(this._config as SauceLabsOptions)
     }
 
     /**

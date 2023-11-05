@@ -2,7 +2,7 @@ import type { RequestError } from 'got'
 import got from 'got'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
-import type { GetValueOptions } from './types'
+import type { GetValueOptions } from './types.js'
 
 let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
 const baseUrlPromise = new Promise<string>((resolve) => {

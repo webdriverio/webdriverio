@@ -1,8 +1,8 @@
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { Label, AllureTest, AllureGroup  } from 'allure-js-commons'
-import { Status as AllureStatus, md5 } from 'allure-js-commons'
+import type { Label, AllureTest, AllureGroup } from 'allure-js-commons'
+import { Status as AllureStatus, md5, LabelName } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
 
@@ -177,7 +177,7 @@ export const getSuiteLabels = ({ tags }: SuiteStats): Label[] => {
     }, [])
 }
 
-export const setHistoryId = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
+export const setAllureIds = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
     if (!test) {
         return
     }
@@ -186,5 +186,13 @@ export const setHistoryId = (test: AllureTest | undefined, suite: AllureGroup | 
         .sort((a, b) => a.name?.localeCompare(b.name))
         .map(it => it.name + it.value)
         .join('')
-    test.historyId = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
+    const hash = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
+    test.historyId = hash
+    if ('labels' in test.wrappedItem) {
+        if (test.wrappedItem.labels?.find((label: Label) => label.name === LabelName.AS_ID)) {
+            return
+        }
+    }
+
+    test.testCaseId = hash
 }

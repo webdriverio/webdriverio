@@ -2,12 +2,13 @@
 
 import { DEFAULT_CONFIGS } from './constants.js'
 import { validateConfig, isCloudCapability } from './utils.js'
-import ConfigParser from './lib/ConfigParser.js'
 
 export {
+    /**
+     * configuration helpers
+     */
     validateConfig,
     isCloudCapability,
-    ConfigParser,
 
     /**
      * constants

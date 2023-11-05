@@ -1,14 +1,10 @@
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect } from 'vitest'
-import path from 'node:path'
-import fs from 'node:fs'
 
 import {
-    overwriteElementCommands, commandCallStructure, isValidParameter, canAccess,
+    overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
 } from '../src/utils.js'
-
-vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 
 describe('utils', () => {
     it('commandCallStructure', () => {
@@ -188,6 +184,17 @@ describe('utils', () => {
             expect(isFunctionAsync({} as unknown as Function)).toBe(false)
         })
     })
+
+    it('definesRemoteDriver', () => {
+        expect(definesRemoteDriver({})).toBe(false)
+        expect(definesRemoteDriver({ hostname: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ port: 1 })).toBe(true)
+        expect(definesRemoteDriver({ path: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ protocol: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ user: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ key: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ user: 'foo', key: 'bar' })).toBe(true)
+    })
 })
 
 describe('utils:filterSpecArgs', () => {
@@ -221,18 +228,5 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
-    })
-})
-
-describe('utils:canAccess', () => {
-    it('canAccess', () => {
-        expect(canAccess('/foobar')).toBe(true)
-        expect(fs.accessSync).toBeCalledWith('/foobar')
-
-        // @ts-ignore
-        fs.accessSync.mockImplementation(() => {
-            throw new Error('upps')
-        })
-        expect(canAccess('/foobar')).toBe(false)
     })
 })

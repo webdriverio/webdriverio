@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "8.19.0",
+  "version": "8.20.3",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -8,7 +8,14 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./node": {
+      "import": "./build/node/index.js",
+      "types": "./build/node/index.d.ts"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
@@ -30,8 +37,8 @@
   },
   "dependencies": {
     "@wdio/logger": "8.16.17",
-    "@wdio/types": "8.19.0",
-    "@wdio/utils": "8.19.0",
+    "@wdio/types": "8.20.0",
+    "@wdio/utils": "8.20.3",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^5.0.0",
     "glob": "^10.2.2",

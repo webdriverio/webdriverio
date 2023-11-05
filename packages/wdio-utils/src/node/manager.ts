@@ -2,10 +2,10 @@ import logger from '@wdio/logger'
 import type { Options, Capabilities } from '@wdio/types'
 
 import {
-    getCacheDir, definesRemoteDriver, getDriverOptions,
-    isSafari, isEdge, isFirefox, isChrome,
-    setupChromedriver, setupEdgedriver, setupGeckodriver, setupPuppeteerBrowser
+    getCacheDir, getDriverOptions, setupChromedriver, setupEdgedriver,
+    setupGeckodriver, setupPuppeteerBrowser
 } from './utils.js'
+import { definesRemoteDriver, isSafari, isEdge, isFirefox, isChrome } from '../utils.js'
 
 const log = logger('@wdio/utils')
 const UNDEFINED_BROWSER_VERSION = null

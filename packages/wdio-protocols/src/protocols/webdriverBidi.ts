@@ -307,7 +307,7 @@ export default {
             "parameters": [
                 {
                     "name": "params",
-                    "type": "`remote.ScriptAddPreloadScriptParameters`",
+                    "type": "object",
                     "description": "<pre>{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  sandbox?: string;<br />}</pre>",
                     "required": true
                 }
