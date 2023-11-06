@@ -73,7 +73,7 @@ const startTestInstance = `graph TD
         ADDLISTENERS["Add message, error, exit event<br>listeners to worker instance."]-->
         CALLPOSTMESSAGE["Call @wdio/local-runner:worker postMessage().<br>If an instance is not created, call startProcess()<br>and fork a child process."]-->
         FORKCHILDPROCESS["@wdio/local-runner:worker startProcess() forks a<br>child process using the child_process fork() method."]-->
-        CREATERUNNERINSTANCE["The args passed to  child_process fork execute the code in the<br>@wdio-local-runner run.js.This action creates a new instance<br>of @wdio/runner index.js. "]-->
+        CREATERUNNERINSTANCE["The args passed to  child_process fork execute the code in the<br>@wdio/local-runner run.js.This action creates a new instance<br>of @wdio/runner index.js. "]-->
         ADDHANDLERS["Add message, error and exit listeners to the forked process.<br>These listeners will process commands."]-->
         RUNWDIORUNNERINDEXJS["@wdio/local-runner postMessage() instructs the child process to<br>run the code @wdio/runner index.js."]-->
         POSTMESSAGE["@wdio/local-runner postMessage() sends child process a message that<br>contains the capability id,'run' command, config file, CLI args,<br>capabilties, config details about automation backend, number of retries.<br>When the child process receives this message, all services, reports and<br>services are setup. The tests are them executed."]-->
@@ -101,7 +101,7 @@ const setupTest = `graph TD
         WAITFORTESTTOFINISH[Wait for test to finish. If watch mode keep session open.]-->
         SENDRESULTS[Send results to reporter instance<br>for processing.]-->
         INTERFACE["@wdio/cli:interface printSummary() called<br>Test results printed to terminal"]-->
-        KILLWORKERSESSION[Kill worker session.]      
+        KILLWORKERSESSION[Kill worker session.]
     `
 
 const graphData = `
@@ -114,8 +114,8 @@ const graphData = `
         LAUNCHER
         LISTOFSERVICES-->LOCALRUNNER
         LISTOFSERVICES-->RUNNER
-        REPORTER["Any package that ends with -reporter<br>@wdio-allure-reporter<br>@wdio-concise-reporter<br>@wdio-dot-reporter<br>@wdio-junit-reporter<br>@wdio-reporter<br>@wdio-spec-reporter<br>@wdio-sumologic-reporter<br>wdio-reportportal-reporter<br>wdio-video-reporter<br>@rpii/wdio-html-reporter<br>wdio-json-reporter<br>wdio-mochawesome-reporter<br>wdio-timeline-reporter<br>wdio-cucumberjs-json-reporter"]-->RUNNER
-        FRAMEWORK["Any package that ends with -framework<br>@wdio-jasmine-framework<br>@wdio-mocha-framework<br>@wdio/cucumber-framework<br>"]-->
+        REPORTER["Any package that ends with -reporter<br>@wdio/allure-reporter<br>@wdio/concise-reporter<br>@wdio/dot-reporter<br>@wdio/junit-reporter<br>@wdio/reporter<br>@wdio/spec-reporter<br>@wdio/sumologic-reporter<br>@wdio/json-reporter<br>wdio-reportportal-reporter<br>wdio-video-reporter<br>@rpii/wdio-html-reporter<br>wdio-mochawesome-reporter<br>wdio-timeline-reporter<br>wdio-cucumberjs-json-reporter"]-->RUNNER
+        FRAMEWORK["Any package that ends with -framework<br>@wdio/jasmine-framework<br>@wdio/mocha-framework<br>@wdio/cucumber-framework<br>"]-->
         RUNNER
         WEBDRIVER["webdriverio<br>webdriver"]-->
         RUNNER
