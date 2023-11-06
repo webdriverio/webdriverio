@@ -315,12 +315,55 @@ describe('Lit Component testing', () => {
             /**
              * fails due to https://github.com/webdriverio/webdriverio/issues/8826
              */
-            it.skip('inputs with a label', async () => {
+            it('input with a label', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
                         <label for="search">Search</label>
                         <input id="search" type="text" value="Hello World!" />
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('textarea with a label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label for="search">Search</label>
+                        <textarea>Hello World!</textarea>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('input with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search
+                            <input id="search" type="text" value="Hello World!" />
+                        </label>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('textarea with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search
+                            <textarea>Hello World!</textarea>
+                        </label>
                     `,
                     document.body
                 )
