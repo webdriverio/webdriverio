@@ -572,36 +572,23 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Estrategias de selección personalizadas
 
-Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. Para eso registre su estrategia una vez al comienzo de la prueba:
 
-```js
-browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    /**
-     * scope should be document if called on browser object
-     * and `root` if called on an element object
-     */
-    const scope = root ? root : document
-    return scope.querySelectorAll(selector)
-})
+Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
+
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
 ```
 
 Dado el siguiente fragmento HTML:
 
-```html
-<div class="foobar" id="first">
-    <div class="foobar" id="second">
-        barfoo
-    </div>
-</div>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
 ```
 
 Entonces úselo llamando:
 
-```js
-const elem = await browser.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "first"
-const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "second"
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
 ```
 
 **Nota:** esto sólo funciona en un entorno web en el que se puede ejecutar el comando [`ejecutar`](/docs/api/browser/execute).
