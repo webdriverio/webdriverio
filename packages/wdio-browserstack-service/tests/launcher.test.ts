@@ -1308,12 +1308,6 @@ describe('_getClientBuildUuid', () => {
         delete process.env.BS_TESTOPS_BUILD_HASHED_ID
     })
 
-    it('get accessibility test run id', async() => {
-        process.env.BS_A11Y_TEST_RUN_ID = 'a11y123'
-        expect(service._getClientBuildUuid()).toEqual('a11y123')
-        delete process.env.BS_A11Y_TEST_RUN_ID
-    })
-
     it('get randomly generated id if both the conditions fail', async() => {
         vi.mock('uuid', () => ({ v4: () => '123456789' }))
         expect(service._getClientBuildUuid()).toEqual('123456789')

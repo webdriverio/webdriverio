@@ -1293,6 +1293,16 @@ describe('uploadLogs', function () {
             json: () => Promise.resolve({ status: 'success', message: 'Logs uploaded Successfully' }),
         } as any)
     })
+    it('should return if user is undefined', async function () {
+        await uploadLogs(undefined, 'some_key', 'some_uuid')
+        expect(mockedGot).not.toHaveBeenCalled()
+        vi.mocked(got).mockClear()
+    })
+    it('should return if key is undefined', async function () {
+        await uploadLogs('some_user', undefined, 'some_uuid')
+        expect(mockedGot).not.toHaveBeenCalled()
+        vi.mocked(got).mockClear()
+    })
     it('should upload the logs', async function () {
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(mockedGot).toHaveBeenCalled()

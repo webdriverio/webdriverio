@@ -1,5 +1,5 @@
 import got from 'got'
-import FormData from 'form-data'
+import { FormData } from 'formdata-node'
 import { v4 as uuidv4 } from 'uuid'
 
 import fs from 'node:fs'
@@ -33,6 +33,7 @@ import {
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
+import { FileStream } from './fileStream.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
@@ -369,7 +370,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         const form = new FormData()
         if (app.app) {
-            form.append('file', fs.createReadStream(app.app))
+            form.append('file', new FileStream(fs.createReadStream(app.app)))
         }
         if (app.customId) {
             form.append('custom_id', app.customId)
@@ -681,8 +682,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     _getClientBuildUuid() {
         if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
             return process.env.BS_TESTOPS_BUILD_HASHED_ID
-        } else if (process.env.BS_A11Y_TEST_RUN_ID) {
-            return process.env.BS_A11Y_TEST_RUN_ID
         }
         const uuid = uuidv4()
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')

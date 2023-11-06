@@ -1135,12 +1135,15 @@ export async function pushDataToQueue(data: UploadType, requestQueueHandler: Req
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    if (!user || !key) {
+        return
+    }
     const fileStream = fs.createReadStream(BStackLogger.logFilePath)
     const uploadAddress = UPLOAD_LOGS_ADDRESS
     const zip = zlib.createGzip({ level: 1 })
     fileStream.pipe(zip)
 
-    const formData : any = new FormData()
+    const formData = new FormData()
     formData.append('data', new FileStream(zip), 'logs.gz')
     formData.append('clientBuildUuid', clientBuildUuid)
 
