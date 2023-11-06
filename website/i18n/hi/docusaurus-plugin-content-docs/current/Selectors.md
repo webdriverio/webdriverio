@@ -574,34 +574,20 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 यदि आपके ऐप को तत्वों को लाने के लिए एक विशिष्ट तरीके की आवश्यकता है तो आप स्वयं को एक कस्टम चयनकर्ता रणनीति परिभाषित कर सकते हैं जिसका उपयोग आप `custom$` और `custom$$`के साथ कर सकते हैं। इसके लिए परीक्षण की शुरुआत में एक बार अपनी रणनीति दर्ज करें:
 
-```js
-browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    /**
-     * scope should be document if called on browser object
-     * and `root` if called on an element object
-     */
-    const scope = root ? root : document
-    return scope.querySelectorAll(selector)
-})
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
 ```
 
 निम्नलिखित HTML स्निपेट को देखते हुए:
 
-```html
-<div class="foobar" id="first">
-    <div class="foobar" id="second">
-        barfoo
-    </div>
-</div>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
 ```
 
 फिर कॉल करके इसका इस्तेमाल करें:
 
-```js
-const elem = await browser.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "first"
-const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "second"
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
 ```
 
 **नोट:** यह केवल एक वेब वातावरण में काम करता है जिसमें [`execute`](/docs/api/browser/execute) कमांड चलाया जा सकता है।

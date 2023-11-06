@@ -1,5 +1,5 @@
 import type { Options, Reporters } from '@wdio/types'
-import type { NormalizedPackageJson } from 'read-pkg-up'
+import type { NormalizedPackageJson } from 'read-package-up'
 import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice } from './constants.js'
 
 export interface Questionnair {

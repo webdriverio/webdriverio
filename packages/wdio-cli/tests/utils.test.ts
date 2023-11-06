@@ -7,7 +7,7 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 
@@ -62,7 +62,7 @@ vi.mock('child_process', () => {
     return m
 })
 
-vi.mock('read-pkg-up', () => ({
+vi.mock('read-package-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
         path: '/foo/package.json',
         packageJson: {
