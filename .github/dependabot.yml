@@ -37,6 +37,7 @@ updates:
     - dependency-name: "allure-js-commons"
     - dependency-name: "@types/node"
     - dependency-name: "@cucumber/cucumber"
+    - dependency-name: "@typescript-eslint/eslint-plugin"
     - dependency-name: "lerna"
       update-types: ["version-update:semver-major"]
     # moved to ESM only

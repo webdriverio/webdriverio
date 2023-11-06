@@ -576,34 +576,20 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 Wenn Ihre App eine bestimmte Methode zum Abrufen von Elementen erfordert, können Sie sich selbst eine benutzerdefinierte Selektorstrategie definieren, die Sie mit `custom$` und `custom$$`verwenden können. Registrieren Sie dazu Ihre Strategie einmalig zu Beginn des Tests:
 
-```js
-browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    /**
-     * scope should be document if called on browser object
-     * and `root` if called on an element object
-     */
-    const scope = root ? root : document
-    return scope.querySelectorAll(selector)
-})
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
 ```
 
 Bei folgender HTML-Struktur:
 
-```html
-<div class="foobar" id="first">
-    <div class="foobar" id="second">
-        barfoo
-    </div>
-</div>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
 ```
 
 Verwenden Sie Ihren benutzerdefinierten Selektor wie folgt::
 
-```js
-const elem = await browser.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "first"
-const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "second"
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
 ```
 
 **Hinweis:** Dies funktioniert nur in einer Webumgebung, in der der Befehl [`execute`](/docs/api/browser/execute) ausgeführt werden kann.

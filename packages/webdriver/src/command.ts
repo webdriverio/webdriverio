@@ -22,7 +22,7 @@ export default function (
     commandInfo: CommandEndpoint,
     doubleEncodeVariables = false
 ) {
-    const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
+    const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
         const isBidiCommand = this.sessionId && this.eventMiddleware && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function'
@@ -38,6 +38,13 @@ export default function (
         const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
         const body: Record<string, any> = {}
+
+        /**
+         * log deprecation warning if command is deprecated
+         */
+        if (typeof deprecated === 'string') {
+            log.warn(deprecated.replace('This command', `The "${command}" command`))
+        }
 
         /**
          * parameter check

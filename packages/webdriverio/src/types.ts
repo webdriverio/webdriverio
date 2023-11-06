@@ -237,6 +237,9 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
+/**
+ * @deprecated use `WebdriverIO.Browser` instead
+ */
 export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
@@ -280,6 +283,9 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     error?: Error
 }
+/**
+ * @deprecated use `WebdriverIO.Element` instead
+ */
 export interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
@@ -318,8 +324,15 @@ interface MultiRemoteElementBase {
 }
 
 interface MultiRemoteBrowserType extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
+/**
+ * @deprecated use `WebdriverIO.MultiRemoteBrowser` instead
+ */
 export interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
 interface MultiRemoteElementType extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
+
+/**
+ * @deprecated use `WebdriverIO.MultiRemoteElement` instead
+ */
 export interface MultiRemoteElement extends MultiRemoteElementType {}
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement | undefined) | ((elem: HTMLElement) => (HTMLElement | undefined)[])

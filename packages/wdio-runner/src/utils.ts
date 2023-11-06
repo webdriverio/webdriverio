@@ -88,6 +88,9 @@ export async function initialiseInstance (
         log.debug('init remote session')
         const sessionConfig: Options.WebdriverIO = {
             ...config,
+            /**
+             * allow to overwrite connection details by user through capabilities
+             */
             ...sanitizeCaps(capabilities, true),
             capabilities: sanitizeCaps(capabilities)
         }

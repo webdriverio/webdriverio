@@ -3,6 +3,10 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { DATA_BATCH_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from '../src/constants.js'
 import RequestQueueHandler from '../src/request-handler.js'
 import * as utils from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 const requestQueueHandler = RequestQueueHandler.getInstance()
 
