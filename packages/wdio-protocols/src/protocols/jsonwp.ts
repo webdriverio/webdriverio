@@ -5,7 +5,7 @@ const MOVETO_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" comman
 const SETTIMEOUTS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "setTimeouts" command instead!`
 const SESSION_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
 const LOCAL_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
-const LOGS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "devtools" instead to get logs`
+const LOGS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "devtools" instead to get logs!`
 const POSITION_CLICK_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead of "positionClick"!`
 const ELEMENT_SIZE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "getElementRect" command instead of "getElementSize"!`
 
