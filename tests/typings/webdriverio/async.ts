@@ -1,9 +1,11 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, ElementArray } from 'webdriverio'
+import { remote, multiremote, SevereServiceError } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
-import { type MockOverwriteFunction, type ClickOptions, type TouchAction, type Selector, type Action, Key } from 'webdriverio'
+import type { MockOverwriteFunction } from '../../../packages/webdriverio/src/utils/interception/types.ts'
+import type { ClickOptions, TouchAction, Selector, Action, ElementArray } from '../../../packages/webdriverio/build/types'
+import { Key } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -148,7 +150,7 @@ async function bar() {
         }
         return elems
     })
-    expectType<WebdriverIO.ElementArray>(waitUntilElems)
+    expectType<ElementArray>(waitUntilElems)
 
     await browser.getCookies()
     await browser.getCookies('foobar')

@@ -1,14 +1,8 @@
-type BrowserType = import('webdriverio').Browser
-type ElementType = import('webdriverio').Element
-type ElementArrayType = import('webdriverio').ElementArray
-type MultiRemoteBrowserType = import('webdriverio').MultiRemoteBrowser
-type MultiRemoteElementType = import('webdriverio').MultiRemoteElement
 type ExpectType = import('expect-webdriverio').Expect
 
 declare namespace WebdriverIO {
     interface Browser extends BrowserType { }
     interface Element extends ElementType { }
-    interface ElementArray extends ElementArrayType { }
     interface MultiRemoteBrowser extends MultiRemoteBrowserType { }
     interface MultiRemoteElement extends MultiRemoteElementType { }
 }

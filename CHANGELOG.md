@@ -21,6 +21,38 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.21.0 (2023-11-02)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11537](https://github.com/webdriverio/webdriverio/pull/11537) Fix name selector to allow other characters ([@aristotelos](https://github.com/aristotelos))
+  * [#11496](https://github.com/webdriverio/webdriverio/pull/11496) (webdriverio): fix - scrollIntoView calls scroll action with a wrong … ([@qaflorent](https://github.com/qaflorent))
+* `wdio-cli`
+  * [#11541](https://github.com/webdriverio/webdriverio/pull/11541) (@wdio/cli): fix reporter output ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-allure-reporter`
+  * [#11532](https://github.com/webdriverio/webdriverio/pull/11532) add testCaseId for allure testOps ([@AlexKorTutu](https://github.com/AlexKorTutu))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11488](https://github.com/webdriverio/webdriverio/pull/11488) [browserstack-service] Add more CIs ([@samarsault](https://github.com/samarsault))
+* `webdriverio`
+  * [#11529](https://github.com/webdriverio/webdriverio/pull/11529) changed moveTo to like it's been implemented in click ([@udarrr](https://github.com/udarrr))
+* `wdio-types`, `wdio-utils`
+  * [#11509](https://github.com/webdriverio/webdriverio/pull/11509) (@wdio/utils): Add envDetector for browserstack ([@Pi-fe](https://github.com/Pi-fe))
+
+#### :memo: Documentation
+* [#11547](https://github.com/webdriverio/webdriverio/pull/11547) (docs): added tip to use translation files when using a11y selectors ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 7
+- Alexander Korneev ([@AlexKorTutu](https://github.com/AlexKorTutu))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Pietro F. ([@Pi-fe](https://github.com/Pi-fe))
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- [@aristotelos](https://github.com/aristotelos)
+- [@qaflorent](https://github.com/qaflorent)
+
+
 ## v8.20.5 (2023-10-25)
 
 #### :bug: Bug Fix

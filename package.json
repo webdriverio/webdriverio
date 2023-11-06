@@ -68,6 +68,9 @@
     "postinstall:husky": "husky install"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudfront": "^3.441.0",
+    "@aws-sdk/client-s3": "^3.441.0",
+    "@aws-sdk/lib-storage": "^3.441.0",
     "@octokit/rest": "^19.0.13",
     "@preact/preset-vite": "^2.5.0",
     "@serenity-js/core": "^3.10.3",
@@ -91,7 +94,6 @@
     "@vitejs/plugin-react": "^4.0.4",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vitest/coverage-v8": "^0.34.1",
-    "aws-sdk": "^2.1433.0",
     "camelcase": "^8.0.0",
     "cddl": "^0.8.4",
     "cddl2ts": "^0.2.1",
@@ -104,7 +106,7 @@
     "ejs-lint": "^2.0.0",
     "eslint": "^8.46.0",
     "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-unicorn": "^48.0.1",
+    "eslint-plugin-unicorn": "^49.0.0",
     "eslint-plugin-wdio": "^8.8.7",
     "eta": "^3.1.1",
     "glob": "^10.3.3",

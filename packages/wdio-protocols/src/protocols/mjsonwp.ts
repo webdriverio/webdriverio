@@ -1,42 +1,4 @@
 export default {
-    '/session/:sessionId/context': {
-        GET: {
-            command: 'getContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
-            parameters: [],
-            returns: {
-                type: 'Context',
-                name: 'context',
-                description:
-                    "a string representing the current context or null representing 'no context'",
-            },
-        },
-        POST: {
-            command: 'switchContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
-            parameters: [
-                {
-                    name: 'name',
-                    type: 'string',
-                    description: 'a string representing an available context',
-                    required: true,
-                },
-            ],
-        },
-    },
-    '/session/:sessionId/contexts': {
-        GET: {
-            command: 'getContexts',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
-            parameters: [],
-            returns: {
-                type: 'Context[]',
-                name: 'contexts',
-                description:
-                    "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
-            },
-        },
-    },
     '/session/:sessionId/element/:elementId/pageIndex': {
         GET: {
             command: 'getPageIndex',

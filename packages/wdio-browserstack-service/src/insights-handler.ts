@@ -2,7 +2,6 @@ import path from 'node:path'
 
 import type { Frameworks } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
-import logger from '@wdio/logger'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
@@ -33,8 +32,7 @@ import type {
 } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -522,7 +520,7 @@ class _InsightsHandler {
                 })
             }
         } catch (error) {
-            log.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
         }
     }
 

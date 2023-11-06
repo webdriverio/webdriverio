@@ -1,10 +1,7 @@
-import logger from '@wdio/logger'
-
 import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL, DATA_BATCH_ENDPOINT, BATCH_EVENT_TYPES, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import type { UploadType } from './types.js'
 import { batchAndPostEvents } from './util.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
 
 export default class RequestQueueHandler {
     private queue: UploadType[] = []
@@ -53,14 +50,14 @@ export default class RequestQueueHandler {
         }
 
         this.queue.push(event)
-        log.debug(`Added data to request queue. Queue length = ${this.queue.length}`)
+        BStackLogger.debug(`Added data to request queue. Queue length = ${this.queue.length}`)
 
         let data
         const shouldProceed = this.shouldProceed()
         if (shouldProceed) {
             data = this.queue.splice(0, DATA_BATCH_SIZE)
             this.resetEventBatchPolling()
-            log.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
+            BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
         }
 
         return {
@@ -82,7 +79,7 @@ export default class RequestQueueHandler {
         this.pollEventBatchInterval = setInterval(async () => {
             if (this.queue.length > 0) {
                 const data = this.queue.splice(0, DATA_BATCH_SIZE)
-                log.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
+                BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
                 await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'INTERVAL_QUEUE', data)
             }
         }, DATA_BATCH_INTERVAL)
@@ -95,7 +92,7 @@ export default class RequestQueueHandler {
 
     removeEventBatchPolling (tag: string) {
         if (this.pollEventBatchInterval) {
-            log.debug(`${tag} request queue`)
+            BStackLogger.debug(`${tag} request queue`)
             clearInterval(this.pollEventBatchInterval)
             this.started = false
         }
