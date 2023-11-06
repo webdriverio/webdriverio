@@ -14,7 +14,7 @@ import readDir from 'recursive-readdir'
 import { $ } from 'execa'
 // @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
 import { detect } from 'detect-package-manager'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
