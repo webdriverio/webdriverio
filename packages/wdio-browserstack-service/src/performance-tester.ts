@@ -1,10 +1,8 @@
 import { createObjectCsvWriter } from 'csv-writer'
 import fs from 'node:fs'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
-import logger from '@wdio/logger'
 import { sleep } from './util.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
 
 export default class PerformanceTester {
     static _observer: PerformanceObserver
@@ -44,7 +42,7 @@ export default class PerformanceTester {
         const timeTaken = methods.reduce((a, c) => {
             return times[c] + (a || 0)
         }, 0)
-        log.info(`Time for ${methods} is `, timeTaken)
+        BStackLogger.info(`Time for ${methods} is ${timeTaken}`)
         return timeTaken
     }
 
@@ -61,10 +59,10 @@ export default class PerformanceTester {
         const path = process.cwd() + '/' + filename
         fs.writeFile(path, content, err => {
             if (err) {
-                log.error('Error in writing html', err)
+                BStackLogger.error(`Error in writing html ${err}`)
                 return
             }
-            log.info('Performance report is at ', path)
+            BStackLogger.info(`Performance report is at ${path}`)
         })
     }
 
@@ -99,7 +97,7 @@ export default class PerformanceTester {
             }
         })
         this._csvWriter.writeRecords(dat)
-            .then(() => log.info('Performance CSV report generated successfully'))
+            .then(() => BStackLogger.info('Performance CSV report generated successfully'))
             .catch((error: any) => console.error(error))
     }
 }

@@ -1,4 +1,3 @@
-import logger from '@wdio/logger'
 import type { Capabilities, Frameworks } from '@wdio/types'
 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
@@ -13,11 +12,10 @@ import {
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
-    isTrue,
+    isTrue
 } from './util.js'
 import { testForceStop, testStartEvent, testStop } from './scripts/test-event-scripts.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
 
 class _AccessibilityHandler {
     private _platformA11yMeta: { [key: string]: any; }
@@ -119,7 +117,7 @@ class _AccessibilityHandler {
 
         try {
             if (shouldScanTest) {
-                log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
+                BStackLogger.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
                 await this.sendTestStartEvent(this._browser as WebdriverIO.Browser)
             } else {
                 await this.sendTestForceStopEvent(this._browser as WebdriverIO.Browser)
@@ -127,10 +125,10 @@ class _AccessibilityHandler {
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
             if (shouldScanTest) {
-                log.info('Automate test case execution has started.')
+                BStackLogger.info('Automate test case execution has started.')
             }
         } catch (error) {
-            log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
+            BStackLogger.error(`Exception in starting accessibility automation scan for this test case ${error}`)
         }
     }
 
@@ -152,7 +150,7 @@ class _AccessibilityHandler {
             }
 
             if (shouldScanTestForAccessibility) {
-                log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
+                BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
             }
 
             const dataForExtension = {
@@ -169,10 +167,10 @@ class _AccessibilityHandler {
             await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
 
             if (shouldScanTestForAccessibility) {
-                log.info('Accessibility testing for this test case has ended.')
+                BStackLogger.info('Accessibility testing for this test case has ended.')
             }
         } catch (error) {
-            log.error(`Accessibility results could not be processed for the test case ${test.title}. Error :`, error)
+            BStackLogger.error(`Accessibility results could not be processed for the test case ${test.title}. Error : ${error}`)
         }
     }
 
@@ -197,7 +195,7 @@ class _AccessibilityHandler {
 
         try {
             if (shouldScanScenario) {
-                log.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
+                BStackLogger.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
                 await this.sendTestStartEvent(this._browser as WebdriverIO.Browser)
             } else {
                 await this.sendTestForceStopEvent(this._browser as WebdriverIO.Browser)
@@ -205,10 +203,10 @@ class _AccessibilityHandler {
             this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
 
             if (shouldScanScenario) {
-                log.info('Automate test case execution has started.')
+                BStackLogger.info('Automate test case execution has started.')
             }
         } catch (error) {
-            log.error(`Exception in starting accessibility automation scan for this test case ${error}`)
+            BStackLogger.error(`Exception in starting accessibility automation scan for this test case ${error}`)
         }
     }
 
@@ -230,7 +228,7 @@ class _AccessibilityHandler {
             }
 
             if (shouldScanTestForAccessibility) {
-                log.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
+                BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
             }
 
             const dataForExtension = {
@@ -247,10 +245,10 @@ class _AccessibilityHandler {
             await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
 
             if (shouldScanTestForAccessibility) {
-                log.info('Accessibility testing for this test case has ended.')
+                BStackLogger.info('Accessibility testing for this test case has ended.')
             }
         } catch (error) {
-            log.error(`Accessibility results could not be processed for the test case ${pickleData.name}. Error :`, error)
+            BStackLogger.error(`Accessibility results could not be processed for the test case ${pickleData.name}. Error : ${error}`)
         }
     }
 

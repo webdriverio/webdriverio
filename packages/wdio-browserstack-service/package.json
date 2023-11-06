@@ -36,13 +36,14 @@
     "@wdio/types": "8.21.0",
     "browserstack-local": "^1.5.1",
     "csv-writer": "^1.6.0",
-    "form-data": "^4.0.0",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "got": "^ 12.6.1",
     "uuid": "^9.0.0",
     "webdriverio": "8.21.0",
-    "winston-transport": "^4.5.0"
+    "winston-transport": "^4.5.0",
+    "formdata-node": "5.0.1",
+    "chalk": "^5.3.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
