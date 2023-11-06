@@ -454,7 +454,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
             file.endsWith('page.js.ejs')
                 ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? answers.stepDefinitions!
+                    ? path.join(answers.destStepRootPath, path.basename(file))
                     : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
@@ -573,17 +573,26 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return inquirer.prompt(questions)
 }
 
+/**
+ * Generates a valid file path from answers provided.
+ * @param answers The answer from which a file path is to be generated.
+ * @param projectRootDir The root directory of the project.
+ * @returns filePath
+ */
+function generatePathfromAnswer(answers:string, projectRootDir:string):string {
+    return path.resolve(
+        projectRootDir, path.dirname(answers) === '.' ? path.resolve(answers) : path.dirname(answers))
+}
+
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
-    const destSpecRootPath = path.resolve(
-        projectRootDir,
-        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+    const specAnswer = answers.specs || ''
+    const stepDefinitionAnswer = answers.stepDefinitions || ''
+    const pageObjectAnswer = answers.pages || ''
 
-    const destStepRootPath = path.resolve(projectRootDir, path.dirname(answers.stepDefinitions || ''))
-
+    const destSpecRootPath = generatePathfromAnswer(specAnswer, projectRootDir).replace(/\*\*$/, '')
+    const destStepRootPath = generatePathfromAnswer(stepDefinitionAnswer, projectRootDir)
     const destPageObjectRootPath = answers.usePageObjects
-        ? path.resolve(
-            projectRootDir,
-            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        ? generatePathfromAnswer(pageObjectAnswer, projectRootDir).replace(/\*\*$/, '')
         : ''
     const destSerenityLibRootPath = usesSerenity(answers)
         ? path.resolve(projectRootDir, answers.serenityLibPath || 'serenity')
