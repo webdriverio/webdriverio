@@ -333,7 +333,7 @@ describe('Lit Component testing', () => {
                 render(
                     html`
                         <label for="search">Search</label>
-                        <textarea>Hello World!</textarea>
+                        <textarea id="search">Hello World!</textarea>
                     `,
                     document.body
                 )
