@@ -572,7 +572,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Estrategias de selección personalizadas
 
-Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. Para eso registre su estrategia una vez al comienzo de la prueba:
+Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
 https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
