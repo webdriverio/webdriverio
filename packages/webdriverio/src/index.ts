@@ -15,9 +15,7 @@ import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.j
 import type { AttachOptions, RemoteOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
-export * from './types.js'
-export * from './utils/interception/types.js'
-
+export { Selector, CustomInstanceCommands } from './types.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 
