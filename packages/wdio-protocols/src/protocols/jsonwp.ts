@@ -5,6 +5,10 @@ const MOVETO_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" comman
 const SETTIMEOUTS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "setTimeouts" command instead!`
 const SESSION_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
 const LOCAL_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
+const LOGS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "devtools" instead to get logs`
+const POSITION_CLICK_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead of "positionClick"!`
+const ELEMENT_SIZE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "getElementRect" command instead of "getElementSize"!`
+
 
 /**
  * All commands are depreacted and likely not supported by any browser.
@@ -695,6 +699,7 @@ export default {
             description:
                 "Determine an element's size in pixels. The size will be returned as a JSON object with `width` and `height` properties.",
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidsize',
+            deprecated: ELEMENT_SIZE_DEPRECATION_NOTICE,
             variables: [
                 {
                     name: 'elementId',
@@ -772,6 +777,7 @@ export default {
             command: 'elementSubmit',
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidsubmit',
+            deprecated: DEPRECATION_NOTICE,
             variables: [
                 {
                     name: 'elementId',
@@ -1049,6 +1055,7 @@ export default {
             command: 'deactivateIME',
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimedeactivate',
+            deprecated: DEPRECATION_NOTICE,
             parameters: [],
         },
     },
@@ -1171,6 +1178,7 @@ export default {
             description:
                 'Clicks at the current mouse coordinates (set by moveto).',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidclick',
+            deprecated: POSITION_CLICK_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'button',
@@ -1449,6 +1457,7 @@ export default {
             command: 'clearLocalStorage',
             description: 'Clear the storage.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storage',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             parameters: [],
         },
     },
@@ -1593,6 +1602,7 @@ export default {
             description:
                 'Get the log for a given log type. Log buffer is reset after each request.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlog',
+            deprecated: LOGS_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'type',
@@ -1613,6 +1623,7 @@ export default {
             command: 'getLogTypes',
             description: 'Get available log types.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlogtypes',
+            deprecated: LOGS_DEPRECATION_NOTICE,
             parameters: [],
             returns: {
                 type: 'String[]',
