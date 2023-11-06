@@ -5,6 +5,8 @@ function sleep (ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+delete process.env.WDIO_WORKER_ID
+
 describe('scripts run in standalone mode', () => {
     describe('remote', () => {
         let remoteBrowser
@@ -37,6 +39,22 @@ describe('scripts run in standalone mode', () => {
             assert.equal(beforeCmdCounter, 1)
             assert.equal(afterCmdCounter, 1)
             assert.ok((Date.now() - start) > 200)
+        })
+
+        it('should not have testrunner options since we initiating it as standalone instance', async () => {
+            const browser = await remote({
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                custom: 'foobar',
+                capabilities: {
+                    browserName: 'chrome'
+                },
+            })
+            expect(browser.options).toHaveProperty('hostname')
+            expect(browser.options).not.toHaveProperty('framework')
+            expect(browser.options).not.toHaveProperty('custom')
+            expect(browser.options).not.toHaveProperty('services')
         })
     })
 

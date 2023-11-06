@@ -39,8 +39,8 @@ export const remote = async function(
     remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
-
-    const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
+    const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof RemoteOptions)[]
+    const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, keysToKeep)
     const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
         /**
          * overwrite instance options with default values of the protocol
