@@ -572,36 +572,23 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Користувацькі селектори
 
-Якщо для вашого застосунку потрібен особливий спосіб пошуку елементів, ви можете визначити власний тип селектора, який можна використовувати за допомогою `custom$` і `custom$$`. Для цього зареєструйте свій тип селектора один раз на початку тесту:
 
-```js
-browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    /**
-     * scope should be document if called on browser object
-     * and `root` if called on an element object
-     */
-    const scope = root ? root : document
-    return scope.querySelectorAll(selector)
-})
+Якщо для вашого застосунку потрібен особливий спосіб пошуку елементів, ви можете визначити власний тип селектора, який можна використовувати за допомогою `custom$` і `custom$$`. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
+
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
 ```
 
 Маючи наступну структуру HTML:
 
-```html
-<div class="foobar" id="first">
-    <div class="foobar" id="second">
-        barfoo
-    </div>
-</div>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
 ```
 
 Потім використовуйте його, викликавши:
 
-```js
-const elem = await browser.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "first"
-const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "second"
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
 ```
 
 **Примітка:** це працюватиме лише у вебсередовищі, де можна запустити команду [`execute`](/docs/api/browser/execute).
