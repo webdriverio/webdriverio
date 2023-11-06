@@ -4,7 +4,8 @@ import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
- * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+ * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * Read more on custom selector stratgies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>
     :example.js
