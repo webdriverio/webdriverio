@@ -1,3 +1,17 @@
+const DEPRECATION_NOTICE = 'This command is deprecated and likely not supported by any browser.'
+const TOUCH_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead to execute a touch gesture!`
+const GESTURE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead to execute a click gesture!`
+const MOVETO_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead to execute a "move to" gesture!`
+const SETTIMEOUTS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "setTimeouts" command instead!`
+const SESSION_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
+const LOCAL_STORAGE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "execute" command instead to interact with the session storage interface!`
+
+/**
+ * All commands are depreacted and likely not supported by any browser.
+ * A deprecation notice is attached to all commands that only exist in the JSONWireProtocol.
+ *
+ * @deprecated
+ */
 export default {
     '/status': {
         GET: {
@@ -45,6 +59,7 @@ export default {
     '/sessions': {
         GET: {
             command: 'getSessions',
+            deprecated: DEPRECATION_NOTICE,
             description:
                 'Returns a list of the currently active sessions. Each session will be returned as a list of JSON objects containing `id` and `capabilities`.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessions',
@@ -59,6 +74,7 @@ export default {
     '/session/:sessionId': {
         GET: {
             command: 'getSession',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Retrieve the capabilities of the specified session.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionid',
             parameters: [],
@@ -108,6 +124,7 @@ export default {
     '/session/:sessionId/timeouts/async_script': {
         POST: {
             command: 'setAsyncTimeout',
+            deprecated: SETTIMEOUTS_DEPRECATION_NOTICE,
             description:
                 'Set the amount of time, in milliseconds, that asynchronous scripts executed by `/session/:sessionId/execute_async` are permitted to run before they are aborted and a `Timeout` error is returned to the client.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeoutsasync_script',
@@ -125,6 +142,7 @@ export default {
     '/session/:sessionId/timeouts/implicit_wait': {
         POST: {
             command: 'setImplicitTimeout',
+            deprecated: SETTIMEOUTS_DEPRECATION_NOTICE,
             description:
                 'Set the amount of time the driver should wait when searching for elements. When searching for a single element, the driver should poll the page until an element is found or the timeout expires, whichever occurs first. When searching for multiple elements, the driver should poll the page until at least one element is found or the timeout expires, at which point it should return an empty list. If this command is never sent, the driver should default to an implicit wait of 0ms.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeoutsimplicit_wait',
@@ -281,6 +299,7 @@ export default {
     '/session/:sessionId/window/current/position': {
         GET: {
             command: 'getWindowPosition',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Get the position of the current focussed window.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandleposition',
             parameters: [],
@@ -293,6 +312,7 @@ export default {
         },
         POST: {
             command: 'setWindowPosition',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Change the position of the current focussed window.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandleposition',
             parameters: [
@@ -322,6 +342,7 @@ export default {
     '/session/:sessionId/window/current/size': {
         GET: {
             command: '_getWindowSize',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Get the size of the current focused window.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandlesize',
             parameters: [],
@@ -333,6 +354,7 @@ export default {
         },
         POST: {
             command: '_setWindowSize',
+            deprecated: DEPRECATION_NOTICE,
             description: 'Change the size of the current focused window.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandlesize',
             parameters: [
@@ -626,6 +648,7 @@ export default {
     '/session/:sessionId/element/:elementId/location': {
         GET: {
             command: 'getElementLocation',
+            deprecated: DEPRECATION_NOTICE,
             description:
                 "Determine an element's location on the page. The point `(0, 0)` refers to the upper-left corner of the page. The element's coordinates are returned as a JSON object with `x` and `y` properties.",
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation',
@@ -647,6 +670,7 @@ export default {
     '/session/:sessionId/element/:elementId/location_in_view': {
         GET: {
             command: 'getElementLocationInView',
+            deprecated: DEPRECATION_NOTICE,
             description:
                 "Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation_in_view',
@@ -724,6 +748,7 @@ export default {
             command: 'elementEquals',
             description: 'Compare elements with each other.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidequalsother',
+            deprecated: DEPRECATION_NOTICE,
             variables: [
                 {
                     name: 'elementId',
@@ -795,6 +820,7 @@ export default {
     '/session/:sessionId/keys': {
         POST: {
             command: 'sendKeys',
+            deprecated: DEPRECATION_NOTICE,
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidkeys',
             parameters: [
@@ -979,6 +1005,7 @@ export default {
         GET: {
             command: 'getAvailableEngines',
             description: '',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeavailable_engines',
             parameters: [],
             returns: {
@@ -992,6 +1019,7 @@ export default {
         GET: {
             command: 'getActiveEngine',
             description: '',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactive_engine',
             parameters: [],
             returns: {
@@ -1004,6 +1032,7 @@ export default {
     '/session/:sessionId/ime/activated': {
         GET: {
             command: 'isIMEActivated',
+            deprecated: DEPRECATION_NOTICE,
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivated',
             parameters: [],
@@ -1027,6 +1056,7 @@ export default {
         POST: {
             command: 'activateIME',
             description: '',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivate',
             parameters: [
                 {
@@ -1044,6 +1074,7 @@ export default {
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidorientation',
             parameters: [],
+            deprecated: DEPRECATION_NOTICE,
             returns: {
                 type: 'String',
                 name: 'orientation',
@@ -1054,6 +1085,7 @@ export default {
         POST: {
             command: 'setOrientation',
             description: '',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidorientation',
             parameters: [
                 {
@@ -1071,6 +1103,7 @@ export default {
             command: 'moveToElement',
             description: '',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto',
+            deprecated: MOVETO_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'element',
@@ -1102,6 +1135,7 @@ export default {
             description:
                 'Click and hold the left mouse button (at the coordinates set by the last moveto command). Note that the next mouse-related command that should follow is buttonup . Any other mouse command (such as click or another call to buttondown) will yield undefined behaviour.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidbuttondown',
+            deprecated: GESTURE_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'button',
@@ -1119,6 +1153,7 @@ export default {
             description:
                 'Releases the mouse button previously held (where the mouse is currently at). Must be called once for every buttondown command issued. See the note in click and buttondown about implications of out-of-order commands.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidbuttonup',
+            deprecated: GESTURE_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'button',
@@ -1150,6 +1185,7 @@ export default {
     '/session/:sessionId/doubleclick': {
         POST: {
             command: 'positionDoubleClick',
+            deprecated: GESTURE_DEPRECATION_NOTICE,
             description:
                 'Double-clicks at the current mouse coordinates (set by moveto).',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddoubleclick',
@@ -1161,6 +1197,7 @@ export default {
             command: 'touchClick',
             description: 'Single tap on the touch enabled device.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchclick',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'element',
@@ -1176,6 +1213,7 @@ export default {
             command: 'touchDown',
             description: 'Finger down on the screen.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchdown',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'x',
@@ -1197,6 +1235,7 @@ export default {
             command: 'touchUp',
             description: 'Finger up on the screen.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'x',
@@ -1218,6 +1257,7 @@ export default {
             command: 'touchMove',
             description: 'Finger move on the screen.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchmove',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'x',
@@ -1239,6 +1279,7 @@ export default {
             command: 'touchScroll',
             description: 'Finger move on the screen.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchscroll',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'xoffset',
@@ -1267,6 +1308,7 @@ export default {
             description:
                 'Double tap on the touch screen using finger motion events.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchdoubleclick',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'element',
@@ -1283,6 +1325,7 @@ export default {
             description:
                 'Long press on the touch screen using finger motion events.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchlongclick',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'element',
@@ -1299,6 +1342,7 @@ export default {
             description:
                 'Flick on the touch screen using finger motion events. This flickcommand starts at a particulat screen location.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchflick',
+            deprecated: TOUCH_DEPRECATION_NOTICE,
             parameters: [
                 {
                     name: 'xoffset',
@@ -1343,6 +1387,7 @@ export default {
         GET: {
             command: 'getGeoLocation',
             description: 'Get the current geo location.',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocation',
             parameters: [],
             returns: {
@@ -1354,6 +1399,7 @@ export default {
         POST: {
             command: 'setGeoLocation',
             description: 'Set the current geo location.',
+            deprecated: DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidlocation',
             parameters: [
                 {
@@ -1370,6 +1416,7 @@ export default {
         GET: {
             command: 'getLocalStorage',
             description: 'Get all keys of the storage.',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storage',
             parameters: [],
             returns: {
@@ -1381,6 +1428,7 @@ export default {
         POST: {
             command: 'setLocalStorage',
             description: 'Set the storage item for the given key.',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidlocal_storage',
             parameters: [
                 {
@@ -1408,6 +1456,7 @@ export default {
         GET: {
             command: 'getLocalStorageItem',
             description: 'Get the storage item for the given key.',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storagekeykey',
             variables: [
                 {
@@ -1425,6 +1474,7 @@ export default {
         DELETE: {
             command: 'deleteLocalStorageItem',
             description: '',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidlocal_storagekeykey',
             variables: [
                 {
@@ -1439,6 +1489,7 @@ export default {
         GET: {
             command: 'getLocalStorageSize',
             description: 'Get the number of items in the storage.',
+            deprecated: LOCAL_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlocal_storagesize',
             parameters: [],
             returns: {
@@ -1452,6 +1503,7 @@ export default {
         GET: {
             command: 'getSessionStorage',
             description: 'Get all keys of the storage.',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidsession_storage',
             parameters: [],
             returns: {
@@ -1463,6 +1515,7 @@ export default {
         POST: {
             command: 'setSessionStorage',
             description: 'Set the storage item for the given key.',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidsession_storage',
             parameters: [
                 {
@@ -1482,6 +1535,7 @@ export default {
         DELETE: {
             command: 'clearSessionStorage',
             description: 'Clear the storage.',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidsession_storage',
             parameters: [],
         },
@@ -1490,6 +1544,7 @@ export default {
         GET: {
             command: 'getSessionStorageItem',
             description: 'Get the storage item for the given key.',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidsession_storagekeykey',
             variables: [
                 {
@@ -1507,6 +1562,7 @@ export default {
         DELETE: {
             command: 'deleteSessionStorageItem',
             description: 'Remove the storage item for the given key.',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidsession_storagekeykey',
             variables: [
                 {
@@ -1522,6 +1578,7 @@ export default {
             command: 'getSessionStorageSize',
             description: 'Get the number of items in the storage.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsession_storagesize',
+            deprecated: SESSION_STORAGE_DEPRECATION_NOTICE,
             parameters: [],
             returns: {
                 type: 'Number',
@@ -1570,6 +1627,7 @@ export default {
             description: 'Get the status of the html5 application cache.',
             ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidapplication_cachestatus',
             parameters: [],
+            deprecated: DEPRECATION_NOTICE,
             returns: {
                 type: 'Number',
                 name: 'statusCode',

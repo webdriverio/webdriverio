@@ -85,6 +85,10 @@ const scope: BaseClient = new FakeClient()
 type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
+    beforeEach(() => {
+        vi.mocked(log.warn).mockClear()
+    })
+
     it('should fail if wrong arguments are passed in', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
         await expect(commandFn)
@@ -174,6 +178,17 @@ describe('command wrapper', () => {
             false
         )
         vi.mocked(RequestMock).mockClear()
+        expect(log.warn).toHaveBeenCalledTimes(0)
+    })
+
+    it('should log deprecation notice', async () => {
+        const deprecatedCommandEndpoint = {
+            deprecated: 'This command will soon be deprecated.',
+            ...commandEndpoint
+        }
+        const commandFn = commandWrapper(commandMethod, commandPath, deprecatedCommandEndpoint)
+        await commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
+        expect(log.warn).toBeCalledWith('The "findElementFromElement" command will soon be deprecated.')
     })
 })
 
