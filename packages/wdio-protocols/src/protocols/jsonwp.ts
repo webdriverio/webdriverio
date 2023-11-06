@@ -9,7 +9,6 @@ const LOGS_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "devtools" instea
 const POSITION_CLICK_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "action" command instead of "positionClick"!`
 const ELEMENT_SIZE_DEPRECATION_NOTICE = `${DEPRECATION_NOTICE} Use the "getElementRect" command instead of "getElementSize"!`
 
-
 /**
  * All commands are depreacted and likely not supported by any browser.
  * A deprecation notice is attached to all commands that only exist in the JSONWireProtocol.
