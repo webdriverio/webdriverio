@@ -289,8 +289,12 @@ export async function executeAsync(this: any, fn: Function, retries: Frameworks.
     this.wdioRetries = retries.attempts
 
     try {
+        /**
+         * Decrease the overall timeout by 3 milliseconds to ensure that when a test fails due to a timeout exception in Jasmine,
+         * the test objects are returned instead of being overridden by the values of the next test.
+         */
         // @ts-expect-error
-        const _timeout = this?._runnable?._timeout || globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL || timeout
+        const _timeout = (this?._runnable?._timeout || globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL || timeout) - 3
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
