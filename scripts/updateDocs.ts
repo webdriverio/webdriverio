@@ -35,14 +35,13 @@ const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${
  * upload assets
  */
 console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
-await Promise.all(files.map((file) => async () => {
+await Promise.all(files.map(async (file) => {
     try {
         const mimeType = mime.lookup(file)
         if (!mimeType) {
             throw new Error(`Couldn't find mime type for ${file}`)
         }
 
-        console.log(`Uploading ${file}...`)
         const res = await new Upload({
             client: s3,
             params: {
@@ -84,21 +83,21 @@ if (distributionId) {
 /**
  * delete old assets
  */
-// const objects = await s3.listObjects({
-//     Bucket: bucketName
-// })
-// if (!objects.Contents) {
-//     throw new Error('Couldn\'t find any objects')
-// }
-// const objectsToDelete = objects.Contents.filter((obj) => obj.LastModified && obj.LastModified.getTime() < timestamp)
-// console.log(`Found ${objectsToDelete.length} outdated objects to remove...`)
+const objects = await s3.listObjects({
+    Bucket: bucketName
+})
+if (!objects.Contents) {
+    throw new Error('Couldn\'t find any objects')
+}
+const objectsToDelete = objects.Contents.filter((obj) => obj.LastModified && obj.LastModified.getTime() < timestamp)
+console.log(`Found ${objectsToDelete.length} outdated objects to remove...`)
 
-// await Promise.all(objectsToDelete.map((obj) => (
-//     s3.deleteObject({
-//         Bucket: bucketName,
-//         Key: obj.Key
-//     })
-// )))
-// console.log('Deleted obsolete items successfully')
+await Promise.all(objectsToDelete.map((obj) => (
+    s3.deleteObject({
+        Bucket: bucketName,
+        Key: obj.Key
+    })
+)))
+console.log('Deleted obsolete items successfully')
 console.log('Successfully updated webdriver.io docs')
 /* eslint-enable no-console */
