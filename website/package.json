@@ -2,7 +2,6 @@
   "name": "website",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
@@ -50,5 +49,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@docusaurus/theme-common": "^3.0.0"
   }
 }

@@ -1,11 +1,13 @@
 import path from 'node:path'
 
-import config from '../../website/docusaurus.config.js'
-
 interface TagType {
     string: string
     type: string
 }
+
+const organizationName = 'webdriverio' // Usually your GitHub org/user name.
+const projectName = 'webdriverio' // Usually your repo name.
+const repoUrl = `https://github.com/${organizationName}/${projectName}`
 
 export default function (docfile: any) {
     const javadoc = docfile.javadoc[0]
@@ -16,12 +18,12 @@ export default function (docfile: any) {
 
     let description = ''
     const paramStr: string[] = []
-    const propertyTags = []
-    const paramTags = []
-    const returnTags = []
-    const throwsTags = []
-    const fires = []
-    const listens = []
+    const propertyTags: string[] = []
+    const paramTags: string[] = []
+    const returnTags: string[] = []
+    const throwsTags: string[] = []
+    const fires: string[] = []
+    const listens: string[] = []
     let tagDeprecated = false
     let tagSee = ''
     let tagVersion = ''
@@ -205,7 +207,7 @@ export default function (docfile: any) {
         ignore: javadoc.ignore,
         examples: files,
         exampleReferences,
-        customEditUrl: `${(config as any).customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
+        customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

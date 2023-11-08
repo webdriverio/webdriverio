@@ -1085,7 +1085,7 @@ export default {
                 type: 'String',
                 name: 'orientation',
                 description:
-                    'The current browser orientation corresponding to a value defined in ScreenOrientation: {LANDSCAPE|PORTRAIT}.',
+                    'The current browser orientation corresponding to a value defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`.',
             },
         },
         POST: {

@@ -4,6 +4,7 @@ import path from 'node:path'
 // @ts-expect-error
 import dox from 'dox'
 import { Eta } from 'eta'
+import type { NavbarItem } from '../../website/node_modules/@docusaurus/theme-common/lib/index.js'
 
 import formatter from '../utils/formatter.js'
 import compiler from '../utils/compiler.js'
@@ -28,7 +29,7 @@ export async function generateWdioDocs (sidebars: any) {
         mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))]
     }
 
-    const apiDocs = []
+    const apiDocs: NavbarItem[] = []
     for (const [scope, [id, files]] of Object.entries(COMMANDS)) {
         /**
          * add scope to sidebar
@@ -53,7 +54,7 @@ export async function generateWdioDocs (sidebars: any) {
             const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
 
             const raw = fs.readFileSync(filepath, 'utf-8')
-            const data = compiler(filepath, raw)
+            const data = compiler(raw)
             const doc = dox.parseComments(data, { raw: true })
             const docfile = {
                 filename: filepath,
@@ -64,8 +65,7 @@ export async function generateWdioDocs (sidebars: any) {
             fs.writeFileSync(output, processedDoc.replace(/\n{3,}/g, '\n\n'))
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
-            apiDocs[apiDocs.length - 1].items
-                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}` as never)
+            apiDocs[apiDocs.length - 1].items?.push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}` as any)
         }
     }
 
