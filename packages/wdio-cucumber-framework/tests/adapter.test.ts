@@ -7,7 +7,7 @@ import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
 
 import * as packageExports from '../src/index.js'
-
+import { setUserHookNames } from '../src/utils.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 
 vi.mock('@wdio/utils')
@@ -56,6 +56,15 @@ vi.mock('moduleB', () => ({
         global.MODULE_B_WAS_LOADED_WITH = opts
     }
 }))
+
+vi.mock('../src/utils.js', async () => {
+    const actual: any = await vi.importActual('../src/utils.js')
+    return {
+        ...actual,
+        setUserHookNames: vi.fn(),
+    }
+
+})
 
 declare global {
     /* eslint-disable no-var */
@@ -138,6 +147,7 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooksAndWrapSteps).toBeCalledTimes(1)
         expect(adapter.loadFiles).toBeCalledTimes(1)
+        expect(setUserHookNames).toBeCalledTimes(1)
     })
 
     it('registerRequiredModules', async () => {
@@ -226,8 +236,7 @@ describe('CucumberAdapter', () => {
                     BeforeStep: Cucumber.BeforeStep,
                     AfterStep: Cucumber.AfterStep,
                     After: Cucumber.After,
-                    AfterAll: Cucumber.AfterAll,
-                    setDefinitionFunctionWrapper: Cucumber.setDefinitionFunctionWrapper
+                    AfterAll: Cucumber.AfterAll
                 },
             }
         )
@@ -237,7 +246,6 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(Cucumber.After).toBeCalledTimes(1)
         expect(Cucumber.AfterAll).toBeCalledTimes(1)
-        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
