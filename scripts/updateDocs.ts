@@ -14,6 +14,7 @@ import pkg from '../lerna.json' assert { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
+const region = 'eu-west-1'
 const PKG_VERSION = pkg.version
 const PRODUCTION_VERSION = 'v8'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
@@ -24,9 +25,7 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
 
 /* eslint-disable no-console */
 const timestamp = Date.now()
-const s3 = new S3({
-    region: 'eu-west-1',
-})
+const s3 = new S3({ region })
 const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
 const version = `v${PKG_VERSION.split('.')[0]}`
@@ -70,7 +69,7 @@ const distributionId = version === PRODUCTION_VERSION
     : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
 if (distributionId) {
     console.log(`Invalidate objects from distribution ${distributionId}`)
-    const cloudfront = new CloudFront()
+    const cloudfront = new CloudFront({ region })
     const { Invalidation } = await cloudfront.createInvalidation({
         DistributionId: distributionId,
         InvalidationBatch: {
