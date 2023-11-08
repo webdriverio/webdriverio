@@ -77,19 +77,11 @@ export async function getCSSProperty (
     cssProperty: string,
     pseudoElement?: PseudoElement,
 ) {
-    if (cssShorthandProps.isShorthand(cssProperty)) {
-        const cssValue = await getShorthandPropertyCSSValue.call(
-            this,
-            {
-                cssProperty,
-                pseudoElement,
-            }
-        )
+    const getCSSProperty = cssShorthandProps.isShorthand(cssProperty)
+        ? getShorthandPropertyCSSValue
+        : getPropertyCSSValue
 
-        return parseCSS(cssValue, cssProperty)
-    }
-
-    const cssValue = await getPropertyCSSValue.call(
+    const cssValue = await getCSSProperty.call(
         this,
         {
             cssProperty,
