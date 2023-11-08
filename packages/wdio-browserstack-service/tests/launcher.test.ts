@@ -383,6 +383,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher({}, caps, config)
         const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         await service.onPrepare(config, capabilities)
         expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#1' } })
@@ -400,6 +401,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } }, { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } }]
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         await service.onPrepare(config, capabilities)
         expect(capabilities).toEqual([
@@ -425,6 +427,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher({ buildIdentifier: '#${BUILD_NUMBER}' }, caps, config)
         const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: 'test ${BUILD_NUMBER}' } } } }
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         await service.onPrepare(config, capabilities)
         expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#1' } })
@@ -438,6 +441,7 @@ describe('onPrepare', () => {
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         await service.onPrepare(config, capabilities)
         expect(capabilities).toEqual([
@@ -455,6 +459,7 @@ describe('onPrepare', () => {
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         await service.onPrepare(config, capabilities)
         expect(capabilities).toEqual([
@@ -1034,6 +1039,7 @@ describe('_handleBuildIdentifier', () => {
         const service = new BrowserstackLauncher(options, caps, config)
 
         jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce('1')
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
         service._handleBuildIdentifier(caps)
         expect(caps[0]['bstack:options']?.buildIdentifier).toEqual('#1')
@@ -1066,6 +1072,7 @@ describe('_handleBuildIdentifier', () => {
 
         jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce('1')
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         service._handleBuildIdentifier(caps)
 
         expect(caps[0]['bstack:options']?.buildIdentifier).not.toEqual('${DATE_TIME}')
@@ -1146,6 +1153,7 @@ describe('_handleBuildIdentifier', () => {
         }]
         const service = new BrowserstackLauncher(options, caps, config)
         jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce(null)
+        jest.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         service._handleBuildIdentifier(caps)
         expect(caps[0]['bstack:options']?.buildIdentifier).toEqual('#${BUILD_NUMBER}')
