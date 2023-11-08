@@ -3,7 +3,7 @@ id: emulation
 title: Emulation
 ---
 
-With WebdriverIO you can emulate Web APIs using the [`emulate`](emulate) command to return
+With WebdriverIO you can emulate Web APIs using the [`emulate`](/docs/api/browser/emulate) command to return custom values that help you emulate certain browser behaviors. Note that this requires your application to explicitly use these APIs.
 
 :::info
 

@@ -11,6 +11,8 @@ interface EmulationOptions {
  * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
  * behave exactly as you specify it.
  *
+ * Read more on this in the [Emulation](emulation) guidelines.
+ *
  * :::info
  *
  * This feature requires WebDriver Bidi support for the browser. While recent versions of Chrome, Edge
@@ -50,8 +52,8 @@ interface EmulationOptions {
     })
  * </example>
  *
- * @param scope feature of the browser you like to emulate
- * @param options emulation option for specific scope
+ * @param {string} scope feature of the browser you like to emulate, can be either `geolocation`, `userAgent`, `colorScheme` or `onLine`
+ * @param {EmulationOptions} options emulation option for specific scope
  * @returns `void`
  */
 export async function emulate<Scope extends SupportedScopes> (
