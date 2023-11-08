@@ -146,8 +146,8 @@ await browser.throttleCPU(4)
 ```
 
 ### Test execution speed
-If your tests do not seem to be affected it is possible that WebdriverIO is faster than the update from the frontend framework / browser.
-This happens when using synchronous assertions, some examples of code that can break because of this:
+
+If your tests do not seem to be affected it is possible that WebdriverIO is faster than the update from the frontend framework / browser. This happens when using synchronous assertions since WebdriverIO has no chance to retry these assertions anymore. Some examples of code that can break because of this:
 ```js
 expect(elementList.length).toEqual(7) // list might not be populated at the time of the assertion
 expect(await elem.getText()).toEqual('this button was clicked 3 times') // text might not be updated yet at the time of assertion resulting in an error ("this button was clicked 2 times" does not match the expected "this button was clicked 3 times")
