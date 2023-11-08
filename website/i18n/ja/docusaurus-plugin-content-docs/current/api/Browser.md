@@ -15,8 +15,8 @@ Browser Objectは、ブラウザまたはモバイル デバイスを制御す�
 
 | Name                    | Type       | Details                                                                                                      |
 | ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| `capabilities`          | `Object`   | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>  |
-| `requestedCapabilities` | `Object`   | リモートサーバーから割り当てられた機能。<br /><b>例:</b><pre>{ browserName: 'chrome' }</pre>                           |
+| `capabilities`          | `Object`   | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>  |
+| `requestedCapabilities` | `Object`   | リモートサーバーから割り当てられた機能。<br /><b>例:</b><pre>\{ browserName: 'chrome' \}</pre>                           |
 | `sessionId`             | `String`   | リモートサーバーから割り当てられたセッションID。                                                                                    |
 | `options`               | `Object`   | WebdriverIO [option](/docs/configuration) は、ブラウザ オブジェクトの作成方法に応じて異なります。 もっと見る [セットアップ タイプ](/docs/setuptypes)。 |
 | `commandList`           | `String[]` | ブラウザインスタンスに登録されているコマンドのリスト                                                                                   |
@@ -50,7 +50,7 @@ Browser Objectは、ブラウザまたはモバイル デバイスを制御す�
 // wdio.conf.js
 export const config = {
     // ...
-    capabilities: {
+    capabilities: \\{
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
