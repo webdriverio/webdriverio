@@ -7,6 +7,53 @@ interface EmulationOptions {
     onLine: boolean
 }
 
+/**
+ * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
+ * behave exactly as you specify it.
+ *
+ * :::info
+ *
+ * This feature requires WebDriver Bidi support for the browser. While recent versions of Chrome, Edge
+ * and Firefox have such support, Safari __does not__. For updates follow [wpt.fyi](https://wpt.fyi/results/webdriver/tests/bidi/script/add_preload_script/add_preload_script.py?label=experimental&label=master&aligned).
+ * Furthermore if you use a cloud vendor for spawning browsers, make sure your vendor also supports WebDriver Bidi.
+ *
+ * :::
+ *
+ * <example>
+    :emulateColorScheme.js
+    it('should open WebdriverIO using light color scheme', async () => {
+        await browser.emulate('colorScheme', 'light')
+        await browser.url('https://webdriver.io')
+        const backgroundColor = await browser.$('nav').getCSSProperty('background-color')
+        console.log(backgroundColor.parsed.hex) // outputs: "#efefef"
+    })
+    it('should open WebdriverIO using dark color scheme'm async () => {
+        await browser.emulate('colorScheme', 'dark')
+        await browser.url('https://webdriver.io')
+        const backgroundColor = await browser.$('nav').getCSSProperty('background-color')
+        console.log(backgroundColor.parsed.hex) // outputs: "#000000"
+    })
+ * </example>
+ *
+ * <example>
+    :emulateGeoLocation.js
+    it('should find my emulated geo location', async () => {
+        await browser.emulate('geolocation', {
+            latitude: 52.52,
+            longitude: 13.39,
+            accuracy: 100
+        })
+        await browser.url('https://www.google.com/maps')
+        await browser.$('aria/Show Your Location').click()
+        await browser.pause(5000)
+        console.log(await browser.getUrl()) // outputs: "https://www.google.com/maps/@52.52,13.39,16z?entry=ttu"
+    })
+ * </example>
+ *
+ * @param scope feature of the browser you like to emulate
+ * @param options emulation option for specific scope
+ * @returns `void`
+ */
 export async function emulate<Scope extends SupportedScopes> (
     this: WebdriverIO.Browser,
     scope: Scope,
