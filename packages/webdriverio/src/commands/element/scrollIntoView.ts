@@ -104,7 +104,7 @@ export async function scrollIntoView (
         deltaY = Math.round(deltaY - scrollY)
 
         await browser.action('wheel')
-            .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
+            .scroll({ duration: 0, deltaX, deltaY, origin: this })
             .perform()
     } catch (err: any) {
         log.warn(
