@@ -1,10 +1,13 @@
 import path from 'node:path'
-import { createRequire } from 'node:module'
 
-const require = createRequire(import.meta.url)
-const { customFields } = require('../../website/docusaurus.config.js')
+import config from '../../website/docusaurus.config.js'
 
-export default function (docfile) {
+interface TagType {
+    string: string
+    type: string
+}
+
+export default function (docfile: any) {
     const javadoc = docfile.javadoc[0]
 
     let type = (javadoc.ctx && javadoc.ctx.type)
@@ -12,7 +15,7 @@ export default function (docfile) {
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
-    const paramStr = []
+    const paramStr: string[] = []
     const propertyTags = []
     const paramTags = []
     const returnTags = []
@@ -95,9 +98,9 @@ export default function (docfile) {
         .replace(/^h5/, '#####')
         .replace(/^h6/, '######')
 
-    const files = []
-    let exampleCodeLine = []
-    let example = description.match(/<example>((.|\n)*)<\/example>/g)
+    const files: string[] = []
+    let exampleCodeLine: string[] = []
+    let example: any = description.match(/<example>((.|\n)*)<\/example>/g)
     let exampleFilename = ''
     let currentLine = 0
 
@@ -106,7 +109,7 @@ export default function (docfile) {
         console.log('parse example section for', docfile.filename)
 
         example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
-        example.forEach(function(line) {
+        example.forEach(function(line: string) {
             ++currentLine
 
             const checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
@@ -117,7 +120,7 @@ export default function (docfile) {
                     /**
                      * remove filename expression in first line
                      */
-                    exampleFilename = exampleCodeLine.shift().trim().substr(1)
+                    exampleFilename = exampleCodeLine.shift()!.trim().substr(1)
                     const code = exampleCodeLine.join('\n')
 
                     /**
@@ -128,7 +131,7 @@ export default function (docfile) {
                             file: exampleFilename,
                             format: exampleFilename.split(/\./).pop(),
                             code: code
-                        })
+                        } as any)
                     }
 
                     /**
@@ -156,8 +159,8 @@ export default function (docfile) {
     }
 
     const exampleReferences = javadoc.tags
-        .filter((tag) => tag.type === 'example' && typeof tag.string === 'string')
-        .map((tag) => tag.string)
+        .filter((tag: TagType) => tag.type === 'example' && typeof tag.string === 'string')
+        .map((tag: TagType) => tag.string)
 
     /**
      * format param strings, from
@@ -202,7 +205,7 @@ export default function (docfile) {
         ignore: javadoc.ignore,
         examples: files,
         exampleReferences,
-        customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
+        customEditUrl: `${(config as any).customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

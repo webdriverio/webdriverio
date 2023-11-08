@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
+// @ts-expect-error
 import dox from 'dox'
 import { Eta } from 'eta'
 
@@ -19,7 +20,7 @@ const eta = new Eta({
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-export async function generateWdioDocs (sidebars) {
+export async function generateWdioDocs (sidebars: any) {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
@@ -64,7 +65,7 @@ export async function generateWdioDocs (sidebars) {
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
             apiDocs[apiDocs.length - 1].items
-                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
+                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}` as never)
         }
     }
 

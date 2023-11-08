@@ -10,17 +10,30 @@ import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json'
 import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
 import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 
+const servicesWithBrokenReadmes = [
+    '@sap_oss/wdio-qmate-service',
+    'wdio-reportportal-service',
+    'wdio-ms-teams-service',
+    'wdio-intercept-service',
+    'wdio-ui5-service'
+]
+
+const reportersWithBrokenReadmes = [
+    'wdio-mochawesome-reporter',
+    'wdio-reportportal-reporter'
+]
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = [{
     category: 'docs',
     namePlural: 'Reporter',
     nameSingular: 'Reporter',
-    packages3rdParty: reporters3rdParty
+    packages3rdParty: reporters3rdParty.filter(({ packageName }) => !reportersWithBrokenReadmes.includes(packageName))
 }, {
     category: 'docs',
     namePlural: 'Services',
     nameSingular: 'Service',
-    packages3rdParty: services3rdParty
+    packages3rdParty: services3rdParty.filter(({ packageName }) => !servicesWithBrokenReadmes.includes(packageName))
 }, {
     category: 'api',
     namePlural: 'Testrunner',

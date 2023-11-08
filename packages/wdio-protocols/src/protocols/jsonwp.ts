@@ -1098,7 +1098,7 @@ export default {
                     name: 'orientation',
                     type: 'string',
                     description:
-                        'the new browser orientation as defined in ScreenOrientation: {LANDSCAPE|PORTRAIT}',
+                        'the new browser orientation as defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`',
                     required: true,
                 },
             ],
