@@ -244,7 +244,7 @@ class CucumberAdapter {
                 importPaths: this._cucumberOpts.import,
             })
 
-            this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
+            this.addWdioHooks(this._config, supportCodeLibraryBuilder)
             await this.loadFiles()
             this.wrapSteps(this._config)
             setUserHookNames(supportCodeLibraryBuilder)
@@ -387,7 +387,7 @@ class CucumberAdapter {
      * set `beforeFeature`, `afterFeature`, `beforeScenario`, `afterScenario`, 'beforeStep', 'afterStep'
      * @param {object} config config
      */
-    addWdioHooksAndWrapSteps(
+    addWdioHooks(
         config: Options.Testrunner,
         supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
