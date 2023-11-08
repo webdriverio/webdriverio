@@ -1,4 +1,12 @@
-const path = require('node:path')
+import url from 'node:url'
+import path from 'node:path'
+
+import { themes } from 'prism-react-renderer'
+import remark from '@docusaurus/remark-plugin-npm2yarn'
+import type { Config } from '@docusaurus/types'
+import type { ThemeConfig } from '@docusaurus/preset-classic'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
@@ -10,8 +18,7 @@ const discordUrl = 'https://discord.webdriver.io/'
 const wdioLogo = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+TG9nbyBSZWd1bGFyPC90aXRsZT4KICAgIDxnIGlkPSJMb2dvLVJlZ3VsYXIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxyZWN0IGlkPSJSZWN0YW5nbGUiIGZpbGw9IiNFQTU5MDYiIHg9IjAiIHk9IjAiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjUiPjwvcmVjdD4KICAgICAgICA8cGF0aCBkPSJNOCwxNiBMOCw0OCBMNiw0OCBMNiwxNiBMOCwxNiBaIE00MywxNiBDNTEuODM2NTU2LDE2IDU5LDIzLjE2MzQ0NCA1OSwzMiBDNTksNDAuODM2NTU2IDUxLjgzNjU1Niw0OCA0Myw0OCBDMzQuMTYzNDQ0LDQ4IDI3LDQwLjgzNjU1NiAyNywzMiBDMjcsMjMuMTYzNDQ0IDM0LjE2MzQ0NCwxNiA0MywxNiBaIE0yNywxNiBMMTQuMTA2LDQ3Ljk5OTIwNzggTDExLjk5OSw0Ny45OTkyMDc4IEwyNC44OTQsMTYgTDI3LDE2IFogTTQzLDE4IEMzNS4yNjgwMTM1LDE4IDI5LDI0LjI2ODAxMzUgMjksMzIgQzI5LDM5LjczMTk4NjUgMzUuMjY4MDEzNSw0NiA0Myw0NiBDNTAuNzMxOTg2NSw0NiA1NywzOS43MzE5ODY1IDU3LDMyIEM1NywyNC4yNjgwMTM1IDUwLjczMTk4NjUsMTggNDMsMTggWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIiBmaWxsPSIjRkZGRkZGIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg=='
 const mendableAnonKey = 'c4096c1b-8c46-4891-8ba2-5f0e2ef4fa81'
 
-/** @type {import('@docusaurus/types').Config} */
-module.exports = {
+const config: Config = {
     title: 'WebdriverIO',
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
     url: 'https://webdriver.io',
@@ -38,8 +45,8 @@ module.exports = {
             respectPrefersColorScheme: true
         },
         prism: {
-            theme: require('prism-react-renderer/themes/github'),
-            darkTheme: require('prism-react-renderer/themes/dracula')
+            theme: themes.github,
+            darkTheme: themes.dracula
         },
         algolia: {
             apiKey: 'f86258c57f779a1358e0a9054aeadad5',
@@ -179,16 +186,16 @@ module.exports = {
             showRunmeLink: true,
             runmeLinkLabel: 'Run Example'
         },
-    },
+    } satisfies ThemeConfig,
     presets: [
         [
             '@docusaurus/preset-classic', {
                 docs: {
-                    sidebarPath: require.resolve('./sidebars.js'),
+                    sidebarPath: path.resolve(__dirname, 'sidebars.ts'),
                     // Please change this to your repo.
                     editUrl:`${repoUrl}/edit/${branch}/website/`,
                     remarkPlugins: [
-                        [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
+                        [remark, { sync: true }],
                     ],
                     include: ['**/*.{md,mdx}', '**/_*.{md,mdx}'],
                     exclude: [
@@ -204,10 +211,10 @@ module.exports = {
                     editUrl: `${repoUrl}/edit/${branch}/website/blog/`,
                 },
                 theme: {
-                    customCss: require.resolve('./src/css/custom.css'),
+                    customCss: path.resolve(__dirname, 'src', 'css', 'custom.css'),
                 },
                 pages: {
-                    remarkPlugins: [require('@docusaurus/remark-plugin-npm2yarn')],
+                    remarkPlugins: [remark],
                 },
                 googleAnalytics: {
                     trackingID: 'UA-47063382-1',
@@ -249,7 +256,7 @@ module.exports = {
                 path: 'community',
                 editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
                 routeBasePath: 'community',
-                sidebarPath: require.resolve('./sidebarsCommunity.js')
+                sidebarPath: path.resolve(__dirname, 'sidebarsCommunity.ts')
             },
         ],
         '@docusaurus/plugin-ideal-image',
@@ -259,7 +266,7 @@ module.exports = {
                 debug: false,
                 offlineModeActivationStrategies: ['appInstalled', 'queryString'],
                 // swRegister: false,
-                swCustom: path.resolve(__dirname, 'src/sw.js'),
+                swCustom: path.resolve(__dirname, 'src', 'sw.js'),
                 pwaHead: [
                     {
                         tagName: 'link',
@@ -323,3 +330,5 @@ module.exports = {
         '/js/flowchart.js'
     ]
 }
+
+export default config
