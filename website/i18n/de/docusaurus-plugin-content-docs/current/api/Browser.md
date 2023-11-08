@@ -50,7 +50,7 @@ Zum Beispiel mit dieser Konfiguration:
 // wdio.conf.js
 export const config = {
     // ...
-    capabilities: {
+    capabilities: \\{
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
