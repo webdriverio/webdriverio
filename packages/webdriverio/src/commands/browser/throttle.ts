@@ -5,7 +5,7 @@ import { getBrowserObject } from '../../utils/index.js'
 const log = logger('webdriverio:throttle')
 
 /**
- * Alias for throttleNetwork. The browser.throttle command will be removed in v9.
+ * @deprecated use `browser.throttleNetwork` instead
  */
 export async function throttle (
     this: WebdriverIO.Browser,
