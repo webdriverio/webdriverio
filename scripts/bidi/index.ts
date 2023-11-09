@@ -168,7 +168,7 @@ for (const assignment of astRemote) {
             parameters: [{
                 name: paramKey,
                 type: `\`${paramType}\``,
-                description: `<pre>${paramExample}</pre>`,
+                description: `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`,
                 required: true
             }],
             ...(example ? {
