@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    // Linting / Formatting
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "EditorConfig.EditorConfig",
+
+    // TypeScript
+    "ms-vscode.vscode-typescript-next",
+    "yoavbls.pretty-ts-errors",
+
+    // PR management / Reviewing
+    "github.vscode-pull-request-github",
+
+    // Showing todo comments
+    "gruntfuggly.todo-tree",
+  ]
+}
