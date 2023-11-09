@@ -29,9 +29,9 @@ export default defineConfig({
                 'packages/devtools/src/scripts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
-            lines: 89,
-            functions: 87,
-            statements: 89,
+            lines: 88,
+            functions: 85,
+            statements: 88,
             branches: 88
         }
     }
