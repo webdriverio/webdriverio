@@ -1,7 +1,7 @@
 import cssShorthandProps from 'css-shorthand-properties'
 import { getBrowserObject, parseCSS } from '../../utils/index.js'
 
-type PseudoElement = '::before'|'::after'
+type PseudoElement = '::before' | '::after'
 
 /**
  *
@@ -114,7 +114,6 @@ async function getShorthandPropertyCSSValue(
                 }
             ))
         )
-
         return mergeEqualSymmetricalValue(cssValues)
     }
 
@@ -184,7 +183,7 @@ async function getPseudoElementCSSValue (
     const browser = getBrowserObject(elem)
     const { cssProperty, pseudoElement }  = options
     const cssValue = await browser.execute(
-        (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement) as any)[cssProperty],
+        (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement))[cssProperty as any],
         elem as unknown as Element,
         pseudoElement,
         cssProperty
