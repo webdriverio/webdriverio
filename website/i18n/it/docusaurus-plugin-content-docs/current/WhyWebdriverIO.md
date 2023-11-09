@@ -1,21 +1,21 @@
 ---
 id: why-webdriverio
-title: Why Webdriver.IO?
+title: Perché Webdriver.IO?
 ---
 
-WebdriverIO is a progressive automation framework built to automate modern web and mobile applications. It simplifies the interaction with your app and provides a set of plugins that help you create a scalable, robust and stable test suite.
+WebdriverIO è un framework di automazione progressivo costruito per automatizzare le applicazioni web e mobile moderne. Semplifica l'interazione con la tua app e fornisce un insieme di plugin che ti aiutano a creare una suite di test scalabile, robusta e stabile.
 
-It is designed to be:
+È concepito per essere:
 
-- __Extendable__ - Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and __really useful__
-- __Compatible__ - WebdriverIO can be run on the [WebDriver Protocol](https://w3c.github.io/webdriver/) for __true cross-browser testing__ as well as [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).
-- __Feature Rich__ - The huge variety of built-in and community plugins allows you to __easily integrate__ and __extend__ your setup to fulfill your requirements.
+- __Estendibile__ - L'aggiunta di helper function, o di librerie complesse e combinazioni di comandi già presenti è __semplice__ e __davvero utile__
+- __Compatibile__ - WebdriverIO può eseguire test basandosi su protocollo [WebDriver](https://w3c.github.io/webdriver/) per __veri test cross-browser__ e [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) per automazione basata su Chromium utilizzando [Puppeteer](https://pptr.dev/).
+- __Ricco di Funzionalità__ - L'enorme varietà di plugin presenti in aggiunta a quelli della community consente di integrare facilmente ____ e __estendere__ la tua configurazione, per soddisfare le tue esigenze.
 
-You can use WebdriverIO to automate:
+È possibile utilizzare WebdriverIO per automatizzare:
 
-- 🌐 <span>&nbsp;</span> __modern web applications__ written in React, Vue, Angular, Svelte or other frontend frameworks
-- 📱 <span>&nbsp;</span> __hybrid__ or __native mobile applications__ running in an emulator/simulator or on a real device
-- 💻 <span>&nbsp;</span> __native desktop applications__ (e.g. written with Electron.js)
+- 🌐 <span>&nbsp;</span> __Moderne applicazioni web__ scritte in React, Vue, Angular, Svelte o altri framework frontend
+- 📱 <span>&nbsp;</span> Applicazioni mobile __ibride__ o __native__, lanciandole su simulatori/emulatori o su un device fisico
+- 💻 <span>&nbsp;</span> __applicazioni desktop native__ (ad esempio scritte con Electron.js)
 - 📦 <span>&nbsp;</span> __unit or component testing__ of web components in the browser
 
 ## Based on Web Standards
