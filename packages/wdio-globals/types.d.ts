@@ -1,12 +1,5 @@
 type ExpectType = import('expect-webdriverio').Expect
 
-declare namespace WebdriverIO {
-    interface Browser extends BrowserType { }
-    interface Element extends ElementType { }
-    interface MultiRemoteBrowser extends MultiRemoteBrowserType { }
-    interface MultiRemoteElement extends MultiRemoteElementType { }
-}
-
 declare module NodeJS {
     interface Global {
         multiremotebrowser: WebdriverIO.MultiRemoteBrowser
