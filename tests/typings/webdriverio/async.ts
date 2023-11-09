@@ -257,6 +257,8 @@ async function bar() {
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')
     await el2.click()
+    // @ts-expect-error don't allow browser commands on WebdriverIO.Element
+    await el1.url('https://webdriver.io')
     await el1.moveTo({ xOffset: 0, yOffset: 0 })
     const elementExists: true | void = await el2.waitForExist({
         timeout: 1,
