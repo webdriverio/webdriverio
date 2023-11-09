@@ -36,4 +36,24 @@ export const config = Object.assign({}, baseConfig, {
         delete browser.Cucumber_Test
         await browser.pause(30)
     },
+    beforeHook: async () => {
+        browser.Cucumber_BeforeHook = (browser.Cucumber_BeforeHook || 0) + 1
+    },
+    afterHook: async () => {
+        browser.Cucumber_AfterHook = (browser.Cucumber_AfterHook || 0) + 1
+    },
+    after: () => {
+        /**
+         * expect hooks to be exected 46 times
+         */
+        if (browser.Cucumber_AfterHook !== browser.Cucumber_BeforeHook || browser.Cucumber_AfterHook !== 46) {
+            /**
+             * if assertion fails:
+             * - print error stack so we know where it failed
+             * - exit process with failure to let smoke test fail
+             */
+            console.log(new Error('AssertionError: Cucumber did not execute beforeHook/afterHook hooks correctly'))
+            process.exit(1)
+        }
+    }
 })

@@ -63,7 +63,6 @@ vi.mock('../src/utils.js', async () => {
         ...actual,
         setUserHookNames: vi.fn(),
     }
-
 })
 
 declare global {
