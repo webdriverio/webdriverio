@@ -32,9 +32,9 @@ export interface ErrorResponse extends Extensible {
 export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult;
 export interface EmptyResult extends Extensible {}
 
-export interface Event extends EventData, Extensible {
+export type Event = {
   type: 'event';
-}
+} & EventData & Extensible
 
 export type EventData = BrowsingContextEvent | LogEvent | NetworkEvent | ScriptEvent;
 export type Extensible = Record<string, any>;
@@ -513,9 +513,24 @@ export interface ScriptFunctionRemoteValue {
   internalId?: ScriptInternalId;
 }
 
+export interface ScriptRegExpValue {
+  pattern: string;
+  flags?: string;
+}
+
+export interface ScriptRegExpLocalValue {
+  type: 'regexp';
+  value: ScriptRegExpValue;
+}
+
 export interface ScriptRegExpRemoteValue extends ScriptRegExpLocalValue {
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
+}
+
+export interface ScriptDateLocalValue {
+  type: 'date';
+  value: string;
 }
 
 export interface ScriptDateRemoteValue extends ScriptDateLocalValue {

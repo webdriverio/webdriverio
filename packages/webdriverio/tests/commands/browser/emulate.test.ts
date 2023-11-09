@@ -25,7 +25,7 @@ describe('emulate', () => {
         })
         const fakeScope = {
             isBidi: true,
-            scriptAddPreloadScriptCommand: vi.fn(),
+            scriptAddPreloadScript: vi.fn(),
             options: {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
@@ -33,8 +33,8 @@ describe('emulate', () => {
         }
         await expect(() => browser.emulate.call(fakeScope, 'geolocation')).rejects.toThrow(/Missing geolocation emulation options/)
         await browser.emulate.call(fakeScope, 'geolocation', { latitude: 123, longitude: 456 })
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledTimes(1)
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledWith({
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator.geolocation, \'getCurrentPosition\', {')
         })
     })
@@ -48,7 +48,7 @@ describe('emulate', () => {
         })
         const fakeScope = {
             isBidi: true,
-            scriptAddPreloadScriptCommand: vi.fn(),
+            scriptAddPreloadScript: vi.fn(),
             options: {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
@@ -56,8 +56,8 @@ describe('emulate', () => {
         }
         await expect(() => browser.emulate.call(fakeScope, 'userAgent', 123)).rejects.toThrow(/Expected userAgent emulation options to be a string/)
         await browser.emulate.call(fakeScope, 'userAgent', 'foobar')
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledTimes(1)
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledWith({
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator, \'userAgent\', {')
         })
     })
@@ -71,7 +71,7 @@ describe('emulate', () => {
         })
         const fakeScope = {
             isBidi: true,
-            scriptAddPreloadScriptCommand: vi.fn(),
+            scriptAddPreloadScript: vi.fn(),
             options: {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
@@ -79,8 +79,8 @@ describe('emulate', () => {
         }
         await expect(() => browser.emulate.call(fakeScope, 'colorScheme', 123)).rejects.toThrow(/Expected "colorScheme" emulation options to be either "light" or "dark"/)
         await browser.emulate.call(fakeScope, 'colorScheme', 'light')
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledTimes(1)
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledWith({
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(window, \'matchMedia\', {')
         })
     })
@@ -94,7 +94,7 @@ describe('emulate', () => {
         })
         const fakeScope = {
             isBidi: true,
-            scriptAddPreloadScriptCommand: vi.fn(),
+            scriptAddPreloadScript: vi.fn(),
             options: {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
@@ -102,8 +102,8 @@ describe('emulate', () => {
         }
         await expect(() => browser.emulate.call(fakeScope, 'onLine', 123)).rejects.toThrow(/Expected "onLine" emulation options to be a boolean/)
         await browser.emulate.call(fakeScope, 'onLine', false)
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledTimes(1)
-        expect(fakeScope.scriptAddPreloadScriptCommand).toBeCalledWith({
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator, \'onLine\', {')
         })
     })
