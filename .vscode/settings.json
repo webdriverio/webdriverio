@@ -36,5 +36,12 @@
       "scheme": "file"
     }
   ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": [
+    "Appium",
+    "testrunner",
+    "WDIO",
+    "webdriver",
+    "webdriverio"
+  ]
 }

@@ -3,7 +3,7 @@ WebDriver
 
 > A lightweight, non-opinionated implementation of the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) specification including mobile commands supported by [Appium](http://appium.io/)
 
-There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them have an opinionated API and recommended way to use. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appium's [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
+There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them has an opinionated API and recommended way to use it. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher-level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appium's [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
 
 The package supports the following protocols:
 
@@ -16,7 +16,7 @@ The package supports the following protocols:
 - [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) (depcrecated)
 - [Mobile JSONWireProtocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) (depcrecated)
 
-Commands are added to the clients protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
+Commands are added to the client's protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
 
 ## Install
 
