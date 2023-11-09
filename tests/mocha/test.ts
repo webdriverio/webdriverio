@@ -17,6 +17,17 @@ describe('Mocha smoke test', () => {
         await expect(browser).toHaveTitle('Mock Page Title')
     })
 
+    it('should allow to use asymmetric matchers', async () => {
+        await expect(browser).toHaveTitle(
+            expect.stringContaining('Page'))
+        await expect(browser).toHaveTitle(
+            expect.not.stringContaining('foobar'))
+        await expect(browser).toHaveUrl(
+            expect.stringContaining('mymockpage'))
+        await expect(browser).toHaveUrl(
+            expect.not.stringContaining('mymock_page.'))
+    })
+
     it('has a testrunner config object', () => {
         const opts = browser.options as Options.Testrunner
         expect(Array.isArray(opts.services)).toBe(true)

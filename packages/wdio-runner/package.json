@@ -36,7 +36,7 @@
     "@wdio/types": "8.21.0",
     "@wdio/utils": "8.22.0",
     "deepmerge-ts": "^5.0.0",
-    "expect-webdriverio": "^4.2.5",
+    "expect-webdriverio": "^4.5.1",
     "gaze": "^1.1.2",
     "webdriver": "8.22.1",
     "webdriverio": "8.22.1"
