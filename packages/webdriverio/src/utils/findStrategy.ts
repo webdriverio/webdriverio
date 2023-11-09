@@ -173,16 +173,20 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             `.//*[@aria-label = "${label}"]`,
             // input and textarea with a label
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `(.//input|.//textarea)[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
             // input and textarea with a label as parent
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `(.//input|.//textarea)[//ancestor::label[normalize-space(text()) = "${label}"]]`,
+            `.//input[//ancestor::label[normalize-space(text()) = "${label}"]]`,
+            `.//textarea[//ancestor::label[normalize-space(text()) = "${label}"]]`,
             // aria label is received by a placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `(.//input|.//textarea)[@placeholder="${label}"]`,
+            `.//input[@placeholder="${label}"]`,
+            `.//textarea[@placeholder="${label}"]`,
             // aria label is received by a aria-placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `(.//input|.//textarea)[@aria-placeholder="${label}"]`,
+            `.//input[@aria-placeholder="${label}"]`,
+            `.//textarea[@aria-placeholder="${label}"]`,
             // aria label is received by a title
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//*[not(self::label)][@title="${label}"]`,

@@ -292,24 +292,24 @@ describe('Lit Component testing', () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
-                        <input type="text" placeholder="Find me" />
-                        <textarea placeholder="Find me" />
+                        <input type="text" placeholder="Find me">
+                        <textarea placeholder="Find me"></textarea>
                     `,
                     document.body
                 )
-                expect(await $$('aria/Find me').length).toBe(2)
+                await expect($$('aria/Find me')).toBeElementsArrayOfSize(2)
             })
 
             it('aria label is received by an input aria-placeholder', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
-                        <input type="text" aria-placeholder="Find me" />
-                        <textarea aria-placeholder="Find me" />
+                        <input type="text" aria-placeholder="Find me">
+                        <textarea aria-placeholder="Find me"></textarea>
                     `,
                     document.body
                 )
-                expect(await $$('aria/Find me').length).toBe(2)
+                await expect($$('aria/Find me')).toBeElementsArrayOfSize(2)
             })
 
             /**
@@ -347,7 +347,7 @@ describe('Lit Component testing', () => {
                     html`
                         <label>
                             Search
-                            <input id="search" type="text" value="Hello World!" />
+                            <input type="text" value="Hello World!" />
                         </label>
                     `,
                     document.body
