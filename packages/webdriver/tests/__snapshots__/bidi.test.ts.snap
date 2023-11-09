@@ -5,7 +5,7 @@ exports[`BidiCore > send > fails if sending a message while not connected 1`] = 
 exports[`BidiCore > sendAsync > can send without getting an result 1`] = `
 [
   [
-    "{\\"method\\":\\"session.new\\",\\"params\\":{}}",
+    "{\\"id\\":1,\\"method\\":\\"session.new\\",\\"params\\":{}}",
   ],
 ]
 `;
