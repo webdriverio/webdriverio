@@ -73,8 +73,8 @@ describe('custom$', () => {
         // @ts-ignore test invalid parameter
         browser.addLocatorStrategy('test-no-element', () => null)
         const elem = await browser.$('#foo')
-        const elem = await elem.custom$('test-no-element', '.foo')
-        expect(elem.sessionId).toBe('foobar-123')
-        expect(elem.error.message).toBe('no such element')
+        const elem2 = await elem.custom$('test-no-element', '.foo')
+        expect(elem2.sessionId).toBe('foobar-123')
+        expect(elem2.error.message).toBe('no such element')
     })
 })
