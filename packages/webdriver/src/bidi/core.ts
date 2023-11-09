@@ -69,7 +69,7 @@ export class BidiCore extends EventEmitter {
         }
 
         const id = ++this.#id
-        this.#ws.send(JSON.stringify({ ...params }))
+        this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }
 }
