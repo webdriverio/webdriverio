@@ -76,7 +76,7 @@ export async function emulate<Scope extends SupportedScopes> (
                 coords: ${JSON.stringify(options)},
                 timestamp: Date.now()
             })`
-        await this.scriptAddPreloadScriptCommand({
+        await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
                     value: (cbSuccess, cbError) => ${patchedFn}
@@ -91,7 +91,7 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected userAgent emulation options to be a string, received ${typeof options}`)
         }
 
-        await this.scriptAddPreloadScriptCommand({
+        await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: ${JSON.stringify(options)}
@@ -106,7 +106,7 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "colorScheme" emulation options to be either "light" or "dark", received "${options}"`)
         }
 
-        await this.scriptAddPreloadScriptCommand({
+        await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 const originalMatchMedia = window.matchMedia
                 Object.defineProperty(window, 'matchMedia', {
@@ -135,7 +135,7 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "onLine" emulation options to be a boolean, received "${typeof options}"`)
         }
 
-        await this.scriptAddPreloadScriptCommand({
+        await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'onLine', {
                     value: ${options}

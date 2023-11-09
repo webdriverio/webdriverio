@@ -35,7 +35,7 @@ export class BidiCore extends EventEmitter {
         return this.#isConnected
     }
 
-    public send (params: CommandData) {
+    public send (params: Omit<CommandData, 'id'>) {
         const id = this.sendAsync(params)
         return new Promise<CommandResponse>((resolve, reject) => {
             const t = setTimeout(() => {
@@ -63,7 +63,7 @@ export class BidiCore extends EventEmitter {
         })
     }
 
-    public sendAsync (params: CommandData) {
+    public sendAsync (params: Omit<CommandData, 'id'>) {
         if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }

@@ -36,6 +36,8 @@ afterEach(() => {
 
 const isUsingWindows = os.platform() === 'win32'
 
+process.cwd = () => '/foo/bar'
+
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockRejectedValue('Yay')

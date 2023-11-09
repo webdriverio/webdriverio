@@ -16,11 +16,13 @@
 export type Message = CommandResponse | ErrorResponse | Event;
 
 export interface CommandResponse extends Extensible {
+  type: 'success';
   id: JsUint;
   result: ResultData;
 }
 
 export interface ErrorResponse extends Extensible {
+  type: 'error';
   id: JsUint | null;
   error: ErrorCode;
   message: string;
@@ -30,11 +32,15 @@ export interface ErrorResponse extends Extensible {
 export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult;
 export interface EmptyResult extends Extensible {}
 
+export type Event = {
+  type: 'event';
+} & EventData & Extensible
+
 export type EventData = BrowsingContextEvent | LogEvent | NetworkEvent | ScriptEvent;
 export type Extensible = Record<string, any>;
 export type JsInt = number;
 export type JsUint = number;
-export type ErrorCode = 'invalid argument' | 'invalid session id' | 'no such alert' | 'no such frame' | 'no such handle' | 'no such node' | 'no such script' | 'session not created' | 'unable to close browser' | 'unknown command' | 'unknown error' | 'unsupported operation';
+export type ErrorCode = 'invalid argument' | 'invalid session id' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unknown command' | 'unknown error' | 'unsupported operation';
 export type SessionResult = SessionNewResult | SessionStatusResult;
 
 export interface SessionCapabilitiesRequest {
@@ -85,8 +91,8 @@ export interface SessionNewResult {
   };
 }
 
-export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextNavigateResult | BrowsingContextPrintResult;
-export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextNavigationStarted | BrowsingContextFragmentNavigated | BrowsingContextDomContentLoaded | BrowsingContextLoad | BrowsingContextDownloadWillBegin | BrowsingContextNavigationAborted | BrowsingContextNavigationFailed | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened;
+export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextTraverseHistoryResult;
+export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened;
 export type BrowsingContextBrowsingContext = string;
 export type BrowsingContextInfoList = (BrowsingContextInfo)[];
 
@@ -95,6 +101,26 @@ export interface BrowsingContextInfo {
   url: string;
   children: BrowsingContextInfoList | null;
   parent?: BrowsingContextBrowsingContext | null;
+}
+
+export type BrowsingContextLocator = BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+
+export interface BrowsingContextCssLocator {
+  type: 'css';
+  value: string;
+}
+
+export interface BrowsingContextInnerTextLocator {
+  type: 'innerText';
+  value: string;
+  ignoreCase?: boolean;
+  matchType?: 'full' | 'partial';
+  maxDepth?: JsUint;
+}
+
+export interface BrowsingContextXPathLocator {
+  type: 'xpath';
+  value: string;
 }
 
 export type BrowsingContextNavigation = string;
@@ -118,6 +144,10 @@ export interface BrowsingContextGetTreeResult {
   contexts: BrowsingContextInfoList;
 }
 
+export interface BrowsingContextLocateNodesResult {
+  nodes: ScriptNodeRemoteValue[];
+}
+
 export interface BrowsingContextNavigateResult {
   navigation: BrowsingContextNavigation | null;
   url: string;
@@ -126,6 +156,8 @@ export interface BrowsingContextNavigateResult {
 export interface BrowsingContextPrintResult {
   data: string;
 }
+
+export interface BrowsingContextTraverseHistoryResult {}
 
 export interface BrowsingContextContextCreated {
   method: 'browsingContext.contextCreated';
@@ -192,30 +224,49 @@ export interface BrowsingContextUserPromptOpenedParameters {
   context: BrowsingContextBrowsingContext;
   type: 'alert' | 'confirm' | 'prompt' | 'beforeunload';
   message: string;
+  defaultValue?: string;
 }
 
-export interface NetworkResult {}
-export type NetworkEvent = NetworkBeforeRequestSent | NetworkFetchError | NetworkResponseStarted | NetworkResponseCompleted;
+export interface NetworkResult extends NetworkAddInterceptResult {}
+export type NetworkEvent = NetworkAuthRequired | NetworkBeforeRequestSent | NetworkFetchError | NetworkResponseCompleted | NetworkResponseStarted;
+
+export interface NetworkAuthChallenge {
+  scheme: string;
+  realm: string;
+}
 
 export interface NetworkBaseParameters {
   context: BrowsingContextBrowsingContext | null;
+  isBlocked: boolean;
   navigation: BrowsingContextNavigation | null;
   redirectCount: JsUint;
   request: NetworkRequestData;
   timestamp: JsUint;
+  intercepts?: NetworkIntercept[];
+}
+
+export type NetworkBytesValue = NetworkStringValue | NetworkBase64Value;
+
+export interface NetworkStringValue {
+  type: 'string';
+  value: string;
+}
+
+export interface NetworkBase64Value {
+  type: 'base64';
+  value: string;
 }
 
 export interface NetworkCookie {
   name: string;
-  value?: string;
-  binaryValue?: number[];
+  value: NetworkBytesValue;
   domain: string;
   path: string;
-  expires?: JsUint;
   size: JsUint;
   httpOnly: boolean;
   secure: boolean;
   sameSite: 'strict' | 'lax' | 'none';
+  expiry?: JsUint;
 }
 
 export interface NetworkFetchTimingInfo {
@@ -236,8 +287,7 @@ export interface NetworkFetchTimingInfo {
 
 export interface NetworkHeader {
   name: string;
-  value?: string;
-  binaryValue?: number[];
+  value: NetworkBytesValue;
 }
 
 export interface NetworkInitiator {
@@ -248,6 +298,7 @@ export interface NetworkInitiator {
   request?: NetworkRequest;
 }
 
+export type NetworkIntercept = string;
 export type NetworkRequest = string;
 
 export interface NetworkRequestData {
@@ -277,6 +328,20 @@ export interface NetworkResponseData {
   headersSize: JsUint | null;
   bodySize: JsUint | null;
   content: NetworkResponseContent;
+  authChallenge?: NetworkAuthChallenge;
+}
+
+export interface NetworkAddInterceptResult {
+  intercept: NetworkIntercept;
+}
+
+export interface NetworkAuthRequired {
+  method: 'network.authRequired';
+  params: NetworkAuthRequiredParameters;
+}
+
+export interface NetworkAuthRequiredParameters extends NetworkBaseParameters {
+  response: NetworkResponseData;
 }
 
 export interface NetworkBeforeRequestSent {
@@ -316,7 +381,7 @@ export interface NetworkResponseStartedParameters extends NetworkBaseParameters 
 }
 
 export type ScriptResult = ScriptAddPreloadScriptResult | ScriptEvaluateResult | ScriptGetRealmsResult;
-export type ScriptEvent = ScriptRealmCreated | ScriptRealmDestroyed;
+export type ScriptEvent = ScriptMessage | ScriptRealmCreated | ScriptRealmDestroyed;
 export type ScriptChannel = string;
 export type ScriptEvaluateResult = ScriptEvaluateResultSuccess | ScriptEvaluateResultException;
 
@@ -341,46 +406,7 @@ export interface ScriptExceptionDetails {
 }
 
 export type ScriptHandle = string;
-export type ScriptLocalValue = ScriptPrimitiveProtocolValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue;
-export type ScriptListLocalValue = (ScriptLocalValue)[];
-
-export interface ScriptArrayLocalValue {
-  type: 'array';
-  value: ScriptListLocalValue;
-}
-
-export interface ScriptDateLocalValue {
-  type: 'date';
-  value: string;
-}
-
-export type ScriptMappingLocalValue = (ScriptLocalValue | ScriptLocalValue)[];
-
-export interface ScriptMapLocalValue {
-  type: 'map';
-  value: ScriptMappingLocalValue;
-}
-
-export interface ScriptObjectLocalValue {
-  type: 'object';
-  value: ScriptMappingLocalValue;
-}
-
-export interface ScriptRegExpValue {
-  pattern: string;
-  flags?: string;
-}
-
-export interface ScriptRegExpLocalValue {
-  type: 'regexp';
-  value: ScriptRegExpValue;
-}
-
-export interface ScriptSetLocalValue {
-  type: 'set';
-  value: ScriptListLocalValue;
-}
-
+export type ScriptInternalId = string;
 export type ScriptPreloadScript = string;
 export type ScriptRealm = string;
 export type ScriptPrimitiveProtocolValue = ScriptUndefinedValue | ScriptNullValue | ScriptStringValue | ScriptNumberValue | ScriptBooleanValue | ScriptBigIntValue;
@@ -458,7 +484,6 @@ export interface ScriptWorkletRealmInfo extends ScriptBaseRealmInfo {
 
 export type ScriptRealmType = 'window' | 'dedicated-worker' | 'shared-worker' | 'service-worker' | 'worker' | 'paint-worklet' | 'audio-worklet' | 'worklet';
 export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptIteratorRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
-export type ScriptInternalId = JsUint;
 export type ScriptListRemoteValue = (ScriptRemoteValue)[];
 export type ScriptMappingRemoteValue = (ScriptRemoteValue | ScriptRemoteValue)[];
 
@@ -488,9 +513,24 @@ export interface ScriptFunctionRemoteValue {
   internalId?: ScriptInternalId;
 }
 
+export interface ScriptRegExpValue {
+  pattern: string;
+  flags?: string;
+}
+
+export interface ScriptRegExpLocalValue {
+  type: 'regexp';
+  value: ScriptRegExpValue;
+}
+
 export interface ScriptRegExpRemoteValue extends ScriptRegExpLocalValue {
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
+}
+
+export interface ScriptDateLocalValue {
+  type: 'date';
+  value: string;
 }
 
 export interface ScriptDateRemoteValue extends ScriptDateLocalValue {
@@ -602,8 +642,13 @@ export interface ScriptNodeProperties {
 
 export interface ScriptWindowProxyRemoteValue {
   type: 'window';
+  value: ScriptWindowProxyProperties;
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
+}
+
+export interface ScriptWindowProxyProperties {
+  context: BrowsingContextBrowsingContext;
 }
 
 export type ScriptResultOwnership = 'root' | 'none';
@@ -650,7 +695,7 @@ export interface ScriptRealmCreated {
 }
 
 export interface ScriptRealmDestroyed {
-  method: 'script.realmDestoyed';
+  method: 'script.realmDestroyed';
   params: ScriptRealmDestroyedParameters;
 }
 
