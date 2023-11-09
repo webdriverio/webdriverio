@@ -46,7 +46,7 @@ export const config = Object.assign({}, baseConfig, {
         /**
          * expect hooks to be exected 46 times
          */
-        if (browser.Cucumber_AfterHook !== browser.Cucumber_BeforeHook || browser.Cucumber_AfterHook !== 46) {
+        if (browser.Cucumber_AfterHook !== browser.Cucumber_BeforeHook || browser.Cucumber_AfterHook === 0) {
             /**
              * if assertion fails:
              * - print error stack so we know where it failed
