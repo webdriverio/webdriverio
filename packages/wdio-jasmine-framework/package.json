@@ -37,7 +37,7 @@
     "@wdio/logger": "8.16.17",
     "@wdio/types": "8.21.0",
     "@wdio/utils": "8.22.0",
-    "expect-webdriverio": "^4.2.5",
+    "expect-webdriverio": "^4.5.1",
     "jasmine": "^5.0.0"
   },
   "devDependencies": {
