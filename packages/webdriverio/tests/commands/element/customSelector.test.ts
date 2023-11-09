@@ -73,10 +73,8 @@ describe('custom$', () => {
         // @ts-ignore test invalid parameter
         browser.addLocatorStrategy('test-no-element', () => null)
         const elem = await browser.$('#foo')
-        const err = await elem.custom$('test-no-element', '.foo')
-            // @ts-ignore uses sync commands
-            .catch(err => err)
-
-        expect(err.message).toBe('Your locator strategy script must return an element')
+        const elem = await elem.custom$('test-no-element', '.foo')
+        expect(elem.sessionId).toBe('foobar-123')
+        expect(elem.error.message).toBe('no such element')
     })
 })
