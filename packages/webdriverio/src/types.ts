@@ -503,7 +503,7 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
 declare global {
     namespace WebdriverIO {
         interface Browser extends BrowserBase, BidiHandler, ProtocolCommands, BrowserCommandsType {}
-        interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+        interface Element extends ElementBase, BidiHandler, ProtocolCommands, ElementCommandsType {}
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }
