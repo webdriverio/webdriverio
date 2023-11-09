@@ -20,13 +20,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
   },
   {
-    "packageName": "wdio-json-reporter",
-    "title": "JSON",
-    "branch": "master",
-    "githubUrl": "https://github.com/fijijavis/wdio-json-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-json-reporter"
-  },
-  {
     "packageName": "wdio-mochawesome-reporter",
     "title": "Mochawesome",
     "branch": "master",

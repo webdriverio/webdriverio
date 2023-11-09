@@ -63,7 +63,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.EmptyParams`",
-                    "description": "<pre>{}</pre>",
+                    "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
             ],
@@ -83,7 +83,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.SessionNewParameters`",
-                    "description": "<pre>{<br />  capabilities: SessionCapabilitiesRequest;<br />}</pre>",
+                    "description": "<pre>\\{<br />  capabilities: SessionCapabilitiesRequest;<br />\\\}</pre>",
                     "required": true
                 }
             ],
@@ -103,7 +103,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.EmptyParams`",
-                    "description": "<pre>{}</pre>",
+                    "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
             ]
@@ -118,7 +118,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.SessionSubscriptionRequest`",
-                    "description": "<pre>{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />}</pre>",
+                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -133,7 +133,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.SessionSubscriptionRequest`",
-                    "description": "<pre>{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />}</pre>",
+                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -148,7 +148,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.EmptyParams`",
-                    "description": "<pre>{}</pre>",
+                    "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
             ]
@@ -163,7 +163,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCaptureScreenshotParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -183,7 +183,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCloseParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -198,7 +198,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCreateParameters`",
-                    "description": "<pre>{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />}</pre>",
+                    "description": "<pre>\\{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -218,7 +218,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextGetTreeParameters`",
-                    "description": "<pre>{<br />  maxDepth?: JsUint;<br />  root?: BrowsingContextBrowsingContext;<br />}</pre>",
+                    "description": "<pre>\\{<br />  maxDepth?: JsUint;<br />  root?: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -238,7 +238,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextHandleUserPromptParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />  accept?: boolean;<br />  userText?: string;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  accept?: boolean;<br />  userText?: string;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -253,7 +253,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextNavigateParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />  url: string;<br />  wait?: BrowsingContextReadinessState;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  url: string;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -273,7 +273,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextPrintParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default 'portrait'<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default 'portrait'<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -293,7 +293,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextReloadParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />  ignoreCache?: boolean;<br />  wait?: BrowsingContextReadinessState;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  ignoreCache?: boolean;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -308,7 +308,7 @@ export default {
                 {
                     "name": "params",
                     "type": "object",
-                    "description": "<pre>{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  sandbox?: string;<br />}</pre>",
+                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  sandbox?: string;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -323,7 +323,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.ScriptDisownParameters`",
-                    "description": "<pre>{<br />  handles: ScriptHandle[];<br />  target: ScriptTarget;<br />}</pre>",
+                    "description": "<pre>\\{<br />  handles: ScriptHandle[];<br />  target: ScriptTarget;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -338,7 +338,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.ScriptCallFunctionParameters`",
-                    "description": "<pre>{<br />  functionDeclaration: string;<br />  awaitPromise: boolean;<br />  target: ScriptTarget;<br />  arguments?: ScriptArgumentValue[];<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  this?: ScriptArgumentValue;<br />}</pre>",
+                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  awaitPromise: boolean;<br />  target: ScriptTarget;<br />  arguments?: ScriptArgumentValue[];<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  this?: ScriptArgumentValue;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -353,7 +353,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.ScriptEvaluateParameters`",
-                    "description": "<pre>{<br />  expression: string;<br />  target: ScriptTarget;<br />  awaitPromise: boolean;<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />}</pre>",
+                    "description": "<pre>\\{<br />  expression: string;<br />  target: ScriptTarget;<br />  awaitPromise: boolean;<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -373,7 +373,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.ScriptGetRealmsParameters`",
-                    "description": "<pre>{<br />  context?: BrowsingContextBrowsingContext;<br />  type?: ScriptRealmType;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  type?: ScriptRealmType;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -393,7 +393,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.ScriptRemovePreloadScriptParameters`",
-                    "description": "<pre>{<br />  script: ScriptPreloadScript;<br />}</pre>",
+                    "description": "<pre>\\{<br />  script: ScriptPreloadScript;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -408,7 +408,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.InputPerformActionsParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />  actions: InputSourceActions[];<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  actions: InputSourceActions[];<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -423,7 +423,7 @@ export default {
                 {
                     "name": "params",
                     "type": "`remote.InputReleaseActionsParameters`",
-                    "description": "<pre>{<br />  context: BrowsingContextBrowsingContext;<br />}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
             ]

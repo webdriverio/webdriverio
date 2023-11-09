@@ -2,12 +2,12 @@ import path from 'node:path'
 import got from 'got'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
 
 import * as packageExports from '../src/index.js'
-
+import { setUserHookNames } from '../src/utils.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 
 vi.mock('@wdio/utils')
@@ -56,6 +56,14 @@ vi.mock('moduleB', () => ({
         global.MODULE_B_WAS_LOADED_WITH = opts
     }
 }))
+
+vi.mock('../src/utils.js', async () => {
+    const actual: any = await vi.importActual('../src/utils.js')
+    return {
+        ...actual,
+        setUserHookNames: vi.fn(),
+    }
+})
 
 declare global {
     /* eslint-disable no-var */
@@ -129,15 +137,16 @@ describe('CucumberAdapter', () => {
             cucumberOpts: { format: [] }
         }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
 
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
-        expect(adapter.addWdioHooksAndWrapSteps).toBeCalledTimes(1)
+        expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadFiles).toBeCalledTimes(1)
+        expect(setUserHookNames).toBeCalledTimes(1)
     })
 
     it('registerRequiredModules', async () => {
@@ -192,7 +201,7 @@ describe('CucumberAdapter', () => {
         expect(global.MODULE_C_WAS_LOADED).toBe(true)
     })
 
-    it('addWdioHooksAndWrapSteps', async () => {
+    it('addWdioHooks', async () => {
         class CustomWorld {
             public foo = 'bar'
         }
@@ -210,7 +219,7 @@ describe('CucumberAdapter', () => {
             false,
             ['progress']
         )
-        adapter.addWdioHooksAndWrapSteps(
+        adapter.addWdioHooks(
             {
                 beforeFeature: 'beforeFeature',
                 afterFeature: 'afterFeature',
@@ -226,8 +235,7 @@ describe('CucumberAdapter', () => {
                     BeforeStep: Cucumber.BeforeStep,
                     AfterStep: Cucumber.AfterStep,
                     After: Cucumber.After,
-                    AfterAll: Cucumber.AfterAll,
-                    setDefinitionFunctionWrapper: Cucumber.setDefinitionFunctionWrapper
+                    AfterAll: Cucumber.AfterAll
                 },
             }
         )
@@ -237,7 +245,6 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(Cucumber.After).toBeCalledTimes(1)
         expect(Cucumber.AfterAll).toBeCalledTimes(1)
-        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
@@ -325,7 +332,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -353,7 +360,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -381,7 +388,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -409,7 +416,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -437,7 +444,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(false)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -465,7 +472,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -493,7 +500,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -538,7 +545,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -566,7 +573,7 @@ describe('CucumberAdapter', () => {
         expect(adapter._hasTests).toBe(true)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
@@ -593,13 +600,50 @@ describe('CucumberAdapter', () => {
         expect(adapter.hasTests()).toBe(false)
 
         adapter.registerRequiredModules = vi.fn()
-        adapter.addWdioHooksAndWrapSteps = vi.fn()
+        adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
 
         const result = await adapter.run()
 
         expect(result).toBe(0)
         expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('wrapSteps', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        adapter.wrapStep  = vi.fn()
+        expect(adapter.wrapStep).toBeCalledTimes(0)
+        adapter.wrapSteps()
+        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](vi.fn())
+        expect(adapter.wrapStep).toBeCalledWith(
+            expect.any(Function),
+            true,
+            undefined,
+            '0-0',
+            { retry: 0 },
+            expect.any(Function)
+        )
+    })
+
+    it('wrapSteps should not wrap wdio hooks', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        adapter.wrapStep  = vi.fn()
+        expect(adapter.wrapStep).toBeCalledTimes(0)
+        adapter.wrapSteps()
+        function wdioHookFn () { return 'foobar' }
+        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
+        expect(
+            vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
+        ).toBe('foobar')
+    })
+
+    it('wrapStep', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const wrappedStep = adapter.wrapStep('code', true, {}, '0-2', {}, () => 'hookParams')
+        expect(testFnWrapper).toBeCalledTimes(0)
+        wrappedStep('someWorld', 1, 2, 3)
+        expect(vi.mocked(testFnWrapper).mock.calls).toMatchSnapshot()
     })
 })
 

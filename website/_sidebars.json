@@ -45,6 +45,7 @@
         "bestpractices",
         "selectors",
         "timeouts",
+        "emulation",
         "accessibility",
         "mocksandspies",
         "customcommands",

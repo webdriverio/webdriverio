@@ -7,7 +7,7 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import { readPackageUp } from 'read-package-up'
+import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 
@@ -62,7 +62,7 @@ vi.mock('child_process', () => {
     return m
 })
 
-vi.mock('read-package-up', () => ({
+vi.mock('read-pkg-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
         path: '/foo/package.json',
         packageJson: {
@@ -583,7 +583,8 @@ describe('generateTestFiles', () => {
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
             generateTestFiles: true,
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
+            destStepRootPath: '/tests/stepDefinitions'
         }
         await generateTestFiles(answers as any)
 
@@ -614,7 +615,7 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
-            stepDefinitions: '/some/step',
+            destStepRootPath: '/tests/stepDefinitions',
             destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
@@ -669,6 +670,29 @@ describe('getPathForFileGeneration', () => {
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
         expect(generatedPaths.relativePath).toEqual('../page/objects')
+    })
+    it('Cucumber with pageobjects and steps different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'cucumber/features/steps',
+            pages: 'cucumber/features/pages',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('')
+    })
+
+    it('Cucumber with answer that is not a path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'y',
+            pages: 'h',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../h')
     })
 
     it('Mocha with pageobjects default values', () => {

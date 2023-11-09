@@ -12,4 +12,5 @@ const mock = () => logMock
 mock.setLevel = vi.fn()
 mock.setLogLevelsConfig = vi.fn()
 mock.waitForBuffer = vi.fn()
+mock.clearLogger = vi.fn()
 export default mock
