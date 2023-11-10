@@ -28,6 +28,13 @@ vi.mock('../src/bidi/core.js', () => {
             constructor () {
                 ++initCount
             }
+            get socket () {
+                return {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                    close: vi.fn()
+                }
+            }
         },
         initCount: () => initCount
     }

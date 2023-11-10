@@ -428,7 +428,7 @@ export function initiateBidi (socketUrl: string): PropertyDescriptorMap {
         _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: handler[cur.command].bind(handler)
+                value: handler[cur.command]?.bind(handler)
             }
             return acc
         }, {} as PropertyDescriptorMap)
