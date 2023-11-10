@@ -610,5 +610,4 @@ const protocol = {
         }
     }
 } as const
-
 export default protocol

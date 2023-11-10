@@ -202,7 +202,7 @@ await writeFile(
 await writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
     (
-        `export const protocol = ${JSON.stringify(jsonSpec, null, 4)} as const\n` +
+        `const protocol = ${JSON.stringify(jsonSpec, null, 4)} as const\n` +
         'export default protocol'
     )
 )

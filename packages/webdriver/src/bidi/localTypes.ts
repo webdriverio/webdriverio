@@ -517,12 +517,10 @@ export interface ScriptRegExpValue {
   pattern: string;
   flags?: string;
 }
-
 export interface ScriptRegExpLocalValue {
   type: 'regexp';
   value: ScriptRegExpValue;
 }
-
 export interface ScriptRegExpRemoteValue extends ScriptRegExpLocalValue {
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
