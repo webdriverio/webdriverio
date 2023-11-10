@@ -38,21 +38,23 @@ export default class WebDriver {
             _driverProcess: { value: driverProcess, configurable: false, writable: true }
         }
 
+        if (capabilities.webSocketUrl) {
+            log.info(`Register BiDi handler for session with id ${sessionId}`)
+            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
+            const handler = new BidiHandler(socketUrl)
+            await handler.connect().catch((err) => {
+                throw new Error(`Failed to establish WebDriver Bidi connection: ${err.message}`)
+            })
+            environmentPrototype.bidiMiddleware = { value: handler.socket }
+        }
+
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...driverPrototype }
         const monad = webdriverMonad(
             { ...params, requestedCapabilities },
             modifier,
             prototype
         )
-
-        let handler: BidiHandler | undefined
-        if (capabilities.webSocketUrl) {
-            log.info(`Register BiDi handler for session with id ${sessionId}`)
-            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
-            handler = new BidiHandler(socketUrl)
-            await handler.connect()
-        }
-        const client = monad(sessionId, customCommandWrapper, handler)
+        const client = monad(sessionId, customCommandWrapper)
 
         /**
          * if the server responded with direct connect information, update the

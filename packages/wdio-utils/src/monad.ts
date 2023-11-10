@@ -32,11 +32,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * WebDriver monad
      */
-    function unit (this: void, sessionId: string, commandWrapper?: Function, eventMiddleware?: { socket: Partial<EventEmitter> }) {
-        if (eventMiddleware) {
-            prototype.eventMiddleware = eventMiddleware
-        }
-
+    function unit (this: void, sessionId: string, commandWrapper?: Function) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -194,9 +190,13 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         prototype[eventCommand] = function (...args: [any, any]) {
             const method = eventCommand as keyof EventEmitter
             eventHandler[method]?.(...args as [never, any])
-            if (prototype.eventMiddleware) {
-                if (typeof prototype.eventMiddleware[method] === 'function') {
-                    prototype.eventMiddleware.socket[method]!(...args as [never, any])
+
+            /**
+             * proxy events to bidi middleware
+             */
+            if (prototype.bidiMiddleware) {
+                if (typeof prototype.bidiMiddleware[method] === 'function') {
+                    prototype.bidiMiddleware.socket[method]!(...args as [never, any])
                 }
             }
 

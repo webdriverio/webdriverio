@@ -13,7 +13,7 @@
  * ./scripts/bidi/**
  */
 
-export default {
+const protocol = {
     "sendCommand": {
         "socket": {
             "command": "send",
@@ -609,4 +609,6 @@ export default {
             ]
         }
     }
-}
+} as const
+
+export default protocol

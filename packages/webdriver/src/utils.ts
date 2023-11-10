@@ -273,7 +273,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
