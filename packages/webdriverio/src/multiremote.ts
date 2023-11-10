@@ -170,12 +170,12 @@ export class MultiRemoteDriver {
         this.__propertiesObject__ = propertiesObject
     }
 
-    on (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    on (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).on(eventName, emitter))
         return undefined as any
     }
 
-    once (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    once (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).once(eventName, emitter))
         return undefined as any
     }

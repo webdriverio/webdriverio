@@ -192,20 +192,6 @@ describe('command wrapper', () => {
     })
 })
 
-describe('Bidi support', () => {
-    it('it propagates command to middleware', async () => {
-        (scope as any).bidiMiddleware = { send: vi.fn() }
-        const commandFn = commandWrapper('POST', 'sendCommand', {
-            command: 'send',
-            required: true,
-            parameters: [{ type: 'object', name: 'params' }]
-        } as any)
-        await commandFn.call(scope, { params: 'foobar' })
-        expect((scope as any).bidiMiddleware.send).toHaveBeenCalledTimes(1)
-        expect((scope as any).bidiMiddleware.send).toHaveBeenCalledWith({ params: 'foobar' })
-    })
-})
-
 describe('command wrapper result log', () => {
     async function getRequestCallback (method: string, path: string, endpoint: CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)

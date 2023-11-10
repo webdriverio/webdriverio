@@ -190,16 +190,6 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         prototype[eventCommand] = function (...args: [any, any]) {
             const method = eventCommand as keyof EventEmitter
             eventHandler[method]?.(...args as [never, any])
-
-            /**
-             * proxy events to bidi middleware
-             */
-            if (prototype.bidiMiddleware) {
-                if (typeof prototype.bidiMiddleware[method] === 'function') {
-                    prototype.bidiMiddleware.socket[method]!(...args as [never, any])
-                }
-            }
-
             return this
         }
     }

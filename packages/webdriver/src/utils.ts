@@ -1,3 +1,4 @@
+import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
@@ -12,6 +13,8 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import RequestFactory from './request/factory.js'
 import command from './command.js'
+import { BidiHandler } from './bidi/handler.js'
+import type { Event } from './bidi/localTypes.js'
 import { REG_EXPS } from './constants.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
@@ -409,4 +412,37 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
     }
 
     return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
+}
+
+/**
+ * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
+ * @param socketUrl url to bidi interface
+ * @returns prototype with interface for bidi primitives
+ */
+export async function initiateBidi (socketUrl: string): Promise<PropertyDescriptorMap> {
+    socketUrl = socketUrl.replace('localhost', '127.0.0.1')
+    const handler = new BidiHandler(socketUrl)
+    handler.connect().then(() => console.log(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+
+    return {
+        _bidiSocket: { value: handler.socket },
+        ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
+            acc[cur.command] = {
+                value: (param: unknown) => handler[cur.command](param as any)
+            }
+            return acc
+        }, {} as PropertyDescriptorMap)
+    }
+}
+
+export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+    try {
+        const payload: Event = JSON.parse(data.toString())
+        if (payload.type !== 'event') {
+            return
+        }
+        this.emit(payload.method, payload.params)
+    } catch (err: unknown) {
+        log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
+    }
 }

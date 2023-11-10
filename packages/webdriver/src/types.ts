@@ -1,8 +1,9 @@
 import type { EventEmitter } from 'node:events'
-import type { Options, Capabilities } from '@wdio/types'
-import type { ProtocolCommands } from '@wdio/protocols'
+import type { Options, Capabilities, ThenArg } from '@wdio/types'
+import type { WebDriverBidiProtocol, ProtocolCommands } from '@wdio/protocols'
 
 import type { BidiHandler } from './bidi/handler.js'
+import type { EventData } from './bidi/localTypes.js'
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -23,6 +24,27 @@ export interface SessionFlags {
     isBidi: boolean
 }
 
+type Fn = (...args: any) => any
+type ValueOf<T> = T[keyof T]
+type ObtainMethods<T> = { [Prop in keyof T]: T[Prop] extends Fn ? ThenArg<ReturnType<T[Prop]>> : never }
+type WebDriverBidiCommands = typeof WebDriverBidiProtocol
+export type BidiCommands = WebDriverBidiCommands[keyof WebDriverBidiCommands]['socket']['command']
+export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands>>>
+
+type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
+export type BidiEventMap = {
+    [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]
+}
+
+type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
+type EventMap = {
+    [Event in EventData['method']]: GetParam<EventData, Event>
+}
+export interface BidiEventHandler {
+    on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
+    once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
+}
+
 export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string
@@ -34,7 +56,7 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommands, BidiHandler {}
+export interface Client extends Omit<BaseClient, keyof BidiEventHandler>, ProtocolCommands, BidiHandler, BidiEventHandler {}
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string

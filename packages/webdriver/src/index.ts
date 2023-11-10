@@ -5,9 +5,8 @@ import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command.js'
-import { BidiHandler } from './bidi/handler.js'
 import { DEFAULTS } from './constants.js'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
@@ -38,23 +37,34 @@ export default class WebDriver {
             _driverProcess: { value: driverProcess, configurable: false, writable: true }
         }
 
+        /**
+         * initiate WebDriver Bidi
+         */
+        const bidiPrototype: PropertyDescriptorMap = {}
         if (capabilities.webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
-            const handler = new BidiHandler(socketUrl)
-            await handler.connect().catch((err) => {
-                throw new Error(`Failed to establish WebDriver Bidi connection: ${err.message}`)
-            })
-            environmentPrototype.bidiMiddleware = { value: handler.socket }
+            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string))
         }
 
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...driverPrototype }
         const monad = webdriverMonad(
             { ...params, requestedCapabilities },
             modifier,
-            prototype
+            {
+                ...protocolCommands,
+                ...environmentPrototype,
+                ...userPrototype,
+                ...driverPrototype,
+                ...bidiPrototype
+            }
         )
         const client = monad(sessionId, customCommandWrapper)
+
+        /**
+         * parse and propagate all Bidi events to the browser instance
+         */
+        if (capabilities.webSocketUrl) {
+            client._bidiSocket?.on('message', parseBidiMessage.bind(client))
+        }
 
         /**
          * if the server responded with direct connect information, update the
@@ -99,9 +109,30 @@ export default class WebDriver {
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+
+        /**
+         * initiate WebDriver Bidi
+         */
+        const bidiPrototype: PropertyDescriptorMap = {}
+        const webSocketUrl = 'alwaysMatch' in options.capabilities!
+            ? options.capabilities.alwaysMatch?.webSocketUrl
+            : options.capabilities!.webSocketUrl
+        if (webSocketUrl) {
+            log.info(`Register BiDi handler for session with id ${options.sessionId}`)
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string))
+        }
+
+        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
-        return monad(options.sessionId, commandWrapper)
+        const client = monad(options.sessionId, commandWrapper)
+
+        /**
+         * parse and propagate all Bidi events to the browser instance
+         */
+        if (webSocketUrl) {
+            client._bidiSocket?.on('message', parseBidiMessage.bind(client))
+        }
+        return client
     }
 
     /**

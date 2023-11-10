@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events'
 import WebSocket from 'ws'
 import logger from '@wdio/logger'
 
@@ -8,13 +7,12 @@ import type { CommandResponse } from './localTypes.js'
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
 
-export class BidiCore extends EventEmitter {
+export class BidiCore {
     #id = 0
     #ws: WebSocket
     #isConnected = false
 
     constructor (private _webSocketUrl: string) {
-        super()
         log.info(`Connect to webSocketUrl ${this._webSocketUrl}`)
         this.#ws = new WebSocket(this._webSocketUrl)
     }
