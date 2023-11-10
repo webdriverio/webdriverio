@@ -419,16 +419,16 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
  * @param socketUrl url to bidi interface
  * @returns prototype with interface for bidi primitives
  */
-export async function initiateBidi (socketUrl: string): Promise<PropertyDescriptorMap> {
+export function initiateBidi (socketUrl: string): PropertyDescriptorMap {
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const handler = new BidiHandler(socketUrl)
     handler.connect().then(() => console.log(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {
-        _bidiSocket: { value: handler.socket },
+        _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: (param: unknown) => handler[cur.command](param as any)
+                value: handler[cur.command].bind(handler)
             }
             return acc
         }, {} as PropertyDescriptorMap)
