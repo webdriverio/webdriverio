@@ -32,6 +32,10 @@ export type BidiCommands = WebDriverBidiCommands[keyof WebDriverBidiCommands]['s
 export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands>>>
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
+type WebDriverClassicEvents = {
+    command: { method: string, endpoint: string, body: any }
+    result: { method: string, endpoint: string, body: any, result: any }
+}
 export type BidiEventMap = {
     [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]
 }
@@ -39,7 +43,7 @@ export type BidiEventMap = {
 type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
 type EventMap = {
     [Event in EventData['method']]: GetParam<EventData, Event>
-}
+} & WebDriverClassicEvents
 export interface BidiEventHandler {
     on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
     once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this

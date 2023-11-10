@@ -965,7 +965,7 @@ export function getHookType (hookName: string): string {
     return 'unknown'
 }
 
-export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 

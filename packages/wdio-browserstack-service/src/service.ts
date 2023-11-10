@@ -124,9 +124,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 /**
                  * register command event
                  */
+                const sessionId = this._browser.sessionId
                 this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
                     'client:beforeCommand',
-                    Object.assign(command, { sessionId: this._browser?.sessionId }),
+                    Object.assign(command, { sessionId }),
                     this._currentTest
                 ))
                 /**
@@ -134,7 +135,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  */
                 this._browser.on('result', (result) => this._insightsHandler?.browserCommand(
                     'client:afterCommand',
-                    Object.assign(result, { sessionId: this._browser?.sessionId }),
+                    Object.assign(result, { sessionId }),
                     this._currentTest
                 ))
             } catch (err) {
