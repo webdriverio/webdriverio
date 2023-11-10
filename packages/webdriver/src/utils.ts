@@ -437,6 +437,10 @@ export async function initiateBidi (socketUrl: string): Promise<PropertyDescript
 
 export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     try {
+        // keep backwards compatibility
+        // ToDo(Christian): remove in v9
+        this.emit('message', data)
+
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
             return
