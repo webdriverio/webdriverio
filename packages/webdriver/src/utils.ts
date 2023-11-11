@@ -422,7 +422,7 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
 export function initiateBidi (socketUrl: string): PropertyDescriptorMap {
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const handler = new BidiHandler(socketUrl)
-    handler.connect().then(() => console.log(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+    handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {
         _bidiHandler: { value: handler },
