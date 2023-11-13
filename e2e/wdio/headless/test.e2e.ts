@@ -188,33 +188,21 @@ describe('main suite 1', () => {
         })
 
         it('xOffset would cause a out of bounds', async () => {
-            try {
-                const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-                await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 })
-                throw new Error('xOffset and yOffset wouldn\'t cause a out of bounds')
-            } catch (err: any){
-                expect(err.message).toContain('xOffset would cause a out of bounds error as it goes outside of element')
-            }
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
         })
 
         it('yOffset would cause a out of bounds', async () => {
-            try {
-                const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-                await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 })
-                throw new Error('yOffset and yOffset wouldn\'t cause a out of bounds')
-            } catch (err: any){
-                expect(err.message).toContain('yOffset would cause a out of bounds error as it goes outside of element')
-            }
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('yOffset would cause a out of bounds error as it goes outside of element'))
         })
 
         it('xOffset and yOffset would cause a out of bounds', async () => {
-            try {
-                const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-                await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 })
-                throw new Error('xOffset and yOffset wouldn\'t cause a out of bounds')
-            } catch (err: any){
-                expect(err.message).toContain('xOffset would cause a out of bounds error as it goes outside of element')
-            }
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
         })
     })
 
