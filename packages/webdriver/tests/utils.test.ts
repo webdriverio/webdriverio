@@ -269,7 +269,7 @@ describe('utils', () => {
             expect(getSessionError({
                 name: 'Some Error',
                 code: 'ECONNREFUSED',
-                message: 'ECONNREFUSED 127.0.0.1:4444'
+                message: 'ECONNREFUSED localhost:4444'
             }, {
                 protocol: 'https',
                 hostname: 'foobar',
@@ -294,7 +294,7 @@ describe('utils', () => {
         it('edge driver localhost issue', () => {
             expect(
                 getSessionError(new Error('Bad Request - Invalid Hostname 400 <br> HTTP Error 400'))
-            ).toContain('127.0.0.1 instead of localhost')
+            ).toContain('localhost instead of localhost')
         })
 
         it('illegal w3c cap passed to selenium standalone', () => {

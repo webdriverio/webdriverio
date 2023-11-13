@@ -153,7 +153,7 @@ describe('getFilePath', () => {
 describe('argument formatting', () => {
     test('should format arguments correctly', () => {
         const args = formatCliArgs({
-            address: '127.0.0.1',
+            address: 'localhost',
             commandTimeout: '7200',
             showIosLog: false,
             sessionOverride: true,
@@ -161,7 +161,7 @@ describe('argument formatting', () => {
         })
 
         expect(args[0]).toBe('--address')
-        expect(args[1]).toBe('127.0.0.1')
+        expect(args[1]).toBe('localhost')
         expect(args[2]).toBe('--command-timeout')
         expect(args[3]).toBe('7200')
         expect(args[4]).toBe('--session-override')

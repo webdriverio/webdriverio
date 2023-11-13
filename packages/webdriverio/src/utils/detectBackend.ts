@@ -1,6 +1,6 @@
 import type { Capabilities, Options } from '@wdio/types'
 
-const DEFAULT_HOSTNAME = '127.0.0.1'
+const DEFAULT_HOSTNAME = 'localhost'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
 const DEFAULT_PATH = '/'

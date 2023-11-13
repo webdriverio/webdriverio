@@ -81,7 +81,7 @@ sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.pro
             httpProxy: "corporate.proxy:8080",
             socksUsername: "codeceptjs",
             socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
+            noProxy: "localhost,localhost"
         },
         // ...
     }],
