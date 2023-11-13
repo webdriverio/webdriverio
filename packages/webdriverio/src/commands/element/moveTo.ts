@@ -29,16 +29,16 @@ export async function moveTo (
     /**
      * W3C way of handle the mouse move actions
      */
+    const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
-        const { width, height } = await this.getElementRect(this.elementId)
-        if (xOffset && xOffset < (-Math.floor(width / 2)) && xOffset > Math.floor(width / 2)) {
+        const { width, height } = await browser.getElementRect(this.elementId)
+        if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
             throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
         }
-        if (yOffset && yOffset < (-Math.floor(height / 2)) && yOffset > Math.floor(height / 2)) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
+            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
         }
     }
-    const browser = getBrowserObject(this)
     const moveToNested = async () => {
         await browser.action('pointer', { parameters: { pointerType: 'mouse' } })
             .move({ origin: this, x: xOffset || 0, y: yOffset || 0 })

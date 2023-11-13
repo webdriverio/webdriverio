@@ -105,9 +105,9 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
         await elem.click({ y: 30 })
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(got.mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions).toMatchSnapshot()
+        expect(got.mock.calls[3][1].json.actions).toMatchSnapshot()
     })
 
     it('should allow to right click on an element with an offset and passing a button type', async () => {
@@ -120,17 +120,17 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
         await elem.click({ button: 2, x: 40, y: 30 })
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(got.mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions[0].actions[0].type)
+        expect(got.mock.calls[3][1].json.actions[0].actions[0].type)
             .toBe('pointerMove')
-        expect(got.mock.calls[2][1].json.actions[0].actions[0].x)
+        expect(got.mock.calls[3][1].json.actions[0].actions[0].x)
             .toBe(40)
-        expect(got.mock.calls[2][1].json.actions[0].actions[0].y)
+        expect(got.mock.calls[3][1].json.actions[0].actions[0].y)
             .toBe(30)
-        expect(got.mock.calls[2][1].json.actions[0].actions[1])
+        expect(got.mock.calls[3][1].json.actions[0].actions[1])
             .toMatchSnapshot()
-        expect(got.mock.calls[2][1].json.actions[0].actions[2])
+        expect(got.mock.calls[3][1].json.actions[0].actions[2])
             .toStrictEqual({ type: 'pointerUp', button: 2 })
     })
 
