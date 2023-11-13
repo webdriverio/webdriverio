@@ -26,7 +26,7 @@ describe('detectBackend', () => {
 
     it('should default if host or port is not given', () => {
         let caps = detectBackend({ port: 1234 })
-        expect(caps.hostname).toBe('127.0.0.1')
+        expect(caps.hostname).toBe('localhost')
         expect(caps.port).toBe(1234)
         expect(caps.path).toBe('/')
 
@@ -36,7 +36,7 @@ describe('detectBackend', () => {
         expect(caps.path).toBe('/')
 
         caps = detectBackend({ path: '/foo/bar' })
-        expect(caps.hostname).toBe('127.0.0.1')
+        expect(caps.hostname).toBe('localhost')
         expect(caps.port).toBe(4444)
         expect(caps.path).toBe('/foo/bar')
     })

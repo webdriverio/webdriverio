@@ -21,7 +21,7 @@ import type { Capabilities } from '@wdio/types'
  *  takesScreenshot: true,
  *  networkConnectionEnabled: false,
  *  platformVersion: '12.1.2',
- *  webDriverAgentUrl: 'http://127.0.0.1:5700',
+ *  webDriverAgentUrl: 'http://localhost:5700',
  *  testobject_platform_name: 'iOS',
  *  orientation: 'PORTRAIT',
  *  realDevice: true,

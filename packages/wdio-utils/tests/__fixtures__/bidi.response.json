@@ -4,7 +4,7 @@
   "browserVersion": "110.0",
   "moz:accessibilityChecks": false,
   "moz:buildID": "20230131190033",
-  "moz:debuggerAddress": "127.0.0.1:9222",
+  "moz:debuggerAddress": "localhost:9222",
   "moz:geckodriverVersion": "0.33.0",
   "moz:headless": false,
   "moz:platformVersion": "22.4.0",
@@ -25,5 +25,5 @@
     "script": 30000
   },
   "unhandledPromptBehavior": "dismiss and notify",
-  "webSocketUrl": "ws://127.0.0.1:9222/session/add8b167-5aea-45af-998a-0c24da592193"
+  "webSocketUrl": "ws://localhost:9222/session/add8b167-5aea-45af-998a-0c24da592193"
 }

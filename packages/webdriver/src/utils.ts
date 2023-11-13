@@ -345,7 +345,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 
     // edge driver on localhost
     if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
-        return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
+        return "Run edge driver on localhost instead of localhost, ex: --host=localhost, or set `hostname: 'localhost'` in your wdio.conf.js"
     }
 
     const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
@@ -420,7 +420,7 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
  * @returns prototype with interface for bidi primitives
  */
 export function initiateBidi (socketUrl: string): PropertyDescriptorMap {
-    socketUrl = socketUrl.replace('localhost', '127.0.0.1')
+    socketUrl = socketUrl.replace('localhost', 'localhost')
     const handler = new BidiHandler(socketUrl)
     handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 

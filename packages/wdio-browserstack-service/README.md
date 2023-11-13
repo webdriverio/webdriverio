@@ -298,7 +298,7 @@ To use a proxy for local testing -
 
 ```js
 opts = {
-  proxyHost: "127.0.0.1",
+  proxyHost: "localhost",
   proxyPort: "8000",
   proxyUser: "user",
   proxyPass: "password",
@@ -316,7 +316,7 @@ To use local proxy in local testing -
 
 ```js
 opts = {
-  localProxyHost: "127.0.0.1",
+  localProxyHost: "localhost",
   localProxyPort: "8000",
   localProxyUser: "user",
   localProxyPass: "password",

@@ -22,7 +22,7 @@ const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
 
 const DEFAULT_CONNECTION = {
     protocol: 'http',
-    hostname: '127.0.0.1',
+    hostname: 'localhost',
     port: 4723,
     path: '/'
 }
