@@ -11,7 +11,9 @@ describe('bidi e2e test', () => {
         }
 
         const result = await browser.browsingContextGetTree({})
+        const context = await browser.getWindowHandle()
         expect(result.contexts).toHaveLength(1)
+        expect(result.contexts[0].context).toBe(context)
     })
 
     it('can listen to events', async function () {
