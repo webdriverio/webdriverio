@@ -116,8 +116,15 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
-const _install = async (args: InstallOptions & { unpack?: true | undefined }): Promise<void> => {
-    await install(args)
+const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
+    await install(args).catch((err) => {
+        const error = `Failed downloading ${args.browser} v${args.buildId}: ${err.message}, retrying ...`
+        if (retry) {
+            throw new Error(error)
+        }
+        log.error(error)
+        return _install(args, true)
+    })
     log.progress('')
 }
 

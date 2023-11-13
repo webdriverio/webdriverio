@@ -1,7 +1,7 @@
 type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine'
 
 interface EmulationOptions {
-    geolocation: GeolocationPosition | Error
+    geolocation: Partial<GeolocationCoordinates>
     userAgent: string
     colorScheme: 'light' | 'dark'
     onLine: boolean

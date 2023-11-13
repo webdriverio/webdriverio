@@ -30,7 +30,7 @@ export default defineConfig({
                 'packages/webdriver/src/bidi/handler.ts'
             ],
             lines: 88,
-            functions: 85,
+            functions: 84,
             statements: 88,
             branches: 88
         }

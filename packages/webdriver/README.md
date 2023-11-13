@@ -68,9 +68,9 @@ const browser = await WebDriver.newSession({
 await browser.sessionSubscribe({ events: ['log.entryAdded'] })
 
 /**
- * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}
+ * returns: {"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}
  */
-browser.on('message', (data) => console.log('received %s', data))
+browser.on('log.entryAdded', (entryAdded) => console.log('received %s', entryAdded))
 
 await browser.executeScript('console.log("Hello Bidi")', [])
 await browser.deleteSession()

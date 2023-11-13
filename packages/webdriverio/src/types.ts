@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 import type { Protocol } from 'devtools-protocol'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -240,7 +240,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browse
 /**
  * @deprecated use `WebdriverIO.Browser` instead
  */
-export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiEventHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -502,8 +502,8 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
 
 declare global {
     namespace WebdriverIO {
-        interface Browser extends BrowserBase, BidiHandler, ProtocolCommands, BrowserCommandsType {}
-        interface Element extends ElementBase, BidiHandler, ProtocolCommands, ElementCommandsType {}
+        interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
+        interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }
