@@ -15,6 +15,7 @@ export const UNICODE_CHARACTERS = {
     'Enter': '\uE007',
     'Shift': '\uE008',
     'Control': '\uE009',
+    'Ctrl': '\uE009',
     'Control Left': '\uE009',
     'Control Right': '\uE051',
     'Alt': '\uE00A',

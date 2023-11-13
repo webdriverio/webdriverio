@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 
-import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@wdio/utils'
+import { HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 
 export enum SupportedAutomationProtocols {
@@ -117,4 +117,4 @@ export const ERROR_REASON = [
 /**
  * Special Characters
  */
-export const Key = UNICODE_CHARACTERS
+export { UNICODE_CHARACTERS as Key } from '@wdio/utils'
