@@ -123,17 +123,30 @@ export async function click(
 
     if (this.isW3C) {
         const browser = getBrowserObject(this)
-        await browser.action('pointer', {
-            parameters: { pointerType: 'mouse' }
-        })
-            .move({
-                origin: this,
-                x: xoffset,
-                y: yoffset
+        const clickNested = async () => {
+            await browser.action('pointer', {
+                parameters: { pointerType: 'mouse' }
             })
-            .down({ button })
-            .up({ button })
-            .perform(skipRelease)
+                .move({
+                    origin: this,
+                    x: xoffset,
+                    y: yoffset
+                })
+                .down({ button })
+                .up({ button })
+                .perform(skipRelease)
+        }
+        try {
+            await clickNested()
+        } catch {
+        /**
+        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+        */
+            await this.scrollIntoView({ block: 'center', inline: 'center', behavior: 'auto' })
+            await clickNested()
+        }
         return
     }
 

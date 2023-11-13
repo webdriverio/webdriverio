@@ -9,34 +9,7 @@ exports[`moveTo > should do a moveTo with params 1`] = `
   "height": 0,
   "origin": {
     "element-6066-11e4-a52e-4f735466cecf": {
-      "scrollIntoView": [MockFunction spy] {
-        "calls": [
-          [
-            {
-              "behavior": "instant",
-              "block": "nearest",
-              "inline": "nearest",
-            },
-          ],
-          [
-            {
-              "behavior": "instant",
-              "block": "center",
-              "inline": "center",
-            },
-          ],
-        ],
-        "results": [
-          {
-            "type": "return",
-            "value": undefined,
-          },
-          {
-            "type": "return",
-            "value": undefined,
-          },
-        ],
-      },
+      "scrollIntoView": [MockFunction spy],
     },
   },
   "pressure": 0,
@@ -60,34 +33,7 @@ exports[`moveTo > should do a moveTo without params 1`] = `
   "height": 0,
   "origin": {
     "element-6066-11e4-a52e-4f735466cecf": {
-      "scrollIntoView": [MockFunction spy] {
-        "calls": [
-          [
-            {
-              "behavior": "instant",
-              "block": "nearest",
-              "inline": "nearest",
-            },
-          ],
-          [
-            {
-              "behavior": "instant",
-              "block": "center",
-              "inline": "center",
-            },
-          ],
-        ],
-        "results": [
-          {
-            "type": "return",
-            "value": undefined,
-          },
-          {
-            "type": "return",
-            "value": undefined,
-          },
-        ],
-      },
+      "scrollIntoView": [MockFunction spy],
     },
   },
   "pressure": 0,
