@@ -15,13 +15,13 @@ const plugins = {
  * Generate docs for reporter and services
  * @param {object} sidebars website/sidebars
  */
-export function generateReportersAndServicesDocs (sidebars) {
+export function generateReportersAndServicesDocs (sidebars: any) {
     const packages = getSubPackages(IGNORED_SUBPACKAGES_FOR_DOCS)
 
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
 
-        const items = []
+        const items: string[] = []
         for (const pkg of pkgs) {
             const name = pkg.split('-').slice(1, -1)
             const id = `${name.join('-')}-${type}`

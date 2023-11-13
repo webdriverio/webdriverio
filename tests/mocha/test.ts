@@ -1,4 +1,5 @@
 import assert from 'node:assert'
+import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
     const testJs = 'tests/mocha/test.ts'
@@ -12,8 +13,28 @@ describe('Mocha smoke test', () => {
         expect(global.expect).toBeDefined()
     })
 
-    it('should return sync value', async () => {
+    it('should allow to use WebdriverIO assertions', async () => {
         await expect(browser).toHaveTitle('Mock Page Title')
+    })
+
+    it('should allow to use asymmetric matchers', async () => {
+        await expect(browser).toHaveTitle(
+            expect.stringContaining('Page'))
+        await expect(browser).toHaveTitle(
+            expect.not.stringContaining('foobar'))
+        await expect(browser).toHaveUrl(
+            expect.stringContaining('mymockpage'))
+        await expect(browser).toHaveUrl(
+            expect.not.stringContaining('mymock_page.'))
+    })
+
+    it('has a testrunner config object', () => {
+        const opts = browser.options as Options.Testrunner
+        expect(Array.isArray(opts.services)).toBe(true)
+        expect(opts).toHaveProperty('mochaOpts')
+        expect(opts).toHaveProperty('jasmineOpts')
+        expect(opts).toHaveProperty('cucumberOpts')
+        expect(opts).toHaveProperty('specs')
     })
 
     let hasRun = false

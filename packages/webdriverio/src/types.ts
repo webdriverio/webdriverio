@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 import type { Protocol } from 'devtools-protocol'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -237,7 +237,10 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
-export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
+/**
+ * @deprecated use `WebdriverIO.Browser` instead
+ */
+export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiEventHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -280,6 +283,9 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     error?: Error
 }
+/**
+ * @deprecated use `WebdriverIO.Element` instead
+ */
 export interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
@@ -318,8 +324,15 @@ interface MultiRemoteElementBase {
 }
 
 interface MultiRemoteBrowserType extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
+/**
+ * @deprecated use `WebdriverIO.MultiRemoteBrowser` instead
+ */
 export interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
 interface MultiRemoteElementType extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
+
+/**
+ * @deprecated use `WebdriverIO.MultiRemoteElement` instead
+ */
 export interface MultiRemoteElement extends MultiRemoteElementType {}
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement | undefined) | ((elem: HTMLElement) => (HTMLElement | undefined)[])
@@ -489,8 +502,8 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
 
 declare global {
     namespace WebdriverIO {
-        interface Browser extends BrowserBase, BidiHandler, ProtocolCommands, BrowserCommandsType {}
-        interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+        interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
+        interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }

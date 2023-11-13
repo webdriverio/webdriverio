@@ -232,10 +232,6 @@ export interface BidiRequest {
     params: Record<string, any>
 }
 
-export interface BidiResponse {
-    id: number
-}
-
 export type Context = string | DetailedContext
 
 /**

@@ -6,6 +6,7 @@ import type { StdLog } from '../src/index.js'
 import TestReporter from '../src/reporter.js'
 import RequestQueueHandler from '../src/request-handler.js'
 import * as utils from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 const log = logger('test')
 
@@ -13,6 +14,9 @@ vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 describe('test-reporter', () => {
     const runnerConfig = {

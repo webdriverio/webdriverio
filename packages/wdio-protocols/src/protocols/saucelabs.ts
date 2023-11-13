@@ -61,18 +61,18 @@ export default {
     },
     '/session/:sessionId/sauce/ondemand/throttle/network': {
         POST: {
-            command: 'throttleNetwork',
+            command: 'sauceThrottleNetwork',
             description:
                 'With network conditioning you can test your site on a variety of network connections, including Edge, 3G, and even offline. You can throttle the data throughput, including the maximum download and upload throughput, and use latency manipulation to enforce a minimum delay in connection round-trip time (RTT).',
             ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleNetworkCapabilities',
             examples: [
                 [
                     '// predefined network condition',
-                    "browser.throttleNetwork('offline')",
+                    "browser.sauceThrottleNetwork('offline')",
                 ],
                 [
                     '// custom network condition',
-                    'browser.throttleNetwork({',
+                    'browser.sauceThrottleNetwork({',
                     '  download: 1000,',
                     '  upload: 500,',
                     "  latency: 40'",

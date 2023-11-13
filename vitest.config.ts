@@ -26,11 +26,12 @@ export default defineConfig({
                 // we are using e2e tests for ensuring the functionality works
                 // check out the ./e2e folder
                 'packages/devtools/src/commands',
-                'packages/devtools/src/scripts'
+                'packages/devtools/src/scripts',
+                'packages/webdriver/src/bidi/handler.ts'
             ],
-            lines: 87,
+            lines: 88,
             functions: 84,
-            statements: 87,
+            statements: 88,
             branches: 88
         }
     }

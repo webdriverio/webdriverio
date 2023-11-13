@@ -9,7 +9,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
  * @param   {string[]} ignorePackages  a list of packages to be ignored
  * @returns {string[]}                 a list of sub packages
  */
-export const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirname, '..', '..', 'packages')).filter((pkg) => (
+export const getSubPackages = (ignorePackages: string[] = []) => shell.ls(path.join(__dirname, '..', '..', 'packages')).filter((pkg) => (
     /**
      * ignore node_modules directory that is created by the link script to test the
      * wdio test runner
@@ -19,9 +19,9 @@ export const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirn
      * ignore packages that don't need to be compiled
      */
     !ignorePackages.includes(pkg)
-))
+)) as string[]
 
-export function buildPreface(id, title, titleSuffix, editUrl) {
+export function buildPreface(id: string, title: string, titleSuffix: string, editUrl: string) {
     return [
         '---',
         `id: ${id}`,

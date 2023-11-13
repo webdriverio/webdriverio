@@ -21,6 +21,79 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.22.0 (2023-11-08)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`, `webdriver`
+  * [#11584](https://github.com/webdriverio/webdriverio/pull/11584) (@wdio/protocols): deprecate JSONWireProtocol commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-json-reporter`
+  * [#11623](https://github.com/webdriverio/webdriverio/pull/11623) (@wdio/json-reporter): add JSON reporter based of `wdio-json-reporter` ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11580](https://github.com/webdriverio/webdriverio/pull/11580) WDIOService logs to file and upload to server ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11625](https://github.com/webdriverio/webdriverio/pull/11625) fix jasmine afterTest hook ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-cli`
+  * [#11464](https://github.com/webdriverio/webdriverio/pull/11464) Fixes issue 9578  ([@KierenLWoods](https://github.com/KierenLWoods))
+* `webdriverio`
+  * [#11590](https://github.com/webdriverio/webdriverio/pull/11590) (webdriverio): remove type exports ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`, `webdriverio`
+  * [#11589](https://github.com/webdriverio/webdriverio/pull/11589) (webdriverio): keep testrunner options ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11591](https://github.com/webdriverio/webdriverio/pull/11591) (docs): add tested example snippet to custom selector strategy docs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-protocols`
+  * [#11611](https://github.com/webdriverio/webdriverio/pull/11611) JSONWP deprecated methods ([@udarrr](https://github.com/udarrr))
+* Other
+  * [#11587](https://github.com/webdriverio/webdriverio/pull/11587) (scripts): migrate AWS SDK for JavaScript v2 APIs to v3 ([@trivikr](https://github.com/trivikr))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Kieren Woods ([@KierenLWoods](https://github.com/KierenLWoods))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- Trivikram Kamat ([@trivikr](https://github.com/trivikr))
+
+
+## v8.21.0 (2023-11-02)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11537](https://github.com/webdriverio/webdriverio/pull/11537) Fix name selector to allow other characters ([@aristotelos](https://github.com/aristotelos))
+  * [#11496](https://github.com/webdriverio/webdriverio/pull/11496) (webdriverio): fix - scrollIntoView calls scroll action with a wrong … ([@qaflorent](https://github.com/qaflorent))
+* `wdio-cli`
+  * [#11541](https://github.com/webdriverio/webdriverio/pull/11541) (@wdio/cli): fix reporter output ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-allure-reporter`
+  * [#11532](https://github.com/webdriverio/webdriverio/pull/11532) add testCaseId for allure testOps ([@AlexKorTutu](https://github.com/AlexKorTutu))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11488](https://github.com/webdriverio/webdriverio/pull/11488) [browserstack-service] Add more CIs ([@samarsault](https://github.com/samarsault))
+* `webdriverio`
+  * [#11529](https://github.com/webdriverio/webdriverio/pull/11529) changed moveTo to like it's been implemented in click ([@udarrr](https://github.com/udarrr))
+* `wdio-types`, `wdio-utils`
+  * [#11509](https://github.com/webdriverio/webdriverio/pull/11509) (@wdio/utils): Add envDetector for browserstack ([@Pi-fe](https://github.com/Pi-fe))
+
+#### :memo: Documentation
+* [#11547](https://github.com/webdriverio/webdriverio/pull/11547) (docs): added tip to use translation files when using a11y selectors ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 7
+- Alexander Korneev ([@AlexKorTutu](https://github.com/AlexKorTutu))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Pietro F. ([@Pi-fe](https://github.com/Pi-fe))
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- [@aristotelos](https://github.com/aristotelos)
+- [@qaflorent](https://github.com/qaflorent)
+
+
 ## v8.20.5 (2023-10-25)
 
 #### :bug: Bug Fix

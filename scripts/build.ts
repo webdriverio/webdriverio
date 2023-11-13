@@ -11,7 +11,7 @@ import { getSubPackages } from './utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-const args = process.argv.slice(2)
+const args: string[] = process.argv.slice(2)
 const HAS_WATCH_FLAG = args[0] === '--watch'
 const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
 
@@ -82,7 +82,7 @@ const packages = getSubPackages()
         const tokens = pkg.split('-')
         acc[tokens.length > 2 ? 1 : 0].push(pkg)
         return acc
-    }, [[], []])
+    }, [[], []] as string[][])
 
     /**
      * Concat all groups of packages, with root packages as first
@@ -110,7 +110,7 @@ ESM_CJS_PACKAGES.forEach((pkg) => {
     }
 })
 
-const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+const cmd = (packages: string[]) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 /**
  * if we build the project make sure root packages are compiled first

@@ -231,3 +231,10 @@ export interface HookFunctionExtension {
 export interface StepDefinitionOptions {
     retry: number;
 }
+
+export interface TestHookDefinitionConfig {
+    code: Function;
+    line: number;
+    options: any;
+    uri: string;
+}

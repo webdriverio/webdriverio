@@ -24,9 +24,16 @@ vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
         BidiCore: class BidiHandlerMock {
-            connect = vi.fn()
+            connect = vi.fn().mockResolvedValue({})
             constructor () {
                 ++initCount
+            }
+            get socket () {
+                return {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                    close: vi.fn()
+                }
             }
         },
         initCount: () => initCount
