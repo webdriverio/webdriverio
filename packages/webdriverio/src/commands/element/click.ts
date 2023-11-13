@@ -158,6 +158,6 @@ export async function click(
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
-    await this.moveToElement(this.elementId, xoffset + (width / 2), yoffset + (height / 2))
+    await this.moveToElement(this.elementId, xOffset + (width / 2), yOffset + (height / 2))
     return this.positionClick(button as number)
 }
