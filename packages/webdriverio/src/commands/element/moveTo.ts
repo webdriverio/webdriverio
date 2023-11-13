@@ -29,21 +29,30 @@ export async function moveTo (
     /**
      * W3C way of handle the mouse move actions
      */
+    if (xOffset || yOffset) {
+        const { width, height } = await this.getElementRect(this.elementId)
+        if (xOffset && xOffset < (-Math.floor(width / 2)) && xOffset > Math.floor(width / 2)) {
+            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        }
+        if (yOffset && yOffset < (-Math.floor(height / 2)) && yOffset > Math.floor(height / 2)) {
+            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        }
+    }
     const browser = getBrowserObject(this)
-    const moveToNested = async ( xOffset?: number, yOffset?: number ) => {
-        return  await browser.action('pointer', { parameters: { pointerType: 'mouse' } })
-            .move({ origin: this, x: xOffset ? xOffset : 0, y: yOffset ? yOffset : 0 })
+    const moveToNested = async () => {
+        await browser.action('pointer', { parameters: { pointerType: 'mouse' } })
+            .move({ origin: this, x: xOffset || 0, y: yOffset || 0 })
             .perform()
     }
     try {
-        return await moveToNested(xOffset, yOffset)
+        await moveToNested()
     } catch {
         /**
         * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
         * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
         * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
         */
-        await this.scrollIntoView({ block: 'center', inline: 'center', behavior: 'auto' })
-        return await moveToNested(xOffset, yOffset)
+        await this.scrollIntoView({ block: 'center', inline: 'center' })
+        await moveToNested()
     }
 }
