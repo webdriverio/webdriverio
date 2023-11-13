@@ -29,8 +29,13 @@ describe('bidi e2e test', () => {
         browser.on('log.entryAdded', (logEntry) => logEvents.push(logEntry))
         await browser.execute(() => console.log('Hello Bidi'))
         // eslint-disable-next-line wdio/no-pause
-        await browser.pause(100)
-        expect(logEvents).toHaveLength(1)
+        await browser.waitUntil(
+            () => logEvents.length === 1,
+            {
+                timeout: 5000,
+                timeoutMsg: 'Expected log entry to be added'
+            }
+        )
         expect(logEvents[0].text).toBe('Hello Bidi')
     })
 })
