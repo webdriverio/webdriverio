@@ -66,6 +66,7 @@ export class BidiCore {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
+        log.info('BIDI COMMAND', params.method, JSON.stringify(params.params))
         const id = ++this.#id
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
