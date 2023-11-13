@@ -14,8 +14,12 @@ export const UNICODE_CHARACTERS = {
     'Return': '\uE006',
     'Enter': '\uE007',
     'Shift': '\uE008',
+    /**
+     * Special control key that works cross browser for Mac, where it's the command key, and for
+     * Windows or Linux, where it is the control key.
+     */
+    'Ctrl': 'WDIO_CONTROL',
     'Control': '\uE009',
-    'Ctrl': '\uE009',
     'Control Left': '\uE009',
     'Control Right': '\uE051',
     'Alt': '\uE00A',
