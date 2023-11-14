@@ -11,7 +11,7 @@ interface EmulationOptions {
  * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
  * behave exactly as you specify it.
  *
- * Read more on this in the [Emulation](emulation) guidelines.
+ * Read more on this in the [Emulation](/docs/emulation) guidelines.
  *
  * :::info
  *
