@@ -9,7 +9,7 @@ import { fn, spyOn, mock, unmock, mocked } from '@wdio/browser-runner'
     expectType<string>(label)
 
     const elems = await $$('foo')
-    expectType<string>(elems.foundWith)
+    expectType<WebdriverIO.Element[]>(elems)
     const tagNames = await $$('foo').map((el) => el.getTagName())
     expectType<string[]>(tagNames)
 

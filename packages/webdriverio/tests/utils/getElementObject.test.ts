@@ -59,11 +59,9 @@ vi.mock('../../src/utils/getElementObject.js', async () => {
 })
 
 describe('getElements', () => {
-
     let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
-
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -73,7 +71,6 @@ describe('getElements', () => {
 
         vi.mocked(getElem.getElement).mockClear()
         vi.mocked(getElem.getElements).mockClear()
-
         vi.mocked(getElem.getElements).mockImplementation(
             (elem, _res, props) => origGetElem
                 .getElements
@@ -82,7 +79,6 @@ describe('getElements', () => {
     })
 
     it('should deal with a W3C spec error response', async () => {
-
         const error = new Error()
         Object.assign(error, {
             name: ErrorExamplesW3C.chrome.error,
@@ -91,13 +87,8 @@ describe('getElements', () => {
         })
 
         const elems = await browser.$$('#foo')
-        const [elem] = elems
-
-        expect(elems.foundWith).toBe('$$')
-
         expect(elems).toHaveLength(1)
-
-        expect(elem.error).toBeInstanceOf(Error)
-        expect(elem).toEqual(expect.objectContaining({ error }))
+        expect(elems[0].error).toBeInstanceOf(Error)
+        expect(elems[0]).toEqual(expect.objectContaining({ error }))
     })
 })

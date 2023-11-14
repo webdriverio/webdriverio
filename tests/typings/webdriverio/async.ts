@@ -67,10 +67,6 @@ async function bar() {
 
     // instances array
     expectType<string[]>(mr.instances)
-
-    const elements = await browser.$$('foo')
-    expectType<string>(elements.foundWith)
-
     ////////////////////////////////////////////////////////////////////////////////
 
     // remote

@@ -28,7 +28,6 @@ describe('custom$', () => {
         const elems = await elem.custom$$('test', '.test')
 
         expect(elems).toHaveLength(2)
-        expect(typeof elems.selector).toBe('string')
         expect(typeof elems[0].selector).toBe('object')
         expect(typeof (elems[0].selector as CustomStrategyReference).strategy).toBe('function')
         expect((elems[0].selector as CustomStrategyReference).strategyName).toBe('test')
@@ -37,9 +36,6 @@ describe('custom$', () => {
         expect((elems[0].selector as CustomStrategyReference).strategyArguments[1]).toBe(elem)
         expect(elems[0].elementId).toBe('.test-some-elem-123')
         expect(elems[1].elementId).toBe('.test-other-some-elem-123')
-        expect(elems.foundWith).toBe('custom$$')
-        expect(elems.selector).toBe('test')
-        expect(elems.props).toEqual(['.test'])
     })
 
     it('should error if no strategy found', async () => {
