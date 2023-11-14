@@ -9,7 +9,7 @@
     "create": "node --loader ts-node/esm ./scripts/generateSubPackage.ts",
     "backport": "node --loader ts-node/esm ./scripts/backport.ts",
     "build": "run-s clean:build generate compile copy",
-    "changelog": "node --loader ts-node/esm ./scripts/changelog.js",
+    "changelog": "node --loader ts-node/esm ./scripts/changelog.ts",
     "ci": "run-s setup test test:e2e",
     "clean": "run-p clean:*",
     "clean:build": "rimraf --glob ./packages/*/build",
