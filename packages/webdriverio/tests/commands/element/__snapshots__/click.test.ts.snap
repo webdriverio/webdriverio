@@ -117,7 +117,7 @@ exports[`click test > should allow to left click on an element with an offset wi
         "type": "pointerMove",
         "width": 0,
         "x": 0,
-        "y": 30,
+        "y": 15,
       },
       {
         "altitudeAngle": 0,
