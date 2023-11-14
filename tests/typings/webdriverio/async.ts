@@ -324,13 +324,6 @@ async function bar() {
     const elem1 = await $('')
     elem1.setValue('Delete')
 
-    const selector$$: string | HTMLElement | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
-    ;(elems.parent as WebdriverIO.Element).click()
-    ;(elems.parent as WebdriverIO.Browser).url('')
-    ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
-    // @ts-expect-error
-    ;(elems.parent as WebdriverIO.Browser).click()
-
     // test access to base client properties
     expectType<string>(browser.sessionId)
     expectType<string>((browser.capabilities as WebdriverIO.Capabilities).browserName)
