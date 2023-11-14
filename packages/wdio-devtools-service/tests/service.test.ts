@@ -72,7 +72,8 @@ beforeEach(() => {
         sessionId: vi.fn(),
         getPuppeteer: vi.fn(() => puppeteer.connect({})),
         addCommand: vi.fn(),
-        emit: vi.fn()
+        emit: vi.fn(),
+        getUrl: vi.fn()
     } as any
 
     multiBrowser = {
@@ -82,7 +83,8 @@ beforeEach(() => {
                 sessionId: vi.fn(),
                 getPuppeteer: vi.fn(() => puppeteer.connect({})),
                 addCommand: vi.fn(),
-                emit: vi.fn()
+                emit: vi.fn(),
+                getUrl: vi.fn()
             }
         },
         addCommand: vi.fn(),
@@ -141,6 +143,17 @@ test('afterCommand', async () => {
 
     // @ts-ignore test without paramater
     service.afterCommand()
+    expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
+})
+
+test('afterCommand: switchToWindow', async () => {
+    const service = new DevToolsService({})
+    service['_browser'] = browser
+    await service._setupHandler()
+
+    service._setupHandler = vi.fn()
+    await service.afterCommand('switchToWindow')
+    expect(service._setupHandler).toBeCalledTimes(1)
     expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
 })
 
