@@ -18,6 +18,16 @@ type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
+const RETRY_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'HEAD',
+    'DELETE',
+    'OPTIONS',
+    'TRACE'
+] as Options.Method[]
+
 export class RequestLibError extends Error {
     statusCode?: number
     body?: any
@@ -41,6 +51,7 @@ export interface WebDriverResponse {
     sessionId?: string
 }
 
+const ONE_SECOND = 1000 * 1
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -99,7 +110,11 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
-            retry: { limit: options.connectionRetryCount! },
+            retry: {
+                limit: options.connectionRetryCount as number,
+                methods: RETRY_METHODS,
+                calculateDelay: ({ computedValue }) => Math.min(ONE_SECOND, computedValue / 10)
+            },
             timeout: { response: options.connectionRetryTimeout as number }
         }
 

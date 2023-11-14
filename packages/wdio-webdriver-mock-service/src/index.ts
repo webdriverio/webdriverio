@@ -128,28 +128,28 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         const elem2Response = { [ELEM_PROP]: ELEMENT_REFETCHED }
 
-        //Found initially
+        // Found initially
         this._mock.command.findElement().once().reply(200, { value: elemResponse })
-        //Initiate refetch, but its not ready
+        // Initiate refetch, but its not ready
         this._mock.command.findElement().once().reply(404, NO_SUCH_ELEMENT)
-        //Always return the new element after
+        // Always return the new element after
         this._mock.command.findElement().times(4).reply(200, { value: elem2Response })
 
-        //First click works
+        // First click works
         this._mock.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
-        //Additional clicks won't for the original element
-        this._mock.command.elementClick(ELEMENT_ID).times(4).reply(500, {
+        // Additional clicks won't for the original element
+        this._mock.command.elementClick(ELEMENT_ID).times(8).reply(500, {
             value: {
                 error: 'stale element reference',
                 message: 'element is not attached to the page document'
             }
         })
-        //Clicks on the new element are successful
+        // Clicks on the new element are successful
         this._mock.command.elementClick(ELEMENT_REFETCHED).times(4).reply(200, { value: null })
 
-        //Wait for it to exist - but 2 failed iterations
+        // Wait for it to exist - but 2 failed iterations
         this._mock.command.findElements().times(2).reply(200, { value: [] })
-        //Always appears thereafter
+        // Always appears thereafter
         this._mock.command.findElements().times(4).reply(200, { value: [elem2Response] })
     }
 
