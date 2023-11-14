@@ -126,13 +126,6 @@ export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
-export interface ElementArray extends Array<WebdriverIO.Element> {
-    selector: Selector
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    foundWith: string
-    props: any[]
-}
-
 type AddCommandFnScoped<
     InstanceType = Browser,
     IsElement extends boolean = false

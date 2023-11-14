@@ -6,7 +6,7 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../middlewares.js'
 import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, ElementArray } from '../types.js'
+import type { Selector } from '../types.js'
 
 interface GetElementProps {
     isReactElement?: boolean
@@ -113,7 +113,7 @@ export const getElements = function getElements(
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: (ElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
-): ElementArray {
+): WebdriverIO.Element[] {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
@@ -179,5 +179,5 @@ export const getElements = function getElements(
         return elementInstance
     })
 
-    return elements as ElementArray
+    return elements
 }

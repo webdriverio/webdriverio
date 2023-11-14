@@ -1,8 +1,8 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
+import { findElements, isElement, findElement } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
-import type { Selector, ElementArray } from '../../types.js'
+import type { Selector } from '../../types.js'
 
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
@@ -36,7 +36,7 @@ import type { Selector, ElementArray } from '../../types.js'
  *
  * @alias $$
  * @param {String|Function} selector  selector or JS Function to fetch multiple elements
- * @return {ElementArray}
+ * @return {WebdriverIO.Element[]}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L15-L24
@@ -62,6 +62,5 @@ export async function $$ (
         }
     }
 
-    const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
+    return getElements.call(this, selector as Selector, res)
 }

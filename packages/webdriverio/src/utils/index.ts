@@ -15,7 +15,7 @@ import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { ELEMENT_KEY, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
+import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
@@ -491,36 +491,6 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
 
         scope.strategies.set(name, func)
     }
-}
-
-/**
- * Enhance elements array with data required to refetch it
- * @param   {object[]}          elements    elements
- * @param   {object}            parent      element or browser
- * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
- * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
- * @param   {Array}             props       additional properties required to fetch elements again
- * @returns {object[]}  elements
- */
-export const enhanceElementsArray = (
-    elements: ElementArray,
-    parent: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    foundWith = '$$',
-    props: any[] = []
-) => {
-    /**
-     * if we have an element collection, e.g. `const elems = $$([elemA, elemB])`
-     * we cna't assign a common selector to the element array
-     */
-    if (!Array.isArray(selector)) {
-        elements.selector = selector
-    }
-
-    elements.parent = parent
-    elements.foundWith = foundWith
-    elements.props = props
-    return elements
 }
 
 /**
