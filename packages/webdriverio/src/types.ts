@@ -126,7 +126,7 @@ export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
-export interface ElementArray extends Array<WebdriverIO.Element> {
+interface ElementArrayExport extends Array<WebdriverIO.Element> {
     selector: Selector
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     foundWith: string
@@ -502,9 +502,41 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
 
 declare global {
     namespace WebdriverIO {
+        /**
+         * WebdriverIO browser object
+         * @see https://webdriver.io/docs/api/browser
+         */
         interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
+        /**
+         * WebdriverIO element object
+         * @see https://webdriver.io/docs/api/element
+         */
         interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
+        /**
+         * WebdriverIO element array
+         * When fetching elements via `$$`, `custom$$` or `shadow$$` commands an array of elements
+         * is returns. This array has extended prototype properties to provide information about
+         * the parent element, selector and properties of the fetched elements. This is useful to
+         * e.g. re-fetch the set in case no elements got returned.
+         */
+        interface ElementArray extends ElementArrayExport {}
+        /**
+         * WebdriverIO multiremote browser object
+         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Browser>`
+         * where `string` is the capability name defined in the WebdriverIO options.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
+        /**
+         * WebdriverIO multiremote browser object
+         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Element>`
+         * where `string` is the capability name defined in the WebdriverIO options.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }
 }
