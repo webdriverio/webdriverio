@@ -21,6 +21,55 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.23.0 (2023-11-14)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-cli`, `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#11633](https://github.com/webdriverio/webdriverio/pull/11633) (@wdio/protocols): update WebDriver Bidi primitives ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#11631](https://github.com/webdriverio/webdriverio/pull/11631) (@wdio/globals): support asymmetric matchers ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11592](https://github.com/webdriverio/webdriverio/pull/11592) (webdriverio): support emulating Web APIs for `geolocation`, `colorScheme`, `userAgent` and `onLine` ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11570](https://github.com/webdriverio/webdriverio/pull/11570) Adding ability to get pseudo-elements css value via getCSSProperty #7709 ([@Pawel1894](https://github.com/Pawel1894))
+* `wdio-protocols`, `webdriverio`
+  * [#11548](https://github.com/webdriverio/webdriverio/pull/11548) (webdriverio): add throttleCPU and throttleNetwork commands ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :bug: Bug Fix
+* `wdio-types`, `wdio-webdriver-mock-service`, `webdriver`
+  * [#11667](https://github.com/webdriverio/webdriverio/pull/11667) (webdriver): retry on post requests ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#11644](https://github.com/webdriverio/webdriverio/pull/11644) added workaround scrollIntoView to center  to moveTo and click with a… ([@udarrr](https://github.com/udarrr))
+  * [#11636](https://github.com/webdriverio/webdriverio/pull/11636) (webdriverio): remove type support for browser commands on element in… ([@christian-bromann](https://github.com/christian-bromann))
+  * [#11586](https://github.com/webdriverio/webdriverio/pull/11586) (webdriverio): fix aria selector strategy ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#11446](https://github.com/webdriverio/webdriverio/pull/11446) Make custom$ return Element object when an element is not found ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-devtools-service`
+  * [#11668](https://github.com/webdriverio/webdriverio/pull/11668) re-register devtools when switching windows ([@ccharnkij](https://github.com/ccharnkij))
+* `wdio-browserstack-service`, `wdio-protocols`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#11639](https://github.com/webdriverio/webdriverio/pull/11639) (webdriver): improve WebDriver Bidi integration ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#11638](https://github.com/webdriverio/webdriverio/pull/11638) (allure-reporter): Align default exports with functions export ([@BorisOsipov](https://github.com/BorisOsipov))
+* `wdio-jasmine-framework`
+  * [#11635](https://github.com/webdriverio/webdriverio/pull/11635) (@wdio/jasmine-framework): typing support for Jasmine matchers ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#11628](https://github.com/webdriverio/webdriverio/pull/11628) Adding back cucumber before & after Hooks support ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#11671](https://github.com/webdriverio/webdriverio/pull/11671) (webdriverio): expose WebdriverIO.ElementArray properly ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 8
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Paweł Pohl ([@Pawel1894](https://github.com/Pawel1894))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.22.0 (2023-11-08)
 
 #### :eyeglasses: Spec Compliancy
