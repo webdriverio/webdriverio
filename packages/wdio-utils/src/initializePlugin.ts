@@ -3,12 +3,12 @@ import type { Services } from '@wdio/types'
 import { safeImport, isAbsolute } from './utils.js'
 
 /**
- * initialise WebdriverIO compliant plugins like reporter or services in the following way:
+ * initialize WebdriverIO compliant plugins like reporter or services in the following way:
  * 1. if package name is scoped (starts with "@"), require scoped package name
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default async function initialisePlugin (name: string, type?: string): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
+export default async function initializePlugin (name: string, type?: string): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
     /**
      * directly import packages that are scoped or start with an absolute path
      */

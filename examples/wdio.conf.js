@@ -227,12 +227,12 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
      * @param  {string}   cid      capability id (e.g 0-0)
      * @param  {object}   caps     object containing capabilities for session that will be spawn in the worker
      * @param  {string[]} specs    specs to be run in the worker process
-     * @param  {object}   args     object that will be merged with the main configuration once worker is initialised
+     * @param  {object}   args     object that will be merged with the main configuration once worker is initialized
      * @param  {object}   execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {

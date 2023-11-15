@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * This script initialises the playground by linking all package into the /test directory
+ * This script initializes the playground by linking all package into the /test directory
  */
 
 import url from 'node:url'

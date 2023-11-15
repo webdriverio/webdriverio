@@ -1,9 +1,9 @@
 import type { Capabilities, Services, Options } from '@wdio/types'
 import logger from '@wdio/logger'
 
-import initialisePlugin from './initialisePlugin.js'
+import initializePlugin from './initializePlugin.js'
 
-const log = logger('@wdio/utils:initialiseServices')
+const log = logger('@wdio/utils:initializeServices')
 
 type IntialisedService = (
     [Services.ServiceClass | { default: Function }, Services.ServiceOption, string] |
@@ -20,11 +20,11 @@ type ServiceWithOptions = [Service, Services.ServiceOption]
  * @param  {Object}    caps              capabilities of running session
  * @return {[(Object|Class), Object][]}  list of services with their config objects
  */
-async function initialiseServices (services: ServiceWithOptions[]): Promise<IntialisedService[]> {
-    const initialisedServices: IntialisedService[] = []
+async function initializeServices (services: ServiceWithOptions[]): Promise<IntialisedService[]> {
+    const initializedServices: IntialisedService[] = []
     for (const [serviceName, serviceConfig = {}] of services) {
         /**
-         * allow custom services that are already initialised, e.g.
+         * allow custom services that are already initialized, e.g.
          *
          * ```
          * services: [
@@ -33,8 +33,8 @@ async function initialiseServices (services: ServiceWithOptions[]): Promise<Inti
          * ```
          */
         if (typeof serviceName === 'object') {
-            log.debug('initialise custom initiated service')
-            initialisedServices.push([serviceName as Services.HookFunctions, {}])
+            log.debug('initialize custom initiated service')
+            initializedServices.push([serviceName as Services.HookFunctions, {}])
             continue
         }
 
@@ -52,8 +52,8 @@ async function initialiseServices (services: ServiceWithOptions[]): Promise<Inti
          * ```
          */
         if (typeof serviceName === 'function') {
-            log.debug(`initialise custom service "${serviceName.name}"`)
-            initialisedServices.push([serviceName as Services.ServiceClass, serviceConfig])
+            log.debug(`initialize custom service "${serviceName.name}"`)
+            initializedServices.push([serviceName as Services.ServiceClass, serviceConfig])
             continue
         }
 
@@ -64,12 +64,12 @@ async function initialiseServices (services: ServiceWithOptions[]): Promise<Inti
          * services: ['@wdio/devtools-service']
          * ```
          */
-        log.debug(`initialise service "${serviceName}" as NPM package`)
-        const service = await initialisePlugin(serviceName, 'service')
-        initialisedServices.push([service as Services.ServiceClass, serviceConfig, serviceName])
+        log.debug(`initialize service "${serviceName}" as NPM package`)
+        const service = await initializePlugin(serviceName, 'service')
+        initializedServices.push([service as Services.ServiceClass, serviceConfig, serviceName])
     }
 
-    return initialisedServices
+    return initializedServices
 }
 
 /**
@@ -84,20 +84,20 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
 }
 
 /**
- * initialise service for launcher process
+ * initialize service for launcher process
  * @param  {Object}   config  wdio config
  * @param  {Object[]} caps    list of capabilities
  * @return {Object}           containing a list of launcher services as well
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export async function initialiseLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
+export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
 
     try {
-        const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
+        const services = await initializeServices(config.services!.map(sanitizeServiceArray))
         for (const [service, serviceConfig, serviceName] of services) {
             /**
              * add custom services as object or function
@@ -145,45 +145,45 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
 }
 
 /**
- * initialise services for worker instance
+ * initialize services for worker instance
  * @param  {Object} config                 wdio config
  * @param  {Object} caps                   worker capabilities
  * @param  {object} ignoredWorkerServices  list of services that don't need to be required in a worker
  *                                         as they don't export a service for it
  * @return {Object[]}                      list if worker initiated worker services
  */
-export async function initialiseWorkerService (
+export async function initializeWorkerService (
     config: Options.Testrunner,
     caps: Capabilities.DesiredCapabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
     let serviceLabelToBeInitialised = 'unknown'
-    const initialisedServices: Services.ServiceInstance[] = []
+    const initializedServices: Services.ServiceInstance[] = []
     const workerServices = config.services!
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
     try {
-        const services = await initialiseServices(workerServices)
+        const services = await initializeServices(workerServices)
         for (const [service, serviceConfig, serviceName] of services) {
             /**
              * add object service
              */
             if (typeof service === 'object' && !serviceName) {
                 serviceLabelToBeInitialised = 'object'
-                initialisedServices.push(service as Services.ServiceInstance)
+                initializedServices.push(service as Services.ServiceInstance)
                 continue
             }
 
             const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
             if (typeof Service === 'function') {
                 serviceLabelToBeInitialised = serviceName || Service.constructor?.name || Service.toString()
-                initialisedServices.push(new Service(serviceConfig, caps, config))
+                initializedServices.push(new Service(serviceConfig, caps, config))
                 continue
             }
         }
 
-        return initialisedServices
+        return initializedServices
     } catch (err: any) {
         throw new Error(`Failed to initilialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }

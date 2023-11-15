@@ -45,13 +45,13 @@ export function sanitizeCaps (
 }
 
 /**
- * initialise browser instance depending whether remote or multiremote is requested
+ * initialize browser instance depending whether remote or multiremote is requested
  * @param  {Object}  config        configuration of sessions
  * @param  {Object}  capabilities  desired session capabilities
  * @param  {boolean} isMultiremote isMultiremote
  * @return {Promise}               resolves with browser object
  */
-export async function initialiseInstance (
+export async function initializeInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean

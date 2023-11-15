@@ -71,7 +71,7 @@ export default class ConfigParser {
      */
     async initialize (object: MergeConfig = {}) {
         /**
-         * only run auto compile functionality once but allow the config parse to be initialised
+         * only run auto compile functionality once but allow the config parse to be initialized
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
          */
         if (!this.#isInitialised) {
@@ -370,7 +370,7 @@ export default class ConfigParser {
      */
     getConfig () {
         if (!this.#isInitialised) {
-            throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
+            throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
         return this._config as Required<Options.Testrunner>
     }
@@ -380,7 +380,7 @@ export default class ConfigParser {
      */
     getCapabilities(i?: number) {
         if (!this.#isInitialised) {
-            throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
+            throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
 
         if (typeof i === 'number' && Array.isArray(this._capabilities) && this._capabilities[i]) {

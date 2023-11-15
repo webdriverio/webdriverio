@@ -3,7 +3,7 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
-import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
@@ -13,7 +13,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
-import { initialiseInstance, filterLogTypes, getInstancesData } from './utils.js'
+import { initializeInstance, filterLogTypes, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
     TestFramework, SingleConfigOption, MultiRemoteCaps, SessionStartedMessage,
@@ -82,7 +82,7 @@ export default class Runner extends EventEmitter {
         /**
          * run `beforeSession` command before framework and browser are initiated
          */
-        ;(await initialiseWorkerService(
+        ;(await initializeWorkerService(
             this._config as Options.Testrunner,
             caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
@@ -95,7 +95,7 @@ export default class Runner extends EventEmitter {
         await this._reporter.initReporters()
 
         /**
-         * initialise framework
+         * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, caps, this._reporter, specs)
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
@@ -207,10 +207,10 @@ export default class Runner extends EventEmitter {
         const runner = Array.isArray(config.runner) ? config.runner[0] : config.runner
 
         /**
-         * initialise framework adapter when running remote browser tests
+         * initialize framework adapter when running remote browser tests
          */
         if (runner === 'local') {
-            const framework = (await initialisePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
+            const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             return framework.init(cid, config, specs, capabilities, reporter)
         }
 
@@ -284,7 +284,7 @@ export default class Runner extends EventEmitter {
             const customStubCommands: [string, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.customCommands || []
             const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
-            this._browser = await initialiseInstance(config, caps, this._isMultiremote)
+            this._browser = await initializeInstance(config, caps, this._isMultiremote)
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
 

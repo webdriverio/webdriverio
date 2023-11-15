@@ -5,7 +5,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { Options, Services } from '@wdio/types'
 
-import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices.js'
+import { initializeLauncherService, initializeWorkerService } from '../src/initializeServices.js'
 import { safeImport } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -37,15 +37,15 @@ beforeEach(() => {
     vi.mocked(safeImport).mockClear()
 })
 
-describe('initialiseLauncherService', () => {
+describe('initializeLauncherService', () => {
     it('should return empty array if no services prop is given', async () => {
-        expect(await initialiseLauncherService({ services: [] }, {})).toEqual({
+        expect(await initializeLauncherService({ services: [] }, {})).toEqual({
             ignoredWorkerServices: [],
             launcherServices: []
         })
     })
 
-    it('should be able to add initialised services', async () => {
+    it('should be able to add initialized services', async () => {
         const service = {
             before: vi.fn(),
             afterTest: vi.fn()
@@ -54,7 +54,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = await initialiseLauncherService({ services: [service] }, {})
+        } = await initializeLauncherService({ services: [service] }, {})
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
         expect(launcherServices[0]).toEqual(service)
@@ -64,7 +64,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = await initialiseLauncherService(
+        } = await initializeLauncherService(
             { services: [CustomService as Services.ServiceEntry], baseUrl: 'foobar' },
             {}
         )
@@ -77,7 +77,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = await initialiseLauncherService(
+        } = await initializeLauncherService(
             { services: [[CustomService, { foo: 'foo' }] as Services.ServiceEntry], baseUrl: 'foobar' },
             {}
         )
@@ -88,7 +88,7 @@ describe('initialiseLauncherService', () => {
     })
 
     it('should allow custom services with empty options', async () => {
-        const { launcherServices } = await initialiseLauncherService(
+        const { launcherServices } = await initializeLauncherService(
             {
                 services: [
                     [CustomService, {}] as Services.ServiceEntry
@@ -111,7 +111,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = await initialiseLauncherService({ services: ['launcher-only'] }, {})
+        } = await initializeLauncherService({ services: ['launcher-only'] }, {})
         expect(launcherServices).toHaveLength(1)
         expect((launcherServices[0] as TestLauncherService).isLauncher).toBe(true)
         expect(ignoredWorkerServices).toEqual(['launcher-only'])
@@ -129,7 +129,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = await initialiseLauncherService({ services: ['scoped'] }, {})
+        } = await initializeLauncherService({ services: ['scoped'] }, {})
         expect(launcherServices).toHaveLength(0)
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(globalThis.test).toBe(undefined)
@@ -143,29 +143,29 @@ describe('initialiseLauncherService', () => {
                 }
             }
         } as any)
-        await expect(() => initialiseLauncherService({ services: ['borked'] }, {}))
+        await expect(() => initializeLauncherService({ services: ['borked'] }, {}))
             .rejects.toThrow(/Failed to initilialise launcher service "borked": Error: ups/)
     })
 })
 
-describe('initialiseWorkerService', () => {
+describe('initializeWorkerService', () => {
     it('should return empty array if no services prop is given', async () => {
-        expect(await initialiseWorkerService({ services: [] } as any, {})).toEqual([])
+        expect(await initializeWorkerService({ services: [] } as any, {})).toEqual([])
     })
 
-    it('should be able to add initialised services', async () => {
+    it('should be able to add initialized services', async () => {
         const service = {
             before: vi.fn(),
             afterTest: vi.fn()
         }
 
-        const services = await initialiseWorkerService({ services: [service] } as any, {})
+        const services = await initializeWorkerService({ services: [service] } as any, {})
         expect(services).toHaveLength(1)
         expect(services[0]).toEqual(service)
     })
 
     it('should allow custom services without options', async () => {
-        const services = await initialiseWorkerService(
+        const services = await initializeWorkerService(
             { services: [CustomService], baseUrl: 'foobar' } as any,
             {}
         )
@@ -174,7 +174,7 @@ describe('initialiseWorkerService', () => {
     })
 
     it('should allow custom services with options', async () => {
-        const services = await initialiseWorkerService(
+        const services = await initializeWorkerService(
             { services: [[CustomService, { foo: 'foo' }]], baseUrl: 'foobar' } as any,
             {}
         )
@@ -191,7 +191,7 @@ describe('initialiseWorkerService', () => {
                 }
             }
         } as any)
-        const services = await initialiseWorkerService(
+        const services = await initializeWorkerService(
             { services: ['launcher-only'] } as any,
             {}
         )
@@ -207,7 +207,7 @@ describe('initialiseWorkerService', () => {
                 }
             }
         } as any)
-        await expect(initialiseWorkerService(
+        await expect(initializeWorkerService(
             { services: ['borked'] } as any,
             {}
         )).rejects.toThrow(/Failed to initilialise service borked: Error: ups/)
