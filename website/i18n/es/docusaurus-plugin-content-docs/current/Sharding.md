@@ -24,9 +24,9 @@ GitHub Actions supports [sharding tests between multiple jobs](https://docs.gith
 
 The following example shows you how to configure a job to run your tests on four machines in parallel. You can find the whole pipeline setup in the [Cucumber Boilerplate](https://github.com/webdriverio/cucumber-boilerplate/blob/main/.github/workflows/test.yaml) project.
 
-- First we add a matrix option to our job configuration with the shard option containing the number of shards we want to create. `shard: [1/4, 2/4, 3/4, 4/4]` will create four shards, each with a different shard number.
-- Then we run our WebdriverIO tests with the `--shard ${{ matrix.shard }}` option. This will our test command for each shard.
-- Finally we upload our wdio log report to the GitHub Actions Artifacts. This will make logs available in case the shard fails.
+-   First we add a matrix option to our job configuration with the shard option containing the number of shards we want to create. `shard: [1, 2, 3, 4]` will create four shards, each with a different shard number.
+-   Then we run our WebdriverIO tests with the `--shard ${{ matrix.shard }}/${{ strategy.job-total }}` option. This will be our test command for each shard.
+-   Finally we upload our wdio log report to the GitHub Actions Artifacts. This will make logs available in case the shard fails.
 
 The test pipeline is defined as follows:
 
@@ -41,21 +41,22 @@ jobs:
     unit:
         # ...
     e2e:
+        name: 🧪 Test (${{ matrix.shard }}/${{ strategy.job-total }})
         runs-on: ubuntu-latest
         needs: [lint, unit]
         strategy:
             matrix:
-                shard: [1/4, 2/4, 3/4, 4/4]
+                shard: [1, 2, 3, 4]
         steps:
             - uses: actions/checkout@v4
             - uses: ./.github/workflows/actions/setup
             - name: E2E Test
-              run: npm run test:features -- --shard ${{ matrix.shard }}
+              run: npm run test:features -- --shard ${{ matrix.shard }}/${{ strategy.job-total }}
             - uses: actions/upload-artifact@v1
               if: failure()
               with:
-                name: logs-${{ matrix.shard }}
-                path: logs
+                  name: logs-${{ matrix.shard }}
+                  path: logs
 ```
 
 This will run all shards in parallel, reducing executing time for the tests by 4:
