@@ -699,7 +699,7 @@ describe('launcher', () => {
                 getConfig: vi.fn().mockReturnValue(config),
                 initialize: vi.fn()
             } as any
-            launcher.runner = { initialise: vi.fn(), shutdown: vi.fn() } as any
+            launcher.runner = { initialize: vi.fn(), shutdown: vi.fn() } as any
             launcher['_runMode'] = vi.fn().mockImplementation(() => 0)
         })
 
@@ -712,7 +712,7 @@ describe('launcher', () => {
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
-            expect(launcher.runner!.initialise).toBeCalledTimes(1)
+            expect(launcher.runner!.initialize).toBeCalledTimes(1)
             // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher['_runMode']).toBeCalledTimes(1)

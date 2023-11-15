@@ -3,7 +3,7 @@ import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions
 import type { Suite, Test, TestResult } from './Frameworks.js'
 
 export interface RunnerInstance {
-    initialise(): Promise<void>
+    initialize(): Promise<void>
     shutdown(): Promise<boolean>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
@@ -105,12 +105,12 @@ export interface HookFunctions {
     ): unknown | Promise<unknown>
 
     /**
-     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
      * @param cid       capability id (e.g 0-0)
      * @param caps      object containing capabilities for session that will be spawn in the worker
      * @param specs     specs to be run in the worker process
-     * @param args      object that will be merged with the main configuration once worker is initialised
+     * @param args      object that will be merged with the main configuration once worker is initialized
      * @param execArgv  list of string arguments passed to the worker process
      */
     onWorkerStart?(

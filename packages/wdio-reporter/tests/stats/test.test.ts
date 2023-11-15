@@ -29,7 +29,7 @@ describe('TestStats', () => {
         expect(stat.start instanceof Date).toBe(true)
     })
 
-    it('should be initialised with correct values', () => {
+    it('should be initialized with correct values', () => {
         stat.complete = vi.fn()
 
         expect(stat.type).toBe('test')

@@ -24,10 +24,10 @@ const runRepl = `graph TD
         CALLRUN("Launch test runner by calling the @wdio/cli:index run()")-->
         LAUNCHTESTRUNNER2[Test runner is launched]-->
         CALLRUNCMDHANDLER("Call @wdio/cli/commands:run launcher()")-->
-        INSTANTIATELAUNCHER["Creates @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initialisePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
+        INSTANTIATELAUNCHER["Creates @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initializePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
         CALLLAUNCHERINSTANCERUN["@wdio/cli:launcher run()"]-->
         INITLAUNCHERINSTANCE["Create instance of all services<br>listed in the config services property."] -->
-        INIT["Call the runner initialise() method"]-->
+        INIT["Call the runner initialize() method"]-->
         RUNPRETSTTASKS["Run pre-test tasks for runner plugins"]-->
         CONFIGONPREPAREHOOK["wdio.conf.js onPrepare hook"]-->
         SERVICESONPREPAREHOOK["Run the services onPrepare hook<br>e.g. start selenium server."]-->
@@ -84,11 +84,11 @@ const startTestInstance = `graph TD
 const setupTest = `graph TD
         START("@wdio/runner:index called from<br>child process via a run message.")-->
         EXECUTERUN["@wdio/runner:index run()"]-->
-        SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialised."]-->
-        INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialised usingthe @wdio/utils initialisePlugin method.<br> <br>Supported frameworks include @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
+        SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialized."]-->
+        INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialized usingthe @wdio/utils initializePlugin method.<br> <br>Supported frameworks include @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
         INITSERVICES["Initialise services"]-->
         RUNEFORESESSIONHOOK[Run wdio.conf.js beforeSession hook.]-->
-        INITSESSION["Call @wdio/runner:index _initSession.<br>@wdio/runner:utils initialiseInstance<br>calls webdriverio:index.js remote()."]-->
+        INITSESSION["Call @wdio/runner:index _initSession.<br>@wdio/runner:utils initializeInstance<br>calls webdriverio:index.js remote()."]-->
         ISPROTOCOLWEBDRIVER{"Is protocol<br>webdriver?"}
         ISPROTOCOLWEBDRIVER-->|Yes|WEBDRIVER
         ISPROTOCOLWEBDRIVER-->|No|DEVTOOLS

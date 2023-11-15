@@ -75,7 +75,7 @@ class WorkerMock extends EventEmitter implements Workers.Worker {
 }
 
 describe('watcher', () => {
-    it('should initialise properly', async () => {
+    it('should initialize properly', async () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         expect(watcher['_launcher']).toBeDefined()

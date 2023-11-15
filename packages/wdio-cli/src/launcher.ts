@@ -5,7 +5,7 @@ import exitHook from 'async-exit-hook'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
-import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
+import { initializePlugin, initializeLauncherService, sleep } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
@@ -110,7 +110,7 @@ class Launcher {
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
-        const Runner = (await initialisePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
+        const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
         this.runner = new Runner(runnerOptions, config)
 
         /**
@@ -122,7 +122,7 @@ class Launcher {
 
         try {
             const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
-            const { ignoredWorkerServices, launcherServices } = await initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
+            const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -130,7 +130,7 @@ class Launcher {
              * run pre test tasks for runner plugins
              * (e.g. deploy Lambda function to AWS)
              */
-            await this.runner.initialise()
+            await this.runner.initialize()
 
             /**
              * run onPrepare hook
@@ -387,7 +387,7 @@ class Launcher {
         retries: number
     ) {
         if (!this.runner || !this.interface) {
-            throw new Error('Internal Error: no runner initialised, call run() first')
+            throw new Error('Internal Error: no runner initialized, call run() first')
         }
 
         const config = this.configParser.getConfig()
@@ -475,7 +475,7 @@ class Launcher {
 
     private _workerHookError (error: HookError) {
         if (!this.interface) {
-            throw new Error('Internal Error: no interface initialised, call run() first')
+            throw new Error('Internal Error: no interface initialized, call run() first')
         }
 
         this.interface.logHookError(error)
