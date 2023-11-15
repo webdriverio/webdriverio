@@ -9,7 +9,7 @@ Mit WebdriverIOs [Browser Runner](/docs/runner#browser-runner) können Sie Tests
 
 Der Browser Runner verwendet [Vite](https://vitejs.dev/) , um eine Testseite zu rendern und mit einem Testframework zu initialisieren, die dann Ihre Tests im Browser auszuführt. Derzeit unterstützt WebdriverIO nur Mocha für Komponenten Tests, aber Jasmine und Cucumber sind [auf der Roadmap](https://github.com/orgs/webdriverio/projects/1). Dies ermöglicht das Testen beliebiger Komponenten, auch für Projekte, die Vite nicht verwenden.
 
-Der Vite-Server wird vom WebdriverIO-Testrunner gestartet und so konfiguriert, dass Sie alle Reporter und Dienste wie gewohnt bei normalen e2e-Tests verwenden können. Darüber hinaus initialisiert es eine [`Browser-Instanz`](/docs/api/browser) , die es Ihnen ermöglicht, auf die [WebdriverIO-API](/docs/api) zuzugreifen, um mit beliebigen Elementen auf der Seite zu interagieren. Ähnlich wie bei e2e-Tests können Sie auf die Browser API über die globale Variable `browser` zugreifen, oder Sie können diese aus `@wdio/globals` importieren, je nachdem, wie [`injectGlobals`](/docs/api/globals) gesetzt ist.
+Der Vite-Server wird vom WebdriverIO-Testrunner gestartet und so konfiguriert, dass Sie alle Reporter und Dienste wie gewohnt bei normalen e2e-Tests verwenden können. Furthermore it initializes a [`browser`](/docs/api/browser) instance that allows you to access a subset of the [WebdriverIO API](/docs/api) to interact with the any elements on the page. Ähnlich wie bei e2e-Tests können Sie auf die Browser API über die globale Variable `browser` zugreifen, oder Sie können diese aus `@wdio/globals` importieren, je nachdem, wie [`injectGlobals`](/docs/api/globals) gesetzt ist.
 
 WebdriverIO has built-in support for the following frameworks:
 
