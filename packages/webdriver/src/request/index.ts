@@ -51,7 +51,7 @@ export interface WebDriverResponse {
     sessionId?: string
 }
 
-const ONE_SECOND = 1000 * 1
+const MAX_RETRY_TIMEOUT = 100 // 100ms
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -113,7 +113,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             retry: {
                 limit: options.connectionRetryCount as number,
                 methods: RETRY_METHODS,
-                calculateDelay: ({ computedValue }) => Math.min(ONE_SECOND, computedValue / 10)
+                calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
             },
             timeout: { response: options.connectionRetryTimeout as number }
         }
