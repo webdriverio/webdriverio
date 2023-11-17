@@ -3,10 +3,12 @@ import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 
 const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
+const browserWithDriverIssues = ['firefox']
 
 /**
  *
- * Return true if the selected DOM-element is displayed.
+ * Return true if the selected DOM-element is displayed (even when the element is outside the viewport).
+ * If you want to verify that the element is also not within the viewport, use the isDisplayedInViewport command.
  *
  * :::info
  *
@@ -17,30 +19,39 @@ const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari te
  *
  * <example>
     :index.html
-    <div id="notDisplayed" style="display: none"></div>
-    <div id="notVisible" style="visibility: hidden"></div>
-    <div id="notInViewport" style="position:absolute; left: 9999999"></div>
-    <div id="zeroOpacity" style="opacity: 0"></div>
+    <div id="noSize"></div>
+    <div id="noSizeWithContent">Hello World!</div>
+    <div id="notDisplayed" style="width: 10px; height: 10px; display: none"></div>
+    <div id="notVisible" style="width: 10px; height: 10px; visibility: hidden"></div>
+    <div id="zeroOpacity" style="width: 10px; height: 10px; opacity: 0"></div>
+    <div id="notInViewport" style="width: 10px; height: 10px; position:fixed; top: 999999; left: 999999"></div>
     :isDisplayed.js
     it('should detect if an element is displayed', async () => {
+        elem = await $('#notExisting');
+        isDisplayed = await elem.isDisplayed();
+        console.log(isDisplayed); // outputs: false
+
+        let elem = await $('#noSize');
+        let isDisplayed = await elem.isDisplayed();
+        console.log(isDisplayed); // outputs: false
+
+        let elem = await $('#noSizeWithContent');
+        let isDisplayed = await elem.isDisplayed();
+        console.log(isDisplayed); // outputs: true
+
         let elem = await $('#notDisplayed');
         let isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
         elem = await $('#notVisible');
-
         isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = await $('#notExisting');
+        elem = await $('#zeroOpacity');
         isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
         elem = await $('#notInViewport');
-        isDisplayed = await elem.isDisplayed();
-        console.log(isDisplayed); // outputs: true
-
-        elem = await $('#zeroOpacity');
         isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
     });
@@ -59,6 +70,8 @@ export async function isDisplayed (this: WebdriverIO.Element) {
         return false
     }
 
+    const isListedBrowser = noW3CEndpoint.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!) ||
+    browserWithDriverIssues.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!)
     /*
      * https://www.w3.org/TR/webdriver/#element-displayedness
      * Certain drivers have decided to remove the endpoint as the spec
@@ -74,7 +87,7 @@ export async function isDisplayed (this: WebdriverIO.Element) {
         (
             await browser.isW3C &&
             !browser.isMobile &&
-            noW3CEndpoint.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!)
+            isListedBrowser
         )
     )
 
