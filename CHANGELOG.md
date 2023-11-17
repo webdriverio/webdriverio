@@ -21,6 +21,27 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.23.1 (2023-11-17)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-utils`
+  * [#11677](https://github.com/webdriverio/webdriverio/pull/11677) Wrap cucumber steps with timeouts. ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriver`
+  * [#11676](https://github.com/webdriverio/webdriverio/pull/11676) (webdriver): set lower retry timeout ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#11674](https://github.com/webdriverio/webdriverio/pull/11674) Update Sharding Docs ([@WilliamFClarke](https://github.com/WilliamFClarke))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-jasmine-framework`, `wdio-local-runner`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#11672](https://github.com/webdriverio/webdriverio/pull/11672) (internal): fix usage of `intialise` wording in variables, comments and elsewhere ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- William Clarke ([@WilliamFClarke](https://github.com/WilliamFClarke))
+
+
 ## v8.23.0 (2023-11-14)
 
 #### :eyeglasses: Spec Compliancy
