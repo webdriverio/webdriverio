@@ -286,7 +286,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
 /**
  * @deprecated use `WebdriverIO.Element` instead
  */
-export interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+export interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
