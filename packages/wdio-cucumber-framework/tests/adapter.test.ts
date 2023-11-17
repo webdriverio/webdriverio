@@ -9,6 +9,7 @@ import type * as Messages from '@cucumber/messages'
 import * as packageExports from '../src/index.js'
 import { setUserHookNames } from '../src/utils.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
+import { DEFAULT_TIMEOUT } from '../src/constants.js'
 
 vi.mock('@wdio/utils')
 vi.mock('@wdio/utils/node')
@@ -622,7 +623,8 @@ describe('CucumberAdapter', () => {
             undefined,
             '0-0',
             { retry: 0 },
-            expect.any(Function)
+            expect.any(Function),
+            DEFAULT_TIMEOUT
         )
     })
 
