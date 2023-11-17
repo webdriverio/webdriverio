@@ -557,7 +557,7 @@ class _InsightsHandler {
                 logs: [{
                     test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
-                    message: result,
+                    message: result.value,
                     kind: 'TEST_SCREENSHOT'
                 }]
             }], DATA_SCREENSHOT_ENDPOINT)
