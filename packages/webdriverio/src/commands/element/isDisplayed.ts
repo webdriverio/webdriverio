@@ -2,9 +2,6 @@ import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 
-const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
-const browserWithDriverIssues = ['firefox']
-
 /**
  *
  * Return true if the selected DOM-element is displayed (even when the element is outside the viewport).
@@ -70,31 +67,8 @@ export async function isDisplayed (this: WebdriverIO.Element) {
         return false
     }
 
-    const isListedBrowser = noW3CEndpoint.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!) ||
-    browserWithDriverIssues.includes((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase()!)
-    /*
-     * https://www.w3.org/TR/webdriver/#element-displayedness
-     * Certain drivers have decided to remove the endpoint as the spec
-     * no longer dictates it. In those instances, we pass the element through a script
-     * that was provided by Brian Burg, maintainer of Safaridriver.
-     *
-     * 6th of May 2019 APPIUM response (mykola-mokhnach) :
-     * - Appium didn't enable W3C mode for mobile drivers.
-     * - Safari and Chrome work in jsonwp mode and Appium just rewrites W3C requests from upstream to jsonwp if needed
-     */
-    const useAtom = (
-        await browser.isDevTools ||
-        (
-            await browser.isW3C &&
-            !browser.isMobile &&
-            isListedBrowser
-        )
-    )
-
-    return useAtom
-        ? await browser.execute(isElementDisplayedScript, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId // jsonwp compatible
-        } as any as HTMLElement) :
-        await this.isElementDisplayed(this.elementId)
+    return await browser.execute(isElementDisplayedScript, {
+        [ELEMENT_KEY]: this.elementId, // w3c compatible
+        ELEMENT: this.elementId // jsonwp compatible
+    } as any as HTMLElement)
 }
