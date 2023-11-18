@@ -198,7 +198,7 @@ function fetchElementByJSFunction (
     scope: WebdriverIO.Browser | WebdriverIO.Element,
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
-    if (!(scope as WebdriverIO.Element).elementId) {
+    if (!('elementId' in scope)) {
         return scope.execute(selector as any, referenceId)
     }
     /**
