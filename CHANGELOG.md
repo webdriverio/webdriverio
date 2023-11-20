@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.23.2 (2023-11-20)
+
+#### :bug: Bug Fix
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#11681](https://github.com/webdriverio/webdriverio/pull/11681) (webdriverio): fix isDisplayed for Firefox, updated examples in docs ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-browserstack-service`
+  * [#11680](https://github.com/webdriverio/webdriverio/pull/11680) Screenshot data format BrowserStack 🐛  ([@07souravkunda](https://github.com/07souravkunda))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#11679](https://github.com/webdriverio/webdriverio/pull/11679) deleted BidiHandler and browser commands  from Element type ([@udarrr](https://github.com/udarrr))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+
+
 ## v8.23.1 (2023-11-17)
 
 #### :bug: Bug Fix
