@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.23.3 (2023-11-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11706](https://github.com/webdriverio/webdriverio/pull/11706) fix: guard check for ShadowRoot using `'ShadowRoot' in window` (#11705) ([@colinrotherham](https://github.com/colinrotherham))
+
+#### Committers: 1
+- Colin Rotherham ([@colinrotherham](https://github.com/colinrotherham))
+
+
 ## v8.23.2 (2023-11-20)
 
 #### :bug: Bug Fix
