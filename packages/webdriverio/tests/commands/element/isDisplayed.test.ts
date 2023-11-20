@@ -33,7 +33,7 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     it('should allow to check if element is displayed in mobile mode without browserName', async () => {
@@ -50,7 +50,7 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     it('should refetch element if non existing', async () => {
@@ -61,7 +61,7 @@ describe('isDisplayed test', () => {
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element')
         expect(vi.mocked(got).mock.calls[1][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     it('should refect React element if non existing', async () => {
