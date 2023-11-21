@@ -67,6 +67,15 @@ export async function isDisplayed (this: WebdriverIO.Element) {
         return false
     }
 
+    /**
+     * For mobile sessions with Appium we continue to use the elementDisplayed command
+     * as we can't run JS in native apps
+     */
+    const isNativeApplication = !(browser.capabilities as WebdriverIO.Capabilities).browserName
+    if (browser.isMobile && isNativeApplication) {
+        return await this.isElementDisplayed(this.elementId)
+    }
+
     return await browser.execute(isElementDisplayedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible

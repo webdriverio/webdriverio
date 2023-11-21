@@ -50,7 +50,7 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-            .toBe('/session/foobar-123/execute/sync')
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
     it('should refetch element if non existing', async () => {
