@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.23.4 (2023-11-21)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11707](https://github.com/webdriverio/webdriverio/pull/11707) (webdriverio): continue to use isElementDisplayed for mobile native tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.23.3 (2023-11-20)
 
 #### :bug: Bug Fix
