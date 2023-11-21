@@ -14,6 +14,13 @@ import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
  *
  * :::
  *
+ * WebdriverIO, when conducting browser tests, utilizes a [custom script](https://github.com/webdriverio/webdriverio/blob/59d349ca847950354d02b9e548f60cc50e7871f0/packages/webdriverio/src/scripts/isElementDisplayed.ts)
+ * specifically designed to assess the visibility of elements. This script is key in determining whether an
+ * element is displayed on the page. Conversely, for native mobile testing scenarios with Appium, WebdriverIO
+ * defers to the [`isElementDisplayed`](https://appium.io/docs/en/2.1/reference/interfaces/appium_types.ExternalDriver/#elementdisplayed)
+ * command provided by Appium. This command evaluates the visibility of elements using criteria established by the
+ * underlying Appium driver, ensuring accurate and driver-specific assessments for mobile applications.
+ *
  * <example>
     :index.html
     <div id="noSize"></div>
