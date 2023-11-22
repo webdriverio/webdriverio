@@ -133,7 +133,7 @@ export default function isElementDisplayed (element: Element): boolean {
 
         // If the container's overflow is not hidden and it has zero size, consider the
         // container to have non-zero dimensions if a child node has non-zero dimensions.
-        return Array.from(element.childNodes).some((childNode: Element) => {
+        return Array.from(element.childNodes).some(function (childNode: Element) {
             if (childNode.nodeType === Node.TEXT_NODE) {
                 return true
             }
@@ -172,7 +172,7 @@ export default function isElementDisplayed (element: Element): boolean {
         }
 
         // This element's subtree is hidden by overflow if all child subtrees are as well.
-        return Array.from(element.childNodes).every((childNode: Element) => {
+        return Array.from(element.childNodes).every(function (childNode: Element) {
             // Returns true if the child node is overflowed or otherwise hidden.
             // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
             // Visibility of text nodes is controlled by parent
@@ -205,7 +205,7 @@ export default function isElementDisplayed (element: Element): boolean {
     // This is a partial reimplementation of Selenium's "element is displayed" algorithm.
     // When the W3C specification's algorithm stabilizes, we should implement that.
     // If this command is misdirected to the wrong document (and is NOT inside a shadow root), treat it as not shown.
-    if (!isElementInsideShadowRoot(element) && !document.contains(element)) {
+    if (!isElementInsideShadowRoot(element) && !document.body.contains(element)) {
         return false
     }
 
@@ -221,7 +221,9 @@ export default function isElementDisplayed (element: Element): boolean {
     case 'OPTGROUP':
     case 'OPTION': {
         // Option/optgroup are considered shown if the containing <select> is shown.
-        const enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e: Element) => e.tagName.toUpperCase() === 'SELECT')
+        const enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, function (e: Element) {
+            return e.tagName.toUpperCase() === 'SELECT'
+        })
         return isElementDisplayed(enclosingSelectElement as Element)
     }
     case 'INPUT':
@@ -241,10 +243,10 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
-    const hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
+    const hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, function (e: Element) {
         return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
     })
-    const hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
+    const hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, function (e: Element) {
         return cascadedStylePropertyForElement(e, 'display') === 'none'
     })
     if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone) {
