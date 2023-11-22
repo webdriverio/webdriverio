@@ -205,7 +205,7 @@ export default function isElementDisplayed (element: Element): boolean {
     // This is a partial reimplementation of Selenium's "element is displayed" algorithm.
     // When the W3C specification's algorithm stabilizes, we should implement that.
     // If this command is misdirected to the wrong document (and is NOT inside a shadow root), treat it as not shown.
-    if (!isElementInsideShadowRoot(element) && !document.contains(element)) {
+    if (!isElementInsideShadowRoot(element) && !document.body.contains(element)) {
         return false
     }
 
