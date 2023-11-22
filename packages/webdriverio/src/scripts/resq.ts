@@ -70,12 +70,10 @@ export const react$$ = function react$$ (
     let nodes: HTMLElement[] = []
 
     elements.forEach(function (element) {
-        const { node, isFragment } = element
-
-        if (isFragment) {
-            nodes = nodes.concat(node || [])
-        } else if (node) {
-            nodes.push(node)
+        if (element.isFragment) {
+            nodes = nodes.concat(element.node || [])
+        } else if (element.node) {
+            nodes.push(element.node)
         }
     })
 
