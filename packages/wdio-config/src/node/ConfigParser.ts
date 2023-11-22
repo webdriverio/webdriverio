@@ -478,4 +478,15 @@ export default class ConfigParser {
         const end = current === total ? undefined : specsPerShard * current
         return specs.slice(current * specsPerShard - specsPerShard, end)
     }
-}
+
+    filterSpecsFromConfigFileByKeyword(keyword: string, listOfSpecs: Spec[]
+    ) {
+        return listOfSpecs.filter((specPath) => {
+            if (!Array.isArray(specPath)) {
+                const specName = path.basename(specPath)
+                // check that spec name contains --spec arg from CLI
+                return specName.includes(keyword)
+            }
+            return false
+        })
+    }
