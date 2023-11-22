@@ -313,6 +313,18 @@ export default class Runner extends EventEmitter {
             setOptions({
                 wait: config.waitforTimeout, // ms to wait for expectation to succeed
                 interval: config.waitforInterval, // interval between attempts
+                beforeAssertion: async (params) => {
+                    await Promise.all([
+                        this._reporter?.emit('client:beforeAssertion', { ...params, sessionId: (this._browser as WebdriverIO.Browser)?.sessionId }),
+                        executeHooksWithArgs('beforeAssertion', config.beforeAssertion, [params])
+                    ])
+                },
+                afterAssertion: async (params) => {
+                    await Promise.all([
+                        this._reporter?.emit('client:afterAssertion', { ...params, sessionId: (this._browser as WebdriverIO.Browser)?.sessionId }),
+                        executeHooksWithArgs('afterAssertion', config.afterAssertion, [params])
+                    ])
+                }
             })
 
             /**

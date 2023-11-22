@@ -43,6 +43,34 @@ export interface ServiceInstance extends HookFunctions {
     config?: TestrunnerOptions
 }
 
+interface AssertionHookParams {
+    /**
+     * name of the matcher, e.g. `toHaveText` or `toBeClickable`
+     */
+    matcherName: string
+    /**
+     * Value that the user has passed in
+     *
+     * @example
+     * ```
+     * expect(el).toBeClickable() // expectedValue is undefined
+     * expect(el).toHaveText('foo') // expectedValue is `'foo'`
+     * expect(el).toHaveAttribute('attr', 'value', { ... }) // expectedValue is `['attr', 'value]`
+     * ```
+     */
+    expectedValue?: any
+    /**
+     * Options that the user has passed in, e.g. `expect(el).toHaveText('foo', { ignoreCase: true })` -> `{ ignoreCase: true }`
+     */
+    options: object
+}
+interface AfterAssertionHookParams extends AssertionHookParams {
+    result: {
+        message: () => string
+        result: boolean
+    }
+}
+
 export type ServiceEntry = (
     /**
      * e.g. `services: ['@wdio/sauce-service']`
@@ -271,4 +299,20 @@ export interface HookFunctions {
         result: any,
         error?: Error
     ): unknown | Promise<unknown>
+
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion?(params: AssertionHookParams): unknown | Promise<unknown>
+
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion?(params: AfterAssertionHookParams): unknown | Promise<unknown>
 }
