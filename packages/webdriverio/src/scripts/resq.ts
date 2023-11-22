@@ -69,7 +69,7 @@ export const react$$ = function react$$ (
     // [[div, div], [div, div]] => [div, div, div, div]
     let nodes: HTMLElement[] = []
 
-    elements.forEach(element => {
+    elements.forEach(function (element) {
         const { node, isFragment } = element
 
         if (isFragment) {
