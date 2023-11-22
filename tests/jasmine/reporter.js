@@ -15,6 +15,7 @@ describe('Jasmine reporter', () => {
 
     it('should pass', async () => {
         expect(await browser.getTitle()).toBe('Mock Page Title')
+        await expect(browser).toHaveTitle('Mock Page Title')
     })
 
     it('should fail', async () => {
