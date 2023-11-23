@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.0 (2023-11-23)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-reporter`, `wdio-runner`, `wdio-smoke-test-cjs-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-types`
+  * [#11714](https://github.com/webdriverio/webdriverio/pull/11714) (@wdio/runner): support assertion hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.23.5 (2023-11-22)
 
 #### :bug: Bug Fix
