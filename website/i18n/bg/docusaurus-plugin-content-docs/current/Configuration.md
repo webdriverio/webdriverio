@@ -623,3 +623,27 @@ Parameters:
 - `result.error` (`string`): error stack if scenario failed
 - `result.duration` (`number`): duration of scenario in milliseconds
 - `context` (`object`): Cucumber World object
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

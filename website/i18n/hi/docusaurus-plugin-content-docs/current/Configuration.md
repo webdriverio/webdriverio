@@ -621,3 +621,27 @@ Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 - `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि स्टेक
 - `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
 - `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

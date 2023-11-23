@@ -948,5 +948,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: HOOK_DEFINITION,
-    onReload: HOOK_DEFINITION
+    onReload: HOOK_DEFINITION,
+    beforeAssertion: HOOK_DEFINITION,
+    afterAssertion: HOOK_DEFINITION
 }

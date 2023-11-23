@@ -5,4 +5,6 @@ Before(function () {})
 After(function () {})
 AfterAll(() => {})
 
-Given('Foo', () => {})
+Given('Foo', async () => {
+    await expect(browser).toHaveTitle('Mock Page Title')
+})
