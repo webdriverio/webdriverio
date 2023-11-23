@@ -487,11 +487,27 @@ export const config = {
      /**
       *
       * कुकुम्बर की विशेषता के बाद चलता है।
-     * @param {string}   यूरी   पाथ टू फीचर फाइल
-      * @param {GherkinDocument.IFeature} फीचर    कुकुम्बर फीचर ऑब्जेक्ट
-      */
-     afterFeature: फ़ंक्शन (यूरी, फ़ीचर) {
-     }
+     * @param {string}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
+    },
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion: function (params) {
+    },
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion: function (params) {
+    }
 }
 ```
 
