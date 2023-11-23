@@ -621,3 +621,26 @@ Parámetros:
 - `result.error` (`string`): pila de errores si el escenario falló
 - `result.duration` (`number`): duración del escenario en milisegundos
 - `contexto` (`objeto`): objeto Cucumber World
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
