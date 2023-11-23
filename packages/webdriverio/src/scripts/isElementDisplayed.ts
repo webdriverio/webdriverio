@@ -133,7 +133,7 @@ export default function isElementDisplayed (element: Element): boolean {
 
         // If the container's overflow is not hidden and it has zero size, consider the
         // container to have non-zero dimensions if a child node has non-zero dimensions.
-        return Array.from(element.childNodes).some(function (childNode: Element) {
+        return [].some.call(element.childNodes, function (childNode: Element) {
             if (childNode.nodeType === Node.TEXT_NODE) {
                 return true
             }
@@ -172,7 +172,7 @@ export default function isElementDisplayed (element: Element): boolean {
         }
 
         // This element's subtree is hidden by overflow if all child subtrees are as well.
-        return Array.from(element.childNodes).every(function (childNode: Element) {
+        return [].every.call(element.childNodes, function (childNode: Element) {
             // Returns true if the child node is overflowed or otherwise hidden.
             // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
             // Visibility of text nodes is controlled by parent
