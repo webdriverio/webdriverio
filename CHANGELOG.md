@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.1 (2023-11-23)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11717](https://github.com/webdriverio/webdriverio/pull/11717) fix: avoid script `Array.from()` for older browsers ([@colinrotherham](https://github.com/colinrotherham))
+
+#### Committers: 1
+- Colin Rotherham ([@colinrotherham](https://github.com/colinrotherham))
+
+
 ## v8.24.0 (2023-11-23)
 
 #### :rocket: New Feature
