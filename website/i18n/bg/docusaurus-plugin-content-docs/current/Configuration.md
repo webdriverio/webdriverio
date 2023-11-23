@@ -725,4 +725,3 @@ Parameters:
 - `params.expectedValue`: value that is passed into the matcher
 - `params.options`: assertion options
 - `params.result`: assertion results
-
