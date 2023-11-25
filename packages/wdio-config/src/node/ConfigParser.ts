@@ -496,3 +496,17 @@ export default class ConfigParser {
     // If arg contains '/', '\' or '.' => in this case it is filepath
         return /[/\\.]/.test(specArr[0])
     }
+
+    isGlobPattern(specCliArg: string) {
+        return /[*?[]/.test(specCliArg)
+    }
+
+    addGlobPatternToSpecCliArg(specCliArg: string) {
+        return `**${specCliArg}**`
+    }
+
+    removeGlobPatternFromSpecCliArg(specCliArgWithGlobPattern: string) {
+        // remove glob-pattenr symbols: *, **, ?, [, ]
+        return specCliArgWithGlobPattern.replace(/[*?[\]]/g, '')
+    }
+}
