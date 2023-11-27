@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { createRequire } from 'node:module'
+import { WebDriverProtocol } from '@wdio/protocols'
 import type { URL } from 'node:url'
 
 import logger from '@wdio/logger'
@@ -51,6 +52,9 @@ export interface WebDriverResponse {
     sessionId?: string
 }
 
+export const COMMANDS_WITHOUT_RETRY = [
+    findCommandPathByName('performActions'),
+]
 const MAX_RETRY_TIMEOUT = 100 // 100ms
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
@@ -112,8 +116,20 @@ export default abstract class WebDriverRequest extends EventEmitter {
             searchParams,
             retry: {
                 limit: options.connectionRetryCount as number,
-                methods: RETRY_METHODS,
-                calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
+                /**
+                 * this enables request retries for all commands except for the
+                 * ones defined in `COMMANDS_WITHOUT_RETRY` since they have their
+                 * own retry mechanism. Including a request based retry mechanism
+                 * here also ensures we retry if e.g. a connection to the server
+                 * can't be established at all.
+                 */
+                ...(COMMANDS_WITHOUT_RETRY.includes(this.endpoint)
+                    ? {}
+                    : {
+                        methods: RETRY_METHODS,
+                        calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
+                    }
+                ),
             },
             timeout: { response: options.connectionRetryTimeout as number }
         }
@@ -290,4 +306,16 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         return retry(error, `Request failed with status ${response.statusCode} due to ${error.message}`)
     }
+}
+
+function findCommandPathByName (commandName: string) {
+    const command = Object.entries(WebDriverProtocol).find(
+        ([, command]) => Object.values(command).find(
+            (cmd) => cmd.command === commandName))
+
+    if (!command) {
+        throw new Error(`Couldn't find command "${commandName}"`)
+    }
+
+    return command[0]
 }
