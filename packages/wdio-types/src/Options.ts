@@ -20,7 +20,7 @@ export interface RequestLibOptions {
     json?: Record<string, unknown>
     method?: Method
     responseType?: 'json' | 'buffer' | 'text'
-    retry?: { limit: number, methods: Method[], calculateDelay: (retryOptions: { computedValue: number }) => number }
+    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
     searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     throwHttpErrors?: boolean
     timeout?: { response: number }

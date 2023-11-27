@@ -23,7 +23,7 @@ export const config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
+        timeout: 10000,
         grep: 'SKIPPED_GREP',
         invert: true
     },
