@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.3 (2023-11-27)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11752](https://github.com/webdriverio/webdriverio/pull/11752) (@wdio/utils): don't throw if returning null ([@HannaTarasevich](https://github.com/HannaTarasevich))
+
+#### Committers: 1
+- Hanna Tarasevich ([@HannaTarasevich](https://github.com/HannaTarasevich))
+
+
 ## v8.24.2 (2023-11-27)
 
 #### :bug: Bug Fix
