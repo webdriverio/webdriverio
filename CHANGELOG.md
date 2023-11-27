@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.2 (2023-11-27)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11727](https://github.com/webdriverio/webdriverio/pull/11727) (@wdio/utils): don't throw if returning a chai assertion ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-types`, `webdriver`
+  * [#11726](https://github.com/webdriverio/webdriverio/pull/11726) (webdriver): no request retries for action commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.24.1 (2023-11-23)
 
 #### :bug: Bug Fix
