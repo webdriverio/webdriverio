@@ -17,8 +17,8 @@ import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
+const DEFAULT_APPIUM_PORT = 4723
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
-
 const DEFAULT_CONNECTION = {
     protocol: 'http',
     hostname: '127.0.0.1',
@@ -109,8 +109,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 Object.assign(
                     cap,
                     DEFAULT_CONNECTION,
-                    'port' in this._args ? { port: this._args.port } : {},
-                    { path: this._args.basePath },
+                    { path: this._args.basePath, port },
                     { ...cap }
                 )
             }
@@ -133,7 +132,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         /**
          * Get port from service option or use a random port
          */
-        const port = typeof this._args.port === 'number' ? this._args.port : await getPort()
+        const port = typeof this._args.port === 'number'
+            ? this._args.port
+            : await getPort({ port: DEFAULT_APPIUM_PORT })
         this._setCapabilities(port)
 
         /**
