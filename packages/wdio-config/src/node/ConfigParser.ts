@@ -312,6 +312,12 @@ export default class ConfigParser {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
+        // remove glob-pattern from spec cli arg before filtering
+        if (this._config.spec !== undefined && this._config.spec.length > 0 && this.isGlobPattern(this._config.spec[0])){
+            this._config.spec[0] = this.removeGlobPatternFromSpecCliArg(this._config.spec[0])
+        }
+
+
         return this.shard(
             this.filterSpecs(specs, <string[]>exclude)
         )
