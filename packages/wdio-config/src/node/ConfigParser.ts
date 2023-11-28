@@ -200,6 +200,13 @@ export default class ConfigParser {
         }
 
         /**
+         * Make glob-pattern from --spec arg from CLI if it is only a keyword
+         */
+        if (spec.length > 0 && !this.cliSpecArgContainsPathstoSpecs(spec) && !this.isGlobPattern(spec[0])){
+            spec[0] = this.addGlobPatternToSpecCliArg(spec[0])
+        }
+
+        /**
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
