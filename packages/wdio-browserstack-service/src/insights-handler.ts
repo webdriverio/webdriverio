@@ -49,6 +49,7 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
+    public _teardownInvoked = false
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
@@ -499,6 +500,7 @@ class _InsightsHandler {
     }
 
     async teardown () {
+        this._teardownInvoked = true
         await this._requestQueueHandler.shutdown()
     }
 
@@ -723,6 +725,9 @@ class _InsightsHandler {
         }
 
         const req = this._requestQueueHandler.add(uploadData)
+        if (this._teardownInvoked && req.data) {
+            await uploadEventData(req.data, req.url)
+        }
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }

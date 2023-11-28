@@ -6,6 +6,8 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -1158,4 +1160,16 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
     )
 
     return response
+}
+
+export function setupExitHandlers() {
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    process.on('exit', (code) => {
+        if (process.env.IS_TESTOPS_SESSION === 'true' && process.env.TESTOPS_BUILD_STOPPED !== 'true') {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
 }
