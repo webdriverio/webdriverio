@@ -2,12 +2,11 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import type { ChildProcessByStdio } from 'node:child_process'
-import { spawn } from 'node:child_process'
-import { promisify } from 'node:util'
-import type { Readable } from 'node:stream'
+import { spawn, type ChildProcessByStdio } from 'node:child_process'
+import { type Readable } from 'node:stream'
 
 import logger from '@wdio/logger'
+import getPort from 'get-port'
 import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
@@ -23,7 +22,6 @@ const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
 const DEFAULT_CONNECTION = {
     protocol: 'http',
     hostname: '127.0.0.1',
-    port: 4723,
     path: '/'
 }
 
@@ -70,7 +68,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
      * update capability connection options to connect
      * to Appium server
      */
-    private _setCapabilities() {
+    private _setCapabilities(port: number) {
         /**
          * Multiremote sessions
          */
@@ -81,41 +79,42 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 !isCloudCapability(c) && isAppiumCapability(c) && Object.assign(
                     capability,
                     DEFAULT_CONNECTION,
-                    'port' in this._args ? { port: this._args.port } : {},
-                    { path: this._args.basePath },
+                    { path: this._args.basePath, port },
                     { ...capability }
                 )
             }
             return
         }
 
-        this._capabilities.forEach(
-            (cap) => {
-                /**
-                 * Parallel Multiremote
-                 */
-                if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
-                    Object.values(cap).forEach(c => {
-                        const capa = (c.capabilities as Capabilities.W3CCapabilities).alwaysMatch || (c.capabilities as Capabilities.W3CCapabilities) || c
-                        !isCloudCapability(capa) && isAppiumCapability(capa) && Object.assign(
+        this._capabilities.forEach((cap) => {
+            const w3cCap = cap as Capabilities.W3CCapabilities
+
+            /**
+             * Parallel Multiremote
+             */
+            if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
+                Object.values(cap).forEach(c => {
+                    const capability = (c.capabilities as Capabilities.W3CCapabilities).alwaysMatch || (c.capabilities as Capabilities.W3CCapabilities) || c
+                    if (!isCloudCapability(capability) && isAppiumCapability(capability)) {
+                        Object.assign(
                             c,
                             DEFAULT_CONNECTION,
-                            'port' in this._args ? { port: this._args.port } : {},
-                            { path: this._args.basePath },
+                            { path: this._args.basePath, port },
                             { ...c }
                         )
                     }
-                    )
-                } else {
-                    !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && isAppiumCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
-                        cap,
-                        DEFAULT_CONNECTION,
-                        'port' in this._args ? { port: this._args.port } : {},
-                        { path: this._args.basePath },
-                        { ...cap }
-                    )
                 }
-            })
+                )
+            } else if (!isCloudCapability(w3cCap.alwaysMatch || cap) && isAppiumCapability(w3cCap.alwaysMatch || cap)) {
+                Object.assign(
+                    cap,
+                    DEFAULT_CONNECTION,
+                    'port' in this._args ? { port: this._args.port } : {},
+                    { path: this._args.basePath },
+                    { ...cap }
+                )
+            }
+        })
     }
 
     async onPrepare() {
@@ -130,13 +129,18 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * Append remaining arguments
          */
         this._appiumCliArgs.push(...formatCliArgs(this._args))
-        this._setCapabilities()
+
+        /**
+         * Get port from service option or use a random port
+         */
+        const port = typeof this._args.port === 'number' ? this._args.port : await getPort()
+        this._setCapabilities(port)
 
         /**
          * start Appium
          */
         const command = await this._getCommand(this._options.command)
-        this._process = await promisify(this._startAppium)(command, this._appiumCliArgs)
+        this._process = await this._startAppium(command, this._appiumCliArgs)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -150,34 +154,36 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
     }
 
-    private _startAppium(command: string, args: Array<string>, callback: (err: Error | undefined, result: any) => void): void {
+    private _startAppium(command: string, args: Array<string>) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
 
-        process.stdout.on('data', (data) => {
-            if (data.includes('Appium REST http interface listener started')) {
-                log.info(`Appium started with ID: ${process.pid}`)
-                callback(undefined, process)
-            }
-        })
+        return new Promise<ChildProcessByStdio<null, Readable, Readable>>((resolve, reject) => {
+            process.stdout.on('data', (data) => {
+                if (data.includes('Appium REST http interface listener started')) {
+                    log.info(`Appium started with ID: ${process.pid}`)
+                    resolve(process)
+                }
+            })
 
-        /**
-         * only capture first error to print it in case Appium failed to start.
-         */
-        process.stderr.once('data', (err) => { error = err })
+            /**
+             * only capture first error to print it in case Appium failed to start.
+             */
+            process.stderr.once('data', (err) => { error = err })
 
-        process.once('exit', exitCode => {
-            let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
-            if (exitCode === 2) {
-                errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-            } else if (error) {
-                errorMessage += `\n${error.toString()}`
-            }
-            if (exitCode !== 0) {
-                log.error(errorMessage)
-            }
-            callback(new Error(errorMessage), null)
+            process.once('exit', exitCode => {
+                let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
+                if (exitCode === 2) {
+                    errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
+                } else if (error) {
+                    errorMessage += `\n${error.toString()}`
+                }
+                if (exitCode !== 0) {
+                    log.error(errorMessage)
+                }
+                reject(new Error(errorMessage))
+            })
         })
     }
 
