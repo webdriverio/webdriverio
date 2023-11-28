@@ -114,13 +114,18 @@ export default function isElementDisplayed (element: Element): boolean {
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
-    function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
+    function hasBoundingBox(element: Element): boolean {
         const boundingBox = element.getBoundingClientRect()
-        if (boundingBox.width > 0 && boundingBox.height > 0) {
+        return boundingBox.width > 0 && boundingBox.height > 0
+    }
+
+    function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
+        if (hasBoundingBox(element)) {
             return true
         }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
+        const boundingBox = element.getBoundingClientRect()
         if (element.tagName.toUpperCase() === 'PATH' && boundingBox.width + boundingBox.height > 0) {
             const strokeWidth = cascadedStylePropertyForElement(element, 'stroke-width')
             return !!strokeWidth && (parseInt(strokeWidth, 10) > 0)
@@ -257,7 +262,7 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
-    if (isElementSubtreeHiddenByOverflow(element)) {
+    if (isElementSubtreeHiddenByOverflow(element) && !hasBoundingBox(element)) {
         return false
     }
 
