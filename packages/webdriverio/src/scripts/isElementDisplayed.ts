@@ -120,7 +120,9 @@ export default function isElementDisplayed (element: Element): boolean {
     }
 
     function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
-        if (elementHasBoundingBox(element)) return true
+        if (elementHasBoundingBox(element)) {
+            return true
+        }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
         const boundingBox = element.getBoundingClientRect()
