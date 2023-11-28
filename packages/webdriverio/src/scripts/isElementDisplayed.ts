@@ -114,13 +114,13 @@ export default function isElementDisplayed (element: Element): boolean {
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
-    function hasBoundingBox(element: Element): boolean {
+    function elementHasBoundingBox(element: Element): boolean {
         const boundingBox = element.getBoundingClientRect()
         return boundingBox.width > 0 && boundingBox.height > 0
     }
 
     function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
-        if (hasBoundingBox(element)) {
+        if (elementHasBoundingBox(element)) {
             return true
         }
 
@@ -262,7 +262,7 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
-    if (isElementSubtreeHiddenByOverflow(element) && !hasBoundingBox(element)) {
+    if (isElementSubtreeHiddenByOverflow(element) && !elementHasBoundingBox(element)) {
         return false
     }
 
