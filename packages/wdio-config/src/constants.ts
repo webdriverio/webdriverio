@@ -17,7 +17,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     waitforTimeout: 5000,
     framework: 'mocha' as const,
     reporters: [],
-    services: [],
+    services: ['snapshot'],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     injectGlobals: true,

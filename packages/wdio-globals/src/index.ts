@@ -91,7 +91,7 @@ expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {
         return globals.get('expect').not[matcher](...args)
     }
     return acc
-}, {} as ExpectWebdriverIO.AsymmetricMatchers)
+}, {} as ExpectWebdriverIO.AsymmetricMatchers) as any
 
 expect.extend = (...args: unknown[]) => {
     if (!globals.has('expect')) {

@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`My Login application > should login with valid credentials 1`] = `
+"<div data-alert=\\"\\" id=\\"flash\\" class=\\"flash success\\">
+            You logged into a secure area!
+            <a href=\\"#\\" class=\\"close\\">×</a>
+          </div>"
+`;

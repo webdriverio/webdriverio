@@ -1,0 +1,40 @@
+{
+  "name": "@wdio/snapshot-service",
+  "version": "8.17.0",
+  "description": "A WebdriverIO utility to support snapshot testing.",
+  "author": "Anthony Nguyen <anthony.vqnguyen@gmail.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-snapshot-service",
+  "license": "MIT",
+  "engines": {
+    "node": "^16.13 || >=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-snapshot-service"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./build/index.js",
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@types/node": "^20.1.0",
+    "@wdio/logger": "8.16.17",
+    "@wdio/types": "8.24.0",
+    "expect-webdriverio": "^4.6.1",
+    "jest-snapshot": "^29.7.0"
+  },
+  "devDependencies": {
+    "@wdio/globals": "8.24.1"
+  }
+}

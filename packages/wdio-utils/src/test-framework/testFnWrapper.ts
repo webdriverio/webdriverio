@@ -68,7 +68,7 @@ export const testFnWrapper = function (
  * @return  {*}                     specFn result
  */
 export const testFrameworkFnWrapper = async function (
-    this: unknown,
+    this: unknown & { snapshotError?: Error },
     { executeHooksWithArgs, executeAsync }: WrapperMethods,
     type: string,
     { specFn, specFnArgs }: SpecFunction,
@@ -128,6 +128,8 @@ export const testFrameworkFnWrapper = async function (
     if (error && !error.matcherName) {
         throw error
     }
+    //Handle jest-snapshot suppressed errors
+    if (this && this.snapshotError) { throw this.snapshotError }
     return result
 }
 
