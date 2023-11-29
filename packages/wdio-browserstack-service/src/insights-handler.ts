@@ -387,6 +387,10 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         await this.sendTestRunEvent(test, 'TestRunFinished', result)
+        if (this._teardownInvoked) {
+            BStackLogger.debug('Force request-queue shutdown, as test run event is received after teardown')
+            await this._requestQueueHandler.shutdown()
+        }
     }
 
     /**
@@ -725,9 +729,6 @@ class _InsightsHandler {
         }
 
         const req = this._requestQueueHandler.add(uploadData)
-        if (this._teardownInvoked && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
