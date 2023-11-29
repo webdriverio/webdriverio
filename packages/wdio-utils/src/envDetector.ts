@@ -2,7 +2,7 @@ import type { Capabilities } from '@wdio/types'
 
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
-    'appium-version', 'appiumVersion', 'device-type', 'deviceType',
+    'appium-version', 'appiumVersion', 'device-type', 'deviceType', 'app', 'appArguments',
     'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
@@ -106,7 +106,10 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
         /**
          * capabilities contain mobile only specific capabilities
          */
-        Object.keys(capabilities).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        Object.keys(capabilities).find((cap) => (
+            MOBILE_CAPABILITIES.includes(cap) ||
+            MOBILE_CAPABILITIES.map((c) => `appium:${c}`).includes(cap)
+        )) ||
         /**
          * browserName is empty (and eventually app is defined)
          */
