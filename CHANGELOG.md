@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.4 (2023-11-29)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11755](https://github.com/webdriverio/webdriverio/pull/11755) (@webdriverio): add check of element size if subtree is hidden to isElementDisplayed ([@HannaTarasevich](https://github.com/HannaTarasevich))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#11757](https://github.com/webdriverio/webdriverio/pull/11757) (@wdio/appium-service): make Appium start on a random port ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Hanna Tarasevich ([@HannaTarasevich](https://github.com/HannaTarasevich))
+
+
 ## v8.24.3 (2023-11-27)
 
 #### :bug: Bug Fix
