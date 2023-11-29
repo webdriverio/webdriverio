@@ -30,8 +30,11 @@ import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
+import BrowserstackLauncherService from './launcher.js'
 
 const pGitconfig = promisify(gitconfig)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -1163,10 +1166,8 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 }
 
 export function setupExitHandlers() {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = path.dirname(__filename)
     process.on('exit', (code) => {
-        if (process.env.IS_TESTOPS_SESSION === 'true' && process.env.TESTOPS_BUILD_STOPPED !== 'true') {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
             const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
             childProcess.unref()
             process.exit(code)

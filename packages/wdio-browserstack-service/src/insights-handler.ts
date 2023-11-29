@@ -49,7 +49,6 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
-    public _teardownInvoked = false
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
@@ -387,10 +386,10 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         await this.sendTestRunEvent(test, 'TestRunFinished', result)
-        if (this._teardownInvoked) {
-            BStackLogger.debug('Force request-queue shutdown, as test run event is received after teardown')
-            await this._requestQueueHandler.shutdown()
-        }
+        // if (this._teardownInvoked) {
+        //     BStackLogger.debug('Force request-queue shutdown, as test run event is received after teardown')
+        //     await this._requestQueueHandler.shutdown()
+        // }
     }
 
     /**
@@ -504,7 +503,7 @@ class _InsightsHandler {
     }
 
     async teardown () {
-        this._teardownInvoked = true
+        RequestQueueHandler.tearDownInvoked = true
         await this._requestQueueHandler.shutdown()
     }
 

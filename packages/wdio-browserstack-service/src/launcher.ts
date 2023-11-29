@@ -48,6 +48,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
+    public static _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -241,7 +242,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.testObservability) {
             BStackLogger.debug('Sending launch start event')
-            process.env.IS_TESTOPS_SESSION = 'true'
 
             await launchTestSession(this._options, this._config, {
                 projectName: this._projectName,
@@ -313,7 +313,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
-            process.env.TESTOPS_BUILD_STOPPED = 'true'
+            BrowserstackLauncherService._testOpsBuildStopped = true
 
             if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')

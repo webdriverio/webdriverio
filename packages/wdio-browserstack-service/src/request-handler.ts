@@ -8,6 +8,7 @@ export default class RequestQueueHandler {
     private started = false
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
     public pendingUploads = 0
+    public static tearDownInvoked = false
 
     static instance: RequestQueueHandler
 
@@ -99,6 +100,9 @@ export default class RequestQueueHandler {
     }
 
     shouldProceed () {
+        if (RequestQueueHandler.tearDownInvoked) {
+            return true
+        }
         return this.queue.length >= DATA_BATCH_SIZE
     }
 }
