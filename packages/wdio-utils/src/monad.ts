@@ -168,9 +168,10 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
              * always transform result into promise
              */
             Promise.resolve(result).then((res: unknown) => {
+                const elem = res as { elementId: string, selector?: string }
                 let resultLog = res
-                if (res instanceof SCOPE_TYPES.element) {
-                    resultLog = `WebdriverIO.Element<${(res as { elementId: string }).elementId}>`
+                if (elem instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
                 } else if (res instanceof SCOPE_TYPES.browser) {
                     resultLog = 'WebdriverIO.Browser'
                 }
