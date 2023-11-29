@@ -101,6 +101,7 @@ export default class RequestQueueHandler {
 
     shouldProceed () {
         if (RequestQueueHandler.tearDownInvoked) {
+            BStackLogger.debug('Force request-queue shutdown, as test run event is received after teardown')
             return true
         }
         return this.queue.length >= DATA_BATCH_SIZE
