@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.5 (2023-11-29)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11760](https://github.com/webdriverio/webdriverio/pull/11760) (@wdio/utils): detect sessions that have an app capability set as mobile session ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.24.4 (2023-11-29)
 
 #### :bug: Bug Fix
