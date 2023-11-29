@@ -200,7 +200,7 @@ export default class ConfigParser {
         }
 
         /**
-         * Make glob-pattern from --spec arg from CLI if it is only a keyword
+         * Make glob-pattern from CLI --spec arg if it is only a keyword
          */
         if (spec.length > 0 && !this.cliSpecArgContainsPathstoSpecs(spec) && !this.isGlobPattern(spec[0])){
             spec[0] = this.addGlobPatternToSpecCliArg(spec[0])
@@ -312,11 +312,17 @@ export default class ConfigParser {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
-        // remove glob-pattern from spec cli arg before filtering
+        // remove glob-pattern from CLI spec arg before filtering
         if (this._config.spec !== undefined && this._config.spec.length > 0 && this.isGlobPattern(this._config.spec[0])){
             this._config.spec[0] = this.removeGlobPatternFromSpecCliArg(this._config.spec[0])
         }
 
+        // filter specs by keyword
+        if (this._config.spec !== undefined){
+            if (!this.cliSpecArgContainsPathstoSpecs(this._config.spec!)){
+                specs = this.filterSpecsFromConfigFileByKeyword(this._config.spec[0], specs)
+            }
+        }
 
         return this.shard(
             this.filterSpecs(specs, <string[]>exclude)
@@ -505,7 +511,7 @@ export default class ConfigParser {
     }
 
     cliSpecArgContainsPathstoSpecs(specArr: string[]) {
-    // check that --spec arg from CLI does not contain path to file
+    // check that CLI --spec arg from does not contain path to file
     // If arg contains '/', '\' or '.' => in this case it is filepath
         return /[/\\.]/.test(specArr[0])
     }
