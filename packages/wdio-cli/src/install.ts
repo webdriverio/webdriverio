@@ -16,11 +16,7 @@ const devFlag: Record<PM, string> = {
 }
 
 export async function installPackages (cwd: string, packages: string[], dev: boolean) {
-    /**
-     * find package manager that was used to create project
-     */
     const pm = detectPackageManager()
-
     const devParam = dev ? devFlag[pm] : ''
 
     console.log('\n')
