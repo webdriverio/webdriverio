@@ -12,8 +12,6 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { $ } from 'execa'
-// @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
-import { detect } from 'detect-package-manager'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -804,7 +802,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
     const cwd = await getProjectRoot(parsedAnswers)
-    const pm = await detect({ cwd })
+    const pm = detectPackageManager()
     if (parsedAnswers.npmInstall) {
         console.log(`Installing packages using ${pm}:${SEP}${parsedAnswers.packagesToInstall.join(SEP)}`)
         const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
@@ -815,6 +813,22 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
         const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
         console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
     }
+}
+
+export type PM = 'npm' | 'yarn' | 'pnpm' | 'bun'
+export const PMs: PM[] = ['npm', 'yarn', 'pnpm', 'bun']
+/**
+ * detect the package manager that was used
+ */
+export function detectPackageManager() {
+    return PMs.find((pm) => (
+        // for pnpm check "~/Library/pnpm/store/v3/..."
+        // for NPM check "~/.npm/npx/..."
+        // for Yarn check "~/.yarn/bin/create-wdio"
+        // for Bun check "~/.bun/bin/create-wdio"
+        process.argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
+        process.argv[1].includes(`${path.sep}.${pm}${path.sep}`)
+    )) || 'npm'
 }
 
 /**

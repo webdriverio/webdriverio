@@ -1,6 +1,5 @@
 import { execa } from 'execa'
-// @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
-import { detect, type PM } from 'detect-package-manager'
+import { detectPackageManager, type PM } from './utils.js'
 
 const installCommand: Record<PM, string> = {
     npm: 'install',
@@ -17,7 +16,11 @@ const devFlag: Record<PM, string> = {
 }
 
 export async function installPackages (cwd: string, packages: string[], dev: boolean) {
-    const pm = await detect({ cwd })
+    /**
+     * find package manager that was used to create project
+     */
+    const pm = detectPackageManager()
+
     const devParam = dev ? devFlag[pm] : ''
 
     console.log('\n')
