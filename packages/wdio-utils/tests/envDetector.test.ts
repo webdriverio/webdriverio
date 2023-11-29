@@ -220,6 +220,21 @@ describe('sessionEnvironmentDetector', () => {
         expect(isAndroid).toEqual(false)
     })
 
+    it('should detect a Windows application automated through Appium', () => {
+        const capabilities: any = {
+            platformName: 'WINDOWS',
+            'ms:experimental-webdriver': true,
+            'ms:waitForAppLaunch': 10,
+            app: 'C:\\Program Files\\foo\\bar.exe',
+            appArguments: '-noCloseConfirmationPopUp -shouldDisplayDiesToTake'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
     it('should detect Android mobile app', function () {
         const capabilities = {
             platformName: 'Android',

@@ -2,7 +2,7 @@ import type { Capabilities } from '@wdio/types'
 
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
-    'appium-version', 'appiumVersion', 'device-type', 'deviceType',
+    'appium-version', 'appiumVersion', 'device-type', 'deviceType', 'app', 'appArguments',
     'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
