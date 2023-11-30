@@ -50,7 +50,8 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
         )
     )
-    return Boolean(hasW3CCaps || isAppium)
+    const hasWebdriverFlag = Boolean(capabilities['ms:experimental-webdriver'])
+    return Boolean(hasW3CCaps || isAppium || hasWebdriverFlag)
 }
 
 /**
