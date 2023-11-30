@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.6 (2023-11-30)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11756](https://github.com/webdriverio/webdriverio/pull/11756) chore: Fix build and test timeouts ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 1
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.24.5 (2023-11-29)
 
 #### :bug: Bug Fix
