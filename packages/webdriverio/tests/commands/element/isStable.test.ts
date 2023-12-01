@@ -62,7 +62,7 @@ describe('isStable test', () => {
 
     it('should throw if used on an inactive tab', async () => {
         global.document = { visibilityState: 'hidden' } as any
-        await expect(elem.isStable()).rejects.toThrowError('You are using isStable for an inactive tab, animations do not run for inactive tabs')
+        await expect(elem.isStable()).rejects.toThrowError('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
     })
 
     afterEach(() => {
