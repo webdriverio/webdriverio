@@ -820,14 +820,14 @@ export const PMs: PM[] = ['npm', 'yarn', 'pnpm', 'bun']
 /**
  * detect the package manager that was used
  */
-export function detectPackageManager() {
+export function detectPackageManager(argv = process.argv) {
     return PMs.find((pm) => (
         // for pnpm check "~/Library/pnpm/store/v3/..."
         // for NPM check "~/.npm/npx/..."
         // for Yarn check "~/.yarn/bin/create-wdio"
         // for Bun check "~/.bun/bin/create-wdio"
-        process.argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
-        process.argv[1].includes(`${path.sep}.${pm}${path.sep}`)
+        argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
+        argv[1].includes(`${path.sep}.${pm}${path.sep}`)
     )) || 'npm'
 }
 

@@ -37,7 +37,8 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
@@ -978,6 +979,16 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+})
+
+test.each([
+    ['', 'npm'],
+    ['~/Library/pnpm/store/v3/...', 'pnpm'],
+    ['~/.npm/npx/...', 'npm'],
+    ['~/.yarn/bin/create-wdio', 'yarn'],
+    ['~/.bun/bin/create-wdio', 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
 })
 
 afterEach(() => {
