@@ -983,10 +983,10 @@ test('runAppiumInstaller', async () => {
 
 test.each([
     ['', 'npm'],
-    ['~/Library/pnpm/store/v3/...', 'pnpm'],
-    ['~/.npm/npx/...', 'npm'],
-    ['~/.yarn/bin/create-wdio', 'yarn'],
-    ['~/.bun/bin/create-wdio', 'bun']
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
 ])('detectPackageManager', async (path, pm) => {
     expect(detectPackageManager(['', path])).toEqual(pm)
 })
