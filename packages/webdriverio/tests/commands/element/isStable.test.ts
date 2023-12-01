@@ -34,7 +34,7 @@ describe('isStable test', () => {
         expect(vi.mocked(got).mock.calls[2][1]!.json.script)
             .toBe(`return ((elem, done) => {
     if (document.visibilityState === "hidden") {
-      throw Error("You are using isStable for an inactive tab, animations do not run for inactive tabs");
+      throw Error("You are are checking for animations on an inactive tab, animations do not run for inactive tabs");
     }
     try {
       const previousPosition = elem.getBoundingClientRect();

@@ -56,7 +56,7 @@ describe('waitForStable', () => {
     it('should throw when used on an inactive tab', async () => {
         global.document = { visibilityState: 'hidden' } as any
         const elem = await browser.$('#foo')
-        await expect(elem.waitForStable()).rejects.toThrowError('You are using isStable for an inactive tab, animations do not run for inactive tabs')
+        await expect(elem.waitForStable()).rejects.toThrowError('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
     })
 
 })

@@ -50,7 +50,7 @@ export async function isStable (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this)
     return await browser.executeAsync((elem, done) => {
         if (document.visibilityState === 'hidden') {
-            throw Error('You are using isStable for an inactive tab, animations do not run for inactive tabs')
+            throw Error('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
         }
         try {
             const previousPosition = elem.getBoundingClientRect()
