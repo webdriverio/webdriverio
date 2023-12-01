@@ -9,8 +9,7 @@ The mock object is an object that represents a network mock and contains informa
 
 Note that using the `mock` command requires support for Chrome DevTools protocol.
 That support is given if you run tests locally in Chromium based browser or if
-you use a Selenium Grid v4 or higher. This command can __not__ be used when running
-automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+you use a Selenium Grid v4 or higher. If you use a cloud vendor for spawning browsers, make sure your vendor also supports the Chrome DevTools protocol.
 
 :::
 
