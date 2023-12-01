@@ -21,6 +21,8 @@ describe('waitForStable', () => {
                 browserName: 'foobar'
             }
         })
+
+        global.document = { visibilityState: 'visible' } as any
     })
 
     it('should use default waitFor options', async () => {
@@ -50,4 +52,11 @@ describe('waitForStable', () => {
         })
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
+
+    it('should throw when used on an inactive tab', async () => {
+        global.document = { visibilityState: 'hidden' } as any
+        const elem = await browser.$('#foo')
+        await expect(elem.waitForStable()).rejects.toThrowError('You are using isStable for an inactive tab, animations do not run for inactive tabs')
+    })
+
 })

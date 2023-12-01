@@ -57,7 +57,7 @@ import type { WaitForOptions } from '../../types.js'
  * @type utility
  *
  */
-export function waitForStable (
+export async function waitForStable (
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,
@@ -66,8 +66,28 @@ export function waitForStable (
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}stable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
-    return this.waitUntil(
-        async () => reverse !== await this.isStable(),
+    let errorMsg!: string
+
+    await this.waitUntil(
+        async () => {
+            try {
+                return reverse !== await this.isStable()
+            } catch (error) {
+                if (error instanceof Error) {
+                    errorMsg = error.message
+                } else if (typeof error === 'string') {
+                    errorMsg = error
+                } else {
+                    errorMsg = 'The waitForStable command got an unknown error'
+                }
+                // fail early
+                return !reverse
+            }
+        },
         { timeout, interval, timeoutMsg }
     )
+
+    if (errorMsg) {
+        throw Error(errorMsg)
+    }
 }

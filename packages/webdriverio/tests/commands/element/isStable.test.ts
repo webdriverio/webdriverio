@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
+import { expect, describe, it, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
@@ -23,12 +23,19 @@ describe('isStable test', () => {
         elem = await browser.$('#foo')
     })
 
+    beforeEach(() => {
+        global.document = { visibilityState: 'visible' } as any
+    })
+
     it('should allow to check if element is selected', async () => {
         await elem.isStable()
         expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
         expect(vi.mocked(got).mock.calls[2][1]!.json.script)
             .toBe(`return ((elem, done) => {
+    if (document.visibilityState === "hidden") {
+      throw Error("You are using isStable for an inactive tab, animations do not run for inactive tabs");
+    }
     try {
       const previousPosition = elem.getBoundingClientRect();
       requestAnimationFrame(() => {
@@ -51,6 +58,11 @@ describe('isStable test', () => {
                 ELEMENT: elem.elementId,
                 [ELEMENT_KEY]: elem.elementId,
             }])
+    })
+
+    it('should throw if used on an inactive tab', async () => {
+        global.document = { visibilityState: 'hidden' } as any
+        await expect(elem.isStable()).rejects.toThrowError('You are using isStable for an inactive tab, animations do not run for inactive tabs')
     })
 
     afterEach(() => {
