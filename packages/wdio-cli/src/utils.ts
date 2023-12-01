@@ -815,8 +815,8 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 }
 
-export type PM = 'npm' | 'yarn' | 'pnpm' | 'bun'
-export const PMs: PM[] = ['npm', 'yarn', 'pnpm', 'bun']
+export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
+export type PM = typeof PMs[number]
 /**
  * detect the package manager that was used
  */
