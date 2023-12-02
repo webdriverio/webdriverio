@@ -511,7 +511,7 @@ export default class ConfigParser {
     }
 
     cliSpecArgContainsPathstoSpecs(specArr: string[]) {
-    // check that CLI --spec arg from does not contain path to file
+    // check that CLI --spec arg does not contain path to file
     // If arg contains '/', '\' or '.' => in this case it is filepath
         return /[/\\.]/.test(specArr[0])
     }
@@ -525,7 +525,7 @@ export default class ConfigParser {
     }
 
     removeGlobPatternFromSpecCliArg(specCliArgWithGlobPattern: string) {
-        // remove glob-pattenr symbols: *, **, ?, [, ]
+        // remove glob-pattern symbols: *, **, ?, [, ]
         return specCliArgWithGlobPattern.replace(/[*?[\]]/g, '')
     }
 }
