@@ -61,7 +61,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
-    "@types/archiver": "^5.1.0",
+    "@types/archiver": "^6.0.2",
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.zip": "^4.2.6"

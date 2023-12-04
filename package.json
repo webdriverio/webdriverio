@@ -77,7 +77,7 @@
     "@stencil/core": "^4.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.4.4",
     "@tsconfig/node18": "^18.2.0",
-    "@types/archiver": "^5.3.2",
+    "@types/archiver": "^6.0.2",
     "@types/cheerio": "^0.22.31",
     "@types/eslint": "^8.44.2",
     "@types/inquirer": "^9.0.3",
