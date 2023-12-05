@@ -11,38 +11,39 @@ import type { WaitForOptions } from '../../types.js'
  * <example>
     :index.html
     <head>
-    <style>
-        div {
-        width: 200px;
-        height: 200px;
-        background-color: red;
-        animation: 3s 0s alternate slidein;
-        }
-        @keyframes slidein {
-        from {
-            margin-left: 100%;
-            width: 300%;
-        }
+        <style>
+            #has-animation {
+                width: 200px;
+                height: 200px;
+                background-color: red;
+                animation: 3s 0s alternate slidein;
+            }
+            @keyframes slidein {
+                from {
+                    margin-left: 100%;
+                    width: 300%;
+                }
 
-        to {
-            margin-left: 0%;
-            width: 100%;
-        }
-        }
-    </style>
+                to {
+                    margin-left: 0%;
+                    width: 100%;
+                }
+            }
+        </style>
     </head>
     <body>
-    <div></div>
+        <div #has-animation></div>
+        <div #has-no-animation></div>
     </body>
 
     :waitForStable.js
-    it('should detect when element is stable', async () => {
-        const elem = await $('#elem')
+    it('should detect that element is instable and will wait for the element to become stable', async () => {
+        const elem = await $('#has-animation')
         await elem.waitForStable({ timeout: 3000 });
     });
-    it('should detect when element is no longer stable', async () => {
-        const elem = await $('#elem')
-        await elem.waitForStable({ reverse: true });
+    it('should detect that element is stable and will not wait', async () => {
+        const elem = await $('#has-no-animation')
+        await elem.waitForStable();
     });
  * </example>
  *
