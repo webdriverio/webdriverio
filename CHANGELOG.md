@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.7 (2023-12-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11764](https://github.com/webdriverio/webdriverio/pull/11764) (@wdio/cli): implement constistent and simple package manager detection ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#11718](https://github.com/webdriverio/webdriverio/pull/11718) removed unused library ([@mikhail-g](https://github.com/mikhail-g))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykhailo Hariachyi ([@mikhail-g](https://github.com/mikhail-g))
+
+
 ## v8.24.6 (2023-11-30)
 
 #### :nail_care: Polish
