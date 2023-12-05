@@ -1,6 +1,6 @@
 {
   "name": "@wdio/logger",
-  "version": "8.24.9",
+  "version": "8.24.10",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
