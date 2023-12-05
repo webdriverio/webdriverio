@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "8.24.11",
+  "version": "8.24.12",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -69,12 +69,12 @@
   },
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/config": "8.24.11",
-    "@wdio/logger": "8.24.11",
-    "@wdio/protocols": "8.24.11",
-    "@wdio/repl": "8.24.11",
-    "@wdio/types": "8.24.11",
-    "@wdio/utils": "8.24.11",
+    "@wdio/config": "8.24.12",
+    "@wdio/logger": "8.24.12",
+    "@wdio/protocols": "8.24.12",
+    "@wdio/repl": "8.24.12",
+    "@wdio/types": "8.24.12",
+    "@wdio/utils": "8.24.12",
     "archiver": "^6.0.0",
     "aria-query": "^5.0.0",
     "css-shorthand-properties": "^1.1.1",
@@ -91,7 +91,7 @@
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.1",
-    "webdriver": "8.24.11"
+    "webdriver": "8.24.12"
   },
   "peerDependencies": {
     "devtools": "^8.14.0"
