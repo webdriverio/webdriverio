@@ -21,7 +21,9 @@ env:
   NPM_TOKEN: ${{secrets.NPM_TOKEN}}
   NPM_CONFIG_PROVENANCE: true
 
-permissions: {}
+permissions:
+  id-token: write
+
 jobs:
   authorize:
     runs-on: ubuntu-latest
