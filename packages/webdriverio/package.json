@@ -64,7 +64,8 @@
     "@types/archiver": "^6.0.2",
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
-    "@types/lodash.zip": "^4.2.6"
+    "@types/lodash.zip": "^4.2.6",
+    "got": "^12.6.0"
   },
   "dependencies": {
     "@types/node": "^20.1.0",

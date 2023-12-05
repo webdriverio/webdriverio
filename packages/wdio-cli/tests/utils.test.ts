@@ -58,6 +58,7 @@ vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m

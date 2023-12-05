@@ -40,7 +40,7 @@
     "formdata-node": "5.0.1",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
-    "got": "^ 14.0.0",
+    "got": "^12.6.1",
     "uuid": "^9.0.0",
     "webdriverio": "8.24.9",
     "winston-transport": "^4.5.0"

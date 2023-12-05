@@ -34,7 +34,7 @@
     "@wdio/reporter": "8.24.9",
     "@wdio/types": "8.24.9",
     "dateformat": "4.5.1",
-    "got": "^ 14.0.0",
+    "got": "^12.6.1",
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {

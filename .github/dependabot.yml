@@ -13,6 +13,7 @@ updates:
     # doesn't support glob anymore in v4 (Windows)
     - dependency-name: "rimraf"
     # these packages don't support Node.js v16 anymore
+    - dependency-name: "got"
     - dependency-name: "ky"
     - dependency-name: "@octokit/rest"
     - dependency-name: "@cucumber/cucumber"
