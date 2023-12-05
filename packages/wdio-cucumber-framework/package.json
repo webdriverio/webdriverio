@@ -40,7 +40,7 @@
   "dependencies": {
     "@cucumber/cucumber": "9.5.1",
     "@cucumber/gherkin": "27.0.0",
-    "@cucumber/messages": "23.0.0",
+    "@cucumber/messages": "24.0.0",
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.24.12",
     "@wdio/types": "8.24.12",
