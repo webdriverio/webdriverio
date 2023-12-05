@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "8.24.7",
+  "version": "8.24.8",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^1.6.0",
-    "@wdio/logger": "8.16.17",
-    "@wdio/types": "8.24.2",
+    "@wdio/logger": "8.24.8",
+    "@wdio/types": "8.24.8",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^5.1.0",
     "edgedriver": "^5.3.5",
