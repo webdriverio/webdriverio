@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.13 (2023-12-05)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11815](https://github.com/webdriverio/webdriverio/pull/11815) fix(stencil): update suite name ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 1
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
 ## v8.24.7 (2023-12-05)
 
 #### :bug: Bug Fix
