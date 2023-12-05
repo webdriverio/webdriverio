@@ -17,6 +17,7 @@ updates:
     - dependency-name: "ky"
     - dependency-name: "@octokit/rest"
     - dependency-name: "@cucumber/cucumber"
+    - dependency-name: "jsdom"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
