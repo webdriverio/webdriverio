@@ -162,7 +162,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    private merge(object: MergeConfig = {}, shouldSetPathToSpecs = true) {
+    private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -202,10 +202,10 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (shouldSetPathToSpecs && spec.length > 0) {
+        if (addPathToSpecs && spec.length > 0) {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
-        if (shouldSetPathToSpecs && exclude.length > 0) {
+        if (addPathToSpecs && exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
     }

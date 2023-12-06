@@ -1,7 +1,3 @@
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-
 export const config = {
     /**
      * capabilities
@@ -15,7 +11,6 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: __dirname,
 
     reporters: ['spec'],
     services: ['webdriver-mock'],
