@@ -32,27 +32,27 @@ describe('isStable test', () => {
         expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
         expect(vi.mocked(got).mock.calls[2][1]!.json.script)
-            .toBe(`return ((elem, done) => {
-    if (document.visibilityState === "hidden") {
-      throw Error("You are are checking for animations on an inactive tab, animations do not run for inactive tabs");
-    }
-    try {
-      const previousPosition = elem.getBoundingClientRect();
+            .toBe(`return (function isElementStable(elem, done) {
+  if (document.visibilityState === "hidden") {
+    throw Error("You are are checking for animations on an inactive tab, animations do not run for inactive tabs");
+  }
+  try {
+    const previousPosition = elem.getBoundingClientRect();
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const currentPosition = elem.getBoundingClientRect();
-          for (const prop in previousPosition) {
-            if (previousPosition[prop] !== currentPosition[prop]) {
-              done(false);
-            }
+        const currentPosition = elem.getBoundingClientRect();
+        for (const prop in previousPosition) {
+          if (previousPosition[prop] !== currentPosition[prop]) {
+            done(false);
           }
-          done(true);
-        });
+        }
+        done(true);
       });
-    } catch (error) {
-      done(false);
-    }
-  }).apply(null, arguments)`)
+    });
+  } catch (error) {
+    done(false);
+  }
+}).apply(null, arguments)`)
         expect(vi.mocked(got).mock.calls[2][1]!.json.args)
             .toEqual([{
                 ELEMENT: elem.elementId,
