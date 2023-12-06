@@ -31,7 +31,7 @@ export const config = {
 
 :::  
 
-ரியாக்ட் முன்னமைவுக்கு `@preact/preset-vite` ஐ நிறுவ வேண்டும். டெஸ்ட் பக்கத்தில் காம்போனென்டுகளை வழங்குவதற்கு [Testing Library](https://testing-library.com/) ஐப் பயன்படுத்தவும் பரிந்துரைக்கிறோம். எனவே நீங்கள் பின்வரும் கூடுதல் சார்புகளை நிறுவ வேண்டும்:
+The Preact preset requires `@preact/preset-vite` to be installed. டெஸ்ட் பக்கத்தில் காம்போனென்டுகளை வழங்குவதற்கு [Testing Library](https://testing-library.com/) ஐப் பயன்படுத்தவும் பரிந்துரைக்கிறோம். எனவே நீங்கள் பின்வரும் கூடுதல் சார்புகளை நிறுவ வேண்டும்:
 
 
 
@@ -103,4 +103,4 @@ describe('Preact Component Testing', () => {
 ```
 
 
-React க்கான WebdriverIO காம்போனென்ட் டெஸ்ட் தொகுப்பின் முழு உதாரணத்தையும் எங்களின் [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite)இல் காணலாம்.
+You can find a full example of a WebdriverIO component test suite for Preact in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/preact-typescript-vite).
