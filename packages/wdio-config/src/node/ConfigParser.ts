@@ -339,7 +339,7 @@ export default class ConfigParser {
                         path.dirname(this.#configFilePath)
                     )
                 )
-            } else if (this.cliSpecArgContainsPathstoSpecs(cliArgFileList) && globMatchedFiles.length) {
+            } else if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
                 // fileList can be a string[] or a string[][]
