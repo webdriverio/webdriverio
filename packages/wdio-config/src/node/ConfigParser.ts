@@ -63,7 +63,7 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
-        this.merge(_initialConfig)
+        this.merge(_initialConfig, false)
     }
 
     /**
@@ -162,7 +162,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    private merge(object: MergeConfig = {}) {
+    private merge(object: MergeConfig = {}, shouldSetPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -202,10 +202,10 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (spec.length > 0) {
+        if (shouldSetPathToSpecs && spec.length > 0) {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
-        if (exclude.length > 0) {
+        if (shouldSetPathToSpecs && exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
     }
@@ -338,7 +338,7 @@ export default class ConfigParser {
                         path.dirname(this.#configFilePath)
                     )
                 )
-            } else if (globMatchedFiles.length) {
+            } else if (this.cliSpecArgContainsPathstoSpecs(cliArgFileList) && globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
                 // fileList can be a string[] or a string[][]
