@@ -482,6 +482,6 @@ export default class ConfigParser {
     cliSpecArgContainsPathstoSpecs(specArr: string[]) {
     // check that CLI --spec arg does not contain path to file
     // If arg contains '/', '\' or '.' => in this case it is filepath
-        return /[/\\.]/.test(specArr[0])
+        return specArr[0].includes(path.sep)
     }
 }
