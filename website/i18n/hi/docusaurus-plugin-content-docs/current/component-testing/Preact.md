@@ -26,7 +26,7 @@ export const config = {
 
 :::
 
-रिएक्ट प्रीसेट को स्थापित करने के लिए `@preact/preset-vite` की आवश्यकता होती है। साथ ही हम परीक्षण पृष्ठ में घटक को प्रस्तुत करने के लिए [परीक्षण लाइब्रेरी](https://testing-library.com/) का उपयोग करने की अनुशंसा करते हैं। इसके लिए आपको निम्नलिखित अतिरिक्त निर्भरताओं को स्थापित करने की आवश्यकता होगी:
+The Preact preset requires `@preact/preset-vite` to be installed. साथ ही हम परीक्षण पृष्ठ में घटक को प्रस्तुत करने के लिए [परीक्षण लाइब्रेरी](https://testing-library.com/) का उपयोग करने की अनुशंसा करते हैं। इसके लिए आपको निम्नलिखित अतिरिक्त निर्भरताओं को स्थापित करने की आवश्यकता होगी:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/preact @preact/preset-vite
@@ -84,4 +84,4 @@ describe('Preact Component Testing', () => {
 })
 ```
 
-आप रिएक्ट के लिए WebdriverIO कंपोनेंट टेस्ट सूट का पूरा उदाहरण हमारे [उदाहरण रिपॉजिटरी](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite)में पा सकते हैं।
+You can find a full example of a WebdriverIO component test suite for Preact in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/preact-typescript-vite).
