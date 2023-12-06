@@ -4,7 +4,7 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-import { matchers, getConfig } from 'expect-webdriverio'
+import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
@@ -18,6 +18,15 @@ const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
 }
 
+const EXPECT_ASYMMETRIC_MATCHERS = [
+    'any',
+    'anything',
+    'arrayContaining',
+    'objectContaining',
+    'stringContaining',
+    'stringMatching',
+    'not',
+] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
@@ -201,6 +210,17 @@ class JasmineAdapter {
         const expect = jasmineEnv.expectAsync
         const matchers = this.#setupMatchers(jasmine)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
+
+        /**
+         * make Jasmine and WebdriverIOs expect global more compatible by attaching
+         * support asymmetric matchers to the `expect` global
+         */
+        const wdioExpect = expectImport as ExpectWebdriverIO.Expect
+        for (const matcher of EXPECT_ASYMMETRIC_MATCHERS) {
+            expect[matcher] = wdioExpect[matcher]
+        }
+        expect.not = wdioExpect.not
+
         _setGlobal('expect', expect, this._config.injectGlobals)
 
         /**
