@@ -40,9 +40,9 @@ describe('waitForStable', () => {
             [
                 expect.any(Function),
                 {
-                    'interval': 5,
-                    'timeout': 1000,
-                    'timeoutMsg': 'element ("#foo") still not stable after 1000ms',
+                    interval: 5,
+                    timeout: 1000,
+                    timeoutMsg: 'element ("#foo") still not stable after 1000ms',
                 },
             ],
         ])

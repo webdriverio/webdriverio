@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`waitForStable > should allow to set custom error 1`] = `
+[
+  [
+    [Function],
+    {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "my custom error",
+    },
+  ],
+]
+`;
