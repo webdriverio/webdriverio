@@ -26,7 +26,7 @@ export const config = {
 
 :::
 
-React 预设需要安装 `@preact/preset-vite`。 我们还建议使用 [Testing Library](https://testing-library.com/) 将组件呈现到测试页面中。 因此，您需要安装以下附加依赖项：
+The Preact preset requires `@preact/preset-vite` to be installed. 我们还建议使用 [Testing Library](https://testing-library.com/) 将组件呈现到测试页面中。 因此，您需要安装以下附加依赖项：
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/preact @preact/preset-vite
@@ -84,4 +84,4 @@ describe('Preact Component Testing', () => {
 })
 ```
 
-您可以在我们的[示例仓库](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite)中找到 Preact 的 WebdriverIO 测试套件的完整示例。
+You can find a full example of a WebdriverIO component test suite for Preact in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/preact-typescript-vite).
