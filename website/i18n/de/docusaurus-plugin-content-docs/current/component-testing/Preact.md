@@ -26,7 +26,7 @@ Wenn Sie bereits [Vite](https://vitejs.dev/) als Entwicklungsserver verwenden, k
 
 :::
 
-Für die Preact-Voreinstellung muss `@preact/preset-vite` installiert sein. Außerdem empfehlen wir die Verwendung von [Testing Library](https://testing-library.com/) zum Rendern der Komponente auf der Testseite. Dazu müssen Sie die folgenden zusätzlichen Abhängigkeiten installieren:
+The Preact preset requires `@preact/preset-vite` to be installed. Außerdem empfehlen wir die Verwendung von [Testing Library](https://testing-library.com/) zum Rendern der Komponente auf der Testseite. Dazu müssen Sie die folgenden zusätzlichen Abhängigkeiten installieren:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/preact @preact/preset-vite
@@ -84,4 +84,4 @@ describe('Preact Component Testing', () => {
 })
 ```
 
-Ein vollständiges Beispiel einer Testsuite für WebdriverIO-Komponenten für Preact finden Sie in unserem [-Beispiel-Repository](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite).
+You can find a full example of a WebdriverIO component test suite for Preact in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/preact-typescript-vite).
