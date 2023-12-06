@@ -200,13 +200,6 @@ export default class ConfigParser {
         }
 
         /**
-         * Make glob-pattern from CLI --spec arg if it is only a keyword
-         */
-        if (spec.length > 0 && !this.cliSpecArgContainsPathstoSpecs(spec) && !this.isGlobPattern(spec[0])){
-            spec[0] = this.addGlobPatternToSpecCliArg(spec[0])
-        }
-
-        /**
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
@@ -310,18 +303,6 @@ export default class ConfigParser {
             specs = specs.flatMap(i => Array.from({ length: multiRun }).fill(i)) as Spec[]
         } else if (multiRun && !hasSubsetOfSpecsDefined) {
             throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
-        }
-
-        // remove glob-pattern from CLI spec arg before filtering
-        if (this._config.spec !== undefined && this._config.spec.length > 0 && this.isGlobPattern(this._config.spec[0])){
-            this._config.spec[0] = this.removeGlobPatternFromSpecCliArg(this._config.spec[0])
-        }
-
-        // filter specs by keyword
-        if (this._config.spec !== undefined){
-            if (!this.cliSpecArgContainsPathstoSpecs(this._config.spec!)){
-                specs = this.filterSpecsFromConfigFileByKeyword(this._config.spec[0], specs)
-            }
         }
 
         return this.shard(
