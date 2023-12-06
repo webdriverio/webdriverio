@@ -32,44 +32,58 @@ If you're in the root directory of an existing project, run:
     {label: 'NPM', value: 'npm'},
     {label: 'Yarn', value: 'yarn'},
     {label: 'pnpm', value: 'pnpm'},
+    {label: 'bun', value: 'bun'},
   ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio .
+yarn create wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-yarn create wdio ./path/to/new/project
+yarn create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-pnpm create wdio ./path/to/new/project
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -87,26 +101,34 @@ The wizard will prompt a set questions that guides you through the setup. You ca
     {label: 'NPM', value: 'npm'},
     {label: 'Yarn', value: 'yarn'},
     {label: 'pnpm', value: 'pnpm'},
+    {label: 'bun', value: 'bun'},
   ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio . --yes
+yarn create wdio@latest . --yes
 ```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="pnpm">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
