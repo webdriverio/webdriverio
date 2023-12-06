@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.14 (2023-12-06)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#11820](https://github.com/webdriverio/webdriverio/pull/11820) (@wdio/jasmine-framework): attach asymmetric matchers to expect object ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.24.13 (2023-12-05)
 
 #### :nail_care: Polish
