@@ -161,6 +161,7 @@ export default class ConfigParser {
     /**
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
+     * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
      */
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
