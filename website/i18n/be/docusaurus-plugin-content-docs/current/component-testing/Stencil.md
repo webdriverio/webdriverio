@@ -118,5 +118,5 @@ await expect($('...')).toHaveElementClass('...')
 
 ## Examples
 
-You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/stencil-component-starter).
+You can find a full example of a WebdriverIO component test suite for Stencil in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/stencil-component-starter).
 
