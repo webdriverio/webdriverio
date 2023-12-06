@@ -20,7 +20,7 @@ exports[`waitForStable > should use default waitFor options 1`] = `
     {
       "interval": 5,
       "timeout": 1000,
-      "timeoutMsg": "element (\\"undefined\\") still not stable after 1000ms",
+      "timeoutMsg": "element (\\"#foo\\") still not stable after 1000ms",
     },
   ],
 ]

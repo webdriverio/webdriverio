@@ -26,11 +26,13 @@ describe('waitForStable', () => {
     })
 
     it('should use default waitFor options', async () => {
-        const tmpElem = await browser.$('#foo')
+        const selector = '#foo'
+        const tmpElem = await browser.$(selector)
         const elem = {
             waitForStable: tmpElem.waitForStable,
             waitUntil: vi.fn(),
-            options: { waitforInterval: 5, waitforTimeout: timeout }
+            options: { waitforInterval: 5, waitforTimeout: timeout },
+            selector,
         } as any as WebdriverIO.Element
 
         await elem.waitForStable()
