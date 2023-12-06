@@ -679,6 +679,58 @@ const mochaHooksTestrunner = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+// ****************************
+// *** Tests for CLI --spec ***
+// ****************************
+const runSpecsWithFlagAllPassed = async () => {
+    const { skippedSpecs } = await launch(
+        'runSpecsWithFlagAllPassed',
+        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-all-passed.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['test']
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagSeveralPassed = async () => {
+    const { skippedSpecs } = await launch(
+        'runSpecsWithFlagSeveralPassed',
+        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-failed.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['mocha']
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagDirectPath = async () => {
+    const { skippedSpecs } = await launch(
+        'runSpecsWithFlagDirectPath',
+        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-failed.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['./tests-cli-spec-arg/mocha.test03.js']
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagNoArg = async () => {
+    const { skippedSpecs } = await launch(
+        'runSpecsWithFlagNoArg',
+        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-all-passed.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: []
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+// *** END - tests for CLI --spec ***
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -709,7 +761,11 @@ const mochaHooksTestrunner = async () => {
         customReporterObject,
         severeErrorTest,
         nonGlobalTestrunner,
-        mochaHooksTestrunner
+        mochaHooksTestrunner,
+        runSpecsWithFlagAllPassed,
+        runSpecsWithFlagSeveralPassed,
+        runSpecsWithFlagDirectPath,
+        runSpecsWithFlagNoArg
     ]
 
     console.log('\nRunning smoke tests...\n')
