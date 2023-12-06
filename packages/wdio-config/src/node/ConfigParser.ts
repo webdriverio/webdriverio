@@ -479,34 +479,9 @@ export default class ConfigParser {
         return specs.slice(current * specsPerShard - specsPerShard, end)
     }
 
-    filterSpecsFromConfigFileByKeyword(keyword: string, listOfSpecs: Spec[]
-    ) {
-        return listOfSpecs.filter((specPath) => {
-            if (!Array.isArray(specPath)) {
-                const specName = path.basename(specPath)
-                // check that spec name contains --spec arg from CLI
-                return specName.includes(keyword)
-            }
-            return false
-        })
-    }
-
     cliSpecArgContainsPathstoSpecs(specArr: string[]) {
     // check that CLI --spec arg does not contain path to file
     // If arg contains '/', '\' or '.' => in this case it is filepath
         return /[/\\.]/.test(specArr[0])
-    }
-
-    isGlobPattern(specCliArg: string) {
-        return /[*?[]/.test(specCliArg)
-    }
-
-    addGlobPatternToSpecCliArg(specCliArg: string) {
-        return `**${specCliArg}**`
-    }
-
-    removeGlobPatternFromSpecCliArg(specCliArgWithGlobPattern: string) {
-        // remove glob-pattern symbols: *, **, ?, [, ]
-        return specCliArgWithGlobPattern.replace(/[*?[\]]/g, '')
     }
 }
