@@ -11,10 +11,10 @@ export const config = Object.assign(
             './mocha.test01.js',
             './mocha.test02.js',
             './mocha.test03.js',
-            './jestFail.test.js',
+            './testFail.test.js',
             [
                 './mocha.test04.js',
-                './jestFail.test.js'
+                './testFail.test.js'
             ]
         ],
     }
