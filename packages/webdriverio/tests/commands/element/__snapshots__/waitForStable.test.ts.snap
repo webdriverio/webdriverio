@@ -12,3 +12,16 @@ exports[`waitForStable > should allow to set custom error 1`] = `
   ],
 ]
 `;
+
+exports[`waitForStable > should use default waitFor options 1`] = `
+[
+  [
+    [Function],
+    {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "element (\\"#foo\\") still not stable after 1000ms",
+    },
+  ],
+]
+`;
