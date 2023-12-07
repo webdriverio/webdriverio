@@ -3,36 +3,36 @@ id: element
 title: The Element Object
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+要素オブジェクトは、リモート ユーザー エージェント上の要素を表すオブジェクトです。ブラウザ内でセッションを実行する場合の DOM ノード、またはモバイルのモバイル要素。例えばブラウザ内でセッションを実行する場合の [DOM ノード](https://developer.mozilla.org/en-US/docs/Web/API/Element)、または [モバイル用のモバイル要素](https: //developer.apple.com/documentation/swift/sequence/element)。 これは、多数の要素クエリ コマンドの 1 つを使用して受信できます。たとえば[`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
 
 ## Properties
 
-An element object has the following properties:
+ブラウザ オブジェクトには次のプロパティがあります。
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| Name        | Type     | Details                                                                                                                                 |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | リモートサーバーから割り当てられたセッションID。                                                                                                               |
+| `elementId` | `String` | 関連する [プロトコルレベルの要素と相互作用するために使用できる](https://w3c.github.io/webdriver/#elements) ウェブ要素参照                                                    |
+| `selector`  | `String` | [セレクタ](/docs/selectors) を使用して要素をクエリします。                                                                                                 |
+| `parent`    | `Object` | 要素が it からフェッチされた場合の Browser オブジェクト (例: const elem = browser.$('selector'))、または要素スコープからフェッチされた場合の Element オブジェクト (例: elem.$('selector')) |
+| `options`   | `Object` | WebdriverIO [option](/docs/configuration) は、ブラウザ オブジェクトの作成方法に応じて異なります。 もっと見る [セットアップ タイプ](/docs/setuptypes)。                            |
 
 ## Methods
 
-A element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+要素オブジェクトは、例えば、 [WebDriver](/docs/api/webdriver) プロトコルや要素セクション内にリストされているコマンドなど、プロトコルセクションからすべてのメソッドを提供します。 利用可能なプロトコルコマンドはセッションの種類によって異なります。 自動ブラウザセッションを実行すると、Appium[commands](/docs/api/appium)はいずれも使用できなくなり、その逆も同様です。
 
-In addition to that the following commands are available:
+これに加えて、次のコマンドも使用できます。
 
-| Name               | Parameters                                                            | Details                                                                                                                                                                                                        |
-| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| Name               | Parameters                                                            | Details                                                                                                                                             |
+| ------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | 作成目的でブラウザオブジェクトから呼び出すことができるカスタムコマンドを定義できます。 詳細については、 [Custom Command](/docs/customcommands) ガイドを参照してください。                                           |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | ブラウザコマンドをカスタム機能で上書きできます。 他の開発者を混乱させる可能性があるため、慎重に使用してください。 詳細については、 [Custom Command](/docs/customcommands#overwriting-native-commands) ガイドを参照してください。 |
 
 ## Remarks
 
 ### Element Chain
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element look ups. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+要素を扱う場合、WebdriverIOはクエリを簡素化し、複雑なネストされた要素を探すための特別な構文を提供します。 要素オブジェクトを使用すると、一般的なクエリメソッドを使用してツリーブランチ内の要素を見つけることができます。ユーザーは以下のようにネストされた要素をフェッチすることができます。
 
 ```js
 const header = await $('#header')
@@ -40,20 +40,20 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-With deep nested structures assigning any nested element to an array to then use it can be quite verbose. Therefor WebdriverIO has the concept of chained element queries that allow to fetch nested elements like this:
+深いネストされた構造体で、ネストされた要素を配列に割り当てると、非常に冗長なことができます。 そのため、WebdriverIOには、ネストされた要素を以下のようにフェッチできるようにする要素クエリがチェーン化されています。
 
 ```js
 console.log(await $('#header').$('#headline').getText())
 ```
 
-This also works when fetching a set of elements, e.g.:
+これは要素の集合を取得するときにも機能します。例えば：
 
 ```js
 // get the text of the 3rd headline within the 2nd header
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-When working with a set of elements this can especially useful when trying to interact with them, so instead of doing:
+一連の要素を扱う場合、これは特にそれらとやり取りしようとするときに役立ちますので、以下のようにします:
 
 ```js
 const elems = await $$('div')
@@ -62,14 +62,14 @@ const locations = await Promise.all(
 )
 ```
 
-You can directly call Array methods on the element chain, e.g.:
+要素チェーン上で Array メソッドを直接呼び出すことができます。例えば：
 
 ```js
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
+WebdriverIOは、内部で非同期反復処理をサポートするカスタム実装を使用するため、APIからのすべてのコマンドもこれらのユースケースでサポートされます。
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+ブラウザーのスコープにカスタム コマンドを設定して、一般的に使用されるワークフローを抽象化できます。 詳細については、 [ Custom Commands ](/docs/customcommands#adding-custom-commands) に関するガイドを参照してください。
