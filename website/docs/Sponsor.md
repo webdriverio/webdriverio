@@ -15,7 +15,7 @@ Sponsoring WebdriverIO gives you great exposure through our website (60k+ page v
 
 If you are using WebdriverIO to test a revenue-generating product, it makes business sense to sponsor WebdriverIO's development: it ensures the project that your product relies on stays healthy and actively maintained. The exposure and positive brand image in the WebdriverIO community also makes it easier to attract and recruit developers and QA engineers with WebdriverIO experience.
 
-## Sponsoring Vue as an Individual​
+## Sponsoring WebdriverIO as an Individual​
 If you are an individual user and have enjoyed the productivity of using WebdriverIO, consider donating as a sign of appreciation - like buying us coffee once in a while. Many of our team members accept sponsorships and donations via GitHub Sponsors.
 
 You can also try to convince your employer to sponsor WebdriverIO as a business. This may not be easy, but business sponsorships typically make a much larger impact on the sustainability of OSS projects than individual donations, so you will help us much more if you succeed.
