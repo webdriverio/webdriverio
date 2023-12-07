@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.15 (2023-12-07)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11826](https://github.com/webdriverio/webdriverio/pull/11826) (@wdio/cli): do not throw if dotenv is not installed ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11824](https://github.com/webdriverio/webdriverio/pull/11824) docs(stencil,preact): update project names in cmp testing ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
 ## v8.24.14 (2023-12-06)
 
 #### :bug: Bug Fix
