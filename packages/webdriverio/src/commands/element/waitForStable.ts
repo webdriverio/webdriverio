@@ -12,10 +12,12 @@ import type { WaitForOptions } from '../../types.js'
     :index.html
     <head>
         <style>
-            #has-animation {
+            div {
                 width: 200px;
                 height: 200px;
                 background-color: red;
+            }
+            #has-animation {
                 animation: 3s 0s alternate slidein;
             }
             @keyframes slidein {

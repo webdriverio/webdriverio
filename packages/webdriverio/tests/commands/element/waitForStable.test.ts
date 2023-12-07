@@ -36,7 +36,9 @@ describe('waitForStable', () => {
         } as any as WebdriverIO.Element
 
         await elem.waitForStable()
-        expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
+        expect(vi.mocked(elem.waitUntil).mock.calls[0][1]?.interval).toEqual(5)
+        expect(vi.mocked(elem.waitUntil).mock.calls[0][1]?.timeout).toEqual(timeout)
+        expect(vi.mocked(elem.waitUntil).mock.calls[0][1]?.timeoutMsg).toEqual(`element ("${selector}") still not stable after ${timeout}ms`)
     })
 
     it('should allow to set custom error', async () => {

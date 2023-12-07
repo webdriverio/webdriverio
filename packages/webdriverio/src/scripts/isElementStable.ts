@@ -10,6 +10,7 @@ export default function isElementStable(elem: HTMLElement, done: (returnValue: b
     }
     try {
         const previousPosition = elem.getBoundingClientRect()
+        // wait for two consecutive frames to make sure there are no animations
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 const currentPosition = elem.getBoundingClientRect()
