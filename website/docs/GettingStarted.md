@@ -51,13 +51,13 @@ npm init wdio@latest ./path/to/new/project
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio@latest .
+yarn create wdio .
 ```
 
 or if you want to create a new project:
 
 ```sh
-yarn create wdio@latest ./path/to/new/project
+yarn create wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -114,7 +114,7 @@ npm init wdio@latest . -- --yes
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio@latest . --yes
+yarn create wdio . --yes
 ```
 
 </TabItem>
