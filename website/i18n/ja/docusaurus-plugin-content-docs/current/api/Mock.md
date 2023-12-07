@@ -3,30 +3,30 @@ id: mock
 title: The Mock Object
 ---
 
-The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
+モックオブジェクトはネットワークモックを表し、指定された `url` と `filterOptions` に一致するリクエストに関する情報を含むオブジェクトです。 [` mock `](/docs/api/browser/mock) コマンドを使用して受信することができます。
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+`モック` コマンドを使用するには、Chrome DevTools プロトコルのサポートが必要です。 このサポートは、Chromiumベースのブラウザでローカルにテストを実行する場合、または Selenium Grid v4以上を使用する場合に提供されます。 このコマンドは、クラウドで自動テストを実行する場合には使用__できません__。 詳細は、 [Automation Protocols](/docs/automationProtocols) セクションを参照してください。
 
 :::
 
-You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
+リクエストとレスポンスのモックについては、WebdriverIOの [Mocks and Spies](/docs/mocksandspies) ガイドをご覧ください。
 
 ## Properties
 
-A mock object contains the following properties:
+モックオブジェクトには次のプロパティがあります。
 
-| Name            | Type       | Details                                                                                                                                                                               |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
-| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
-| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
-| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| Name            | Type       | Details                                                                                                                         |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `url`           | `String`   | モックコマンドに渡されるURL                                                                                                                 |
+| `filterOptions` | `Object`   | モックコマンドに渡されたリソースフィルタオプション                                                                                                       |
+| `browser`       | `Object`   | [Browser Object](/docs/api/browser) はモックオブジェクトを取得するために使用されます。                                                                   |
+| `calls`         | `Object[]` | `url`、`method`、`headers`、`initialPriority`、`referrerPolic などのプロパティを含むブラウザ要求の一致に関する情報`、`statusCode`、`responseHeaders`、および `body` |
 
 ## Methods
 
-Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
+モックオブジェクトは、 ` mock ` セクションにリストされている様々なコマンドを提供します。これにより、ユーザはリクエストやレスポンスの動作を変更できます。
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -37,9 +37,9 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 
 ## Events
 
-The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+モックオブジェクトはEventEmitterであり、ユースケースに対していくつかのイベントが出力されます。
 
-Here is a list of events.
+イベントの一覧はこちらです。
 
 ### `request`
 
