@@ -479,10 +479,4 @@ export default class ConfigParser {
         const end = current === total ? undefined : specsPerShard * current
         return specs.slice(current * specsPerShard - specsPerShard, end)
     }
-
-    cliSpecArgContainsPathstoSpecs(specArr: string[]) {
-    // check that CLI --spec arg does not contain path to file
-    // If arg contains '/', '\' or '.' => in this case it is filepath
-        return specArr[0].includes(path.sep)
-    }
 }
