@@ -43,9 +43,9 @@ title: The Mock Object
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
+このイベントは、モックパターンと一致するネットワーク要求を起動するときに発生します。 リクエストはイベントコールバックで渡されます。
 
-Request interface:
+リクエストインターフェイス:
 ```ts
 interface RequestEvent {
     requestId: number
@@ -57,7 +57,7 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
+このイベントは、ネットワーク応答が [` respond `](/docs/api/mock/respond) または [` respondOnce `](/docs/api/mock/respondOnce) で上書きされたときに発生します。 レスポンスはイベントコールバックで渡されます。
 
 Response interface:
 ```ts
@@ -71,7 +71,7 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
+このイベントは、 [`abort`](/docs/api/mock/abort) または [`abortOnce`](/docs/api/mock/abortOnce) でネットワーク要求が中断されたときに発生します。 イベントコールバックで失敗しました。
 
 Fail interface:
 ```ts
@@ -83,9 +83,9 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
+このイベントは、 `continue` または ` overwrite ` の前に、新しい一致が追加されたときに発生します。 マッチはイベントコールバックで渡されます。
 
-Match interface:
+一致インターフェイス:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+このイベントは、ネットワーク応答が上書きまたは中断されていない場合、または既に別のモックによって応答が送信されている場合に発生します。 `requestId` がイベントコールバックで渡されます。
 
 ## Examples
 
-Getting a number of pending requests:
+保留中のリクエストの数を取得します:
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+404ネットワークでエラーが発生しました:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+モック応答値が使用されているかどうかを決定します:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+この例では、`firstMock` が最初に定義され、`respondOnce` 呼び出しが 1 つあるため、`firstMock` 応答値は最初のリクエストには使用されません。残りの部分に使用されます。
