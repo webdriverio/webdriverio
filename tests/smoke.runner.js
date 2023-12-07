@@ -5,6 +5,7 @@ import assert from 'node:assert'
 
 import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
+import { outputDirPath } from './tests-cli-spec-arg/wdio-with-all-passed.conf.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
@@ -691,7 +692,15 @@ const runSpecsWithFlagAllPassed = async () => {
             spec: ['test']
         }
     )
+    await sleep(100)
+    const wdioLogs = await fs.readFile(path.resolve(outputDirPath, 'wdio.log'))
+    const matches = wdioLogs.toString().match(/finished with exit code 0/g)
+    assert.equal(matches.length, 4)
     assert.strictEqual(skippedSpecs, 0)
+    const files = await fs.readdir(outputDirPath)
+    for (const file of files) {
+        await fs.unlink(path.resolve(outputDirPath, file))
+    }
 }
 
 const runSpecsWithFlagSeveralPassed = async () => {
@@ -727,7 +736,15 @@ const runSpecsWithFlagNoArg = async () => {
             spec: []
         }
     )
+    await sleep(100)
+    const wdioLogs = await fs.readFile(path.resolve(outputDirPath, 'wdio.log'))
+    const matches = wdioLogs.toString().match(/finished with exit code 0/g)
+    assert.equal(matches.length, 3)
     assert.strictEqual(skippedSpecs, 0)
+    const files = await fs.readdir(outputDirPath)
+    for (const file of files) {
+        await fs.unlink(path.resolve(outputDirPath, file))
+    }
 }
 // *** END - tests for CLI --spec ***
 
