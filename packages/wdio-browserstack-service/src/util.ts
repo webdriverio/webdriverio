@@ -1159,3 +1159,23 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 
     return response
 }
+
+export const isObject = (object: any) => {
+  return object !== null && typeof object === 'object';
+}
+export const ObjectsAreEqual = (object1: any, object2: any) => {
+  const objectKeys1 = Object.keys(object1)
+  const objectKeys2 = Object.keys(object2)
+  if(objectKeys1.length !== objectKeys2.length) {
+      return false;
+  }
+  for (const key of objectKeys1) {
+      const value1 = object1[key];
+      const value2 = object2[key];
+      const isBothAreObjects = isObject(value1) && isObject(value2);
+      if((isBothAreObjects && !ObjectsAreEqual(value1, value2)) || (!isBothAreObjects && value1 !== value2)) {
+        return false;
+      }
+  }
+  return true;
+}

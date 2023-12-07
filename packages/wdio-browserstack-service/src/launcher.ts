@@ -14,7 +14,9 @@ import * as BrowserstackLocalLauncher from 'browserstack-local'
 import type { Capabilities, Services, Options } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
+import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
+
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
 import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, VALID_APP_EXTENSION } from './constants.js'
 import {
     launchTestSession,
@@ -29,11 +31,14 @@ import {
     isTrue,
     getBrowserStackUser,
     getBrowserStackKey,
-    uploadLogs
+    uploadLogs,
+    ObjectsAreEqual
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
+import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
+import Percy from './Percy/Percy.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
@@ -47,6 +52,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
+    private _percy?: Percy
+    private _percyBestPlatformCaps?: any
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -54,6 +61,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         private _config: Options.Testrunner
     ) {
         BStackLogger.clearLogFile()
+        PercyLogger.clearLogFile()
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
@@ -156,6 +164,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
+    async onWorkerStart (cid: any, caps: any, specs: any, args: any, execArgv: any) {
+      if(this._options.percy && this._percyBestPlatformCaps) {
+          const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
+          if(isThisBestPercyPlatform) {
+              process.env.BEST_PLATFORM_CID = cid + "";
+          }
+          caps['wdio:cid'] = cid;
+      }
+    }
+
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
         /**
          * Upload app to BrowserStack if valid file path to app is given.
@@ -249,6 +267,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
+        if (this._options.percy) {
+            const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
+            this._percyBestPlatformCaps = bestPlatformPercyCaps
+            await this.setupPercy(this._options, this._config, {
+              projectName: this._projectName
+            })
+        }
+
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')
         }
@@ -331,6 +357,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.clearLogger()
 
+        await this.stopPercy()
+        PercyLogger.clearLogger()
+
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -363,6 +392,40 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             clearTimeout(timer)
             return Promise.reject(err)
         })
+    }
+
+    async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+      if(!this._percy || !this._percy.isRunning()) {
+        try {
+          this._percy = await startPercy(options, config, bsConfig);
+          if (!this._percy) {
+            throw new Error('Could not start percy, check percy logs for info.')
+          }
+          PercyLogger.info('Percy started successfully');
+          let signal = 0;
+          const handler = async () => {
+            signal++;
+            signal == 1 && await this.stopPercy();
+          }
+          process.on('beforeExit', handler);
+          process.on('SIGINT', handler);
+          process.on('SIGTERM', handler);
+        } catch(err) {
+          PercyLogger.debug(`Error in percy setup ${err}`);
+          // throw new Error(err ? err.toString() : `Error in percy setup ${err}`);
+        }
+      }
+    }
+
+    async stopPercy() {
+      if(this._percy && this._percy.isRunning()) {
+        try{
+          await stopPercy(this._percy);
+          PercyLogger.info('Percy stopped');
+        } catch(err) {
+          PercyLogger.error('Error occured while stopping percy : ' + err);
+        }
+      }
     }
 
     async _uploadApp(app:App): Promise<AppUploadResponse> {

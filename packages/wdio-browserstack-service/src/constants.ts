@@ -46,3 +46,5 @@ export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTa
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
 export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
+
+export const PERCY_LOGS_FILE = 'logs/percy.log'

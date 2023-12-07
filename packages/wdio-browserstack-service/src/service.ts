@@ -19,6 +19,7 @@ import { DEFAULT_OPTIONS } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
+import PercyHandler from './Percy/Percy-Handler.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -36,6 +37,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
+    private _percy
+    private _percyHandler?: PercyHandler
     private _turboScale
 
     constructor (
@@ -48,6 +51,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
+        this._percy = this._options.percy
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
@@ -67,6 +71,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (strict) {
             this._failureStatuses.push('pending')
         }
+
+        if((_caps as any)['wdio:cid'] == process.env.BEST_PLATFORM_CID) process.env.PERCY_SNAPSHOT = "true"
     }
 
     _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
@@ -75,6 +81,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (multiRemoteCap.capabilities) {
             return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as WebdriverIO.Capabilities))
         }
+
+        // if(this._caps && (this._caps as Capabilities.DesiredCapabilities)['bstack:options']) delete (this._caps as Capabilities.DesiredCapabilities)['bstack:options']['bestPlatform'];
 
         return fn(this._caps as WebdriverIO.Capabilities)
     }
@@ -111,35 +119,58 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
-        if (this._observability && this._browser) {
-            patchConsoleLogs()
+        if (this._browser) {
+            if(this._percy) {
+                this._percyHandler = new PercyHandler(
+                  this._options.percyCaptureMode,
+                  this._browser,
+                  this._caps,
+                  this._isAppAutomate(),
+                  this._config.framework
+                )
+                this._percyHandler.before()
+            }
             try {
-                this._insightsHandler = new InsightsHandler(
+                if(this._observability) {
+                    patchConsoleLogs()
+
+                    this._insightsHandler = new InsightsHandler(
                     this._browser,
                     this._isAppAutomate(),
                     this._config.framework
-                )
-                await this._insightsHandler.before()
+                  )
+                  await this._insightsHandler.before()
 
-                /**
-                 * register command event
-                 */
-                this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
-                    'client:beforeCommand',
-                    Object.assign(command, { sessionId: this._browser?.sessionId }),
-                    this._currentTest
-                ))
+                  /**
+                   * register command event
+                   */
+                  this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
+                      'client:beforeCommand',
+                      Object.assign(command, { sessionId: this._browser?.sessionId }),
+                      this._currentTest
+                  ))
+                }
+                
                 /**
                  * register result event
                  */
-                this._browser.on('result', (result) => this._insightsHandler?.browserCommand(
-                    'client:afterCommand',
-                    Object.assign(result, { sessionId: this._browser?.sessionId }),
-                    this._currentTest
-                ))
+                this._browser.on('result', (result) => {
+                    if(this._observability) {
+                        this._insightsHandler?.browserCommand(
+                          'client:afterCommand',
+                          Object.assign(result, { sessionId: this._browser?.sessionId }),
+                          this._currentTest
+                        )
+                    }
+                    if(this._percy) {
+                          this._percyHandler?.browserCommand(
+                          result
+                        )
+                    }
+                })
             } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
-                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                if(this._observability) CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
             }
         }
 
@@ -218,6 +249,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
         await this._insightsHandler?.afterTest(test, results)
+        if(this._percy) await this._percyHandler?.afterTest(test, results)
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
@@ -240,6 +272,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
+
+        if(this._percy) await this._percyHandler?.teardown()
 
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
@@ -295,6 +329,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterScenario(world)
+        if(this._percy) await this._percyHandler?.afterScenario(world)
         await this._accessibilityHandler?.afterScenario(world)
     }
 
@@ -447,6 +482,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const pre = this._options.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
             const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
             name = `${pre}${test.parent}${post}`
+        }
+
+        if(this._percy && this._percyHandler) {
+          this._percyHandler._setSessionName(name)
         }
 
         if (name !== this._fullTitle) {
