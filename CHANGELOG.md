@@ -21,6 +21,65 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.24.15 (2023-12-07)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11826](https://github.com/webdriverio/webdriverio/pull/11826) (@wdio/cli): do not throw if dotenv is not installed ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11824](https://github.com/webdriverio/webdriverio/pull/11824) docs(stencil,preact): update project names in cmp testing ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
+## v8.24.14 (2023-12-06)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#11820](https://github.com/webdriverio/webdriverio/pull/11820) (@wdio/jasmine-framework): attach asymmetric matchers to expect object ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.24.13 (2023-12-05)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11815](https://github.com/webdriverio/webdriverio/pull/11815) fix(stencil): update suite name ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 1
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
+## v8.24.7 (2023-12-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11764](https://github.com/webdriverio/webdriverio/pull/11764) (@wdio/cli): implement constistent and simple package manager detection ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#11718](https://github.com/webdriverio/webdriverio/pull/11718) removed unused library ([@mikhail-g](https://github.com/mikhail-g))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykhailo Hariachyi ([@mikhail-g](https://github.com/mikhail-g))
+
+
+## v8.24.6 (2023-11-30)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11756](https://github.com/webdriverio/webdriverio/pull/11756) chore: Fix build and test timeouts ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 1
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.24.5 (2023-11-29)
 
 #### :bug: Bug Fix

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
     test: {
@@ -29,10 +29,15 @@ export default defineConfig({
                 'packages/devtools/src/scripts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
-            lines: 88,
-            functions: 84,
-            statements: 88,
-            branches: 88
-        }
+            watermarks: {
+                statements: [85, 90],
+                functions: [83, 88],
+                branches: [85, 90],
+                lines: [85, 90]
+            }
+        },
+        globalSetup: [
+            'scripts/test/globalSetup.ts'
+        ]
     }
 })

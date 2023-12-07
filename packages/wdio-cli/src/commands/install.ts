@@ -2,8 +2,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-// @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
-import { detect } from 'detect-package-manager'
 import type { Argv } from 'yargs'
 
 import {
@@ -11,7 +9,8 @@ import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
-    convertPackageHashToObject
+    convertPackageHashToObject,
+    detectPackageManager
 } from '../utils.js'
 import { installPackages } from '../install.js'
 import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
@@ -117,7 +116,7 @@ export async function handler(argv: InstallCommandArguments) {
 
     addServiceDeps(selectedPackage ? [selectedPackage] : [], pkgsToInstall, true)
 
-    const pm = await detect({ cwd: projectRoot })
+    const pm = detectPackageManager()
     console.log(`Installing "${selectedPackage.package}" using ${pm}.`)
     const success = await installPackages(projectRoot, pkgsToInstall, true)
 

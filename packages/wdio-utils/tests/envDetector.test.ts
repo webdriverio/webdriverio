@@ -76,6 +76,14 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities }).isW3C).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {
+            maxInstances: 7,
+            platformName: 'WINDOWS',
+            'appium:app': 'C:\\Program Files\\App.exe',
+            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
+            'ms:experimental-webdriver': true,
+            'ms:waitForAppLaunch': '10',
+        }, requestedCapabilities }).isW3C).toBe(true)
     })
 
     it('isChrome', () => {
