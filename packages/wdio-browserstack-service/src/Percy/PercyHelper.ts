@@ -6,54 +6,55 @@ import type { BrowserstackConfig, UserConfig } from '../types.js'
 import type { Options } from '@wdio/types'
 
 import { PercyLogger } from './PercyLogger.js'
-import Percy from './Percy.js';
+import Percy from './Percy.js'
 
 export const startPercy = async (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig): Promise<Percy> => {
-  PercyLogger.debug('Starting percy')
-  const percy = new Percy(options, config, bsConfig);
-  const response = await percy.start();
-  if (response) return percy;
-  return ({} as Percy);
+    PercyLogger.debug('Starting percy')
+    const percy = new Percy(options, config, bsConfig)
+    const response = await percy.start()
+    if (response) {
+        return percy
+    }
+    return ({} as Percy)
 }
 
 export const stopPercy = async (percy: Percy) => {
-  PercyLogger.debug('Stopping percy')
-  return percy.stop();
+    PercyLogger.debug('Stopping percy')
+    return percy.stop()
 }
 
-
 export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.RemoteCapabilities) : any => {
-  /* Add logic for devices also */
-  
-  const percyBrowserPreference: any = {'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3};
+    /* Add logic for devices also */
 
-  let bestPlatformCaps: any = null
-  let bestBrowser: any = null
+    const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
 
-  if (Array.isArray(capabilities)) {
-    capabilities
-      .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
-          if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-              return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
-          }
-          return c as (Capabilities.DesiredCapabilities)
-      }).forEach((capability: Capabilities.DesiredCapabilities) => {
-        let currBrowserName = capability["browserName"]
-        if (capability['bstack:options']) {
-            currBrowserName = capability['bstack:options']['browserName'] || currBrowserName
-        }
-        if(!bestBrowser || !bestPlatformCaps) {
-            bestBrowser = currBrowserName
-            bestPlatformCaps = capability
-        } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
-            bestBrowser = currBrowserName
-            bestPlatformCaps = capability
-        }
-      });
-      return bestPlatformCaps
-  } else if (typeof capabilities === 'object') {
-    Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-      /* TODO */
-    });
-  }
+    let bestPlatformCaps: any = null
+    let bestBrowser: any = null
+
+    if (Array.isArray(capabilities)) {
+        capabilities
+            .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                    return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
+                }
+                return c as (Capabilities.DesiredCapabilities)
+            }).forEach((capability: Capabilities.DesiredCapabilities) => {
+                let currBrowserName = capability.browserName
+                if (capability['bstack:options']) {
+                    currBrowserName = capability['bstack:options'].browserName || currBrowserName
+                }
+                if (!bestBrowser || !bestPlatformCaps) {
+                    bestBrowser = currBrowserName
+                    bestPlatformCaps = capability
+                } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
+                    bestBrowser = currBrowserName
+                    bestPlatformCaps = capability
+                }
+            })
+        return bestPlatformCaps
+    } else if (typeof capabilities === 'object') {
+        // Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+        //     /* TODO */
+        // });
+    }
 }

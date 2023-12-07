@@ -72,7 +72,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failureStatuses.push('pending')
         }
 
-        if((_caps as any)['wdio:cid'] == process.env.BEST_PLATFORM_CID) process.env.PERCY_SNAPSHOT = "true"
+        if (((_caps as any)['wdio:cid'] as string) === process.env.BEST_PLATFORM_CID) {
+            process.env.PERCY_SNAPSHOT = 'true'
+        }
     }
 
     _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
@@ -120,57 +122,59 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._browser) {
-            if(this._percy) {
+            if (this._percy) {
                 this._percyHandler = new PercyHandler(
-                  this._options.percyCaptureMode,
-                  this._browser,
-                  this._caps,
-                  this._isAppAutomate(),
-                  this._config.framework
+                    this._options.percyCaptureMode,
+                    this._browser,
+                    this._caps,
+                    this._isAppAutomate(),
+                    this._config.framework
                 )
                 this._percyHandler.before()
             }
             try {
-                if(this._observability) {
+                if (this._observability) {
                     patchConsoleLogs()
 
                     this._insightsHandler = new InsightsHandler(
-                    this._browser,
-                    this._isAppAutomate(),
-                    this._config.framework
-                  )
-                  await this._insightsHandler.before()
+                        this._browser,
+                        this._isAppAutomate(),
+                        this._config.framework
+                    )
+                    await this._insightsHandler.before()
 
-                  /**
-                   * register command event
-                   */
-                  this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
-                      'client:beforeCommand',
-                      Object.assign(command, { sessionId: this._browser?.sessionId }),
-                      this._currentTest
-                  ))
+                    /**
+                     * register command event
+                     */
+                    this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
+                        'client:beforeCommand',
+                        Object.assign(command, { sessionId: this._browser?.sessionId }),
+                        this._currentTest
+                    ))
                 }
-                
+
                 /**
                  * register result event
                  */
                 this._browser.on('result', (result) => {
-                    if(this._observability) {
+                    if (this._observability) {
                         this._insightsHandler?.browserCommand(
-                          'client:afterCommand',
-                          Object.assign(result, { sessionId: this._browser?.sessionId }),
-                          this._currentTest
+                            'client:afterCommand',
+                            Object.assign(result, { sessionId: this._browser?.sessionId }),
+                            this._currentTest
                         )
                     }
-                    if(this._percy) {
-                          this._percyHandler?.browserCommand(
-                          result
+                    if (this._percy) {
+                        this._percyHandler?.browserCommand(
+                            result
                         )
                     }
                 })
             } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
-                if(this._observability) CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                if (this._observability) {
+                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                }
             }
         }
 
@@ -249,7 +253,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
         await this._insightsHandler?.afterTest(test, results)
-        if(this._percy) await this._percyHandler?.afterTest(test, results)
+        if (this._percy) {
+            await this._percyHandler?.afterTest()
+        }
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
@@ -273,7 +279,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
 
-        if(this._percy) await this._percyHandler?.teardown()
+        if (this._percy) {
+            await this._percyHandler?.teardown()
+        }
 
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
@@ -329,7 +337,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterScenario(world)
-        if(this._percy) await this._percyHandler?.afterScenario(world)
+        if (this._percy) {
+            await this._percyHandler?.afterScenario()
+        }
         await this._accessibilityHandler?.afterScenario(world)
     }
 
@@ -484,8 +494,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             name = `${pre}${test.parent}${post}`
         }
 
-        if(this._percy && this._percyHandler) {
-          this._percyHandler._setSessionName(name)
+        if (this._percy && this._percyHandler) {
+            this._percyHandler._setSessionName(name)
         }
 
         if (name !== this._fullTitle) {
