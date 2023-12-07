@@ -29,12 +29,12 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/logger": "8.16.17",
-    "@wdio/types": "8.24.0",
-    "expect-webdriverio": "^4.6.1",
+    "@wdio/logger": "8.24.12",
+    "@wdio/types": "8.24.12",
+    "expect-webdriverio": "^4.7.1",
     "jest-snapshot": "^29.7.0"
   },
   "devDependencies": {
-    "@wdio/globals": "8.24.1"
+    "@wdio/globals": "8.24.12"
   }
 }

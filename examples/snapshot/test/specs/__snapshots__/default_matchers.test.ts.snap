@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test default jest matchers > should able to use default jest matchers 1`] = `
+Object {
+  "awaited": "value",
+}
+`;
+
+exports[`Test default jest matchers > should able to use default jest matchers 2`] = `
+Object {
+  "a": "aa",
+}
+`;
+
+exports[`Test default jest matchers > should able to use default jest matchers: snapshot a2 1`] = `
+Object {
+  "a2": "a",
+}
+`;

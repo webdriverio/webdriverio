@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Level 1 suite > Level 2 suite > Level 3 suite > test 3 1`] = `
+Object {
+  "a": "a",
+}
+`;
+
+exports[`Level 1 suite > Level 2 suite > Level 3 suite > test 3 2`] = `
+"<div data-alert=\\"\\" id=\\"flash\\" class=\\"flash success\\">
+            You logged into a secure area!
+            <a href=\\"#\\" class=\\"close\\">×</a>
+          </div>"
+`;
+
+exports[`Level 1 suite > Level 2 suite > Level 3 suite > test 3 3`] = `
+"<div data-alert=\\"\\" id=\\"flash\\" class=\\"flash success\\">
+            You logged into a secure area!
+            <a href=\\"#\\" class=\\"close\\">×</a>
+          </div>"
+`;
+
+exports[`Level 1 suite > Level 2 suite > test2 2 1`] = `
+Object {
+  "a": "a",
+}
+`;
+
+exports[`Level 1 suite > test1 1 1`] = `
+Object {
+  "a": "a",
+}
+`;
