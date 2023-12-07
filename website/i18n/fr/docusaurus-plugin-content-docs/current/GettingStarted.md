@@ -29,18 +29,19 @@ Si vous êtes dans le répertoire racine d'un projet existant, exécutez :
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -55,9 +56,27 @@ yarn create wdio .
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
+```
+
+or if you want to create a new project:
+
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
+```
 
 </TabItem>
 </Tabs>
@@ -74,12 +93,13 @@ L'assistant vous demandera une série de questions qui vous guideront à travers
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
@@ -93,7 +113,14 @@ yarn create wdio . --yes
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="pnpm">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
