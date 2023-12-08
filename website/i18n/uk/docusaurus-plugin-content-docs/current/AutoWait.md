@@ -37,7 +37,7 @@ WebdriverIO може чекати на елементи лише у разі к�
 
 ```js
 const divs = await $$('div')
-await divs[2].click() // can throw "Cannot read property 'click' of undefined"
+await divs[1].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
 Абсолютно нормальним є отримання набору елементів і виконання дії із n-им елементом цього набору. Однак WebdriverIO не знає, скільки елементів ви очікуєте отримати. Оскільки [`$$`](/docs/api/browser/$$) повертає [масив](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) елементів WebdriverIO, вам потрібно вручну перевірити, чи результуючий масив містить достатню кількість елементів. Для цього ми рекомендуємо використовувати [`waitUntil`](/docs/api/browser/waitUntil), наприклад:
@@ -49,7 +49,7 @@ const div = await browser.waitUntil(async () => {
         return false
     }
 
-    return elems[2]
+    return elems[1]
 }, {
     timeoutMsg: 'Never found enough div elements'
 })
