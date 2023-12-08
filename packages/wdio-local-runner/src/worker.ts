@@ -22,8 +22,14 @@ const stdErrStream = new RunnerStream()
 stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
 
-function nodeMajorVersion(): number {
-    return process.versions.node.split('.').map(Number)[0]
+enum NodeVersion {
+    'major' = 0,
+    'minor' = 1,
+    'patch' = 2
+}
+
+function nodeVersion(type: keyof typeof NodeVersion): number {
+    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
 }
 
 /**
@@ -120,8 +126,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             !(process.env.NODE_OPTIONS || '').includes('--loader ts-node/esm')
         ) {
             runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only --no-warnings'
-            if (nodeMajorVersion() >= 20) {
-                // Changes in Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
+            if (nodeVersion('major') >= 20 || (nodeVersion('major') === 18 && nodeVersion('minor') >= 19)) {
+                // Changes in Node 18.19 (and up) and Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
                 // - https://github.com/webdriverio/webdriverio/issues/10901
                 // - https://github.com/TypeStrong/ts-node/issues/2053
                 runnerEnv.NODE_OPTIONS += ' -r ts-node/register'
