@@ -133,6 +133,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 this._percyHandler.before()
             }
             try {
+                const sessionId = this._browser.sessionId
                 if (this._observability) {
                     patchConsoleLogs()
 
@@ -166,7 +167,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     }
                     if (this._percy) {
                         this._percyHandler?.browserCommand(
-                            result
+                            Object.assign(result, { sessionId }),
                         )
                     }
                 })
