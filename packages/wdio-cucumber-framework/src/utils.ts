@@ -1,5 +1,7 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
+import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
 
 import type {
     TableRow,
@@ -11,8 +13,8 @@ import type {
     TestStepResultStatus
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
-import type { ReporterStep } from './types.js'
-
+import type { ReporterStep, TestHookDefinitionConfig } from './types.js'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 
 /**
@@ -233,4 +235,26 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Remo
 export function getScenarioDescription(feature: Feature, scenarioId: string){
     const children = feature.children?.find((child) => child?.scenario?.id === scenarioId)!
     return children?.scenario?.description || ''
+}
+
+/**
+ * wrap every user defined hook with function named `userHookFn`
+ * to identify later on is function a step, user hook or wdio hook.
+ * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
+ */
+export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
+    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
+        options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
+            const hookFn = testRunHookDefinition.code
+            if (!hookFn.name.startsWith('wdioHook')) {
+                const userHookAsyncFn = async function (this: World, ...args: any) {
+                    return hookFn.apply(this, args)
+                }
+                const userHookFn = function (this: World, ...args: any) {
+                    return hookFn.apply(this, args)
+                }
+                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+            }
+        })
+    })
 }

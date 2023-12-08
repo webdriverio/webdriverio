@@ -2,7 +2,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
-import type { Selector, ElementArray } from '../../types.js'
+import type { Selector } from '../../types.js'
 
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
@@ -63,5 +63,5 @@ export async function $$ (
     }
 
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
+    return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
 }

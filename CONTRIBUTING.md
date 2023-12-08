@@ -37,6 +37,27 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 - __One issue, one bug:__ Please report a single bug per issue.
 - __Provide reproduction steps:__ List all the steps necessary to reproduce the issue. The person reading your bug report should be able to follow these steps to reproduce your issue with minimal effort.
 
+### Providing a reproducible example
+
+A reproducible example is a simple, self-contained script or program that demonstrates the issue or bug you're experiencing. The goal is to allow others to recreate the problem easily and efficiently.
+
+Steps to Create a Reproducible Example:
+
+1. Isolate the Problem:
+- Narrow down your code to the smallest amount that still reproduces the issue.
+- Remove any non-essential code or dependencies that are not related to the problem.
+
+2. Ensure that others can run your example and reproduce the issue:
+- It should not require any non-standard setup unless absolutely necessary, e.g. remove any need for special software or services like CI vendors.
+- Document steps necessary to execute the reproducible example
+
+3. Share project
+- Create a new public GitHub repository and push your reproducible example to it.
+- Share the link to the repository in the issue.
+- Document what behavior you observe and what behavior you would expect
+
+__Note:__ if you can't provide a reproducible example we unfortunately are forced to close the issue.
+
 ### Security Bugs
 
 See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).

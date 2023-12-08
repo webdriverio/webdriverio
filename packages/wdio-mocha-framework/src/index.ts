@@ -106,7 +106,7 @@ class MochaAdapter {
             this._hasTests = mochaRunner.total > 0
         } catch (err: any) {
             const error = '' +
-                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
                 `Spec file(s): ${this._specs.join(',')}\n` +

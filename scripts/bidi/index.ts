@@ -168,7 +168,7 @@ for (const assignment of astRemote) {
             parameters: [{
                 name: paramKey,
                 type: `\`${paramType}\``,
-                description: `<pre>${paramExample}</pre>`,
+                description: `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`,
                 required: true
             }],
             ...(example ? {
@@ -201,5 +201,8 @@ await writeFile(
 )
 await writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
-    `export default ${JSON.stringify(jsonSpec, null, 4)}`
+    (
+        `const protocol = ${JSON.stringify(jsonSpec, null, 4)} as const\n` +
+        'export default protocol'
+    )
 )

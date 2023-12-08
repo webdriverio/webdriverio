@@ -1,18 +1,19 @@
 import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
+import {
+    WebDriverBidiProtocol,
+    type CommandEndpoint,
+} from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/index.js'
-import type { BaseClient } from './types.js'
+import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
-const BIDI_COMMANDS = ['send', 'sendAsync'] as const
+const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
 
 interface BaseClientWithEventHandler extends BaseClient {
-    eventMiddleware: BidiHandler
     _driverProcess?: ChildProcess
 }
 
@@ -24,8 +25,8 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
-        const isBidiCommand = this.sessionId && this.eventMiddleware && typeof this.eventMiddleware[command as keyof typeof this.eventMiddleware] === 'function'
+    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
+        const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -47,10 +48,23 @@ export default function (
         }
 
         /**
+         * Throw this error message for all WebDriver Bidi commands.
+         * In case a successful connection to the browser bidi interface was established,
+         * we attach a custom Bidi prototype to the browser instance.
+         */
+        if (isBidiCommand) {
+            throw new Error(
+                `Failed to execute WebDriver Bidi command "${command}" as no Bidi session ` +
+                'was established. Make sure you enable it by setting "webSocketUrl: true" ' +
+                'in your capabilities and verify that your environment and browser supports it.'
+            )
+        }
+
+        /**
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (!isBidiCommand && args.length < minAllowedParams || args.length > commandParams.length) {
+        if (args.length < minAllowedParams || args.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -105,14 +119,6 @@ export default function (
              * rest of args are part of body payload
              */
             body[commandParams[i].name] = arg
-        }
-
-        /**
-         * Handle Bidi calls
-         */
-        if (isBidiCommand) {
-            log.info('BIDI COMMAND', commandCallStructure(command, args, true))
-            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](args[0]) as any
         }
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)

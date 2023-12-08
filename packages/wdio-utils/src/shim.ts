@@ -317,7 +317,7 @@ export async function executeAsync(this: any, fn: Function, retries: Frameworks.
         ])
         done = true
 
-        if (result && typeof result.finally === 'function') {
+        if (result !== null && typeof result === 'object' && 'finally' in result && typeof result.finally === 'function') {
             result.catch((err: any) => err)
         }
 

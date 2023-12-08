@@ -15,7 +15,7 @@ import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { ELEMENT_KEY, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
+import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
@@ -198,7 +198,7 @@ function fetchElementByJSFunction (
     scope: WebdriverIO.Browser | WebdriverIO.Element,
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
-    if (!(scope as WebdriverIO.Element).elementId) {
+    if (!('elementId' in scope)) {
         return scope.execute(selector as any, referenceId)
     }
     /**
@@ -503,7 +503,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: ElementArray,
+    elements: WebdriverIO.ElementArray,
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',

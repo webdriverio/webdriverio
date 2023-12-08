@@ -32,7 +32,8 @@ import {
     getBrowserStackUser,
     getBrowserStackKey,
     uploadLogs,
-    ObjectsAreEqual
+    ObjectsAreEqual,
+    setupExitHandlers
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -54,6 +55,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: any
+    public static _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -62,6 +64,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     ) {
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
+        setupExitHandlers()
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
@@ -337,6 +340,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
+            BrowserstackLauncherService._testOpsBuildStopped = true
 
             if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')

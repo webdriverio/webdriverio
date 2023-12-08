@@ -7,7 +7,7 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import { readPackageUp } from 'read-package-up'
+import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 
@@ -37,7 +37,8 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
@@ -57,12 +58,13 @@ vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
 })
 
-vi.mock('read-package-up', () => ({
+vi.mock('read-pkg-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
         path: '/foo/package.json',
         packageJson: {
@@ -978,6 +980,16 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+})
+
+test.each([
+    ['', 'npm'],
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
 })
 
 afterEach(() => {

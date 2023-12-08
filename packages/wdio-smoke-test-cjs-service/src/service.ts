@@ -18,4 +18,6 @@ export default class SmokeService {
     afterSuite () { this.logFile.write('afterSuite called\n') } // eslint-disable-line no-console
     after () { this.logFile.write('after called\n') } // eslint-disable-line no-console
     afterSession () { this.logFile.write('afterSession called\n') } // eslint-disable-line no-console
+    beforeAssertion () { this.logFile.write('beforeAssertion called\n') } // eslint-disable-line no-console
+    afterAssertion () { this.logFile.write('afterAssertion called\n') } // eslint-disable-line no-console
 }

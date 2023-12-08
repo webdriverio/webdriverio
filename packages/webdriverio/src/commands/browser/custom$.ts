@@ -57,5 +57,5 @@ export async function custom$ (
         return await getElement.call(this, strategyRef, res)
     }
 
-    throw Error('Your locator strategy script must return an element')
+    return await getElement.call(this, strategyRef, new Error('no such element'))
 }

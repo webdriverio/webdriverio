@@ -70,7 +70,7 @@ vi.mock('@puppeteer/browsers', () => ({
     resolveBuildId: vi.fn().mockReturnValue('116.0.5845.110'),
     canDownload: vi.fn().mockResolvedValue(true),
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
-    install: vi.fn()
+    install: vi.fn().mockResolvedValue({})
 }))
 
 describe('driver utils', () => {

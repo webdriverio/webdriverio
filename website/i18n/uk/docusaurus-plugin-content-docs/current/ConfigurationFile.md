@@ -491,6 +491,22 @@ export const config = {
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
+    },
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion: function (params) {
+    },
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion: function (params) {
     }
 }
 ```

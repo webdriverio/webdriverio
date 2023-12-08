@@ -10,6 +10,7 @@ import type { Options } from '@wdio/types'
 
 import * as utils from '../src/utils.js'
 import WebDriverRequest from '../src/request/node.js'
+import { COMMANDS_WITHOUT_RETRY } from '../src/request/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got')
@@ -533,6 +534,10 @@ describe('webdriver request', () => {
             )
             expect(result.message).toBe('ups')
         })
+    })
+
+    it('defines correct exceptions for request retries', () => {
+        expect(COMMANDS_WITHOUT_RETRY).toMatchSnapshot()
     })
 
     afterEach(() => {

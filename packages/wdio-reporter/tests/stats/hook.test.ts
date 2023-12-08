@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 import HookStats from '../../src/stats/hook.js'
 
-test('should get initialised', () => {
+test('should get initialized', () => {
     const hook = new HookStats({
         cid: '0-0',
         title: 'foobar',

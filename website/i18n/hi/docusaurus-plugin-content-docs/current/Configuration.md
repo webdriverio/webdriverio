@@ -3,11 +3,7 @@ id: configuration
 title: कॉन्फ़िगरेशन
 ---
 
-<<<<<<< HEAD
 [सेटअप प्रकार](/docs/setuptypes) के आधार पर (उदाहरण के लिए कच्चे प्रोटोकॉल बाइंडिंग का उपयोग करके, वेबड्राइवरियो स्टैंडअलोन पैकेज या WDIO टेस्टरनर के रूप में) पर्यावरण को नियंत्रित करने के लिए विकल्पों का एक अलग सेट उपलब्ध है।
-=======
-Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
->>>>>>> 3abd27a65 (New translations Configuration.md (Hindi))
 
 ## वेब ड्राइवर विकल्प
 
@@ -625,3 +621,27 @@ Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 - `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि स्टेक
 - `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
 - `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

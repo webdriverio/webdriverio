@@ -10,17 +10,41 @@ import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json'
 import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
 import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 
+const servicesWithBrokenReadmes = [
+    '@sap_oss/wdio-qmate-service',
+    'wdio-reportportal-service',
+    'wdio-ms-teams-service',
+    'wdio-intercept-service',
+    'wdio-ui5-service'
+]
+
+const reportersWithBrokenReadmes = [
+    'wdio-mochawesome-reporter',
+    'wdio-reportportal-reporter'
+]
+
+interface Plugin {
+    packageName: string
+    title: string
+    githubUrl: string
+    npmUrl: string
+    branch?: string
+    location?: string
+    locations: string[]
+    suppressBuildInfo?: boolean
+}
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = [{
     category: 'docs',
     namePlural: 'Reporter',
     nameSingular: 'Reporter',
-    packages3rdParty: reporters3rdParty
+    packages3rdParty: reporters3rdParty.filter(({ packageName }) => !reportersWithBrokenReadmes.includes(packageName))
 }, {
     category: 'docs',
     namePlural: 'Services',
     nameSingular: 'Service',
-    packages3rdParty: services3rdParty
+    packages3rdParty: services3rdParty.filter(({ packageName }) => !servicesWithBrokenReadmes.includes(packageName))
 }, {
     category: 'api',
     namePlural: 'Testrunner',
@@ -41,23 +65,27 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
  * Generate docs for 3rd party reporters and services
  * @param {object} sidebars website/sidebars
  */
-export async function generate3rdPartyDocs (sidebars) {
+export async function generate3rdPartyDocs (sidebars: any) {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.mkdir(categoryDir, { recursive: true })
         const sidebar = sidebars[category]
 
-        const items = []
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'main' } of packages3rdParty) {
+        const items: string[] = []
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'main' } of packages3rdParty as Plugin[]) {
             const readme = locations
                 ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
                     .then((readmes) => readmes.join('\n'))
                 : await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
-            const doc = normalizeDoc(readme, githubUrl, branch,
+            const doc = normalizeDoc(
+                readme,
+                githubUrl,
+                branch,
                 buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
-                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
+                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl)
+            )
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
             if (namePlural === 'Testrunner') {
@@ -69,7 +97,7 @@ export async function generate3rdPartyDocs (sidebars) {
             items.push(category === 'api' ? `${category}/${id}` : id)
         }
 
-        const section = sidebar.find((s) => s.label === namePlural)
+        const section = sidebar.find((s: any) => s.label === namePlural)
         section.items.push(...items)
     }
 }
@@ -83,7 +111,7 @@ export async function generate3rdPartyDocs (sidebars) {
  * @param {string}  repoInfo    repoInfo
  * @return {string}             readme content without header
  */
-function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
+function normalizeDoc(readme: string, githubUrl: string, branch: string, preface: string[], repoInfo: string[]) {
     /**
      * remove badges
      */
@@ -144,7 +172,7 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
  * @param {string} githubUrl GitHub url
  * @param {string} npmUrl npm url
  */
-function buildInfo(packageName, githubUrl, npmUrl) {
+function buildInfo(packageName: string, githubUrl: string, npmUrl: string) {
     return [
         `> ${packageName} is a 3rd party package, for more information please see [GitHub](${githubUrl}) | [npm](${npmUrl})`
     ]

@@ -40,4 +40,10 @@ export default class CustomSmokeTestReporter extends WDIOReporter {
     onRunnerEnd () {
         this.write('onRunnerEnd\n')
     }
+    onAfterAssertion () {
+        this.write('onAfterAssertion\n')
+    }
+    onBeforeAssertion () {
+        this.write('onBeforeAssertion\n')
+    }
 }

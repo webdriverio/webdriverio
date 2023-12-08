@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 import type { Protocol } from 'devtools-protocol'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler } from 'webdriver'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
@@ -126,7 +126,7 @@ export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
-export interface ElementArray extends Array<WebdriverIO.Element> {
+interface ElementArrayExport extends Array<WebdriverIO.Element> {
     selector: Selector
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     foundWith: string
@@ -240,7 +240,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browse
 /**
  * @deprecated use `WebdriverIO.Browser` instead
  */
-export interface Browser extends BrowserBase, BidiHandler, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiEventHandler, BrowserCommandsType, ProtocolCommands {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -286,7 +286,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
 /**
  * @deprecated use `WebdriverIO.Element` instead
  */
-export interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+export interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
@@ -502,9 +502,41 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
 
 declare global {
     namespace WebdriverIO {
-        interface Browser extends BrowserBase, BidiHandler, ProtocolCommands, BrowserCommandsType {}
-        interface Element extends ElementBase, BidiHandler, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+        /**
+         * WebdriverIO browser object
+         * @see https://webdriver.io/docs/api/browser
+         */
+        interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
+        /**
+         * WebdriverIO element object
+         * @see https://webdriver.io/docs/api/element
+         */
+        interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
+        /**
+         * WebdriverIO element array
+         * When fetching elements via `$$`, `custom$$` or `shadow$$` commands an array of elements
+         * is returns. This array has extended prototype properties to provide information about
+         * the parent element, selector and properties of the fetched elements. This is useful to
+         * e.g. re-fetch the set in case no elements got returned.
+         */
+        interface ElementArray extends ElementArrayExport {}
+        /**
+         * WebdriverIO multiremote browser object
+         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Browser>`
+         * where `string` is the capability name defined in the WebdriverIO options.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
+        /**
+         * WebdriverIO multiremote browser object
+         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Element>`
+         * where `string` is the capability name defined in the WebdriverIO options.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
         interface MultiRemoteElement extends MultiRemoteElementType {}
     }
 }

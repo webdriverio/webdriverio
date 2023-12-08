@@ -6,6 +6,8 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -28,8 +30,11 @@ import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
+import BrowserstackLauncherService from './launcher.js'
 
 const pGitconfig = promisify(gitconfig)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -965,7 +970,7 @@ export function getHookType (hookName: string): string {
     return 'unknown'
 }
 
-export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
@@ -1163,6 +1168,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 export const isObject = (object: any) => {
     return object !== null && typeof object === 'object'
 }
+
 export const ObjectsAreEqual = (object1: any, object2: any) => {
     const objectKeys1 = Object.keys(object1)
     const objectKeys2 = Object.keys(object2)
@@ -1178,4 +1184,14 @@ export const ObjectsAreEqual = (object1: any, object2: any) => {
         }
     }
     return true
+}
+
+export function setupExitHandlers() {
+    process.on('exit', (code) => {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
 }

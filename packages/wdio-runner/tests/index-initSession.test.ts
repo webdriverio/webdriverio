@@ -6,7 +6,7 @@ import type { Options } from '@wdio/types'
 
 vi.mock('../src/utils', () => ({
     __esModule: true,
-    initialiseInstance() {
+    initializeInstance() {
         return {
             '$'() { },
             '$$'() { },

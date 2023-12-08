@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 import RunnerStats from '../../src/stats/runner.js'
 
-test('should get initialised', () => {
+test('should get initialized', () => {
     const capabilities = { browserName: 'chrome' }
     const config = { outputDir: 'foo', logFile: 'bar', capabilities: {} }
     const specs = ['./foo/bar.js']

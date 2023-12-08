@@ -129,7 +129,7 @@ export default class WDIORepl {
 
     start (context?: vm.Context) {
         if (this._replServer) {
-            throw new Error('a repl was already initialised')
+            throw new Error('a repl was already initialized')
         }
 
         if (context) {

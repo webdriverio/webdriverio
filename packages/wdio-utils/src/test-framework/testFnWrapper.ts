@@ -24,8 +24,9 @@ const STACKTRACE_FILTER = [
  * @param   {object} after          afterFn and afterFnArgs
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
  * @param   {string} hookName       the hook name
+ * @param   {number} timeout        the maximum time (in milliseconds) to wait for
+ * @return  {*}                     specFn result
  */
 export const testFnWrapper = function (
     this: unknown,
@@ -36,7 +37,8 @@ export const testFnWrapper = function (
         AfterHookParam<unknown>,
         string,
         number,
-        string?
+        string?,
+        number?
     ]
 ) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
@@ -52,8 +54,9 @@ export const testFnWrapper = function (
  * @param   {object} after          afterFn and afterFnArgs function
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
  * @param   {string} hookName       the hook name
+ * @param   {number} timeout        the maximum time (in milliseconds) to wait for
+ * @return  {*}                     specFn result
  */
 export const testFrameworkFnWrapper = async function (
     this: unknown,
@@ -64,7 +67,8 @@ export const testFrameworkFnWrapper = async function (
     { afterFn, afterFnArgs }: AfterHookParam<unknown>,
     cid: string,
     repeatTest = 0,
-    hookName?: string
+    hookName?: string,
+    timeout?: number
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
@@ -78,7 +82,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
     } catch (err: any) {
         if (err.stack) {
             err.stack = filterStackTrace(err.stack)

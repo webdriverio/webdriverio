@@ -7,7 +7,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import type { ConfigWithSessionId
 } from '../src/utils.js'
 import {
-    initialiseInstance, sanitizeCaps, getInstancesData
+    initializeInstance, sanitizeCaps, getInstancesData
 } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -20,14 +20,14 @@ describe('utils', () => {
         logMock.error.mockClear()
     })
 
-    describe('initialiseInstance', () => {
+    describe('initializeInstance', () => {
         it('should attach to an existing session if sessionId is within config', () => {
             const config: ConfigWithSessionId = {
                 sessionId: '123',
                 // @ts-ignore test invalid params
                 foo: 'bar'
             }
-            initialiseInstance(config, {
+            initializeInstance(config, {
                 browserName: 'chrome',
                 maxInstances: 2,
                 hostname: 'foobar'
@@ -50,7 +50,7 @@ describe('utils', () => {
 
         it('should run multiremote tests if flag is given', () => {
             const capabilities = { someBrowser: { browserName: 'chrome' } }
-            initialiseInstance(
+            initializeInstance(
                 // @ts-ignore test invalid params
                 { foo: 'bar' },
                 capabilities,
@@ -67,7 +67,7 @@ describe('utils', () => {
         })
 
         it('should create normal remote session', () => {
-            initialiseInstance({
+            initializeInstance({
                 // @ts-ignore test invalid params
                 foo: 'bar'
             },
@@ -91,7 +91,7 @@ describe('utils', () => {
                 port: 4321,
                 path: '/'
             }
-            initialiseInstance({
+            initializeInstance({
                 hostname: 'foobar',
                 port: 1234,
                 path: '/some/path'

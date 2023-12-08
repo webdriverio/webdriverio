@@ -118,7 +118,7 @@ const existingPackages = fs.readdirSync(packagesDir)
     .map(name => path.join(packagesDir, name))
     .filter(source => fs.lstatSync(source).isDirectory())
 
-const createFile = (file, content) => {
+const createFile = (file: string, content: string) => {
     shell.touch(file)
     shell.ShellString(content).to(file)
 }
