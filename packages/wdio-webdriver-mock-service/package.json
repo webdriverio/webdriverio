@@ -1,6 +1,6 @@
 {
   "name": "@wdio/webdriver-mock-service",
-  "version": "8.24.12",
+  "version": "8.26.0",
   "description": "A WebdriverIO service to stub all endpoints for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
@@ -30,10 +30,10 @@
     "@wdio/types": "8.24.12",
     "nock": "^13.2.4",
     "uuid": "^9.0.0",
-    "webdriverio": "8.24.12"
+    "webdriverio": "8.26.0"
   },
   "devDependencies": {
-    "@wdio/globals": "8.24.12"
+    "@wdio/globals": "8.26.0"
   },
   "publishConfig": {
     "access": "public"

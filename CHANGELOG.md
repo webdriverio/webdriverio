@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.26.0 (2023-12-08)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#11772](https://github.com/webdriverio/webdriverio/pull/11772) (webdriverio): add isStable, waitForStable commands ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v8.25.0 (2023-12-08)
 
 #### :bug: Bug Fix
