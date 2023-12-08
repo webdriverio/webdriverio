@@ -1,10 +1,11 @@
-import https from 'node:https'
 import url from 'node:url'
 import yauzl from 'yauzl'
 
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
+
 const fs = require('node:fs')
+const { https } = require('follow-redirects')
 
 import path from 'node:path'
 import os from 'node:os'
@@ -174,7 +175,6 @@ class PercyBinary {
                         if (err) {
                             return reject(err)
                         }
-                        console.log(`\n >>> ${err} ${zipfile} \n`)
                         zipfile.readEntry()
                         zipfile.on('entry', (entry) => {
                             if (/\/$/.test(entry.fileName)) {
