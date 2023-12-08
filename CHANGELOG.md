@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.25.0 (2023-12-08)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`
+  * [#11831](https://github.com/webdriverio/webdriverio/pull/11831) (@wdio/cli, @wdio/local-runner): fix issue with node 18.19 and up ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11828](https://github.com/webdriverio/webdriverio/pull/11828) docs: update autowait limitations example ([@rwaskiewicz](https://github.com/rwaskiewicz))
+* [#11821](https://github.com/webdriverio/webdriverio/pull/11821) (docs): update Getting Started ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
 ## v8.24.15 (2023-12-07)
 
 #### :bug: Bug Fix
