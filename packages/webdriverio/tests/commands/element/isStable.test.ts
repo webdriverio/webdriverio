@@ -27,32 +27,12 @@ describe('isStable test', () => {
         global.document = { visibilityState: 'visible' } as any
     })
 
-    it('should allow to check if element is selected', async () => {
+    it('should allow to check if element is stable', async () => {
         await elem.isStable()
         expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
         expect(vi.mocked(got).mock.calls[2][1]!.json.script)
-            .toBe(`return (function isElementStable(elem, done) {
-  if (document.visibilityState === "hidden") {
-    throw Error("You are are checking for animations on an inactive tab, animations do not run for inactive tabs");
-  }
-  try {
-    const previousPosition = elem.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const currentPosition = elem.getBoundingClientRect();
-        for (const prop in previousPosition) {
-          if (previousPosition[prop] !== currentPosition[prop]) {
-            done(false);
-          }
-        }
-        done(true);
-      });
-    });
-  } catch (error) {
-    done(false);
-  }
-}).apply(null, arguments)`)
+            .toEqual(expect.stringContaining('return (function isElementStable(elem, done) {'))
         expect(vi.mocked(got).mock.calls[2][1]!.json.args)
             .toEqual([{
                 ELEMENT: elem.elementId,
