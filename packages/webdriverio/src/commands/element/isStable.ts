@@ -4,9 +4,9 @@ import isElementStable from '../../scripts/isElementStable.js'
 
 /**
  *
- * Will return true when stable (in animation) or when unstable (not in animation)
+ * Will return true when stable (in animation) or when unstable (not in animation).
  *
- * __Note:__ it's best to disable animations instead of using this command
+ * __Note:__ it's best to disable animations instead of using this command.
  *
  * <example>
     :index.html
@@ -20,7 +20,7 @@ import isElementStable from '../../scripts/isElementStable.js'
             #has-animation {
                 animation: 3s 0s alternate slidein;
             }
-            @keyframes slidein {
+            \@keyframes slidein {
                 from {
                     margin-left: 100%;
                     width: 300%;
@@ -33,6 +33,7 @@ import isElementStable from '../../scripts/isElementStable.js'
             }
         </style>
     </head>
+
     <body>
         <div #has-animation></div>
         <div #has-no-animation></div>
