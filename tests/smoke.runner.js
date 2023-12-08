@@ -5,12 +5,14 @@ import assert from 'node:assert'
 
 import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
-import { outputDirPath } from './tests-cli-spec-arg/wdio-with-all-passed.conf.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
 const parallelMultiRemoteBaseConfig = path.resolve(__dirname, 'helpers', 'parallel-multiremote-config.js')
 const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
+const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed.conf.js')
+const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
+const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -686,27 +688,24 @@ const mochaHooksTestrunner = async () => {
 const runSpecsWithFlagAllPassed = async () => {
     const { skippedSpecs } = await launch(
         'runSpecsWithFlagAllPassed',
-        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-all-passed.conf.js'),
+        path.resolve(allPassedConfig),
         {
             autoCompileOpts: { autoCompile: false },
             spec: ['test']
         }
     )
     await sleep(100)
-    const wdioLogs = await fs.readFile(path.resolve(outputDirPath, 'wdio.log'))
-    const matches = wdioLogs.toString().match(/finished with exit code 0/g)
-    assert.equal(matches.length, 4)
+    const wdioLogsFolderPath = path.resolve(path.dirname(allPassedConfig), 'logs-AllPassedSpec')
+    const files = (await fs.readdir(wdioLogsFolderPath))
+    const expectedFiles = files.filter((filename) => filename !== 'wdio.log')
+    assert.equal(expectedFiles.length, 4)
     assert.strictEqual(skippedSpecs, 0)
-    const files = await fs.readdir(outputDirPath)
-    for (const file of files) {
-        await fs.unlink(path.resolve(outputDirPath, file))
-    }
 }
 
 const runSpecsWithFlagSeveralPassed = async () => {
     const { skippedSpecs } = await launch(
         'runSpecsWithFlagSeveralPassed',
-        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-failed.conf.js'),
+        path.resolve(severalPassedConfig),
         {
             autoCompileOpts: { autoCompile: false },
             spec: ['mocha']
@@ -718,7 +717,7 @@ const runSpecsWithFlagSeveralPassed = async () => {
 const runSpecsWithFlagDirectPath = async () => {
     const { skippedSpecs } = await launch(
         'runSpecsWithFlagDirectPath',
-        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-failed.conf.js'),
+        path.resolve(severalPassedConfig),
         {
             autoCompileOpts: { autoCompile: false },
             spec: ['./tests-cli-spec-arg/mocha.test03.js']
@@ -730,21 +729,18 @@ const runSpecsWithFlagDirectPath = async () => {
 const runSpecsWithFlagNoArg = async () => {
     const { skippedSpecs } = await launch(
         'runSpecsWithFlagNoArg',
-        path.resolve(__dirname, 'tests-cli-spec-arg', 'wdio-with-all-passed.conf.js'),
+        path.resolve(noArgConfig),
         {
             autoCompileOpts: { autoCompile: false },
             spec: []
         }
     )
     await sleep(100)
-    const wdioLogs = await fs.readFile(path.resolve(outputDirPath, 'wdio.log'))
-    const matches = wdioLogs.toString().match(/finished with exit code 0/g)
-    assert.equal(matches.length, 3)
+    const wdioLogsFolderPath = path.resolve(path.dirname(noArgConfig), 'logs-NoArg')
+    const files = await fs.readdir(wdioLogsFolderPath)
+    const expectedFiles = files.filter((filename) => filename !== 'wdio.log')
+    assert.equal(expectedFiles.length, 3)
     assert.strictEqual(skippedSpecs, 0)
-    const files = await fs.readdir(outputDirPath)
-    for (const file of files) {
-        await fs.unlink(path.resolve(outputDirPath, file))
-    }
 }
 // *** END - tests for CLI --spec ***
 

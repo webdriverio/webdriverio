@@ -1,11 +1,18 @@
-import { config as baseConfig } from './base.wdio.conf.js'
-
-export const config = Object.assign(
-    baseConfig,
+export const config =
     {
-        /**
-         * specify test files
-         */
+        capabilities: [{
+            browserName: 'chrome'
+        }],
+        logLevel: 'trace',
+        framework: 'mocha',
+
+        reporters: ['spec'],
+        services: ['webdriver-mock'],
+
+        mochaOpts: {
+            ui: 'bdd',
+            timeout: 15000
+        },
         specs:
         [
             './mocha.test01.js',
@@ -18,4 +25,3 @@ export const config = Object.assign(
             ]
         ],
     }
-)
