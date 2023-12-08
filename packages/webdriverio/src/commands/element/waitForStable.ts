@@ -8,6 +8,8 @@ import type { WaitForOptions } from '../../types.js'
  * error. If the reverse flag is true, the command will instead return true
  * if the selector does not match any stable elements.
  *
+ * __Note:__ it's best to disable animations instead of using this command
+ *
  * <example>
     :index.html
     <head>

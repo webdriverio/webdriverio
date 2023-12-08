@@ -6,6 +6,8 @@ import isElementStable from '../../scripts/isElementStable.js'
  *
  * Will return true when stable (in animation) or when unstable (not in animation)
  *
+ * __Note:__ it's best to disable animations instead of using this command
+ *
  * <example>
     :index.html
     <head>
