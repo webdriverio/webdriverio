@@ -54,7 +54,7 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
             * in case of jasmine, when rejecting, we need to pass the message of rejection as well
             */
             if (/^=> marked Pending/.test(e)) {
-                return reject(e);
+                return reject(e)
             }
             log.error(e.stack)
             return resolve(e)
