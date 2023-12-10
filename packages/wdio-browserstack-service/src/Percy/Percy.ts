@@ -137,7 +137,7 @@ class Percy {
             )
             PercyLogger.debug('Percy fetch token success : ' + response.token)
             return response.token
-        } catch (err) {
+        } catch (err: any) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
             return null
         }

@@ -169,12 +169,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     async onWorkerStart (cid: any, caps: any, specs: any, args: any, execArgv: any) {
-        if (this._options.percy && this._percyBestPlatformCaps) {
-            const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
-            if (isThisBestPercyPlatform) {
-                process.env.BEST_PLATFORM_CID = cid + ''
+        try {
+            if (this._options.percy && this._percyBestPlatformCaps) {
+                const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
+                if (isThisBestPercyPlatform) {
+                    process.env.BEST_PLATFORM_CID = cid + ''
+                }
+                caps['wdio:cid'] = cid
             }
-            caps['wdio:cid'] = cid
+        } catch (err: any) {
+            PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
     }
 
@@ -272,11 +276,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.percy) {
-            const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
-            this._percyBestPlatformCaps = bestPlatformPercyCaps
-            await this.setupPercy(this._options, this._config, {
-                projectName: this._projectName
-            })
+            try {
+                const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
+                this._percyBestPlatformCaps = bestPlatformPercyCaps
+                await this.setupPercy(this._options, this._config, {
+                    projectName: this._projectName
+                })
+            } catch (err: any) {
+                PercyLogger.error(`Error while setting up Percy ${err}`)
+            }
         }
 
         if (!this._options.browserstackLocal) {
@@ -362,7 +370,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.clearLogger()
 
-        await this.stopPercy()
+        if (this._options.percy) {
+            await this.stopPercy()
+        }
+
         PercyLogger.clearLogger()
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
@@ -415,9 +426,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 process.on('beforeExit', handler)
                 process.on('SIGINT', handler)
                 process.on('SIGTERM', handler)
-            } catch (err) {
+            } catch (err: any) {
                 PercyLogger.debug(`Error in percy setup ${err}`)
-                // throw new Error(err ? err.toString() : `Error in percy setup ${err}`)
             }
         }
     }

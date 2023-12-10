@@ -24,37 +24,42 @@ export const stopPercy = async (percy: Percy) => {
 }
 
 export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.RemoteCapabilities) : any => {
-    /* Add logic for devices also */
+    try {
+        /* Add logic for devices also */
 
-    const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
+        const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
 
-    let bestPlatformCaps: any = null
-    let bestBrowser: any = null
+        let bestPlatformCaps: any = null
+        let bestBrowser: any = null
 
-    if (Array.isArray(capabilities)) {
-        capabilities
-            .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
-                if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                    return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
-                }
-                return c as (Capabilities.DesiredCapabilities)
-            }).forEach((capability: Capabilities.DesiredCapabilities) => {
-                let currBrowserName = capability.browserName
-                if (capability['bstack:options']) {
-                    currBrowserName = capability['bstack:options'].browserName || currBrowserName
-                }
-                if (!bestBrowser || !bestPlatformCaps) {
-                    bestBrowser = currBrowserName
-                    bestPlatformCaps = capability
-                } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
-                    bestBrowser = currBrowserName
-                    bestPlatformCaps = capability
-                }
-            })
-        return bestPlatformCaps
-    } else if (typeof capabilities === 'object') {
-        // Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-        //     /* TODO */
-        // });
+        if (Array.isArray(capabilities)) {
+            capabilities
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
+                    }
+                    return c as (Capabilities.DesiredCapabilities)
+                }).forEach((capability: Capabilities.DesiredCapabilities) => {
+                    let currBrowserName = capability.browserName
+                    if (capability['bstack:options']) {
+                        currBrowserName = capability['bstack:options'].browserName || currBrowserName
+                    }
+                    if (!bestBrowser || !bestPlatformCaps) {
+                        bestBrowser = currBrowserName
+                        bestPlatformCaps = capability
+                    } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
+                        bestBrowser = currBrowserName
+                        bestPlatformCaps = capability
+                    }
+                })
+            return bestPlatformCaps
+        } else if (typeof capabilities === 'object') {
+            // Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+            //     /* TODO */
+            // });
+        }
+    } catch (err: any) {
+        PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
+        return null
     }
 }

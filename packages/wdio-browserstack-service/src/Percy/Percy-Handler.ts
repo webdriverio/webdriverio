@@ -7,6 +7,7 @@ import {
 import PercyCaptureMap from './PercyCaptureMap.js'
 
 import * as PercySDK from './PercySDK.js'
+import { PercyLogger } from './PercyLogger.js'
 
 class _PercyHandler {
     private _testMetadata: { [key: string]: any } = {}
@@ -39,11 +40,15 @@ class _PercyHandler {
     }
 
     async percyAutoCapture(eventName: string | null) {
-        if (eventName) {
-            this._percyScreenshotCounter += 1
-            this._isAppAutomate ? await PercySDK.screenshotApp(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName));
-            (this._browser.percyCaptureMap as PercyCaptureMap).increment((this.sessionName as string), eventName)
-            this._percyScreenshotCounter -= 1
+        try {
+            if (eventName) {
+                this._percyScreenshotCounter += 1
+                this._isAppAutomate ? await PercySDK.screenshotApp(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName));
+                (this._browser.percyCaptureMap as PercyCaptureMap).increment((this.sessionName as string), eventName)
+                this._percyScreenshotCounter -= 1
+            }
+        } catch (err: any) {
+            PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
         }
     }
 
@@ -52,18 +57,22 @@ class _PercyHandler {
     }
 
     async browserCommand (args: BeforeCommandArgs & AfterCommandArgs) {
-        if (args.endpoint && this._percyAutoCaptureMode) {
-            let eventName = null
-            if ((args.endpoint as string).includes('click') && ['click', 'auto'].includes(this._percyAutoCaptureMode as string)) {
-                eventName = 'click'
-            } else if ((args.endpoint as string).includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
-                eventName = 'screenshot'
-            } else if ((args.endpoint as string).includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
-                if (args.body && args.body.actions && Array.isArray(args.body.actions) && args.body.actions.length && args.body.actions[0].type === 'key') {
-                    eventName = 'keys'
+        try {
+            if (args.endpoint && this._percyAutoCaptureMode) {
+                let eventName = null
+                if ((args.endpoint as string).includes('click') && ['click', 'auto'].includes(this._percyAutoCaptureMode as string)) {
+                    eventName = 'click'
+                } else if ((args.endpoint as string).includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
+                    eventName = 'screenshot'
+                } else if ((args.endpoint as string).includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
+                    if (args.body && args.body.actions && Array.isArray(args.body.actions) && args.body.actions.length && args.body.actions[0].type === 'key') {
+                        eventName = 'keys'
+                    }
                 }
+                await this.percyAutoCapture(eventName)
             }
-            await this.percyAutoCapture(eventName)
+        } catch (err: any) {
+            PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
         }
     }
 
