@@ -50,6 +50,12 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
             if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
                 return reject()
             }
+            /**
+            * in case of jasmine, when rejecting, we need to pass the message of rejection as well
+            */
+            if (/^=> marked Pending/.test(e)) {
+                return reject(e);
+            }
             log.error(e.stack)
             return resolve(e)
         }
