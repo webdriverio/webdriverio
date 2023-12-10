@@ -10,7 +10,6 @@ const { https } = require('follow-redirects')
 import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
-import HttpsProxyAgent from 'https-proxy-agent'
 import { PercyLogger } from './PercyLogger.js'
 
 class PercyBinary {
@@ -145,19 +144,6 @@ class PercyBinary {
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
         const options: any = url.parse(this.#httpPath)
-        if (conf.proxyHost && conf.proxyPort) {
-            options.agent = new (HttpsProxyAgent as any)({
-                host: conf.proxyHost,
-                port: conf.proxyPort
-            })
-        }
-        if (conf.useCaCertificate) {
-            try {
-                options.ca = fs.readFileSync(conf.useCaCertificate)
-            } catch (err) {
-                PercyLogger.error('Percy download failed to read cert file : ' + err)
-            }
-        }
 
         return new Promise((resolve, reject) => {
             https.get(options, function (response: any) {

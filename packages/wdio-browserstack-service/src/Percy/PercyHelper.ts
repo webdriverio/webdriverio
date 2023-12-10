@@ -44,7 +44,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
                     if (capability['bstack:options']) {
                         currBrowserName = capability['bstack:options'].browserName || currBrowserName
                     }
-                    if (!bestBrowser || !bestPlatformCaps) {
+                    if (!bestBrowser || !bestPlatformCaps || (bestPlatformCaps.deviceName || bestPlatformCaps['bstack:options']?.deviceName)) {
                         bestBrowser = currBrowserName
                         bestPlatformCaps = capability
                     } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
@@ -54,9 +54,20 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
                 })
             return bestPlatformCaps
         } else if (typeof capabilities === 'object') {
-            // Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-            //     /* TODO */
-            // });
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                let currBrowserName = (caps.capabilities as WebdriverIO.Capabilities).browserName
+                if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
+                    // @ts-ignore: Object is possibly 'null'.
+                    currBrowserName = (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'].browserName || currBrowserName
+                }
+                if (!bestBrowser || !bestPlatformCaps || (bestPlatformCaps.deviceName || bestPlatformCaps['bstack:options']?.deviceName)) {
+                    bestBrowser = currBrowserName
+                    bestPlatformCaps = (caps.capabilities as WebdriverIO.Capabilities)
+                } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
+                    bestBrowser = currBrowserName
+                    bestPlatformCaps = (caps.capabilities as WebdriverIO.Capabilities)
+                }
+            })
         }
     } catch (err: any) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
