@@ -37,3 +37,5 @@ export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 
 export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+
+export const PERCY_LOGS_FILE = 'logs/percy.log'
