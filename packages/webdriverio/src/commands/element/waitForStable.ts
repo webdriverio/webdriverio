@@ -22,7 +22,7 @@ import type { WaitForOptions } from '../../types.js'
             #has-animation {
                 animation: 3s 0s alternate slidein;
             }
-            @keyframes slidein {
+            \@keyframes slidein {
                 from {
                     margin-left: 100%;
                     width: 300%;
