@@ -1135,6 +1135,8 @@ export interface BrowserStackCapabilities {
     networkLogsOptions?: {
         captureContent?: boolean
     },
+    networkLogsExcludeHosts?: Array<string>
+    networkLogsIncludeHosts?: Array<string>
     /**
      * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/interactive-session
      * Enable an interactive debugging session while your test session is running
