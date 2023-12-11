@@ -577,6 +577,8 @@ export interface AppiumAndroidCapabilities {
     'appium:skipServerInstallation'?: boolean;
     'appium:espressoServerLaunchTimeout'?: number;
     'appium:disableSuppressAccessibilityService'?: boolean;
+    'appium:hideKeyboard'?: boolean;
+    'appium:autoWebviewName'?: string;
 }
 
 /**
