@@ -139,7 +139,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     patchConsoleLogs()
                     this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
                     await this._insightsHandler.before()
-    
+
                     /**
                      * register command event
                      */
@@ -149,16 +149,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._currentTest
                     ))
                 }
-                
+
                 /**
                  * register result event
                  */
                 this._browser.on('result', async (result) => {
                     if (this._observability) {
                         await this._insightsHandler?.browserCommand(
-                          'client:afterCommand',
-                          Object.assign(result, { sessionId: this._browser?.sessionId }),
-                          this._currentTest
+                            'client:afterCommand',
+                            Object.assign(result, { sessionId: this._browser?.sessionId }),
+                            this._currentTest
                         )
                     }
                     if (this._percy) {
