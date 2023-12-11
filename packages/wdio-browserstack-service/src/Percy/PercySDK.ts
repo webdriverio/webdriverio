@@ -30,7 +30,7 @@ if (percySnapshot) {
 export const snapshot = snapshotHandler
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-let screenshotHandler = (...args: any[]) => {
+let screenshotHandler = async (...args: any[]) => {
     PercyLogger.error('Unsupported driver for percy')
 }
 if (percyScreenshot) {
