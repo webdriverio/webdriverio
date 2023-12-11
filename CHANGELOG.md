@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+
+## v8.26.0 (2023-12-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11833](https://github.com/webdriverio/webdriverio/pull/11833) (webdriverio): fix issue when using keys to trigger an alert ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
 ## v8.26.0 (2023-12-08)
 
 #### :rocket: New Feature
