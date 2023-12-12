@@ -446,6 +446,7 @@ export type WaitForOptions = {
     interval?: number,
     timeoutMsg?: string,
     reverse?: boolean,
+    withinViewport?: boolean
 }
 
 export type WaitUntilOptions = {
