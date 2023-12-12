@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "tags": [
     "webdriver",
