@@ -11,7 +11,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 // const percySnapshot = tryRequire('@percy/webdriverio', null);
 const percySnapshot = tryRequire('@percy/selenium-webdriver', null)
 const { percyScreenshot } = tryRequire('@percy/selenium-webdriver', {})
-const percyAppScreenshot = require('@percy/appium-app')
+const percyAppScreenshot = tryRequire('@percy/appium-app', {})
 
 import { PercyLogger } from './PercyLogger'
 
@@ -37,4 +37,11 @@ if (percyScreenshot) {
 }
 export const screenshot = screenshotHandler
 
-export const screenshotApp = percyAppScreenshot
+/* eslint-disable @typescript-eslint/no-unused-vars */
+let screenshotAppHandler = async (...args: any[]) => {
+  PercyLogger.error('Unsupported driver for percy')
+}
+if (percyAppScreenshot) {
+  screenshotAppHandler = percyAppScreenshot
+}
+export const screenshotApp = screenshotAppHandler

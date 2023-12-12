@@ -45,7 +45,7 @@ class _PercyHandler {
         try {
             if (eventName) {
                 this._percyScreenshotCounter += 1
-                this._isAppAutomate ? await PercySDK.screenshotApp(this._browser, ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName));
+                await (this._isAppAutomate ? PercySDK.screenshotApp(((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : PercySDK.screenshot(this._browser, ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)));
                 ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).increment((this.sessionName as string), eventName)
                 this._percyScreenshotCounter -= 1
             }
