@@ -34,6 +34,24 @@ describe('isDisplayed test', () => {
         expect(got).toBeCalledTimes(1)
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
+        expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123'
+        })
+    })
+
+    it('should allow to check if element is displayed within viewport', async () => {
+        expect(await elem.isDisplayed({ withinViewport: true })).toBe(true)
+        expect(got).toBeCalledTimes(1)
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+        })
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(vi.mocked(got).mock.calls[1][1]!.json.args[0]).toEqual({
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+        })
     })
 
     it('should allow to check if element is displayed in mobile mode without browserName', async () => {
@@ -53,6 +71,21 @@ describe('isDisplayed test', () => {
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
+    it('should throw if displayed check within viewport is done for native mobile apps', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                keepBrowserName: true,
+                mobileMode: true
+            } as any
+        })
+        elem = await browser.$('#foo')
+        vi.mocked(got).mockClear()
+        await expect(elem.isDisplayed({ withinViewport: true }))
+            .rejects.toThrow('Can\'t call isDisplayed with { withinViewport: true } for native mobile apps')
+    })
+
     it('should refetch element if non existing', async () => {
         // @ts-ignore test scenario
         delete elem.elementId
@@ -64,7 +97,7 @@ describe('isDisplayed test', () => {
             .toBe('/session/foobar-123/execute/sync')
     })
 
-    it('should refect React element if non existing', async () => {
+    it('should refetch React element if non existing', async () => {
         elem = await browser.react$('FooCmp')
         // @ts-ignore test scenario
         delete elem.elementId
@@ -96,112 +129,5 @@ describe('isDisplayed test', () => {
         const elem = await browser.$('#nonexisting')
         expect(await elem.isDisplayed()).toBe(false)
         expect(got).toBeCalledTimes(2)
-    })
-
-    describe('isElementDisplayed script', () => {
-        it('should be used if safari and w3c', async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'safari',
-                    // @ts-ignore mock feature
-                    keepBrowserName: true
-                } as any
-            })
-            elem = await browser.$('#foo')
-            vi.mocked(got).mockClear()
-
-            expect(await elem.isDisplayed()).toBe(true)
-            expect(got).toBeCalledTimes(1)
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/execute/sync')
-            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
-                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-                ELEMENT: 'some-elem-123'
-            })
-        })
-        it('should be used if stp and w3c', async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'safari technology preview',
-                    // @ts-ignore mock feature
-                    keepBrowserName: true
-                } as any
-            })
-            elem = await browser.$('#foo')
-            vi.mocked(got).mockClear()
-
-            expect(await elem.isDisplayed()).toBe(true)
-            expect(got).toBeCalledTimes(1)
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/execute/sync')
-            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
-                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-                ELEMENT: 'some-elem-123'
-            })
-        })
-        it('should be used if edge and wc3', async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'MicrosoftEdge',
-                    // @ts-ignore mock feature
-                    keepBrowserName: true
-                } as any
-            })
-            elem = await browser.$('#foo')
-            vi.mocked(got).mockClear()
-
-            expect(await elem.isDisplayed()).toBe(true)
-            expect(got).toBeCalledTimes(1)
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/execute/sync')
-            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
-                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-                ELEMENT: 'some-elem-123'
-            })
-        })
-        it('should be used if chrome and wc3', async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'chrome',
-                    // @ts-ignore mock feature
-                    keepBrowserName: true
-                } as any
-            })
-            elem = await browser.$('#foo')
-            vi.mocked(got).mockClear()
-
-            expect(await elem.isDisplayed()).toBe(true)
-            expect(got).toBeCalledTimes(1)
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/execute/sync')
-            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
-                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-                ELEMENT: 'some-elem-123'
-            })
-        })
-        it('should be used if devtools', async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'firefox',
-                }
-            })
-            elem = await browser.$('#foo')
-            vi.mocked(got).mockClear()
-            browser.isDevTools = true
-
-            expect(await elem.isDisplayed()).toBe(true)
-            expect(got).toBeCalledTimes(1)
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/execute/sync')
-            expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
-                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-                ELEMENT: 'some-elem-123'
-            })
-        })
     })
 })
