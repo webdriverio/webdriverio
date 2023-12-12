@@ -39,9 +39,9 @@ export const screenshot = screenshotHandler
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 let screenshotAppHandler = async (...args: any[]) => {
-  PercyLogger.error('Unsupported driver for percy')
+    PercyLogger.error('Unsupported driver for percy')
 }
 if (percyAppScreenshot) {
-  screenshotAppHandler = percyAppScreenshot
+    screenshotAppHandler = percyAppScreenshot
 }
 export const screenshotApp = screenshotAppHandler
