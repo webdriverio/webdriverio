@@ -1,7 +1,10 @@
-import { ELEMENT_KEY } from 'webdriver'
-
 import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
+import isElementInViewportScript from '../../scripts/isElementInViewport.js'
+
+interface IsDisplayedParams {
+    withinViewport?: boolean
+}
 
 /**
  *
@@ -60,15 +63,36 @@ import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
         isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
     });
+    isDisplayedWithinViewport.js
+    it('should detect if an element is visible within the viewport', async () => {
+        let isDisplayedInViewport = await $('#notDisplayed').isDisplayed({ withinViewport: true });
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = await $('#notVisible').isDisplayed({ withinViewport: true });
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = await $('#notExisting').isDisplayed({ withinViewport: true });
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = await $('#notInViewport').isDisplayed({ withinViewport: true });
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = await $('#zeroOpacity').isDisplayed({ withinViewport: true });
+        console.log(isDisplayedInViewport); // outputs: false
+    });
  * </example>
  *
  * @alias element.isDisplayed
+ * @param {Boolean} [isWithinViewport=false] set to true to check if element is within viewport
  * @return {Boolean} true if element is displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
  *
  */
-export async function isDisplayed (this: WebdriverIO.Element) {
+export async function isDisplayed (
+    this: WebdriverIO.Element,
+    commandParams: IsDisplayedParams = { withinViewport: false }
+) {
     const browser = getBrowserObject(this)
 
     if (!await hasElementId(this)) {
@@ -81,11 +105,26 @@ export async function isDisplayed (this: WebdriverIO.Element) {
      */
     const isNativeApplication = !(browser.capabilities as WebdriverIO.Capabilities).browserName
     if (browser.isMobile && isNativeApplication) {
+        /**
+         * there is no support yet for checking if an element is displayed within the
+         * viewport for native apps. We can only check if it's displayed at all.
+         */
+        if (commandParams?.withinViewport) {
+            throw new Error(
+                'Cannot determine element visibility within viewport for native mobile apps ' +
+                'as it is not feasible to determine full vertical and horizontal application bounds. ' +
+                'In most cases a basic visibility check should suffice.'
+            )
+        }
+
         return await this.isElementDisplayed(this.elementId)
     }
 
-    return await browser.execute(isElementDisplayedScript, {
-        [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    const isDisplayed = await browser.execute(isElementDisplayedScript, this as any as HTMLElement)
+
+    if (isDisplayed && commandParams?.withinViewport) {
+        return browser.execute(isElementInViewportScript, this as any as HTMLElement)
+    }
+
+    return isDisplayed
 }
