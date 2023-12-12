@@ -14,6 +14,11 @@ vi.mock('../../../src/scripts/isElementDisplayed', () => ({
     default: function () { return true }
 }))
 
+vi.mock('../../../src/scripts/isElementInViewport', () => ({
+    __esModule: true,
+    default: function () { return true }
+}))
+
 describe('isDisplayed test', () => {
     let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
@@ -35,21 +40,24 @@ describe('isDisplayed test', () => {
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
+            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123'
         })
     })
 
     it('should allow to check if element is displayed within viewport', async () => {
         expect(await elem.isDisplayed({ withinViewport: true })).toBe(true)
-        expect(got).toBeCalledTimes(1)
+        expect(got).toBeCalledTimes(2)
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
+            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
         expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(vi.mocked(got).mock.calls[1][1]!.json.args[0]).toEqual({
+            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
     })
@@ -83,7 +91,7 @@ describe('isDisplayed test', () => {
         elem = await browser.$('#foo')
         vi.mocked(got).mockClear()
         await expect(elem.isDisplayed({ withinViewport: true }))
-            .rejects.toThrow('Can\'t call isDisplayed with { withinViewport: true } for native mobile apps')
+            .rejects.toThrow(/Cannot determine element visibility within viewport for native mobile apps/)
     })
 
     it('should refetch element if non existing', async () => {

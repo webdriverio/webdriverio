@@ -68,7 +68,7 @@ describe('waitForDisplayed', () => {
 
     it('should call isDisplayed and return false', async () => {
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
@@ -80,10 +80,12 @@ describe('waitForDisplayed', () => {
         } as any as WebdriverIO.Element
 
         try {
-            await elem.waitForDisplayed({ timeout })
+            await elem.waitForDisplayed({ timeout, withinViewport: true })
         } catch (err: any) {
-            expect(err.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
+            expect(err.message).toBe(`element ("#foo") still not displayed within viewport after ${timeout}ms`)
         }
+
+        expect(elem.isDisplayed).toBeCalledWith({ withinViewport: true })
     })
 
     it('should not call isDisplayed and return false if never found', async () => {
