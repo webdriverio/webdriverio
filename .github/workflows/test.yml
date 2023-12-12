@@ -40,6 +40,8 @@ jobs:
         run: npm run test:e2e:cjs
       - name: E2E Launch Tests
         run: npm run test:e2e:webdriver
+      - name: Dependency Engines Check
+        run: npx installed-check --engine-check --engine-no-dev
       # - name: 🐛 Debug Build
       #   uses: stateful/vscode-server-action@v1
       #   if: failure()

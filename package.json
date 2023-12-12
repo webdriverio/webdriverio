@@ -112,6 +112,7 @@
     "glob": "^10.3.10",
     "husky": "^8.0.3",
     "inquirer": "^9.2.12",
+    "installed-check": "^8.0.1",
     "jsdom": "^22.1.0",
     "lerna": "^8.0.0",
     "lerna-changelog": "^2.2.0",
