@@ -683,6 +683,19 @@ const mochaHooksTestrunner = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+const jasmineHooksTestrunner = async () => {
+    const { skippedSpecs } = await launch(
+        'jasmineHooksTestrunner',
+        path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts'),
+            ]
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -713,7 +726,8 @@ const mochaHooksTestrunner = async () => {
         customReporterObject,
         severeErrorTest,
         nonGlobalTestrunner,
-        mochaHooksTestrunner
+        mochaHooksTestrunner,
+        jasmineHooksTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')
