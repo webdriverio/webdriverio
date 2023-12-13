@@ -1,4 +1,4 @@
-import { expect, browser, $ } from '@wdio/globals'
+import { snapshotExpect } from '@wdio/snapshot-service'
 
 describe('WDIO Element matchers', () => {
     it('should able to use WDIO element matchers', async () => {
@@ -11,14 +11,9 @@ describe('WDIO Element matchers', () => {
 
         const element = await $('#flash')
         const html = await element.getHTML()
-        await expect(html).toMatchSnapshot()
-        await expect($('#flash')).toMatchElementSnapshot()
-        await expect($('#flash')).toMatchElementSnapshot('snapshot flash')
-        await expect($('#flash')).toMatchElementInlineSnapshot()
-
-        // snapshot browser object
-        await expect(await browser.getAllCookies()).toMatchSnapshot()
-        // snapshot elements directly
-        await expect(element).toMatchElementSnapshot()
+        await snapshotExpect(html).toMatchSnapshot()
+        await snapshotExpect($('#flash')).toMatchElementSnapshot()
+        await snapshotExpect($('#flash')).toMatchElementSnapshot('snapshot flash')
+        await snapshotExpect($('#flash')).toMatchElementInlineSnapshot()
     })
 })

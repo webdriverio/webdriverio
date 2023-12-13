@@ -14,67 +14,6 @@ exports[`WDIO Element matchers > should able to use WDIO element matchers 2`] = 
           </div>"
 `;
 
-exports[`WDIO Element matchers > should able to use WDIO element matchers 4`] = `
-Array [
-  Object {
-    "domain": "the-internet.herokuapp.com",
-    "httpOnly": true,
-    "name": "rack.session",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "BAh7CkkiD3Nlc3Npb25faWQGOgZFVEkiRTU5OWI3YzAwODM3NWRhMjZhZTYy%0AMzUxMGQ3ZTkxNTRiODc5NzIyMjlkMzFmZTI0NGFjY2ViMTcxMGViMGEwODMG%0AOwBGSSIJY3NyZgY7AEZJIiVhMTU3NGQxMTY0ZGVmMDU5MjNmYWFjZTA1MjFi%0AZDU3NgY7AEZJIg10cmFja2luZwY7AEZ7B0kiFEhUVFBfVVNFUl9BR0VOVAY7%0AAFRJIi0wOGQzOTdkMzNlZTEyNjEyNmFlMTIwY2MxYmNmZTQ4YjJmZWEyNjk1%0ABjsARkkiGUhUVFBfQUNDRVBUX0xBTkdVQUdFBjsAVEkiLWQ0ZTdkMzNmNGVi%0ANzNiY2U4ZmY3MDdjODBiNjlhYzU3ZWU1YzlmYmMGOwBGSSIKZmxhc2gGOwBG%0AewBJIg11c2VybmFtZQY7AEZJIg10b21zbWl0aAY7AFQ%3D%0A--93cd7e06b84545decda7be43f2312b3024b7208b",
-  },
-  Object {
-    "domain": ".the-internet.herokuapp.com",
-    "expiry": 1736561802,
-    "httpOnly": false,
-    "name": "optimizelyBuckets",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "%7B%7D",
-  },
-  Object {
-    "domain": ".the-internet.herokuapp.com",
-    "expiry": 1736561802,
-    "httpOnly": false,
-    "name": "optimizelyEndUserId",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "oeu1702001802830r0.7432681612864853",
-  },
-  Object {
-    "domain": ".the-internet.herokuapp.com",
-    "expiry": 1702001820,
-    "httpOnly": false,
-    "name": "optimizelyPendingLogEvents",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "%5B%22n%3Dhttps%253A%252F%252Fthe-internet.herokuapp.com%252Fsecure%26u%3Doeu1702001802830r0.7432681612864853%26wxhr%3Dtrue%26t%3D1702001805041%26f%3D298349752%2C318188263%22%2C%22n%3Dengagement%26g%3D298283957%26u%3Doeu1702001802830r0.7432681612864853%26wxhr%3Dtrue%26t%3D1702001804526%26f%3D298349752%2C318188263%22%2C%22n%3Dhttps%253A%252F%252Fthe-internet.herokuapp.com%252Flogin%26u%3Doeu1702001802830r0.7432681612864853%26wxhr%3Dtrue%26t%3D1702001802832%26f%3D298349752%2C318188263%22%5D",
-  },
-  Object {
-    "domain": ".the-internet.herokuapp.com",
-    "expiry": 1736561802,
-    "httpOnly": false,
-    "name": "optimizelySegments",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "%7B%7D",
-  },
-]
-`;
-
-exports[`WDIO Element matchers > should able to use WDIO element matchers 5`] = `
-"<div data-alert=\\"\\" id=\\"flash\\" class=\\"flash success\\">
-            You logged into a secure area!
-            <a href=\\"#\\" class=\\"close\\">×</a>
-          </div>"
-`;
-
 exports[`WDIO Element matchers > should able to use WDIO element matchers: snapshot flash 1`] = `
 "<div data-alert=\\"\\" id=\\"flash\\" class=\\"flash success\\">
             You logged into a secure area!

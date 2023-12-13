@@ -1,4 +1,4 @@
-import { expect } from 'expect-webdriverio'
+import { jestExpect } from './expect.js'
 import type { Services, Frameworks } from '@wdio/types'
 import { SnapshotState } from 'jest-snapshot'
 import path from 'node:path'
@@ -16,14 +16,14 @@ export default class SnapshotService implements Services.ServiceInstance {
             snapshotFormat: {},
             rootDir: test.file
         })
-        expect.setState({ snapshotState: this.snapshotState, testPath: test.file } as any)
-        expect.setState({ currentTestName: getNames(test).join(' > ') })
+        jestExpect.setState({ snapshotState: this.snapshotState, testPath: test.file } as any)
+        jestExpect.setState({ currentTestName: getNames(test).join(' > ') })
     }
 
     async afterTest(_test: Frameworks.Test, context: any) {
         this.snapshotState?.save()
         this.snapshotState?.clear()
-        const expectState = expect.getState()
+        const expectState = jestExpect.getState()
         //Handle jest-snapshot suppressed errors
         if (expectState.suppressedErrors.length > 0) {
             expectState.suppressedErrors.forEach((suppressedError: Error) => log.error(suppressedError))
@@ -35,6 +35,10 @@ export default class SnapshotService implements Services.ServiceInstance {
 class SnapshotServiceLauncher {
     constructor() {
         log.info('SnapshotServiceLauncher constructor called\n')
+        // Get suppressed errors form  jest-matchers that weren't throw during
+        // test execution and add them to the test result, potentially failing
+        // a passing test.
+        jestExpect.setState({ suppressedErrors: [] })
     }
 }
 
@@ -57,3 +61,4 @@ function resolveSnapshotPath(testPath: string) {
 }
 export const launcher = SnapshotServiceLauncher
 
+export const snapshotExpect = jestExpect

@@ -1,4 +1,4 @@
-import { expect, browser, $ } from '@wdio/globals'
+import { snapshotExpect } from '@wdio/snapshot-service'
 
 describe('Level 1 suite', () => {
     it('test1 1', async () => {
@@ -10,19 +10,19 @@ describe('Level 1 suite', () => {
 
         await expect($('#flash')).toBeDisplayed()
 
-        await expect({ a: 'a' }).toMatchSnapshot()
+        await snapshotExpect({ a: 'a' }).toMatchSnapshot()
     })
     describe('Level 2 suite', () => {
         it('test2 2', async () => {
-            await expect({ a: 'a' }).toMatchSnapshot()
+            await snapshotExpect({ a: 'a' }).toMatchSnapshot()
         })
         describe('Level 3 suite', () => {
             it('test 3', async () => {
-                await expect({ a: 'a' }).toMatchSnapshot()
+                await snapshotExpect({ a: 'a' }).toMatchSnapshot()
                 const element = await $('#flash')
                 const html = await element.getHTML()
-                await expect(html).toMatchSnapshot()
-                await expect($('#flash')).toMatchElementSnapshot()
+                await snapshotExpect(html).toMatchSnapshot()
+                await snapshotExpect($('#flash')).toMatchElementSnapshot()
             })
         })
     })

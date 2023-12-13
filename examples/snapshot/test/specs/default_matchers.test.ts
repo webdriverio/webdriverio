@@ -1,4 +1,4 @@
-import { expect } from '@wdio/globals'
+import { snapshotExpect } from '@wdio/snapshot-service'
 
 describe('Test default jest matchers', () => {
     it('should able to use default jest matchers', async () => {
@@ -6,9 +6,13 @@ describe('Test default jest matchers', () => {
             await new Promise(resolve => setTimeout(resolve, 1000))
             return { awaited: 'value' }
         }
-        await expect(asyncFunction()).toMatchSnapshot()
-        await expect({ a: 'aa' }).toMatchSnapshot()
-        await expect({ a2: 'a' }).toMatchSnapshot('snapshot a2')
-        await expect({ a2: 'a' }).toMatchInlineSnapshot()
+        await snapshotExpect(asyncFunction()).toMatchSnapshot()
+        await snapshotExpect({ a: 'aa' }).toMatchSnapshot()
+        await snapshotExpect({ a2: 'a' }).toMatchSnapshot('snapshot a2')
+        await snapshotExpect({ a2: 'a' }).toMatchInlineSnapshot(`
+Object {
+  "a2": "a",
+}
+`)
     })
 })
