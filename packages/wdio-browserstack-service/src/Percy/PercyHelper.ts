@@ -25,8 +25,6 @@ export const stopPercy = async (percy: Percy) => {
 
 export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.RemoteCapabilities) : any => {
     try {
-        /* Add logic for devices also */
-
         const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
 
         let bestPlatformCaps: any = null
@@ -68,6 +66,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
                     bestPlatformCaps = (caps.capabilities as WebdriverIO.Capabilities)
                 }
             })
+            return bestPlatformCaps
         }
     } catch (err: any) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
