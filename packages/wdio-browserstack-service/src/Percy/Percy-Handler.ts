@@ -44,6 +44,7 @@ class _PercyHandler {
     async percyAutoCapture(eventName: string | null) {
         try {
             if (eventName) {
+                /* Service doesn't wait for handling of browser commands so the below counter is used in teardown method to delay service exit */
                 this._percyScreenshotCounter += 1
                 await (this._isAppAutomate ? PercySDK.screenshotApp(((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : PercySDK.screenshot(this._browser, ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)));
                 ((this._browser as BrowserAsync).percyCaptureMap as PercyCaptureMap).increment((this.sessionName as string), eventName)

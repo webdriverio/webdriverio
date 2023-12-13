@@ -86,8 +86,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as Capabilities.Capabilities))
         }
 
-        // if(this._caps && (this._caps as Capabilities.DesiredCapabilities)['bstack:options']) delete (this._caps as Capabilities.DesiredCapabilities)['bstack:options']['bestPlatform'];
-
         return fn(this._caps as Capabilities.Capabilities)
     }
 
@@ -161,11 +159,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             this._currentTest
                         )
                     }
-                    if (this._percy) {
-                        this._percyHandler?.browserCommand(
-                            Object.assign(result, { sessionId: this._browser?.sessionId }),
-                        )
-                    }
+                    this._percyHandler?.browserCommand(
+                        Object.assign(result, { sessionId: this._browser?.sessionId }),
+                    )
                 })
             } catch (err) {
                 log.error(`Error in service class before function: ${err}`)
@@ -246,9 +242,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterTest(test, results)
-        if (this._percy) {
-            await this._percyHandler?.afterTest()
-        }
+        await this._percyHandler?.afterTest()
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
@@ -272,9 +266,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
 
-        if (this._percy) {
-            await this._percyHandler?.teardown()
-        }
+        await this._percyHandler?.teardown()
 
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
@@ -330,9 +322,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterScenario(world)
-        if (this._percy) {
-            await this._percyHandler?.afterScenario()
-        }
+        await this._percyHandler?.afterScenario()
         await this._accessibilityHandler?.afterScenario(world)
     }
 
@@ -489,9 +479,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             name = `${pre}${test.parent}${post}`
         }
 
-        if (this._percy && this._percyHandler) {
-            this._percyHandler._setSessionName(name)
-        }
+        this._percyHandler?._setSessionName(name)
 
         if (name !== this._fullTitle) {
             this._fullTitle = name

@@ -66,6 +66,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
                     bestPlatformCaps = (caps.capabilities as Capabilities.Capabilities)
                 }
             })
+            return bestPlatformCaps
         }
     } catch (err: any) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
