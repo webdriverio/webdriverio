@@ -10,7 +10,6 @@ import PercyHandler from '../src/percy/Percy-Handler.js'
 // import * as PercyCaptureMapExport from '../src/Percy/PercyCaptureMap.js'
 import PercyCaptureMap from '../src/Percy/PercyCaptureMap.js'
 import * as PercySDK from '../src/Percy/PercySDK.js'
-import * as utils from '../src/util.js'
 import type { Capabilities } from '@wdio/types'
 import * as PercyLogger from '../src/Percy/PercyLogger.js'
 
@@ -18,7 +17,6 @@ const log = logger('test')
 let percyHandler: PercyHandler
 let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 let caps: Capabilities.RemoteCapability
-let accessibilityOpts: { [key: string]: any; }
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -115,6 +113,7 @@ describe('teardown', () => {
     it('resolves promise if _percyScreenshotCounter is 0', async () => {
         percyHandler.teardown().then(() => {
             expect(percyHandler['_percyScreenshotCounter']).toEqual(0)
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         }).catch((err: any) => {
             expect(percyHandler['_percyScreenshotCounter']).not.equal(0)
         })
@@ -126,14 +125,14 @@ describe('afterScenario', () => {
     let percyHandler: PercyHandler
 
     beforeEach(() => {
-      percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
-      percyHandler.before()
-      percyAutoCaptureSpy = vi.spyOn(PercyHandler.prototype, 'percyAutoCapture')
+        percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
+        percyHandler.before()
+        percyAutoCaptureSpy = vi.spyOn(PercyHandler.prototype, 'percyAutoCapture')
     })
 
     it('should not call percyAutoCapture', async () => {
-      await percyHandler.afterScenario()
-      expect(percyAutoCaptureSpy).not.toBeCalled()
+        await percyHandler.afterScenario()
+        expect(percyAutoCaptureSpy).not.toBeCalled()
     })
 
     it('should call percyAutoCapture', async () => {
@@ -158,8 +157,8 @@ describe('afterTest', () => {
     })
 
     it('should not call percyAutoCapture', async () => {
-      await percyHandler.afterTest()
-      expect(percyAutoCaptureSpy).not.toBeCalled()
+        await percyHandler.afterTest()
+        expect(percyAutoCaptureSpy).not.toBeCalled()
     })
 
     it('should call percyAutoCapture', async () => {
@@ -187,19 +186,19 @@ describe('percyAutoCapture', () => {
     })
 
     it('does not call Percy Selenium Screenshot', async () => {
-      await percyHandler.percyAutoCapture(null)
-      expect(percyScreenshotSpy).not.toBeCalled()
+        await percyHandler.percyAutoCapture(null)
+        expect(percyScreenshotSpy).not.toBeCalled()
     })
-    
+
     it('calls Percy Selenium Screenshot', async () => {
         await percyHandler.percyAutoCapture('keys')
         expect(percyScreenshotSpy).toBeCalledTimes(1)
     })
 
     it('calls Percy Appium Screenshot', async () => {
-      percyHandler = new PercyHandler('auto', browser, caps, true, 'framework')
-      await percyHandler.percyAutoCapture('keys')
-      expect(percyScreenshotAppSpy).toBeCalledTimes(1)
+        percyHandler = new PercyHandler('auto', browser, caps, true, 'framework')
+        await percyHandler.percyAutoCapture('keys')
+        expect(percyScreenshotAppSpy).toBeCalledTimes(1)
     })
 
     afterEach(() => {
@@ -225,16 +224,16 @@ describe('browserCommand', () => {
     })
 
     it('should call percyAutoCapture for event type keys', async () => {
-      const args = {
-          endpoint: 'actions',
-          body: {
-              actions: [{
-                  type: 'key'
-              }]
-          }
-      }
-      await percyHandler.browserCommand(args)
-      expect(percyAutoCaptureSpy).toBeCalledTimes(1)
+        const args = {
+            endpoint: 'actions',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        await percyHandler.browserCommand(args)
+        expect(percyAutoCaptureSpy).toBeCalledTimes(1)
     })
 
     it('should call percyAutoCapture for event type click', async () => {
