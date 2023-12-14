@@ -1,6 +1,3 @@
-import path from 'node:path'
-import fs from 'node:fs'
-
 import logger from '@wdio/logger'
 import { PercyLogger } from '../src/Percy/PercyLogger'
 

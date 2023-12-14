@@ -1,6 +1,4 @@
 /// <reference path='../../webdriverio/src/@types/async.d.ts' />
-import path from 'node:path'
-
 import got from 'got'
 import logger from '@wdio/logger'
 
