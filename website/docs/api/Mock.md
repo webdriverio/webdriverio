@@ -8,8 +8,7 @@ The mock object is an object that represents a network mock and contains informa
 :::info
 
 Note that using the `mock` command requires support for Chrome DevTools protocol.
-That support is given if you run tests locally in Chromium based browser or if
-you use a Selenium Grid v4 or higher. If you use a cloud vendor for spawning browsers, make sure your vendor also supports the Chrome DevTools protocol.
+That support is given if you run tests locally in Chromium based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (eg SauceLabs, BrowserStack, LambdaTest). Full cross browser support will be available once the required primitives land in Webdriver Bidi and get implemented in the respective browser. 
 
 :::
 
