@@ -43,12 +43,13 @@ class _PercyHandler {
         try {
             if (eventName) {
                 /* Service doesn't wait for handling of browser commands so the below counter is used in teardown method to delay service exit */
-                this._percyScreenshotCounter += 1
-                await (this._isAppAutomate ? PercySDK.screenshotApp((this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)));
+                this._percyScreenshotCounter += 1;
                 (this._browser.percyCaptureMap as PercyCaptureMap).increment((this.sessionName as string), eventName)
+                await (this._isAppAutomate ? PercySDK.screenshotApp((this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName((this.sessionName as string), eventName)))
                 this._percyScreenshotCounter -= 1
             }
         } catch (err: any) {
+            (this._browser.percyCaptureMap as PercyCaptureMap).decrement((this.sessionName as string), eventName as string)
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
         }
     }
