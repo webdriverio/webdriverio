@@ -20,7 +20,7 @@ import {
 import TestReporter from './reporter'
 import PerformanceTester from './performance-tester'
 import AccessibilityHandler from './accessibility-handler'
-import PercyHandler from './Percy/Percy-Handler.js'
+import PercyHandler from './Percy/Percy-Handler'
 
 const log = logger('@wdio/browserstack-service')
 

@@ -69,8 +69,12 @@ export abstract class PercyLogger {
     }
 
     public static clearLogFile() {
-        if (fs.existsSync(this.logFilePath)) {
-            fs.truncateSync(this.logFilePath)
+        try {
+            if (fs.existsSync(this.logFilePath)) {
+                fs.truncateSync(this.logFilePath)
+            }
+        } catch (err: any) {
+            log.error(`Failed to clear percy.log file. Error ${err}`)
         }
     }
 }

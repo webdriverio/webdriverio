@@ -31,8 +31,8 @@ import {
     isTrue
 } from './util'
 import PerformanceTester from './performance-tester'
-import { PercyLogger } from './Percy/PercyLogger.js'
-import type Percy from './Percy/Percy.js'
+import { PercyLogger } from './Percy/PercyLogger'
+import type Percy from './Percy/Percy'
 
 const log = logger('@wdio/browserstack-service')
 
