@@ -18,6 +18,14 @@ class PercyCaptureMap {
         this.#map[sessionName][eventName]++
     }
 
+    decrement(sessionName: string, eventName: string) {
+        if (!this.#map[sessionName] || !this.#map[sessionName][eventName]) {
+            return
+        }
+
+        this.#map[sessionName][eventName]--
+    }
+
     getName(sessionName: string, eventName: string) {
         return `${sessionName}-${eventName}-${this.get(sessionName, eventName)}`
     }
@@ -31,7 +39,7 @@ class PercyCaptureMap {
             return 0
         }
 
-        return this.#map[sessionName][eventName]
+        return this.#map[sessionName][eventName] - 1
     }
 }
 
