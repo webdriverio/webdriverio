@@ -53,6 +53,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     childProcess?: ChildProcess
     sessionId?: string
     server?: Record<string, any>
+    logsAggregator: string[] = []
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -149,7 +150,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         /* istanbul ignore if */
         if (!process.env.VITEST_WORKER_ID) {
             if (childProcess.stdout !== null) {
-                runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
+                // Test spec logs are collected only from child stdout stream
+                // and then printed when the worker exits
+                // As a result, there is no pipe to parent stdout stream here
+                runnerTransformStream(cid, childProcess.stdout, this.logsAggregator)
             }
 
             if (childProcess.stderr !== null) {

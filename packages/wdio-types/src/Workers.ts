@@ -53,4 +53,8 @@ export interface Worker
     sessionId?: string;
 }
 
+export interface WorkerLogsAggregator extends Worker {
+    logsAggregator: string[]
+}
+
 export type WorkerPool = Record<string, Worker>;
