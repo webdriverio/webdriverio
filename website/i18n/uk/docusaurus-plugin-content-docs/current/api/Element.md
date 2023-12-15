@@ -3,7 +3,7 @@ id: element
 title: Об'єкт Element
 ---
 
-Element Object - це об'єкт, що представляє собою видимий чи невидимий елемент у вашому додатку, наприклад це може бути [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) під час запуску сесії в браузері або [мобільний елемент](https://developer.apple.com/documentation/swift/sequence/element) для мобільних пристроїв. Він може бути отриманий за допомогою однієї з багатьох команд для пошуку елементів, наприклад, [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) або [`shadow$`](/docs/api/element/shadow$).
+An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. Він може бути отриманий за допомогою однієї з багатьох команд для пошуку елементів, наприклад, [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) або [`shadow$`](/docs/api/element/shadow$).
 
 ## Властивості
 
@@ -18,8 +18,7 @@ Element Object - це об'єкт, що представляє собою вид
 | `options`   | `Object` | WebdriverIO [параметри](/docs/configuration) залежно від того, як було створено об’єкт браузера. Дізнатися більше можна переглянувши [параметри](/docs/setuptypes).                                                                                      |
 
 ## Методи
-
-Об’єкт елементу надає всі методи з розділу протоколу, наприклад, протокол [WebDriver](/docs/api/webdriver), а також команди, перелічені в розділі Api елементу. Доступні команди протоколу залежать від типу сесії. Наприклад, якщо ви запускаєте браузерну сесію, жодна з команд Appium [](/docs/api/appium) не буде доступною, і навпаки.
+An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Доступні команди протоколу залежать від типу сесії. Наприклад, якщо ви запускаєте браузерну сесію, жодна з команд Appium [](/docs/api/appium) не буде доступною, і навпаки.
 
 Також доступні такі команди:
 
@@ -32,7 +31,7 @@ Element Object - це об'єкт, що представляє собою вид
 
 ### Ланцюги елементів
 
-Під час роботи з елементами WebdriverIO надає спеціальний синтаксис для спрощення пошуку у складному дереві елементів. Об’єкти елементів дозволяють шукати вкладені елементи за допомогою звичайних методів пошуку, наприклад:
+When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. Об’єкти елементів дозволяють шукати вкладені елементи за допомогою звичайних методів пошуку, наприклад:
 
 ```js
 const header = await $('#header')
@@ -40,7 +39,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-З великими деревами елементів, зберігання кожного проміжного елементу до змінної для його подальшого використання може бути занадто розлого. Тому WebdriverIO має концепцію ланцюгів елементів, яка дозволяє отримувати вкладені елементи простіше:
+З великими деревами елементів, зберігання кожного проміжного елементу до змінної для його подальшого використання може бути занадто розлого. Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -53,7 +52,7 @@ console.log(await $('#header').$('#headline').getText())
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-Це особливо корисно при взаємодії з масивом елементів. Як приклад, замість використання:
+When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
 
 ```js
 const elems = await $$('div')
@@ -68,7 +67,22 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
+same as:
+
+```js
+const divs = await $$('div')
+const location = await divs.map((el) => el.getLocation())
+```
+
+WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+
+__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+
+```ts
+const divs = await $$('div')
+console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
+console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+```
 
 ### Власні команди
 
