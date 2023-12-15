@@ -3,7 +3,7 @@ id: element
 title: شی Element
 ---
 
-یک Element Object شیئی است که یک Element یا عنصر را در remote user agent نشان می دهد، به عنوان مثال یک نود [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Element) در یک session داخل یک مرورگر یا [یک element موبایل](https://developer.apple.com/documentation/swift/sequence/element) برای تلفن همراه. می توان آن را با استفاده از یکی از دستورات دریافت عناصر متعدد نیز دریافت کرد، به عنوان مثال [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) یا [`shadow$`](/docs/api/element/shadow$).
+An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. می توان آن را با استفاده از یکی از دستورات دریافت عناصر متعدد نیز دریافت کرد، به عنوان مثال [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) یا [`shadow$`](/docs/api/element/shadow$).
 
 ## ویژگی ها
 
@@ -18,8 +18,7 @@ title: شی Element
 | `options`   | `Object` | [options](/docs/configuration) های WebdriverIO که به این بستگی دارد که شئ browser چگونه ایجاد شده است. اطلاعات بیشتر در [راه اندازی types](/docs/setuptypes).                                                                     |
 
 ## متود ها(توابع)
-
-یک شیء element همه متود ها را از بخش پروتکل ارائه می کند، به عنوان مثال پروتکل [WebDriver](/docs/api/webdriver) و همچنین دستورات فهرست شده در بخش element. دستورات پروتکل موجود به نوع session بستگی دارد. اگر یک session از مرورگر خودکار را اجرا کنید، هیچ یک از دستورات Appium [](/docs/api/appium) در دسترس نخواهد بود و بالعکس.
+An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. دستورات پروتکل موجود به نوع session بستگی دارد. اگر یک session از مرورگر خودکار را اجرا کنید، هیچ یک از دستورات Appium [](/docs/api/appium) در دسترس نخواهد بود و بالعکس.
 
 علاوه بر آن دستورات زیر نیز موجود است:
 
@@ -32,7 +31,7 @@ title: شی Element
 
 ### زنجیره Element
 
-هنگام کار با عناصر، WebdriverIO فرمان خاصی را برای ساده کردن درخواست آنها و جستجوی عناصر تو در تو ی پیچیده ارائه می دهد. از آنجایی که اشیاء element این امکان را می دهد که عناصر را در داخل شاخه خود با استفاده از روش های رایج درخواست پیدا کنید، کاربران می توانند عناصر تودرتو را به صورت زیر درخواست کنند:
+When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. از آنجایی که اشیاء element این امکان را می دهد که عناصر را در داخل شاخه خود با استفاده از روش های رایج درخواست پیدا کنید، کاربران می توانند عناصر تودرتو را به صورت زیر درخواست کنند:
 
 ```js
 const header = await $('#header')
@@ -40,7 +39,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-هنگامی که ساختار عمیقا تو در تو باشد، اختصاص دادن هر عنصر تو در تو به یک آرایه ممکن است بسیار مفصل باشد. بنابراین WebdriverIO مفهوم درخواست های element زنجیره ای را دارد که امکان دریافت element های تودرتو مانند زیر را فراهم می کند:
+هنگامی که ساختار عمیقا تو در تو باشد، اختصاص دادن هر عنصر تو در تو به یک آرایه ممکن است بسیار مفصل باشد. Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -53,7 +52,7 @@ console.log(await $('#header').$('#headline').getText())
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-هنگام کار با مجموعه‌ای از element ها، این امر می‌تواند به‌ویژه هنگام تلاش برای تعامل با آنها مفید باشد، بنابراین به جای انجام:
+When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
 
 ```js
 const elems = await $$('div')
@@ -68,7 +67,22 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
+same as:
+
+```js
+const divs = await $$('div')
+const location = await divs.map((el) => el.getLocation())
+```
+
+WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+
+__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+
+```ts
+const divs = await $$('div')
+console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
+console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+```
 
 ### دستورات سفارشی
 
