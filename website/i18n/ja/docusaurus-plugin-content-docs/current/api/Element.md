@@ -3,7 +3,7 @@ id: element
 title: The Element Object
 ---
 
-要素オブジェクトは、リモート ユーザー エージェント上の要素を表すオブジェクトです。ブラウザ内でセッションを実行する場合の DOM ノード、またはモバイルのモバイル要素。例えばブラウザ内でセッションを実行する場合の [DOM ノード](https://developer.mozilla.org/en-US/docs/Web/API/Element)、または [モバイル用のモバイル要素](https: //developer.apple.com/documentation/swift/sequence/element)。 これは、多数の要素クエリ コマンドの 1 つを使用して受信できます。たとえば[`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. これは、多数の要素クエリ コマンドの 1 つを使用して受信できます。たとえば[`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
 
 ## Properties
 
@@ -18,8 +18,7 @@ title: The Element Object
 | `options`   | `Object` | WebdriverIO [option](/docs/configuration) は、ブラウザ オブジェクトの作成方法に応じて異なります。 もっと見る [セットアップ タイプ](/docs/setuptypes)。                            |
 
 ## Methods
-
-要素オブジェクトは、例えば、 [WebDriver](/docs/api/webdriver) プロトコルや要素セクション内にリストされているコマンドなど、プロトコルセクションからすべてのメソッドを提供します。 利用可能なプロトコルコマンドはセッションの種類によって異なります。 自動ブラウザセッションを実行すると、Appium[commands](/docs/api/appium)はいずれも使用できなくなり、その逆も同様です。
+An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. 利用可能なプロトコルコマンドはセッションの種類によって異なります。 自動ブラウザセッションを実行すると、Appium[commands](/docs/api/appium)はいずれも使用できなくなり、その逆も同様です。
 
 これに加えて、次のコマンドも使用できます。
 
@@ -32,7 +31,7 @@ title: The Element Object
 
 ### Element Chain
 
-要素を扱う場合、WebdriverIOはクエリを簡素化し、複雑なネストされた要素を探すための特別な構文を提供します。 要素オブジェクトを使用すると、一般的なクエリメソッドを使用してツリーブランチ内の要素を見つけることができます。ユーザーは以下のようにネストされた要素をフェッチすることができます。
+When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. 要素オブジェクトを使用すると、一般的なクエリメソッドを使用してツリーブランチ内の要素を見つけることができます。ユーザーは以下のようにネストされた要素をフェッチすることができます。
 
 ```js
 const header = await $('#header')
@@ -40,7 +39,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-深いネストされた構造体で、ネストされた要素を配列に割り当てると、非常に冗長なことができます。 そのため、WebdriverIOには、ネストされた要素を以下のようにフェッチできるようにする要素クエリがチェーン化されています。
+深いネストされた構造体で、ネストされた要素を配列に割り当てると、非常に冗長なことができます。 Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -53,7 +52,7 @@ console.log(await $('#header').$('#headline').getText())
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-一連の要素を扱う場合、これは特にそれらとやり取りしようとするときに役立ちますので、以下のようにします:
+When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
 
 ```js
 const elems = await $$('div')
@@ -68,7 +67,22 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIOは、内部で非同期反復処理をサポートするカスタム実装を使用するため、APIからのすべてのコマンドもこれらのユースケースでサポートされます。
+same as:
+
+```js
+const divs = await $$('div')
+const location = await divs.map((el) => el.getLocation())
+```
+
+WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+
+__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+
+```ts
+const divs = await $$('div')
+console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
+console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+```
 
 ### Custom Commands
 
