@@ -9,6 +9,7 @@ import {
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
+import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import {
     isW3C, capabilitiesEnvironmentDetector,
@@ -30,6 +31,7 @@ export {
     safeImport,
     sleep,
     isAppiumCapability,
+    asyncIterators,
 
     /**
      * runner shim
