@@ -3,7 +3,7 @@ id: element
 title: எலிமெண்ட் ஆப்ஜெக்ட்
 ---
 
-எலிமென்ட் ஆப்ஜெக்ட் என்பது ரிமோட் யூசர் ஏஜெண்டில் உள்ள எலிமென்டைக் குறிக்கும் ஒரு ஆப்ஜெக்டாகும், எ.கா. [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) ஒரு பிரௌசரில் அமர்வை இயக்கும் போது அல்லது மொபைலில் [a mobile element](https://developer.apple.com/documentation/swift/sequence/element). [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) அல்லது [`shadow$`](/docs/api/element/shadow$)போன்ற பல எலிமென்ட் வினவல் கட்டளைகளில் ஒன்றைப் பயன்படுத்தி அதைப் பெறலாம்.
+An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) அல்லது [`shadow$`](/docs/api/element/shadow$)போன்ற பல எலிமென்ட் வினவல் கட்டளைகளில் ஒன்றைப் பயன்படுத்தி அதைப் பெறலாம்.
 
 ## பண்புகள்
 
@@ -18,8 +18,7 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 | `options`   | `Object` | பிரௌசர் ஆப்ஜெக்ட் எவ்வாறு உருவாக்கப்பட்டது என்பதைப் பொறுத்து WebdriverIO [options](/docs/configuration). மேலும் [setup types](/docs/setuptypes)காண்க.                                                                                                |
 
 ## மெத்தெடுகள்
-
-ஒரு எலிமென்ட் ஆப்ஜெக்ட் நெறிமுறை பிரிவிலிருந்து அனைத்து மெத்தெடுகளையும் வழங்குகிறது, எ.கா. [WebDriver](/docs/api/webdriver) நெறிமுறை மற்றும் எலிமென்ட் பிரிவில் பட்டியலிடப்பட்ட கட்டளைகள். கிடைக்கும் நெறிமுறை கட்டளைகள் அமர்வு வகையைப் பொறுத்தது. நீங்கள் ஒரு தானியங்கு பிரௌசர் அமர்வை இயக்கினால், Appium [commands](/docs/api/appium) எதுவும் கிடைக்காது மற்றும் நேர்மாறாகவும் இருக்கும்.
+An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. கிடைக்கும் நெறிமுறை கட்டளைகள் அமர்வு வகையைப் பொறுத்தது. நீங்கள் ஒரு தானியங்கு பிரௌசர் அமர்வை இயக்கினால், Appium [commands](/docs/api/appium) எதுவும் கிடைக்காது மற்றும் நேர்மாறாகவும் இருக்கும்.
 
 கூடுதலாக, பின்வரும் கட்டளைகள் கிடைக்கின்றன:
 
@@ -32,7 +31,7 @@ title: எலிமெண்ட் ஆப்ஜெக்ட்
 
 ### எலிமென்ட் செயின்
 
-எலிமென்டுகளுடன் பணிபுரியும்போது WebdriverIO அவற்றை வினவுவதை எளிதாக்க சிறப்பு சிண்டாக்ஸ் மற்றும் காம்போசிட் காம்ப்ளெக்ஸ் நெஸ்டட் எலிமென்ட் தோற்றத்தை வழங்குகிறது. பொதுவான வினவல் முறைகளைப் பயன்படுத்தி, எலிமென்ட் ஆப்ஜெக்டுகள் அவற்றின் ட்ரீ பிராஞ்சில் உள்ள எலிமென்டுகளைக் கண்டறிய உங்களை அனுமதிப்பதால், பயனர்கள் நெஸ்டட் எலிமென்டுகளைப் பின்வருமாறு பெறலாம்:
+When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. பொதுவான வினவல் முறைகளைப் பயன்படுத்தி, எலிமென்ட் ஆப்ஜெக்டுகள் அவற்றின் ட்ரீ பிராஞ்சில் உள்ள எலிமென்டுகளைக் கண்டறிய உங்களை அனுமதிப்பதால், பயனர்கள் நெஸ்டட் எலிமென்டுகளைப் பின்வருமாறு பெறலாம்:
 
 ```js
 const header = await $('#header')
@@ -40,7 +39,7 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-டீப் நெஸ்டட் கட்டமைப்புகள் ஒரு அரேவிற்கு எந்த நெஸ்டட் எலிமென்டையும் ஒதுக்கினால், அதைப் பயன்படுத்துவதற்கு அது மிகவும் வாய்மொழியாக இருக்கும். எனவே WebdriverIO ஆனது இது போன்ற நெஸ்டட் எலிமென்ட்சுகளைப் பெற அனுமதிக்கும் செய்ண்டு எலிமென்ட் வினவல்களின் கருத்தைக் கொண்டுள்ளது:
+டீப் நெஸ்டட் கட்டமைப்புகள் ஒரு அரேவிற்கு எந்த நெஸ்டட் எலிமென்டையும் ஒதுக்கினால், அதைப் பயன்படுத்துவதற்கு அது மிகவும் வாய்மொழியாக இருக்கும். Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -53,7 +52,7 @@ console.log(await $('#header').$('#headline').getText())
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-எலிமென்ட்சுகளின் தொகுப்புடன் பணிபுரியும்போது, அவற்றுடன் தொடர்பு கொள்ள முயற்சிக்கும்போது இது மிகவும் பயனுள்ளதாக இருக்கும், எனவே செய்வதற்குப் பதிலாக:
+When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
 
 ```js
 const elems = await $$('div')
@@ -68,7 +67,22 @@ const locations = await Promise.all(
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iteratiors under the hood so all commands from their API are also supported for these use cases.
+same as:
+
+```js
+const divs = await $$('div')
+const location = await divs.map((el) => el.getLocation())
+```
+
+WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+
+__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+
+```ts
+const divs = await $$('div')
+console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
+console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+```
 
 ### தனிப்பயன் கட்டளைகள்
 
