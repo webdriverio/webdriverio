@@ -51,9 +51,6 @@ export interface Worker
     postMessage: (command: string, args: WorkerMessageArgs) => void;
     specs: string[];
     sessionId?: string;
-}
-
-export interface WorkerLogsAggregator extends Worker {
     logsAggregator: string[]
 }
 

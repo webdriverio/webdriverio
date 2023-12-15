@@ -471,14 +471,16 @@ class Launcher {
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', (code) => {
-            if (code.exitCode === 0) {
-                console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
-            } else {
-                console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
+            if (this.configParser.getConfig().groupLogsByTestSpec === true){
+                if (code.exitCode === 0) {
+                    console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
+                } else {
+                    console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
+                }
+                (worker as Workers.Worker).logsAggregator.forEach((logLine) => {
+                    console.log(logLine.replace(new RegExp('\\n$'), ''))
+                })
             }
-            (worker as Workers.WorkerLogsAggregator).logsAggregator.forEach((logLine) => {
-                console.log(logLine.replace(new RegExp('\\n$'), ''))
-            })
         })
         worker.on('exit', this._endHandler.bind(this))
     }

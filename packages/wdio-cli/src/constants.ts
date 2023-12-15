@@ -903,6 +903,13 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         default: true
     },
     /**
+     * whether or not print the log output grouped by Test Spec
+     */
+    groupLogsByTestSpec: {
+        type: 'boolean',
+        default: false
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {

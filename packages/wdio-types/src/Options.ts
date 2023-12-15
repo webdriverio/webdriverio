@@ -416,6 +416,14 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     specFileRetriesDeferred?: boolean
     /**
+     * Choose the log output view.
+     * If set to "false," logs from different Test Specs will be printed in real-time.
+     * Please note that this may result in the mixing of log outputs from different Test Specs when running in parallel.
+     * If set to "true," log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+     * By default, it is set to "false," so logs are printed in real-time.
+     */
+    groupLogsByTestSpec?: boolean,
+    /**
      * Services take over a specific job you don't want to take care of. They enhance
      * your test setup with almost no effort.
      */

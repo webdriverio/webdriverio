@@ -150,10 +150,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         /* istanbul ignore if */
         if (!process.env.VITEST_WORKER_ID) {
             if (childProcess.stdout !== null) {
-                // Test spec logs are collected only from child stdout stream
-                // and then printed when the worker exits
-                // As a result, there is no pipe to parent stdout stream here
-                runnerTransformStream(cid, childProcess.stdout, this.logsAggregator)
+                if (this.config.groupLogsByTestSpec === true) {
+                    // Test spec logs are collected only from child stdout stream
+                    // and then printed when the worker exits
+                    // As a result, there is no pipe to parent stdout stream here
+                    runnerTransformStream(cid, childProcess.stdout, this.logsAggregator)
+                } else {
+                    runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
+                }
             }
 
             if (childProcess.stderr !== null) {

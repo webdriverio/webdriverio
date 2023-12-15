@@ -10,6 +10,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     outputDir: undefined,
     logLevel: 'info' as const,
     logLevels: {},
+    groupLogsByTestSpec: false,
     excludeDriverLogs: [],
     bail: 0,
     waitforInterval: 500,
