@@ -684,16 +684,27 @@ const mochaHooksTestrunner = async () => {
 }
 
 const jasmineHooksTestrunner = async () => {
-    const { skippedSpecs } = await launch(
-        'jasmineHooksTestrunner',
+    const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
+    await launch('jasmineHooksTestrunner',
         path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
         {
-            specs: [
-                path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts'),
-            ]
-        }
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts')],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
+            framework: 'jasmine',
+        }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('skip test'),
     )
-    assert.strictEqual(skippedSpecs, 0)
 }
 
 (async () => {
