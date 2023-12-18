@@ -1202,6 +1202,12 @@ export interface BrowserStackCapabilities {
      */
     autoWait?: number
     /**
+     * https://www.browserstack.com/docs/app-automate/appium/advanced-features/handle-permission-pop-ups
+     * IOS specific. For IOS 13 & above, behavior will flip if popup has more than 2 buttons
+     */
+    autoAcceptAlerts?: boolean
+    autoDismissAlerts?: boolean
+    /**
      * Add a host entry (/etc/hosts) to the remote BrowserStack machine.
      *
      * Format: ip_address domain_name
