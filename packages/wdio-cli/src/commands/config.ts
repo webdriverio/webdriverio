@@ -97,7 +97,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const parsedPaths = getPathForFileGeneration(answers, projectRootDir)
     const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
     const wdioConfigFilename = `wdio.conf.${isUsingTypeScript ? 'ts' : 'js'}`
-    const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
+    const wdioConfigPath = path.resolve(answers.specs ? path.dirname(answers.specs.split(path.sep).filter((s) => !s.includes('*')).join(path.sep)) : projectRootDir, wdioConfigFilename)
 
     return {
         projectName: projectProps?.packageJson.name || 'Test Suite',
@@ -117,7 +117,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),
-        specs: answers.specs && `./${path.relative(projectRootDir, answers.specs).replaceAll(path.sep, '/')}`,
+        specs: answers.specs && `./${path.relative(path.dirname(wdioConfigPath), answers.specs).replaceAll(path.sep, '/')}`,
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
@@ -134,7 +134,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         relativePath: parsedPaths.relativePath,
         hasRootTSConfig,
         tsConfigFilePath,
-        tsProject: `./${path.relative(projectRootDir, tsConfigFilePath).replaceAll(path.sep, '/')}`,
+        tsProject: `./${path.relative(path.dirname(wdioConfigPath), tsConfigFilePath).replaceAll(path.sep, '/')}`,
         wdioConfigPath
     }
 }

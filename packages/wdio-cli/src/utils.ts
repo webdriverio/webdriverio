@@ -690,7 +690,7 @@ export function runProgram(command: string, args: string[], options: SpawnOption
 export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
     const packageJsonExists = await fs.access(path.resolve(process.cwd(), 'package.json')).then(() => true, () => false)
 
-    // Use the exisitng package.json if it already exists.
+    // Use the existing package.json if it already exists.
     if (packageJsonExists) {
         return
     }
@@ -835,11 +835,7 @@ export function detectPackageManager(argv = process.argv) {
  * add ts-node if TypeScript is desired but not installed
  */
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
-    /**
-     * don't create a `tsconfig.json` if user doesn't want to use TypeScript
-     * or if a `tsconfig.json` already exists
-     */
-    if (!parsedAnswers.isUsingTypeScript || parsedAnswers.hasRootTSConfig) {
+    if (!parsedAnswers.isUsingTypeScript) {
         return
     }
 
@@ -929,12 +925,12 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
             ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
             : preset === 'vue'
                 ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
-                : ['test', 'wdio.conf.ts']
+                : ['./**/*.ts', 'wdio.conf.ts']
     }
     await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
     await fs.writeFile(
         parsedAnswers.tsConfigFilePath,
-        JSON.stringify(config, null, 4)
+        JSON.stringify(config, null, 2)
     )
 
     console.log(chalk.green.bold('✔ Success!\n'))
