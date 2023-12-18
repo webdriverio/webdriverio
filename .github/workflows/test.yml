@@ -45,7 +45,7 @@ jobs:
       #   if: failure()
       #   with:
       #     timeout: '30000'
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ubuntu-logs-${{ matrix.node-version }}
@@ -83,7 +83,7 @@ jobs:
         if: failure()
         with:
           timeout: '30000'
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: windows-logs
@@ -126,7 +126,7 @@ jobs:
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: macos-logs
