@@ -26,7 +26,8 @@ import {
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
-    isTrue
+    isTrue,
+    setupExitHandlers
 } from './util'
 import PerformanceTester from './performance-tester'
 
@@ -44,6 +45,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
+    public static _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -51,6 +53,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         private _config: Options.Testrunner
     ) {
         // added to maintain backward compatibility with webdriverIO v5
+        setupExitHandlers()
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
@@ -294,6 +297,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             await stopBuildUpstream()
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+                BrowserstackLauncherService._testOpsBuildStopped = true
             }
         }
 

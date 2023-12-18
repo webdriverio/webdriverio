@@ -4,6 +4,7 @@ import http from 'http'
 import https from 'https'
 import path from 'path'
 import util from 'util'
+import { spawn } from 'node:child_process'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
@@ -17,6 +18,7 @@ import gitconfig from 'gitconfiglocal'
 import CrashReporter from './crash-reporter'
 import type { ITestCaseHookParameter } from './cucumber-types'
 import logPatcher from './logPatcher'
+import BrowserstackLauncherService from './launcher'
 
 import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
 import {
@@ -1111,4 +1113,14 @@ export function isUndefined(value: any) {
 
 export function isTrue(value?: any) {
     return (value + '').toLowerCase() === 'true'
+}
+
+export function setupExitHandlers() {
+    process.on('exit', (code) => {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
 }
