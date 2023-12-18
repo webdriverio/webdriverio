@@ -21,13 +21,13 @@ export const config =
         },
         specs:
         [
-            './mocha.test01.js',
+            path.resolve(__dirname, 'mocha.test01.js'),
             [
-                './mocha.test02.js',
-                './mocha.test03.js'
+                path.resolve(__dirname, 'mocha.test02.js'),
+                path.resolve(__dirname, 'mocha.test03.js')
             ],
             [
-                './mocha.test04.js'
+                path.resolve(__dirname, 'mocha.test04.js')
             ]
         ],
         outputDir: outputDirPathNoArg

@@ -1,3 +1,8 @@
+import url from 'node:url'
+import path from 'node:path'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
 export const config =
     {
         capabilities: [{
@@ -15,13 +20,13 @@ export const config =
         },
         specs:
         [
-            './mocha.test01.js',
-            './mocha.test02.js',
-            './mocha.test03.js',
-            './testFail.test.js',
+            path.resolve(__dirname, 'mocha.test01.js'),
+            path.resolve(__dirname, 'mocha.test02.js'),
+            path.resolve(__dirname, 'mocha.test03.js'),
+            path.resolve(__dirname, 'testFail.test.js'),
             [
-                './mocha.test04.js',
-                './testFail.test.js'
+                path.resolve(__dirname, 'mocha.test04.js'),
+                path.resolve(__dirname, 'testFail.test.js')
             ]
         ],
     }
