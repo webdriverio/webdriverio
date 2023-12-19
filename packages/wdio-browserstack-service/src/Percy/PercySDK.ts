@@ -9,9 +9,7 @@ const tryRequire = function (pkg: string, fallback: any) {
     }
 }
 
-// const percySnapshot = tryRequire('@percy/webdriverio', null);
 const percySnapshot = tryRequire('@percy/selenium-webdriver', null)
-const { percyScreenshot } = tryRequire('@percy/selenium-webdriver', {})
 const percyAppScreenshot = tryRequire('@percy/appium-app', {})
 
 import { PercyLogger } from './PercyLogger.js'
@@ -33,8 +31,8 @@ export const snapshot = snapshotHandler
 let screenshotHandler = async (...args: any[]) => {
     PercyLogger.error('Unsupported driver for percy')
 }
-if (percyScreenshot) {
-    screenshotHandler = percyScreenshot
+if (percySnapshot && percySnapshot.percyScreenshot) {
+    screenshotHandler = percySnapshot.percyScreenshot
 }
 export const screenshot = screenshotHandler
 

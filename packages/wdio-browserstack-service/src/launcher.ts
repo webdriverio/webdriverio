@@ -173,7 +173,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
                 if (isThisBestPercyPlatform) {
-                    process.env.BEST_PLATFORM_CID = cid + ''
+                    process.env.BEST_PLATFORM_CID = cid
                 }
                 caps['wdio:cid'] = cid
             }
