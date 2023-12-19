@@ -121,7 +121,16 @@
     {
       "type": "category",
       "label": "Accessibility Testing",
-      "items": ["accessibility/axe-core"]
+      "items": ["accessibility-testing/axe-core"]
+    },
+    {
+      "type": "category",
+      "label": "Visual Testing",
+      "items": ["visual-testing/subpage"],
+      "link": {
+        "type": "doc",
+        "id": "visual-testing"
+      }
     },
     {
       "type": "category",
