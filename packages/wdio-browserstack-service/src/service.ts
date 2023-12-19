@@ -137,16 +137,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     patchConsoleLogs()
                     this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
                     await this._insightsHandler.before()
-
-                    /**
-                     * register command event
-                     */
-                    this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
-                        'client:beforeCommand',
-                        Object.assign(command, { sessionId: this._browser?.sessionId }),
-                        this._currentTest
-                    ))
                 }
+
+                /**
+                 * register command event
+                 */
+                this._browser.on('command', async (command) => {
+                    if (this._observability) {
+                        await this._insightsHandler?.browserCommand(
+                            'client:beforeCommand',
+                            Object.assign(command, { sessionId: this._browser?.sessionId }),
+                            this._currentTest
+                        )
+                    }
+                    await this._percyHandler?.browserBeforeCommand(
+                        Object.assign(command, { sessionId: this._browser?.sessionId })
+                    )
+                })
 
                 /**
                  * register result event
@@ -159,7 +166,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             this._currentTest
                         )
                     }
-                    this._percyHandler?.browserCommand(
+                    this._percyHandler?.browserAfterCommand(
                         Object.assign(result, { sessionId: this._browser?.sessionId }),
                     )
                 })

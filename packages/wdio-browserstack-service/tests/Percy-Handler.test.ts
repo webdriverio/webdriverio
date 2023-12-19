@@ -3,13 +3,14 @@
 import got from 'got'
 import logger from '@wdio/logger'
 
-import PercyHandler from '../src/percy/Percy-Handler'
-// import * as PercyCaptureMapExport from '../src/Percy/PercyCaptureMap'
+import PercyHandler from '../src/Percy/Percy-Handler'
 import PercyCaptureMap from '../src/Percy/PercyCaptureMap'
 import * as PercySDK from '../src/Percy/PercySDK'
 import type { Capabilities } from '@wdio/types'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import * as PercyLogger from '../src/Percy/PercyLogger'
+
+import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 const log = logger('test')
 let percyHandler: PercyHandler
@@ -125,12 +126,12 @@ describe('browserCommand', () => {
     beforeEach(() => {
         percyHandler = new PercyHandler('auto', browser, caps, false, 'framework')
         percyHandler.before()
-        percyAutoCaptureSpy = jest.spyOn(PercyHandler.prototype, 'percyAutoCapture')
+        percyAutoCaptureSpy = jest.spyOn(PercyHandler.prototype, 'deferCapture')
     })
 
     it('should not call percyAutoCapture if no browser endpoint', async () => {
         const args = {}
-        await percyHandler.browserCommand(args)
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
         expect(percyAutoCaptureSpy).not.toBeCalled()
     })
 
@@ -143,7 +144,7 @@ describe('browserCommand', () => {
                 }]
             }
         }
-        await percyHandler.browserCommand(args)
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
         expect(percyAutoCaptureSpy).toBeCalledTimes(1)
     })
 
@@ -151,7 +152,7 @@ describe('browserCommand', () => {
         const args = {
             endpoint: 'click'
         }
-        await percyHandler.browserCommand(args)
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
         expect(percyAutoCaptureSpy).toBeCalledTimes(1)
     })
 
@@ -159,7 +160,7 @@ describe('browserCommand', () => {
         const args = {
             endpoint: 'screenshot'
         }
-        await percyHandler.browserCommand(args)
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
         expect(percyAutoCaptureSpy).toBeCalledTimes(1)
     })
 
@@ -203,11 +204,6 @@ describe('afterTest', () => {
         percyHandler.before()
         percyAutoCaptureSpy = jest.spyOn(PercyHandler.prototype, 'percyAutoCapture')
     })
-
-    // it('should not call percyAutoCapture', async () => {
-    //     await percyHandler.afterTest()
-    //     expect(percyAutoCaptureSpy).not.toBeCalled()
-    // })
 
     it('should call percyAutoCapture', async () => {
         percyHandler['_percyAutoCaptureMode'] = 'testcase'
