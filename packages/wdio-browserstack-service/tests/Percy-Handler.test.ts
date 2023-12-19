@@ -6,7 +6,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
 
-import PercyHandler from '../src/percy/Percy-Handler.js'
+import PercyHandler from '../src/Percy/Percy-Handler.js'
 import PercyCaptureMap from '../src/Percy/PercyCaptureMap.js'
 import * as PercySDK from '../src/Percy/PercySDK.js'
 import type { Capabilities } from '@wdio/types'
