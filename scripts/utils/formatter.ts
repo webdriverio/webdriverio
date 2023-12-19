@@ -123,7 +123,13 @@ export default function (docfile: any) {
                      * remove filename expression in first line
                      */
                     exampleFilename = exampleCodeLine.shift()!.trim().substr(1)
-                    const code = exampleCodeLine.join('\n')
+                    const code = exampleCodeLine
+                        .join('\n')
+                        /**
+                         * allow to have `@` in code, e.g. `@keyframes slidein { ... }`
+                         * without it would be interpreted as a jsdoc tag
+                         */
+                        .replace('\\@', '@')
 
                     /**
                      * add example

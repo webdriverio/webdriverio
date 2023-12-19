@@ -9,15 +9,6 @@ describe('Mocha smoke test', () => {
         assert.equal(duration > 200, true)
     })
 
-    it('should allow to iterate over elements', async () => {
-        // @ts-expect-error custom command
-        const expectedResults = await browser.asyncIterationScenario()
-        let i = 0
-        for await (const elem of browser.$$('elems')) {
-            assert.equal(expectedResults[i++], elem.elementId)
-        }
-    })
-
     it('should allow to fetch parent elements with chaining', async () => {
         // @ts-expect-error custom command
         await browser.parentElementChaining()
@@ -43,5 +34,14 @@ describe('Mocha smoke test', () => {
             await $('foo').previousElement().getText(),
             'some element text'
         )
+    })
+
+    it('should allow to iterate over elements', async () => {
+        // @ts-expect-error custom command
+        const expectedResults = await browser.asyncIterationScenario()
+        let i = 0
+        for await (const elem of browser.$$('elems')) {
+            assert.equal(expectedResults[i++], elem.elementId)
+        }
     })
 })

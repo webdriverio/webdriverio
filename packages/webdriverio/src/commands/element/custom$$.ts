@@ -64,6 +64,6 @@ export async function custom$$ (
 
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as WebdriverIO.ElementArray
+    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }

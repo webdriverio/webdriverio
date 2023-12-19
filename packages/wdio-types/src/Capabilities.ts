@@ -577,6 +577,8 @@ export interface AppiumAndroidCapabilities {
     'appium:skipServerInstallation'?: boolean;
     'appium:espressoServerLaunchTimeout'?: number;
     'appium:disableSuppressAccessibilityService'?: boolean;
+    'appium:hideKeyboard'?: boolean;
+    'appium:autoWebviewName'?: string;
 }
 
 /**
@@ -1135,6 +1137,8 @@ export interface BrowserStackCapabilities {
     networkLogsOptions?: {
         captureContent?: boolean
     },
+    networkLogsExcludeHosts?: Array<string>
+    networkLogsIncludeHosts?: Array<string>
     /**
      * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/interactive-session
      * Enable an interactive debugging session while your test session is running
@@ -1197,6 +1201,16 @@ export interface BrowserStackCapabilities {
      * @default 20
      */
     autoWait?: number
+    /**
+     * iOS specific. For IOS 13 & above, behavior will flip if popup has more than 2 buttons
+     * @see https://www.browserstack.com/docs/app-automate/appium/advanced-features/handle-permission-pop-ups
+     */
+    autoAcceptAlerts?: boolean
+    /**
+     * iOS specific. For IOS 13 & above, behavior will flip if popup has more than 2 buttons
+     * @see https://www.browserstack.com/docs/app-automate/appium/advanced-features/handle-permission-pop-ups
+     */
+    autoDismissAlerts?: boolean
     /**
      * Add a host entry (/etc/hosts) to the remote BrowserStack machine.
      *

@@ -46,7 +46,6 @@
         "selectors",
         "timeouts",
         "emulation",
-        "accessibility",
         "mocksandspies",
         "customcommands",
         "pageobjects",
@@ -117,6 +116,11 @@
         "extension-testing/web-extensions",
         "extension-testing/vscode-extensions"
       ]
+    },
+    {
+      "type": "category",
+      "label": "Accessibility Testing",
+      "items": ["accessibility/axe-core"]
     },
     {
       "type": "category",

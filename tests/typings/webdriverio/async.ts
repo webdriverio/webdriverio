@@ -311,6 +311,11 @@ async function bar() {
     expectType<string>(await el4.getAttribute('class'))
     expectType<void>(await el5.scrollIntoView(false))
 
+    // async iterator
+    const iteratorResult = await $$('').map((el) => el.getText())
+    expectType<string[]>(iteratorResult)
+    expectType<string[]>(await elems.map((el) => el.getText()))
+
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
     await elem.addValue('Delete')
