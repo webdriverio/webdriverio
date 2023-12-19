@@ -141,16 +141,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._config.framework
                     )
                     await this._insightsHandler.before()
-
-                    /**
-                     * register command event
-                     */
-                    this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
-                        'client:beforeCommand',
-                        Object.assign(command, { sessionId }),
-                        this._currentTest
-                    ))
                 }
+
+                /**
+                 * register command event
+                 */
+                this._browser.on('command', async (command) => {
+                    if (this._observability) {
+                        this._insightsHandler?.browserCommand(
+                            'client:beforeCommand',
+                            Object.assign(command, { sessionId }),
+                            this._currentTest
+                        )
+                    }
+                    await this._percyHandler?.browserBeforeCommand(
+                        Object.assign(command, { sessionId }),
+                    )
+                })
 
                 /**
                  * register result event
@@ -163,7 +170,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             this._currentTest
                         )
                     }
-                    this._percyHandler?.browserCommand(
+                    this._percyHandler?.browserAfterCommand(
                         Object.assign(result, { sessionId }),
                     )
                 })

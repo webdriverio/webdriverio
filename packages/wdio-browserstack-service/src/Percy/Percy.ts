@@ -18,7 +18,7 @@ const logDir = 'logs'
 
 class Percy {
     #logfile: string = path.join(logDir, 'percy.log')
-    #address: string = process.env.PERCY_SERVER_ADDRESS || 'http://localhost:5338'
+    #address: string = process.env.PERCY_SERVER_ADDRESS || 'http://127.0.0.1:5338'
 
     #binaryPath: string | any = null
     #options: BrowserstackConfig & Options.Testrunner

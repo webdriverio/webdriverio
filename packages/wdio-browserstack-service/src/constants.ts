@@ -48,3 +48,13 @@ export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.co
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
 
 export const PERCY_LOGS_FILE = 'logs/percy.log'
+
+export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
+    '/session/:sessionId/url',
+    '/session/:sessionId/forward',
+    '/session/:sessionId/back',
+    '/session/:sessionId/refresh',
+    '/session/:sessionId/screenshot',
+    '/session/:sessionId/actions',
+    '/session/:sessionId/appium/device/shake'
+]
