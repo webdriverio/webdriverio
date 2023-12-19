@@ -2,12 +2,7 @@ import { stopBuildUpstream } from './util'
 
 export default class BStackCleanup {
     static startCleanup() {
-        try {
-            this.executeObservabilityCleanup()
-        } catch (err) {
-            const error = err as string
-            console.error(error)
-        }
+        this.executeObservabilityCleanup()
     }
     static executeObservabilityCleanup() {
         if (!process.env.BS_TESTOPS_JWT) {
