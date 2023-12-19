@@ -186,10 +186,9 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
                 isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
             }
             if (isLogUpload) {
-                throw error
-            } else {
                 return
             }
+            throw error
         } else {
             if (isLogUpload) {
                 BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
