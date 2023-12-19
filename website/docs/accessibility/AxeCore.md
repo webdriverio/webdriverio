@@ -1,9 +1,9 @@
 ---
-id: accessibility
-title: Accessibility Testing
+id: axe-core
+title: Axe Core
 ---
 
-You can include accessibility tests within your WebdriverIO test suite using the open source accessibility tools [from Deque called Axe](https://www.deque.com/axe/). The set-up is very easy, all you need to do is to install the WebdriverIO Axe adapter via:
+You can include accessibility tests within your WebdriverIO test suite using the open-source accessibility tools [from Deque called Axe](https://www.deque.com/axe/). The setup is very easy, all you need to do is to install the WebdriverIO Axe adapter via:
 
 ```bash npm2yarn
 npm install -g @axe-core/webdriverio
