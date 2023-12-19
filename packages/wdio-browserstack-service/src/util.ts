@@ -176,16 +176,25 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
         }).json()
         return response
     } catch (error : any) {
+        const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
             if (errorMessage) {
-                BStackLogger.error(`${errorMessage} - ${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${errorMessage} - ${error.stack}`) : BStackLogger.error(`${errorMessage} - ${error.stack}`)
             } else {
-                BStackLogger.error(`${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
             }
-            throw error
+            if (isLogUpload) {
+                throw error
+            } else {
+                return
+            }
         } else {
+            if (isLogUpload) {
+                BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
+                return
+            }
             BStackLogger.error(`Failed to fire api request due to ${error} - ${error.stack}`)
             throw error
         }
