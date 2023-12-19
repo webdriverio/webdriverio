@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.26.3 (2023-12-19)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11835](https://github.com/webdriverio/webdriverio/pull/11835) fix for issue #11834 - fixing skip test for jasmine on beforeTest hook ([@HananArgov](https://github.com/HananArgov))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#11901](https://github.com/webdriverio/webdriverio/pull/11901) Missing alerts capability for BrowserStack ([@thv92](https://github.com/thv92))
+
+#### :house: Internal
+* [#11877](https://github.com/webdriverio/webdriverio/pull/11877) (webdriverio): pin Node to 18.18 ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 3
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Thien Vo ([@thv92](https://github.com/thv92))
+
+
 ## v8.26.2 (2023-12-15)
 
 #### :bug: Bug Fix

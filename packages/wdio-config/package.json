@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "8.26.2",
+  "version": "8.26.3",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -37,8 +37,8 @@
   },
   "dependencies": {
     "@wdio/logger": "8.24.12",
-    "@wdio/types": "8.26.2",
-    "@wdio/utils": "8.26.2",
+    "@wdio/types": "8.26.3",
+    "@wdio/utils": "8.26.3",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^5.0.0",
     "glob": "^10.2.2",
