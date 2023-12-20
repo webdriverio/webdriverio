@@ -289,6 +289,18 @@ Whether or not retried spec files should be retried immediately or deferred to t
 
 Type: `Boolean`<br /> Default: `true`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br /> Default: `false`
+
 ### services
 
 WebdriverIO Services übernehmen eine bestimmte Aufgabe, um die Sie sich nicht kümmern möchten. Sie erweitern Ihren Testaufbau nahezu ohne Aufwand.
@@ -435,8 +447,8 @@ Wird ausgeführt, bevor die Testausführung beginnt. An dieser Stelle können Si
 
 Parameter:
 
-- `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wird
-- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 - `browser` (`Objekt`): Instanz der erstellten Browser-/Gerätesitzung
 
 ### beforeSuite
@@ -488,7 +500,7 @@ Parameter:
 
 Wird ausgeführt, nachdem ein WebdriverIO-Befehl ausgeführt wurde.
 
-Parameter:
+Parameters:
 
 - `commandName` (`string`): Befehlsname
 - `args` (`*`): Argumente, die der Befehl erhalten würde
@@ -532,7 +544,7 @@ Parameter:
 
 Wird direkt nach dem Beenden der Webdriver-Sitzung ausgeführt.
 
-Parameter:
+Parameters:
 
 - `config` (`object`): WebdriverIO-Konfigurationsobjekt
 - `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wurde
@@ -542,7 +554,7 @@ Parameter:
 
 Wird ausgeführt, nachdem alle Worker heruntergefahren wurden und der Testrunner Prozess dabei ist geschlossen zu werden. Ein Fehler, der in den onComplete-Hook geworfen wird, führt dazu, dass der Testlauf fehlschlägt.
 
-Parameter:
+Parameters:
 
 - `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
 - `config` (`object`): WebdriverIO-Konfigurationsobjekt
