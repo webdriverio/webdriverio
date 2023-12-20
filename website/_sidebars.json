@@ -126,7 +126,21 @@
     {
       "type": "category",
       "label": "Visual Testing",
-      "items": ["visual-testing/subpage"],
+      "items": [
+        "visual-testing/considerations",
+        "visual-testing/writing-tests",
+        "visual-testing/methods",
+        {
+            "type": "category",
+            "label": "Options",
+            "items": [
+                "visual-testing/service-options",
+                "visual-testing/method-options"
+            ]
+        },
+        "visual-testing/test-output",
+        "visual-testing/faq"
+      ],
       "link": {
         "type": "doc",
         "id": "visual-testing"
