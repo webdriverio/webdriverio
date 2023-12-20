@@ -1112,4 +1112,3 @@ export function isUndefined(value: any) {
 export function isTrue(value?: any) {
     return (value + '').toLowerCase() === 'true'
 }
-
