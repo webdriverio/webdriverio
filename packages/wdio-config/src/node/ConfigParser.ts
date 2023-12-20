@@ -63,7 +63,7 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
-        this.merge(_initialConfig)
+        this.merge(_initialConfig, false)
     }
 
     /**
@@ -161,8 +161,9 @@ export default class ConfigParser {
     /**
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
+     * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
      */
-    private merge(object: MergeConfig = {}) {
+    private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -202,10 +203,10 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (spec.length > 0) {
+        if (addPathToSpecs && spec.length > 0) {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
-        if (exclude.length > 0) {
+        if (addPathToSpecs && exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
     }

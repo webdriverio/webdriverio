@@ -10,6 +10,9 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
 const parallelMultiRemoteBaseConfig = path.resolve(__dirname, 'helpers', 'parallel-multiremote-config.js')
 const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
+const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed.conf.js')
+const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
+const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -683,6 +686,62 @@ const mochaHooksTestrunner = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+// ****************************
+// *** Tests for CLI --spec ***
+// ****************************
+const runSpecsWithFlagAllPassed = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagAllPassed',
+        path.resolve(allPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['test']
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagSeveralPassed = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagSeveralPassed',
+        path.resolve(severalPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['mocha']
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagDirectPath = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagDirectPath',
+        path.resolve(severalPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagNoArg = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagNoArg',
+        path.resolve(noArgConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: []
+        }
+    )
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+}
+// *** END - tests for CLI --spec ***
+
 const jasmineHooksTestrunner = async () => {
     const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
     await launch('jasmineHooksTestrunner',
@@ -738,6 +797,10 @@ const jasmineHooksTestrunner = async () => {
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,
+        runSpecsWithFlagAllPassed,
+        runSpecsWithFlagSeveralPassed,
+        runSpecsWithFlagDirectPath,
+        runSpecsWithFlagNoArg,
         jasmineHooksTestrunner
     ]
 
