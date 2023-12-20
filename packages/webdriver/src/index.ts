@@ -43,7 +43,7 @@ export default class WebDriver {
         const bidiPrototype: PropertyDescriptorMap = {}
         if (capabilities.webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string))
+            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
         }
 
         const monad = webdriverMonad(
@@ -121,7 +121,7 @@ export default class WebDriver {
             : options.capabilities!.webSocketUrl
         if (webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string))
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string, options.strictSSL))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
