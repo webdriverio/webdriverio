@@ -10,6 +10,7 @@ import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
+import { spawn } from 'node:child_process'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
@@ -26,8 +27,7 @@ import {
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
-    isTrue,
-    setupExitHandlers
+    isTrue
 } from './util'
 import PerformanceTester from './performance-tester'
 
@@ -45,7 +45,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
-    public static _testOpsBuildStopped?: boolean
+    public _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -53,7 +53,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         private _config: Options.Testrunner
     ) {
         // added to maintain backward compatibility with webdriverIO v5
-        setupExitHandlers()
+        this.setupExitHandlers()
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
@@ -143,6 +143,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (error: any) {
             log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
+    }
+
+    setupExitHandlers() {
+        process.on('exit', (code) => {
+            if (!!process.env.BS_TESTOPS_JWT && !this._testOpsBuildStopped) {
+                const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+                childProcess.unref()
+                process.exit(code)
+            }
+        })
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
@@ -297,7 +307,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             await stopBuildUpstream()
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
-                BrowserstackLauncherService._testOpsBuildStopped = true
+                this._testOpsBuildStopped = true
             }
         }
 
