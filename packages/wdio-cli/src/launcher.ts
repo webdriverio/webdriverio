@@ -7,7 +7,7 @@ import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Options, Capabilities, Services, Workers } from '@wdio/types'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
@@ -471,16 +471,17 @@ class Launcher {
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', (code) => {
-            if (this.configParser.getConfig().groupLogsByTestSpec === true){
-                if (code.exitCode === 0) {
-                    console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
-                } else {
-                    console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
-                }
-                (worker as Workers.Worker).logsAggregator.forEach((logLine) => {
-                    console.log(logLine.replace(new RegExp('\\n$'), ''))
-                })
+            if (!this.configParser.getConfig().groupLogsByTestSpec) {
+                return
             }
+            if (code.exitCode === 0) {
+                console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
+            } else {
+                console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
+            }
+            worker.logsAggregator.forEach((logLine) => {
+                console.log(logLine.replace(new RegExp('\\n$'), ''))
+            })
         })
         worker.on('exit', this._endHandler.bind(this))
     }
