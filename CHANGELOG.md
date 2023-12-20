@@ -21,6 +21,128 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.26.3 (2023-12-19)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11835](https://github.com/webdriverio/webdriverio/pull/11835) fix for issue #11834 - fixing skip test for jasmine on beforeTest hook ([@HananArgov](https://github.com/HananArgov))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#11901](https://github.com/webdriverio/webdriverio/pull/11901) Missing alerts capability for BrowserStack ([@thv92](https://github.com/thv92))
+
+#### :house: Internal
+* [#11877](https://github.com/webdriverio/webdriverio/pull/11877) (webdriverio): pin Node to 18.18 ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 3
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Thien Vo ([@thv92](https://github.com/thv92))
+
+
+## v8.26.2 (2023-12-15)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11876](https://github.com/webdriverio/webdriverio/pull/11876) (@wdio/browser-runner): fix mocking of CJS modules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#11874](https://github.com/webdriverio/webdriverio/pull/11874) (webdriverio): support async iterators for WebdriverIO.ElementArray ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11854](https://github.com/webdriverio/webdriverio/pull/11854) Added missing UIAutomator2 Capabilities ([@Vaahin](https://github.com/Vaahin))
+  * [#11853](https://github.com/webdriverio/webdriverio/pull/11853) Missing browserstack network capabilities ([@Vaahin](https://github.com/Vaahin))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Thiru-Mohan ([@Vaahin](https://github.com/Vaahin))
+
+
+
+## v8.26.0 (2023-12-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11833](https://github.com/webdriverio/webdriverio/pull/11833) (webdriverio): fix issue when using keys to trigger an alert ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+## v8.26.0 (2023-12-08)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#11772](https://github.com/webdriverio/webdriverio/pull/11772) (webdriverio): add isStable, waitForStable commands ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
+## v8.25.0 (2023-12-08)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`
+  * [#11831](https://github.com/webdriverio/webdriverio/pull/11831) (@wdio/cli, @wdio/local-runner): fix issue with node 18.19 and up ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11828](https://github.com/webdriverio/webdriverio/pull/11828) docs: update autowait limitations example ([@rwaskiewicz](https://github.com/rwaskiewicz))
+* [#11821](https://github.com/webdriverio/webdriverio/pull/11821) (docs): update Getting Started ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
+## v8.24.15 (2023-12-07)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11826](https://github.com/webdriverio/webdriverio/pull/11826) (@wdio/cli): do not throw if dotenv is not installed ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* [#11824](https://github.com/webdriverio/webdriverio/pull/11824) docs(stencil,preact): update project names in cmp testing ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
+## v8.24.14 (2023-12-06)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#11820](https://github.com/webdriverio/webdriverio/pull/11820) (@wdio/jasmine-framework): attach asymmetric matchers to expect object ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.24.13 (2023-12-05)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#11815](https://github.com/webdriverio/webdriverio/pull/11815) fix(stencil): update suite name ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+#### Committers: 1
+- Ryan Waskiewicz ([@rwaskiewicz](https://github.com/rwaskiewicz))
+
+
+## v8.24.7 (2023-12-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#11764](https://github.com/webdriverio/webdriverio/pull/11764) (@wdio/cli): implement constistent and simple package manager detection ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#11718](https://github.com/webdriverio/webdriverio/pull/11718) removed unused library ([@mikhail-g](https://github.com/mikhail-g))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykhailo Hariachyi ([@mikhail-g](https://github.com/mikhail-g))
+
+
 ## v8.24.6 (2023-11-30)
 
 #### :nail_care: Polish

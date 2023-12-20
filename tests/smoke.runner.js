@@ -141,6 +141,10 @@ const jasmineTestrunner = async () => {
             'expect(number).toBe(number)',
             'expect(object).toEqual(object)',
             'expect(object).toBeFalse(boolean)',
+            'expect(object).toHaveTitle(object)',
+            'expect(object).toHaveTitle(object)',
+            'expect(object).toHaveUrl(object)',
+            'expect(object).toHaveUrl(object)',
             'expect(string).toHaveTitle(object)',
             'expect(object).toBeDisplayed(object)',
             'expect(object).toBeDisplayed(object)',
@@ -738,6 +742,30 @@ const runSpecsWithFlagNoArg = async () => {
 }
 // *** END - tests for CLI --spec ***
 
+const jasmineHooksTestrunner = async () => {
+    const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
+    await launch('jasmineHooksTestrunner',
+        path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts')],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
+            framework: 'jasmine',
+        }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('skip test'),
+    )
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -772,7 +800,8 @@ const runSpecsWithFlagNoArg = async () => {
         runSpecsWithFlagAllPassed,
         runSpecsWithFlagSeveralPassed,
         runSpecsWithFlagDirectPath,
-        runSpecsWithFlagNoArg
+        runSpecsWithFlagNoArg,
+        jasmineHooksTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

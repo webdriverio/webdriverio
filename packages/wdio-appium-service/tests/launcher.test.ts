@@ -24,7 +24,10 @@ vi.mock('node:fs/promises', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => ({ spawn: vi.fn() }))
+vi.mock('child_process', () => ({
+    spawn: vi.fn(),
+    exec: vi.fn()
+}))
 vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
     url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
 }))

@@ -37,7 +37,8 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
@@ -57,6 +58,7 @@ vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
@@ -978,6 +980,16 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+})
+
+test.each([
+    ['', 'npm'],
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
 })
 
 afterEach(() => {

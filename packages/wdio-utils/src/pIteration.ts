@@ -8,7 +8,7 @@
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with undefined value.
  */
-export const forEach = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const forEach = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const promiseArray = []
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
@@ -28,7 +28,7 @@ export const forEach = async (array: unknown[], callback: Function, thisArg?: un
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with undefined value.
  */
-export const forEachSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const forEachSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
             await callback.call(thisArg || this, await array[i], i, array)
@@ -47,7 +47,7 @@ export const forEachSeries = async (array: unknown[], callback: Function, thisAr
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the resultant *Array* as value.
  */
-export const map = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const map = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const promiseArray = []
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
@@ -66,7 +66,7 @@ export const map = async (array: unknown[], callback: Function, thisArg?: unknow
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the resultant *Array* as value.
  */
-export const mapSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const mapSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const result = []
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
@@ -86,14 +86,14 @@ export const mapSeries = async (array: unknown[], callback: Function, thisArg?: 
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the element that passed the test as value, otherwise *undefined*.
  */
-export const find = (array: unknown[], callback: Function, thisArg?: unknown) => {
-    return new Promise<unknown | undefined>((resolve, reject) => {
+export const find = <T>(array: T[], callback: Function, thisArg?: T) => {
+    return new Promise<T | undefined>((resolve, reject) => {
         if (array.length === 0) {
             return resolve(undefined)
         }
         let counter = 1
         for (let i = 0; i < array.length; i++) {
-            const check = (found: unknown) => {
+            const check = (found: T) => {
                 if (found) {
                     resolve(array[i])
                 } else if (counter === array.length) {
@@ -116,7 +116,7 @@ export const find = (array: unknown[], callback: Function, thisArg?: unknown) =>
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the element that passed the test as value, otherwise *undefined*.
  */
-export const findSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const findSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     for (let i = 0; i < array.length; i++) {
         if (await callback.call(thisArg || this, await array[i], i, array)) {
             return array[i]
@@ -134,14 +134,14 @@ export const findSeries = async (array: unknown[], callback: Function, thisArg?:
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the index that passed the test as value, otherwise *-1*.
  */
-export const findIndex = (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const findIndex = <T>(array: T[], callback: Function, thisArg?: T) => {
     return new Promise((resolve, reject) => {
         if (array.length === 0) {
             return resolve(-1)
         }
         let counter = 1
         for (let i = 0; i < array.length; i++) {
-            const check = (found: unknown) => {
+            const check = (found: T) => {
                 if (found) {
                     resolve(i)
                 } else if (counter === array.length) {
@@ -164,7 +164,7 @@ export const findIndex = (array: unknown[], callback: Function, thisArg?: unknow
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the index that passed the test, otherwise *-1*.
  */
-export const findIndexSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const findIndexSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     for (let i = 0; i < array.length; i++) {
         if (await callback.call(thisArg || this, await array[i], i, array)) {
             return i
@@ -182,7 +182,7 @@ export const findIndexSeries = async (array: unknown[], callback: Function, this
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with *true* as value if some element passed the test, otherwise *false*.
  */
-export const some = (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const some = <T>(array: T[], callback: Function, thisArg?: T) => {
     return new Promise((resolve, reject) => {
         if (array.length === 0) {
             return resolve(false)
@@ -193,7 +193,7 @@ export const some = (array: unknown[], callback: Function, thisArg?: unknown) =>
                 counter++
                 continue
             }
-            const check = (found: unknown) => {
+            const check = (found: T) => {
                 if (found) {
                     resolve(true)
                 } else if (counter === array.length) {
@@ -216,7 +216,7 @@ export const some = (array: unknown[], callback: Function, thisArg?: unknown) =>
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with *true* as value if some element passed the test, otherwise *false*.
  */
-export const someSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const someSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     for (let i = 0; i < array.length; i++) {
         if (i in array && await callback.call(thisArg || this, await array[i], i, array)) {
             return true
@@ -235,8 +235,8 @@ export const someSeries = async (array: unknown[], callback: Function, thisArg?:
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with *true* as value if all elements passed the test, otherwise *false*.
  */
-export const every = (array: unknown[], callback: Function, thisArg?: unknown) => {
-    return new Promise((resolve, reject) => {
+export const every = <T>(array: T[], callback: any, thisArg?: T) => {
+    return new Promise<boolean>((resolve, reject) => {
         if (array.length === 0) {
             return resolve(true)
         }
@@ -246,7 +246,7 @@ export const every = (array: unknown[], callback: Function, thisArg?: unknown) =
                 counter++
                 continue
             }
-            const check = (found: unknown) => {
+            const check = (found: T) => {
                 if (!found) {
                     resolve(false)
                 } else if (counter === array.length) {
@@ -269,7 +269,7 @@ export const every = (array: unknown[], callback: Function, thisArg?: unknown) =
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with *true* as value if all elements passed the test, otherwise *false*.
  */
-export const everySeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const everySeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     for (let i = 0; i < array.length; i++) {
         if (i in array && !await callback.call(thisArg || this, await array[i], i, array)) {
             return false
@@ -287,13 +287,13 @@ export const everySeries = async (array: unknown[], callback: Function, thisArg?
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with the resultant filtered *Array* as value.
  */
-export const filter = (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const filter = <T>(array: T[], callback: Function, thisArg?: T) => {
     /* two loops are necessary in order to do the filtering concurrently
      * while keeping the order of the elements
      * (if you find a better way to do it please send a PR!)
      */
     return new Promise((resolve, reject) => {
-        const promiseArray: Promise<unknown>[] = []
+        const promiseArray: Promise<T>[] = []
         for (let i = 0; i < array.length; i++) {
             if (i in array) {
                 promiseArray[i] = Promise.resolve(array[i]).then((currentValue) => {
@@ -319,7 +319,7 @@ export const filter = (array: unknown[], callback: Function, thisArg?: unknown) 
  * @param {Function} callback - Function to apply each item in `array`. Accepts three arguments: `currentValue`, `index` and `array`.
  * @return {Promise} - Returns a Promise with the resultant filtered *Array* as value.
  */
-export const filterSeries = async (array: unknown[], callback: Function, thisArg?: unknown) => {
+export const filterSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const result = []
     for (let i = 0; i < array.length; i++) {
         if (i in array && await callback.call(thisArg || this, await array[i], i, array)) {
@@ -337,7 +337,7 @@ export const filterSeries = async (array: unknown[], callback: Function, thisArg
  * @param {Object} [initialValue] - Used as first argument to the first call of `callback`.
  * @return {Promise} - Returns a Promise with the resultant value from the reduction.
  */
-export const reduce = async (array: unknown[], callback: Function, initialValue?: unknown) => {
+export const reduce = async <T>(array: T[], callback: Function, initialValue?: T) => {
     if (array.length === 0 && initialValue === undefined) {
         throw TypeError('Reduce of empty array with no initial value')
     }

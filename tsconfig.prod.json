@@ -1,8 +1,14 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-
   "compilerOptions": {
+    "module": "NodeNext",
+    "target": "es2022",
+    "moduleResolution": "node16",
+
     "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
     "outDir": "./build",
     "allowJs": true,
     "declaration": true,
@@ -11,10 +17,7 @@
     "removeComments": false,
     "strictFunctionTypes": false,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "moduleResolution": "Node16",
-    "module": "NodeNext",
-    "lib": ["dom", "es2021"],
+    "lib": ["es2023", "dom", "es2021"],
     "types": ["node", "mocha"]
   },
 
