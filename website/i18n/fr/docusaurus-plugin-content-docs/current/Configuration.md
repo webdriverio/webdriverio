@@ -293,7 +293,7 @@ Type: `Boolean`<br /> Default: `true`
 
 Choose the log output view.
 
-If set to `false` logs from different Test Specs will be printed in real-time. Please note that this may result in the mixing of log outputs from different Test Specs when running in parallel.
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
 
 If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
 
