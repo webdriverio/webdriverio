@@ -368,6 +368,18 @@ By default, it is set to `false` so logs are printed in real-time.
 Type: `Boolean`<br />
 Default: `false`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br /> Default: `false`
+
 ### services
 
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -567,7 +579,7 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Параметры:
+Parameters:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -621,7 +633,7 @@ Parameters:
 
 Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
 
-Параметры:
+Parameters:
 
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
@@ -632,7 +644,7 @@ Gets executed after all workers got shut down and the process is about to exit. 
 
 Выполняется, когда происходит обновление.
 
-Параметры:
+Parameters:
 
 - `oldSessionId` (`string`): session ID of the old session
 - `newSessionId` (`string`): session ID of the new session
