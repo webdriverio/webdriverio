@@ -686,7 +686,7 @@ const mochaHooksTestrunner = async () => {
 // *** Tests for CLI --spec ***
 // ****************************
 const runSpecsWithFlagAllPassed = async () => {
-    const { skippedSpecs } = await launch(
+    const { passed, skippedSpecs } = await launch(
         'runSpecsWithFlagAllPassed',
         path.resolve(allPassedConfig),
         {
@@ -694,16 +694,12 @@ const runSpecsWithFlagAllPassed = async () => {
             spec: ['test']
         }
     )
-    await sleep(100)
-    const wdioLogsFolderPath = path.resolve(path.dirname(allPassedConfig), 'logs-AllPassedSpec')
-    const files = (await fs.readdir(wdioLogsFolderPath))
-    const expectedFiles = files.filter((filename) => filename !== 'wdio.log')
-    assert.equal(expectedFiles.length, 4)
+    assert.strictEqual(passed, 4)
     assert.strictEqual(skippedSpecs, 0)
 }
 
 const runSpecsWithFlagSeveralPassed = async () => {
-    const { skippedSpecs } = await launch(
+    const { passed, skippedSpecs } = await launch(
         'runSpecsWithFlagSeveralPassed',
         path.resolve(severalPassedConfig),
         {
@@ -711,23 +707,25 @@ const runSpecsWithFlagSeveralPassed = async () => {
             spec: ['mocha']
         }
     )
+    assert.strictEqual(passed, 4)
     assert.strictEqual(skippedSpecs, 0)
 }
 
 const runSpecsWithFlagDirectPath = async () => {
-    const { skippedSpecs } = await launch(
+    const { passed, skippedSpecs } = await launch(
         'runSpecsWithFlagDirectPath',
         path.resolve(severalPassedConfig),
         {
             autoCompileOpts: { autoCompile: false },
-            spec: ['./tests-cli-spec-arg/mocha.test03.js']
+            spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
         }
     )
+    assert.strictEqual(passed, 1)
     assert.strictEqual(skippedSpecs, 0)
 }
 
 const runSpecsWithFlagNoArg = async () => {
-    const { skippedSpecs } = await launch(
+    const { passed, skippedSpecs } = await launch(
         'runSpecsWithFlagNoArg',
         path.resolve(noArgConfig),
         {
@@ -735,11 +733,7 @@ const runSpecsWithFlagNoArg = async () => {
             spec: []
         }
     )
-    await sleep(100)
-    const wdioLogsFolderPath = path.resolve(path.dirname(noArgConfig), 'logs-NoArg')
-    const files = await fs.readdir(wdioLogsFolderPath)
-    const expectedFiles = files.filter((filename) => filename !== 'wdio.log')
-    assert.equal(expectedFiles.length, 3)
+    assert.strictEqual(passed, 3)
     assert.strictEqual(skippedSpecs, 0)
 }
 // *** END - tests for CLI --spec ***
