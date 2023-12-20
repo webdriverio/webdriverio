@@ -9,7 +9,7 @@ export default function runnerTransformStream(cid: string, inputStream: Readable
         .pipe(ignore(DEBUGGER_MESSAGES))
         .pipe(map((line) => {
             const newLine = `[${cid}] ${line}`
-            aggregator ? aggregator.push(newLine) : 0
+            aggregator?.push(newLine)
             return newLine
         }))
 }
