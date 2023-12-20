@@ -382,4 +382,22 @@ describe('Mocha smoke test', () => {
             )
         })
     })
+
+    describe('supports async iteration', () => {
+        beforeEach(async () => {
+            // @ts-expect-error custom command
+            await browser.asyncIterationScenario()
+        })
+
+        it('by chaining commands', async () => {
+            expect(await $$('elem').map((el) => el.getText())).toEqual(
+                ['some element text', 'some other element text'])
+        })
+
+        it('by defining vars first', async () => {
+            const elements = await $$('elem')
+            expect(await elements.map((el) => el.getText())).toEqual(
+                ['some element text', 'some other element text'])
+        })
+    })
 })

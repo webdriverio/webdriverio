@@ -21,6 +21,44 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.26.3 (2023-12-19)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11835](https://github.com/webdriverio/webdriverio/pull/11835) fix for issue #11834 - fixing skip test for jasmine on beforeTest hook ([@HananArgov](https://github.com/HananArgov))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#11901](https://github.com/webdriverio/webdriverio/pull/11901) Missing alerts capability for BrowserStack ([@thv92](https://github.com/thv92))
+
+#### :house: Internal
+* [#11877](https://github.com/webdriverio/webdriverio/pull/11877) (webdriverio): pin Node to 18.18 ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 3
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Thien Vo ([@thv92](https://github.com/thv92))
+
+
+## v8.26.2 (2023-12-15)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11876](https://github.com/webdriverio/webdriverio/pull/11876) (@wdio/browser-runner): fix mocking of CJS modules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#11874](https://github.com/webdriverio/webdriverio/pull/11874) (webdriverio): support async iterators for WebdriverIO.ElementArray ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11854](https://github.com/webdriverio/webdriverio/pull/11854) Added missing UIAutomator2 Capabilities ([@Vaahin](https://github.com/Vaahin))
+  * [#11853](https://github.com/webdriverio/webdriverio/pull/11853) Missing browserstack network capabilities ([@Vaahin](https://github.com/Vaahin))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Thiru-Mohan ([@Vaahin](https://github.com/Vaahin))
+
+
 
 ## v8.26.0 (2023-12-10)
 
