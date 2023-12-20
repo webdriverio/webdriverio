@@ -289,6 +289,18 @@ Whether or not retried spec files should be retried immediately or deferred to t
 
 Type: `Boolean`<br /> Default: `true`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br /> Default: `false`
+
 ### services
 
 Los servicios se hacen cargo de un trabajo específico que no desea cuidar. Mejoran su configuración de prueba sin casi ningún esfuerzo.
@@ -435,8 +447,8 @@ Se ejecuta antes de comenzar la ejecución de la prueba. En este punto puede acc
 
 Parámetros:
 
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 - `browser` (`object`): instancia de la sesión de navegador/dispositivo creada
 
 ### beforeSuite
@@ -488,7 +500,7 @@ Parámetros:
 
 Ejecuta después de que un comando WebdriverIO sea ejecutado.
 
-Parámetros:
+Parameters:
 
 - `commandName` (`string`): nombre de comando
 - `args` (`*`): argumentos que recibiría el comando
@@ -532,7 +544,7 @@ Parámetros:
 
 Se ejecuta justo después de terminar la sesión del controlador web.
 
-Parámetros:
+Parameters:
 
 - `config` (`objeto`): objeto de configuración WebdriverIO
 - `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
@@ -542,7 +554,7 @@ Parámetros:
 
 Se ejecutó después de que todos los trabajadores se cerraron y el proceso está a punto de salir. Un error arrojado en el gancho onComplete resultará en que la prueba falle.
 
-Parámetros:
+Parameters:
 
 - `exitCode` (`número`): 0 - éxito, 1 - error
 - `config` (`objeto`): objeto de configuración WebdriverIO
