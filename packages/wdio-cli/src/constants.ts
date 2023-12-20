@@ -903,7 +903,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         default: true
     },
     /**
-     * whether or not print the log output grouped by Test Spec
+     * whether or not print the log output grouped by test files
      */
     groupLogsByTestSpec: {
         type: 'boolean',
