@@ -903,6 +903,13 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         default: true
     },
     /**
+     * whether or not print the log output grouped by test files
+     */
+    groupLogsByTestSpec: {
+        type: 'boolean',
+        default: false
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
@@ -951,4 +958,9 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     onReload: HOOK_DEFINITION,
     beforeAssertion: HOOK_DEFINITION,
     afterAssertion: HOOK_DEFINITION
+}
+
+export const WORKER_GROUPLOGS_MESSAGES = {
+    normalExit: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] *****`,
+    exitWithError: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] that preceded the error above *****`
 }
