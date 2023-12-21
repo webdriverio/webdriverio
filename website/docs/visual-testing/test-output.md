@@ -168,11 +168,12 @@ values={[
 await browser.checkElement("#element-id", "example-element-tag");
 ```
 
+
 :::info
-The button text has been changed from `Button` to `Buttons` and detected as a change.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-<img src={useBaseUrl('img/test-output/firstButtonElement-fail-chrome-latest-1366x768.png')} alt="checkElement Desktop"/>
+![Button Check Result](./img/test-output/button-check.png)
 </TabItem>
 
 <TabItem value="checkscreen">
@@ -182,10 +183,10 @@ await browser.checkScreen("example-page-tag");
 ```
 
 :::info
-The button text has been changed from `Button` to `Buttons` and detected as a change.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-<img src={useBaseUrl('img/test-output/examplePage-fail-chrome-latest-1366x768.png')} alt="checkScreen Desktop"/>
+![Button Check Result](./img/test-output/screen-check.png)
 
 </TabItem>
 
@@ -195,11 +196,12 @@ The button text has been changed from `Button` to `Buttons` and detected as a ch
 await browser.checkFullPageScreen("full-page-tag");
 ```
 
+
 :::info
-The button text has been changed from `Button` to `Buttons` and detected as a change.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-<img src={useBaseUrl('img/test-output/fullPage-fail-chrome-latest-1366x768.png')} alt="checkFullPageScreen Desktop"/>
+![Button Check Result](./img/test-output/fullpage-check.png)
 
 </TabItem>
 
@@ -213,7 +215,7 @@ Not all block-out options are shown here, but below you will find an output for 
 
 ### Android nativeWebScreenshot
 
-![Blockouts Android](./img/test-output/fullPage-chrome-latest-1366x768.png)
+![Blockouts Android](./img/test-output/android.blockouts.png)
 
 ### iOS
 
