@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.27.0 (2023-12-20)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-local-runner`, `wdio-types`
+  * [#11871](https://github.com/webdriverio/webdriverio/pull/11871) Fix for #10853 - Show test logs in terminal grouped by Worker Instance ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#11771](https://github.com/webdriverio/webdriverio/pull/11771) Fix filtering test specs by part of their name using CLI --spec arg ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#11910](https://github.com/webdriverio/webdriverio/pull/11910) fix(webdriver): respect strictSSL setting for bidi connections ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+- [@tech-dm-klymenko](https://github.com/tech-dm-klymenko)
+
+
 ## v8.26.3 (2023-12-19)
 
 #### :bug: Bug Fix
