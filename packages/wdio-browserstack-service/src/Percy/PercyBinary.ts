@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 
 const fs = require('node:fs')
+import fsp from 'node:fs/promises'
 const { https } = require('follow-redirects')
 
 import path from 'node:path'
@@ -35,7 +36,7 @@ class PercyBinary {
         }
     }
 
-    #homedir(): any {
+    #homedir(): string {
         if (typeof os.homedir === 'function') {
             return os.homedir()
         }
@@ -45,29 +46,25 @@ class PercyBinary {
         const user = env.LOGNAME || env.USER || env.LNAME || env.USERNAME
 
         if (process.platform === 'win32') {
-            return env.USERPROFILE || (env.HOMEDRIVE || 'null') + env.HOMEPATH || home || null
+            return ( env.USERPROFILE || (env.HOMEDRIVE || 'null') + env.HOMEPATH || home || null ) as string
         }
 
         if (process.platform === 'darwin') {
-            return home || (user ? '/Users/' + user : null)
+            return ( home || (user ? '/Users/' + user : null) ) as string
         }
 
         if (process.platform === 'linux') {
-            return home || (process.getuid && process.getuid() === 0 ? '/root' : (user ? '/home/' + user : null))
+            return ( home || (process.getuid && process.getuid() === 0 ? '/root' : (user ? '/home/' + user : null)) ) as string
         }
 
-        return home || null
+        return (home || null) as string
     }
 
     #makePath(path: string) {
-        try {
-            if (!this.#checkPath(path)) {
-                fs.mkdirSync(path)
-            }
+        if (this.#checkPath(path)) {
             return true
-        } catch {
-            return false
         }
+        return fsp.mkdir(path).then(() => true).catch(() => false)
     }
 
     #checkPath(path: string, mode?: any) {
@@ -90,10 +87,10 @@ class PercyBinary {
         }
     }
 
-    #getAvailableDirs() {
+    async #getAvailableDirs() {
         for (let i = 0; i < this.#orderedPaths.length; i++) {
             const path = this.#orderedPaths[i]
-            if (this.#makePath(path)) {
+            if (await this.#makePath(path)) {
                 return path
             }
         }
@@ -101,7 +98,7 @@ class PercyBinary {
     }
 
     async getBinaryPath(conf: any): Promise<string> {
-        const destParentDir = this.#getAvailableDirs()
+        const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
         if (this.#checkPath(binaryPath, fs.X_OK)) {
             return binaryPath

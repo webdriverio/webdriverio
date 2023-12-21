@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const { spawn } = require('node:child_process')
 
-import { nodeRequest, getBrowserStackUser, getBrowserStackKey } from '../util.js'
+import { nodeRequest, getBrowserStackUser, getBrowserStackKey, sleep } from '../util.js'
 import { PercyLogger } from './PercyLogger.js'
 
 import PercyBinary from './PercyBinary.js'
@@ -44,10 +44,6 @@ class Percy {
             this.#binaryPath = await pb.getBinaryPath(this.#config)
         }
         return this.#binaryPath
-    }
-
-    async #sleep(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms))
     }
 
     async healthcheck() {
@@ -100,7 +96,7 @@ class Percy {
                 return true
             }
 
-            await this.#sleep(1000)
+            await sleep(1000)
         } while (this.isProcessRunning)
 
         return false

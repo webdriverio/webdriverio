@@ -2,7 +2,8 @@ import type { Capabilities } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import {
-    o11yClassErrorHandler
+    o11yClassErrorHandler,
+    sleep
 } from '../util.js'
 import PercyCaptureMap from './PercyCaptureMap.js'
 
@@ -77,55 +78,60 @@ class _PercyHandler {
     }
 
     isDOMChangingCommand(args: BeforeCommandArgs): boolean {
-        if ((args.method as string) === 'POST') {
-            if (PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS.includes((args.endpoint as string))) {
-                return true
-            } else if ((args.endpoint as string).includes('/session/:sessionId/element') && (args.endpoint as string).includes('click')) {
-                /* click element */
-                return true
-            } else if ((args.endpoint as string).includes('/session/:sessionId/element') && (args.endpoint as string).includes('clear')) {
-                /* clear element */
-                return true
-            } else if ((args.endpoint as string).includes('/session/:sessionId/execute') && args.body?.script) {
-                /* execute script sync / async */
-                return true
-            } else if ((args.endpoint as string).includes('/session/:sessionId/touch')) {
-                /* Touch action for Appium */
-                return true
-            }
-        } else if ((args.method as string) === 'DELETE' && (args.endpoint as string) === '/session/:sessionId') {
-            return true
-        }
-        return false
+        /*
+          Percy screenshots which are to be taken on events such as send keys, element click & screenshot are deferred until
+          another DOM changing command is seen such that any DOM processing post the previous command is completed
+        */
+        return (
+            typeof args.method === 'string' && typeof args.endpoint === 'string' &&
+            (
+                (
+                    args.method === 'POST' &&
+                    (
+                        PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS.includes(args.endpoint) ||
+                        (
+                            /* click / clear element */
+                            args.endpoint.includes('/session/:sessionId/element') &&
+                            (
+                                args.endpoint.includes('click') ||
+                                args.endpoint.includes('clear')
+                            )
+                        ) ||
+                        /* execute script sync / async */
+                        (args.endpoint.includes('/session/:sessionId/execute') && args.body?.script) ||
+                        /* Touch action for Appium */
+                        (args.endpoint.includes('/session/:sessionId/touch'))
+                    )
+                ) ||
+                ( args.method === 'DELETE' && args.endpoint === '/session/:sessionId' )
+            )
+        )
     }
 
     async cleanupDeferredScreenshots() {
         this.isPercyCleanupProcessingUnderway = true
-        for await (const entry of this.percyDeferredScreenshots) {
+        for (const entry of this.percyDeferredScreenshots) {
             await this.percyAutoCapture(entry.eventName, entry.sessionName)
         }
         this.percyDeferredScreenshots = []
         this.isPercyCleanupProcessingUnderway = false
     }
 
-    async #sleep(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms))
-    }
-
     async browserBeforeCommand (args: BeforeCommandArgs) {
         try {
-            if (this.isDOMChangingCommand(args)) {
-                do {
-                    await this.#sleep(1000)
-                } while (this.percyScreenshotInterval)
-                this.percyScreenshotInterval = setInterval(async () => {
-                    if (!this.isPercyCleanupProcessingUnderway) {
-                        clearInterval(this.percyScreenshotInterval)
-                        await this.cleanupDeferredScreenshots()
-                        this.percyScreenshotInterval = null
-                    }
-                }, 1000)
+            if (!this.isDOMChangingCommand(args)) {
+                return
             }
+            do {
+                await sleep(1000)
+            } while (this.percyScreenshotInterval)
+            this.percyScreenshotInterval = setInterval(async () => {
+                if (!this.isPercyCleanupProcessingUnderway) {
+                    clearInterval(this.percyScreenshotInterval)
+                    await this.cleanupDeferredScreenshots()
+                    this.percyScreenshotInterval = null
+                }
+            }, 1000)
         } catch (err: any) {
             PercyLogger.error(`Error while trying to cleanup deferred screenshots ${err}`)
         }
@@ -133,22 +139,24 @@ class _PercyHandler {
 
     async browserAfterCommand (args: BeforeCommandArgs & AfterCommandArgs) {
         try {
-            if (args.endpoint && this._percyAutoCaptureMode) {
-                let eventName = null
-                if ((args.endpoint as string).includes('click') && ['click', 'auto'].includes(this._percyAutoCaptureMode as string)) {
-                    eventName = 'click'
-                } else if ((args.endpoint as string).includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
-                    eventName = 'screenshot'
-                } else if ((args.endpoint as string).includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
-                    if (args.body && args.body.actions && Array.isArray(args.body.actions) && args.body.actions.length && args.body.actions[0].type === 'key') {
-                        eventName = 'keys'
-                    }
-                } else if ((args.endpoint as string).includes('/session/:sessionId/element') && (args.endpoint as string).includes('value') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
+            if (!args.endpoint || !this._percyAutoCaptureMode) {
+                return
+            }
+            let eventName = null
+            const endpoint = args.endpoint as string
+            if (endpoint.includes('click') && ['click', 'auto'].includes(this._percyAutoCaptureMode as string)) {
+                eventName = 'click'
+            } else if (endpoint.includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
+                eventName = 'screenshot'
+            } else if (endpoint.includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
+                if (args.body && args.body.actions && Array.isArray(args.body.actions) && args.body.actions.length && args.body.actions[0].type === 'key') {
                     eventName = 'keys'
                 }
-                if (eventName) {
-                    this.deferCapture(this.sessionName as string, eventName)
-                }
+            } else if (endpoint.includes('/session/:sessionId/element') && endpoint.includes('value') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
+                eventName = 'keys'
+            }
+            if (eventName) {
+                this.deferCapture(this.sessionName as string, eventName)
             }
         } catch (err: any) {
             PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
