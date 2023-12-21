@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.34.0 (2023-12-21)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#11527](https://github.com/webdriverio/webdriverio/pull/11527) [v7] Support: Setting session status and name when using BrowserStack Automate TurboScale ([@nagpalkaran95](https://github.com/nagpalkaran95))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11528](https://github.com/webdriverio/webdriverio/pull/11528) [v7][browserstack-service]: Add more CIs ([@samarsault](https://github.com/samarsault))
+
+#### Committers: 3
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v7.33.0 (2023-10-06)
 
 #### :rocket: New Feature
