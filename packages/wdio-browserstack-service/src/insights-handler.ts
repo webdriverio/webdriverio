@@ -388,6 +388,7 @@ class _InsightsHandler {
     }
 
     async teardown () {
+        this._requestQueueHandler.tearDownInvoked = true
         await this._requestQueueHandler.shutdown()
     }
 
