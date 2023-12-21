@@ -49,13 +49,13 @@ values={[
 ]
 }>
 <TabItem value="desktop">
-<img src={useBaseUrl('img/test-output/firstButtonElement-chrome-latest-1366x768.png')} alt="saveElement Desktop"/>
+![saveElement Desktop](./img/test-output/wdioLogo-chrome-latest-1-1366x768.png)
 </TabItem>
 <TabItem value="android">
-<img src={useBaseUrl('img/test-output/firstButtonElement-GooglePixelGoogleAPIEmulator8.1ChromeDriver-360x640.png')} alt="saveElement Mobile Android"/>
+![saveElement Mobile Android](./img/test-output/wdioLogo-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
-<img src={useBaseUrl('img/test-output/firstButtonElement-iPhoneXSimulator-375x812.png')} alt="saveElement Mobile iOS"/>
+![saveElement Mobile iOS](./img/test-output/wdioLogo-Iphone12Portrait16-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -76,16 +76,21 @@ values={[
 ]
 }>
 <TabItem value="desktop">
-<img src={useBaseUrl('img/test-output/examplePage-chrome-latest-1366x768.png')} alt="saveScreen Desktop"/>
+![saveScreen Desktop](./img/test-output/examplePage-chrome-latest-1366x768.png)
 </TabItem>
 <TabItem value="android-chromedriver">
-<img src={useBaseUrl('img/test-output/examplePage-GooglePixelGoogleAPIEmulator8.1ChromeDriver-360x640.png')} alt="saveScreen Mobile Android ChromeDriver"/>
+![saveScreen Mobile Android ChromeDriver](./img/test-output/screenshot-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
 </TabItem>
 <TabItem value="android-native">
-<img src={useBaseUrl('img/test-output/examplePage-GooglePixelGoogleAPIEmulator8.1NativeWebScreenshot-360x640.png')} alt="saveScreen Mobile Android nativeWebScreenshot"/>
+![saveScreen Mobile Android nativeWebScreenshot](./img/test-output/screenshot-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
-<img src={useBaseUrl('img/test-output/examplePage-GooglePixelGoogleAPIEmulator8.1NativeWebScreenshot-360x640.png')} alt="saveScreen Mobile iOS"/>
+
+:::info TIP
+iOS `saveScreen` executions are by default not with the device bezel corners. To have this please add the `addIOSBezelCorners:true` option when instantiating the service, see [this](./service-options#addiosbezelcorners)
+:::
+
+![saveScreen Mobile iOS](./img/test-output/screenshot-Iphone12Portrait15-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -105,13 +110,13 @@ values={[
 ]
 }>
 <TabItem value="desktop">
-<img src={useBaseUrl('img/test-output/fullPage-chrome-latest-1366x768.png')} alt="saveFullPageScreens Desktop"/>
+![saveFullPageScreens Desktop](./img/test-output/fullPage-chrome-latest-1366x768.png)
 </TabItem>
 <TabItem value="android">
-<img src={useBaseUrl('img/test-output/fullPage-GooglePixelGoogleAPIEmulator8.1NativeWebScreenshot-360x640.png')} alt="saveFullPageScreens Mobile Android"/>
+![saveFullPageScreens Mobile Android](./img/test-output/fullPage-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
-<img src={useBaseUrl('img/test-output/fullPage-iPhoneXSimulator-375x812.png')} alt="saveFullPageScreens Mobile iOS"/>
+![saveFullPageScreens Mobile iOS](./img/test-output/fullPage-Iphone12Portrait16-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -208,8 +213,8 @@ Not all block-out options are shown here, but below you will find an output for 
 
 ### Android nativeWebScreenshot
 
-<img src={useBaseUrl('img/test-output/examplePage-blockout-GooglePixelGoogleAPIEmulator8.1NativeWebScreenshot-360x640.png')} alt="checkFullPageScreen Desktop"/>
+![Blockouts Android](./img/test-output/fullPage-chrome-latest-1366x768.png)
 
 ### iOS
 
-<img src={useBaseUrl('img/test-output/examplePage-blockout-iPhoneXSimulator-375x812.png')} alt="checkFullPageScreen Desktop"/>
+![Blockouts iOS](./img/test-output/ios.blockouts.png)
