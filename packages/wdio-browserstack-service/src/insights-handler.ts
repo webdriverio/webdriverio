@@ -33,6 +33,7 @@ import type {
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
 import { BStackLogger } from './bstackLogger.js'
+import type { Capabilities } from '@wdio/types'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -49,8 +50,9 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
+    private _userCaps: Capabilities.RemoteCapability = {}
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         this._requestQueueHandler.start()
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
@@ -63,6 +65,8 @@ class _InsightsHandler {
             sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+
+        this._userCaps = _userCaps
 
         this.registerListeners()
     }
@@ -866,8 +870,24 @@ class _InsightsHandler {
             browser: this._platformMeta?.browserName,
             browser_version: this._platformMeta?.browserVersion,
             platform: this._platformMeta?.platformName,
-            product: this._platformMeta?.product
+            product: this._platformMeta?.product,
+            platform_version: this.getPlatformVersion()
         }
+    }
+
+    private getPlatformVersion() {
+        const caps = (this._userCaps as WebdriverIO.Capabilities)
+        const bstackOptions = (this._userCaps as WebdriverIO.Capabilities)?.['bstack:options']
+        const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
+
+        for (const key of keys) {
+            if ( bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+                return bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]
+            } else if ((caps as WebdriverIO.Capabilities)[key as keyof WebdriverIO.Capabilities]) {
+                return (caps as WebdriverIO.Capabilities)[key as keyof WebdriverIO.Capabilities]
+            }
+        }
+        return null
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
