@@ -2,7 +2,9 @@ import type { JsonPrimitive, JsonCompatible, JsonArray } from '@wdio/types'
 
 import SharedStoreLauncher from './launcher.js'
 import SharedStoreService from './service.js'
-import type { GetValueOptions } from './types.js'
+import type { GetValueOptions, SharedStoreOptions } from './types.js'
+
+export * as SharedStoreServer from './server.js'
 
 export { getValue, setValue, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 export default SharedStoreService
@@ -22,5 +24,6 @@ declare global {
     namespace WebdriverIO {
         interface Browser extends BrowserExtension { }
         interface MultiRemoteBrowser extends BrowserExtension { }
+        interface ServiceOption extends SharedStoreOptions {}
     }
 }

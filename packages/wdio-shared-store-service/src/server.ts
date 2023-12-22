@@ -25,7 +25,7 @@ const validateBody: NextFn = (req, res, next) => {
 const MAX_TIMEOUT = 15000
 const DEFAULT_TIMEOUT = 1000
 
-export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
+export const startServer = (port: number = 0, attach: boolean = false) => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
     const app = polka()
         /**
          * middleware
@@ -105,6 +105,23 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             pool.push(value)
             return res.end()
         })
+        .post('/action/close', async (_req, res, next) => {
+            if (app.server.close){
+                app.server.close((err?: Error | undefined) => {
+                    return err ? next(err) : res.end(JSON.stringify({ value: true }))
+                })
+            } else {
+                return next('Cannot close server.')
+            }
+        })
+
+    // If user wants to attach intance to an already started server
+    // Useful when user is sharding tests
+    // N CI runners can connect to a single shared store server
+    // Return a server instance aimed at provided port
+    if (attach && port) {
+        return resolve({ app, port })
+    }
 
     /**
      * run server on a random port, `0` stands for random port
@@ -112,7 +129,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
      * > an arbitrary unused port, which can be retrieved by using `server.address().port`
      * https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback
      */
-    app.listen(0, (err: Error) => {
+    app.listen(port, (err: Error) => {
         /* istanbul ignore next */
         if (err) {
             return reject(err)

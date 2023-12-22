@@ -88,6 +88,15 @@ export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCom
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 
+export const close = async () => {
+    if (!isBaseUrlReady) {
+        throw new Error('Attempting to close server before the it has been initialized.')
+    }
+    const baseUrl = await baseUrlPromise
+    const res = await got.post(`${baseUrl}/action/close`, { json: { }, responseType: 'json' }).catch(errHandler)
+    return res?.body ? (res.body as JsonObject).value : undefined
+}
+
 const errHandler = (err: RequestError) => {
     throw new Error(`${err.response?.body || 'Shared store server threw an error'}`)
 }

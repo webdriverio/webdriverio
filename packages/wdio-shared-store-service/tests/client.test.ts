@@ -1,34 +1,45 @@
 import path from 'node:path'
 import type { SpyInstance } from 'vitest'
-import { describe, expect, it, vi, beforeAll, afterEach } from 'vitest'
+import { describe, expect, it, vi, beforeAll, beforeEach } from 'vitest'
+import type { CancelableRequest, OptionsOfJSONResponseBody } from 'got'
 import got from 'got'
-import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from '../src/client.js'
+import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool, close } from '../src/client.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('got', () => {
-    const handler = (url, options) => new Promise((resolve, reject) => {
-        const key = url.split('/').pop() || options?.json.key as string
 
-        if (key === 'fail') {
-            return reject({
-                message: 'Response code 404 (Not Found)',
-                response: {
-                    body: 'Mock error'
-                }
-            })
-        }
-        if (key === 'not-present') {
-            return resolve({})
-        }
-        return resolve({ body: { value: 'store value' } })
-    })
+vi.mock('got', async () => {
+
+    const origGot: typeof got = (await vi.importActual('got'))
+
     return {
         default: {
-            post: vi.fn().mockImplementation(handler),
-            get: vi.fn().mockImplementation(handler)
+            ...origGot,
+            post: vi.fn(origGot.post),
+            get: vi.fn(origGot.get),
         }
     }
 })
+
+const handler = async (url?: string, options?: OptionsOfJSONResponseBody & { json: { key: string } }): Promise<CancelableRequest> => {
+
+    const key = url?.split('/').pop() || options?.json?.key as string
+
+    if (key === 'fail') {
+
+        return Promise.reject({
+            message: 'Response code 404 (Not Found)',
+            response: {
+                body: 'Mock error'
+            }
+        })
+    }
+
+    return Promise.resolve(
+        key === 'not-present'
+            ? {}
+            : { body: { value: 'store value' } }
+    )
+}
 
 const port = 3000
 const baseUrl = `http://localhost:${port}`
@@ -36,8 +47,9 @@ const mockedGet = got.get as unknown as SpyInstance
 const mockedPost = got.post as unknown as SpyInstance
 
 describe('client', () => {
-    afterEach(() => {
-        vi.mocked(got.post).mockClear()
+    beforeEach(() => {
+        vi.mocked(got.get).mockImplementation(handler)
+        vi.mocked(got.post).mockImplementation(handler)
     })
 
     describe('when used in launcher process', () => {
@@ -65,6 +77,11 @@ describe('client', () => {
     describe('when used in worker process', () => {
         beforeAll(() => {
             setPort(port)
+        })
+
+        it('should call /action/close and close the server', async () => {
+            await close()
+            expect(got.post).toBeCalledWith(`${baseUrl}/action/close`, { json: {}, responseType: 'json' })
         })
 
         it('should set value', async () => {

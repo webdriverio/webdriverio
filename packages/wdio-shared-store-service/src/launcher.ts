@@ -3,7 +3,7 @@ import type { Capabilities, Services } from '@wdio/types'
 
 import { setPort } from './client.js'
 import { CUSTOM_CAP } from './constants.js'
-import type { SharedStoreServiceCapabilities } from './types.js'
+import type { SharedStoreServiceCapabilities, SharedStoreOptions } from './types.js'
 
 const log = logger('@wdio/shared-store-service')
 
@@ -11,15 +11,23 @@ let server: SharedStoreServer
 
 export default class SharedStoreLauncher implements Services.HookFunctions {
     private _app?: PolkaInstance
+    private _options?: SharedStoreOptions
+
+    constructor(options?: SharedStoreOptions){
+        this._options = options ?? {}
+    }
 
     async onPrepare (_: never, capabilities: Capabilities.RemoteCapabilities) {
         /**
          * import during runtime to avoid unnecessary dependency loading
          */
         server = (await import('./server.js')) as SharedStoreServer
-        const { port, app } = await server.startServer()
-        this._app = app
+
+        const { port, app } = await server.startServer(this._options?.port, this._options?.attach)
+
         setPort(port)
+
+        this._app = app
 
         const capsList = Array.isArray(capabilities)
             ? capabilities
@@ -38,12 +46,13 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
             return w3cCaps.alwaysMatch || c as WebdriverIO.Capabilities
         })
         caps.forEach((c) => { c[CUSTOM_CAP] = port })
+
         log.info(`Started shared server on port ${port}`)
     }
 
     async onComplete () {
         return new Promise<void>((resolve) => {
-            if (this._app && this._app.server.close) {
+            if (this._app?.server?.close) {
                 this._app.server.close(() => resolve())
             }
             return resolve()

@@ -12,6 +12,7 @@ vi.mock('../src/client', () => ({
     getValueFromPool: vi.fn(),
     addValueToPool: vi.fn(),
     setPort: vi.fn(),
+    close: vi.fn(),
 }))
 
 describe('SharedStoreService', () => {
@@ -38,6 +39,14 @@ describe('SharedStoreService', () => {
                 browserB: { capabilities }
             })
             expect(setPort).toBeCalledWith(65209)
+        })
+
+        it('using service options', async () => {
+            new SharedStoreService({ port: 3000 }, {
+                browserA: { capabilities },
+                browserB: { capabilities }
+            })
+            expect(setPort).toBeCalledWith(3000)
         })
     })
 
