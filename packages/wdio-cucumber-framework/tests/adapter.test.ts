@@ -610,19 +610,30 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
-    it('wrapSteps', async () => {
+    it("wrapSteps should not call wrapStep if step doesn't has wrapperOptions", async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.wrapStep  = vi.fn()
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
         vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](vi.fn())
+        expect(adapter.wrapStep).not.toBeCalled()
+    })
+
+    it('wrapSteps should call wrapStep if step has wrapperOptions', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const wrapperOptions = { retry: 1 }
+        adapter.wrapStep  = vi.fn()
+        expect(adapter.wrapStep).toBeCalledTimes(0)
+        adapter.wrapSteps()
+        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](vi.fn(), wrapperOptions)
         expect(adapter.wrapStep).toBeCalledWith(
             expect.any(Function),
             true,
             undefined,
             '0-0',
-            { retry: 0 },
+            { retry: 1 },
             expect.any(Function),
             DEFAULT_TIMEOUT
         )
