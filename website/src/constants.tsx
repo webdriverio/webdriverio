@@ -208,7 +208,7 @@ expect(pwaCheckResult.passed).toBe(true)
 `
 
 export const SetupExample = `
-$ npm init wdio@latest ./
+$ npx create-wdio ./
 `
 
 export const ComponentTestingExample = `

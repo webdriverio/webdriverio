@@ -34,13 +34,13 @@ You can find more videos around WebdriverIO on the [official YouTube channel](ht
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npx create-wdio .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npx create-wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -89,7 +89,7 @@ pnpm create wdio ./path/to/new/project
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npx create-wdio . -- --yes
 ```
 
 </TabItem>

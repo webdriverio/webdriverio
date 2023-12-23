@@ -35,13 +35,13 @@ Si se encuentra en el directorio raíz de un proyecto existente, ejecute:
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npx create-wdio .
 ```
 
 o si desea crear un nuevo proyecto:
 
 ```sh
-npm init wdio ./path/to/new/project
+npx create-wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -54,7 +54,7 @@ yarn create wdio .
 o si desea crear un nuevo proyecto:
 
 ```sh
-npm init wdio ./path/to/new/project
+npx create-wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -85,7 +85,7 @@ El asistente le preguntará a una serie de preguntas que le guiarán a través d
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npx create-wdio . -- --yes
 ```
 
 </TabItem>

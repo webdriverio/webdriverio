@@ -34,15 +34,15 @@ Wenn Sie sich im Root-Verzeichnis eines vorhandenen Projekts befinden, führen S
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npx create-wdio .
 ```sh
-npm init wdio .
+npx create-wdio .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npx create-wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -95,7 +95,7 @@ Der Assistent wird eine Reihe von Fragen stellen, die Sie durch das Setup führt
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npx create-wdio . -- --yes
 ```
 
 </TabItem>
