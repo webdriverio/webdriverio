@@ -51,7 +51,7 @@ npx create-wdio ./path/to/new/project
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio .
+yarn create wdio
 ```
 
 or if you want to create a new project:
@@ -64,26 +64,26 @@ yarn create wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio@latest .
+pnpm dlx create-wdio
 ```
 
 or if you want to create a new project:
 
 ```sh
-pnpm create wdio@latest ./path/to/new/project
+pnpm dlx create-wdio ./path/to/new/project
 ```
 
 </TabItem>
 <TabItem value="bun">
 
 ```sh
-bun create wdio@latest .
+bun create wdio .
 ```
 
 or if you want to create a new project:
 
 ```sh
-bun create wdio@latest ./path/to/new/project
+bun create wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -107,28 +107,28 @@ The wizard will prompt a set questions that guides you through the setup. You ca
 <TabItem value="npm">
 
 ```sh
-npx create-wdio --yes
+npx create-wdio -y
 ```
 
 </TabItem>
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio . --yes
+yarn create wdio -y
 ```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio@latest . --yes
+pnpm dlx create-wdio -y
 ```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-bun create wdio@latest . --yes
+bun create wdio -y
 ```
 
 </TabItem>

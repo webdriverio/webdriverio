@@ -23,7 +23,7 @@ Um WebdriverIO für Unit- oder Komponententests im Browser einzurichten, initiie
 ```bash
 npx create-wdio
 # or
-yarn create wdio ./
+yarn create wdio
 ```
 
 Wählen Sie nach dem Start des Konfigurationsassistenten `browser` zum Ausführen von Unit- und Komponententests und wählen Sie bei Bedarf eine der Voreinstellungen, ansonsten gehen Sie zu _„Andere“_, wenn Sie nur grundlegende Komponententests ausführen möchten. Sie können auch eine benutzerdefinierte Vite-Konfiguration setzen, wenn Sie Vite bereits in Ihrem Projekt verwenden. Weitere Informationen finden Sie in allen [Runner-Optionen](/docs/runner#runner-options).

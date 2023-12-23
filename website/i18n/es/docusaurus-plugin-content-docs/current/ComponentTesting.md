@@ -23,7 +23,7 @@ Para configurar WebdriverIO para pruebas unitarias o de componentes en el navega
 ```bash
 npx create-wdio
 # or
-yarn create wdio ./
+yarn create wdio
 ```
 
 Una vez que el asistente de configuración inicia, elija `navegador` para ejecutar pruebas unitarias y componentes y elija uno de los preajustes si lo desea ir con _"Otro"_ si sólo quiere ejecutar pruebas unitarias básicas. También puede configurar un Vite personalizado si utiliza Vite ya en su proyecto. Para más información, revise todas las [opciones de runners](/docs/runner#runner-options).

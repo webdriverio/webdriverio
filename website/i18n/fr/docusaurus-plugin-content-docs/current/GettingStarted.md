@@ -47,17 +47,17 @@ npx create-wdio ./path/to/new/project
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio .
+yarn create wdio
 ```sh
-yarn create wdio .
+yarn create wdio
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+dlx create-wdio
 ```sh
-pnpm create wdio .
+dlx create-wdio
 
 </TabItem>
 </Tabs>
@@ -79,21 +79,21 @@ L'assistant vous demandera une série de questions qui vous guideront à travers
 <TabItem value="npm">
 
 ```sh
-npx create-wdio --yes
+npx create-wdio -y
 ```
 
 </TabItem>
 <TabItem value="yarn">
 
 ```sh
-yarn create wdio . --yes
+yarn create wdio -y
 ```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm dlx create-wdio . -y
 ```
 
 </TabItem>

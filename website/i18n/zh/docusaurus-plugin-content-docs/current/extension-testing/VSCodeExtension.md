@@ -17,7 +17,7 @@ WebdriverIO allows you to seamlessly test your [VS Code](https://code.visualstud
 To initiate a new WebdriverIO project, run:
 
 ```sh
-npm create wdio@latest ./
+npm create create-wdio
 ```
 
 An installation wizard will guide you through the process. Ensure you select _"VS Code Extension Testing"_ when it asks you what type of testing you'ld like to do, afterwards just keep the defaults or modify based on your preference.

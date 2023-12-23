@@ -10,7 +10,7 @@ WebdriverIO can automate arbitrary MacOS application using [Appium](https://appi
 To initiate a new WebdriverIO project, run:
 
 ```sh
-npm create wdio@latest ./
+npm create create-wdio
 ```
 
 An installation wizard will guide you through the process. Ensure you select _"Desktop Testing - of MacOS Applications"_ when it asks you what type of testing you'ld like to do. Afterwards just keep the defaults or modify based on your preference.

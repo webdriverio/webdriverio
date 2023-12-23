@@ -23,7 +23,7 @@ To set-up WebdriverIO for unit or component testing in the browser, initiate a n
 ```bash
 npx create-wdio
 # or
-yarn create wdio ./
+yarn create wdio
 ```
 
 Once the configuration wizard starts, pick `browser` for running unit and component testing and choose one of the presets if desired otherwise go with _"Other"_ if you only want to run basic unit tests. You can also configure a custom Vite configuration if you use Vite already in your project. For more information check out all [runner options](/docs/runner#runner-options).

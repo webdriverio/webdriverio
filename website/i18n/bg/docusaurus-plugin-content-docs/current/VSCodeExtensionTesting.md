@@ -17,7 +17,7 @@ WebdriverIO allows you to seamlessly test your [VS Code](https://code.visualstud
 To initiate a new WebdriverIO project, run:
 
 ```sh
-npm create wdio@latest ./
+npm create create-wdio
 ```
 
 An installation wizard will guide you through the process. Ensure you select TypeScript as compiler and don't have it generate page objects for you given this project comes with all page objects needed. Then make sure to select `chromedriver` and `vscode` within the list of services, e.g.:

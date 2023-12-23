@@ -26,7 +26,7 @@ Or follow the guide in the following section.
 To initiate a new WebdriverIO project, run:
 
 ```sh
-npm create wdio@latest ./
+npx create-wdio
 ```
 
 An installation wizard will guide you through the process. Ensure you select _"Desktop Testing - of Electron Applications"_ when it asks you what type of testing you'ld like to do. Afterwards provide the path to your compiled Electron application, e.g. `./dist`, then just keep the defaults or modify based on your preference.
