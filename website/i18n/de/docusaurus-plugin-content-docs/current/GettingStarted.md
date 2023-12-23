@@ -34,9 +34,9 @@ Wenn Sie sich im Root-Verzeichnis eines vorhandenen Projekts befinden, führen S
 <TabItem value="npm">
 
 ```sh
-npx create-wdio .
+npx create-wdio
 ```sh
-npx create-wdio .
+npx create-wdio
 ```
 
 or if you want to create a new project:
@@ -95,7 +95,7 @@ Der Assistent wird eine Reihe von Fragen stellen, die Sie durch das Setup führt
 <TabItem value="npm">
 
 ```sh
-npx create-wdio . -- --yes
+npx create-wdio --yes
 ```
 
 </TabItem>

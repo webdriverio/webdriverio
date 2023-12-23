@@ -21,7 +21,7 @@ WebdriverIO has built-in support for the following frameworks:
 To set-up WebdriverIO for unit or component testing in the browser, initiate a new WebdriverIO project via:
 
 ```bash
-npx create-wdio ./
+npx create-wdio
 # or
 yarn create wdio ./
 ```

@@ -34,7 +34,7 @@ Si vous êtes dans le répertoire racine d'un projet existant, exécutez :
 <TabItem value="npm">
 
 ```sh
-npx create-wdio .
+npx create-wdio
 ```
 
 or if you want to create a new project:
@@ -79,7 +79,7 @@ L'assistant vous demandera une série de questions qui vous guideront à travers
 <TabItem value="npm">
 
 ```sh
-npx create-wdio . -- --yes
+npx create-wdio --yes
 ```
 
 </TabItem>

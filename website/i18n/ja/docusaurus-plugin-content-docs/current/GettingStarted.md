@@ -34,7 +34,7 @@ WebdriverIO に関する動画をお探しの場合は[公式チャンネル](ht
 <TabItem value="npm">
 
 ```sh
-npx create-wdio .
+npx create-wdio
 ```
 
 or if you want to create a new project:
@@ -89,7 +89,7 @@ pnpm create wdio ./path/to/new/project
 <TabItem value="npm">
 
 ```sh
-npx create-wdio . -- --yes
+npx create-wdio --yes
 ```
 
 </TabItem>

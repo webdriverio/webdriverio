@@ -34,7 +34,7 @@ To add a full WebdriverIO setup to an existing or new project using the [Webdriv
 <TabItem value="npm">
 
 ```sh
-npx create-wdio .
+npx create-wdio
 ```
 
 or if you want to create a new project:
@@ -89,7 +89,7 @@ Wizard مجموعه ای از سوالات را مطرح می کند که شما
 <TabItem value="npm">
 
 ```sh
-npx create-wdio . -- --yes
+npx create-wdio --yes
 ```
 
 </TabItem>
