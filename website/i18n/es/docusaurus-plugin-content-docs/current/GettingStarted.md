@@ -61,9 +61,9 @@ npx create-wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 
 </TabItem>
 </Tabs>

@@ -64,9 +64,9 @@ yarn create wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 ```
 
 or if you want to create a new project:

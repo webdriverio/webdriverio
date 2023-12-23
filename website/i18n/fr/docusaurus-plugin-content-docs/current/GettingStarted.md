@@ -55,9 +55,9 @@ yarn create wdio
 <TabItem value="pnpm">
 
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 ```sh
-dlx create-wdio
+pnpm dlx create-wdio
 
 </TabItem>
 </Tabs>
