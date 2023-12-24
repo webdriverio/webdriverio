@@ -45,6 +45,12 @@ const wdioReporter = {
     on: vi.fn(),
 }
 
+const _eventEmitter = {
+    write: vi.fn(),
+    emit: vi.fn(),
+    on: vi.fn()
+}
+
 const cid = '0-1'
 const specs = ['/foobar.js']
 
@@ -76,6 +82,7 @@ describe('CucumberFormatter', () => {
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
+            _eventEmitter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
             cucumberFormatter = new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
@@ -83,7 +90,7 @@ describe('CucumberFormatter', () => {
                     _reporter: wdioReporter,
                     _cid: cid,
                     _specs: specs,
-                    _eventEmitter: new EventEmitter(),
+                    _eventEmitter: _eventEmitter,
                     _scenarioLevelReporter: false,
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
@@ -222,6 +229,18 @@ describe('CucumberFormatter', () => {
             })
             delete wdioReporter.emit.mock.calls[0][1].duration
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
+        })
+
+        it('should emit proper no of hookparams events', () => {
+            loadGherkin(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            expect(_eventEmitter.emit).toBeCalledTimes(4)
+            Array(4).fill(0).forEach((_, i) => expect(_eventEmitter.emit).toHaveBeenNthCalledWith(i+1, 'getHookParams', expect.any(Object)))
+
         })
     })
 
