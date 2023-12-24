@@ -610,7 +610,7 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
-    it('wrapSteps should not call wrapStep if step doesn't has wrapperOptions', async () => {
+    it('wrapSteps should not call wrapStep if step doesn\'t has wrapperOptions', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.wrapStep  = vi.fn()
         expect(adapter.wrapStep).toBeCalledTimes(0)
