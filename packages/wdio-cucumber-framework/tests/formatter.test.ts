@@ -48,7 +48,7 @@ const wdioReporter = {
 const _eventEmitter = {
     write: vi.fn(),
     emit: vi.fn(),
-    on: vi.fn()
+    on: vi.fn(),
 }
 
 const cid = '0-1'
