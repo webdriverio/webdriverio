@@ -50,7 +50,7 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
-    private _userCaps: Capabilities.RemoteCapability = {}
+    private _userCaps?: Capabilities.RemoteCapability = {}
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         this._requestQueueHandler.start()
