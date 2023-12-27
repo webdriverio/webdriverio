@@ -881,10 +881,10 @@ class _InsightsHandler {
         const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
         for (const key of keys) {
-            if ( bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+            if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
                 return bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]
-            } else if ((caps as WebdriverIO.Capabilities)[key as keyof WebdriverIO.Capabilities]) {
-                return (caps as WebdriverIO.Capabilities)[key as keyof WebdriverIO.Capabilities]
+            } else if (caps[key as keyof WebdriverIO.Capabilities]) {
+                return caps[key as keyof WebdriverIO.Capabilities]
             }
         }
         return null
