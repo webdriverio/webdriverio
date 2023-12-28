@@ -117,7 +117,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 this._insightsHandler = new InsightsHandler(
                     this._browser,
                     this._isAppAutomate(),
-                    this._config.framework
+                    this._config.framework,
+                    this._caps
                 )
                 await this._insightsHandler.before()
 
