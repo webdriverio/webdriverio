@@ -11,7 +11,7 @@ import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
-import { TESTRUNNER_DEFAULTS } from './constants.js'
+import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
 
@@ -470,6 +470,19 @@ class Launcher {
         })
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
+        worker.on('exit', (code) => {
+            if (!this.configParser.getConfig().groupLogsByTestSpec) {
+                return
+            }
+            if (code.exitCode === 0) {
+                console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
+            } else {
+                console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
+            }
+            worker.logsAggregator.forEach((logLine) => {
+                console.log(logLine.replace(new RegExp('\\n$'), ''))
+            })
+        })
         worker.on('exit', this._endHandler.bind(this))
     }
 

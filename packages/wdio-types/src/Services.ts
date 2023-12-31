@@ -1,13 +1,14 @@
 import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
+import type { Worker } from './Workers.js'
 
 export interface RunnerInstance {
     initialize(): Promise<void>
     shutdown(): Promise<boolean>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
-    run(args: any): NodeJS.EventEmitter
+    run(args: any): Worker
     workerPool: any
     browserPool: any
 }

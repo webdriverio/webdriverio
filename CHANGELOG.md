@@ -21,6 +21,83 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.27.1 (2023-12-28)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#11935](https://github.com/webdriverio/webdriverio/pull/11935) Add platform_version to test Obs integration data ([@07souravkunda](https://github.com/07souravkunda))
+* `wdio-cucumber-framework`
+  * [#11914](https://github.com/webdriverio/webdriverio/pull/11914) Fix update of cucumber pickle data for before/after hooks ([@07souravkunda](https://github.com/07souravkunda))
+  * [#11916](https://github.com/webdriverio/webdriverio/pull/11916) Fixing cucumber steps with timeout param ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11903](https://github.com/webdriverio/webdriverio/pull/11903) refactor: Hide exception logs for logs upload in test observability ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 4
+- Saad Tazi ([@saadtazi](https://github.com/saadtazi))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
+## v8.27.0 (2023-12-20)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-local-runner`, `wdio-types`
+  * [#11871](https://github.com/webdriverio/webdriverio/pull/11871) Fix for #10853 - Show test logs in terminal grouped by Worker Instance ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#11771](https://github.com/webdriverio/webdriverio/pull/11771) Fix filtering test specs by part of their name using CLI --spec arg ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#11910](https://github.com/webdriverio/webdriverio/pull/11910) fix(webdriver): respect strictSSL setting for bidi connections ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+- [@tech-dm-klymenko](https://github.com/tech-dm-klymenko)
+
+
+## v8.26.3 (2023-12-19)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#11835](https://github.com/webdriverio/webdriverio/pull/11835) fix for issue #11834 - fixing skip test for jasmine on beforeTest hook ([@HananArgov](https://github.com/HananArgov))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#11901](https://github.com/webdriverio/webdriverio/pull/11901) Missing alerts capability for BrowserStack ([@thv92](https://github.com/thv92))
+
+#### :house: Internal
+* [#11877](https://github.com/webdriverio/webdriverio/pull/11877) (webdriverio): pin Node to 18.18 ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 3
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Thien Vo ([@thv92](https://github.com/thv92))
+
+
+## v8.26.2 (2023-12-15)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#11876](https://github.com/webdriverio/webdriverio/pull/11876) (@wdio/browser-runner): fix mocking of CJS modules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#11874](https://github.com/webdriverio/webdriverio/pull/11874) (webdriverio): support async iterators for WebdriverIO.ElementArray ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#11854](https://github.com/webdriverio/webdriverio/pull/11854) Added missing UIAutomator2 Capabilities ([@Vaahin](https://github.com/Vaahin))
+  * [#11853](https://github.com/webdriverio/webdriverio/pull/11853) Missing browserstack network capabilities ([@Vaahin](https://github.com/Vaahin))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Thiru-Mohan ([@Vaahin](https://github.com/Vaahin))
+
+
 
 ## v8.26.0 (2023-12-10)
 
