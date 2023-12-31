@@ -456,8 +456,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     })
 })
 
-requestMock.extend = vi.fn().mockReturnValue(requestMock)
-requestMock.put = vi.fn().mockReturnValue(Promise.resolve({}))
 requestMock.retryCnt = 0
 requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value

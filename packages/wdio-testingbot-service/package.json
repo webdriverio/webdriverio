@@ -32,7 +32,6 @@
   "dependencies": {
     "@wdio/logger": "8.24.12",
     "@wdio/types": "8.27.0",
-    "got": "^12.6.1",
     "testingbot-tunnel-launcher": "^1.1.7",
     "webdriverio": "8.27.0"
   },

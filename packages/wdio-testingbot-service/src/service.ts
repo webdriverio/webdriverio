@@ -1,4 +1,3 @@
-import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services, Frameworks } from '@wdio/types'
 
@@ -195,17 +194,25 @@ export default class TestingBotService implements Services.ServiceInstance {
         if (!this._browser) {
             return
         }
-
+        let headers: any = {
+            'Content-Type': 'application/json; charset=utf-8',
+        }
+        if (this._tbUser && this._tbSecret) {
+            const encodedAuth = Buffer.from(`${this._tbUser}:${this._tbSecret}`, 'utf8').toString('base64')
+            headers = {
+                ...headers,
+                Authorization: `Basic ${encodedAuth}`,
+            }
+        }
         const json = this.getBody(failures, calledOnReload, browserName)
         this._failures = 0
-        const response = await got.put(this.getRestUrl(sessionId), {
-            json,
-            responseType: 'json',
-            username: this._tbUser,
-            password: this._tbSecret
+        const response = await fetch(this.getRestUrl(sessionId), {
+            method: 'PUT',
+            body: JSON.stringify(json),
+            headers
         })
 
-        return response.body
+        return await response.json()
     }
 
     /**

@@ -28,7 +28,7 @@ export default class FetchRequest extends WebDriverRequest {
             const response = await fetch(url, {
                 method: opts.method,
                 body: opts.body ?? JSON.stringify(opts.json),
-                headers: headers,
+                headers,
                 signal: controller.signal,
             })
 

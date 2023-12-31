@@ -32,7 +32,6 @@
     "@wdio/logger": "8.24.12",
     "@wdio/types": "8.27.0",
     "cbt_tunnels": "^1.2.2",
-    "got": "^12.6.1",
     "webdriverio": "8.27.0"
   },
   "devDependencies": {
