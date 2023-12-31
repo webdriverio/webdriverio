@@ -15,7 +15,7 @@ import type { Client } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
-vi.mock('got')
+vi.mock('fetch')
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {

@@ -14,7 +14,6 @@ import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from 
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json')
 
-type Agents = Options.Agents
 type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
@@ -71,12 +70,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultAgents?: Agents
-    defaultOptions: RequestLibOptions = {
-        followRedirect: true,
-        responseType: 'json',
-        throwHttpErrors: false
-    }
 
     constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
         super()
@@ -90,7 +83,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
     async makeRequest (options: RequestOptions, sessionId?: string) {
         let fullRequestOptions: RequestLibOptions = Object.assign(
             { method: this.method },
-            this.defaultOptions,
             await this._createOptions(options, sessionId)
         )
         if (typeof options.transformRequest === 'function') {
@@ -102,18 +94,14 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
-        const agent = isBrowser ? undefined : (options.agent || this.defaultAgents)
         const searchParams = isBrowser ?
             undefined :
-            (typeof options.queryParams === 'object' ? options.queryParams : {})
+            (typeof options.queryParams === 'object' ? options.queryParams : undefined)
         const requestOptions: RequestLibOptions = {
-            https: {},
-            agent,
             headers: {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            searchParams,
             retry: {
                 limit: options.connectionRetryCount as number,
                 /**
@@ -131,7 +119,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
                     }
                 ),
             },
-            timeout: { response: options.connectionRetryTimeout as number }
+            timeout: options.connectionRetryTimeout
         }
 
         /**
@@ -162,6 +150,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
             (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
         )
 
+        if (searchParams) {
+            requestOptions.url.search = new URLSearchParams(searchParams).toString()
+        }
+
         /**
          * send authentication credentials only when creating new session
          */
@@ -174,11 +166,11 @@ export default abstract class WebDriverRequest extends EventEmitter {
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
          */
-        requestOptions.https!.rejectUnauthorized = !(
-            options.strictSSL === false ||
-            process.env.STRICT_SSL === 'false' ||
-            process.env.strict_ssl === 'false'
-        )
+        // requestOptions.https!.rejectUnauthorized = !(
+        //     options.strictSSL === false ||
+        //     process.env.STRICT_SSL === 'false' ||
+        //     process.env.strict_ssl === 'false'
+        // )
 
         return requestOptions
     }

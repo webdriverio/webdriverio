@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { expect, test, beforeEach, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('puppeteer-core')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -14,7 +12,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const cdpSession = new puppeteer.CDPSessionMock()
 
 beforeEach(() => {
-    got.mockClear()
+    vi.mocked(fetch).mockClear()
     cdpSession.send.mockClear()
 })
 

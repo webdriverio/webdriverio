@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('puppeteer-core')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

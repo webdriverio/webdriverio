@@ -1,11 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getSize test', () => {
@@ -18,8 +16,8 @@ describe('getSize test', () => {
         })
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
-
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/rect')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -36,8 +34,8 @@ describe('getSize test', () => {
         })
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
-
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/size')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -62,6 +60,6 @@ describe('getSize test', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

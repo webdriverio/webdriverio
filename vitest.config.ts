@@ -36,8 +36,8 @@ export default defineConfig({
                 lines: [85, 90]
             }
         },
-        globalSetup: [
-            'scripts/test/globalSetup.ts'
+        setupFiles: [
+            '__mocks__/fetch.ts'
         ]
     }
 })

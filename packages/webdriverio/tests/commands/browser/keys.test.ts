@@ -1,10 +1,8 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote, Key } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('keys', () => {
@@ -17,17 +15,18 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toContain('/actions')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.actions)
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions)
             .toHaveLength(1)
-        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].type)
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].type)
             .toBe('key')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions)
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions)
             .toHaveLength(('foobar'.length * 2) + 1 /* includes pause call */)
-        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions[0])
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions[0])
             .toEqual({ type: 'keyDown', value: 'f' })
-        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions[12])
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions[12])
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
@@ -40,12 +39,14 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toEqual(JSON.stringify({ value: ['f', 'o', 'o', 'b', 'a', 'r'] }))
 
         await browser.keys('Enter')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toEqual(JSON.stringify({ value: ['\uE007'] }))
     })
 
     it('should allow send keys as array', async () => {
@@ -57,12 +58,14 @@ describe('keys', () => {
         })
 
         await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toEqual(JSON.stringify({ value: ['f', 'o', '\uE007', 'b', 'a', 'r'] }))
 
         await browser.keys('Enter')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toEqual(JSON.stringify({ value: ['\uE007'] }))
     })
 
     it('should throw if invalid character was provided', async () => {
@@ -89,7 +92,7 @@ describe('keys', () => {
             }
         })
         await browser.keys([Key.Ctrl, 'c'])
-        expect(vi.mocked(got).mock.calls[1][1].json.actions[0].actions).toEqual([
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions).toEqual([
             { type: 'keyDown', value: expect.any(String) },
             { type: 'keyDown', value: 'c' },
             { type: 'pause', duration: 10 },
@@ -99,6 +102,6 @@ describe('keys', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

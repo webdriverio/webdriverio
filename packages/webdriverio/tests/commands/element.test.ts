@@ -4,7 +4,7 @@ import { test, expect, vi } from 'vitest'
 import { getPrototype } from '../../src/utils/index.js'
 import { remote } from '../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const scope = 'element'

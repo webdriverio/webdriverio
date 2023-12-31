@@ -1,17 +1,14 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
-
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should throw when parameter are invalid', async () => {
@@ -56,14 +53,16 @@ describe('dragAndDrop', () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         // @ts-ignore mock feature
-        got.setMockResponse([{ scrollX: 0, scrollY: 20 }])
+        vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
         // move to
-        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[3][1].json.actions).toMatchSnapshot()
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[4][1].method).toContain('DELETE')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[4][1]?.method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop with coordinates', async () => {
@@ -76,15 +75,17 @@ describe('dragAndDrop', () => {
 
         const elem = await browser.$('#foo')
         // @ts-ignore mock feature
-        got.setMockResponse([{ scrollX: 0, scrollY: 20 }])
+        vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop({ x: 123, y: 321 })
 
         // move to
-        expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions).toHaveLength(1)
-        expect(got.mock.calls[2][1].json.actions).toMatchSnapshot()
-        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[3][1].method).toContain('DELETE')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname).toContain('/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions).toHaveLength(1)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[3][1]?.method).toContain('DELETE')
     })
 
     it('should allow drag and drop to 0 coordinates', async () => {
@@ -99,8 +100,9 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop({ x: 0, y: 0 })
 
         // move to
-        expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname).toContain('/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions).toMatchSnapshot()
     })
 
     it('should do a dragAndDrop (no w3c)', async () => {
@@ -115,12 +117,16 @@ describe('dragAndDrop', () => {
         const subElem = await elem.$('#subfoo')
         await elem.dragAndDrop(subElem)
 
-        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123' })
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/buttondown')
-        expect(got.mock.calls[5][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[5][1].json).toEqual({ element: 'some-sub-elem-321' })
-        expect(got.mock.calls[6][0].pathname).toContain('/foobar-123/buttonup')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/moveto')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any)).toEqual({ element: 'some-elem-123' })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/buttondown')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[5][0].pathname).toContain('/foobar-123/moveto')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[5][1]?.body as any)).toEqual({ element: 'some-sub-elem-321' })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[6][0].pathname).toContain('/foobar-123/buttonup')
     })
 
     it('should do a dragAndDrop with the given duration (no w3c)', async () => {
@@ -154,12 +160,16 @@ describe('dragAndDrop', () => {
         const elem = await browser.$('#foo')
         await elem.dragAndDrop({ x: 123, y: 321 })
 
-        expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
-        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/buttondown')
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[4][1].json).toEqual({ element: null, xoffset: 123, yoffset: 321 })
-        expect(got.mock.calls[5][0].pathname).toContain('/foobar-123/buttonup')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname).toContain('/foobar-123/moveto')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any)).toEqual({ element: 'some-elem-123' })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/buttondown')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/moveto')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[4][1]?.body as any)).toEqual({ element: null, xoffset: 123, yoffset: 321 })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[5][0].pathname).toContain('/foobar-123/buttonup')
     })
 
     it('should do a dragAndDrop with the given co-ordinates and duration(no w3c)', async () => {

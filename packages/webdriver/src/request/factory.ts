@@ -1,11 +1,10 @@
 import type { URL as URLType } from 'node:url'
-import type NodeJSRequest from './node.js'
-import type BrowserRequest from './browser.js'
+import type FetchRequest from './request.js'
 
 import type WebDriverRequest from './index.js'
 
 interface Request {
-    new (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand?: boolean): NodeJSRequest | BrowserRequest;
+    new (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand?: boolean): FetchRequest;
 }
 
 let EnvRequestLib: Request
@@ -17,9 +16,7 @@ export default class RequestFactory {
         isHubCommand: boolean = false
     ): Promise<WebDriverRequest> {
         if (!EnvRequestLib) {
-            EnvRequestLib = process?.versions?.node
-                ? (await import('./node.js')).default
-                : (await import('./browser.js')).default
+            EnvRequestLib = (await import('./request.js')).default
         }
 
         return new EnvRequestLib(method, endpoint, body, isHubCommand)

@@ -3,7 +3,7 @@ import { expect, describe, it, beforeEach, vi } from 'vitest'
 import type { CustomStrategyReference } from '../../../src/index.js'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('custom$', () => {
