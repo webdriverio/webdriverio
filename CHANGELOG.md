@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.27.1 (2023-12-28)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#11935](https://github.com/webdriverio/webdriverio/pull/11935) Add platform_version to test Obs integration data ([@07souravkunda](https://github.com/07souravkunda))
+* `wdio-cucumber-framework`
+  * [#11914](https://github.com/webdriverio/webdriverio/pull/11914) Fix update of cucumber pickle data for before/after hooks ([@07souravkunda](https://github.com/07souravkunda))
+  * [#11916](https://github.com/webdriverio/webdriverio/pull/11916) Fixing cucumber steps with timeout param ([@tamil777selvan](https://github.com/tamil777selvan))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#11903](https://github.com/webdriverio/webdriverio/pull/11903) refactor: Hide exception logs for logs upload in test observability ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 4
+- Saad Tazi ([@saadtazi](https://github.com/saadtazi))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.27.0 (2023-12-20)
 
 #### :rocket: New Feature
