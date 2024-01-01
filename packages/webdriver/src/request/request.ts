@@ -32,12 +32,15 @@ export default class FetchRequest extends WebDriverRequest {
                 signal: controller.signal,
             })
 
+            // Cloning the response to prevent body unusable error
+            const resp = response.clone()
+
             // Clear the timeout as the request completed successfully
             clearTimeout(timeoutId)
 
             return {
-                statusCode: response.status,
-                body: await response.json() ?? {},
+                statusCode: resp.status,
+                body: await resp.json() ?? {},
             } as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {

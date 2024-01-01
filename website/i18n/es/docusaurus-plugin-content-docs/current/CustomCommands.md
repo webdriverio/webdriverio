@@ -194,10 +194,9 @@ Si utiliza bibliotecas externas (por ejemplo, para hacer llamadas de base de dat
 Al devolver la promesa, WebdriverIO se asegura de que no continúe con el siguiente comando hasta que se resuelva la promesa. Si la promesa es rechazada, el comando arrojará un error.
 
 ```js
-import got from 'got'
-
 browser.addCommand('makeRequest', async (url) => {
-    return got(url).json()
+    const response = await fetch(url)
+    return await response.json()
 })
 ```
 

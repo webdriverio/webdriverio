@@ -5,7 +5,6 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
-import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -1022,24 +1021,20 @@ describe('_uploadApp', () => {
     }
 
     it('should upload the app and return app_url', async() => {
-        got.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ app_url: 'bs://<app-id>' })
-        })
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ app_url: 'bs://<app-id>' })))
         const service = new BrowserstackLauncher(options as any, caps, config)
         const res = await service._uploadApp(options.app as any)
         expect(res).toEqual({ app_url: 'bs://<app-id>' })
     })
 
     it('throw SevereServiceError if upload fails', async() => {
-        got.post = vi.fn().mockReturnValue({
-            json: () => Promise.reject({})
-        })
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({}, { status: 500 })))
         const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         try {
             await service._uploadApp(options.app as any)
         } catch (e: any) {
-            expect(got.post).toHaveBeenCalled()
+            expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('POST')
             expect(e.name).toEqual('SevereServiceError')
         }
     })

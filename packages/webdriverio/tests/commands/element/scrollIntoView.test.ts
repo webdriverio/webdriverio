@@ -54,11 +54,11 @@ describe('scrollIntoView test', () => {
             expect(JSON.parse(optionsCenter.body)).toMatchSnapshot()
         })
 
-        it.skip('falls back using Web API if scroll action fails', async () => {
+        it('falls back using Web API if scroll action fails', async () => {
             // @ts-expect-error mock feature
             vi.mocked(fetch).customResponseFor(/\/actions/, { error: 'invalid parameter' })
             // @ts-expect-error mock feature
-            elem.elementId = { scrollIntoView: vi.fn() }
+            elem.elementId = { scrollIntoView: 'mockFunction' }
             await elem.scrollIntoView({})
             // @ts-expect-error mock implementation
             expect(vi.mocked(fetch).mock.calls.pop()![0]!.href.endsWith('/execute/sync'))
@@ -78,7 +78,7 @@ describe('scrollIntoView test', () => {
 
     })
 
-    describe.skip('mobile', () => {
+    describe('mobile', () => {
         beforeAll(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -89,7 +89,7 @@ describe('scrollIntoView test', () => {
             })
             elem = await browser.$('#foo')
             // @ts-expect-error mock feature
-            elem.elementId = { scrollIntoView: vi.fn() }
+            elem.elementId = { scrollIntoView: 'mockFunction'  }
         })
 
         beforeEach(() => {

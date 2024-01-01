@@ -162,16 +162,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
             requestOptions.password = options.key
         }
 
-        /**
-         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
-         * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
-         */
-        // requestOptions.https!.rejectUnauthorized = !(
-        //     options.strictSSL === false ||
-        //     process.env.STRICT_SSL === 'false' ||
-        //     process.env.strict_ssl === 'false'
-        // )
-
         return requestOptions
     }
 

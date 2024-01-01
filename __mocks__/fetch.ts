@@ -15,6 +15,24 @@ const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
 const genericShadowElementId = 'some-shadow-elem-123'
 const genericSubShadowElementId = 'some-shadow-sub-elem-321'
+
+/**
+ * Transform the specified property of each object in the collection by replacing 'mockFunction' with a predefined function (vi.fn()).
+ * This is intended to ensure that, when converting the request body to a string, functions are retained and not omitted.
+ * @param collection - An array of objects to process.
+ * @returns A new array with updated objects.
+ */
+const transformPropertyWithMockFunction = (collection: any[]) => {
+    return collection.map(item => {
+        for (const prop in item) {
+            if (item[prop] && item[prop] === 'mockFunction') {
+                item[prop] = vi.fn()
+            }
+        }
+        return item
+    })
+}
+
 const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     let value: any = {}
     let jsonwpMode = false
@@ -36,7 +54,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         if (!(uri as URL).pathname.match(pattern)) {
             continue
         }
-        return new Response(JSON.stringify(response))
+        return Response.json(response)
     }
 
     let body: any = params?.body
@@ -215,7 +233,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
-        const args = body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg)
+        const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
 
         let result: any = null
         if (body.script.includes('resq')) {

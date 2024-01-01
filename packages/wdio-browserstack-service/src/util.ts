@@ -2,8 +2,6 @@ import { hostname, platform, type, version, arch } from 'node:os'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
 import { promisify } from 'node:util'
-import http from 'node:http'
-import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
 import { spawn } from 'node:child_process'
@@ -12,8 +10,6 @@ import { fileURLToPath } from 'node:url'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
-import got, { HTTPError } from 'got'
-import type { Method } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
@@ -22,7 +18,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
@@ -37,10 +33,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
-    agent: {
-        http: new http.Agent({ keepAlive: true }),
-        https: new https.Agent({ keepAlive: true }),
-    },
     headers: {
         'Content-Type': 'application/json',
         'X-BSTACK-OBS': 'true'
@@ -165,19 +157,25 @@ export function errorHandler(fn: Function) {
     }
 }
 
-export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
+export async function nodeRequest(requestType: string, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
     try {
-        const response: any = await got(`${apiUrl}/${apiEndpoint}`, {
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+        const response = await fetch(`${apiUrl}/${apiEndpoint}`, {
             method: requestType,
-            timeout: {
-                request: timeout
-            },
+            signal: controller.signal,
             ...options
-        }).json()
-        return response
+        })
+
+        // Clear the timeout as the request completed successfully
+        clearTimeout(timeoutId)
+
+        return await response.json()
     } catch (error : any) {
         const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
-        if (error instanceof HTTPError && error.response) {
+        if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
             if (errorMessage) {
@@ -275,25 +273,29 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: LaunchResponse = await got.post(url, {
-            ...DEFAULT_REQUEST_CONFIG,
-            username: getObservabilityUser(options, config),
-            password: getObservabilityKey(options, config),
-            json: data
-        }).json()
-        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
+        const encodedAuth = Buffer.from(`${getObservabilityUser(options, config)}:${getObservabilityKey(options, config)}`, 'utf8').toString('base64')
+        const headers: any = {
+            ...DEFAULT_REQUEST_CONFIG.headers,
+            Authorization: `Basic ${encodedAuth}`,
+        }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        })
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(await response.json())}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        if (response.jwt) {
-            process.env.BS_TESTOPS_JWT = response.jwt
+        if ((await response.json()).jwt) {
+            process.env.BS_TESTOPS_JWT = (await response.json()).jwt
         }
-        if (response.build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+        if ((await response.json()).build_hashed_id) {
+            process.env.BS_TESTOPS_BUILD_HASHED_ID = (await response.json()).build_hashed_id
         }
-        if (response.allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+        if ((await response.json()).allow_screenshots) {
+            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = (await response.json()).allow_screenshots.toString()
         }
-    } catch (error) {
-        if (error instanceof HTTPError && error.response) {
+    } catch (error: any) {
+        if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
             switch (errorType) {
@@ -402,14 +404,19 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         'browserstackAutomation': true,
     }
 
+    const encodedAuth = Buffer.from(`${getBrowserStackUser(config)}:${getBrowserStackKey(config)}`, 'utf8').toString('base64')
+    const headers: any = {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Basic ${encodedAuth}`,
+    }
+
     const requestOptions = {
-        json: data,
-        username: getBrowserStackUser(config),
-        password: getBrowserStackKey(config),
+        body: JSON.stringify(data),
+        headers
     }
 
     try {
-        const response: any = await nodeRequest(
+        const response = await nodeRequest(
             'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
         )
 
@@ -558,15 +565,15 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-        const response = await got.put(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const response = await fetch(url, {
+            method: 'PUT',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
             },
-            json: data
-        }).json()
-        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+            body: JSON.stringify(data)
+        })
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(await response.json())}`)
         return {
             status: 'success',
             message: ''
@@ -941,15 +948,15 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
         RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const data = await fetch(url, {
+            method: 'POST',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
             },
-            json: eventData
-        }).json()
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
+            body: JSON.stringify(eventData)
+        })
+        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(await data.json())}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     } catch (error) {
         BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
@@ -1003,15 +1010,15 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
 
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        const response = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const response = await fetch(url, {
+            method: 'POST',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
             },
-            json: data
-        }).json()
-        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
+            body: JSON.stringify(data)
+        })
+        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
         BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
     }
