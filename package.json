@@ -92,7 +92,7 @@
     "@typescript-eslint/parser": "^6.13.2",
     "@typescript-eslint/utils": "^6.13.2",
     "@vitejs/plugin-react": "^4.2.1",
-    "@vitejs/plugin-vue": "^4.5.1",
+    "@vitejs/plugin-vue": "^5.0.2",
     "@vitest/coverage-v8": "^1.0.1",
     "camelcase": "^8.0.0",
     "cddl": "^0.8.5",
