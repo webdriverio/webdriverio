@@ -116,3 +116,5 @@ export const HOOK_DEFINITION = {
         }
     }
 }
+
+export const afterHookErrMessage = '=== [ !! ] ===\nSomething unexpected happened... Results of variable "error" in after-hooks may not be reliable. Please report this to https://github.com/webdriverio/webdriverio/issues\n^^^ [ !! ] ^^^\n'
