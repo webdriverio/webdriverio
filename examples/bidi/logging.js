@@ -14,13 +14,7 @@ await browser.sessionSubscribe({
 /**
  * Console logging
  */
-browser.on('message', (data) => {
-    const payload = JSON.parse(data.toString())
-    if (payload.method !== 'log.entryAdded') {
-        return
-    }
-    console.log(JSON.stringify(payload, null, 4))
-})
+browser.on('log.entryAdded', (logEntry) => console.log(JSON.stringify(logEntry, null, 4)))
 await browser.execute(() => console.log('Hello Bidi'))
 
 /**
@@ -29,12 +23,6 @@ await browser.execute(() => console.log('Hello Bidi'))
 await browser.sessionSubscribe({
     events: ['network.responseCompleted']
 })
-browser.on('message', (data) => {
-    const payload = JSON.parse(data.toString())
-    if (payload.method !== 'network.responseCompleted') {
-        return
-    }
-    console.log(JSON.stringify(payload, null, 4))
-})
+browser.on('network.responseCompleted', (networkResponse) => console.log(JSON.stringify(networkResponse, null, 4)))
 await browser.url('https://webdriver.io')
 await browser.deleteSession()

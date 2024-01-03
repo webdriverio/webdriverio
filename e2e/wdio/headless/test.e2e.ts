@@ -186,6 +186,24 @@ describe('main suite 1', () => {
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
+
+        it('xOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
+        })
+
+        it('yOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('yOffset would cause a out of bounds error as it goes outside of element'))
+        })
+
+        it('xOffset and yOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
+        })
     })
 
     const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [

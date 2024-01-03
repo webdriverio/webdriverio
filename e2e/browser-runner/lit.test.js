@@ -5,7 +5,12 @@ import isUrl from 'is-url'
 
 import defaultExport, { namedExportValue } from 'someModule'
 import namespacedModule from '@namespace/module'
-import { someExport, namedExports } from '@testing-library/user-event'
+import { someExport, namedExports, someFunction } from '@testing-library/user-event'
+
+/**
+ * a CJS module
+ */
+import stringWidth from 'string-width'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
 
@@ -15,6 +20,10 @@ mock('./components/constants.ts', async (mod) => {
         GREETING: mod.GREETING + ' Sir'
     }
 })
+
+mock('string-width', () => ({
+    default: () => 123
+}))
 
 mock('graphql-request', () => ({
     gql: fn(),
@@ -26,7 +35,11 @@ mock('graphql-request', () => ({
 mock('@testing-library/user-event', async (mod) => {
     return {
         someExport: 'foobarloo',
-        namedExports: Object.keys(mod)
+        namedExports: Object.keys(mod),
+        someFunction: fn()
+            .mockReturnValueOnce('first')
+            .mockReturnValueOnce('second')
+            .mockReturnValueOnce('third')
     }
 })
 
@@ -69,6 +82,17 @@ describe('Lit Component testing', () => {
     it('should allow to manual mock namespaces deps', async () => {
         expect(someExport).toBe('foobarloo')
         expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default'])
+    })
+
+    it('should allow to have different mock return values', () => {
+        expect(someFunction()).toBe('first')
+        expect(someFunction()).toBe('second')
+        expect(someFunction()).toBe('third')
+        expect(someFunction()).toBe(undefined)
+    })
+
+    it('should allow to mock CJS modules', () => {
+        expect(stringWidth('a')).toBe(123)
     })
 
     it('should allow to unmock', () => {
@@ -292,35 +316,78 @@ describe('Lit Component testing', () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
-                        <input type="text" placeholder="Find me" />
-                        <textarea placeholder="Find me" />
+                        <input type="text" placeholder="Find me">
+                        <textarea placeholder="Find me"></textarea>
                     `,
                     document.body
                 )
-                expect(await $$('aria/Find me').length).toBe(2)
+                await expect($$('aria/Find me')).toBeElementsArrayOfSize(2)
             })
 
             it('aria label is received by an input aria-placeholder', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
-                        <input type="text" aria-placeholder="Find me" />
-                        <textarea aria-placeholder="Find me" />
+                        <input type="text" aria-placeholder="Find me">
+                        <textarea aria-placeholder="Find me"></textarea>
                     `,
                     document.body
                 )
-                expect(await $$('aria/Find me').length).toBe(2)
+                await expect($$('aria/Find me')).toBeElementsArrayOfSize(2)
             })
 
             /**
              * fails due to https://github.com/webdriverio/webdriverio/issues/8826
              */
-            it.skip('inputs with a label', async () => {
+            it('input with a label', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
                     html`
                         <label for="search">Search</label>
                         <input id="search" type="text" value="Hello World!" />
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('textarea with a label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label for="search">Search</label>
+                        <textarea id="search">Hello World!</textarea>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('input with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search
+                            <input type="text" value="Hello World!" />
+                        </label>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('textarea with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search
+                            <textarea>Hello World!</textarea>
+                        </label>
                     `,
                     document.body
                 )

@@ -7,7 +7,7 @@ exports[`waitForDisplayed > should call waitUntil 1`] = `
     {
       "interval": 5,
       "timeout": 1000,
-      "timeoutMsg": "element (\\"#foo\\") still not displayed after 1000ms",
+      "timeoutMsg": "element ("#foo") still not displayed after 1000ms",
     },
   ],
 ]
@@ -20,7 +20,7 @@ exports[`waitForDisplayed > should do reverse 1`] = `
     {
       "interval": 50,
       "timeout": 500,
-      "timeoutMsg": "element (\\"#foo\\") still displayed after 500ms",
+      "timeoutMsg": "element ("#foo") still displayed after 500ms",
     },
   ],
 ]

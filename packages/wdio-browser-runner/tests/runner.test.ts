@@ -65,12 +65,12 @@ describe('BrowserRunner', () => {
         } as any)).not.toThrow()
     })
 
-    it('initialise', async () => {
+    it('initialize', async () => {
         const runner = new BrowserRunner({}, {
             rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
-        await runner.initialise()
+        await runner.initialize()
         expect(fs.rm).toBeCalledWith(
             path.join('/foo/bar', 'coverage'),
             { recursive: true }
@@ -82,7 +82,7 @@ describe('BrowserRunner', () => {
             rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
-        await runner.initialise()
+        await runner.initialize()
 
         const on = vi.fn()
         vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on } as any)
@@ -114,7 +114,7 @@ describe('BrowserRunner', () => {
             framework: 'mocha'
         } as any)
         runner['_generateCoverageReports'] = vi.fn()
-        await runner.initialise()
+        await runner.initialize()
         await runner.shutdown()
         expect(LocalRunner.prototype.shutdown).toBeCalledTimes(1)
         expect(runner['_generateCoverageReports']).toBeCalledTimes(1)

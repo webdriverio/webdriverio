@@ -45,13 +45,13 @@ export function sanitizeCaps (
 }
 
 /**
- * initialise browser instance depending whether remote or multiremote is requested
+ * initialize browser instance depending whether remote or multiremote is requested
  * @param  {Object}  config        configuration of sessions
  * @param  {Object}  capabilities  desired session capabilities
  * @param  {boolean} isMultiremote isMultiremote
  * @return {Promise}               resolves with browser object
  */
-export async function initialiseInstance (
+export async function initializeInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
@@ -88,6 +88,9 @@ export async function initialiseInstance (
         log.debug('init remote session')
         const sessionConfig: Options.WebdriverIO = {
             ...config,
+            /**
+             * allow to overwrite connection details by user through capabilities
+             */
             ...sanitizeCaps(capabilities, true),
             capabilities: sanitizeCaps(capabilities)
         }

@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { createRequire } from 'node:module'
+import { WebDriverProtocol } from '@wdio/protocols'
 import type { URL } from 'node:url'
 
 import logger from '@wdio/logger'
@@ -17,6 +18,16 @@ type Agents = Options.Agents
 type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
+
+const RETRY_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'HEAD',
+    'DELETE',
+    'OPTIONS',
+    'TRACE'
+] as Options.Method[]
 
 export class RequestLibError extends Error {
     statusCode?: number
@@ -41,6 +52,10 @@ export interface WebDriverResponse {
     sessionId?: string
 }
 
+export const COMMANDS_WITHOUT_RETRY = [
+    findCommandPathByName('performActions'),
+]
+const MAX_RETRY_TIMEOUT = 100 // 100ms
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -99,7 +114,23 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
-            retry: { limit: options.connectionRetryCount! },
+            retry: {
+                limit: options.connectionRetryCount as number,
+                /**
+                 * this enables request retries for all commands except for the
+                 * ones defined in `COMMANDS_WITHOUT_RETRY` since they have their
+                 * own retry mechanism. Including a request based retry mechanism
+                 * here also ensures we retry if e.g. a connection to the server
+                 * can't be established at all.
+                 */
+                ...(COMMANDS_WITHOUT_RETRY.includes(this.endpoint)
+                    ? {}
+                    : {
+                        methods: RETRY_METHODS,
+                        calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
+                    }
+                ),
+            },
             timeout: { response: options.connectionRetryTimeout as number }
         }
 
@@ -275,4 +306,16 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         return retry(error, `Request failed with status ${response.statusCode} due to ${error.message}`)
     }
+}
+
+function findCommandPathByName (commandName: string) {
+    const command = Object.entries(WebDriverProtocol).find(
+        ([, command]) => Object.values(command).find(
+            (cmd) => cmd.command === commandName))
+
+    if (!command) {
+        throw new Error(`Couldn't find command "${commandName}"`)
+    }
+
+    return command[0]
 }

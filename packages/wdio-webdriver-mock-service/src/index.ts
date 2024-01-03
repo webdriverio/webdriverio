@@ -109,7 +109,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.findElement().times(2).reply(404, NO_SUCH_ELEMENT)
         this._mock.command.findElement().times(2).reply(200, { value: elemResponse })
-        this._mock.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: false })
     }
 
     isEventuallyDisplayedScenario() {
@@ -119,7 +119,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
         this._mock.command.findElement().times(2).reply(200, { value: elemResponse })
-        this._mock.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     staleElementRefetchScenario() {
@@ -128,28 +128,28 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         const elem2Response = { [ELEM_PROP]: ELEMENT_REFETCHED }
 
-        //Found initially
+        // Found initially
         this._mock.command.findElement().once().reply(200, { value: elemResponse })
-        //Initiate refetch, but its not ready
+        // Initiate refetch, but its not ready
         this._mock.command.findElement().once().reply(404, NO_SUCH_ELEMENT)
-        //Always return the new element after
+        // Always return the new element after
         this._mock.command.findElement().times(4).reply(200, { value: elem2Response })
 
-        //First click works
+        // First click works
         this._mock.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
-        //Additional clicks won't for the original element
-        this._mock.command.elementClick(ELEMENT_ID).times(4).reply(500, {
+        // Additional clicks won't for the original element
+        this._mock.command.elementClick(ELEMENT_ID).times(8).reply(500, {
             value: {
                 error: 'stale element reference',
                 message: 'element is not attached to the page document'
             }
         })
-        //Clicks on the new element are successful
+        // Clicks on the new element are successful
         this._mock.command.elementClick(ELEMENT_REFETCHED).times(4).reply(200, { value: null })
 
-        //Wait for it to exist - but 2 failed iterations
+        // Wait for it to exist - but 2 failed iterations
         this._mock.command.findElements().times(2).reply(200, { value: [] })
-        //Always appears thereafter
+        // Always appears thereafter
         this._mock.command.findElements().times(4).reply(200, { value: [elem2Response] })
     }
 
@@ -157,6 +157,8 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         const elem2Response = { [ELEM_PROP]: ELEMENT_REFETCHED }
         this._mock.command.findElements().reply(200, { value: [elemResponse, elem2Response] })
+        this._mock.command.getElementText(ELEMENT_ID).reply(200, { value: 'some element text' })
+        this._mock.command.getElementText(ELEMENT_REFETCHED).reply(200, { value: 'some other element text' })
         return [ELEMENT_ID, ELEMENT_REFETCHED]
     }
 
@@ -205,8 +207,8 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         this._mock.command.findElement().once().reply(200, { value: elemResponse })
-        this._mock.command.isElementDisplayed(ELEMENT_ID).times(4).reply(200, { value: false })
-        this._mock.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).times(4).reply(200, { value: false })
+        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     cucumberScenario() {

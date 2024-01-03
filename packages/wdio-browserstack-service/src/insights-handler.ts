@@ -2,7 +2,6 @@ import path from 'node:path'
 
 import type { Frameworks } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
-import logger from '@wdio/logger'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
@@ -33,14 +32,14 @@ import type {
 } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
+import type { Capabilities } from '@wdio/types'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
     private _platformMeta: PlatformMeta
-    private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
+    private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
@@ -51,8 +50,9 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
+    private _userCaps?: Capabilities.RemoteCapability = {}
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         this._requestQueueHandler.start()
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
@@ -65,6 +65,8 @@ class _InsightsHandler {
             sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+
+        this._userCaps = _userCaps
 
         this.registerListeners()
     }
@@ -501,6 +503,7 @@ class _InsightsHandler {
     }
 
     async teardown () {
+        RequestQueueHandler.tearDownInvoked = true
         await this._requestQueueHandler.shutdown()
     }
 
@@ -522,7 +525,7 @@ class _InsightsHandler {
                 })
             }
         } catch (error) {
-            log.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
         }
     }
 
@@ -533,7 +536,7 @@ class _InsightsHandler {
         }
     }
 
-    async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
+    async browserCommand (commandType: string, args: BeforeCommandArgs | AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         if (commandType === 'client:beforeCommand') {
             this._commands[dataKey] = args
@@ -551,13 +554,15 @@ class _InsightsHandler {
         }
 
         // log screenshot
-        if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && args.result.value) {
+        const body = 'body' in args ? args.body : undefined
+        const result = 'result' in args ? args.result : undefined
+        if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && result?.value) {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
                     test_run_uuid: testMeta.uuid,
                     timestamp: new Date().toISOString(),
-                    message: args.result.value,
+                    message: result.value,
                     kind: 'TEST_SCREENSHOT'
                 }]
             }], DATA_SCREENSHOT_ENDPOINT)
@@ -578,8 +583,8 @@ class _InsightsHandler {
                 http_response: {
                     path: requestData.endpoint,
                     method: requestData.method,
-                    body: requestData.body,
-                    response: args.result
+                    body,
+                    response: result
                 }
             }]
         })
@@ -865,8 +870,24 @@ class _InsightsHandler {
             browser: this._platformMeta?.browserName,
             browser_version: this._platformMeta?.browserVersion,
             platform: this._platformMeta?.platformName,
-            product: this._platformMeta?.product
+            product: this._platformMeta?.product,
+            platform_version: this.getPlatformVersion()
         }
+    }
+
+    private getPlatformVersion() {
+        const caps = (this._userCaps as WebdriverIO.Capabilities)
+        const bstackOptions = (this._userCaps as WebdriverIO.Capabilities)?.['bstack:options']
+        const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
+
+        for (const key of keys) {
+            if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+                return bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]
+            } else if (caps[key as keyof WebdriverIO.Capabilities]) {
+                return caps[key as keyof WebdriverIO.Capabilities]
+            }
+        }
+        return null
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {

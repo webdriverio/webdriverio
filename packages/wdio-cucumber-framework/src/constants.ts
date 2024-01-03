@@ -29,3 +29,10 @@ export const DEFAULT_OPTS: CucumberOptions = {
     tagExpression: '',
     profiles: []
 }
+
+export const CUCUMBER_HOOK_DEFINITION_TYPES = [
+    'beforeTestRunHookDefinitionConfigs',
+    'beforeTestCaseHookDefinitionConfigs',
+    'afterTestCaseHookDefinitionConfigs',
+    'afterTestRunHookDefinitionConfigs',
+] as const

@@ -11,7 +11,7 @@ import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
 import {
@@ -46,7 +46,7 @@ import type { IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
 import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities } from './utils.js'
+import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
@@ -244,11 +244,11 @@ class CucumberAdapter {
                 importPaths: this._cucumberOpts.import,
             })
 
-            this.addWdioHooksAndWrapSteps(this._config, supportCodeLibraryBuilder)
-
-            setDefaultTimeout(this._cucumberOpts.timeout)
-
+            this.addWdioHooks(this._config, supportCodeLibraryBuilder)
             await this.loadFiles()
+            this.wrapSteps(this._config)
+            setUserHookNames(supportCodeLibraryBuilder)
+            setDefaultTimeout(this._cucumberOpts.timeout)
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
@@ -387,7 +387,7 @@ class CucumberAdapter {
      * set `beforeFeature`, `afterFeature`, `beforeScenario`, `afterScenario`, 'beforeStep', 'afterStep'
      * @param {object} config config
      */
-    addWdioHooksAndWrapSteps(
+    addWdioHooks(
         config: Options.Testrunner,
         supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
@@ -397,14 +397,14 @@ class CucumberAdapter {
             params.feature = payload.feature
         })
 
-        supportCodeLibraryBuilder.methods.BeforeAll(async function () {
+        supportCodeLibraryBuilder.methods.BeforeAll(async function wdioHookBeforeFeature() {
             await executeHooksWithArgs('beforeFeature', config.beforeFeature, [
                 params.uri,
                 params.feature,
             ])
         })
 
-        supportCodeLibraryBuilder.methods.Before(async function (world) {
+        supportCodeLibraryBuilder.methods.Before(async function wdioHookBeforeScenario(world) {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
@@ -412,7 +412,7 @@ class CucumberAdapter {
             )
         })
 
-        supportCodeLibraryBuilder.methods.BeforeStep(async function (world) {
+        supportCodeLibraryBuilder.methods.BeforeStep(async function wdioHookBeforeStep(world) {
             await executeHooksWithArgs('beforeStep', config.beforeStep, [
                 world.pickleStep,
                 world.pickle,
@@ -420,7 +420,7 @@ class CucumberAdapter {
             ])
         })
 
-        supportCodeLibraryBuilder.methods.AfterStep(async function (world) {
+        supportCodeLibraryBuilder.methods.AfterStep(async function wdioHookAfterStep(world) {
             await executeHooksWithArgs('afterStep', config.afterStep, [
                 world.pickleStep,
                 world.pickle,
@@ -429,7 +429,7 @@ class CucumberAdapter {
             ])
         })
 
-        supportCodeLibraryBuilder.methods.After(async function (world) {
+        supportCodeLibraryBuilder.methods.After(async function wdioHookAfterScenario(world) {
             await executeHooksWithArgs('afterScenario', config.afterScenario, [
                 world,
                 getResultObject(world),
@@ -437,35 +437,96 @@ class CucumberAdapter {
             ])
         })
 
-        supportCodeLibraryBuilder.methods.AfterAll(async function () {
+        supportCodeLibraryBuilder.methods.AfterAll(async function wdioHookAfterFeature() {
             await executeHooksWithArgs('afterFeature', config.afterFeature, [
                 params.uri,
                 params.feature,
             ])
         })
+    }
 
-        supportCodeLibraryBuilder.methods.setDefinitionFunctionWrapper(function (fn: Function, options: StepDefinitionOptions = { retry: 0 }) {
-            const retries = { attempts: 0, limit: isFinite(options?.retry) ? options.retry : 0 }
+    /**
+     * wraps step definition code with sync/async runner with a retry option
+     * @param {object} config
+     */
+    wrapSteps (config: Options.Testrunner) {
+        const wrapStep = this.wrapStep
+        const cid = this._cid
 
-            if (retries.limit !== 0) {
-                return async function (this: Record<string, any>, ...args: any[]) {
-                    while (retries.limit >= retries.attempts) {
-                        this.wdioRetries = retries.attempts
-                        try {
-                            await fn.apply(this, args)
-                            break
-                        } catch (error) {
-                            if (retries.limit === retries.attempts) {
-                                throw error
-                            }
-                            retries.attempts++
-                        }
-                    }
-                }
-            }
-
-            return fn
+        let params: any
+        this._eventEmitter.on('getHookParams', (payload) => {
+            params = payload
         })
+
+        const getHookParams = () => params
+
+        setDefinitionFunctionWrapper(
+            (fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {
+                /**
+                 * hooks defined in wdio.conf are already wrapped
+                 */
+                if (fn.name.startsWith('wdioHook')) {
+                    return fn
+                }
+
+                /**
+                 * this flag is used to:
+                 * - avoid hook retry
+                 * - avoid wrap hooks with beforeStep and afterStep
+                 */
+                const isStep = !fn.name.startsWith('userHook')
+
+                /**
+                 * Steps without wrapperOptions are returned promptly, avoiding failures when steps are defined with timeouts.
+                 * However, steps with set wrapperOptions have limitations in utilizing timeouts.
+                 */
+                if (isStep && !options.retry) {
+                    return fn
+                }
+
+                return wrapStep(fn, isStep, config, cid, options, getHookParams, this._cucumberOpts.timeout)
+            }
+        )
+    }
+
+    /**
+     * wrap step definition to enable retry ability
+     * @param   {Function}  code            step definition
+     * @param   {boolean}   isStep
+     * @param   {object}    config
+     * @param   {string}    cid             cid
+     * @param   {StepDefinitionOptions} options
+     * @param   {Function}  getHookParams  step definition
+     * @param   {number}    timeout        the maximum time (in milliseconds) to wait for
+     * @return  {Function}                 wrapped step definition for sync WebdriverIO code
+     */
+    wrapStep(
+        code: Function,
+        isStep: boolean,
+        config: Options.Testrunner,
+        cid: string,
+        options: StepDefinitionOptions,
+        getHookParams: Function,
+        timeout?: number,
+        hookName: string | undefined = undefined,
+    ): Function {
+        return function (this: Cucumber.World, ...args: any[]) {
+            const hookParams = getHookParams()
+            const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
+
+            /**
+             * wrap user step/hook with wdio before/after hooks
+             */
+            const beforeFn = config.beforeHook
+            const afterFn = config.afterHook
+            return testFnWrapper.call(this,
+                isStep ? 'Step' : 'Hook',
+                { specFn: code, specFnArgs: args },
+                { beforeFn: beforeFn as Function[], beforeFnArgs: (context: any) => [hookParams?.step, context] },
+                { afterFn: afterFn as Function[], afterFnArgs: (context: any) => [hookParams?.step, context] },
+                cid,
+                retryTest, hookName, timeout)
+        }
     }
 }
 /**

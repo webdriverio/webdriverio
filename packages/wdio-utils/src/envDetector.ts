@@ -2,7 +2,7 @@ import type { Capabilities } from '@wdio/types'
 
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
-    'appium-version', 'appiumVersion', 'device-type', 'deviceType',
+    'appium-version', 'appiumVersion', 'device-type', 'deviceType', 'app', 'appArguments',
     'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
@@ -50,7 +50,8 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
         )
     )
-    return Boolean(hasW3CCaps || isAppium)
+    const hasWebdriverFlag = Boolean(capabilities['ms:experimental-webdriver'])
+    return Boolean(hasW3CCaps || isAppium || hasWebdriverFlag)
 }
 
 /**
@@ -106,7 +107,10 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
         /**
          * capabilities contain mobile only specific capabilities
          */
-        Object.keys(capabilities).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        Object.keys(capabilities).find((cap) => (
+            MOBILE_CAPABILITIES.includes(cap) ||
+            MOBILE_CAPABILITIES.map((c) => `appium:${c}`).includes(cap)
+        )) ||
         /**
          * browserName is empty (and eventually app is defined)
          */

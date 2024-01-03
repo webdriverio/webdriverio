@@ -1,31 +1,40 @@
 import { hostname, platform, type, version, arch } from 'node:os'
+import fs from 'node:fs'
+import zlib from 'node:zlib'
 import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
-import logger from '@wdio/logger'
 
 import got, { HTTPError } from 'got'
 import type { Method } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import type { ColorName } from 'chalk'
+import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, consoleHolder } from './constants.js'
+import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
+import { BStackLogger } from './bstackLogger.js'
+import { FileStream } from './fileStream.js'
+import BrowserstackLauncherService from './launcher.js'
 
 const pGitconfig = promisify(gitconfig)
-const log = logger('@wdio/browserstack-service')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -36,6 +45,15 @@ export const DEFAULT_REQUEST_CONFIG = {
         'Content-Type': 'application/json',
         'X-BSTACK-OBS': 'true'
     },
+}
+
+export const COLORS: Record<string, ColorName> = {
+    error: 'red',
+    warn: 'yellow',
+    info: 'cyanBright',
+    debug: 'green',
+    trace: 'cyan',
+    progress: 'magenta'
 }
 
 /**
@@ -104,7 +122,7 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
 }
 
 function processError(error: any, fn: Function, args: any[]) {
-    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
     try {
         argsString = JSON.stringify(args)
@@ -138,18 +156,18 @@ export function errorHandler(fn: Function) {
             const functionToHandle = fn
             const result = functionToHandle(...args)
             if (result instanceof Promise) {
-                return result.catch(error => log.error(`Error in executing ${fn.name} with args ${args}: ${error}`))
+                return result.catch(error => BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`))
             }
             return result
         } catch (error) {
-            log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+            BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
         }
     }
 }
 
 export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
     try {
-        const response: Object = await got(`${apiUrl}/${apiEndpoint}`, {
+        const response: any = await got(`${apiUrl}/${apiEndpoint}`, {
             method: requestType,
             timeout: {
                 request: timeout
@@ -158,17 +176,25 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
         }).json()
         return response
     } catch (error : any) {
+        const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
             if (errorMessage) {
-                log.error(`${errorMessage} - ${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${errorMessage} - ${error.stack}`) : BStackLogger.error(`${errorMessage} - ${error.stack}`)
             } else {
-                log.error(`${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
+            }
+            if (isLogUpload) {
+                return
             }
             throw error
         } else {
-            log.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            if (isLogUpload) {
+                BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
+                return
+            }
+            BStackLogger.error(`Failed to fire api request due to ${error} - ${error.stack}`)
             throw error
         }
     }
@@ -243,7 +269,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
         }
     } catch (error) {
-        return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
+        return BStackLogger.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
     }
     data.config = CrashReporter.userConfigForReporting
 
@@ -255,7 +281,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             password: getObservabilityKey(options, config),
             json: data
         }).json()
-        log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) {
             process.env.BS_TESTOPS_JWT = response.jwt
@@ -272,19 +298,19 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
             switch (errorType) {
             case 'ERROR_INVALID_CREDENTIALS':
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
                 break
             case 'ERROR_ACCESS_DENIED':
-                log.info(errorMessage)
+                BStackLogger.info(errorMessage)
                 break
             case 'ERROR_SDK_DEPRECATED':
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
                 break
             default:
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
             }
         } else {
-            log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
 })
@@ -292,27 +318,27 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
     try {
         if (deviceName) {
-            log.warn('Accessibility Automation will run only on Desktop browsers.')
+            BStackLogger.warn('Accessibility Automation will run only on Desktop browsers.')
             return false
         }
 
         if (platformMeta?.browser_name?.toLowerCase() !== 'chrome') {
-            log.warn('Accessibility Automation will run only on Chrome browsers.')
+            BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
             return false
         }
         const browserVersion = platformMeta?.browser_version
         if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
-            log.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
+            BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
             return false
         }
 
         if (chromeOptions?.args?.includes('--headless')) {
-            log.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+            BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
             return false
         }
         return true
     } catch (error) {
-        log.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
+        BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
     }
     return false
 }
@@ -328,7 +354,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
 
         return !excluded && included
     } catch (error) {
-        log.debug('Error while validating test case for accessibility before scanning. Error : ', error)
+        BStackLogger.debug(`Error while validating test case for accessibility before scanning. Error : ${error}`)
     }
     return false
 }
@@ -338,7 +364,7 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
         const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
     } catch (error) {
-        log.debug(`Exception in verifying the Accessibility session with error : ${error}`)
+        BStackLogger.debug(`Exception in verifying the Accessibility session with error : ${error}`)
     }
     return false
 }
@@ -348,7 +374,7 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     const accessKey = getBrowserStackKey(config)
 
     if (isUndefined(userName) || isUndefined(accessKey)) {
-        log.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
+        BStackLogger.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
         return null
     }
 
@@ -387,7 +413,7 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
             'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
         )
 
-        log.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
 
         if (response.data.accessibilityToken) {
             process.env.BSTACK_A11Y_JWT = response.data.accessibilityToken
@@ -396,12 +422,12 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
             process.env.BS_A11Y_TEST_RUN_ID = response.data.id
         }
 
-        log.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
+        BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
 
         return response.data.scannerVersion
     } catch (error : any) {
         if (error.response) {
-            log.error(
+            BStackLogger.error(
                 `Exception while creating test run for BrowserStack Accessibility Automation: ${
                     error.response.status
                 } ${error.response.statusText} ${JSON.stringify(error.response.data)}`
@@ -409,16 +435,16 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         } else {
             const errorMessage = error.message
             if (errorMessage === 'Invalid configuration passed.') {
-                log.error(
+                BStackLogger.error(
                     `Exception while creating test run for BrowserStack Accessibility Automation: ${
                         errorMessage || error.stack
                     }`
                 )
                 for (const errorkey of error.errors){
-                    log.error(errorkey.message)
+                    BStackLogger.error(errorkey.message)
                 }
             } else {
-                log.error(
+                BStackLogger.error(
                     `Exception while creating test run for BrowserStack Accessibility Automation: ${
                         errorMessage || error.stack
                     }`
@@ -431,12 +457,12 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
 
 export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
-        log.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
+        BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
         return [] // since we are running only on Automate as of now
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
-        log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
         return []
     }
 
@@ -444,7 +470,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
         const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults)
         return results
     } catch {
-        log.error('No accessibility results were found.')
+        BStackLogger.error('No accessibility results were found.')
         return []
     }
 }
@@ -455,7 +481,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
-        log.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
         return {}
     }
 
@@ -463,7 +489,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
         const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary)
         return summaryResults
     } catch {
-        log.error('No accessibility summary was found.')
+        BStackLogger.error('No accessibility summary was found.')
         return {}
     }
 }
@@ -498,14 +524,14 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
         } else if (response.error) {
             throw new Error('Invalid request: ' + response.error)
         } else {
-            log.info(`BrowserStack Accessibility Automation Test Run marked as completed at ${new Date().toISOString()}`)
+            BStackLogger.info(`BrowserStack Accessibility Automation Test Run marked as completed at ${new Date().toISOString()}`)
             return { status: 'success', message: '' }
         }
     } catch (error : any) {
         if (error.response && error.response.status && error.response.statusText && error.response.data) {
-            log.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
         } else {
-            log.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.message || util.format(error)}`)
+            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.message || util.format(error)}`)
         }
         return {
             status: 'error',
@@ -520,7 +546,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         return
     }
     if (!process.env.BS_TESTOPS_JWT) {
-        log.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
+        BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
             message: 'Token/buildID is undefined, build creation might have failed'
@@ -540,13 +566,13 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             },
             json: data
         }).json()
-        log.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
-        log.debug(`[STOP_BUILD] Failed. Error: ${error}`)
+        BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
             message: error.message
@@ -905,7 +931,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     }
 
     if (!process.env.BS_TESTOPS_JWT) {
-        log.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
+        BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
         return {
             status: 'error',
             message: 'Token/buildID is undefined, build creation might have failed'
@@ -923,10 +949,10 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
             },
             json: eventData
         }).json()
-        log.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
+        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     } catch (error) {
-        log.debug(`[${logTag}] Failed. Error: ${error}`)
+        BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     }
 }
@@ -952,7 +978,7 @@ export function getHookType (hookName: string): string {
     return 'unknown'
 }
 
-export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
@@ -985,9 +1011,9 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
             },
             json: data
         }).json()
-        log.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
-        log.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
     }
 }
 
@@ -1120,3 +1146,39 @@ export async function pushDataToQueue(data: UploadType, requestQueueHandler: Req
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    if (!user || !key) {
+        return
+    }
+    const fileStream = fs.createReadStream(BStackLogger.logFilePath)
+    const uploadAddress = UPLOAD_LOGS_ADDRESS
+    const zip = zlib.createGzip({ level: 1 })
+    fileStream.pipe(zip)
+
+    const formData = new FormData()
+    formData.append('data', new FileStream(zip), 'logs.gz')
+    formData.append('clientBuildUuid', clientBuildUuid)
+
+    const requestOptions = {
+        body: formData,
+        username: user,
+        password: key
+    }
+
+    const response = await nodeRequest(
+        'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+    )
+
+    return response
+}
+
+export function setupExitHandlers() {
+    process.on('exit', (code) => {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
+}

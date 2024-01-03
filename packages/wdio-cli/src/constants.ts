@@ -95,10 +95,10 @@ export const SUPPORTED_PACKAGES = {
         { name: 'allure', value: '@wdio/allure-reporter$--$allure' },
         { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
         { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
+        { name: 'json', value: '@wdio/json-reporter$--$json' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
         { name: 'video', value: 'wdio-video-reporter$--$video' },
-        { name: 'json', value: 'wdio-json-reporter$--$json' },
         { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
@@ -903,6 +903,13 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         default: true
     },
     /**
+     * whether or not print the log output grouped by test files
+     */
+    groupLogsByTestSpec: {
+        type: 'boolean',
+        default: false
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
@@ -948,5 +955,12 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: HOOK_DEFINITION,
-    onReload: HOOK_DEFINITION
+    onReload: HOOK_DEFINITION,
+    beforeAssertion: HOOK_DEFINITION,
+    afterAssertion: HOOK_DEFINITION
+}
+
+export const WORKER_GROUPLOGS_MESSAGES = {
+    normalExit: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] *****`,
+    exitWithError: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] that preceded the error above *****`
 }

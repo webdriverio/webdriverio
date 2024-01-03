@@ -3,11 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-<<<<<<< HEAD
 Basierend auf dem [Setup-Type](/docs/setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
-=======
-Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
->>>>>>> eedb047cd (New translations Configuration.md (German))
 
 ## WebDriver-Optionen
 
@@ -292,6 +288,19 @@ Type: `Number`<br /> Default: `0`
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
+
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br />
+Default: `false`
 
 ### services
 
@@ -625,3 +634,27 @@ Parameter:
 - `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
 - `result.duration` (`ziffer`): Testdauer
 - `context` (`Objekt`): Cucumber World-Objekt
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

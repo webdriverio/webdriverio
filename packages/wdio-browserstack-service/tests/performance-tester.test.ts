@@ -1,12 +1,16 @@
 import fs from 'node:fs'
-import PerformanceTester from '../src/performance-tester.js'
 import { describe, expect, it, vi, afterEach } from 'vitest'
+import PerformanceTester from '../src/performance-tester.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 vi.mock('csv-writer', () => ({
     createObjectCsvWriter: vi.fn(() => ({
         writeRecords: vi.fn().mockResolvedValue(null),
     })),
 }))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 describe('PerformanceTester', function () {
     afterEach(() => {

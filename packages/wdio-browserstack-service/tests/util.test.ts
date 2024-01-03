@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach, beforeAll } from 'vitest'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
 import CrashReporter from '../src/crash-reporter.js'
@@ -37,8 +37,10 @@ import {
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     createAccessibilityTestRun,
-    isTrue
+    isTrue,
+    uploadLogs
 } from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 const log = logger('test')
 
@@ -46,6 +48,19 @@ vi.mock('got')
 vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('fs', () => ({
+    default: {
+        createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
+        createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+    }
+}))
+
+vi.mock('./fileStream')
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
@@ -1268,6 +1283,30 @@ describe('frameworkSupportsHook', function () {
 
     it('should return false for any other framework', function () {
         expect(frameworkSupportsHook('before', 'jasmine')).toBe(false)
+    })
+})
+
+describe('uploadLogs', function () {
+    let mockedGot: any
+    beforeAll(() => {
+        mockedGot = vi.mocked(got).mockReturnValue({
+            json: () => Promise.resolve({ status: 'success', message: 'Logs uploaded Successfully' }),
+        } as any)
+    })
+    it('should return if user is undefined', async function () {
+        await uploadLogs(undefined, 'some_key', 'some_uuid')
+        expect(mockedGot).not.toHaveBeenCalled()
+        vi.mocked(got).mockClear()
+    })
+    it('should return if key is undefined', async function () {
+        await uploadLogs('some_user', undefined, 'some_uuid')
+        expect(mockedGot).not.toHaveBeenCalled()
+        vi.mocked(got).mockClear()
+    })
+    it('should upload the logs', async function () {
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(mockedGot).toHaveBeenCalled()
+        vi.mocked(got).mockClear()
     })
 })
 

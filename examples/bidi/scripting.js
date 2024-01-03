@@ -7,7 +7,7 @@ const browser = await remote({
     }
 })
 
-await browser.scriptAddPreloadScriptCommand({
+await browser.scriptAddPreloadScript({
     functionDeclaration: '() => { window.bar="foo"; }'
 })
 

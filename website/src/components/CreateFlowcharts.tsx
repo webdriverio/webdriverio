@@ -24,10 +24,10 @@ const runRepl = `graph TD
         CALLRUN("Launch test runner by calling the @wdio/cli:index run()")-->
         LAUNCHTESTRUNNER2[Test runner is launched]-->
         CALLRUNCMDHANDLER("Call @wdio/cli/commands:run launcher()")-->
-        INSTANTIATELAUNCHER["Creates @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initialisePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
+        INSTANTIATELAUNCHER["Creates @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initializePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
         CALLLAUNCHERINSTANCERUN["@wdio/cli:launcher run()"]-->
         INITLAUNCHERINSTANCE["Create instance of all services<br>listed in the config services property."] -->
-        INIT["Call the runner initialise() method"]-->
+        INIT["Call the runner initialize() method"]-->
         RUNPRETSTTASKS["Run pre-test tasks for runner plugins"]-->
         CONFIGONPREPAREHOOK["wdio.conf.js onPrepare hook"]-->
         SERVICESONPREPAREHOOK["Run the services onPrepare hook<br>e.g. start selenium server."]-->
@@ -73,7 +73,7 @@ const startTestInstance = `graph TD
         ADDLISTENERS["Add message, error, exit event<br>listeners to worker instance."]-->
         CALLPOSTMESSAGE["Call @wdio/local-runner:worker postMessage().<br>If an instance is not created, call startProcess()<br>and fork a child process."]-->
         FORKCHILDPROCESS["@wdio/local-runner:worker startProcess() forks a<br>child process using the child_process fork() method."]-->
-        CREATERUNNERINSTANCE["The args passed to  child_process fork execute the code in the<br>@wdio-local-runner run.js.This action creates a new instance<br>of @wdio/runner index.js. "]-->
+        CREATERUNNERINSTANCE["The args passed to  child_process fork execute the code in the<br>@wdio/local-runner run.js.This action creates a new instance<br>of @wdio/runner index.js. "]-->
         ADDHANDLERS["Add message, error and exit listeners to the forked process.<br>These listeners will process commands."]-->
         RUNWDIORUNNERINDEXJS["@wdio/local-runner postMessage() instructs the child process to<br>run the code @wdio/runner index.js."]-->
         POSTMESSAGE["@wdio/local-runner postMessage() sends child process a message that<br>contains the capability id,'run' command, config file, CLI args,<br>capabilties, config details about automation backend, number of retries.<br>When the child process receives this message, all services, reports and<br>services are setup. The tests are them executed."]-->
@@ -84,11 +84,11 @@ const startTestInstance = `graph TD
 const setupTest = `graph TD
         START("@wdio/runner:index called from<br>child process via a run message.")-->
         EXECUTERUN["@wdio/runner:index run()"]-->
-        SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialised."]-->
-        INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialised usingthe @wdio/utils initialisePlugin method.<br> <br>Supported frameworks include @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
+        SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialized."]-->
+        INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialized usingthe @wdio/utils initializePlugin method.<br> <br>Supported frameworks include @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
         INITSERVICES["Initialise services"]-->
         RUNEFORESESSIONHOOK[Run wdio.conf.js beforeSession hook.]-->
-        INITSESSION["Call @wdio/runner:index _initSession.<br>@wdio/runner:utils initialiseInstance<br>calls webdriverio:index.js remote()."]-->
+        INITSESSION["Call @wdio/runner:index _initSession.<br>@wdio/runner:utils initializeInstance<br>calls webdriverio:index.js remote()."]-->
         ISPROTOCOLWEBDRIVER{"Is protocol<br>webdriver?"}
         ISPROTOCOLWEBDRIVER-->|Yes|WEBDRIVER
         ISPROTOCOLWEBDRIVER-->|No|DEVTOOLS
@@ -101,7 +101,7 @@ const setupTest = `graph TD
         WAITFORTESTTOFINISH[Wait for test to finish. If watch mode keep session open.]-->
         SENDRESULTS[Send results to reporter instance<br>for processing.]-->
         INTERFACE["@wdio/cli:interface printSummary() called<br>Test results printed to terminal"]-->
-        KILLWORKERSESSION[Kill worker session.]      
+        KILLWORKERSESSION[Kill worker session.]
     `
 
 const graphData = `
@@ -114,8 +114,8 @@ const graphData = `
         LAUNCHER
         LISTOFSERVICES-->LOCALRUNNER
         LISTOFSERVICES-->RUNNER
-        REPORTER["Any package that ends with -reporter<br>@wdio-allure-reporter<br>@wdio-concise-reporter<br>@wdio-dot-reporter<br>@wdio-junit-reporter<br>@wdio-reporter<br>@wdio-spec-reporter<br>@wdio-sumologic-reporter<br>wdio-reportportal-reporter<br>wdio-video-reporter<br>@rpii/wdio-html-reporter<br>wdio-json-reporter<br>wdio-mochawesome-reporter<br>wdio-timeline-reporter<br>wdio-cucumberjs-json-reporter"]-->RUNNER
-        FRAMEWORK["Any package that ends with -framework<br>@wdio-jasmine-framework<br>@wdio-mocha-framework<br>@wdio/cucumber-framework<br>"]-->
+        REPORTER["Any package that ends with -reporter<br>@wdio/allure-reporter<br>@wdio/concise-reporter<br>@wdio/dot-reporter<br>@wdio/junit-reporter<br>@wdio/reporter<br>@wdio/spec-reporter<br>@wdio/sumologic-reporter<br>@wdio/json-reporter<br>wdio-reportportal-reporter<br>wdio-video-reporter<br>@rpii/wdio-html-reporter<br>wdio-mochawesome-reporter<br>wdio-timeline-reporter<br>wdio-cucumberjs-json-reporter"]-->RUNNER
+        FRAMEWORK["Any package that ends with -framework<br>@wdio/jasmine-framework<br>@wdio/mocha-framework<br>@wdio/cucumber-framework<br>"]-->
         RUNNER
         WEBDRIVER["webdriverio<br>webdriver"]-->
         RUNNER

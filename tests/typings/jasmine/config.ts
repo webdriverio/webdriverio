@@ -12,3 +12,7 @@ const config: WebdriverIO.Config = {
  * check import of assertion lib
  */
 expect($('foo')).toHaveTextContaining('foobar')
+/**
+ * check support for Jasmine specific matchers
+ */
+expect(true).toBeTrue()

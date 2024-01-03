@@ -49,9 +49,9 @@ export async function url (
     }
 
     if (this.isBidi) {
-        const { contexts } = await this.browsingContextGetTree({})
+        const context = await this.getWindowHandle()
         const res = await this.browsingContextNavigate({
-            context: contexts[0].context,
+            context,
             url: path
         })
         return res.url

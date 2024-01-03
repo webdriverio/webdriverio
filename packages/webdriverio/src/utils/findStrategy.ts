@@ -104,7 +104,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // Use name strategy if selector queries elements with name attributes for JSONWP
     // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
-    if (stringSelector.search(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/) >= 0) {
+    if (stringSelector.search(/^\[name=(?:"(.[^"]*)"|'(.[^']*)')]$/) >= 0) {
         return 'name'
     }
     // Allow to move up to the parent or select current element
@@ -171,26 +171,31 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             // element has direct aria label
             // https://www.w3.org/TR/accname-1.1/#step2C
             `.//*[@aria-label = "${label}"]`,
-            // inputs with a label
+            // input and textarea with a label
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            // aria label is received by an input placeholder
+            `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            // input and textarea with a label as parent
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[//ancestor::label[normalize-space(text()) = "${label}"]]`,
+            `.//textarea[//ancestor::label[normalize-space(text()) = "${label}"]]`,
+            // aria label is received by a placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@placeholder="${label}"]`,
             `.//textarea[@placeholder="${label}"]`,
-            // aria label is received by an input placeholder
+            // aria label is received by a aria-placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@aria-placeholder="${label}"]`,
             `.//textarea[@aria-placeholder="${label}"]`,
-            // aria label is received by its title attribute
+            // aria label is received by a title
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//*[@title="${label}"]`,
+            `.//*[not(self::label)][@title="${label}"]`,
             // images with an alt tag
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//img[@alt="${label}"]`,
-            // aria label is received from element content
+            // aria label is received from element text content
             // https://www.w3.org/TR/accname-1.1/#step2G
-            `.//*[normalize-space(text()) = "${label}"]`
+            `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
         ]
         using = 'xpath'
         value = conditions.join(' | ')
@@ -232,12 +237,12 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     case 'name': {
         if (isMobile || !isW3C) {
-            const match = stringSelector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)
+            const match = stringSelector.match(/^\[name=(?:"(.[^"]*)"|'(.[^']*)')]$/)
             if (!match) {
                 throw new Error(`InvalidSelectorMatch. Strategy 'name' has failed to match '${stringSelector}'`)
             }
             using = 'name'
-            value = match[2]
+            value = match[1] || match[2]
         }
         break
     }

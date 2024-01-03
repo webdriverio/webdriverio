@@ -1,13 +1,14 @@
 import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
+import type { Worker } from './Workers.js'
 
 export interface RunnerInstance {
-    initialise(): Promise<void>
+    initialize(): Promise<void>
     shutdown(): Promise<boolean>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
-    run(args: any): NodeJS.EventEmitter
+    run(args: any): Worker
     workerPool: any
     browserPool: any
 }
@@ -41,6 +42,34 @@ export interface ServiceInstance extends HookFunctions {
     options?: Record<string, any>,
     capabilities?: RemoteCapability,
     config?: TestrunnerOptions
+}
+
+interface AssertionHookParams {
+    /**
+     * name of the matcher, e.g. `toHaveText` or `toBeClickable`
+     */
+    matcherName: string
+    /**
+     * Value that the user has passed in
+     *
+     * @example
+     * ```
+     * expect(el).toBeClickable() // expectedValue is undefined
+     * expect(el).toHaveText('foo') // expectedValue is `'foo'`
+     * expect(el).toHaveAttribute('attr', 'value', { ... }) // expectedValue is `['attr', 'value]`
+     * ```
+     */
+    expectedValue?: any
+    /**
+     * Options that the user has passed in, e.g. `expect(el).toHaveText('foo', { ignoreCase: true })` -> `{ ignoreCase: true }`
+     */
+    options: object
+}
+interface AfterAssertionHookParams extends AssertionHookParams {
+    result: {
+        message: () => string
+        result: boolean
+    }
 }
 
 export type ServiceEntry = (
@@ -105,12 +134,12 @@ export interface HookFunctions {
     ): unknown | Promise<unknown>
 
     /**
-     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
      * @param cid       capability id (e.g 0-0)
      * @param caps      object containing capabilities for session that will be spawn in the worker
      * @param specs     specs to be run in the worker process
-     * @param args      object that will be merged with the main configuration once worker is initialised
+     * @param args      object that will be merged with the main configuration once worker is initialized
      * @param execArgv  list of string arguments passed to the worker process
      */
     onWorkerStart?(
@@ -271,4 +300,20 @@ export interface HookFunctions {
         result: any,
         error?: Error
     ): unknown | Promise<unknown>
+
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion?(params: AssertionHookParams): unknown | Promise<unknown>
+
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion?(params: AfterAssertionHookParams): unknown | Promise<unknown>
 }

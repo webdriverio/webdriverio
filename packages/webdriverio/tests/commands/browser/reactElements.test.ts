@@ -66,8 +66,11 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter((elem: WebdriverIO.Element) => elem.isReactElement
-        ).length).toBe(3)
+        expect(
+            (await elems.filter(
+                (elem) => Boolean(elem.isReactElement)
+            )).length
+        ).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })
 })

@@ -12,8 +12,6 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { $ } from 'execa'
-// @ts-expect-error // @ts-expect-error https://github.com/egoist/detect-package-manager/pull/6
-import { detect } from 'detect-package-manager'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -454,7 +452,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
             file.endsWith('page.js.ejs')
                 ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? answers.stepDefinitions!
+                    ? path.join(answers.destStepRootPath, path.basename(file))
                     : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
@@ -573,17 +571,26 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return inquirer.prompt(questions)
 }
 
+/**
+ * Generates a valid file path from answers provided.
+ * @param answers The answer from which a file path is to be generated.
+ * @param projectRootDir The root directory of the project.
+ * @returns filePath
+ */
+function generatePathfromAnswer(answers:string, projectRootDir:string):string {
+    return path.resolve(
+        projectRootDir, path.dirname(answers) === '.' ? path.resolve(answers) : path.dirname(answers))
+}
+
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
-    const destSpecRootPath = path.resolve(
-        projectRootDir,
-        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+    const specAnswer = answers.specs || ''
+    const stepDefinitionAnswer = answers.stepDefinitions || ''
+    const pageObjectAnswer = answers.pages || ''
 
-    const destStepRootPath = path.resolve(projectRootDir, path.dirname(answers.stepDefinitions || ''))
-
+    const destSpecRootPath = generatePathfromAnswer(specAnswer, projectRootDir).replace(/\*\*$/, '')
+    const destStepRootPath = generatePathfromAnswer(stepDefinitionAnswer, projectRootDir)
     const destPageObjectRootPath = answers.usePageObjects
-        ? path.resolve(
-            projectRootDir,
-            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        ? generatePathfromAnswer(pageObjectAnswer, projectRootDir).replace(/\*\*$/, '')
         : ''
     const destSerenityLibRootPath = usesSerenity(answers)
         ? path.resolve(projectRootDir, answers.serenityLibPath || 'serenity')
@@ -795,7 +802,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
     const cwd = await getProjectRoot(parsedAnswers)
-    const pm = await detect({ cwd })
+    const pm = detectPackageManager()
     if (parsedAnswers.npmInstall) {
         console.log(`Installing packages using ${pm}:${SEP}${parsedAnswers.packagesToInstall.join(SEP)}`)
         const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
@@ -806,6 +813,22 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
         const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
         console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
     }
+}
+
+export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
+export type PM = typeof PMs[number]
+/**
+ * detect the package manager that was used
+ */
+export function detectPackageManager(argv = process.argv) {
+    return PMs.find((pm) => (
+        // for pnpm check "~/Library/pnpm/store/v3/..."
+        // for NPM check "~/.npm/npx/..."
+        // for Yarn check "~/.yarn/bin/create-wdio"
+        // for Bun check "~/.bun/bin/create-wdio"
+        argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
+        argv[1].includes(`${path.sep}.${pm}${path.sep}`)
+    )) || 'npm'
 }
 
 /**

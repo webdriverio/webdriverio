@@ -447,6 +447,8 @@ describe('wdio-runner', () => {
 
             expect(setOptions).toBeCalledTimes(1)
             expect(setOptions).toBeCalledWith({
+                afterAssertion: expect.any(Function),
+                beforeAssertion: expect.any(Function),
                 wait: 1,
                 interval: 2
             })

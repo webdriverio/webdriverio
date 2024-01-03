@@ -1,0 +1,81 @@
+name: Add comment on label
+on:
+  issues:
+    types:
+      - labeled
+  pull_request:
+    types:
+      - labeled
+jobs:
+  first-contribution:
+    if: github.event.label.name == 'First Contribution 🎉'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment on first contribution label
+        run: gh issue comment "$NUMBER" --body "$BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          BODY: >
+            Congratulations on your first contribution to WebdriverIO 🎉
+
+
+            This project thrives on the invaluable involvement of our community, and we are
+            truly grateful for your contribution. We eagerly anticipate witnessing more of
+            your exceptional work, so please don't hesitate to inform us if we can assist
+            you in identifying intriguing areas where you can make further contributions.
+
+
+            Join our lively [Discord](https://discord.webdriver.io/) channel and reach out to us;
+            we would be delighted to connect with you. Your efforts are deeply appreciated,
+            and we extend our heartfelt gratitude to you. 🙏 ❤️
+  reproducible-example-missing:
+    if: github.event.label.name == 'Reproducible Example Missing'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment if a reproducible example is missing
+        run: gh issue comment "$NUMBER" --body "$BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          BODY: >
+            Thanks for raising this issue 🙏
+
+
+            Unfortunately we can't help you without a reproducible example in this matter. Please read
+            our [contributing guidelines](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#reporting-new-issues)
+            on how to create a reproducible example. If you can't provide a reproducible example we will
+            close this issue in 7 days.
+
+
+            If you have any questions please reach out to us on our [Discord](https://discord.webdriver.io/)
+            channel. We are happy to help you out there.
+  legit-issue:
+    if: github.event.label.name == 'help wanted'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment if more information is needed
+        run: gh issue comment "$NUMBER" --body "$BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          BODY: >
+            Thanks for reporting!
+
+
+            We greatly appreciate any contributions that help resolve the bug. While we understand
+            that active contributors have their own priorities, we kindly request your assistance
+            if you rely on this bug being fixed. We encourage you to take a look at our
+            [contribution guidelines](https://webdriver.io/docs/contribute) or join our friendly
+            [Discord](http://discord.webdriver.io/) development server, where you can ask any
+            questions you may have. Thank you for your support, and cheers!
+

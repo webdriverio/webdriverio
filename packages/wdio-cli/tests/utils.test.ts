@@ -37,7 +37,8 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
@@ -57,6 +58,7 @@ vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
@@ -583,7 +585,8 @@ describe('generateTestFiles', () => {
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
             generateTestFiles: true,
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
+            destStepRootPath: '/tests/stepDefinitions'
         }
         await generateTestFiles(answers as any)
 
@@ -614,7 +617,7 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
-            stepDefinitions: '/some/step',
+            destStepRootPath: '/tests/stepDefinitions',
             destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
@@ -669,6 +672,29 @@ describe('getPathForFileGeneration', () => {
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
         expect(generatedPaths.relativePath).toEqual('../page/objects')
+    })
+    it('Cucumber with pageobjects and steps different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'cucumber/features/steps',
+            pages: 'cucumber/features/pages',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('')
+    })
+
+    it('Cucumber with answer that is not a path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'y',
+            pages: 'h',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../h')
     })
 
     it('Mocha with pageobjects default values', () => {
@@ -954,6 +980,16 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+})
+
+test.each([
+    ['', 'npm'],
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
 })
 
 afterEach(() => {

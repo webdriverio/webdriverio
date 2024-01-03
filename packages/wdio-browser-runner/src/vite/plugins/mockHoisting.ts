@@ -217,7 +217,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                             [b.importNamespaceSpecifier(b.identifier(newImportIdentifier))],
                             b.literal(source)
                         )
-                        nodePath.insertBefore(newNode)
+                        mockCalls.unshift(newNode)
                     }
 
                     // determine file extension length so we can cut it out, fall back to infinity if no extension is set

@@ -87,10 +87,39 @@ export interface BrowserClose extends Command {
   params: EmptyParams;
 }
 
-export type BrowsingContextCommand = BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload;
+export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetViewport | BrowsingContextTraverseHistory;
 export type BrowsingContextBrowsingContext = string;
+export type BrowsingContextLocator = BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+
+export interface BrowsingContextCssLocator {
+  type: 'css';
+  value: string;
+}
+
+export interface BrowsingContextInnerTextLocator {
+  type: 'innerText';
+  value: string;
+  ignoreCase?: boolean;
+  matchType?: 'full' | 'partial';
+  maxDepth?: JsUint;
+}
+
+export interface BrowsingContextXPathLocator {
+  type: 'xpath';
+  value: string;
+}
+
 export type BrowsingContextNavigation = string;
 export type BrowsingContextReadinessState = 'none' | 'interactive' | 'complete';
+
+export interface BrowsingContextActivate extends Command {
+  method: 'browsingContext.activate';
+  params: BrowsingContextActivateParameters;
+}
+
+export interface BrowsingContextActivateParameters {
+  context: BrowsingContextBrowsingContext;
+}
 
 export interface BrowsingContextCaptureScreenshot extends Command {
   method: 'browsingContext.captureScreenshot';
@@ -99,6 +128,32 @@ export interface BrowsingContextCaptureScreenshot extends Command {
 
 export interface BrowsingContextCaptureScreenshotParameters {
   context: BrowsingContextBrowsingContext;
+  /**
+   * @default 'viewport'
+   */
+  origin?: 'viewport' | 'document';
+  format?: BrowsingContextImageFormat;
+  clip?: BrowsingContextClipRectangle;
+}
+
+export interface BrowsingContextImageFormat {
+  type: string;
+  quality?: number;
+}
+
+export type BrowsingContextClipRectangle = BrowsingContextBoxClipRectangle | BrowsingContextElementClipRectangle;
+
+export interface BrowsingContextElementClipRectangle {
+  type: 'element';
+  element: ScriptSharedReference;
+}
+
+export interface BrowsingContextBoxClipRectangle {
+  type: 'box';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface BrowsingContextClose extends Command {
@@ -108,6 +163,7 @@ export interface BrowsingContextClose extends Command {
 
 export interface BrowsingContextCloseParameters {
   context: BrowsingContextBrowsingContext;
+  promptUnload?: boolean;
 }
 
 export interface BrowsingContextCreate extends Command {
@@ -120,6 +176,7 @@ export type BrowsingContextCreateType = 'tab' | 'window';
 export interface BrowsingContextCreateParameters {
   type: BrowsingContextCreateType;
   referenceContext?: BrowsingContextBrowsingContext;
+  background?: boolean;
 }
 
 export interface BrowsingContextGetTree extends Command {
@@ -141,6 +198,21 @@ export interface BrowsingContextHandleUserPromptParameters {
   context: BrowsingContextBrowsingContext;
   accept?: boolean;
   userText?: string;
+}
+
+export interface BrowsingContextLocateNodes extends Command {
+  method: 'browsingContext.locateNodes';
+  params: BrowsingContextLocateNodesParameters;
+}
+
+export interface BrowsingContextLocateNodesParameters {
+  context: BrowsingContextBrowsingContext;
+  locator: BrowsingContextLocator;
+  maxNodeCount?: JsUint;
+  ownership?: ScriptResultOwnership;
+  sandbox?: string;
+  serializationOptions?: ScriptSerializationOptions;
+  startNodes?: ScriptSharedReference[];
 }
 
 export interface BrowsingContextNavigate extends Command {
@@ -179,7 +251,9 @@ export interface BrowsingContextPrintParameters {
   shrinkToFit?: boolean;
 }
 
-export interface BrowsingContextPrintMarginParameters {
+export // Minimum size is 1pt x 1pt. Conversion follows from
+// https://www.w3.org/TR/css3-values/#absolute-lengths
+interface BrowsingContextPrintMarginParameters {
   /**
    * @default 1
    */
@@ -220,9 +294,196 @@ export interface BrowsingContextReloadParameters {
   wait?: BrowsingContextReadinessState;
 }
 
-export interface NetworkCommand {}
+export interface BrowsingContextSetViewport extends Command {
+  method: 'browsingContext.setViewport';
+  params: BrowsingContextSetViewportParameters;
+}
+
+export interface BrowsingContextSetViewportParameters {
+  context: BrowsingContextBrowsingContext;
+  viewport?: BrowsingContextViewport | null;
+  devicePixelRatio?: number | null;
+}
+
+export interface BrowsingContextViewport {
+  width: JsUint;
+  height: JsUint;
+}
+
+export interface BrowsingContextTraverseHistory extends Command {
+  method: 'browsingContext.traverseHistory';
+  params: BrowsingContextTraverseHistoryParameters;
+}
+
+export interface BrowsingContextTraverseHistoryParameters {
+  context: BrowsingContextBrowsingContext;
+  delta: JsInt;
+}
+
+export type NetworkCommand = NetworkAddIntercept | NetworkContinueRequest | NetworkContinueResponse | NetworkContinueWithAuth | NetworkFailRequest | NetworkProvideResponse | NetworkRemoveIntercept;
+
+export interface NetworkAuthCredentials {
+  type: 'password';
+  username: string;
+  password: string;
+}
+
+export type NetworkBytesValue = NetworkStringValue | NetworkBase64Value;
+
+export interface NetworkStringValue {
+  type: 'string';
+  value: string;
+}
+
+export interface NetworkBase64Value {
+  type: 'base64';
+  value: string;
+}
+
+export interface NetworkCookie {
+  name: string;
+  value: NetworkBytesValue;
+  domain: string;
+  path: string;
+  size: JsUint;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'strict' | 'lax' | 'none';
+  expiry?: JsUint;
+}
+
+export interface NetworkCookieHeader {
+  name: string;
+  value: NetworkBytesValue;
+}
+
+export interface NetworkHeader {
+  name: string;
+  value: NetworkBytesValue;
+}
+
+export type NetworkIntercept = string;
 export type NetworkRequest = string;
-export type ScriptCommand = ScriptAddPreloadScriptCommand | ScriptCallFunction | ScriptDisown | ScriptEvaluate | ScriptGetRealms | ScriptRemovePreloadScriptCommand;
+
+export interface NetworkSetCookieHeader {
+  name: string;
+  value: NetworkBytesValue;
+  domain?: string;
+  httpOnly?: boolean;
+  expiry?: string;
+  maxAge?: JsInt;
+  path?: string;
+  sameSite?: 'strict' | 'lax' | 'none';
+  secure?: boolean;
+}
+
+export type NetworkUrlPattern = NetworkUrlPatternPattern | NetworkUrlPatternString;
+
+export interface NetworkUrlPatternPattern {
+  type: 'pattern';
+  protocol?: string;
+  hostname?: string;
+  port?: string;
+  pathname?: string;
+  search?: string;
+}
+
+export interface NetworkUrlPatternString {
+  type: 'string';
+  pattern: string;
+}
+
+export interface NetworkAddIntercept extends Command {
+  method: 'network.addIntercept';
+  params: NetworkAddInterceptParameters;
+}
+
+export interface NetworkAddInterceptParameters {
+  phases: NetworkInterceptPhase[];
+  urlPatterns?: NetworkUrlPattern[];
+}
+
+export type NetworkInterceptPhase = 'beforeRequestSent' | 'responseStarted' | 'authRequired';
+
+export interface NetworkContinueRequest extends Command {
+  method: 'network.continueRequest';
+  params: NetworkContinueRequestParameters;
+}
+
+export interface NetworkContinueRequestParameters {
+  request: NetworkRequest;
+  body?: NetworkBytesValue;
+  cookies?: NetworkCookieHeader[];
+  headers?: NetworkHeader[];
+  method?: string;
+  url?: string;
+}
+
+export interface NetworkContinueResponse extends Command {
+  method: 'network.continueResponse';
+  params: NetworkContinueResponseParameters;
+}
+
+export interface NetworkContinueResponseParameters {
+  request: NetworkRequest;
+  cookies?: NetworkSetCookieHeader[];
+  credentials?: NetworkAuthCredentials;
+  headers?: NetworkHeader[];
+  reasonPhrase?: string;
+  statusCode?: JsUint;
+}
+
+export interface NetworkContinueWithAuth extends Command {
+  method: 'network.continueWithAuth';
+  params: NetworkContinueWithAuthParameters;
+}
+
+export interface NetworkContinueWithAuthParameters extends NetworkContinueWithAuthCredentials {
+  request: NetworkRequest;
+}
+
+export interface NetworkContinueWithAuthCredentials {
+  action: 'provideCredentials';
+  credentials: NetworkAuthCredentials;
+}
+
+export interface NetworkContinueWithAuthNoCredentials {
+  action: 'default' | 'cancel';
+}
+
+export interface NetworkFailRequest extends Command {
+  method: 'network.failRequest';
+  params: NetworkFailRequestParameters;
+}
+
+export interface NetworkFailRequestParameters {
+  request: NetworkRequest;
+}
+
+export interface NetworkProvideResponse extends Command {
+  method: 'network.provideResponse';
+  params: NetworkProvideResponseParameters;
+}
+
+export interface NetworkProvideResponseParameters {
+  request: NetworkRequest;
+  body?: NetworkBytesValue;
+  cookies?: NetworkSetCookieHeader[];
+  headers?: NetworkHeader[];
+  reasonPhrase?: string;
+  statusCode?: JsUint;
+}
+
+export interface NetworkRemoveIntercept extends Command {
+  method: 'network.removeIntercept';
+  params: NetworkRemoveInterceptParameters;
+}
+
+export interface NetworkRemoveInterceptParameters {
+  intercept: NetworkIntercept;
+}
+
+export type ScriptCommand = ScriptAddPreloadScript | ScriptCallFunction | ScriptDisown | ScriptEvaluate | ScriptGetRealms | ScriptRemovePreloadScript;
 export type ScriptChannel = string;
 
 export interface ScriptChannelValue {
@@ -259,7 +520,8 @@ export interface ScriptExceptionDetails {
 }
 
 export type ScriptHandle = string;
-export type ScriptLocalValue = ScriptPrimitiveProtocolValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue;
+export type ScriptInternalId = string;
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue;
 export type ScriptListLocalValue = (ScriptLocalValue)[];
 
 export interface ScriptArrayLocalValue {
@@ -347,7 +609,6 @@ export interface ScriptRemoteObjectReference extends Extensible {
 }
 
 export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptIteratorRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
-export type ScriptInternalId = JsUint;
 export type ScriptListRemoteValue = (ScriptRemoteValue)[];
 export type ScriptMappingRemoteValue = (ScriptRemoteValue | ScriptRemoteValue)[];
 
@@ -491,8 +752,13 @@ export interface ScriptNodeProperties {
 
 export interface ScriptWindowProxyRemoteValue {
   type: 'window';
+  value: ScriptWindowProxyProperties;
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
+}
+
+export interface ScriptWindowProxyProperties {
+  context: BrowsingContextBrowsingContext;
 }
 
 export type ScriptResultOwnership = 'root' | 'none';
@@ -533,7 +799,7 @@ export interface ScriptContextTarget {
 
 export type ScriptTarget = ScriptRealmTarget | ScriptContextTarget;
 
-export interface ScriptAddPreloadScriptCommand extends Command {
+export interface ScriptAddPreloadScript extends Command {
   method: 'script.addPreloadScript';
   params: ScriptAddPreloadScriptParameters;
 }
@@ -541,6 +807,7 @@ export interface ScriptAddPreloadScriptCommand extends Command {
 export interface ScriptAddPreloadScriptParameters {
   functionDeclaration: string;
   arguments?: ScriptChannelValue[];
+  contexts?: BrowsingContextBrowsingContext[];
   sandbox?: string;
 }
 
@@ -563,13 +830,12 @@ export interface ScriptCallFunctionParameters {
   functionDeclaration: string;
   awaitPromise: boolean;
   target: ScriptTarget;
-  arguments?: ScriptArgumentValue[];
+  arguments?: ScriptLocalValue[];
   resultOwnership?: ScriptResultOwnership;
   serializationOptions?: ScriptSerializationOptions;
-  this?: ScriptArgumentValue;
+  this?: ScriptLocalValue;
+  userActivation?: boolean;
 }
-
-export type ScriptArgumentValue = ScriptRemoteReference | ScriptLocalValue | ScriptChannelValue;
 
 export interface ScriptEvaluate extends Command {
   method: 'script.evaluate';
@@ -582,6 +848,7 @@ export interface ScriptEvaluateParameters {
   awaitPromise: boolean;
   resultOwnership?: ScriptResultOwnership;
   serializationOptions?: ScriptSerializationOptions;
+  userActivation?: boolean;
 }
 
 export interface ScriptGetRealms extends Command {
@@ -594,7 +861,7 @@ export interface ScriptGetRealmsParameters {
   type?: ScriptRealmType;
 }
 
-export interface ScriptRemovePreloadScriptCommand extends Command {
+export interface ScriptRemovePreloadScript extends Command {
   method: 'script.removePreloadScript';
   params: ScriptRemovePreloadScriptParameters;
 }
@@ -710,7 +977,7 @@ export interface InputWheelScrollAction {
   origin?: InputOrigin;
 }
 
-export interface InputPointerCommonProperties extends InputTiltProperties {
+export interface InputPointerCommonProperties {
   /**
    * @default 1
    */
@@ -721,17 +988,15 @@ export interface InputPointerCommonProperties extends InputTiltProperties {
   height?: JsUint;
   pressure?: number;
   tangentialPressure?: number;
+  /**
+   * 0 .. Math.PI / 2
+   */
   twist?: number;
-}
-
-export interface InputAngleProperties {
+  /**
+   * 0 .. 2 * Math.PI
+   */
   altitudeAngle?: number;
   azimuthAngle?: number;
-}
-
-export interface InputTiltProperties {
-  tiltX?: number;
-  tiltY?: number;
 }
 
 export type InputOrigin = 'viewport' | 'pointer' | InputElementOrigin;

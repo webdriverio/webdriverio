@@ -91,13 +91,13 @@ exports[`getCapabilities > should return driver with capabilities for ios 2`] = 
 }
 `;
 
-exports[`getCapabilities > should through capability not found 1`] = `"No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file."`;
+exports[`getCapabilities > should through capability not found 1`] = `[Error: No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file.]`;
 
-exports[`getCapabilities > should throw capability not provided 1`] = `"Please provide index/named property of capability to use from the capabilities array/object in wdio config file"`;
+exports[`getCapabilities > should throw capability not provided 1`] = `[Error: Please provide index/named property of capability to use from the capabilities array/object in wdio config file]`;
 
-exports[`getCapabilities > should throw config not found error 1`] = `"Config File not found: ./test.js"`;
+exports[`getCapabilities > should throw config not found error 1`] = `[Error: Config File not found: ./test.js]`;
 
-exports[`getCapabilities > should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;
+exports[`getCapabilities > should throw config not found error 2`] = `[Error: Could not parse ./test.js, failed with error : ups]`;
 
 exports[`npmInstall 1`] = `
 [
@@ -117,12 +117,12 @@ exports[`npmInstall 1`] = `
 
 exports[`setup Babel 1`] = `
 "module.exports = {
-    \\"presets\\": [
+    "presets": [
         [
-            \\"@babel/preset-env\\",
+            "@babel/preset-env",
             {
-                \\"targets\\": {
-                    \\"node\\": 18
+                "targets": {
+                    "node": 18
                 }
             }
         ]
@@ -132,34 +132,34 @@ exports[`setup Babel 1`] = `
 
 exports[`setupTypeScript 1`] = `
 "{
-    \\"compilerOptions\\": {
-        \\"moduleResolution\\": \\"node\\",
-        \\"module\\": \\"ESNext\\",
-        \\"target\\": \\"es2022\\",
-        \\"lib\\": [
-            \\"es2022\\",
-            \\"dom\\"
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "ESNext",
+        "target": "es2022",
+        "lib": [
+            "es2022",
+            "dom"
         ],
-        \\"types\\": [
-            \\"node\\",
-            \\"@wdio/globals/types\\",
-            \\"expect-webdriverio\\",
-            \\"foo\\",
-            \\"wdio-electron-service\\"
+        "types": [
+            "node",
+            "@wdio/globals/types",
+            "expect-webdriverio",
+            "foo",
+            "wdio-electron-service"
         ],
-        \\"skipLibCheck\\": true,
-        \\"noEmit\\": true,
-        \\"allowImportingTsExtensions\\": true,
-        \\"resolveJsonModule\\": true,
-        \\"isolatedModules\\": true,
-        \\"strict\\": true,
-        \\"noUnusedLocals\\": true,
-        \\"noUnusedParameters\\": true,
-        \\"noFallthroughCasesInSwitch\\": true
+        "skipLibCheck": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true
     },
-    \\"include\\": [
-        \\"test\\",
-        \\"wdio.conf.ts\\"
+    "include": [
+        "test",
+        "wdio.conf.ts"
     ]
 }"
 `;

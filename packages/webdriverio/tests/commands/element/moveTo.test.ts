@@ -20,15 +20,13 @@ describe('moveTo', () => {
         const elem = await browser.$('#elem')
         // @ts-ignore mock feature
         got.setMockResponse([undefined])
-        // @ts-expect-error mock feature
-        elem.elementId = { scrollIntoView: vi.fn() }
         await elem.moveTo()
 
-        expect(vi.mocked(got).mock.calls[5][0]!.pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions).toHaveLength(1)
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].type).toBe('pointer')
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions).toHaveLength(1)
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(got).mock.calls[2][1]!.json.actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[2][1]!.json.actions[0].type).toBe('pointer')
+        expect(vi.mocked(got).mock.calls[2][1]!.json.actions[0].actions).toHaveLength(1)
+        expect(vi.mocked(got).mock.calls[2][1]!.json.actions[0].actions[0])
             .toMatchSnapshot()
     })
 
@@ -43,10 +41,8 @@ describe('moveTo', () => {
         const elem = await browser.$('#elem')
         // @ts-ignore mock feature
         got.setMockResponse([undefined])
-        // @ts-expect-error mock feature
-        elem.elementId = { scrollIntoView: vi.fn() }
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(vi.mocked(got).mock.calls[5][1]!.json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[3][1]!.json.actions[0].actions[0])
             .toMatchSnapshot()
     })
 

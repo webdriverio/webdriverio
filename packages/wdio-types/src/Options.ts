@@ -10,15 +10,17 @@ export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Agents = { http?: any, https?: any }
 
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+
 export interface RequestLibOptions {
     agent?: Agents
     followRedirect?: boolean
     headers?: Record<string, string | string[] | undefined>
     https?: Record<string, unknown>
     json?: Record<string, unknown>
-    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+    method?: Method
     responseType?: 'json' | 'buffer' | 'text'
-    retry?: { limit: number }
+    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
     searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     throwHttpErrors?: boolean
     timeout?: { response: number }
@@ -413,6 +415,16 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred?: boolean
+    /**
+     * Choose the log output view.
+     * If set to "false" logs from different test files will be printed in real-time.
+     * Please note that this may result in the mixing of log outputs from different Test Specs when running in parallel.
+     * If set to "true" log outputs will be grouped by test files and printed only when the test is completed.
+     * By default, it is set to "false" so logs are printed in real-time.
+     *
+     * @default false
+     */
+    groupLogsByTestSpec?: boolean,
     /**
      * Services take over a specific job you don't want to take care of. They enhance
      * your test setup with almost no effort.

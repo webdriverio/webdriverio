@@ -43,10 +43,8 @@ export async function saveScreenshot (
 
     let screenBuffer: string
     if (this.isBidi) {
-        const { contexts } = await this.browsingContextGetTree({})
-        const { data } = await this.browsingContextCaptureScreenshot({
-            context: contexts[0].context
-        })
+        const context = await this.getWindowHandle()
+        const { data } = await this.browsingContextCaptureScreenshot({ context })
         screenBuffer = data
     } else {
         screenBuffer = await this.takeScreenshot()

@@ -113,6 +113,11 @@ export default class CucumberFormatter extends Formatter {
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
     }
 
+    updateCurrentPickle(params: HookParams) {
+        this._currentPickle = params
+        this.eventEmitter.emit('getHookParams', params)
+    }
+
     normalizeURI(uri: string) {
         return path.isAbsolute(uri) ? uri : path.resolve(uri)
     }
@@ -270,12 +275,12 @@ export default class CucumberFormatter extends Formatter {
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
-        this._currentPickle = {
+        this.updateCurrentPickle({
             uri: gherkinDocEvent.uri,
             feature: gherkinDocEvent.feature,
-        }
+        })
+
         this._gherkinDocEvents.push(gherkinDocEvent)
-        this.eventEmitter.emit('getHookParams', this._currentPickle)
     }
 
     onHook(hookEvent: Hook) {
@@ -387,7 +392,7 @@ export default class CucumberFormatter extends Formatter {
             )
         }
 
-        this._currentPickle = { uri, feature, scenario }
+        this.updateCurrentPickle({ uri, feature, scenario })
 
         const reporterScenario: ReporterScenario = scenario
         reporterScenario.rule = getRule(
@@ -445,7 +450,7 @@ export default class CucumberFormatter extends Formatter {
                 return
             }
 
-            this._currentPickle = { uri, feature, scenario, step }
+            this.updateCurrentPickle({ uri, feature, scenario, step })
 
             this._testStart = new Date()
             const type = getStepType(step)
@@ -534,7 +539,7 @@ export default class CucumberFormatter extends Formatter {
         )
         const uri = doc?.uri
         const feature = doc?.feature
-        this._currentPickle = { uri, feature, scenario }
+        this.updateCurrentPickle({ uri, feature, scenario })
 
         const payload = {
             uid: scenario.id,
