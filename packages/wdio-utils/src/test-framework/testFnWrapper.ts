@@ -7,17 +7,11 @@ import type {
     BeforeHookParam,
     AfterHookParam
 } from './types.js'
-import { afterHookErrMessage } from '../constants.js'
 
 declare global {
-    // Firstly variable '_wdioDynamicJasmineResult' gets value in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
+    // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
     // eslint-disable-next-line no-var
-    var _wdioDynamicJasmineResult: WdioDynamicJasmineResult
-}
-
-interface WdioDynamicJasmineResult {
-    passedExpectations: [any, ...any[]]
-    failedExpectations: [any, ...any[]]
+    var _wdioDynamicJasmineResultErrorList: any
 }
 
 const STACKTRACE_FILTER = [
@@ -25,6 +19,7 @@ const STACKTRACE_FILTER = [
     'node_modules/webdriverio/',
     'node_modules/@wdio/',
     '(internal/process/task',
+    '(node:internal/process/task'
 ]
 
 /**
@@ -95,16 +90,12 @@ export const testFrameworkFnWrapper = async function (
     const testStart = Date.now()
     try {
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
-        if (
-            globalThis._wdioDynamicJasmineResult &&
-            global._wdioDynamicJasmineResult.passedExpectations.length === 0 &&
-            global._wdioDynamicJasmineResult.failedExpectations.length > 0
+        if (result === undefined &&
+            globalThis._wdioDynamicJasmineResultErrorList.length > 0
         ) {
-            const jasmineErr = new Error(globalThis._wdioDynamicJasmineResult.failedExpectations[0]?.message)
-            jasmineErr.stack = globalThis._wdioDynamicJasmineResult.failedExpectations[0].stack
-            throw jasmineErr
-        } else {
-            console.error(afterHookErrMessage)
+            globalThis._wdioDynamicJasmineResultErrorList[0].stack = filterStackTrace(globalThis._wdioDynamicJasmineResultErrorList[0].stack)
+            error = globalThis._wdioDynamicJasmineResultErrorList[0]
+            globalThis._wdioDynamicJasmineResultErrorList = undefined
         }
     } catch (err: any) {
         if (err.stack) {
