@@ -72,7 +72,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failureStatuses.push('pending')
         }
 
-        if (((_caps as any)['wdio:cid'] as string) === process.env.BEST_PLATFORM_CID) {
+        if (process.env.WDIO_WORKER_ID === process.env.BEST_PLATFORM_CID) {
             process.env.PERCY_SNAPSHOT = 'true'
         }
     }

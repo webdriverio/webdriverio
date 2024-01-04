@@ -10,14 +10,14 @@ import PercyCaptureMap from './PercyCaptureMap.js'
 import * as PercySDK from './PercySDK.js'
 import { PercyLogger } from './PercyLogger.js'
 
-import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS } from '../constants.js'
+import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants.js'
 
 class _PercyHandler {
     private _testMetadata: { [key: string]: any } = {}
     private sessionName?: string
     private _isAppAutomate?: boolean
     private isPercyCleanupProcessingUnderway?: boolean = false
-    public _percyScreenshotCounter: any = 0
+    private _percyScreenshotCounter: any = 0
     private percyDeferredScreenshots: any = []
     private percyScreenshotInterval: any = null
 
@@ -29,7 +29,7 @@ class _PercyHandler {
         private _framework?: string
     ) {
         this._isAppAutomate = isAppAutomate
-        if (!_percyAutoCaptureMode || !['click', 'auto', 'screenshot', 'manual', 'testcase'].includes(_percyAutoCaptureMode as string)) {
+        if (_percyAutoCaptureMode && !_percyAutoCaptureMode || !CAPTURE_MODES.includes(_percyAutoCaptureMode as string)) {
             this._percyAutoCaptureMode = 'auto'
         }
     }

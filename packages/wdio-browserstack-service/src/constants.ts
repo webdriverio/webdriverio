@@ -58,3 +58,5 @@ export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
     '/session/:sessionId/actions',
     '/session/:sessionId/appium/device/shake'
 ]
+
+export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']
