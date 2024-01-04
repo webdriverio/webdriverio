@@ -409,7 +409,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-        
+
         if (this._percy?.isRunning()) {
             return
         }
