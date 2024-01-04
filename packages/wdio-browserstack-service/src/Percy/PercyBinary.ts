@@ -2,9 +2,8 @@ import url from 'node:url'
 import yauzl from 'yauzl'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import pkg from 'follow-redirects';
-const { https } = pkg;
-// import { https } from 'follow-redirects'
+import pkg from 'follow-redirects'
+const { https } = pkg
 
 import path from 'node:path'
 import os from 'node:os'
