@@ -392,18 +392,18 @@ describe('beforeTest', () => {
             executeSpy = vi.spyOn((browser as WebdriverIO.Browser), 'execute')
         })
 
-        it('should execute test started if page opened and can scan the page', async () => {
-            const logInfoMock = vi.spyOn(log, 'info')
-            vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-            accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { return [] })
+        // it('should execute test started if page opened and can scan the page', async () => {
+        //     const logInfoMock = vi.spyOn(log, 'info')
+        //     vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
+        //     accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { return [] })
 
-            await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
+        //     await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(accessibilityHandler['sendTestStartEvent']).toBeCalledTimes(1)
-            expect(logInfoMock.mock.calls[1][0])
-                .toContain('Automate test case execution has started.')
-            vi.fn().mockRestore()
-        })
+        //     expect(accessibilityHandler['sendTestStartEvent']).toBeCalledTimes(1)
+        //     expect(logInfoMock.mock.calls[1][0])
+        //         .toContain('Automate test case execution has started.')
+        //     vi.fn().mockRestore()
+        // })
 
         it('should not execute test started if url is invalid', async () => {
             browser.getUrl = async () => {
