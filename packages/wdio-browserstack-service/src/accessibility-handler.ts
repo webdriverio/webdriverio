@@ -116,6 +116,8 @@ class _AccessibilityHandler {
         }
 
         try {
+            BStackLogger.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
+
             if (shouldScanTest) {
                 BStackLogger.info('Setup for Accessibility testing has started. Automate test case execution will begin momentarily.')
                 await this.sendTestStartEvent(this._browser as WebdriverIO.Browser)
