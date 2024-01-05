@@ -12,6 +12,7 @@ import type { Capabilities } from '@wdio/types'
 import * as bstackLogger from '../src/bstackLogger.js'
 
 const log = logger('test')
+const log1 = logger('test')
 let accessibilityHandler: AccessibilityHandler
 let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 let caps: Capabilities.RemoteCapability
