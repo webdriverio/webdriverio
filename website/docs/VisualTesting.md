@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 ## What can it do?
 
-_wdio-image-comparison-service_ is a lightweight _WebdriverIO_ service for browsers / mobile browsers / hybrid apps to do image comparisons on screens, elements or full-page screens.
+WebdriverIO provides image comparisons on screens, elements or a full-page for browsers, mobile browsers as well as hybrid apps through the [`wdio-image-comparison-service`](https://www.npmjs.com/package/wdio-image-comparison-service) which is a lightweight WebdriverIO service.
 
 You can:
 
