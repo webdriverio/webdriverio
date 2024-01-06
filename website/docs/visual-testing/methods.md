@@ -13,6 +13,8 @@ Only use the Save Methods when you **don't** want to compare screens, but only w
 
 ### `saveElement`
 
+Saves an image of an element.
+
 #### Usage
 
 ```ts
