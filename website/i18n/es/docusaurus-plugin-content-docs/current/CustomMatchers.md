@@ -46,3 +46,15 @@ If you are using TypeScript, one more step is required to ensure the type safety
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L40-L47
 ```
+
+If you created a custom [asymmetric matcher](https://jestjs.io/docs/expect#expectextendmatchers), you can similarly extend the `expect` types as follows:
+
+```ts
+declare global {
+  namespace ExpectWebdriverIO {
+    interface AsymmetricMatchers {
+      myCustomMatcher(value: string): ExpectWebdriverIO.PartialMatcher;
+    }
+  }
+}
+```
