@@ -18,7 +18,7 @@ Before diving into the powerful features of the `wdio-image-comparison-service`,
 -   **Comparing Identical Platforms:** Ensure screenshots are compared within the same platform. For instance, a screenshot from Chrome on a Mac should not be used to compare against one from Chrome on Ubuntu or Windows.
 -   **Analogy:** To put it simply, compare _'Apples with Apples, not Apples with Androids'_.
 
-## 3. Caution with Mismatch Percentage
+## Caution with Mismatch Percentage
 
 -   **Risk of Accepting Mismatches:** Exercise caution when accepting a mismatch percentage. This is especially true for large screenshots, where accepting a mismatch might inadvertently overlook significant discrepancies, such as missing buttons or elements.
 
