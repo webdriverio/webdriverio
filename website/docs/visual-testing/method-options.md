@@ -212,16 +212,16 @@ Scales 2 images to the same size before execution of comparison. Highly recommen
 The baseline folder and screenshot folders(actual, diff) are options that can be set during the instantiation of the plugin or method. To set the folder options on a particular method, pass in folder options to the methods option object.
 
 ```ts
-import { join } from "path";
+import path from 'node:path'
 
 const methodOptions = {
-    actualFolder: join(process.cwd(), "./customActual"),
-    baselineFolder: join(process.cwd(), "./customBaseline"),
-    diffFolder: join(process.cwd(), "./customDiff"),
-};
+    actualFolder: path.join(process.cwd(), 'customActual'),
+    baselineFolder: path.join(process.cwd(), 'customBaseline'),
+    diffFolder: path.join(process.cwd(), 'customDiff'),
+}
 
 // You can use this for all methods
 await expect(
     await browser.checkFullPageScreen("checkFullPage", methodOptions)
-).toEqual(0);
+).toEqual(0)
 ```

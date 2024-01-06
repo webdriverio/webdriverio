@@ -20,9 +20,9 @@ Saves an image of an element.
 ```ts
 await browser.saveElement(
     // element
-    await $("#element-selector"),
+    await $('#element-selector'),
     // tag
-    "your-reference",
+    'your-reference',
     // saveElementOptions
     {
         // ...
@@ -40,7 +40,7 @@ await browser.saveElement(
     -   **Type:** string
 -   **`saveElementOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Save Options](./method-options#save-options)
+    -   **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -55,7 +55,7 @@ Saves an image of a viewport.
 ```ts
 await browser.saveScreen(
     // tag
-    "your-reference",
+    'your-reference',
     // saveScreenOptions
     {
         // ...
@@ -69,7 +69,7 @@ await browser.saveScreen(
     -   **Type:** string
 -   **`saveScreenOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Save Options](./method-options#save-options)
+    -   **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -84,7 +84,7 @@ Saves an image of the complete screen.
 ```ts
 await browser.saveFullPageScreen(
     // tag
-    "your-reference",
+    'your-reference',
     // saveFullPageScreenOptions
     {
         // ...
@@ -98,7 +98,7 @@ await browser.saveFullPageScreen(
     -   **Type:** string
 -   **`saveFullPageScreenOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Save Options](./method-options#save-options)
+    -   **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -113,7 +113,7 @@ Saves an image of the complete screen with the tabbable lines and dots.
 ```ts
 await browser.saveTabbablePage(
     // tag
-    "your-reference",
+    'your-reference',
     // saveTabbableOptions
     {
         // ...
@@ -127,7 +127,7 @@ await browser.saveTabbablePage(
     -   **Type:** string
 -   **`saveTabbableOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Save Options](./method-options#save-options)
+    -   **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -159,9 +159,9 @@ Compare an image of an element against a baseline image.
 ```ts
 await browser.checkElement(
     // element
-    "#element-selector",
+    '#element-selector',
     // tag
-    "your-reference",
+    'your-reference',
     // checkElementOptions
     {
         // ...
@@ -178,7 +178,7 @@ await browser.checkElement(
     -   **Type:** string
 -   **`checkElementOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Compare/Check Options](./method-options#compare-check-options)
+    -   **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -193,7 +193,7 @@ Compares an image of a viewport against a baseline image.
 ```ts
 await browser.checkScreen(
     // tag
-    "your-reference",
+    'your-reference',
     // checkScreenOptions
     {
         // ...
@@ -207,7 +207,7 @@ await browser.checkScreen(
     -   **Type:** string
 -   **`checkScreenOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Compare/Check Options](./method-options#compare-check-options)
+    -   **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -222,7 +222,7 @@ Compares an image of the complete screen against a baseline image.
 ```ts
 await browser.checkFullPageScreen(
     // tag
-    "your-reference",
+    'your-reference',
     // checkFullPageOptions
     {
         // ...
@@ -236,7 +236,7 @@ await browser.checkFullPageScreen(
     -   **Type:** string
 -   **`checkFullPageOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Compare/Check Options](./method-options#compare-check-options)
+    -   **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -251,7 +251,7 @@ Compares an image of the complete screen with the tabbable lines and dots agains
 ```ts
 await browser.checkTabbablePage(
     // tag
-    "your-reference",
+    'your-reference',
     // checkTabbableOptions
     {
         // ...
@@ -265,7 +265,7 @@ await browser.checkTabbablePage(
     -   **Type:** string
 -   **`checkTabbableOptions`:**
     -   **Mandatory:** No
-    -   **Type:** object of options, see [Compare/Check Options](./method-options#compare-check-options)
+    -   **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 

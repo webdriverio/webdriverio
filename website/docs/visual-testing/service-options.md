@@ -6,23 +6,24 @@ title: Service Options
 Service options are the options that can be set when the service is instantiated and will be used for each method call.
 
 ```js
-const { join } = require("path");
+import path from 'node:path'
+
 // wdio.conf.(js|ts)
-exports.config = {
+export const config = {
     // ...
     // =====
     // Setup
     // =====
     services: [
         [
-            "image-comparison",
+            'image-comparison',
             {
                 // The options
-            },
-        ],
-    ],
+            }
+        ]
+    ]
     // ...
-};
+}
 ```
 
 ## Default Options
@@ -104,14 +105,11 @@ If no baseline image is found during the comparison the image is automatically c
 The directory will hold all the baseline images that are used during the comparison. If not set, the default value will be used. A function that accepts an option object can also be used to set the `baselineFolder` value:
 
 ```js
-getFolder = type = (options) => {
-    const testFolder = path.dirname(options.specs[0]);
-
-    return path.join(testFolder, "snapshots", type);
-};
-
 {
-    baselineFolder: getFolder(options);
+    baselineFolder: (options) => {
+        const testFolder = path.dirname(options.specs[0])
+        return path.join(testFolder, 'snapshots', type)
+    }
 }
 ```
 

@@ -34,218 +34,218 @@ If you instantiate `wdio-image-comparison-service` with [`autoSaveBaseline: true
 :::
 
 <Tabs
-defaultValue="mocha"
-values={[
-{label: 'Mocha', value: 'mocha'},
-{label: 'Jasmine', value: 'jasmine'},
-{label: 'CucumberJS', value: 'cucumberjs'},
-]
-}>
+    defaultValue="mocha"
+    values={[
+        {label: 'Mocha', value: 'mocha'},
+        {label: 'Jasmine', value: 'jasmine'},
+        {label: 'CucumberJS', value: 'cucumberjs'},
+    ]}
+>
 <TabItem value="mocha">
 
 ```ts
-describe("Mocha Example", () => {
+describe('Mocha Example', () => {
     beforeEach(async () => {
-        await browser.url("https://webdriver.io");
-    });
+        await browser.url('https://webdriver.io')
+    })
 
-    it("should save some screenshots", async () => {
+    it('should save some screenshots', async () => {
         // Save a screen
-        await browser.saveScreen("examplePaged", {
+        await browser.saveScreen('examplePaged', {
             /* some options */
-        });
+        })
 
         // Save an element
         await browser.saveElement(
-            await $("#element-id"),
-            "firstButtonElement",
+            await $('#element-id'),
+            'firstButtonElement',
             {
                 /* some options */
             }
-        );
+        )
 
         // Save a full page screenshot
-        await browser.saveFullPageScreen("fullPage", {
+        await browser.saveFullPageScreen('fullPage', {
             /* some options */
-        });
+        })
 
         // Save a full page screenshot with all tab executions
-        await browser.saveTabbablePage("save-tabbable", {
+        await browser.saveTabbablePage('save-tabbable', {
             /* some options, use the same options as for saveFullPageScreen */
-        });
-    });
+        })
+    })
 
-    it("should compare successful with a baseline", async () => {
+    it('should compare successful with a baseline', async () => {
         // Check a screen
         await expect(
-            await browser.checkScreen("examplePaged", {
+            await browser.checkScreen('examplePaged', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check an element
         await expect(
             await browser.checkElement(
-                await $("#element-id"),
-                "firstButtonElement",
+                await $('#element-id'),
+                'firstButtonElement',
                 {
                     /* some options */
                 }
             )
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot
         await expect(
-            await browser.checkFullPageScreen("fullPage", {
+            await browser.checkFullPageScreen('fullPage', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot with all tab executions
         await expect(
-            await browser.checkTabbablePage("check-tabbable", {
+            await browser.checkTabbablePage('check-tabbable', {
                 /* some options, use the same options as for checkFullPageScreen */
             })
-        ).toEqual(0);
-    });
-});
+        ).toEqual(0)
+    })
+})
 ```
 
 </TabItem>
 <TabItem value="jasmine">
 
 ```ts
-describe("Jasmine Example", () => {
+describe('Jasmine Example', () => {
     beforeEach(async () => {
-        await browser.url("https://webdriver.io");
-    });
+        await browser.url('https://webdriver.io')
+    })
 
-    it("should save some screenshots", async () => {
+    it('should save some screenshots', async () => {
         // Save a screen
-        await browser.saveScreen("examplePaged", {
+        await browser.saveScreen('examplePaged', {
             /* some options */
-        });
+        })
 
         // Save an element
         await browser.saveElement(
-            await $("#element-id"),
-            "firstButtonElement",
+            await $('#element-id'),
+            'firstButtonElement',
             {
                 /* some options */
             }
-        );
+        )
 
         // Save a full page screenshot
-        await browser.saveFullPageScreen("fullPage", {
+        await browser.saveFullPageScreen('fullPage', {
             /* some options */
-        });
+        })
 
         // Save a full page screenshot with all tab executions
-        await browser.saveTabbablePage("save-tabbable", {
+        await browser.saveTabbablePage('save-tabbable', {
             /* some options, use the same options as for saveFullPageScreen */
-        });
-    });
+        })
+    })
 
-    it("should compare successful with a baseline", async () => {
+    it('should compare successful with a baseline', async () => {
         // Check a screen
         await expect(
-            await browser.checkScreen("examplePaged", {
+            await browser.checkScreen('examplePaged', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check an element
         await expect(
             await browser.checkElement(
-                await $("#element-id"),
-                "firstButtonElement",
+                await $('#element-id'),
+                'firstButtonElement',
                 {
                     /* some options */
                 }
             )
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot
         await expect(
-            await browser.checkFullPageScreen("fullPage", {
+            await browser.checkFullPageScreen('fullPage', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot with all tab executions
         await expect(
-            await browser.checkTabbablePage("check-tabbable", {
+            await browser.checkTabbablePage('check-tabbable', {
                 /* some options, use the same options as for checkFullPageScreen */
             })
-        ).toEqual(0);
-    });
-});
+        ).toEqual(0)
+    })
+})
 ```
 
 </TabItem>
 <TabItem value="cucumberjs">
 
 ```ts
-import { When, Then } from "@wdio/cucumber-framework";
+import { When, Then } from '@wdio/cucumber-framework'
 
-When("I save some screenshots", async function () {
+When('I save some screenshots', async function () {
     // Save a screen
-    await browser.saveScreen("examplePaged", {
+    await browser.saveScreen('examplePaged', {
         /* some options */
-    });
+    })
 
     // Save an element
-    await browser.saveElement(await $("#element-id"), "firstButtonElement", {
+    await browser.saveElement(await $('#element-id'), 'firstButtonElement', {
         /* some options */
-    });
+    })
 
     // Save a full page screenshot
-    await browser.saveFullPageScreen("fullPage", {
+    await browser.saveFullPageScreen('fullPage', {
         /* some options */
-    });
+    })
 
     // Save a full page screenshot with all tab executions
-    await browser.saveTabbablePage("save-tabbable", {
+    await browser.saveTabbablePage('save-tabbable', {
         /* some options, use the same options as for saveFullPageScreen */
-    });
-});
+    })
+})
 
 Then(
-    "I should be able to compare some screenshots with a baseline",
+    'I should be able to compare some screenshots with a baseline',
     async function () {
         // Check a screen
         await expect(
-            await browser.checkScreen("examplePaged", {
+            await browser.checkScreen('examplePaged', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check an element
         await expect(
             await browser.checkElement(
-                await $("#element-id"),
-                "firstButtonElement",
+                await $('#element-id'),
+                'firstButtonElement',
                 {
                     /* some options */
                 }
             )
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot
         await expect(
-            await browser.checkFullPageScreen("fullPage", {
+            await browser.checkFullPageScreen('fullPage', {
                 /* some options */
             })
-        ).toEqual(0);
+        ).toEqual(0)
 
         // Check a full page screenshot with all tab executions
         await expect(
-            await browser.checkTabbablePage("check-tabbable", {
+            await browser.checkTabbablePage('check-tabbable', {
                 /* some options, use the same options as for checkFullPageScreen */
             })
-        ).toEqual(0);
+        ).toEqual(0)
     }
-);
+)
 ```
 
 </TabItem>

@@ -3,10 +3,6 @@ id: test-output
 title: Test Output
 ---
 
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## save(Screen/Element/FullPageScreen)
 
 ### Console Output
@@ -31,27 +27,27 @@ console.log(saveResults)
 ### Image Output
 
 <Tabs
-defaultValue="saveelement"
-values={[
-{label: 'saveElement', value: 'saveelement'},
-{label: 'saveScreen', value: 'savescreen'},
-{label: 'saveFullPageScreen', value: 'savefullpagescreen'},
-]
-}>
+    defaultValue="saveelement"
+    values={[
+        {label: 'saveElement', value: 'saveelement'},
+        {label: 'saveScreen', value: 'savescreen'},
+        {label: 'saveFullPageScreen', value: 'savefullpagescreen'},
+    ]}
+>
 <TabItem value="saveelement">
 
 ```js
-await browser.saveElement("#element-id", "example-element-tag");
+await browser.saveElement("#element-id", "example-element-tag")
 ```
 
 <Tabs
-defaultValue="desktop"
-values={[
-{label: 'Desktop', value: 'desktop'},
-{label: 'Android', value: 'android'},
-{label: 'iOS', value: 'ios'},
-]
-}>
+    defaultValue="desktop"
+    values={[
+        {label: 'Desktop', value: 'desktop'},
+        {label: 'Android', value: 'android'},
+        {label: 'iOS', value: 'ios'},
+    ]}
+>
 <TabItem value="desktop">
 ![saveElement Desktop](./img/test-output/wdioLogo-chrome-latest-1-1366x768.png)
 </TabItem>
@@ -67,18 +63,18 @@ values={[
 <TabItem value="savescreen">
 
 ```js
-await browser.saveScreen("example-page-tag");
+await browser.saveScreen("example-page-tag")
 ```
 
 <Tabs
-defaultValue="desktop"
-values={[
-{label: 'Desktop', value: 'desktop'},
-{label: 'Android ChromeDriver', value: 'android-chromedriver'},
-{label: 'Android nativeWebScreenshot', value: 'android-native'},
-{label: 'iOS', value: 'ios'},
-]
-}>
+    defaultValue="desktop"
+    values={[
+        {label: 'Desktop', value: 'desktop'},
+        {label: 'Android ChromeDriver', value: 'android-chromedriver'},
+        {label: 'Android nativeWebScreenshot', value: 'android-native'},
+        {label: 'iOS', value: 'ios'},
+    ]}
+>
 <TabItem value="desktop">
 ![saveScreen Desktop](./img/test-output/examplePage-chrome-latest-1366x768.png)
 </TabItem>
@@ -102,17 +98,17 @@ iOS `saveScreen` executions are by default not with the device bezel corners. To
 <TabItem value="savefullpagescreen">
 
 ```js
-await browser.saveFullPageScreen("full-page-tag");
+await browser.saveFullPageScreen("full-page-tag")
 ```
 
 <Tabs
-defaultValue="desktop"
-values={[
-{label: 'Desktop', value: 'desktop'},
-{label: 'Android', value: 'android'},
-{label: 'iOS', value: 'ios'},
-]
-}>
+    defaultValue="desktop"
+    values={[
+        {label: 'Desktop', value: 'desktop'},
+        {label: 'Android', value: 'android'},
+        {label: 'iOS', value: 'ios'},
+    ]}
+>
 <TabItem value="desktop">
 ![saveFullPageScreens Desktop](./img/test-output/fullPage-chrome-latest-1366x768.png)
 </TabItem>
@@ -124,7 +120,6 @@ values={[
 </TabItem>
 </Tabs>
 </TabItem>
-
 </Tabs>
 
 ## check(Screen/Element/FullPageScreen)
@@ -163,19 +158,18 @@ The images below will only show differences as a result of running the check com
 :::
 
 <Tabs
-defaultValue="checkelement"
-values={[
-{label: 'checkElement', value: 'checkelement'},
-{label: 'checkScreen', value: 'checkscreen'},
-{label: 'checkFullPageScreen', value: 'checkfullpagescreen'},
-]
-}>
+    defaultValue="checkelement"
+    values={[
+        {label: 'checkElement', value: 'checkelement'},
+        {label: 'checkScreen', value: 'checkscreen'},
+        {label: 'checkFullPageScreen', value: 'checkfullpagescreen'},
+    ]}
+>
 <TabItem value="checkelement">
 
 ```js
-await browser.checkElement("#element-id", "example-element-tag");
+await browser.checkElement("#element-id", "example-element-tag")
 ```
-
 
 :::info
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
@@ -187,7 +181,7 @@ The button text has been changed from `Get Started` to `Getting Started!` and de
 <TabItem value="checkscreen">
 
 ```js
-await browser.checkScreen("example-page-tag");
+await browser.checkScreen("example-page-tag")
 ```
 
 :::info
@@ -201,9 +195,8 @@ The button text has been changed from `Get Started` to `Getting Started!` and de
 <TabItem value="checkfullpagescreen">
 
 ```js
-await browser.checkFullPageScreen("full-page-tag");
+await browser.checkFullPageScreen("full-page-tag")
 ```
-
 
 :::info
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
