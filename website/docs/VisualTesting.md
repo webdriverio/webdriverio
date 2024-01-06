@@ -185,26 +185,7 @@ We now also support typescript types. Add the following to the `types` in your `
 
 ## System Requirements
 
--   [Node.js](#nodejs)
--   [WebdriverIO](#webdriverio/) V8 or higher
--   [Node Canvas](#node-canvas)
-
-### Node.js
-
-You’ll need [Node.js](http://nodejs.org) installed.
-
--   Install at least v18.x or higher as this is the oldest active LTS version
--   Only releases that are or will become an LTS release are officially supported
-
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) to assist in managing multiple active Node.js versions.
-
-### WebdriverIO
-
-If you don't have a project, please check the WebdriverIO [Getting Started Docs](https://webdriver.io/docs/gettingstarted) to set up your project.
-
-### Node Canvas
-
-This module relies on [Canvas](https://github.com/Automattic/node-canvas) which is a canvas implementation for Node.js. It relies on [Cairo](https://cairographics.org/).
+Aside from the general [project requirements](/gettingstarted#system-requirements) this module relies on [Canvas](https://github.com/Automattic/node-canvas) which is a canvas implementation for Node.js. It relies on [Cairo](https://cairographics.org/).
 
 By default, binaries for macOS, Linux and Windows will be downloaded during your project's `npm install`. If you don't have a supported OS or processor architecture, the module will be compiled on your system. This requires several dependencies, including Cairo and Pango.
 
