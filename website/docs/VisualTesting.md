@@ -194,13 +194,13 @@ For detailed installation information, see the [node-canvas wiki](https://github
 <Tabs
 defaultValue="osx"
 values={[
-{label: 'OS X', value: 'osx'},
-{label: 'Ubuntu X', value: 'ubuntu'},
-{label: 'Fedora X', value: 'fedora'},
-{label: 'Solaris X', value: 'solaris'},
-{label: 'OpenBSD X', value: 'openbsd'},
-{label: 'Window X', value: 'windows'},
-{label: 'Others X', value: 'others'},
+{label: 'OS', value: 'osx'},
+{label: 'Ubuntu', value: 'ubuntu'},
+{label: 'Fedora', value: 'fedora'},
+{label: 'Solaris', value: 'solaris'},
+{label: 'OpenBSD', value: 'openbsd'},
+{label: 'Window', value: 'windows'},
+{label: 'Others', value: 'others'},
 ]
 }>
 <TabItem value="osx">
