@@ -20,7 +20,7 @@ Saves an image of an element.
 ```ts
 await browser.saveElement(
     // element
-    "#element-selector",
+    await $("#element-selector"),
     // tag
     "your-reference",
     // saveElementOptions
@@ -30,7 +30,8 @@ await browser.saveElement(
 );
 ```
 
--   **Description:** Saves an image of an element
+#### Parameters
+
 -   **`element`:**
     -   **Mandatory:** Yes
     -   **Type:** WebdriverIO Element
@@ -43,9 +44,11 @@ await browser.saveElement(
 
 #### Output:
 
-See [Test Output](./test-output#savescreenelementfullpagescreen)
+See the [Test Output](./test-output#savescreenelementfullpagescreen) page.
 
 ### `saveScreen`
+
+Saves an image of a viewport.
 
 #### Usage
 
@@ -60,7 +63,7 @@ await browser.saveScreen(
 );
 ```
 
--   **Description:** Saves an image of a viewport
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -70,11 +73,13 @@ await browser.saveScreen(
 
 #### Output:
 
-See [Test Output](./test-output#savescreenelementfullpagescreen)
+See the [Test Output](./test-output#savescreenelementfullpagescreen) page.
 
 ### `saveFullPageScreen`
 
 #### Usage
+
+Saves an image of the complete screen.
 
 ```ts
 await browser.saveFullPageScreen(
@@ -87,7 +92,7 @@ await browser.saveFullPageScreen(
 );
 ```
 
--   **Description:** Saves an image of the complete screen
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -97,9 +102,11 @@ await browser.saveFullPageScreen(
 
 #### Output:
 
-See [Test Output](./test-output#savescreenelementfullpagescreen)
+See the [Test Output](./test-output#savescreenelementfullpagescreen) page.
 
 ### `saveTabbablePage`
+
+Saves an image of the complete screen with the tabbable lines and dots.
 
 #### Usage
 
@@ -114,7 +121,7 @@ await browser.saveTabbablePage(
 );
 ```
 
--   **Description:** Saves an image of the complete screen with the tabbable lines and dots
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -124,7 +131,7 @@ await browser.saveTabbablePage(
 
 #### Output:
 
-See [Test Output](./test-output#savescreenelementfullpagescreen)
+See the [Test Output](./test-output#savescreenelementfullpagescreen) page.
 
 ## Check Methods
 
@@ -145,6 +152,8 @@ When the `check`-methods are used for the first time you will see the below warn
 
 ### `checkElement`
 
+Compare an image of an element against a baseline image.
+
 #### Usage
 
 ```ts
@@ -160,7 +169,7 @@ await browser.checkElement(
 );
 ```
 
--   **Description:** Compare an image of an element against a baseline image
+#### Parameters
 -   **`element`:**
     -   **Mandatory:** Yes
     -   **Type:** WebdriverIO Element
@@ -173,9 +182,11 @@ await browser.checkElement(
 
 #### Output:
 
-See [Test Output](./test-output#checkscreenelementfullpagescreen)
+See the [Test Output](./test-output#checkscreenelementfullpagescreen) page.
 
 ### `checkScreen`
+
+Compares an image of a viewport against a baseline image.
 
 #### Usage
 
@@ -190,7 +201,7 @@ await browser.checkScreen(
 );
 ```
 
--   **Description:** Compares an image of a viewport against a baseline image
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -200,9 +211,11 @@ await browser.checkScreen(
 
 #### Output:
 
-See [Test Output](./test-output#checkscreenelementfullpagescreen)
+See the [Test Output](./test-output#checkscreenelementfullpagescreen) page.
 
 ### `checkFullPageScreen`
+
+Compares an image of the complete screen against a baseline image.
 
 #### Usage
 
@@ -217,7 +230,7 @@ await browser.checkFullPageScreen(
 );
 ```
 
--   **Description:** Compares an image of the complete screen against a baseline image
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -227,9 +240,11 @@ await browser.checkFullPageScreen(
 
 #### Output:
 
-See [Test Output](./test-output#checkscreenelementfullpagescreen)
+See the [Test Output](./test-output#checkscreenelementfullpagescreen) page.
 
 ### `checkTabbablePage`
+
+Compares an image of the complete screen with the tabbable lines and dots against a baseline image.
 
 #### Usage
 
@@ -244,7 +259,7 @@ await browser.checkTabbablePage(
 );
 ```
 
--   **Description:** Compares an image of the complete screen with the tabbable lines and dots against a baseline image
+#### Parameters
 -   **`tag`:**
     -   **Mandatory:** Yes
     -   **Type:** string
@@ -254,7 +269,7 @@ await browser.checkTabbablePage(
 
 #### Output:
 
-See [Test Output](./test-output#checkscreenelementfullpagescreen)
+See the [Test Output](./test-output#checkscreenelementfullpagescreen) page.
 
 <!-- /**
 /**
