@@ -171,12 +171,6 @@ main().catch(async (e) => {
 });
 ```
 
-### DEV-TOOLS support
-
-You can also use the Chrome DevTools as an automation protocol in combination with this module. You don't need to do anything,
-just change `automationProtocol: 'devtools'` in your config.
-More information about how to use the DEV-TOOLS can be found in [this](https://webdriver.io/blog/2019/09/16/devtools.html) blog post.
-
 ### Typescript support
 
 We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
