@@ -13,7 +13,7 @@ Before diving into the powerful features of the `wdio-image-comparison-service`,
 -   **Pixel-by-Pixel Basis:** The module performs a pixel-by-pixel comparison of images. While certain aspects can be adjusted (see Comparison Options), the core approach remains a basic pixel comparison.
 -   **Impact of Browser Updates:** Be aware that updates to browsers, like Chrome, may affect font rendering, potentially necessitating an update to your baseline images.
 
-## 2. Consistency in Platforms
+## Consistency in Platforms
 
 -   **Comparing Identical Platforms:** Ensure screenshots are compared within the same platform. For instance, a screenshot from Chrome on a Mac should not be used to compare against one from Chrome on Ubuntu or Windows.
 -   **Analogy:** To put it simply, compare _'Apples with Apples, not Apples with Androids'_.
