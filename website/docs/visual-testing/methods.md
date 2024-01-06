@@ -270,13 +270,3 @@ await browser.checkTabbablePage(
 #### Output:
 
 See the [Test Output](./test-output#checkscreenelementfullpagescreen) page.
-
-<!-- /**
-/**
- * Compare an image of an element
- */
-checkElement(
-    element: Element,
-    tag: string,
-    checkElementOptions?: WdioCheckElementMethodOptions
-): Promise<Result>; -->
