@@ -17,8 +17,8 @@ This allows you to:
 -   block out custom regions and even automatically exclude a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
 -   use different comparison methods
--   You can now verify how your website will support tabbing with your keyboard, see also here @TODO
--   and much more, see the options here @TODO
+-   You can now verify how your website will support tabbing with your keyboard, see also [Tabbing through a website](#tabbing-through-a-website)
+-   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
 The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](http://rsmbl.github.io/Resemble.js/).
 
@@ -170,6 +170,45 @@ main().catch(async (e) => {
     console.error(e);
 });
 ```
+
+### Tabbing through a website
+
+You can check if a website is accessible by using the keyboard `TAB`-key. Testing this part of accessibility has always been a time-consuming (manual) job and pretty hard to do through automation.
+With the methods `saveTabbablePage` and `checkTabbablePage` you can now draw lines and dots on your website to verify the tabbing order.
+
+Be aware of the fact that this is only useful for desktop browsers and **NOT**** for mobile devices. All desktop browsers support this feature.
+
+:::note
+
+The work is inspired by [Viv Richards](https://github.com/vivrichards600) his blog post about ["AUTOMATING PAGE TABABILITY (IS THAT A WORD?) WITH VISUAL TESTING"](https://vivrichards.co.uk/accessibility/automating-page-tab-flows-using-visual-testing-and-javascript).
+
+The way tabbable elements are selected is based on the module [tabbable](https://github.com/davidtheclark/tabbable). If there are any issues regarding the tabbing please check the [README.md](https://github.com/davidtheclark/tabbable/blob/master/README.md) and especially the [More ](https://github.com/davidtheclark/tabbable/blob/master/README.md#more-details)Details section.
+
+:::
+
+#### How does it work
+
+Both methods will create a `canvas` element on your website and draw lines and dots to show you where your TAB would go if an end-user would use it. After that, it will create a full-page screenshot to give you a good overview of the flow.
+
+:::important
+
+**Use the `saveTabbablePage` only when you need to create a screenshot and DON'T want to compare it **with a **baseline** image.****
+
+:::
+
+When you want to compare the tabbing flow with a baseline, then you can use the `checkTabbablePage`-method. You **DON'T** need to use the two methods together. If there is already a baseline image created, which can automatically be done by providing `autoSaveBaseline: true` when you instantiate the service,
+the `checkTabbablePage` will first create the _actual_ image and then compare it against the baseline.
+
+##### Options
+
+Both methods use the same options as the [`saveFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#savefullpagescreen-or-savetabbablepage) or the
+[`compareFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#comparefullpagescreen-or-comparetabbablepage).
+
+#### Example
+
+This is an example of how the tabbing works on our [guinea pig](http://guinea-pig.webdriver.io/image-compare.html) website](http://guinea-pig.webdriver.io/image-compare.html):
+
+![WDIO tabbing example](./visual-testing/img/tabbable-chrome-latest-1366x768.png)
 
 ### Typescript support
 
