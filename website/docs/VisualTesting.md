@@ -97,7 +97,7 @@ More service options can be found [here](./service-options).
 We also support [MultiRemote](https://webdriver.io/docs/multiremote/). To make this work properly make sure that you add `wdio-ics:options` to your
 capabilities as you can see below. This will make sure that each screenshot will have its own unique name.
 
-[Writing your tests](./visual-testing/writing-tests) will not be any different in comparison to using the [TestRunner](https://webdriver.io/docs/testrunner)
+[Writing your tests](./visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
 
 ```js
 exports.config = {
