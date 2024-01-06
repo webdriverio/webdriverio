@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 
 WebdriverIO provides image comparisons on screens, elements or a full-page for browsers, mobile browsers as well as hybrid apps through the [`wdio-image-comparison-service`](https://www.npmjs.com/package/wdio-image-comparison-service) which is a lightweight WebdriverIO service.
 
-You can:
+This allows you to:
 
 -   save or compare screens/elements/full-page screens against a baseline
 -   automatically create a baseline when no baseline is there
