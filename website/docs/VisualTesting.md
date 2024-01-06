@@ -17,7 +17,6 @@ This allows you to:
 -   block out custom regions and even automatically exclude a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
 -   use different comparison methods
--   We now support Puppeteer with WebdriverIO
 -   You can now verify how your website will support tabbing with your keyboard, see also here @TODO
 -   and much more, see the options here @TODO
 
