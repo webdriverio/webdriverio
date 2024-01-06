@@ -5,7 +5,7 @@ title: FAQ
 
 ### Do I need to use a `save(Screen/Element/FullPageScreen)` methods when I want to run `check(Screen/Element/FullPageScreen)`?
 
-No, you don't need to do this. The `check(Screen/Element/FullPageScreen)` will do this automatically for you
+No, you don't need to do this. The `check(Screen/Element/FullPageScreen)` will do this automatically for you.
 
 ### Width and height cannot be negative
 
