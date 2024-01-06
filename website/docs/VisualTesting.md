@@ -132,7 +132,7 @@ exports.config = {
 
 ### Running Programmatically
 
-Here is a minimal example of how to use `wdio-image-comparison-service` via `remote` options
+Here is a minimal example of how to use `wdio-image-comparison-service` via `remote` options:
 
 ```js
 import { remote } from "webdriverio";
