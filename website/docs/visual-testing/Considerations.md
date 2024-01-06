@@ -8,9 +8,7 @@ title: Considerations
 
 Before diving into the powerful features of the `wdio-image-comparison-service`, it's crucial to understand some key considerations that ensure you get the most out of this tool. The following points are designed to guide you through best practices and common pitfalls, helping you achieve accurate and efficient visual testing results. These considerations are not just recommendations, but essential aspects to keep in mind for effectively utilizing the service in real-world scenarios.
 
-# Important Considerations
-
-## 1. Nature of Comparison
+## Nature of Comparison
 
 -   **Pixel-by-Pixel Basis:** The module performs a pixel-by-pixel comparison of images. While certain aspects can be adjusted (see Comparison Options), the core approach remains a basic pixel comparison.
 -   **Impact of Browser Updates:** Be aware that updates to browsers, like Chrome, may affect font rendering, potentially necessitating an update to your baseline images.
