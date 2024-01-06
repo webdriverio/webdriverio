@@ -22,7 +22,7 @@ Before diving into the powerful features of the `wdio-image-comparison-service`,
 
 -   **Risk of Accepting Mismatches:** Exercise caution when accepting a mismatch percentage. This is especially true for large screenshots, where accepting a mismatch might inadvertently overlook significant discrepancies, such as missing buttons or elements.
 
-## 4. Mobile Screen Simulation
+## Mobile Screen Simulation
 
 -   **Avoid Browser Resizing for Mobile Simulation:** Do not attempt to simulate mobile screen sizes by resizing desktop browsers and treating them as mobile browsers. Desktop browsers, even when resized, do not accurately replicate the rendering of actual mobile browsers.
 -   **Authenticity in Comparison:** This tool aims to compare visuals as they would appear to an end-user. A resized desktop browser does not reflect the true experience on a mobile device.
