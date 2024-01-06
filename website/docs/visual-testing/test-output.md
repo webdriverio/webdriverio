@@ -130,22 +130,26 @@ values={[
 By default, the `check(Screen/Element/FullPageScreen)` methods will only provide a mismatch percentage like `1.23`, but when the plugin has the option `returnAllCompareData: true` the following information is provided after the method has been executed:
 
 ```js
-const checkResult = {
-    // The formatted filename, this depends on the options `formatImageName`
-    fileName: "examplePage-chrome-headless-latest-1366x768.png",
-    folders: {
-        // The actual folder and the file name
-        actual: "/Users/wswebcreation/Git/wdio-image-comparison-service/.tmp/actual/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
-        // The baseline folder and the file name
-        baseline:
-            "/Users/wswebcreation/Git/wdio-image-comparison-service/localBaseline/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
-        // This following folder is optional and only if there is a mismatch
-        // The folder that holds the diffs and the file name
-        diff: "/Users/wswebcreation/Git/wdio-image-comparison-service/.tmp/diff/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
-    },
-    // The mismatch percentage
-    misMatchPercentage: 2.34,
-};
+const checkResult = await browser.checkFullPageScreen({ ... })
+console.log(checkResult)
+/**
+ * {
+ *     // The formatted filename, this depends on the options `formatImageName`
+ *     fileName: "examplePage-chrome-headless-latest-1366x768.png",
+ *     folders: {
+ *         // The actual folder and the file name
+ *         actual: "/path/to/project/.tmp/actual/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
+ *         // The baseline folder and the file name
+ *         baseline:
+ *             "/path/to/project/localBaseline/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
+ *         // This following folder is optional and only if there is a mismatch
+ *         // The folder that holds the diffs and the file name
+ *         diff: "/path/to/project/.tmp/diff/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
+ *     },
+ *     // The mismatch percentage
+ *     misMatchPercentage: 2.34,
+ * };
+ */
 ```
 
 ### Image Output
