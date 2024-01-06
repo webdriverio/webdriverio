@@ -14,14 +14,18 @@ import TabItem from '@theme/TabItem';
 The `save(Screen/Element/FullPageScreen)` methods will provide the following information after the method has been executed:
 
 ```js
-const saveResult = {
-    // The device pixel ratio of the instance that has run
-    devicePixelRatio: 1,
-    // The formatted filename, this depends on the options `formatImageName`
-    fileName: "examplePage-chrome-latest-1366x768.png",
-    // The path where the actual screenshot file can be found
-    path: "/Users/wswebcreation/Git/wdio-image-comparison-service/.tmp/actual/desktop_chrome",
-};
+const saveResult = await browser.saveFullPageScreen({ ... })
+console.log(saveResults)
+/**
+ * {
+ *   // The device pixel ratio of the instance that has run
+ *   devicePixelRatio: 1,
+ *   // The formatted filename, this depends on the options `formatImageName`
+ *   fileName: "examplePage-chrome-latest-1366x768.png",
+ *   // The path where the actual screenshot file can be found
+ *   path: "/path/to/project/.tmp/actual/desktop_chrome",
+ * };
+ */
 ```
 
 ### Image Output
