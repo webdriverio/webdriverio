@@ -127,7 +127,6 @@
       "type": "category",
       "label": "Visual Testing",
       "items": [
-        "visual-testing/considerations",
         "visual-testing/writing-tests",
         "visual-testing/methods",
         {
@@ -139,6 +138,7 @@
             ]
         },
         "visual-testing/test-output",
+        "visual-testing/considerations",
         "visual-testing/faq"
       ],
       "link": {

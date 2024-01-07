@@ -8,13 +8,14 @@ import TabItem from '@theme/TabItem';
 
 ## Testrunner Framework Support
 
-_wdio-image-comparison-service_ is test-runner framework agnostic, which means that you can use it with all the frameworks WebdriverIO supports like
+`@wdio/visual-service` is test-runner framework agnostic, which means that you can use it with all the frameworks WebdriverIO supports like:
 
 -   [`Mocha`](https://webdriver.io/docs/frameworks#using-mocha)
 -   [`Jasmine`](https://webdriver.io/docs/frameworks#using-jasmine)
 -   [`CucumberJS`](https://webdriver.io/docs/frameworks#using-cucumber)
 
 :::note IMPORTANT
+
 This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically reject your promise if there is no baseline image with the following warning.
 
 ```sh
@@ -25,11 +26,9 @@ This service provides `save` and `check` methods. If you run your tests for the 
  If you want the module to auto save a non existing image to the baseline you
  can provide 'autoSaveBaseline: true' to the options.
 #####################################################################################
-
 ```
 
-This means that the current screenshot is saved in the actual folder and you **manually need to copy it to your baseline**.
-If you instantiate `wdio-image-comparison-service` with [`autoSaveBaseline: true`](./service-options#autosavebaseline) the image will automatically be saved into the baseline folder.
+This means that the current screenshot is saved in the actual folder and you **manually need to copy it to your baseline**. If you instantiate `@wdio/visual-service` with [`autoSaveBaseline: true`](./service-options#autosavebaseline) the image will automatically be saved into the baseline folder.
 
 :::
 
@@ -51,7 +50,7 @@ describe('Mocha Example', () => {
 
     it('should save some screenshots', async () => {
         // Save a screen
-        await browser.saveScreen('examplePaged', {
+        await browser.saveScreen('examplePage', {
             /* some options */
         })
 
@@ -78,7 +77,7 @@ describe('Mocha Example', () => {
     it('should compare successful with a baseline', async () => {
         // Check a screen
         await expect(
-            await browser.checkScreen('examplePaged', {
+            await browser.checkScreen('examplePage', {
                 /* some options */
             })
         ).toEqual(0)
@@ -122,7 +121,7 @@ describe('Jasmine Example', () => {
 
     it('should save some screenshots', async () => {
         // Save a screen
-        await browser.saveScreen('examplePaged', {
+        await browser.saveScreen('examplePage', {
             /* some options */
         })
 
@@ -149,7 +148,7 @@ describe('Jasmine Example', () => {
     it('should compare successful with a baseline', async () => {
         // Check a screen
         await expect(
-            await browser.checkScreen('examplePaged', {
+            await browser.checkScreen('examplePage', {
                 /* some options */
             })
         ).toEqual(0)
@@ -190,7 +189,7 @@ import { When, Then } from '@wdio/cucumber-framework'
 
 When('I save some screenshots', async function () {
     // Save a screen
-    await browser.saveScreen('examplePaged', {
+    await browser.saveScreen('examplePage', {
         /* some options */
     })
 
@@ -215,7 +214,7 @@ Then(
     async function () {
         // Check a screen
         await expect(
-            await browser.checkScreen('examplePaged', {
+            await browser.checkScreen('examplePage', {
                 /* some options */
             })
         ).toEqual(0)

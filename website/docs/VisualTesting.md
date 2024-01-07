@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 ## What can it do?
 
-WebdriverIO provides image comparisons on screens, elements or a full-page for browsers, mobile browsers as well as hybrid apps through the [`wdio-image-comparison-service`](https://www.npmjs.com/package/wdio-image-comparison-service) which is a lightweight WebdriverIO service.
+WebdriverIO provides image comparisons on screens, elements or a full-page for browsers, mobile browsers as well as hybrid apps through the [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) which is a lightweight WebdriverIO service.
 
 This allows you to:
 
@@ -24,9 +24,9 @@ The service is a lightweight module to retrieve the needed data and screenshots 
 
 It can be used for:
 
--   Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
--   Mobile / Tablet browsers (Chrome / Safari on emulators / real devices) via Appium
--   Hybrid apps via Appium
+-   🖥️ Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
+-   📱 Mobile / Tablet browsers (Chrome / Safari on emulators / real devices) via Appium
+-   📳 Hybrid apps via Appium
 
 :::info NOTE For Hybrid Apps
 Please use the property `isHybridApp:true` in your service settings
@@ -34,146 +34,131 @@ Please use the property `isHybridApp:true` in your service settings
 
 ## Installation
 
-The easiest way is to keep `wdio-image-comparison-service` as a dev-dependency in your `package.json`, via:
+The easiest way is to keep `@wdio/visual-service` as a dev-dependency in your `package.json`, via:
 
 ```sh
-npm install --save-dev wdio-image-comparison-service
+npm install --save-dev @wdio/visual-service
 ```
 
 ## Usage
 
-`wdio-image-comparison-service` can be used as a normal service. You can set it up in your configuration file with the following
+`@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
 ```js
-const { join } = require("path");
-// wdio.conf.(js|ts)
-exports.config = {
+import path from 'node:path'
+
+// wdio.conf.ts
+export const config = {
     // ...
     // =====
     // Setup
     // =====
     services: [
-        [
-            "image-comparison",
-            // The options
-            {
-                // Some options, see the docs for more
-                baselineFolder: join(
-                    process.cwd(),
-                    "./tests/sauceLabsBaseline/"
-                ),
-                formatImageName: "{tag}-{logName}-{width}x{height}",
-                screenshotPath: join(process.cwd(), ".tmp/"),
-                savePerInstance: true,
-                autoSaveBaseline: true,
-                blockOutStatusBar: true,
-                blockOutToolBar: true,
-                // NOTE: When you are testing a hybrid app please use this setting
-                isHybridApp: true,
-                // Options for the tabbing image
-                tabbableOptions: {
-                    circle: {
-                        size: 18,
-                        fontSize: 18,
-                        // ...
-                    },
-                    line: {
-                        color: "#ff221a", // hex-code or for example words like `red|black|green`
-                        width: 3,
-                    },
+        ['visual', {
+            // Some options, see the docs for more
+            baselineFolder: path.join(process.cwd(), 'tests', 'baseline'),
+            formatImageName: '{tag}-{logName}-{width}x{height}',
+            screenshotPath: path.join(process.cwd(), 'tmp'),
+            savePerInstance: true,
+            autoSaveBaseline: true,
+            blockOutStatusBar: true,
+            blockOutToolBar: true,
+            // NOTE: When you are testing a hybrid app please use this setting
+            isHybridApp: true,
+            // Options for the tabbing image
+            tabbableOptions: {
+                circle: {
+                    size: 18,
+                    fontSize: 18,
+                    // ...
                 },
-                // ... more options
+                line: {
+                    color: "#ff221a", // hex-code or for example words like `red|black|green`
+                    width: 3,
+                },
             },
-        ],
-    ],
+            // ... more options
+        }]
+    ]
     // ...
-};
+}
 ```
 
-More service options can be found [here](./service-options).
+More service options can be found [here](./service-options). Once set-up in your WebdriverIO configuration you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
 
 ### WebdriverIO MultiRemote
 
 We also support [MultiRemote](https://webdriver.io/docs/multiremote/). To make this work properly make sure that you add `wdio-ics:options` to your
 capabilities as you can see below. This will make sure that each screenshot will have its own unique name.
 
-[Writing your tests](./visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
+[Writing your tests](/docs/visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
 
 ```js
-exports.config = {
+// wdio.conf.js
+export const config = {
     capabilities: {
         chromeBrowserOne: {
             capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    args: ['disable-infobars'],
                 },
                 // THIS!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-one",
-                },
-            },
+                'wdio-ics:options': {
+                    logName: 'chrome-latest-one',
+                }
+            }
         },
         chromeBrowserTwo: {
             capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    args: ['disable-infobars'],
                 },
                 // THIS!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-two",
-                },
-            },
-        },
-    },
-};
+                'wdio-ics:options': {
+                    logName: 'chrome-latest-two',
+                }
+            }
+        }
+    }
+}
 ```
 
 ### Running Programmatically
 
-Here is a minimal example of how to use `wdio-image-comparison-service` via `remote` options:
+Here is a minimal example of how to use `@wdio/visual-service` via `remote` options:
 
 ```js
-import { remote } from "webdriverio";
+import { remote } from 'webdriverio'
+import VisualService from '@wdio/visual-service'
 
-import WdioImageComparisonService from "wdio-image-comparison-service";
+let visualService = new VisualService({
+    autoSaveBaseline: true
+})
 
-let wdioImageComparisonService = new WdioImageComparisonService({});
+const browser = await remote({
+    logLevel: 'silent',
+    capabilities: {
+        browserName: 'chrome',
+    }
+})
 
-async function main() {
-    const browser = await remote({
-        logLevel: "silent",
-        capabilities: {
-            browserName: "chrome",
-        },
-    });
+visualService.before(browser.capabilities)
+await browser.url('https://webdriver.io/')
 
-    wdioImageComparisonService.defaultOptions.autoSaveBaseline = true;
-    browser.defaultOptions = wdioImageComparisonService.defaultOptions;
-    browser.folders = wdioImageComparisonService.folders;
+// or use this for ONLY saving a screenshot
+await browser.saveFullPageScreen('examplePaged', {})
 
-    wdioImageComparisonService.before(browser.capabilities);
+// or use this for validating. Both methods don't need to be combined, see the FAQ
+await browser.checkFullPageScreen('examplePaged', {})
 
-    await browser.url("https://webdriver.io/");
-
-    // or use this for ONLY saving a screenshot
-    await browser.saveFullPageScreen("examplePaged", {});
-
-    // or use this for validating. Both methods don't need to be combined, see the FAQ
-    await browser.checkFullPageScreen("examplePaged", {});
-
-    await browser.deleteSession();
-}
-
-main().catch(async (e) => {
-    console.error(e);
-});
+await browser.deleteSession()
 ```
 
 ### Tabbing through a website
 
-You can check if a website is accessible by using the keyboard `TAB`-key. Testing this part of accessibility has always been a time-consuming (manual) job and pretty hard to do through automation.
+You can check if a website is accessible by using the keyboard <kbd>TAB</kbd>-key. Testing this part of accessibility has always been a time-consuming (manual) job and pretty hard to do through automation.
 With the methods `saveTabbablePage` and `checkTabbablePage` you can now draw lines and dots on your website to verify the tabbing order.
 
 Be aware of the fact that this is only useful for desktop browsers and **NOT**** for mobile devices. All desktop browsers support this feature.
@@ -210,14 +195,14 @@ This is an example of how the tabbing works on our [guinea pig](http://guinea-pi
 
 ![WDIO tabbing example](./visual-testing/img/tabbable-chrome-latest-1366x768.png)
 
-### Typescript support
+## Typescript support
 
 We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
 
 ```json
 {
     "compilerOptions": {
-        "types": ["wdio-image-comparison-service"]
+        "types": ["@wdio/visual-service"]
     }
 }
 ```
@@ -231,17 +216,17 @@ By default, binaries for macOS, Linux and Windows will be downloaded during your
 For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). One-line installation instructions for common OSes are below. Note that libgif/giflib, librsvg and libjpeg are optional and only required if you need GIF, SVG and JPEG support, respectively. Cairo v1.10.0 or later is required.
 
 <Tabs
-defaultValue="osx"
-values={[
-{label: 'OS', value: 'osx'},
-{label: 'Ubuntu', value: 'ubuntu'},
-{label: 'Fedora', value: 'fedora'},
-{label: 'Solaris', value: 'solaris'},
-{label: 'OpenBSD', value: 'openbsd'},
-{label: 'Window', value: 'windows'},
-{label: 'Others', value: 'others'},
-]
-}>
+    defaultValue="osx"
+    values={[
+        {label: 'OS', value: 'osx'},
+        {label: 'Ubuntu', value: 'ubuntu'},
+        {label: 'Fedora', value: 'fedora'},
+        {label: 'Solaris', value: 'solaris'},
+        {label: 'OpenBSD', value: 'openbsd'},
+        {label: 'Window', value: 'windows'},
+        {label: 'Others', value: 'others'},
+    ]}
+>
 <TabItem value="osx">
 
      Using [Homebrew](https://brew.sh/):
@@ -288,6 +273,8 @@ values={[
 
 </TabItem>
 <TabItem value="others">
+
     See the [wiki](https://github.com/Automattic/node-canvas/wiki)
+
 </TabItem>
 </Tabs>
