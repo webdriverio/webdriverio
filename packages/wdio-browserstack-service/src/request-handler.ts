@@ -11,6 +11,7 @@ export default class RequestQueueHandler {
     private started = false
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
     public pendingUploads = 0
+    public tearDownInvoked = false
 
     static instance: RequestQueueHandler
 
@@ -103,6 +104,10 @@ export default class RequestQueueHandler {
     }
 
     shouldProceed () {
+        if (this.tearDownInvoked) {
+            log.debug('Force request-queue shutdown, as test run event is received after teardown')
+            return true
+        }
         return this.queue.length >= DATA_BATCH_SIZE
     }
 }
