@@ -147,7 +147,7 @@ This project is maintained by [awesome people](/AUTHORS.md) following a common [
 
 ## :man_cook: :woman_cook: Backers
 
-[Become a backer](https://opencollective.com/webdriverio) and show your support to our open-source project.
+[Become a backer](https://opencollective.com/webdriverio) and show your support for our open-source project.
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/baker.svg?avatarHeight=36&width=600"></a>
 
