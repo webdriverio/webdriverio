@@ -126,7 +126,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     this._browser,
                     this._caps,
                     this._isAppAutomate(),
-                    this._config.framework
+                    this._config.framework,
+                    this._caps
                 )
                 this._percyHandler.before()
             }
