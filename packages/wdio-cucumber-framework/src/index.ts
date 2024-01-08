@@ -476,6 +476,14 @@ class CucumberAdapter {
                  */
                 const isStep = !fn.name.startsWith('userHook')
 
+                /**
+                 * Steps without wrapperOptions are returned promptly, avoiding failures when steps are defined with timeouts.
+                 * However, steps with set wrapperOptions have limitations in utilizing timeouts.
+                 */
+                if (isStep && !options.retry) {
+                    return fn
+                }
+
                 return wrapStep(fn, isStep, config, cid, options, getHookParams, this._cucumberOpts.timeout)
             }
         )
