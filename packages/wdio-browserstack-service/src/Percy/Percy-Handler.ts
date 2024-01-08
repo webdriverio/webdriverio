@@ -13,13 +13,13 @@ import { PercyLogger } from './PercyLogger.js'
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants.js'
 
 class _PercyHandler {
-    private _testMetadata: { [key: string]: any } = {}
-    private sessionName?: string
-    private _isAppAutomate?: boolean
-    private isPercyCleanupProcessingUnderway?: boolean = false
-    private _percyScreenshotCounter: any = 0
-    private percyDeferredScreenshots: any = []
-    private percyScreenshotInterval: any = null
+    #_testMetadata: { [key: string]: any } = {}
+    #sessionName?: string
+    #_isAppAutomate?: boolean
+    #isPercyCleanupProcessingUnderway?: boolean = false
+    #_percyScreenshotCounter: any = 0
+    #percyDeferredScreenshots: any = []
+    #percyScreenshotInterval: any = null
 
     constructor (
         private _percyAutoCaptureMode: string | undefined,
@@ -28,20 +28,20 @@ class _PercyHandler {
         isAppAutomate?: boolean,
         private _framework?: string
     ) {
-        this._isAppAutomate = isAppAutomate
+        this.#_isAppAutomate = isAppAutomate
         if (_percyAutoCaptureMode && !_percyAutoCaptureMode || !CAPTURE_MODES.includes(_percyAutoCaptureMode as string)) {
             this._percyAutoCaptureMode = 'auto'
         }
     }
 
     _setSessionName(name: string) {
-        this.sessionName = name
+        this.#sessionName = name
     }
 
     async teardown () {
         await new Promise<void>((resolve) => {
             setInterval(() => {
-                if (this._percyScreenshotCounter === 0) {
+                if (this.#_percyScreenshotCounter === 0) {
                     resolve()
                 }
             }, 1000)
@@ -53,16 +53,16 @@ class _PercyHandler {
             if (eventName) {
                 if (!sessionName) {
                     /* Service doesn't wait for handling of browser commands so the below counter is used in teardown method to delay service exit */
-                    this._percyScreenshotCounter += 1
+                    this.#_percyScreenshotCounter += 1
                 }
 
-                (this._browser.percyCaptureMap as PercyCaptureMap).increment(sessionName ? sessionName : (this.sessionName as string), eventName)
-                await (this._isAppAutomate ? PercySDK.screenshotApp((this._browser.percyCaptureMap as PercyCaptureMap).getName( sessionName ? sessionName : (this.sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName( sessionName ? sessionName : (this.sessionName as string), eventName)))
-                this._percyScreenshotCounter -= 1
+                (this._browser.percyCaptureMap as PercyCaptureMap).increment(sessionName ? sessionName : (this.#sessionName as string), eventName)
+                await (this.#_isAppAutomate ? PercySDK.screenshotApp((this._browser.percyCaptureMap as PercyCaptureMap).getName( sessionName ? sessionName : (this.#sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, (this._browser.percyCaptureMap as PercyCaptureMap).getName( sessionName ? sessionName : (this.#sessionName as string), eventName)))
+                this.#_percyScreenshotCounter -= 1
             }
         } catch (err: any) {
-            this._percyScreenshotCounter -= 1;
-            (this._browser.percyCaptureMap as PercyCaptureMap).decrement(sessionName ? sessionName : (this.sessionName as string), eventName as string)
+            this.#_percyScreenshotCounter -= 1;
+            (this._browser.percyCaptureMap as PercyCaptureMap).decrement(sessionName ? sessionName : (this.#sessionName as string), eventName as string)
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
         }
     }
@@ -73,8 +73,8 @@ class _PercyHandler {
 
     deferCapture(sessionName: string, eventName: string | null) {
         /* Service doesn't wait for handling of browser commands so the below counter is used in teardown method to delay service exit */
-        this._percyScreenshotCounter += 1
-        this.percyDeferredScreenshots.push({ sessionName, eventName })
+        this.#_percyScreenshotCounter += 1
+        this.#percyDeferredScreenshots.push({ sessionName, eventName })
     }
 
     isDOMChangingCommand(args: BeforeCommandArgs): boolean {
@@ -109,12 +109,12 @@ class _PercyHandler {
     }
 
     async cleanupDeferredScreenshots() {
-        this.isPercyCleanupProcessingUnderway = true
-        for (const entry of this.percyDeferredScreenshots) {
+        this.#isPercyCleanupProcessingUnderway = true
+        for (const entry of this.#percyDeferredScreenshots) {
             await this.percyAutoCapture(entry.eventName, entry.sessionName)
         }
-        this.percyDeferredScreenshots = []
-        this.isPercyCleanupProcessingUnderway = false
+        this.#percyDeferredScreenshots = []
+        this.#isPercyCleanupProcessingUnderway = false
     }
 
     async browserBeforeCommand (args: BeforeCommandArgs) {
@@ -124,12 +124,12 @@ class _PercyHandler {
             }
             do {
                 await sleep(1000)
-            } while (this.percyScreenshotInterval)
-            this.percyScreenshotInterval = setInterval(async () => {
-                if (!this.isPercyCleanupProcessingUnderway) {
-                    clearInterval(this.percyScreenshotInterval)
+            } while (this.#percyScreenshotInterval)
+            this.#percyScreenshotInterval = setInterval(async () => {
+                if (!this.#isPercyCleanupProcessingUnderway) {
+                    clearInterval(this.#percyScreenshotInterval)
                     await this.cleanupDeferredScreenshots()
-                    this.percyScreenshotInterval = null
+                    this.#percyScreenshotInterval = null
                 }
             }, 1000)
         } catch (err: any) {
@@ -156,7 +156,7 @@ class _PercyHandler {
                 eventName = 'keys'
             }
             if (eventName) {
-                this.deferCapture(this.sessionName as string, eventName)
+                this.deferCapture(this.#sessionName as string, eventName)
             }
         } catch (err: any) {
             PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
