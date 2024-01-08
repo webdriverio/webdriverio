@@ -8,6 +8,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger'
+import type { Options } from '@wdio/types'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -97,7 +98,7 @@ class PercyBinary {
         throw new Error('Error trying to download percy binary')
     }
 
-    async getBinaryPath(conf: any): Promise<string> {
+    async getBinaryPath(conf: Options.Testrunner): Promise<string> {
         const destParentDir = this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
         if (this.#checkPath(binaryPath, fs.X_OK)) {
