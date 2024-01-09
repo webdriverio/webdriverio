@@ -19,16 +19,11 @@ vi.mock('saucelabs', () => ({
         default: class SauceLabsMock {
             public uploadJobAssets = vi.fn()
             public updateJob = vi.fn()
+            public createTestRuns = vi.fn()
         }
     }
 }))
-vi.mock('../src/api', () => {
-    return {
-        TestRuns: class TestRunsMock {
-            public create = vi.fn()
-        }
-    }
-})
+
 vi.mock('fs/promises', () => ({
     default: {
         createReadStream: vi.fn(),

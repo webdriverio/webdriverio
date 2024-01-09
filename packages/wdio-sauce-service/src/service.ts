@@ -4,15 +4,16 @@ import path from 'node:path'
 import {
     default as SauceLabs,
     type SauceLabsOptions,
-    type Job
+    type Job,
+    type TestRun as TestRunRequestBody,
+    type Status as TestStatus
 } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 
 import { isRDC, ansiRegex } from './utils.js'
 import { DEFAULT_OPTIONS } from './constants.js'
-import type { SauceServiceConfig, TestRunRequestBody, TestStatus, Region } from './types.js'
-import { TestRuns as TestRunsAPI } from './api.js'
+import type { SauceServiceConfig } from './types.js'
 import { CI } from './ci.js'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
@@ -34,7 +35,6 @@ export default class SauceService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _cid = ''
 
-    private _testRunApi: TestRunsAPI
     private _testRuns: TestRunRequestBody[]
 
     constructor (
@@ -46,11 +46,7 @@ export default class SauceService implements Services.ServiceInstance {
         const sauceOptions = this._config as unknown as SauceLabsOptions
         this._api = new SauceLabs.default(sauceOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
-        this._testRunApi = new TestRunsAPI({
-            region: sauceOptions.region as Region,
-            username: this._config.user || '',
-            accessKey: this._config.key || '',
-        })
+
         this._testStartTime = new Date()
         this._testRuns = []
     }
@@ -279,7 +275,11 @@ export default class SauceService implements Services.ServiceInstance {
         if (!this._browser.isMultiremote) {
             await this._uploadLogs(this._browser.sessionId)
             this._updateJobIdInTestRuns(this._browser.sessionId)
-            await this._testRunApi.create(this._testRuns)
+            try {
+                await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
+            } catch (e) {
+                log.info('Submitting test run failed: ', e)
+            }
 
             log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
             return this._isRDC ?
@@ -293,7 +293,11 @@ export default class SauceService implements Services.ServiceInstance {
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
             await this._uploadLogs(multiRemoteBrowser.sessionId)
             this._updateJobIdInTestRuns(multiRemoteBrowser.sessionId)
-            await this._testRunApi.create(this._testRuns)
+            try {
+                await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
+            } catch (e) {
+                log.info('Submitting test run failed: ', e)
+            }
 
             // Sauce Unified Platform (RDC) can not be updated with an API.
             if (isMultiRemoteRDC) {
