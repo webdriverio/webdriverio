@@ -10,6 +10,7 @@ import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
+import { spawn } from 'node:child_process'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
@@ -50,6 +51,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: any
+    public _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -58,6 +60,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     ) {
         PercyLogger.clearLogFile()
         // added to maintain backward compatibility with webdriverIO v5
+        this.setupExitHandlers()
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
@@ -162,6 +165,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (err: any) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
+    }
+    setupExitHandlers() {
+        process.on('exit', (code) => {
+            if (!!process.env.BS_TESTOPS_JWT && !this._testOpsBuildStopped) {
+                const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+                childProcess.unref()
+                process.exit(code)
+            }
+        })
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
@@ -328,6 +340,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             await stopBuildUpstream()
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+                this._testOpsBuildStopped = true
             }
         }
 
