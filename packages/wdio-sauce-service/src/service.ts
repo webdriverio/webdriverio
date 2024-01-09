@@ -6,7 +6,8 @@ import {
     type SauceLabsOptions,
     type Job,
     type TestRun as TestRunRequestBody,
-    type Status as TestStatus
+    type TestRuns,
+    type Status as TestStatus,
 } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
@@ -275,7 +276,7 @@ export default class SauceService implements Services.ServiceInstance {
             await this._uploadLogs(this._browser.sessionId)
             this._updateJobIdInTestRuns(this._browser.sessionId)
             try {
-                await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
+                await this._api.createTestRunsV1({ test_runs: this._testRuns } as TestRuns)
             } catch (e) {
                 log.debug('Submitting test run failed: ', e)
             }
@@ -293,7 +294,7 @@ export default class SauceService implements Services.ServiceInstance {
             await this._uploadLogs(multiRemoteBrowser.sessionId)
             this._updateJobIdInTestRuns(multiRemoteBrowser.sessionId)
             try {
-                await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
+                await this._api.createTestRunsV1({ test_runs: this._testRuns } as TestRuns)
             } catch (e) {
                 log.debug('Submitting test run failed: ', e)
             }
