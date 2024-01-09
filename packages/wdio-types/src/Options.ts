@@ -225,7 +225,7 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
-export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
+export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'us-east-4' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
