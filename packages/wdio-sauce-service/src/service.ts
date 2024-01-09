@@ -277,7 +277,7 @@ export default class SauceService implements Services.ServiceInstance {
             try {
                 await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
             } catch (e) {
-                log.info('Submitting test run failed: ', e)
+                log.debug('Submitting test run failed: ', e)
             }
 
             log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
@@ -295,7 +295,7 @@ export default class SauceService implements Services.ServiceInstance {
             try {
                 await this._api.createTestRunsV1({ test_runs: this._testRuns } as any)
             } catch (e) {
-                log.info('Submitting test run failed: ', e)
+                log.debug('Submitting test run failed: ', e)
             }
 
             // Sauce Unified Platform (RDC) can not be updated with an API.
