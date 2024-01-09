@@ -19,7 +19,7 @@ vi.mock('saucelabs', () => ({
         default: class SauceLabsMock {
             public uploadJobAssets = vi.fn()
             public updateJob = vi.fn()
-            public createTestRuns = vi.fn()
+            public createTestRunsV1 = vi.fn()
         }
     }
 }))
