@@ -546,7 +546,7 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
             }
             throw error
         } else {
-            log.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            log.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
             throw error
         }
     }
