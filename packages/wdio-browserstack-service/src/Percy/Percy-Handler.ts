@@ -9,7 +9,7 @@ import PercyCaptureMap from './PercyCaptureMap'
 
 import * as PercySDK from './PercySDK'
 import { PercyLogger } from './PercyLogger'
-import { BrowserAsync } from 'src/@types/bstack-service-types'
+import { BrowserAsync } from '../@types/bstack-service-types'
 
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants'
 
