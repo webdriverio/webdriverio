@@ -11,7 +11,9 @@ import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 
 import { isRDC, ansiRegex } from './utils.js'
 import { DEFAULT_OPTIONS } from './constants.js'
-import type { SauceServiceConfig } from './types.js'
+import type { SauceServiceConfig, TestRunRequestBody, TestStatus, Region } from './types.js'
+import { TestRuns as TestRunsAPI } from './api.js'
+import { CI } from './ci.js'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
 
@@ -23,6 +25,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
     private _isJobNameSet = false
+    private _testStartTime: Date
 
     private _options: SauceServiceConfig
     private _api: SauceLabs.default
@@ -31,14 +34,25 @@ export default class SauceService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _cid = ''
 
+    private _testRunApi: TestRunsAPI
+    private _testRuns: TestRunRequestBody[]
+
     constructor (
         options: SauceServiceConfig,
         private _capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
-        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
+        const sauceOptions = this._config as unknown as SauceLabsOptions
+        this._api = new SauceLabs.default(sauceOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
+        this._testRunApi = new TestRunsAPI({
+            region: sauceOptions.region as Region,
+            username: this._config.user || '',
+            accessKey: this._config.key || '',
+        })
+        this._testStartTime = new Date()
+        this._testRuns = []
     }
 
     /**
@@ -95,6 +109,8 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
+        this._testStartTime = new Date()
+
         /**
          * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
          * framework hooks in order to execute async functions.
@@ -134,6 +150,8 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
+        this._collectTestRun(test, results)
+
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          */
@@ -260,6 +278,9 @@ export default class SauceService implements Services.ServiceInstance {
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
         if (!this._browser.isMultiremote) {
             await this._uploadLogs(this._browser.sessionId)
+            this._updateJobIdInTestRuns(this._browser.sessionId)
+            await this._testRunApi.create(this._testRuns)
+
             log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
             return this._isRDC ?
                 this.setAnnotation(`sauce:job-result=${failures === 0}`) :
@@ -271,6 +292,9 @@ export default class SauceService implements Services.ServiceInstance {
             const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as WebdriverIO.Capabilities)
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
             await this._uploadLogs(multiRemoteBrowser.sessionId)
+            this._updateJobIdInTestRuns(multiRemoteBrowser.sessionId)
+            await this._testRunApi.create(this._testRuns)
+
             // Sauce Unified Platform (RDC) can not be updated with an API.
             if (isMultiRemoteRDC) {
                 return this.setAnnotation(`sauce:job-result=${failures === 0}`)
@@ -407,5 +431,69 @@ export default class SauceService implements Services.ServiceInstance {
         }
         await this.setAnnotation(`sauce:job-name=${jobName}`)
         this._isJobNameSet = true
+    }
+
+    private _getStatusForTestRun(result: Frameworks.TestResult) {
+        if (['passed', 'failed', 'skipped'].includes(result.status)) {
+            return result.status as TestStatus
+        }
+        if (result.error) {
+            return 'failed'
+        }
+        if (result.passed) {
+            return 'passed'
+        }
+        return 'skipped'
+    }
+
+    private _getOsName(osName: string | undefined) {
+        if (!osName) {
+            return 'unknown'
+        }
+        if ('darwin' === osName) {
+            return 'Mac'
+        }
+        return osName
+    }
+
+    private _collectTestRun(test: Frameworks.Test, results: Frameworks.TestResult) {
+        const caps = this._capabilities as WebdriverIO.Capabilities
+        const sauceCaps = this._capabilities as Capabilities.SauceLabsCapabilities
+        const testRun: TestRunRequestBody = {
+            name: `${test.parent} - ${test.title}`,
+            start_time: this._testStartTime?.toISOString(),
+            end_time: (new Date()).toISOString(),
+            duration: results.duration || 0,
+            browser: caps?.browserName || 'chrome',
+            build_name: sauceCaps?.build?.toString() || '',
+            tags: sauceCaps?.tags,
+            framework: 'webdriverio',
+            platform: 'other',
+            os: this._getOsName(process.platform),
+            status: this._getStatusForTestRun(results),
+            type: 'web',
+            ci: {
+                ref_name: CI.refName,
+                commit_sha: CI.sha,
+                repository: CI.repo,
+                branch: CI.refName,
+            }
+        }
+
+        if (results.error) {
+            testRun.errors = [{
+                message: results.error?.message?.toString(),
+                path: test.file,
+            }]
+        }
+        this._testRuns?.push(testRun)
+    }
+
+    private _updateJobIdInTestRuns(id: string) {
+        this._testRuns?.forEach(testRun => {
+            testRun.sauce_job = {
+                id,
+            }
+        })
     }
 }
