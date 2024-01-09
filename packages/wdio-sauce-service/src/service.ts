@@ -43,8 +43,7 @@ export default class SauceService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
-        const sauceOptions = this._config as unknown as SauceLabsOptions
-        this._api = new SauceLabs.default(sauceOptions)
+        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
 
         this._testStartTime = new Date()

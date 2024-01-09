@@ -1,15 +1,6 @@
 import type { SauceConnectOptions } from 'saucelabs'
 import type { Capabilities, Options } from '@wdio/types'
 
-// The Sauce Labs region.
-export type Region = 'us' | 'eu' | 'staging';
-
-export const apiURLMap = new Map<Region, string>([
-    ['us', 'https://api.us-west-1.saucelabs.com'],
-    ['eu', 'https://api.eu-central-1.saucelabs.com'],
-    ['staging', 'https://api.staging.saucelabs.net'],
-])
-
 export interface SauceServiceConfig {
     /**
      * Specify the max error stack length represents the amount of error stack lines that will be
