@@ -49,9 +49,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
-    public _testOpsBuildStopped?: boolean
     private _percy?: Percy
-    private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
+    private _percyBestPlatformCaps?: any
+    public _testOpsBuildStopped?: boolean
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
