@@ -97,6 +97,18 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('https')
     })
 
+    it('should detect saucelabs user running in the US East 4 DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'us-east-4'
+        })
+        expect(caps.hostname).toBe('ondemand.us-east-4.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.path).toBe('/wd/hub')
+        expect(caps.protocol).toBe('https')
+    })
+    
     it('should detect saucelabs user running in an EU DC', () => {
         const caps = detectBackend({
             user: 'foobar',
