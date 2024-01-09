@@ -194,7 +194,7 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
                 BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
                 return
             }
-            BStackLogger.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
             throw error
         }
     }

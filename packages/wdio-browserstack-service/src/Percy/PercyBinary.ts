@@ -1,17 +1,15 @@
 import url from 'node:url'
 import yauzl from 'yauzl'
-
-import { createRequire } from 'node:module'
-const require = createRequire(import.meta.url)
-
-const fs = require('node:fs')
+import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-const { https } = require('follow-redirects')
+import pkg from 'follow-redirects'
+const { https } = pkg
 
 import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger.js'
+import type { Options } from '@wdio/types'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -68,7 +66,7 @@ class PercyBinary {
     }
 
     #checkPath(path: string, mode?: any) {
-        mode = mode || (fs.R_OK | fs.W_OK)
+        mode = mode || (fs.constants.R_OK | fs.constants.W_OK)
         try {
             fs.accessSync(path, mode)
             return true
@@ -97,10 +95,10 @@ class PercyBinary {
         throw new Error('Error trying to download percy binary')
     }
 
-    async getBinaryPath(conf: any): Promise<string> {
+    async getBinaryPath(conf: Options.Testrunner): Promise<string> {
         const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
-        if (this.#checkPath(binaryPath, fs.X_OK)) {
+        if (this.#checkPath(binaryPath, fs.constants.X_OK)) {
             return binaryPath
         }
         const downloadedBinaryPath: string = await this.download(conf, destParentDir)

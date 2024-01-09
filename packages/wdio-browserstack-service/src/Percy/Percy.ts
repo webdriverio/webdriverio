@@ -2,9 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
-import { createRequire } from 'node:module'
-const require = createRequire(import.meta.url)
-const { spawn } = require('node:child_process')
+import { spawn } from 'node:child_process'
 
 import { nodeRequest, getBrowserStackUser, getBrowserStackKey, sleep } from '../util.js'
 import { PercyLogger } from './PercyLogger.js'

@@ -43,7 +43,7 @@ import type Percy from './Percy/Percy.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
-    stop(callback: (err?: any) => void): void
+    stop(callback: (err?: Error) => void): void
 }
 
 export default class BrowserstackLauncherService implements Services.ServiceInstance {
@@ -54,7 +54,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
-    private _percyBestPlatformCaps?: any
+    private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     public static _testOpsBuildStopped?: boolean
 
     constructor (
@@ -167,17 +167,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    async onWorkerStart (cid: any, caps: any, specs: any, args: any, execArgv: any) {
+    async onWorkerStart (cid: any, caps: any) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
                 if (isThisBestPercyPlatform) {
                     process.env.BEST_PLATFORM_CID = cid
                 }
-                caps['wdio:cid'] = cid
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
     }
@@ -282,7 +280,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
-            } catch (err: any) {
+            } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
         }
@@ -411,35 +409,38 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-        if (!this._percy || !this._percy.isRunning()) {
-            try {
-                this._percy = await startPercy(options, config, bsConfig)
-                if (!this._percy) {
-                    throw new Error('Could not start percy, check percy logs for info.')
-                }
-                PercyLogger.info('Percy started successfully')
-                let signal = 0
-                const handler = async () => {
-                    signal++
-                    signal === 1 && await this.stopPercy()
-                }
-                process.on('beforeExit', handler)
-                process.on('SIGINT', handler)
-                process.on('SIGTERM', handler)
-            } catch (err: any) {
-                PercyLogger.debug(`Error in percy setup ${err}`)
+
+        if (this._percy?.isRunning()) {
+            return
+        }
+        try {
+            this._percy = await startPercy(options, config, bsConfig)
+            if (!this._percy) {
+                throw new Error('Could not start percy, check percy logs for info.')
             }
+            PercyLogger.info('Percy started successfully')
+            let signal = 0
+            const handler = async () => {
+                signal++
+                signal === 1 && await this.stopPercy()
+            }
+            process.on('beforeExit', handler)
+            process.on('SIGINT', handler)
+            process.on('SIGTERM', handler)
+        } catch (err: unknown) {
+            PercyLogger.debug(`Error in percy setup ${err}`)
         }
     }
 
     async stopPercy() {
-        if (this._percy && this._percy.isRunning()) {
-            try {
-                await stopPercy(this._percy)
-                PercyLogger.info('Percy stopped')
-            } catch (err) {
-                PercyLogger.error('Error occured while stopping percy : ' + err)
-            }
+        if (!this._percy || !this._percy.isRunning()) {
+            return
+        }
+        try {
+            await stopPercy(this._percy)
+            PercyLogger.info('Percy stopped')
+        } catch (err) {
+            PercyLogger.error('Error occured while stopping percy : ' + err)
         }
     }
 
