@@ -1,5 +1,6 @@
+type PercyCaptureMap = import('../Percy/PercyCaptureMap.js').PercyCaptureMap
+
 declare namespace WebdriverIO {
-    import PercyCaptureMap from '../Percy/PercyCaptureMap.js'
     interface Browser {
         getAccessibilityResultsSummary: () => Promise<{ [key: string]: any; }>,
         getAccessibilityResults: () => Promise<Array<{ [key: string]: any; }>>,

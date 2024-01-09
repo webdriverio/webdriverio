@@ -29,7 +29,7 @@ class _PercyHandler {
         private _framework?: string
     ) {
         this._isAppAutomate = isAppAutomate
-        if (_percyAutoCaptureMode && !_percyAutoCaptureMode || !CAPTURE_MODES.includes(_percyAutoCaptureMode as string)) {
+        if (!_percyAutoCaptureMode || !CAPTURE_MODES.includes(_percyAutoCaptureMode as string)) {
             this._percyAutoCaptureMode = 'auto'
         }
     }
