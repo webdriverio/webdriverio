@@ -48,6 +48,7 @@
         "emulation",
         "mocksandspies",
         "customcommands",
+        "custommatchers",
         "pageobjects",
         "debugging",
         "repl",
