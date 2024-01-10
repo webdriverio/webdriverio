@@ -108,7 +108,6 @@ describe('detectBackend', () => {
         expect(caps.path).toBe('/wd/hub')
         expect(caps.protocol).toBe('https')
     })
-    
     it('should detect saucelabs user running in an EU DC', () => {
         const caps = detectBackend({
             user: 'foobar',
