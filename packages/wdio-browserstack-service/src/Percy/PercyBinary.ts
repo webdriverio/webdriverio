@@ -2,8 +2,7 @@ import url from 'node:url'
 import yauzl from 'yauzl'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import pkg from 'follow-redirects'
-const { https } = pkg
+import got from 'got'
 
 import path from 'node:path'
 import os from 'node:os'
@@ -75,7 +74,6 @@ class PercyBinary {
                 return false
             }
 
-            // node v0.10
             try {
                 fs.statSync(path)
                 return true
@@ -132,7 +130,6 @@ class PercyBinary {
         if (!this.#checkPath(destParentDir)){
             fs.mkdirSync(destParentDir)
         }
-
         const binaryName = this.#binaryName
         const zipFilePath = path.join(destParentDir, binaryName + '.zip')
         const binaryPath = path.join(destParentDir, binaryName)
@@ -141,17 +138,13 @@ class PercyBinary {
         const options: any = url.parse(this.#httpPath)
 
         return new Promise((resolve, reject) => {
-            https.get(options, function (response: any) {
-                response.pipe(downloadedFileStream)
-                response.on('error', function (err: any) {
-                    PercyLogger.error('Got Error in percy binary download response : ' + err)
-                    reject(err)
-                })
-                downloadedFileStream.on('error', function (err: any) {
-                    PercyLogger.error('Got Error while downloading percy binary file : ' + err)
-                    reject(err)
-                })
-                downloadedFileStream.on('close', function () {
+            const stream = got.extend({ followRedirect: true }).get(this.#httpPath, { isStream: true })
+            stream.on('error', (err) => {
+                PercyLogger.error('Got Error in percy binary download response: ' + err)
+            })
+
+            stream.pipe(downloadedFileStream)
+                .on('finish', () => {
                     yauzl.open(zipFilePath, { lazyEntries: true }, function (err, zipfile) {
                         if (err) {
                             return reject(err)
@@ -198,10 +191,6 @@ class PercyBinary {
                         })
                     })
                 })
-            }).on('error', function (err: any) {
-                PercyLogger.error('Got Error in percy binary downloading request : ' + err)
-                reject(err)
-            })
         })
     }
 }
