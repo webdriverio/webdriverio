@@ -10,6 +10,8 @@ const tryRequire = function (pkg: string, fallback: any) {
 }
 
 const percySnapshot = tryRequire('@percy/webdriverio', null)
+// const percySnapshot = tryRequire('@percy/selenium-webdriver', null)
+
 const percyScreenshot = tryRequire('@percy/selenium-webdriver', null)
 const percyAppScreenshot = tryRequire('@percy/appium-app', {})
 
