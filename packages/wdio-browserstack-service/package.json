@@ -47,13 +47,12 @@
     "yauzl": "^2.10.0",
     "@percy/webdriverio": "^3.0.0",
     "@percy/appium-app": "^2.0.1",
-    "@percy/selenium-webdriver": "v2.0.3-beta.0"
+    "@percy/selenium-webdriver": "^2.0.3"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "devDependencies": {
-    "@types/follow-redirects": "^1.14.4",
     "@types/node": "^20.1.0",
     "@wdio/globals": "8.27.0"
   },

@@ -16,7 +16,7 @@ class PercyBinary {
     #binaryName = 'percy'
 
     #orderedPaths = [
-        path.join(this.#homedir(), '.browserstack'),
+        path.join(os.homedir(), '.browserstack'),
         process.cwd(),
         os.tmpdir()
     ]
@@ -33,53 +33,21 @@ class PercyBinary {
         }
     }
 
-    #homedir(): string {
-        if (typeof os.homedir === 'function') {
-            return os.homedir()
-        }
-
-        const env = process.env
-        const home = env.HOME
-        const user = env.LOGNAME || env.USER || env.LNAME || env.USERNAME
-
-        if (process.platform === 'win32') {
-            return ( env.USERPROFILE || (env.HOMEDRIVE || 'null') + env.HOMEPATH || home || null ) as string
-        }
-
-        if (process.platform === 'darwin') {
-            return ( home || (user ? '/Users/' + user : null) ) as string
-        }
-
-        if (process.platform === 'linux') {
-            return ( home || (process.getuid && process.getuid() === 0 ? '/root' : (user ? '/home/' + user : null)) ) as string
-        }
-
-        return (home || null) as string
-    }
-
-    #makePath(path: string) {
-        if (this.#checkPath(path)) {
+    async #makePath(path: string) {
+        if (await this.#checkPath(path)) {
             return true
         }
         return fsp.mkdir(path).then(() => true).catch(() => false)
     }
 
-    #checkPath(path: string, mode?: any) {
-        mode = mode || (fs.constants.R_OK | fs.constants.W_OK)
+    async #checkPath(path: string) {
         try {
-            fs.accessSync(path, mode)
-            return true
-        } catch (e) {
-            if (typeof fs.accessSync !== 'undefined') {
-                return false
-            }
-
-            try {
-                fs.statSync(path)
+            const hasDir = await fsp.access(path).then(() => true, () => false)
+            if (hasDir) {
                 return true
-            } catch (e) {
-                return false
             }
+        } catch (err) {
+            return false
         }
     }
 
@@ -96,7 +64,7 @@ class PercyBinary {
     async getBinaryPath(conf: Options.Testrunner): Promise<string> {
         const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
-        if (this.#checkPath(binaryPath, fs.constants.X_OK)) {
+        if (await this.#checkPath(binaryPath)) {
             return binaryPath
         }
         const downloadedBinaryPath: string = await this.download(conf, destParentDir)
@@ -126,9 +94,9 @@ class PercyBinary {
         })
     }
 
-    download(conf: any, destParentDir: any): Promise<string> {
-        if (!this.#checkPath(destParentDir)){
-            fs.mkdirSync(destParentDir)
+    async download(conf: any, destParentDir: any): Promise<string> {
+        if (!await this.#checkPath(destParentDir)){
+            await fsp.mkdir(destParentDir)
         }
         const binaryName = this.#binaryName
         const zipFilePath = path.join(destParentDir, binaryName + '.zip')
