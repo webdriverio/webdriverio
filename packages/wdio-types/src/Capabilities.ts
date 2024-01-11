@@ -85,7 +85,11 @@ declare global {
             /**
              * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
              */
-            webSocketUrl?: boolean
+            webSocketUrl?: boolean;
+            /**
+             * Maximum number of total parallel running workers.
+             */
+            maxInstances?: number;
         }
     }
 }
