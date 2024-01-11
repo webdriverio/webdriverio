@@ -77,7 +77,7 @@ declare global {
             /**
              * Defines the current session’s strict file interactability.
              */
-            strictFileInteractability?: boolean,
+            strictFileInteractability?: boolean;
             /**
              * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
              */
@@ -617,7 +617,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:locationServicesAuthorized'?: boolean;
     'appium:resetLocationService'?: boolean;
     'appium:localizableStringsDir'?: string;
-    'appium:processArguments'?: string|AppiumXCUIProcessArguments;
+    'appium:processArguments'?: string | AppiumXCUIProcessArguments;
     'appium:showIOSLog'?: boolean;
     'appium:webviewConnectRetries'?: number;
     'appium:clearSystemFiles'?: boolean;
@@ -654,7 +654,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:wdaConnectionTimeout'?: number;
     'appium:updatedWDABundleId'?: string;
     'appium:resetOnSessionStartOnly'?: boolean;
-    'appium:commandTimeouts'?: string|AppiumXCUICommandTimeouts;
+    'appium:commandTimeouts'?: string | AppiumXCUICommandTimeouts;
     'appium:wdaStartupRetries'?: number;
     'appium:wdaStartupRetryInterval'?: number;
     'appium:prebuildWDA'?: boolean;
@@ -724,7 +724,7 @@ export interface AppiumXCUISafariGlobalPreferences {
 
 export interface AppiumXCUIProcessArguments {
     args?: Array<string>
-    env?: { [key: string]: any;}
+    env?: { [key: string]: any; }
 }
 
 export interface AppiumXCUICommandTimeouts {
@@ -1047,12 +1047,12 @@ export interface SauceLabsCapabilities {
     appiumVersion?: string
 }
 
-export interface LambdaTestCapabilities{
+export interface LambdaTestCapabilities {
     username?: string
     accessKey?: string
     platformName?: string
     browserName?: string
-    browserVersion? : string
+    browserVersion?: string
     /**
      * Set the resolution of the VM.
      */
@@ -1134,10 +1134,10 @@ export interface BrowserStackCapabilities {
      */
     debug?: boolean
     networkLogs?: boolean
-     /**
-     * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
-     * Enable viewing the response data in the Network Logs tab on your session
-     */
+    /**
+    * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
+    * Enable viewing the response data in the Network Logs tab on your session
+    */
     networkLogsOptions?: {
         captureContent?: boolean
     },
