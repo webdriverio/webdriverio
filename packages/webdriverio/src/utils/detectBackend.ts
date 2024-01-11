@@ -11,6 +11,7 @@ const REGION_MAPPING = {
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
     'us-east-1': 'us-east-1.',
+    'us-east-4': 'us-east-4.',
     'apac': 'apac-southeast-1.',
     'apac-southeast-1': 'apac-southeast-1',
 }
@@ -80,8 +81,8 @@ export default function detectBackend(options: BackendConfigurations = {}) {
      * For Sauce Labs Legacy RDC we only need to determine if the sauce option has a `testobject_api_key`.
      * Same for Sauce Visual where an apiKey can be passed in through the capabilities (soon to be legacy too).
      */
-    const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
-    const isVisual = Boolean(!Array.isArray(capabilities) && capabilities && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
+    const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as Capabilities.DesiredCapabilities)?.testobject_api_key)
+    const isVisual = Boolean(!Array.isArray(capabilities) && capabilities && (capabilities as WebdriverIO.Capabilities)['sauce:visual']?.apiKey)
     if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // Or only RDC or visual
         (isRDC || isVisual)

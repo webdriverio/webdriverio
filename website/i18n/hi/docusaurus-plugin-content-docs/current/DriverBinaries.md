@@ -3,7 +3,9 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-वेबड्राइवर प्रोटोकॉल के आधार पर ऑटोमेशन चलाने के लिए आपको ब्राउज़र ड्राइवरों को सेट अप करने की आवश्यकता होती है जो ऑटोमेशन कमांड का अनुवाद करते हैं और उन्हें ब्राउज़र में निष्पादित करने में सक्षम होते हैं। निम्नलिखित वर्णन करता है कि आप प्रत्येक ड्राइवर को व्यक्तिगत रूप से कैसे सेट अप कर सकते हैं। आप [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) रीडमे में सभी ड्राइवरों के साथ एक सूची पा सकते हैं।
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. You only need to have a browser installed, that's it!
+
+The following describes how you can still set up each driver individually. आप [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) रीडमे में सभी ड्राइवरों के साथ एक सूची पा सकते हैं।
 
 :::tip
 
@@ -30,14 +32,20 @@ chromedriver --port=4444 --verbose
 फ़ायरफ़ॉक्स को स्वचालित करने के लिए अपने पर्यावरण के लिए `geckodriver` का नवीनतम संस्करण डाउनलोड करें और इसे अपनी प्रोजेक्ट निर्देशिका में अनपैक करें:
 
 <Tabs
-  defaultValue="curl"
+  defaultValue="npm"
   values={[
-    {label: 'Curl', value: 'curl'},
+    {label: 'NPM', value: 'npm'},
+ {label: 'Curl', value: 'curl'},
  {label: 'Brew', value: 'brew'},
  {label: 'Windows (64 bit / Chocolatey)', value: 'chocolatey'},
  {label: 'Windows (64 bit / Powershell) DevTools', value: 'powershell'},
  ]
 }>
+<TabItem value="curl">
+```bash npm2yarn
+npm install geckodriver
+```
+</TabItem>
 <TabItem value="curl">
 
 Linux:
@@ -93,7 +101,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**नोट:** अन्य `geckodriver` रिलीज उपलब्ध हैं [यहां](https://github.com/mozilla/geckodriver/releases)। डाउनलोड करने के बाद आप ड्राइवर को इसके माध्यम से शुरू कर सकते हैं:
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -101,10 +109,11 @@ cd $unzipped_file
 
 ## Edgedriver
 
-आप Microsoft Edge के लिए ड्राइवर को [प्रोजेक्ट वेबसाइट](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)पर डाउनलोड कर सकते हैं। डाउनलोड करने के बाद आप निम्नानुसार एडड्राइवर शुरू कर सकते हैं:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) or as NPM package via:
 
 ```sh
-./path/to/edgedriver --port=4444 --verbose
+npm install -g edgedriver
+edgedriver --version # prints: Microsoft Edge WebDriver 115.0.1901.203 (a5a2b1779bcfe71f081bc9104cca968d420a89ac)
 ```
 
 ## Safaridriver

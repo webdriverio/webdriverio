@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`JSONReporter > should prepare json 1`] = `
+[
+  [
+    "{"start":0,"end":1,"capabilities":{},"framework":"mocha","mochaOpts":{},"suites":[{"name":"foo","tests":[{"name":"foo","duration":1,"state":"passed"}],"hooks":[{"duration":1,"title":"before each","state":"failed"}]},{"name":"bar","tests":[{"name":"bar","duration":2,"state":"failed","error":{}}],"hooks":[{"duration":1,"title":"before each","state":"passed"}]},{"name":"foo","tests":[{"name":"foo","duration":1,"state":"passed"}],"hooks":[{"duration":1,"title":"before each","state":"failed"}]},{"name":"bar","tests":[{"name":"bar","duration":2,"state":"failed","error":{}}],"hooks":[{"duration":1,"title":"before each","state":"passed"}]}],"specs":["foo.js","bar.js"],"state":{"passed":2,"failed":2,"skipped":0}}",
+  ],
+]
+`;

@@ -1,32 +1,45 @@
 import fs from 'node:fs/promises'
-import util from 'node:util'
-import { dirname } from 'node:path'
+import util, { promisify } from 'node:util'
+import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { SpawnOptions } from 'node:child_process'
 import { execSync, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
 
 import ejs from 'ejs'
 import chalk from 'chalk'
-import path from 'node:path'
 import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
-import yarnInstall from 'yarn-install'
 import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
+import { installPackages, getInstallCommand } from './install.js'
 import {
-    ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg, CompilerOptions,
-    TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
+    ANDROID_CONFIG,
+    CompilerOptions,
+    DEPENDENCIES_INSTALLATION_MESSAGE,
+    IOS_CONFIG,
+    pkg,
+    QUESTIONNAIRE,
+    TESTING_LIBRARY_PACKAGES,
+    COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
+    usesSerenity,
 } from './constants.js'
-import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
+import type {
+    OnCompleteResult,
+    ParsedAnswers,
+    ProjectProps,
+    Questionnair,
+    ReplCommandArguments,
+    SupportedPackage,
+} from './types.js'
+import { EjsHelpers } from './templates/EjsHelpers.js'
 
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -231,6 +244,49 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     return { package: p, short, purpose }
 }
 
+export function getSerenityPackages(answers: Questionnair): string[] {
+    const framework = convertPackageHashToObject(answers.framework)
+
+    if (framework.package !== '@serenity-js/webdriverio') {
+        return []
+    }
+
+    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
+
+    const packages: Record<string, Array<string | false>> = {
+        cucumber: [
+            '@cucumber/cucumber',
+            '@serenity-js/cucumber',
+        ],
+        mocha: [
+            '@serenity-js/mocha',
+            'mocha',
+            isUsingTypeScript && '@types/mocha',
+        ],
+        jasmine: [
+            '@serenity-js/jasmine',
+            'jasmine',
+            isUsingTypeScript && '@types/jasmine',
+        ],
+        common: [
+            '@serenity-js/assertions',
+            '@serenity-js/console-reporter',
+            '@serenity-js/core',
+            '@serenity-js/rest',
+            '@serenity-js/serenity-bdd',
+            '@serenity-js/web',
+            isUsingTypeScript && '@types/node',
+            'npm-failsafe',
+            'rimraf',
+        ]
+    }
+
+    return [
+        ...packages[framework.purpose],
+        ...packages.common,
+    ].filter(Boolean).sort() as string[]
+}
+
 export async function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
         platformVersion: arg.platformVersion,
@@ -281,23 +337,6 @@ export async function getCapabilities(arg: ReplCommandArguments) {
 }
 
 /**
- * Get project root directory based on questionair answers
- * @param answers questionair answers
- * @param projectProps project properties received via `getProjectProps`
- * @returns project root path
- */
-export function getProjectRoot(answers: Questionnair, projectProps?: ProjectProps) {
-    return (
-        answers.projectRoot ||
-        (
-            typeof projectProps === 'undefined'
-                ? process.cwd()
-                : projectProps.path
-        )
-    )
-}
-
-/**
  * Checks if certain directory has babel configuration files
  * @param rootDir directory where this function checks for Babel signs
  * @returns true, if a babel config was found, otherwise false
@@ -318,8 +357,7 @@ export function hasBabelConfig(rootDir: string) {
  * detect if project has a compiler file
  */
 export async function detectCompiler(answers: Questionnair) {
-    const projectProps = await getProjectProps(process.cwd())
-    const root = getProjectRoot(answers, projectProps)
+    const root = await getProjectRoot(answers)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
     return (await hasBabelConfig(root))
         ? CompilerOptions.Babel // default to Babel
@@ -345,6 +383,10 @@ export async function hasPackage(pkg: string) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles(answers: ParsedAnswers) {
+    if (answers.serenityAdapter) {
+        return generateSerenityExamples(answers)
+    }
+
     if (answers.runner === 'local') {
         return generateLocalRunnerTestFiles(answers)
     }
@@ -410,12 +452,39 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
             file.endsWith('page.js.ejs')
                 ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? answers.stepDefinitions!
+                    ? path.join(answers.destStepRootPath, path.basename(file))
                     : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
         await fs.writeFile(destPath, renderedTpl)
+    }
+}
+
+async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
+    const templateDirectories = {
+        [answers.projectRootDir]:           path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
+        [answers.destSpecRootPath]:         path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
+        [answers.destSerenityLibRootPath]:  path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
+    }
+
+    for (const [destinationRootDir, templateRootDir] of Object.entries(templateDirectories)) {
+        const pathsToTemplates = await readDir(templateRootDir)
+
+        for (const pathToTemplate of pathsToTemplates) {
+            const extension = answers.isUsingTypeScript ? '.ts' : '.js'
+            const destination = path.join(destinationRootDir, path.relative(templateRootDir, pathToTemplate))
+                .replace(/\.ejs$/, '')
+                .replace(/\.ts$/, extension)
+
+            const contents = await renderFile(
+                pathToTemplate,
+                { answers, _: new EjsHelpers({ useEsm: answers.esmSupport, useTypeScript: answers.isUsingTypeScript }) },
+            )
+
+            await fs.mkdir(path.dirname(destination), { recursive: true })
+            await fs.writeFile(destination, contents)
+        }
     }
 }
 
@@ -502,17 +571,29 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return inquirer.prompt(questions)
 }
 
+/**
+ * Generates a valid file path from answers provided.
+ * @param answers The answer from which a file path is to be generated.
+ * @param projectRootDir The root directory of the project.
+ * @returns filePath
+ */
+function generatePathfromAnswer(answers:string, projectRootDir:string):string {
+    return path.resolve(
+        projectRootDir, path.dirname(answers) === '.' ? path.resolve(answers) : path.dirname(answers))
+}
+
 export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
-    const destSpecRootPath = path.resolve(
-        projectRootDir,
-        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+    const specAnswer = answers.specs || ''
+    const stepDefinitionAnswer = answers.stepDefinitions || ''
+    const pageObjectAnswer = answers.pages || ''
 
-    const destStepRootPath = path.resolve(projectRootDir, path.dirname(answers.stepDefinitions || ''))
-
+    const destSpecRootPath = generatePathfromAnswer(specAnswer, projectRootDir).replace(/\*\*$/, '')
+    const destStepRootPath = generatePathfromAnswer(stepDefinitionAnswer, projectRootDir)
     const destPageObjectRootPath = answers.usePageObjects
-        ? path.resolve(
-            projectRootDir,
-            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        ? generatePathfromAnswer(pageObjectAnswer, projectRootDir).replace(/\*\*$/, '')
+        : ''
+    const destSerenityLibRootPath = usesSerenity(answers)
+        ? path.resolve(projectRootDir, answers.serenityLibPath || 'serenity')
         : ''
     const relativePath = (answers.generateTestFiles && answers.usePageObjects)
         ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
@@ -524,13 +605,13 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
         destSpecRootPath: destSpecRootPath,
         destStepRootPath: destStepRootPath,
         destPageObjectRootPath: destPageObjectRootPath,
+        destSerenityLibRootPath: destSerenityLibRootPath,
         relativePath: relativePath.replaceAll(path.sep, '/')
     }
 }
 
 export async function getDefaultFiles(answers: Questionnair, pattern: string) {
-    const projectProps = await getProjectProps()
-    const rootdir = getProjectRoot(answers, projectProps)
+    const rootdir = await getProjectRoot(answers)
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const isJSX = TSX_BASED_FRAMEWORKS.includes(presetPackage.short || '')
     const val = pattern.endsWith('.feature')
@@ -643,7 +724,8 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
 /**
  * run npm install only if required by the user
  */
-export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+const SEP = '\n- '
+export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
 
@@ -719,27 +801,45 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
       */
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
+    const cwd = await getProjectRoot(parsedAnswers)
+    const pm = detectPackageManager()
     if (parsedAnswers.npmInstall) {
-        console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))
-        const result = yarnInstall({ deps: parsedAnswers.packagesToInstall, dev: true, respectNpm5: !useYarn })
-        if (result.status !== 0) {
-            const customError = '⚠️ An unknown error happened! Please retry ' +
-                `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
-                `${parsedAnswers.packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
-            console.error(customError)
+        console.log(`Installing packages using ${pm}:${SEP}${parsedAnswers.packagesToInstall.join(SEP)}`)
+        const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
+        if (success) {
+            console.log(chalk.green.bold('✔ Success!\n'))
         }
-        console.log(chalk.green.bold('✔ Success!\n'))
     } else {
-        const installationCommand = `${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ${parsedAnswers.packagesToInstall.join(' ')}`
+        const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
         console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
     }
+}
+
+export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
+export type PM = typeof PMs[number]
+/**
+ * detect the package manager that was used
+ */
+export function detectPackageManager(argv = process.argv) {
+    return PMs.find((pm) => (
+        // for pnpm check "~/Library/pnpm/store/v3/..."
+        // for NPM check "~/.npm/npx/..."
+        // for Yarn check "~/.yarn/bin/create-wdio"
+        // for Bun check "~/.bun/bin/create-wdio"
+        argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
+        argv[1].includes(`${path.sep}.${pm}${path.sep}`)
+    )) || 'npm'
 }
 
 /**
  * add ts-node if TypeScript is desired but not installed
  */
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.isUsingTypeScript) {
+    /**
+     * don't create a `tsconfig.json` if user doesn't want to use TypeScript
+     * or if a `tsconfig.json` already exists
+     */
+    if (!parsedAnswers.isUsingTypeScript || parsedAnswers.hasRootTSConfig) {
         return
     }
 
@@ -747,87 +847,95 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
+
     const types = [
         'node',
         '@wdio/globals/types',
         'expect-webdriverio',
-        frameworkPackage.package,
+        ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages
             .map(service => service.package)
-            /**
-             * given that we know that all "offical" services have
-             * typescript support we only include them
-             */
-            .filter(service => service.startsWith('@wdio'))
+            .filter(service => (
+                /**
+                 * given that we know that all "official" services have
+                 * typescript support we only include them
+                 */
+                service.startsWith('@wdio') ||
+                /**
+                 * also include community maintained packages with known
+                 * support for TypeScript
+                 */
+                COMMUNITY_PACKAGES_WITH_TS_SUPPORT.includes(service)
+            ))
     ]
 
-    if (!parsedAnswers.hasRootTSConfig) {
-        const preset = getPreset(parsedAnswers)
-        const config = {
-            compilerOptions: {
-                // compiler
-                moduleResolution: 'node',
-                module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
-                target: 'es2022',
-                types,
-                skipLibCheck: true,
-                // bundler
-                noEmit: true,
-                allowImportingTsExtensions: true,
-                resolveJsonModule: true,
-                isolatedModules: true,
-                // linting
-                strict: true,
-                noUnusedLocals: true,
-                noUnusedParameters: true,
-                noFallthroughCasesInSwitch: true,
-                ...Object.assign(
-                    preset === 'lit'
-                        ? {
-                            experimentalDecorators: true,
-                            useDefineForClassFields: false
-                        }
-                        : {},
-                    preset === 'react'
-                        ? {
-                            jsx: 'react-jsx'
-                        }
-                        : {},
-                    preset === 'preact'
-                        ? {
-                            jsx: 'react-jsx',
-                            jsxImportSource: 'preact'
-                        }
-                        : {},
-                    preset === 'solid'
-                        ? {
-                            jsx: 'preserve',
-                            jsxImportSource: 'solid-js'
-                        }
-                        : {},
-                    preset === 'stencil'
-                        ? {
-                            experimentalDecorators: true,
-                            jsx: 'react',
-                            jsxFactory: 'h',
-                            jsxFragmentFactory: 'Fragment'
-                        }
-                        : {}
-                )
-            },
-            include: preset === 'svelte'
-                ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
-                : preset === 'vue'
-                    ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
-                    : ['src']
-        }
-        await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
-        await fs.writeFile(
-            parsedAnswers.tsConfigFilePath,
-            JSON.stringify(config, null, 4)
-        )
+    const preset = getPreset(parsedAnswers)
+    const config = {
+        compilerOptions: {
+            // compiler
+            moduleResolution: 'node',
+            module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+            target: 'es2022',
+            lib: ['es2022', 'dom'],
+            types,
+            skipLibCheck: true,
+            // bundler
+            noEmit: true,
+            allowImportingTsExtensions: true,
+            resolveJsonModule: true,
+            isolatedModules: true,
+            // linting
+            strict: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            noFallthroughCasesInSwitch: true,
+            ...Object.assign(
+                preset === 'lit'
+                    ? {
+                        experimentalDecorators: true,
+                        useDefineForClassFields: false
+                    }
+                    : {},
+                preset === 'react'
+                    ? {
+                        jsx: 'react-jsx'
+                    }
+                    : {},
+                preset === 'preact'
+                    ? {
+                        jsx: 'react-jsx',
+                        jsxImportSource: 'preact'
+                    }
+                    : {},
+                preset === 'solid'
+                    ? {
+                        jsx: 'preserve',
+                        jsxImportSource: 'solid-js'
+                    }
+                    : {},
+                preset === 'stencil'
+                    ? {
+                        experimentalDecorators: true,
+                        jsx: 'react',
+                        jsxFactory: 'h',
+                        jsxFragmentFactory: 'Fragment'
+                    }
+                    : {}
+            )
+        },
+        include: preset === 'svelte'
+            ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+            : preset === 'vue'
+                ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+                : ['test', 'wdio.conf.ts']
     }
+    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+    await fs.writeFile(
+        parsedAnswers.tsConfigFilePath,
+        JSON.stringify(config, null, 4)
+    )
 
     console.log(chalk.green.bold('✔ Success!\n'))
 }
@@ -890,7 +998,10 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
         const tplPath = path.resolve(__dirname, 'templates', 'wdio.conf.tpl.ejs')
-        const renderedTpl = await renderFile(tplPath, { answers: parsedAnswers })
+        const renderedTpl = await renderFile(tplPath, {
+            answers: parsedAnswers,
+            _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
+        })
         await fs.writeFile(parsedAnswers.wdioConfigPath, renderedTpl)
         console.log(chalk.green.bold('✔ Success!\n'))
 
@@ -904,24 +1015,59 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     }
 }
 
-export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
-    const projectProps = await getProjectProps(process.cwd())
-
-    const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-    const args = ['pkg', 'set', `scripts.wdio=${script}`]
-    try {
-        console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
-        await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
-        console.log(chalk.green.bold('✔ Success!'))
-        return true
-    } catch (err: any) {
-        const [preArgs, scriptPath] = args.join(' ').split('=')
-        console.error(
-            `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
-            `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
-        )
-        return false
+/**
+ * Get project root directory based on questionair answers
+ * @param answers questionair answers
+ * @param projectProps project properties received via `getProjectProps`
+ * @returns project root path
+ */
+export async function getProjectRoot (parsedAnswers?: Questionnair) {
+    const root = (await getProjectProps())?.path
+    if (!root) {
+        throw new Error('Could not find project root directory with a package.json')
     }
+
+    return !parsedAnswers || parsedAnswers.projectRootCorrect
+        ? root
+        : parsedAnswers.projectRoot || process.cwd()
+}
+
+export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
+    const rootDir = await getProjectRoot(parsedAnswers)
+    const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(rootDir, ''))}`
+
+    const wdioScripts = {
+        'wdio': `wdio run ${ pathToWdioConfig }`,
+    }
+
+    const serenityScripts = {
+        'serenity': 'failsafe serenity:update serenity:clean wdio serenity:report',
+        'serenity:update': 'serenity-bdd update',
+        'serenity:clean': 'rimraf target',
+        'wdio': `wdio run ${ pathToWdioConfig }`,
+        'serenity:report': 'serenity-bdd run',
+    }
+
+    const scripts = parsedAnswers.serenityAdapter ? serenityScripts : wdioScripts
+
+    for (const [script, command] of Object.entries(scripts)) {
+
+        const args = ['pkg', 'set', `scripts.${ script }=${ command }`]
+
+        try {
+            console.log(`Adding ${chalk.bold(`"${ script }"`)} script to package.json`)
+            await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
+        } catch (err: any) {
+            const [preArgs, scriptPath] = args.join(' ').split('=')
+            console.error(
+                `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
+                `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
+            )
+            return false
+        }
+    }
+    console.log(chalk.green.bold('✔ Success!'))
+    return true
 }
 
 export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {

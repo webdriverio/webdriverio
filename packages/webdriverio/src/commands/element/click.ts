@@ -95,16 +95,16 @@ export async function click(
 
     let button = (options.button || 0) as Button
     const {
-        x: xoffset = 0,
-        y: yoffset = 0,
+        x: xOffset = 0,
+        y: yOffset = 0,
         skipRelease = false
     } = options || {}
 
     if (
-        typeof xoffset !== 'number'
-        || typeof yoffset !== 'number'
-        || !Number.isInteger(xoffset)
-        || !Number.isInteger(yoffset)) {
+        typeof xOffset !== 'number'
+        || typeof yOffset !== 'number'
+        || !Number.isInteger(xOffset)
+        || !Number.isInteger(yOffset)) {
         throw new TypeError('Coordinates must be integers')
     }
 
@@ -123,21 +123,43 @@ export async function click(
 
     if (this.isW3C) {
         const browser = getBrowserObject(this)
-        await browser.action('pointer', {
-            parameters: { pointerType: 'mouse' }
-        })
-            .move({
-                origin: this,
-                x: xoffset,
-                y: yoffset
+        if (xOffset || yOffset) {
+            const { width, height } = await browser.getElementRect(this.elementId)
+            if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
+                throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+            }
+            if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
+                throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+            }
+        }
+        const clickNested = async () => {
+            await browser.action('pointer', {
+                parameters: { pointerType: 'mouse' }
             })
-            .down({ button })
-            .up({ button })
-            .perform(skipRelease)
+                .move({
+                    origin: this,
+                    x: xOffset,
+                    y: yOffset
+                })
+                .down({ button })
+                .up({ button })
+                .perform(skipRelease)
+        }
+        try {
+            await clickNested()
+        } catch {
+        /**
+        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+        */
+            await this.scrollIntoView({ block: 'center', inline: 'center' })
+            await clickNested()
+        }
         return
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
-    await this.moveToElement(this.elementId, xoffset + (width / 2), yoffset + (height / 2))
+    await this.moveToElement(this.elementId, xOffset + (width / 2), yOffset + (height / 2))
     return this.positionClick(button as number)
 }

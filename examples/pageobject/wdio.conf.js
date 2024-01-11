@@ -11,9 +11,8 @@ exports.config = {
     // worker process. In order to have a group of spec files run in the same worker
     // process simply enclose them in an array within the specs array.
     //
-    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio`
-    // will be called from there.
+    // The path of the spec files will be resolved relative from the directory of
+    // of the config file unless it's absolute.
     //
     specs: [__dirname + '/specs/*.spec.js'],
     //
@@ -116,12 +115,12 @@ exports.config = {
     //
     // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
     // beforeEach in Mocha). In Cucumber `context` is the World object.
-    // beforeHook: function (test, context) {
+    // beforeHook: function (test, context, hookName) {
     // },
     //
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
     // afterEach in Mocha). In Cucumber `context` is the World object.
-    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
+    // afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     // },
     //
     // Function to be executed before a test (in Mocha/Jasmine) starts.

@@ -18,7 +18,7 @@ import {
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId, isMochaBeforeEachHook,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setAllureIds, isMochaBeforeEachHook,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -139,7 +139,7 @@ export default class AllureReporter extends WDIOReporter {
             const currentTest = this._state.pop() as AllureTest | AllureStep
 
             if (currentTest instanceof AllureTest) {
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
             } else {
                 currentTest.endStep()
@@ -171,7 +171,7 @@ export default class AllureReporter extends WDIOReporter {
         currentTest.status = AllureStatus.SKIPPED
 
         if (currentTest instanceof AllureTest) {
-            setHistoryId(currentTest, this._state.currentSuite)
+            setAllureIds(currentTest, this._state.currentSuite)
             currentTest.endTest()
         } else {
             currentTest.endStep()
@@ -194,7 +194,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (currentSpec instanceof AllureTest) {
-            setHistoryId(currentSpec, this._state.currentSuite)
+            setAllureIds(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
         } else {
             currentSpec.endStep()
@@ -358,7 +358,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.SKIPPED
                 currentTest.stage = Stage.PENDING
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -377,7 +377,7 @@ export default class AllureReporter extends WDIOReporter {
                     currentTest.detailsTrace = error.stack
                 }
 
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -391,7 +391,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -490,21 +490,18 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        if (!this._state.currentStep || this._isMultiremote) {
-            return
-        }
-
-        const isScreenshot = isScreenshotCommand(command)
         const { value: commandResult } = command?.result || {}
-
+        const isScreenshot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
         }
 
-        if (!disableWebdriverStepsReporting) {
-            this.attachJSON('Response', commandResult)
-            this.endStep(AllureStatus.PASSED)
+        if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
+            return
         }
+
+        this.attachJSON('Response', commandResult)
+        this.endStep(AllureStatus.PASSED)
     }
 
     onHookStart(hook: HookStats) {

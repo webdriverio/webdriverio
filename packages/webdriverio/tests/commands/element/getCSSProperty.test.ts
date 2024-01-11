@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment jsdom
+ */
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
@@ -38,6 +41,46 @@ describe('getCSSProperty test', () => {
         expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/css/padding-top')
         expect(property.value).toBe('4px 2px')
+    })
+
+    it('should use execute when pseudo element is given', async () => {
+        globalThis.window.getComputedStyle = vi.fn().mockReturnValue({
+            'padding-top': '1px',
+            'padding-right': '1px',
+            'padding-bottom': '1px',
+            'padding-left': '1px'
+        })
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+        const property = await elem.getCSSProperty('padding', '::before')
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(property.value).toBe('1px')
+    })
+
+    it('should reduce if values are symmetric', async () => {
+        globalThis.window.getComputedStyle = vi.fn().mockReturnValue({
+            'padding-top': '1px',
+            'padding-right': '2px',
+            'padding-bottom': '1px',
+            'padding-left': '2px'
+        })
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+        const property = await elem.getCSSProperty('padding', '::before')
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(property.value).toBe('1px 2px')
     })
 
     afterEach(() => {

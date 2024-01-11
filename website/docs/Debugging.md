@@ -78,11 +78,21 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## Debugging with Visual Studio Code (VSCode)
 
-If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).
+If you want to debug your tests with breakpoints in latest VSCode, you have two options for starting the debugger of which option 1 is the easiest method:
+ 1. automatically attaching the debugger
+ 2. attaching the debugger using a configuration file
 
-> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.
+### VSCode Toggle Auto Attach
 
-Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+You can automatically attach the debugger by following these steps in VSCode:
+ - Press CMD + Shift + P (Linux and Macos) or CTRL + Shift + P (Windows)
+ - Type "attach" into the input field
+ - Select "Debug: Toggle Auto Attach"
+ - Select "Only With Flag"
+
+ That's it! Now when you run your tests (remember you will need the --inspect flag set in your config as shown earlier) it will automatically start the debugger and stop on the first breakpoint that it reaches.
+
+### VSCode Configuration file
 
 It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
 ```
@@ -107,6 +117,8 @@ To run all spec files remove `"--spec", "${file}"` from `"args"`
 
 Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
 
+Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+
 ## Dynamic Repl with Atom
 
 If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.
@@ -115,3 +127,37 @@ If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://
 You can create a node.js debug configuration like this:
 ![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)
 Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.
+
+## Debugging flaky tests
+
+Flaky tests can be really hard to debug so here are some tips how you can try and get that flaky result you got in your CI, reproduced locally.
+
+### Network
+To debug network related flakiness use the [throttleNetwork](https://webdriver.io/docs/api/browser/throttleNetwork) command.
+```js
+await browser.throttleNetwork('Regular3G')
+```
+
+### Rendering speed
+To debug device speed related flakiness use the [throttleCPU](https://webdriver.io/docs/api/browser/throttleCPU) command.
+This will cause your pages to render slower which can be caused by many things like running multiple processes in your CI which could be slowing down your tests.
+```js
+await browser.throttleCPU(4)
+```
+
+### Test execution speed
+
+If your tests do not seem to be affected it is possible that WebdriverIO is faster than the update from the frontend framework / browser. This happens when using synchronous assertions since WebdriverIO has no chance to retry these assertions anymore. Some examples of code that can break because of this:
+```js
+expect(elementList.length).toEqual(7) // list might not be populated at the time of the assertion
+expect(await elem.getText()).toEqual('this button was clicked 3 times') // text might not be updated yet at the time of assertion resulting in an error ("this button was clicked 2 times" does not match the expected "this button was clicked 3 times")
+expect(await elem.isDisplayed()).toBe(true) // might not be displayed yet
+```
+To resolve this problem, asynchronous assertions should be used instead. The above examples would looks like this:
+```js
+await expect(elementList).toBeElementsArrayOfSize(7)
+await expect(elem).toHaveText('this button was clicked 3 times')
+await expect(elem).toBeDisplayed()
+```
+Using these assertions, WebdriverIO will automatically wait until the condition matches. When asserting text this means that the element needs to exist and the text needs to be equal to the expected value.
+We talk more about this in our [Best Practices Guide](https://webdriver.io/docs/bestpractices#use-the-built-in-assertions).

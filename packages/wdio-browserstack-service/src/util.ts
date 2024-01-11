@@ -1,28 +1,40 @@
 import { hostname, platform, type, version, arch } from 'node:os'
+import fs from 'node:fs'
+import zlib from 'node:zlib'
 import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
-import logger from '@wdio/logger'
 
 import got, { HTTPError } from 'got'
+import type { Method } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import type { ColorName } from 'chalk'
+import { FormData } from 'formdata-node'
+import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
+import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
+import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
+import { BStackLogger } from './bstackLogger.js'
+import { FileStream } from './fileStream.js'
+import BrowserstackLauncherService from './launcher.js'
 
 const pGitconfig = promisify(gitconfig)
-const log = logger('@wdio/browserstack-service')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -33,6 +45,15 @@ export const DEFAULT_REQUEST_CONFIG = {
         'Content-Type': 'application/json',
         'X-BSTACK-OBS': 'true'
     },
+}
+
+export const COLORS: Record<string, ColorName> = {
+    error: 'red',
+    warn: 'yellow',
+    info: 'cyanBright',
+    debug: 'green',
+    trace: 'cyan',
+    progress: 'magenta'
 }
 
 /**
@@ -62,20 +83,20 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  */
 export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
     if (!browser.isMultiremote) {
-        return { ...browser.capabilities, ...caps } as Capabilities.Capabilities
+        return { ...browser.capabilities, ...caps } as WebdriverIO.Capabilities
     }
 
     const multiCaps = caps as Capabilities.MultiRemoteCapabilities
     const globalCap = browserName && browser.getInstance(browserName) ? browser.getInstance(browserName).capabilities : {}
     const cap = browserName && multiCaps[browserName] ? multiCaps[browserName].capabilities : {}
-    return { ...globalCap, ...cap } as Capabilities.Capabilities
+    return { ...globalCap, ...cap } as WebdriverIO.Capabilities
 }
 
 /**
  * check for browserstack W3C capabilities. Does not support legacy capabilities
  * @param cap browser capabilities
  */
-export function isBrowserstackCapability(cap?: Capabilities.Capabilities) {
+export function isBrowserstackCapability(cap?: WebdriverIO.Capabilities) {
     return Boolean(
         cap &&
             cap['bstack:options'] &&
@@ -101,7 +122,7 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
 }
 
 function processError(error: any, fn: Function, args: any[]) {
-    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
     try {
         argsString = JSON.stringify(args)
@@ -125,6 +146,56 @@ export function o11yErrorHandler(fn: Function) {
             return result
         } catch (error) {
             processError(error, fn, args)
+        }
+    }
+}
+
+export function errorHandler(fn: Function) {
+    return function (...args: any) {
+        try {
+            const functionToHandle = fn
+            const result = functionToHandle(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`))
+            }
+            return result
+        } catch (error) {
+            BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+        }
+    }
+}
+
+export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
+    try {
+        const response: any = await got(`${apiUrl}/${apiEndpoint}`, {
+            method: requestType,
+            timeout: {
+                request: timeout
+            },
+            ...options
+        }).json()
+        return response
+    } catch (error : any) {
+        const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
+        if (error instanceof HTTPError && error.response) {
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null
+            if (errorMessage) {
+                isLogUpload ? BStackLogger.debug(`${errorMessage} - ${error.stack}`) : BStackLogger.error(`${errorMessage} - ${error.stack}`)
+            } else {
+                isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
+            }
+            if (isLogUpload) {
+                return
+            }
+            throw error
+        } else {
+            if (isLogUpload) {
+                BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
+                return
+            }
+            BStackLogger.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            throw error
         }
     }
 }
@@ -198,7 +269,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
         }
     } catch (error) {
-        return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
+        return BStackLogger.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
     }
     data.config = CrashReporter.userConfigForReporting
 
@@ -210,7 +281,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             password: getObservabilityKey(options, config),
             json: data
         }).json()
-        log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) {
             process.env.BS_TESTOPS_JWT = response.jwt
@@ -227,19 +298,245 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
             switch (errorType) {
             case 'ERROR_INVALID_CREDENTIALS':
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
                 break
             case 'ERROR_ACCESS_DENIED':
-                log.info(errorMessage)
+                BStackLogger.info(errorMessage)
                 break
             case 'ERROR_SDK_DEPRECATED':
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
                 break
             default:
-                log.error(errorMessage)
+                BStackLogger.error(errorMessage)
             }
         } else {
-            log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+        }
+    }
+})
+
+export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
+    try {
+        if (deviceName) {
+            BStackLogger.warn('Accessibility Automation will run only on Desktop browsers.')
+            return false
+        }
+
+        if (platformMeta?.browser_name?.toLowerCase() !== 'chrome') {
+            BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
+            return false
+        }
+        const browserVersion = platformMeta?.browser_version
+        if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
+            BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
+            return false
+        }
+
+        if (chromeOptions?.args?.includes('--headless')) {
+            BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+            return false
+        }
+        return true
+    } catch (error) {
+        BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
+    }
+    return false
+}
+
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }) => {
+    try {
+        const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
+        const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
+
+        const fullTestName = suiteTitle + ' ' + testTitle
+        const excluded = excludeTags?.some((exclude) => fullTestName.includes(exclude))
+        const included = includeTags?.length === 0 || includeTags?.some((include) => fullTestName.includes(include))
+
+        return !excluded && included
+    } catch (error) {
+        BStackLogger.debug(`Error while validating test case for accessibility before scanning. Error : ${error}`)
+    }
+    return false
+}
+
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+    try {
+        const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
+        return accessibilityFlag && hasA11yJwtToken
+    } catch (error) {
+        BStackLogger.debug(`Exception in verifying the Accessibility session with error : ${error}`)
+    }
+    return false
+}
+
+export const createAccessibilityTestRun = errorHandler(async function createAccessibilityTestRun(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+    const userName = getBrowserStackUser(config)
+    const accessKey = getBrowserStackKey(config)
+
+    if (isUndefined(userName) || isUndefined(accessKey)) {
+        BStackLogger.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
+        return null
+    }
+
+    const data = {
+        'projectName': bsConfig.projectName,
+        'buildName': bsConfig.buildName ||
+          path.basename(path.resolve(process.cwd())),
+        'startTime': (new Date()).toISOString(),
+        'description': '',
+        'source': {
+            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkVersion: bsConfig.bstackServiceVersion,
+            sdkVersion: bsConfig.bstackServiceVersion
+        },
+        'settings': bsConfig.accessibilityOptions || {},
+        'versionControl': await getGitMetaData(),
+        'ciInfo': getCiInfo(),
+        'hostInfo': {
+            hostname: hostname(),
+            platform: platform(),
+            type: type(),
+            version: version(),
+            arch: arch()
+        },
+        'browserstackAutomation': true,
+    }
+
+    const requestOptions = {
+        json: data,
+        username: getBrowserStackUser(config),
+        password: getBrowserStackKey(config),
+    }
+
+    try {
+        const response: any = await nodeRequest(
+            'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
+        )
+
+        BStackLogger.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
+
+        if (response.data.accessibilityToken) {
+            process.env.BSTACK_A11Y_JWT = response.data.accessibilityToken
+        }
+        if (response.data.id) {
+            process.env.BS_A11Y_TEST_RUN_ID = response.data.id
+        }
+
+        BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
+
+        return response.data.scannerVersion
+    } catch (error : any) {
+        if (error.response) {
+            BStackLogger.error(
+                `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                    error.response.status
+                } ${error.response.statusText} ${JSON.stringify(error.response.data)}`
+            )
+        } else {
+            const errorMessage = error.message
+            if (errorMessage === 'Invalid configuration passed.') {
+                BStackLogger.error(
+                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                        errorMessage || error.stack
+                    }`
+                )
+                for (const errorkey of error.errors){
+                    BStackLogger.error(errorkey.message)
+                }
+            } else {
+                BStackLogger.error(
+                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
+                        errorMessage || error.stack
+                    }`
+                )
+            }
+        }
+        return null
+    }
+})
+
+export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
+    if (!isBrowserStackSession) {
+        BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
+        return [] // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
+        return []
+    }
+
+    try {
+        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults)
+        return results
+    } catch {
+        BStackLogger.error('No accessibility results were found.')
+        return []
+    }
+}
+
+export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
+    if (!isBrowserStackSession) {
+        return {} // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return {}
+    }
+
+    try {
+        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary)
+        return summaryResults
+    } catch {
+        BStackLogger.error('No accessibility summary was found.')
+        return {}
+    }
+}
+
+export const stopAccessibilityTestRun = errorHandler(async function stopAccessibilityTestRun() {
+    const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
+    if (!hasA11yJwtToken) {
+        return {
+            status: 'error',
+            message: 'Build creation had failed.'
+        }
+    }
+
+    const data = {
+        'endTime': (new Date()).toISOString(),
+    }
+
+    const requestOptions = { ...{
+        json: data,
+        headers: {
+            'Authorization': `Bearer ${process.env.BSTACK_A11Y_JWT}`,
+        }
+    } }
+
+    try {
+        const response: any = await nodeRequest(
+            'PUT', 'test_runs/stop', requestOptions, ACCESSIBILITY_API_URL
+        )
+
+        if (response.data && response.data.error) {
+            throw new Error('Invalid request: ' + response.data.error)
+        } else if (response.error) {
+            throw new Error('Invalid request: ' + response.error)
+        } else {
+            BStackLogger.info(`BrowserStack Accessibility Automation Test Run marked as completed at ${new Date().toISOString()}`)
+            return { status: 'success', message: '' }
+        }
+    } catch (error : any) {
+        if (error.response && error.response.status && error.response.statusText && error.response.data) {
+            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+        } else {
+            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.message || util.format(error)}`)
+        }
+        return {
+            status: 'error',
+            message: error.message ||
+                (error.response ? `${error.response.status}:${error.response.statusText}` : error)
         }
     }
 })
@@ -249,7 +546,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         return
     }
     if (!process.env.BS_TESTOPS_JWT) {
-        log.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
+        BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
             message: 'Token/buildID is undefined, build creation might have failed'
@@ -269,13 +566,13 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             },
             json: data
         }).json()
-        log.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
-        log.debug(`[STOP_BUILD] Failed. Error: ${error}`)
+        BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
             message: error.message
@@ -295,7 +592,7 @@ export function getCiInfo () {
         }
     }
     // CircleCI
-    if (env.CI === 'true' && env.CIRCLECI === 'true') {
+    if (isTrue(env.CI) && isTrue(env.CIRCLECI)) {
         return {
             name: 'CircleCI',
             build_url: env.CIRCLE_BUILD_URL,
@@ -304,7 +601,7 @@ export function getCiInfo () {
         }
     }
     // Travis CI
-    if (env.CI === 'true' && env.TRAVIS === 'true') {
+    if (isTrue(env.CI) && isTrue(env.TRAVIS)) {
         return {
             name: 'Travis CI',
             build_url: env.TRAVIS_BUILD_WEB_URL,
@@ -313,7 +610,7 @@ export function getCiInfo () {
         }
     }
     // Codeship
-    if (env.CI === 'true' && env.CI_NAME === 'codeship') {
+    if (isTrue(env.CI) && env.CI_NAME === 'codeship') {
         return {
             name: 'Codeship',
             build_url: null,
@@ -331,7 +628,7 @@ export function getCiInfo () {
         }
     }
     // Drone
-    if (env.CI === 'true' && env.DRONE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.DRONE)) {
         return {
             name: 'Drone',
             build_url: env.DRONE_BUILD_LINK,
@@ -340,7 +637,7 @@ export function getCiInfo () {
         }
     }
     // Semaphore
-    if (env.CI === 'true' && env.SEMAPHORE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.SEMAPHORE)) {
         return {
             name: 'Semaphore',
             build_url: env.SEMAPHORE_ORGANIZATION_URL,
@@ -349,7 +646,7 @@ export function getCiInfo () {
         }
     }
     // GitLab
-    if (env.CI === 'true' && env.GITLAB_CI === 'true') {
+    if (isTrue(env.CI) && isTrue(env.GITLAB_CI)) {
         return {
             name: 'GitLab',
             build_url: env.CI_JOB_URL,
@@ -358,7 +655,7 @@ export function getCiInfo () {
         }
     }
     // Buildkite
-    if (env.CI === 'true' && env.BUILDKITE === 'true') {
+    if (isTrue(env.CI) && isTrue(env.BUILDKITE)) {
         return {
             name: 'Buildkite',
             build_url: env.BUILDKITE_BUILD_URL,
@@ -367,12 +664,138 @@ export function getCiInfo () {
         }
     }
     // Visual Studio Team Services
-    if (env.TF_BUILD === 'True') {
+    if (isTrue(env.TF_BUILD) && env.TF_BUILD_BUILDNUMBER) {
         return {
             name: 'Visual Studio Team Services',
             build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
             job_name: env.SYSTEM_DEFINITIONID,
             build_number: env.BUILD_BUILDID
+        }
+    }
+    // Appveyor
+    if (isTrue(env.APPVEYOR)) {
+        return {
+            name: 'Appveyor',
+            build_url: `${env.APPVEYOR_URL}/project/${env.APPVEYOR_ACCOUNT_NAME}/${env.APPVEYOR_PROJECT_SLUG}/builds/${env.APPVEYOR_BUILD_ID}`,
+            job_name: env.APPVEYOR_JOB_NAME,
+            build_number: env.APPVEYOR_BUILD_NUMBER
+        }
+    }
+    // Azure CI
+    if (env.AZURE_HTTP_USER_AGENT && env.TF_BUILD) {
+        return {
+            name: 'Azure CI',
+            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
+            job_name: env.BUILD_BUILDID,
+            build_number: env.BUILD_BUILDID
+        }
+    }
+    // AWS CodeBuild
+    if (env.CODEBUILD_BUILD_ID || env.CODEBUILD_RESOLVED_SOURCE_VERSION || env.CODEBUILD_SOURCE_VERSION) {
+        return {
+            name: 'AWS CodeBuild',
+            build_url: env.CODEBUILD_PUBLIC_BUILD_URL,
+            job_name: env.CODEBUILD_BUILD_ID,
+            build_number: env.CODEBUILD_BUILD_ID
+        }
+    }
+    // Bamboo
+    if (env.bamboo_buildNumber) {
+        return {
+            name: 'Bamboo',
+            build_url: env.bamboo_buildResultsUrl,
+            job_name: env.bamboo_shortJobName,
+            build_number: env.bamboo_buildNumber
+        }
+    }
+    // Wercker
+    if (env.WERCKER || env.WERCKER_MAIN_PIPELINE_STARTED) {
+        return {
+            name: 'Wercker',
+            build_url: env.WERCKER_BUILD_URL,
+            job_name: env.WERCKER_MAIN_PIPELINE_STARTED ? 'Main Pipeline' : null,
+            build_number: env.WERCKER_GIT_COMMIT
+        }
+    }
+    // Google Cloud
+    if (env.GCP_PROJECT || env.GCLOUD_PROJECT || env.GOOGLE_CLOUD_PROJECT) {
+        return {
+            name: 'Google Cloud',
+            build_url: null,
+            job_name: env.PROJECT_ID,
+            build_number: env.BUILD_ID,
+        }
+    }
+    // Shippable
+    if (env.SHIPPABLE) {
+        return {
+            name: 'Shippable',
+            build_url: env.SHIPPABLE_BUILD_URL,
+            job_name: env.SHIPPABLE_JOB_ID ? `Job #${env.SHIPPABLE_JOB_ID}` : null,
+            build_number: env.SHIPPABLE_BUILD_NUMBER
+        }
+    }
+    // Netlify
+    if (isTrue(env.NETLIFY)) {
+        return {
+            name: 'Netlify',
+            build_url: env.DEPLOY_URL,
+            job_name: env.SITE_NAME,
+            build_number: env.BUILD_ID
+        }
+    }
+    // Github Actions
+    if (isTrue(env.GITHUB_ACTIONS)) {
+        return {
+            name: 'GitHub Actions',
+            build_url: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
+            job_name: env.GITHUB_WORKFLOW,
+            build_number: env.GITHUB_RUN_ID,
+        }
+    }
+    // Vercel
+    if (isTrue(env.CI) && env.VERCEL === '1') {
+        return {
+            name: 'Vercel',
+            build_url: `http://${env.VERCEL_URL}`,
+            job_name: null,
+            build_number: null,
+        }
+    }
+    // Teamcity
+    if (env.TEAMCITY_VERSION) {
+        return {
+            name: 'Teamcity',
+            build_url: null,
+            job_name: null,
+            build_number: env.BUILD_NUMBER,
+        }
+    }
+    // Concourse
+    if (env.CONCOURSE || env.CONCOURSE_URL || env.CONCOURSE_USERNAME || env.CONCOURSE_TEAM) {
+        return {
+            name: 'Concourse',
+            build_url: null,
+            job_name: env.BUILD_JOB_NAME || null,
+            build_number: env.BUILD_ID || null,
+        }
+    }
+    // GoCD
+    if (env.GO_JOB_NAME) {
+        return {
+            name: 'GoCD',
+            build_url: null,
+            job_name: env.GO_JOB_NAME,
+            build_number: env.GO_PIPELINE_COUNTER,
+        }
+    }
+    // CodeFresh
+    if (env.CF_BUILD_ID) {
+        return {
+            name: 'CodeFresh',
+            build_url: env.CF_BUILD_URL,
+            job_name: env.CF_PIPELINE_NAME,
+            build_number: env.CF_BUILD_ID,
         }
     }
     // if no matches, return null
@@ -385,7 +808,7 @@ export async function getGitMetaData () {
         return
     }
     const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url }))
+    const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
     return {
         name: 'git',
         sha: info.sha,
@@ -508,7 +931,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     }
 
     if (!process.env.BS_TESTOPS_JWT) {
-        log.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
+        BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
         return {
             status: 'error',
             message: 'Token/buildID is undefined, build creation might have failed'
@@ -526,10 +949,10 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
             },
             json: eventData
         }).json()
-        log.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
+        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     } catch (error) {
-        log.debug(`[${logTag}] Failed. Error: ${error}`)
+        BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     }
 }
@@ -555,7 +978,7 @@ export function getHookType (hookName: string): string {
     return 'unknown'
 }
 
-export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
@@ -588,9 +1011,9 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
             },
             json: data
         }).json()
-        log.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
-        log.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
     }
 }
 
@@ -647,12 +1070,115 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     return []
 }
 
+export function getBrowserStackUser(config: Options.Testrunner) {
+    if (process.env.BROWSERSTACK_USERNAME) {
+        return process.env.BROWSERSTACK_USERNAME
+    }
+    return config.user
+}
+
+export function getBrowserStackKey(config: Options.Testrunner) {
+    if (process.env.BROWSERSTACK_ACCESS_KEY) {
+        return process.env.BROWSERSTACK_ACCESS_KEY
+    }
+    return config.key
+}
+
+export function isUndefined(value: any) {
+    return value === undefined || value === null
+}
+
+export function isTrue(value?: any) {
+    return (value + '').toLowerCase() === 'true'
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
+        return true
+    }
+
+    if (framework === 'cucumber') {
         return true
     }
 
     return false
 }
 
+export function patchConsoleLogs() {
+    const BSTestOpsPatcher = new logPatcher({})
+
+    Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        const origMethod = (console[method] as any).bind(console)
+
+        // Make sure we don't override Constructors
+        // Arrow functions are not construable
+        if (typeof console[method] === 'function'
+            && method !== 'Console'
+        ) {
+            (console as any)[method] = (...args: unknown[]) => {
+                origMethod(...args);
+                (BSTestOpsPatcher as any)[method](...args)
+            }
+        }
+    })
+}
+
+export function getFailureObject(error: string|Error) {
+    const stack = (error as Error).stack
+    const message = typeof error === 'string' ? error : error.message
+    const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
+
+    return {
+        failure: [{ backtrace: [backtrace] }],
+        failure_reason: removeAnsiColors(message.toString()),
+        failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
+    }
+}
+
+export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
+    if (!requestQueueHandler) {
+        requestQueueHandler = RequestQueueHandler.getInstance()
+    }
+    const req = requestQueueHandler.add(data)
+    if (req.proceed && req.data) {
+        await uploadEventData(req.data, req.url)
+    }
+}
+
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    if (!user || !key) {
+        return
+    }
+    const fileStream = fs.createReadStream(BStackLogger.logFilePath)
+    const uploadAddress = UPLOAD_LOGS_ADDRESS
+    const zip = zlib.createGzip({ level: 1 })
+    fileStream.pipe(zip)
+
+    const formData = new FormData()
+    formData.append('data', new FileStream(zip), 'logs.gz')
+    formData.append('clientBuildUuid', clientBuildUuid)
+
+    const requestOptions = {
+        body: formData,
+        username: user,
+        password: key
+    }
+
+    const response = await nodeRequest(
+        'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+    )
+
+    return response
+}
+
+export function setupExitHandlers() {
+    process.on('exit', (code) => {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
+}

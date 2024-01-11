@@ -128,6 +128,10 @@ export interface CommandEndpoint {
      */
     ref: string
     /**
+     * description for the deprecated command
+     */
+    deprecated?: string
+    /**
      * supported command parameters
      */
     parameters: CommandParameters[]
@@ -226,10 +230,6 @@ export interface BidiRequest {
      * types will be more defined later
      */
     params: Record<string, any>
-}
-
-export interface BidiResponse {
-    id: number
 }
 
 export type Context = string | DetailedContext

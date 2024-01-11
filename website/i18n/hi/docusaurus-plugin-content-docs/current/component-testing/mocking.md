@@ -214,16 +214,15 @@ export const bar = () => 'bar';
 export default () => 'baz';
 ```
 
-अपने परीक्षण में आप `origModuleFactory` फ़ंक्शन को कॉल करके मूल मॉड्यूल तक पहुंच सकते हैं:
+The original module will be passed into the mock factory which you can use to e.g. partially mock a dependency:
 
 ```js
 import { mock, fn } from '@wdio/browser-runner'
 import defaultExport, { bar, foo } from './foo-bar-baz.js';
 
-mock('./foo-bar-baz.js', async (origModuleFactory) => {
-    const originalModule = await origModuleFactory()
-
-    //Mock the default export and named export 'foo'
+mock('./foo-bar-baz.js', async (originalModule) => {
+    // Mock the default export and named export 'foo'
+    // and propagate named export from the original module
     return {
         __esModule: true,
         ...originalModule,
@@ -262,7 +261,7 @@ describe('partial mock', () => {
 └── views
 ```
 
-जब किसी दिए गए मॉड्यूल के लिए मैन्युअल मॉक मौजूद होता है, तो WebdriverIO `mock('moduleName')`को स्पष्ट रूप से कॉल करते समय उस मॉड्यूल का उपयोग करेगा। हालाँकि, जब ऑटोमॉक को सही पर सेट किया जाता है, तो स्वचालित रूप से बनाए गए मॉक के बजाय मैन्युअल मॉक कार्यान्वयन का उपयोग किया जाएगा, भले ही <`mock('moduleName')` को कॉल न किया गया हो। इस व्यवहार से बाहर निकलने के लिए आपको परीक्षणों में `unmock('moduleName')` को स्पष्ट रूप से कॉल करने की आवश्यकता होगी जो वास्तविक मॉड्यूल कार्यान्वयन का उपयोग करना चाहिए, उदाहरण के लिए:
+जब किसी दिए गए मॉड्यूल के लिए मैन्युअल मॉक मौजूद होता है, तो WebdriverIO `mock('moduleName')` को स्पष्ट रूप से कॉल करते समय उस मॉड्यूल का उपयोग करेगा। हालाँकि, जब ऑटोमॉक को सही पर सेट किया जाता है, तो स्वचालित रूप से बनाए गए मॉक के बजाय मैन्युअल मॉक कार्यान्वयन का उपयोग किया जाएगा, भले ही `mock('moduleName')` को कॉल न किया गया हो। इस व्यवहार से बाहर निकलने के लिए आपको परीक्षणों में `unmock('moduleName')` को स्पष्ट रूप से कॉल करने की आवश्यकता होगी जो वास्तविक मॉड्यूल कार्यान्वयन का उपयोग करना चाहिए, उदाहरण के लिए:
 
 ```js
 import { unmock } from '@wdio/browser-runner'

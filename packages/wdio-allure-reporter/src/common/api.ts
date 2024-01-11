@@ -177,7 +177,6 @@ export function addAttachment (name: string, content: string | Buffer | object, 
 
 /**
  * Start allure step
- * @deprecated use `step` method instead
  * @name startStep
  * @param {string} title - step name in report
  */
@@ -187,7 +186,6 @@ export function startStep (title: string) {
 
 /**
  * End current allure step
- * @deprecated use `step` method instead
  * @name endStep
  * @param {StepStatus} [status='passed'] - step status
  */
@@ -200,7 +198,6 @@ export function endStep (status: Status = Status.PASSED) {
 
 /**
  * Create allure step
- * @deprecated use `step` method instead
  * @name addStep
  * @param {string} title - step name in report
  * @param {object} [attachmentObject={}] - attachment for step
@@ -244,12 +241,30 @@ export function addArgument (name: string, value: string) {
  */
 export async function step(name: string, body: StepBodyFunction) {
     const runningStep = new AllureCommandStepExecutable(name)
-    // looks complicated due to https://github.com/allure-framework/allure-js/commit/ce9a6f986d32a079b7f60c9f77a7d90f01d9a9f2#r110599261
-    const result = await new Promise((resolve) => runningStep.run(body, async (result) => resolve(result)))
-    tellReporter(events.addAllureStep, result)
+    await runningStep.run(body, async (message) => tellReporter(events.addAllureStep, message))
 }
 
 export default {
-    addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step, addTag
+    addLabel,
+    addLink,
+    addAllureId,
+    addFeature,
+    addSeverity,
+    addIssue,
+    addTestId,
+    addStory,
+    addSuite,
+    addParentSuite,
+    addSubSuite,
+    addEpic,
+    addOwner,
+    addTag,
+    addEnvironment,
+    addDescription,
+    addAttachment,
+    startStep,
+    endStep,
+    addStep,
+    addArgument,
+    step
 }

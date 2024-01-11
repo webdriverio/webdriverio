@@ -59,7 +59,7 @@ export function debug(
     process._debugProcess(process.pid)
 
     /**
-     * initialise repl in testrunner
+     * initialize repl in testrunner
      */
     process.send({
         origin: 'debugger',

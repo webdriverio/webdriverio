@@ -5,7 +5,7 @@ export default class LocalRunnerMock {
     configFile: string
     config: WebdriverIO.Config
     workerPool: Record<string, WorkerInstance> = {}
-    initialise = vi.fn()
+    initialize = vi.fn()
 
     constructor (configFile: string, config: WebdriverIO.Config) {
         this.configFile = configFile

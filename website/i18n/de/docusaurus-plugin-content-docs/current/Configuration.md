@@ -3,7 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-Basierend auf dem [Setup-Typ](setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
+Basierend auf dem [Setup-Type](/docs/setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
 
 ## WebDriver-Optionen
 
@@ -72,7 +72,7 @@ Type: `Object`<br /> Default: `null`
 
 ```js
 {
-    browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+    browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`
     browserVersion: '27.0', // browser version
     platformName: 'Windows 10' // OS platform
 }
@@ -155,6 +155,12 @@ Aktiviere [Appium direct connection feature](https://appiumpro.com/editions/86-c
 
 Type: `Boolean`<br /> Default: `true`
 
+### cacheDir
+
+The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+
+Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
 ---
 
 ## WebdriverIO
@@ -193,7 +199,7 @@ Type: `Number`<br /> Default: `500`
 
 ### region
 
-Wenn Sie auf Sauce Labs laufen, können Sie Tests zwischen verschiedenen Rechenzentren durchführen: USA oder EU. Um Ihre Region in EU zu ändern, fügen Sie `region: 'eu'` zu Ihrer Konfiguration hinzu.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. Um Ihre Region in EU zu ändern, fügen Sie `region: 'eu'` zu Ihrer Konfiguration hinzu.
 
 __Hinweis:__ Dies hat nur Auswirkungen, wenn Sie `user` und `key`, die mit Ihrem Sauce Labs-Konto verbunden sind, in Ihren Options bereitstellen.
 
@@ -209,7 +215,7 @@ Die folgenden Optionen (einschließlich der oben aufgeführten) sind nur für di
 
 ### specs
 
-Definieren Sie Test Dateien für die Testausführung. Sie können entweder ein Glob-Muster angeben, um mehrere Dateien gleichzeitig zu finden, oder ein Glob und eine Reihe von Pfaden in einem Array einschließen, um sie in einem einzelnen Worker-Prozessen auszuführen. Alle Pfade werden relativ zum Pfad der Konfigurationsdatei gesehen.
+Definieren Sie Test Dateien für die Testausführung. Sie können entweder ein Glob-Muster angeben, um mehrere Dateien gleichzeitig zu finden, oder ein Glob und eine Reihe von Pfaden in einem Array einschließen, um sie in einem einzelnen Worker-Prozessen auszuführen. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
@@ -279,9 +285,22 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Legt fest, ob wiederholte Testdateien sofort wiederholt oder an das Ende der Warteschlange verschoben werden sollen.
+Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
 Type: `Boolean`<br /> Default: `true`
+
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br />
+Default: `false`
 
 ### services
 
@@ -411,7 +430,7 @@ Parameter:
 - `cid` (`string`): Capability-ID (z. B. 0-0)
 - `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
 - `specs` (`string[]`): Tests, die im Workerprozess ausgeführt werden sollen
-- `retries` (`Nummer`): Anzahl der verwendeten Wiederholungen
+- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
@@ -435,7 +454,7 @@ Parameter:
 
 ### beforeSuite
 
-Hook, die ausgeführt wird, bevor die Suite gestartet wird
+Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Parameter:
 
@@ -501,12 +520,12 @@ Parameter:
 - `result.result` (`Any`): Ergebniss der Testfunktion
 - `result.duration` (`Ziffer`): Testdauer
 - `result.passed` (`Boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
-- `result.retries` (`Object`): Informationen zur ausgeführten Wiederholungen, z. B. `{ attempts: 0, limit: 0 }`
+- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`Objekt`): Hook-Ergebnis (enthält `error`, `result`, `duration`, `passed`, `retries` Eigenschaften)
 
 ### afterSuite
 
-Hook, der ausgeführt wird, nachdem die Suite beendet wurde
+Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Parameter:
 
@@ -615,3 +634,27 @@ Parameter:
 - `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
 - `result.duration` (`ziffer`): Testdauer
 - `context` (`Objekt`): Cucumber World-Objekt
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

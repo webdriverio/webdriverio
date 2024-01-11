@@ -18,18 +18,18 @@ import seleniumstandalone4Response from './__fixtures__/standaloneserver4.respon
 import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
-    const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
-    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
-    const geckoCaps = geckodriverResponse.value.capabilities as WebDriver.Capabilities
-    const edgeCaps = edgedriverResponse.value.capabilities as WebDriver.Capabilities
-    const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
-    const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
-    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebDriver.Capabilities // absent capability.platformName
-    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebDriver.Capabilities // absent capability.browserVersion
-    const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
-    const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
-    const standalonev4Caps = seleniumstandalone4Response.value as WebDriver.DesiredCapabilities
+    const chromeCaps = chromedriverResponse.value as WebdriverIO.Capabilities
+    const appiumCaps = appiumResponse.value.capabilities as WebdriverIO.Capabilities
+    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebdriverIO.Capabilities
+    const geckoCaps = geckodriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const edgeCaps = edgedriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const phantomCaps = ghostdriverResponse.value as WebdriverIO.Capabilities
+    const safariCaps = safaridriverResponse.value.capabilities as WebdriverIO.Capabilities
+    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.platformName
+    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebdriverIO.Capabilities // absent capability.browserVersion
+    const safariLegacyCaps = safaridriverLegacyResponse.value as WebdriverIO.Capabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as Capabilities.DesiredCapabilities
+    const standalonev4Caps = seleniumstandalone4Response.value as Capabilities.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
@@ -54,6 +54,12 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: tvOSCaps, requestedCapabilities }).isMobile).toBe(true)
         const androidCaps = { ...chromeCaps, 'platformName': 'Android' }
         expect(sessionEnvironmentDetector({ capabilities: androidCaps, requestedCapabilities }).isMobile).toBe(true)
+        const iosCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'ios' } }
+        expect(sessionEnvironmentDetector({ capabilities: iosCapsBS, requestedCapabilities }).isMobile).toBe(true)
+        const tvOSCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'tvOS' } }
+        expect(sessionEnvironmentDetector({ capabilities: tvOSCapsBS, requestedCapabilities }).isMobile).toBe(true)
+        const androidCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'Android' } }
+        expect(sessionEnvironmentDetector({ capabilities: androidCapsBS, requestedCapabilities }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
@@ -70,6 +76,14 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities }).isW3C).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {
+            maxInstances: 7,
+            platformName: 'WINDOWS',
+            'appium:app': 'C:\\Program Files\\App.exe',
+            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
+            'ms:experimental-webdriver': true,
+            'ms:waitForAppLaunch': '10',
+        }, requestedCapabilities }).isW3C).toBe(true)
     })
 
     it('isChrome', () => {
@@ -151,8 +165,26 @@ describe('sessionEnvironmentDetector', () => {
         expect(isAndroid).toEqual(false)
     })
 
+    it('should not detect mobile app for browserName===undefined with BrowserStack Service', function () {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities = { 'bstack:options': {} }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
     it('should not detect mobile app for browserName==="firefox"', function () {
         const capabilities = { browserName: 'firefox' }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
+    it('should not detect mobile app for browserName==="firefox" with BrowserStack Service', function () {
+        const capabilities = { 'bstack:options': { browserName: 'firefox' } }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
@@ -169,8 +201,41 @@ describe('sessionEnvironmentDetector', () => {
         expect(isAndroid).toEqual(false)
     })
 
+    it('should not detect mobile app for browserName==="chrome" with BrowserStack Service', function () {
+        const capabilities = { 'bstack:options': { browserName: 'chrome' } }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(false)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
     it('should detect mobile app for browserName===""', function () {
         const capabilities = { browserName: '' }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
+    it('should detect mobile app for browserName==="" with BrowserStack Service', function () {
+        const capabilities =  { 'bstack:options': { browserName: '' } }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+    })
+
+    it('should detect a Windows application automated through Appium', () => {
+        const capabilities: any = {
+            platformName: 'WINDOWS',
+            'ms:experimental-webdriver': true,
+            'ms:waitForAppLaunch': 10,
+            app: 'C:\\Program Files\\foo\\bar.exe',
+            appArguments: '-noCloseConfirmationPopUp -shouldDisplayDiesToTake'
+        }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
@@ -184,6 +249,26 @@ describe('sessionEnvironmentDetector', () => {
             platformVersion: '4.4',
             deviceName: 'LGVS450PP2a16334',
             app: 'foo.apk'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(true)
+    })
+
+    it('should detect Android mobile app without upload with BrowserStack Service', function () {
+        const capabilities = {
+            'bstack:options':
+            {
+                platformName: 'Android',
+                platformVersion: '4.4',
+                deviceName: 'LGVS450PP2a16334',
+                appPackage: 'com.example',
+                appActivity: 'com.example.gui.LauncherActivity',
+                noReset: true,
+                appWaitActivity: 'com.example.gui.LauncherActivity'
+            }
         }
         const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })

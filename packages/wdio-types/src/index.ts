@@ -26,6 +26,10 @@ interface DriverOptions {
      * path to custom driver binary
      */
     binary?: string
+    /**
+    * path to the log file
+    */
+    logPath?: string
 }
 
 declare global {
@@ -44,10 +48,5 @@ declare global {
         interface GeckodriverOptions extends DriverOptions {}
         interface EdgedriverOptions extends DriverOptions {}
         interface SafaridriverOptions {}
-    }
-
-    namespace WebDriver {
-        interface Capabilities extends Capabilities.Capabilities, Capabilities.WebdriverIOCapabilities {}
-        interface DesiredCapabilities extends Capabilities.DesiredCapabilities, Capabilities.WebdriverIOCapabilities {}
     }
 }

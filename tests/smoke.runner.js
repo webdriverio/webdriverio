@@ -10,6 +10,9 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
 const parallelMultiRemoteBaseConfig = path.resolve(__dirname, 'helpers', 'parallel-multiremote-config.js')
 const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
+const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed.conf.js')
+const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
+const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -138,6 +141,10 @@ const jasmineTestrunner = async () => {
             'expect(number).toBe(number)',
             'expect(object).toEqual(object)',
             'expect(object).toBeFalse(boolean)',
+            'expect(object).toHaveTitle(object)',
+            'expect(object).toHaveTitle(object)',
+            'expect(object).toHaveUrl(object)',
+            'expect(object).toHaveUrl(object)',
             'expect(string).toHaveTitle(object)',
             'expect(object).toBeDisplayed(object)',
             'expect(object).toBeDisplayed(object)',
@@ -290,7 +297,7 @@ const cucumberTestrunner = async () => {
                 path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
             ],
             cucumberOpts: {
-                tagExpression: '(not @SKIPPED_TAG)',
+                tags: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true,
                 retry: 1,
                 retryTagFilter: '@retry',
@@ -314,7 +321,7 @@ const cucumberTestrunnerByLineNumber = async () => {
             autoCompileOpts: { autoCompile: false },
             spec: [path.resolve(__dirname, 'cucumber', 'test.feature:10')],
             cucumberOpts: {
-                tagExpression: '(not @SKIPPED_TAG)',
+                tags: '(not @SKIPPED_TAG)',
                 scenarioLevelReporter: false
             },
             reporters: [
@@ -350,7 +357,7 @@ const cucumberFailAmbiguousDefinitions = async () => {
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
                 failAmbiguousDefinitions: true,
-                names: ['failAmbiguousDefinitions']
+                name: ['failAmbiguousDefinitions']
             }
         }
     ).then(
@@ -663,6 +670,102 @@ const nonGlobalTestrunner = async () => {
     assert.strictEqual(hasFailed, false)
 }
 
+/**
+ * Mocha wdio testrunner skip tests via wdio hook
+ */
+const mochaHooksTestrunner = async () => {
+    const { skippedSpecs } = await launch(
+        'mochaHooksTestrunner',
+        path.resolve(__dirname, 'helpers', 'mocha-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test-skipped-hooks.ts'),
+            ]
+        }
+    )
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+// ****************************
+// *** Tests for CLI --spec ***
+// ****************************
+const runSpecsWithFlagAllPassed = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagAllPassed',
+        path.resolve(allPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['test']
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagSeveralPassed = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagSeveralPassed',
+        path.resolve(severalPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['mocha']
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagDirectPath = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagDirectPath',
+        path.resolve(severalPassedConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+const runSpecsWithFlagNoArg = async () => {
+    const { passed, skippedSpecs } = await launch(
+        'runSpecsWithFlagNoArg',
+        path.resolve(noArgConfig),
+        {
+            autoCompileOpts: { autoCompile: false },
+            spec: []
+        }
+    )
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+}
+// *** END - tests for CLI --spec ***
+
+const jasmineHooksTestrunner = async () => {
+    const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
+    await launch('jasmineHooksTestrunner',
+        path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts')],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
+            framework: 'jasmine',
+        }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('skip test'),
+    )
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -692,7 +795,13 @@ const nonGlobalTestrunner = async () => {
         customReporterString,
         customReporterObject,
         severeErrorTest,
-        nonGlobalTestrunner
+        nonGlobalTestrunner,
+        mochaHooksTestrunner,
+        runSpecsWithFlagAllPassed,
+        runSpecsWithFlagSeveralPassed,
+        runSpecsWithFlagDirectPath,
+        runSpecsWithFlagNoArg,
+        jasmineHooksTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

@@ -79,7 +79,7 @@ const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
 export const config = {
     // ...
     before: async (capabilities) => {
-        const browserName = (capabilities as Capabilities.Capabilities).browserName
+        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
         if (browserName === 'firefox') {
             const extension = await fs.readFile(extensionPath)
             await browser.installAddOn(extension.toString('base64'), true)

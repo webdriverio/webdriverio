@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions } from 'expect-webdriverio'
@@ -447,6 +447,8 @@ describe('wdio-runner', () => {
 
             expect(setOptions).toBeCalledTimes(1)
             expect(setOptions).toBeCalledWith({
+                afterAssertion: expect.any(Function),
+                beforeAssertion: expect.any(Function),
                 wait: 1,
                 interval: 2
             })

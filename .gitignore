@@ -75,6 +75,7 @@ devtools.d.ts
 !vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
+e2e/screenshot.pdf
 
 website/translated_docs
 website/build/
@@ -109,3 +110,5 @@ scripts/bidi/cddl
 browserstack.err
 e2e/tailwind.config.js
 packages/webdriverio/.chrome
+packages/wdio-json-reporter/tests/__fixtures__/merged.json
+examples/wdio/mocha/*.json

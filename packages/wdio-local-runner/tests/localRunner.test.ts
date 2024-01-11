@@ -218,5 +218,5 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 
 test('should avoid shutting down if worker is not busy', async () => {
     const runner = new LocalRunner(undefined as never, {} as any)
-    expect(runner.initialise()).toBe(undefined)
+    expect(runner.initialize()).toBe(undefined)
 })

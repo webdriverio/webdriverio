@@ -200,6 +200,10 @@ describe('Passing tests', () => {
         expect(osParams).toHaveLength(1)
         expect(osParams[0].value).toEqual('osx')
     })
+
+    it('should have testCaseId equal to historyId', () => {
+        expect(allureResult.testCaseId).toEqual(allureResult.historyId)
+    })
 })
 
 describe('Failed tests', () => {
@@ -484,6 +488,42 @@ describe('Hook reporting', () => {
     })
 })
 
+describe('Allure ID', () => {
+    const outputDir = temporaryDirectory()
+    let allureResult: Record<string, any>
+
+    beforeAll(() => {
+        const reporter = new AllureReporter({
+            outputDir
+        })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.addAllureId({ id: 'explicitly set allureId' })
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        allureResult = results[0]
+    })
+
+    afterAll(() => {
+        clean(outputDir)
+    })
+
+    it('explicitly set allureId overrides testCaseId ', () => {
+        const labels = mapBy<Label>(allureResult.labels, 'name')
+
+        const allureId = labels[LabelName.AS_ID]
+        expect(allureId).toHaveLength(1)
+        expect(allureId[0].value).toEqual('explicitly set allureId')
+        expect(allureResult.testCaseId).toEqual(undefined)
+    })
+})
+
 const assertionResults: any = {
     webdriver: {
         commandTitle: 'GET /session/:sessionId/element',
@@ -686,6 +726,33 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(screenshotAttachments).toHaveLength(1)
         })
 
+        it('should add step with screenshot command when disableWebdriverStepsReporting=true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
+            const screenshotAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+            expect(screenshotAttachments).toHaveLength(1)
+        })
+
         it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
             const allureOptions = {
                 stdout: true,
@@ -722,27 +789,32 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
+                disableWebdriverStepsReporting: true
             }
             const reporter = new AllureReporter(allureOptions)
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
             reporter.onHookStart(hookStart())
+            reporter.onTestStart(testStart())
             reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
             reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
             reporter.onHookEnd(hookFailed())
+            reporter.onTestPass()
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+            expect(results).toHaveLength(2)
 
-            expect(results).toHaveLength(1)
+            const result = results.find( res => res.attachments.length === 1)
+            expect(result).toBeDefined()
 
-            const screenshotAttachments = results[0].attachments.filter(
+            const screenshotAttachments = result.attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 
-            expect(screenshotAttachments).toHaveLength(0)
+            expect(screenshotAttachments).toHaveLength(1)
         })
 
         it('should attach console log for passing test', () => {

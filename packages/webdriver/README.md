@@ -3,7 +3,7 @@ WebDriver
 
 > A lightweight, non-opinionated implementation of the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) specification including mobile commands supported by [Appium](http://appium.io/)
 
-There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them have an opinionated API and recommended way to use. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appium's [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
+There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them has an opinionated API and recommended way to use it. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher-level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appium's [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
 
 The package supports the following protocols:
 
@@ -16,7 +16,7 @@ The package supports the following protocols:
 - [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) (depcrecated)
 - [Mobile JSONWireProtocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) (depcrecated)
 
-Commands are added to the clients protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
+Commands are added to the client's protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
 
 ## Install
 
@@ -68,9 +68,9 @@ const browser = await WebDriver.newSession({
 await browser.sessionSubscribe({ events: ['log.entryAdded'] })
 
 /**
- * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}
+ * returns: {"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}
  */
-browser.on('message', (data) => console.log('received %s', data))
+browser.on('log.entryAdded', (entryAdded) => console.log('received %s', entryAdded))
 
 await browser.executeScript('console.log("Hello Bidi")', [])
 await browser.deleteSession()
@@ -111,13 +111,13 @@ Options: *http* | *https*
 Host of your WebDriver server.
 
 Type: `String`<br />
-Default: *localhost*
+Default: *0.0.0.0*
 
 ### port
 Port your WebDriver server is on.
 
 Type: `Number`<br />
-Default: *4444*
+Default: `undefined`
 
 ### path
 Path to WebDriver endpoint or grid server.
@@ -129,7 +129,7 @@ Default: */*
 Query parameters that are propagated to the driver server.
 
 Type: `Object`
-Default: `null`
+Default: `undefined`
 
 ### connectionRetryTimeout
 Timeout for any WebDriver request to a driver or grid.
@@ -141,7 +141,7 @@ Default: *120000*
 Count of request retries to the Selenium server.
 
 Type: `Number`<br />
-Default: *2*
+Default: *3*
 
 ### agent
 

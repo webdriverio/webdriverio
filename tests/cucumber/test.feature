@@ -50,3 +50,6 @@ Feature: Example feature
     @retry
     Scenario: failsTheFirstTimeToCheckRetries
         Then  this steps fails only the first time used
+
+    Scenario: timeout step
+        Then this is a step with timeout

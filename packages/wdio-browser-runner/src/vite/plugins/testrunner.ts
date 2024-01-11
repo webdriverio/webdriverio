@@ -42,7 +42,8 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  */
 const MODULES_TO_MOCK = [
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize', 'got',
-    'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port'
+    'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
+    'lodash.isequal', '@wdio/repl'
 ]
 
 const POLYFILLS = [
@@ -125,7 +126,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * don't return test page when sourcemaps are requested
                      */
-                    if (!req.originalUrl || req.url?.endsWith('.map')) {
+                    if (!req.originalUrl || req.url?.endsWith('.map') || req.url?.endsWith('.wasm')) {
                         return next()
                     }
 

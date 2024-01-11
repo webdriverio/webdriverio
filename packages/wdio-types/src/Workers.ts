@@ -51,6 +51,7 @@ export interface Worker
     postMessage: (command: string, args: WorkerMessageArgs) => void;
     specs: string[];
     sessionId?: string;
+    logsAggregator: string[]
 }
 
 export type WorkerPool = Record<string, Worker>;

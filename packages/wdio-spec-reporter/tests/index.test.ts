@@ -10,7 +10,8 @@ import {
     SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS,
-    SUITES_WITH_DOC_STRING
+    SUITES_WITH_DOC_STRING,
+    SUITES_WITH_RETRY
 } from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
@@ -224,8 +225,8 @@ describe('SpecReporter', () => {
                 }
                 const runner = getRunnerConfig({
                     capabilities: {
-                        browserA: { sessionId: 'foobar' },
-                        browserB: { sessionId: 'barfoo' }
+                        browserA: { browserName: 'chrome' },
+                        browserB: { browserName: 'firefox' }
                     },
                     isMultiremote: true
                 })
@@ -756,6 +757,24 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('onRetry', () => {
+        let printReporter: any = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        beforeEach(() => {
+            printReporter = new SpecReporter({})
+            printReporter.write = vi.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES_WITH_RETRY
+        })
+
+        it('should group retried test cases', () => {
+            runner.failures = 0
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        })
+    })
+
     describe('showPreface', () => {
         let printReporter: SpecReporter = null as any
         const runner = getRunnerConfig({ hostname: 'localhost' })
@@ -803,6 +822,15 @@ describe('SpecReporter', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
                 myBrowser: {
+                    browserName: 'chrome',
+                    platform: 'Windows 8.1'
+                }
+            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
+        })
+
+        it('should not throw if mutliremote name is "app"', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                app: {
                     browserName: 'chrome',
                     platform: 'Windows 8.1'
                 }

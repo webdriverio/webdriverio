@@ -1,8 +1,15 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
+import { HOOK_DEFINITION } from '@wdio/utils'
+import type { Options, Services, Reporters, Capabilities } from '@wdio/types'
 
-import { detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
+import {
+    detectCompiler,
+    getDefaultFiles,
+    convertPackageHashToObject,
+    getProjectRoot,
+} from './utils.js'
 import type { Questionnair } from './types.js'
 
 const require = createRequire(import.meta.url)
@@ -17,18 +24,23 @@ export const CONFIG_HELPER_INTRO = `
 `
 
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
-export const CONFIG_HELPER_SUCCESS_MESSAGE = `
-🤖 Successfully setup project at %s 🎉
+export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
+🤖 Successfully setup project at ${ projectRootDir } 🎉
 
 Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
   🔗 https://discord.webdriver.io
 
 Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
   🔗 https://github.com/webdriverio/webdriverio
-
+${ extraInfo }
 To run your tests, execute:
-$ cd %s
-$ npm run wdio
+$ cd ${ projectRootDir }
+$ npm run ${ runScript }
+`
+
+export const CONFIG_HELPER_SERENITY_BANNER = `
+Learn more about Serenity/JS:
+  🔗 https://serenity-js.org
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
@@ -70,8 +82,11 @@ export const SUPPORTED_PACKAGES = {
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
+        { name: 'Mocha with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha' },
         { name: 'Jasmine (https://jasmine.github.io/)', value: '@wdio/jasmine-framework$--$jasmine' },
-        { name: 'Cucumber (https://cucumber.io/)', value: '@wdio/cucumber-framework$--$cucumber' }
+        { name: 'Jasmine with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine' },
+        { name: 'Cucumber (https://cucumber.io/)', value: '@wdio/cucumber-framework$--$cucumber' },
+        { name: 'Cucumber with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber' },
     ],
     reporter: [
         { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
@@ -80,30 +95,31 @@ export const SUPPORTED_PACKAGES = {
         { name: 'allure', value: '@wdio/allure-reporter$--$allure' },
         { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
         { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
+        { name: 'json', value: '@wdio/json-reporter$--$json' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
         { name: 'video', value: 'wdio-video-reporter$--$video' },
-        { name: 'json', value: 'wdio-json-reporter$--$json' },
         { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
         { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
-        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
+        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
         { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
-        { name: 'light', value: 'wdio-light-reporter--$light' }
+        { name: 'light', value: 'wdio-light-reporter$--$light' }
     ],
     plugin: [
-        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
-        { name: 'angular-component-harnesses', value: '@badisi/wdio-harness$--$harness' }
+        { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
+        { name: 'angular-component-harnesses: support for Angular component test harnesses\n   > https://www.npmjs.com/package/@badisi/wdio-harness', value: '@badisi/wdio-harness$--$harness' },
+        { name: 'Testing Library: utilities that encourage good testing practices laid down by dom-testing-library.\n   > https://testing-library.com/docs/webdriverio-testing-library/intro', value: '@testing-library/webdriverio$--$testing-library' }
     ],
     service: [
         // internal or community driver services
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
+        { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
@@ -120,7 +136,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
-        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
+        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--$ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
@@ -172,6 +188,12 @@ export enum BackendChoice {
     Grid = 'I have my own Selenium cloud'
 }
 
+export enum ElectronBuildToolChoice {
+    ElectronForge = 'Electron Forge (https://www.electronforge.io/)',
+    ElectronBuilder = 'electron-builder (https://www.electron.build/)',
+    SomethingElse = 'Something else'
+}
+
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -202,6 +224,10 @@ export const BROWSER_ENVIRONMENTS = [
 
 function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
+export function usesSerenity (answers: Questionnair) {
+    return answers.framework.includes('serenity-js')
 }
 
 function getTestingPurpose (answers: Questionnair) {
@@ -267,11 +293,16 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
+    type: 'list',
+    name: 'electronBuildTool',
+    message: 'Which tool are you using to build your Electron app?',
+    choices: Object.values(ElectronBuildToolChoice),
+    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+}, {
     type: 'input',
-    name: 'appPath',
-    message: 'What is the path to your compiled Electron app?',
-    default: './dist',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+    name: 'electronAppBinaryPath',
+    message: 'What is the path to the binary of your built Electron app?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
 }, {
     type: 'list',
     name: 'backend',
@@ -433,6 +464,15 @@ export const QUESTIONNAIRE = [{
         if (isBrowserRunner(answers)) {
             return SUPPORTED_PACKAGES.framework.slice(0, 1)
         }
+        /**
+         * Serenity tests don't come with proper ElectronJS example files
+         */
+        if (getTestingPurpose(answers) === 'electron') {
+            return SUPPORTED_PACKAGES.framework.filter(
+                ({ value }) => !value.startsWith('@serenity-js')
+            )
+        }
+
         return SUPPORTED_PACKAGES.framework
     }
 }, {
@@ -466,7 +506,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these files be located?',
+    message: 'What should be the location of your spec files?',
     default: /* istanbul ignore next */ (answers: Questionnair) => {
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
@@ -475,13 +515,13 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'specs',
-    message: 'Where should these feature files be located?',
+    message: 'What should be the location of your feature files?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/**/*.feature'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
-    message: 'Where should these step definitions be located?',
+    message: 'What should be the location of your step definitions?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/step-definitions/steps'),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
@@ -499,7 +539,12 @@ export const QUESTIONNAIRE = [{
          * and also not needed when running VS Code tests since the service comes with
          * its own page object implementation, nor when running Electron or MacOS tests
          */
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers))
+        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
+        /**
+         * Serenity/JS generates Lean Page Objects by default, so there's no need to ask about it
+         * See https://serenity-js.org/handbook/web-testing/page-objects-pattern/
+         */
+        !usesSerenity(answers)
     )
 }, {
     type: 'input',
@@ -511,6 +556,16 @@ export const QUESTIONNAIRE = [{
             : getDefaultFiles(answers, 'features/pageobjects/**/*')
     ),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.usePageObjects
+}, {
+    type: 'input',
+    name: 'serenityLibPath',
+    message: 'What should be the location of your Serenity/JS Screenplay Pattern library?',
+    default: /* istanbul ignore next */ async (answers: Questionnair) => {
+        const projectRootDir = await getProjectRoot(answers)
+        const specsDir = path.resolve(projectRootDir, path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+        return path.resolve(specsDir, '..', 'serenity')
+    },
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && usesSerenity(answers)
 }, {
     type: 'checkbox',
     name: 'reporters',
@@ -614,3 +669,298 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want me to run `npm install`',
     default: true
 }]
+
+export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
+    'wdio-electron-service',
+    'wdio-vscode-service',
+    'wdio-nuxt-service',
+    'wdio-vite-service',
+    'wdio-gmail-service'
+]
+
+export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
+    /**
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
+     */
+    specs: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "specs" option needs to be a list of strings')
+            }
+        }
+    },
+    /**
+     * exclude specs from test execution
+     */
+    exclude: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "exclude" option needs to be a list of strings')
+            }
+        }
+    },
+    /**
+     * key/value definition of suites (named by key) and a list of specs as value
+     * to specify a specific set of tests to execute
+     */
+    suites: {
+        type: 'object'
+    },
+    /**
+     * Project root directory path.
+     */
+    rootDir: {
+        type: 'string'
+    },
+    /**
+     * If you only want to run your tests until a specific amount of tests have failed use
+     * bail (default is 0 - don't bail, run all tests).
+     */
+    bail: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * supported test framework by wdio testrunner
+     */
+    framework: {
+        type: 'string'
+    },
+    /**
+     * capabilities of WebDriver sessions
+     */
+    capabilities: {
+        type: 'object',
+        validate: (param: Capabilities.RemoteCapabilities) => {
+            /**
+             * should be an object
+             */
+            if (!Array.isArray(param)) {
+                if (typeof param === 'object') {
+                    return true
+                }
+
+                throw new Error('the "capabilities" options needs to be an object or a list of objects')
+            }
+
+            /**
+             * or an array of objects
+             */
+            for (const option of param) {
+                if (typeof option === 'object') { // Check does not work recursively
+                    continue
+                }
+
+                throw new Error('expected every item of a list of capabilities to be of type object')
+            }
+
+            return true
+        },
+        required: true
+    },
+    /**
+     * list of reporters to use, a reporter can be either a string or an object with
+     * reporter options, e.g.:
+     * [
+     *  'dot',
+     *  {
+     *    name: 'spec',
+     *    outputDir: __dirname + '/reports'
+     *  }
+     * ]
+     */
+    reporters: {
+        type: 'object',
+        validate: (param: Reporters.ReporterEntry[]) => {
+            /**
+             * option must be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "reporters" options needs to be a list of strings')
+            }
+
+            const isValidReporter = (option: string | Function) => (
+                (typeof option === 'string') ||
+                (typeof option === 'function')
+            )
+
+            /**
+             * array elements must be:
+             */
+            for (const option of param) {
+                /**
+                 * either a string or a function (custom reporter)
+                 */
+                if (isValidReporter(option as string)) {
+                    continue
+                }
+
+                /**
+                 * or an array with the name of the reporter as first element and the options
+                 * as second element
+                 */
+                if (
+                    Array.isArray(option) &&
+                    typeof option[1] === 'object' &&
+                    isValidReporter(option[0])
+                ) {
+                    continue
+                }
+
+                throw new Error(
+                    'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
+                    'or a function/class. Please see the docs for more information on custom reporters ' +
+                    '(https://webdriver.io/docs/customreporter)'
+                )
+            }
+
+            return true
+        }
+    },
+    /**
+     * set of WDIO services to use
+     */
+    services: {
+        type: 'object',
+        validate: (param: Services.ServiceEntry[]) => {
+            /**
+             * should be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "services" options needs to be a list of strings and/or arrays')
+            }
+
+            /**
+             * with arrays and/or strings
+             */
+            for (const option of param) {
+                if (!Array.isArray(option)) {
+                    if (typeof option === 'string') {
+                        continue
+                    }
+                    throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                }
+            }
+
+            return true
+        },
+        default: []
+    },
+    /**
+     * Node arguments to specify when launching child processes
+     */
+    execArgv: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "execArgv" options needs to be a list of strings')
+            }
+        },
+        default: []
+    },
+    /**
+     * amount of instances to be allowed to run in total
+     */
+    maxInstances: {
+        type: 'number'
+    },
+    /**
+     * amount of instances to be allowed to run per capability
+     */
+    maxInstancesPerCapability: {
+        type: 'number'
+    },
+    /**
+     * whether or not testrunner should inject `browser`, `$` and `$$` as
+     * global environment variables
+     */
+    injectGlobals: {
+        type: 'boolean'
+    },
+    /**
+     * The number of times to retry the entire specfile when it fails as a whole
+     */
+    specFileRetries: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay: {
+        type: 'number',
+        default: 0
+    },
+    /**
+     * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
+     */
+    specFileRetriesDeferred: {
+        type: 'boolean',
+        default: true
+    },
+    /**
+     * whether or not print the log output grouped by test files
+     */
+    groupLogsByTestSpec: {
+        type: 'boolean',
+        default: false
+    },
+    /**
+     * list of strings to watch of `wdio` command is called with `--watch` flag
+     */
+    filesToWatch: {
+        type: 'object',
+        validate: (param: string[]) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "filesToWatch" option needs to be a list of strings')
+            }
+        }
+    },
+    shard: {
+        type: 'object',
+        validate: (param: unknown) => {
+            if (typeof param !== 'object') {
+                throw new Error('the "shard" options needs to be an object')
+            }
+
+            const p = param as { current: number, total: number }
+            if (typeof p.current !== 'number' || typeof p.total !== 'number') {
+                throw new Error('the "shard" option needs to have "current" and "total" properties with number values')
+            }
+
+            if (p.current < 0 || p.current > p.total) {
+                throw new Error('the "shard.current" value has to be between 0 and "shard.total"')
+            }
+        }
+    },
+
+    /**
+     * hooks
+     */
+    onPrepare: HOOK_DEFINITION,
+    onWorkerStart: HOOK_DEFINITION,
+    onWorkerEnd: HOOK_DEFINITION,
+    before: HOOK_DEFINITION,
+    beforeSession: HOOK_DEFINITION,
+    beforeSuite: HOOK_DEFINITION,
+    beforeHook: HOOK_DEFINITION,
+    beforeTest: HOOK_DEFINITION,
+    afterTest: HOOK_DEFINITION,
+    afterHook: HOOK_DEFINITION,
+    afterSuite: HOOK_DEFINITION,
+    afterSession: HOOK_DEFINITION,
+    after: HOOK_DEFINITION,
+    onComplete: HOOK_DEFINITION,
+    onReload: HOOK_DEFINITION,
+    beforeAssertion: HOOK_DEFINITION,
+    afterAssertion: HOOK_DEFINITION
+}
+
+export const WORKER_GROUPLOGS_MESSAGES = {
+    normalExit: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] *****`,
+    exitWithError: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] that preceded the error above *****`
+}

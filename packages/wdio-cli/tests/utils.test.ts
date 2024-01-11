@@ -7,10 +7,9 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 
 import {
     runLauncherHook,
@@ -38,20 +37,28 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { CompilerOptions } from '../src/constants.js'
+import { installPackages } from '../src/install.js'
 import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')
-vi.mock('recursive-readdir')
+vi.mock('recursive-readdir', () => ({
+    default: vi.fn().mockResolvedValue([
+        '/foo/bar/loo/page.js.ejs',
+        '/foo/bar/example.e2e.js'
+    ] as any)
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
@@ -59,15 +66,13 @@ vi.mock('child_process', () => {
 
 vi.mock('read-pkg-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
-        path: '/foo/bar',
+        path: '/foo/package.json',
         packageJson: {
             name: 'cool-test-module',
             type: 'module'
         }
     })
 }))
-
-vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 }) }))
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -77,7 +82,7 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 
-vi.mock('@wdio/config', () => ({
+vi.mock('@wdio/config/node', () => ({
     ConfigParser: class ConfigParserMock {
         initialize() { }
         getCapabilities() { }
@@ -86,6 +91,11 @@ vi.mock('@wdio/config', () => ({
 
 vi.mock('execa', () => ({
     $: vi.fn().mockReturnValue(async (sh: string) => sh)
+}))
+
+vi.mock('../src/install', () => ({
+    installPackages: vi.fn(),
+    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
 
 beforeEach(() => {
@@ -483,10 +493,6 @@ describe('generateTestFiles', () => {
     })
 
     it('jasmine with page objects', async () => {
-        vi.mocked(readDir).mockResolvedValue([
-            '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
-        ] as any)
         const answers = {
             runner: 'local',
             framework: 'jasmine',
@@ -579,7 +585,8 @@ describe('generateTestFiles', () => {
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
             generateTestFiles: true,
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
+            destStepRootPath: '/tests/stepDefinitions'
         }
         await generateTestFiles(answers as any)
 
@@ -610,7 +617,7 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
-            stepDefinitions: '/some/step',
+            destStepRootPath: '/tests/stepDefinitions',
             destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
@@ -665,6 +672,29 @@ describe('getPathForFileGeneration', () => {
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
         expect(generatedPaths.relativePath).toEqual('../page/objects')
+    })
+    it('Cucumber with pageobjects and steps different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'cucumber/features/steps',
+            pages: 'cucumber/features/pages',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('')
+    })
+
+    it('Cucumber with answer that is not a path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'y',
+            pages: 'h',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../h')
     })
 
     it('Mocha with pageobjects default values', () => {
@@ -739,15 +769,19 @@ test('specifyVersionIfNeeded', () => {
     ])
 })
 
-test('getProjectRoot', () => {
-    expect(getProjectRoot({ projectRoot: '/foo/bar' } as any)).toBe('/foo/bar')
-    expect(getProjectRoot({} as any, { path: '/bar/foo' } as any)).toBe('/bar/foo')
-    const projectDir = process.cwd().substring(process.cwd().lastIndexOf(path.sep) + 1)
-    expect(getProjectRoot({} as any).includes(path.join(projectDir))).toBe(true)
+test('getProjectRoot', async () => {
+    expect(await getProjectRoot()).toBe('/foo')
+    expect(await getProjectRoot({
+        projectRootCorrect: true
+    } as any)).toBe('/foo')
+    expect(await getProjectRoot({
+        projectRootCorrect: false,
+        projectRoot: '/bar/foo'
+    } as any)).toBe('/bar/foo')
 })
 
 test('hasBabelConfig', async () => {
-    vi.mocked(fs.access).mockResolvedValue({})
+    vi.mocked(fs.access).mockResolvedValue({} as any)
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
@@ -827,15 +861,17 @@ test('npmInstall', async () => {
             services: ['foo$--$bar'],
             preset: 'barfoo$--$vue'
         },
+        projectRootCorrect: false,
+        projectRoot: '/foo/bar',
         isUsingTypeScript: true,
         framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: true
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(1)
-    expect(vi.mocked(yarnInstall).mock.calls[0][0]).toMatchSnapshot()
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(1)
+    expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
 })
 
 test('not npmInstall', async () => {
@@ -848,8 +884,8 @@ test('not npmInstall', async () => {
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: false
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(0)
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(0)
     expect(vi.mocked(console.log).mock.calls[0][0]).toContain('To install dependencies, execute')
 })
 
@@ -861,7 +897,10 @@ test('setupTypeScript', async () => {
         esmSupport: true,
         rawAnswers: {
             framework: 'foo',
-            services: []
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
         },
         packagesToInstall: [],
         tsConfigFilePath: '/foobar/tsconfig.json'
@@ -892,7 +931,6 @@ test('setup Babel', async () => {
 
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
-    answers.projectRootDir = '/foo/bar'
     answers.destSpecRootPath = '/tests/specs'
     answers.destPageObjectRootPath = '/tests/specs'
     answers.stepDefinitions = './foo/bar'
@@ -902,7 +940,7 @@ test('createWDIOConfig', async () => {
     expect(
         vi.mocked(fs.writeFile).mock.calls[0][0]
             .toString()
-            .endsWith(path.resolve('/foo/wdio.conf.js'))
+            .endsWith(path.resolve('wdio.conf.js'))
     ).toBe(true)
 })
 
@@ -944,6 +982,16 @@ test('runAppiumInstaller', async () => {
     expect($).toBeCalledTimes(1)
 })
 
+test.each([
+    ['', 'npm'],
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
+})
+
 afterEach(() => {
     vi.mocked(inquirer.prompt).mockClear()
     vi.mocked(console.log).mockRestore()
@@ -952,5 +1000,5 @@ afterEach(() => {
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(ejs.renderFile).mockClear()
-    vi.mocked(yarnInstall).mockClear()
+    vi.mocked(installPackages).mockClear()
 })

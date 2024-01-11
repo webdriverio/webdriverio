@@ -1,7 +1,8 @@
 import assert from 'node:assert'
+import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
-    const testJs = 'tests/mocha/test.ts:'
+    const testJs = 'tests/mocha/test.ts'
 
     it('has globals set up', async () => {
         expect(1).toBe(1) // has non wdio matcher support
@@ -12,8 +13,28 @@ describe('Mocha smoke test', () => {
         expect(global.expect).toBeDefined()
     })
 
-    it('should return sync value', async () => {
+    it('should allow to use WebdriverIO assertions', async () => {
         await expect(browser).toHaveTitle('Mock Page Title')
+    })
+
+    it('should allow to use asymmetric matchers', async () => {
+        await expect(browser).toHaveTitle(
+            expect.stringContaining('Page'))
+        await expect(browser).toHaveTitle(
+            expect.not.stringContaining('foobar'))
+        await expect(browser).toHaveUrl(
+            expect.stringContaining('mymockpage'))
+        await expect(browser).toHaveUrl(
+            expect.not.stringContaining('mymock_page.'))
+    })
+
+    it('has a testrunner config object', () => {
+        const opts = browser.options as Options.Testrunner
+        expect(Array.isArray(opts.services)).toBe(true)
+        expect(opts).toHaveProperty('mochaOpts')
+        expect(opts).toHaveProperty('jasmineOpts')
+        expect(opts).toHaveProperty('cucumberOpts')
+        expect(opts).toHaveProperty('specs')
     })
 
     let hasRun = false
@@ -198,15 +219,20 @@ describe('Mocha smoke test', () => {
                 return Promise.reject(new Error('Boom!'))
             })
 
-            let err: Error | null = null
-            try {
-                // @ts-expect-error custom command
-                await browser.customFn()
-            } catch (e) {
-                err = e as Error
-            }
-            assert.equal(err?.message, 'Boom!')
-            assert.equal(err?.stack?.includes(testJs), true)
+            await assert.rejects(
+                async () => {
+                    // @ts-expect-error custom command
+                    await browser.customFn()
+                },
+                error => {
+                    const err = error as Error
+
+                    assert.equal(err?.message, 'Boom!')
+                    assert.equal(err?.stack?.includes(testJs), true)
+
+                    return true
+                }
+            )
         })
 
         it('allows to create custom commands on elements that respects promises', async () => {
@@ -316,15 +342,20 @@ describe('Mocha smoke test', () => {
                 return fail ? Promise.reject(new Error(result)) : result
             }) as any)
 
-            let err: Error | null = null
-            try {
-                // @ts-expect-error custom command
-                await browser.deleteCookies(true)
-            } catch (e) {
-                err = e as Error
-            }
-            assert.equal(err?.message, 'deleteAllCookies')
-            assert.equal(err?.stack?.includes(testJs), true)
+            await assert.rejects(
+                async () => {
+                    // @ts-expect-error custom command
+                    await browser.deleteCookies(true)
+                },
+                error => {
+                    const err = error as Error
+
+                    assert.equal(err?.message, 'deleteAllCookies')
+                    assert.equal(err?.stack?.includes(testJs), true)
+
+                    return true
+                }
+            )
         })
 
         it('should throw if promise rejects (async execution)', async () => {
@@ -335,15 +366,38 @@ describe('Mocha smoke test', () => {
                 return fail ? Promise.reject(new Error(result)) : result
             })
 
-            let err: Error | null = null
-            try {
-                // @ts-expect-error custom command
-                await browser.deleteCookies(true)
-            } catch (e) {
-                err = e as Error
-            }
-            assert.equal(err?.message, 'deleteAllCookies')
-            assert.equal(err?.stack?.includes(testJs), true)
+            await assert.rejects(
+                async () => {
+                    // @ts-expect-error custom command
+                    await browser.deleteCookies(true)
+                },
+                error => {
+                    const err = error as Error
+
+                    assert.equal(err?.message, 'deleteAllCookies')
+                    assert.equal(err?.stack?.includes(testJs), true)
+
+                    return true
+                }
+            )
+        })
+    })
+
+    describe('supports async iteration', () => {
+        beforeEach(async () => {
+            // @ts-expect-error custom command
+            await browser.asyncIterationScenario()
+        })
+
+        it('by chaining commands', async () => {
+            expect(await $$('elem').map((el) => el.getText())).toEqual(
+                ['some element text', 'some other element text'])
+        })
+
+        it('by defining vars first', async () => {
+            const elements = await $$('elem')
+            expect(await elements.map((el) => el.getText())).toEqual(
+                ['some element text', 'some other element text'])
         })
     })
 })

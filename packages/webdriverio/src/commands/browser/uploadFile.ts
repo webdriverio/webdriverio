@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import archiver from 'archiver'
-import type { Capabilities } from '@wdio/types'
 
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
@@ -48,7 +47,7 @@ export async function uploadFile (
      * check if command is available
      */
     if (typeof this.file !== 'function') {
-        throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
+        throw new Error(`The uploadFile command is not available in ${(this.capabilities as WebdriverIO.Capabilities).browserName}`)
     }
 
     const zipData: Uint8Array[] = []

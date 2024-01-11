@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
     test: {
@@ -26,12 +26,18 @@ export default defineConfig({
                 // we are using e2e tests for ensuring the functionality works
                 // check out the ./e2e folder
                 'packages/devtools/src/commands',
-                'packages/devtools/src/scripts'
+                'packages/devtools/src/scripts',
+                'packages/webdriver/src/bidi/handler.ts'
             ],
-            lines: 88,
-            functions: 84,
-            statements: 88,
-            branches: 89
-        }
+            watermarks: {
+                statements: [85, 90],
+                functions: [83, 88],
+                branches: [85, 90],
+                lines: [85, 90]
+            }
+        },
+        globalSetup: [
+            'scripts/test/globalSetup.ts'
+        ]
     }
 })

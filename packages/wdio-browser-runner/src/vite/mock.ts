@@ -4,7 +4,7 @@ import type { Options } from '@wdio/types'
 
 import { getManualMocks } from './utils.js'
 import { DEFAULT_MOCK_DIRECTORY, DEFAULT_AUTOMOCK } from '../constants.js'
-import type { MockRequestEvent } from './types'
+import type { MockRequestEvent } from './types.js'
 
 const FIXTURE_PREFIX = '/@fixture/'
 

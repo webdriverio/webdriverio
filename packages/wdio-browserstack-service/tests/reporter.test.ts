@@ -1,10 +1,12 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import type { StdLog } from '../src/index.js'
 
 import TestReporter from '../src/reporter.js'
 import RequestQueueHandler from '../src/request-handler.js'
 import * as utils from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 const log = logger('test')
 
@@ -12,6 +14,9 @@ vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 describe('test-reporter', () => {
     const runnerConfig = {
@@ -286,5 +291,48 @@ describe('test-reporter', () => {
                 expect(utils.uploadEventData).toBeCalledTimes(1)
             })
         })
+    })
+
+    describe('appendTestItemLog', function () {
+        let reporter: TestReporter
+        let sendDataSpy
+        const logObj: StdLog = {
+            timestamp: new Date().toISOString(),
+            level: 'INFO',
+            message: 'some log',
+            kind: 'TEST_LOG',
+            http_response: {}
+        }
+        let testLogObj: StdLog
+
+        beforeEach(() => {
+            reporter = new TestReporter({})
+            reporter['_observability'] = true
+            sendDataSpy = vi.spyOn(utils, 'pushDataToQueue').mockImplementation(() => { return [] as any })
+            testLogObj = { ...logObj }
+        })
+
+        it('should upload with current test uuid for log', function () {
+            reporter['_currentTest'] = { uuid: 'some_uuid' }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.test_run_uuid).toBe('some_uuid')
+            expect(sendDataSpy).toBeCalledTimes(1)
+        })
+
+        it('should upload with current hook uuid for log', function () {
+            reporter['_currentHook'] = { uuid: 'some_uuid' }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.hook_run_uuid).toBe('some_uuid')
+            expect(sendDataSpy).toBeCalledTimes(1)
+        })
+
+        it('should not upload log if hook is finished', function () {
+            reporter['_currentHook'] = { uuid: 'some_uuid', finished: true }
+            reporter['appendTestItemLog'](testLogObj)
+            expect(testLogObj.hook_run_uuid).toBe(undefined)
+            expect(testLogObj.test_run_uuid).toBe(undefined)
+            expect(sendDataSpy).toBeCalledTimes(0)
+        })
+
     })
 })

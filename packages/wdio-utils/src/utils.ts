@@ -1,13 +1,22 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { resolve } from 'import-meta-resolve'
+import type { Options, Services, Clients } from '@wdio/types'
 
-import type { Services, Clients } from '@wdio/types'
+import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
-const REGEX_SCRIPT_NAME = /return \(function (\w+)/
+const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
+const SLASH = '/'
+
+function assertPath(path?: any) {
+    if (typeof path !== 'string') {
+        throw new TypeError('Path must be a string. Received ' + JSON.stringify(path))
+    }
+}
+
+export function isAbsolute(p: string) {
+    assertPath(p)
+    return p.length > 0 && p.charCodeAt(0) === SLASH.codePointAt(0)
+}
 
 /**
  * overwrite native element commands with user defined
@@ -61,7 +70,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  */
 export function commandCallStructure (commandName: string, args: any[], unfurl = false) {
     const callArgs = args.map((arg) => {
-        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
+        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function') || arg.startsWith('return (async function'))) {
             arg = '<fn>'
         } else if (
             typeof arg === 'string' &&
@@ -103,7 +112,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
     } else if (typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
     } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
-        const newScript = result.script.match(REGEX_SCRIPT_NAME)![1]
+        const newScript = result.script.match(REGEX_SCRIPT_NAME)![2]
         return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
         return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
@@ -181,17 +190,22 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * then we also need to search in the project, we do that by defining
          * 'localNodeModules' and searching from that also.
          *
-         * Note that import-meta-resolve will resolve to CJS no ESM export is found
+         * Note that import-meta-resolve will resolve to CJS no ESM export is found.
+         * Only in Node.js environments
          */
-        const localNodeModules = path.join(process.cwd(), 'node_modules')
-
-        try {
-            importPath = await resolve(name, import.meta.url)
-        } catch (err: any) {
+        if (!globalThis.window) {
+            const { resolve } = await import('import-meta-resolve')
             try {
-                importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
-                return null
+                const { join } = await import('node:path')
+                const { pathToFileURL } = await import('node:url')
+                const localNodeModules = join(process.cwd(), 'node_modules')
+                try {
+                    importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                } catch (err: any) {
+                    return null
+                }
             }
         }
     } catch (err: any) {
@@ -221,7 +235,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
         }
         return pkg
     } catch (e: any) {
-        throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
+        throw new Error(`Couldn't initialize "${name}".\n${e.stack}`)
     }
 }
 
@@ -265,25 +279,52 @@ export function isBase64(str: string) {
 }
 
 /**
- * Helper utility to check file access
- * @param {string} file file to check access for
- * @return              true if file can be accessed
- */
-export const canAccess = (file?: string) => {
-    if (!file) {
-        return false
-    }
-
-    try {
-        fs.accessSync(file)
-        return true
-    } catch (err: any) {
-        return false
-    }
-}
-
-/**
  * sleep
  * @param {number=0} ms number in ms to sleep
  */
 export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Checks if the provided WebdriverIO capabilities object is related to Appium.
+ *
+ * @param {WebdriverIO.Capabilities} caps - The capabilities object to check.
+ * @returns {boolean} Returns true if the provided capabilities are related to Appium, false otherwise.
+*/
+export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
+    return Boolean(
+        caps &&
+        // @ts-expect-error outdated jsonwp cap
+        (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
+    )
+}
+
+/**
+ * helper method to determine if we need to setup a browser driver
+ * which is:
+ *   - whenever the user has set connection options that differ
+ *     from the default, or a port is set
+ *   - whenever the user defines `user` and `key` which later will
+ *     update the connection options
+ */
+export function definesRemoteDriver(options: Pick<Options.WebDriver, 'user' | 'key' | 'protocol' | 'hostname' | 'port' | 'path'>) {
+    return Boolean(
+        (options.protocol && options.protocol !== DEFAULT_PROTOCOL) ||
+        (options.hostname && options.hostname !== DEFAULT_HOSTNAME) ||
+        Boolean(options.port) ||
+        (options.path && options.path !== DEFAULT_PATH) ||
+        Boolean(options.user && options.key)
+    )
+}
+
+export function isChrome (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.chrome.includes(browserName.toLowerCase()))
+}
+export function isSafari (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.safari.includes(browserName.toLowerCase()))
+}
+export function isFirefox (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.firefox.includes(browserName.toLowerCase()))
+}
+export function isEdge (browserName?: string) {
+    return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
+}

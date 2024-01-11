@@ -1,11 +1,12 @@
 import { getElements } from '../../utils/getElementObject.js'
 import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { ElementArray, CustomStrategyFunction } from '../../types.js'
+import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
- * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+ * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * Read more on custom selector stratgies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>
     :example.js
@@ -31,7 +32,7 @@ export async function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: any[]
-): Promise<ElementArray> {
+): Promise<WebdriverIO.ElementArray> {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 
@@ -63,6 +64,6 @@ export async function custom$$ (
 
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
+    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }

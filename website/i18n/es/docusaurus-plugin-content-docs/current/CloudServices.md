@@ -3,7 +3,7 @@ id: cloudservices
 title: Servicios en la Nube
 ---
 
-Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
+Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
 
 Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 

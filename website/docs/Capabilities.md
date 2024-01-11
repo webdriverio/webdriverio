@@ -13,7 +13,7 @@ The format of a capability object is well defined by the [WebDriver specificatio
 
 ## Custom Capabilities
 
-While the amount of fixed defined capabilities is verry low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
+While the amount of fixed defined capabilities is very low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
 
 ### Browser Specific Capability Extensions
 
@@ -51,15 +51,21 @@ Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ##### `binary`
 
-Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the driver you are using.
+Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
 
 Type: `string`
+
+:::caution
+
+If the driver `binary` is set, WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
+
+:::
 
 #### Browser Specific Driver Options
 
 In order to propagate options to the driver you can use the following custom capabilities:
 
-- Chrome: `wdio:chromedriverOptions`
+- Chrome or Chromium: `wdio:chromedriverOptions`
 - Firefox: `wdio:geckodriverOptions`
 - Microsoft Egde: `wdio:edgedriverOptions`
 - Safari: `wdio:safaridriverOptions`
@@ -240,39 +246,98 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 ```ts
 {
     browserName: 'chrome',
-    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'latest', 'dev', 'canary', 'beta'
+}
+```
+
+If you like to test a manually downloaded browser, you can provide a binary path to the browser via:
+
+```ts
+{
+    browserName: 'chrome',
+    'goog:chromeOptions': {
+        binary: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
+    }
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'chrome',
+    'wdio:chromedriverOptions': {
+        binary: '/path/to/chromdriver'
+    }
 }
 ```
 
 </TabItem>
 <TabItem value="firefox">
 
-When testing on Firefox, you can let WebdriverIO setup Firefox Nightly for you by providing `latest` as `browserVersion`:
+When testing on Firefox, WebdriverIO will automatically download the desired browser version and driver for you based on the defined `browserVersion`, e.g.:
 
 ```ts
+{
     browserName: 'firefox',
-    browserVersion: 'latest'
+    browserVersion: '119.0a1' // or 'latest'
+}
 ```
 
 If you like to test a manually downloaded version you can provide a binary path to the browser via:
 
 ```ts
+{
     browserName: 'firefox',
     'moz:firefoxOptions': {
-        bin: '/Applications/Firefox\ Nightly.app/Contents/MacOS/firefox'
+        binary: '/Applications/Firefox\ Nightly.app/Contents/MacOS/firefox'
     }
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'firefox',
+    'wdio:geckodriverOptions': {
+        binary: '/path/to/geckodriver'
+    }
+}
 ```
 
 </TabItem>
 <TabItem value="msedge">
 
-When testing on Micrsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
+When testing on Microsoft Edge, make sure you have the desired browser version installed on your machine. You can point WebdriverIO to the browser to execute via:
 
 ```ts
+{
     browserName: 'msedge',
     'ms:edgeOptions': {
-        bin: '/Applications/Microsoft\ Edge\ Canary.app/Contents/MacOS/Microsoft\ Edge\ Canary'
+        binary: '/Applications/Microsoft\ Edge\ Canary.app/Contents/MacOS/Microsoft\ Edge\ Canary'
     }
+}
+```
+
+WebdriverIO will automatically download the desired driver version for you based on the defined `browserVersion`, e.g.:
+
+```ts
+{
+    browserName: 'msedge',
+    browserVersion: '109' // or '109.0.1467.0', 'stable', 'dev', 'canary', 'beta'
+}
+```
+
+Additionally, if you like to use a manually downloaded driver, you can provide a binary path to the driver via:
+
+```ts
+{
+    browserName: 'msedge',
+    'wdio:edgedriverOptions': {
+        binary: '/path/to/msedgedriver'
+    }
+}
 ```
 
 </TabItem>
@@ -281,8 +346,46 @@ When testing on Micrsoft Edge, make sure you have the desired browser version in
 When testing on Safari, make sure you have the [Safari Technology Preview](https://developer.apple.com/safari/technology-preview/) installed on your machine. You can point WebdriverIO to that version via:
 
 ```ts
+{
     browserName: 'safari technology preview'
+}
 ```
 
 </TabItem>
 </Tabs>
+
+## Extend Custom Capabilities
+
+If you like to define your own set of capabilities in order to e.g. store arbitrary data to be used within the tests for that specific capability, you can do so by e.g. setting:
+
+```js title=wdio.conf.ts
+export const config = {
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        'custom:caps': {
+            // custom configurations
+        }
+    }]
+}
+```
+
+It is advised to follow the [W3C protocol](https://w3c.github.io/webdriver/#dfn-extension-capability) when it comes to capability naming which requires a `:` (colon) character, denoting an implementation specific namespace. Within your tests you can access your custom capability through, e.g.:
+
+```ts
+browser.capabilities['custom:caps']
+```
+
+In order to ensure type safety you can extend WebdriverIOs capability interface via:
+
+```ts
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            'custom:caps': {
+                // ...
+            }
+        }
+    }
+}
+```

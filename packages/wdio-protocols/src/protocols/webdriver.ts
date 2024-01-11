@@ -1340,11 +1340,17 @@ export default {
             examples: [
                 [
                     '// set midi permissions',
-                    'browser.setPermissions({',
-                    "  name: 'midi',",
-                    '  sysex; true',
-                    ", 'granted'); // can be also 'denied' or 'prompt'",
+                    'browser.setPermissions(',
+                    '  { name: \'midi\', sysex: true },',
+                    '  \'granted\' // can be also "denied" or "prompt"',
+                    ');'
                 ],
+                [
+                    '// set clipboard permissions',
+                    'browser.setPermissions({ name: \'clipboard-read\' }, \'granted\');',
+                    '// now you can read the clipboard via, e.g.',
+                    'const clipboardText = await browser.execute(() => navigator.clipboard.readText());'
+                ]
             ],
             parameters: [
                 {

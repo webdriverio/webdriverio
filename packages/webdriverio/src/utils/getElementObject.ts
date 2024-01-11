@@ -6,11 +6,31 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../middlewares.js'
 import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, ElementArray } from '../types.js'
+import type { Selector, AddCommandFn } from '../types.js'
 
 interface GetElementProps {
     isReactElement?: boolean
     isShadowElement?: boolean
+}
+
+interface WebDriverErrorResponse {
+    error: string,
+    message: string
+    stacktrace: string,
+}
+
+class WebDriverError extends Error {
+    constructor(obj: Error | WebDriverErrorResponse) {
+
+        const { name, stack } = obj as Error
+        const { error, stacktrace } = obj as WebDriverErrorResponse
+
+        super(error || name || '')
+        Object.assign(this, {
+            message: obj.message,
+            stack: stacktrace || stack,
+        })
+    }
 }
 
 /**
@@ -91,9 +111,9 @@ export const getElement = function findElement(
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    elemResponse: (ElementReference | Error)[],
+    elemResponse: (ElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
-): ElementArray {
+): WebdriverIO.Element[] {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
@@ -109,12 +129,12 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res: ElementReference | Element | Error, i) => {
+    const elements = [elemResponse].flat(1).map((res: ElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
          */
         if ((res as WebdriverIO.Element).selector) {
-            return res
+            return res as WebdriverIO.Element
         }
 
         propertiesObject.scope = { value: 'element' }
@@ -133,7 +153,8 @@ export const getElements = function getElements(
                 const elementKey = this.isW3C ? ELEMENT_KEY : 'ELEMENT'
                 client[elementKey] = elementId
             } else {
-                client.error = res as Error
+                res = res as WebDriverError | Error
+                client.error = res instanceof Error ? res : new WebDriverError(res)
             }
 
             client.selector = Array.isArray(selector)
@@ -148,15 +169,15 @@ export const getElements = function getElements(
             return client
         }, propertiesObject)
 
-        const elementInstance = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
+        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
-        elementInstance.addCommand = (name: string, fn: Function) => {
+        elementInstance.addCommand = (name: string, fn: AddCommandFn) => {
             browser.__propertiesObject__[name] = { value: fn }
             origAddCommand(name, fn)
         }
         return elementInstance
     })
 
-    return elements as ElementArray
+    return elements
 }

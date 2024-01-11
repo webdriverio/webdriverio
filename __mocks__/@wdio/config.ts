@@ -1,36 +1,12 @@
 import { vi } from 'vitest'
-import { Options } from '../../packages/wdio-types'
+import type { Options } from '../../packages/wdio-types'
 
-import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../packages/wdio-config/src/constants'
+import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../packages/wdio-config/src/constants.js'
 import {
     isCloudCapability as isCloudCapabilityMock,
     validateConfig as validateConfigMock
-} from '../../packages/wdio-config/src/utils'
+} from '../../packages/wdio-config/src/utils.js'
 
-class ConfigParserMock {
-    addService = vi.fn()
-    initialize = vi.fn()
-    addConfigFile = vi.fn()
-    merge = vi.fn()
-    autoCompile = vi.fn()
-
-    getConfig = vi.fn().mockReturnValue({
-        runnerEnv: {},
-        runner: 'local',
-        outputDir: './tempDir'
-    })
-
-    getCapabilities = vi.fn().mockReturnValue([{
-        browserName: 'chrome',
-        specs: ['./tests/test2.js']
-    }, {
-        browserName: 'firefox'
-    }])
-
-    getSpecs = vi.fn().mockReturnValue(['./tests/test1.js'])
-}
-
-export const ConfigParser = ConfigParserMock
 export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT as () => Omit<Options.Testrunner, 'capabilities'>
 export const isCloudCapability = vi.fn().mockImplementation(isCloudCapabilityMock)
 export const validateConfig = vi.fn().mockImplementation((defaults, config) => {
