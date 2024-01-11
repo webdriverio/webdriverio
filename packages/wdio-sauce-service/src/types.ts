@@ -55,3 +55,15 @@ export interface SauceServiceConfig {
         suiteTitle: string
     ) => string
 }
+
+export interface Provider {
+    matcher(): boolean;
+    ci: CI;
+}
+
+export interface CI {
+    repo: string;
+    refName: string;
+    sha: string;
+    user: string;
+}

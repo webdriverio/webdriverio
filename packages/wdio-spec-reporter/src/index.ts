@@ -245,10 +245,11 @@ export default class SpecReporter extends WDIOReporter {
             }
 
             // VDC urls can be constructed / be made shared
-            const isUSEast = config.headless || (config.hostname?.includes('us-east-1'))
+            const isUSEast1 = config.headless || (config.hostname?.includes('us-east-1'))
+            const isUSEast4 = ['us-east-4'].includes(config?.region || '') || (config.hostname?.includes('us-east-4'))
             const isEUCentral = ['eu', 'eu-central-1'].includes(config?.region || '') || (config.hostname?.includes('eu-central'))
             const isAPAC = ['apac', 'apac-southeast-1'].includes(config?.region || '') || (config.hostname?.includes('apac'))
-            const dc = isUSEast ? '.us-east-1' : isEUCentral ? '.eu-central-1' : isAPAC ? '.apac-southeast-1' : ''
+            const dc = isUSEast1 ? '.us-east-1' : isUSEast4 ? '.us-east-4' : isEUCentral ? '.eu-central-1' : isAPAC ? '.apac-southeast-1' : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken( config.user, config.key, sessionId )
                 : ''
