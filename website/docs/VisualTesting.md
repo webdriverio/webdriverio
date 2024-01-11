@@ -12,12 +12,12 @@ WebdriverIO provides image comparisons on screens, elements or a full-page for b
 
 This allows you to:
 
--   save or compare screens/elements/full-page screens against a baseline
--   automatically create a baseline when no baseline is there
--   block out custom regions and even automatically exclude a status and or toolbars (mobile only) during a comparison
+-   save or compare __screens/elements/full-page__ screens against a baseline
+-   automatically __create a baseline__ when no baseline is there
+-   __block out custom regions__ and even __automatically exclude__ a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
--   use different comparison methods
--   You can now verify how your website will support tabbing with your keyboard, see also [Tabbing through a website](#tabbing-through-a-website)
+-   use __different comparison methods__ and a set of __additional matchers__ for better readable tests
+-   You can now verify how your website will __support tabbing with your keyboard)__, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
 The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](http://rsmbl.github.io/Resemble.js/).
@@ -191,7 +191,7 @@ Both methods use the same options as the [`saveFullPageScreen`](https://github.c
 
 #### Example
 
-This is an example of how the tabbing works on our [guinea pig](http://guinea-pig.webdriver.io/image-compare.html) website](http://guinea-pig.webdriver.io/image-compare.html):
+This is an example of how the tabbing works on our [guinea pig website](http://guinea-pig.webdriver.io/image-compare.html):
 
 ![WDIO tabbing example](./visual-testing/img/tabbable-chrome-latest-1366x768.png)
 

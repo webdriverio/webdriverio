@@ -225,3 +225,24 @@ await expect(
     await browser.checkFullPageScreen("checkFullPage", methodOptions)
 ).toEqual(0)
 ```
+
+### `actualFolder`
+
+-   **Type:** `string`
+-   **Mandatory:** no
+
+Folder for the snapshot that has been captured in the test.
+
+### `baselineFolder`
+
+-   **Type:** `string`
+-   **Mandatory:** no
+
+Folder for the baseline image that is being used to compare against.
+
+### `diffFolder`
+
+-   **Type:** `string`
+-   **Mandatory:** no
+
+Folder for the image difference rendered by ResembleJS.
