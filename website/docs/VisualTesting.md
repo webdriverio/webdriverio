@@ -84,7 +84,7 @@ export const config = {
 }
 ```
 
-More service options can be found [here](./service-options). Once set-up in your WebdriverIO configuration you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
+More service options can be found [here](/docs/visual-testing/service-options). Once set-up in your WebdriverIO configuration you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
 
 ### WebdriverIO MultiRemote
 
@@ -209,7 +209,7 @@ We now also support typescript types. Add the following to the `types` in your `
 
 ## System Requirements
 
-Aside from the general [project requirements](/gettingstarted#system-requirements) this module relies on [Canvas](https://github.com/Automattic/node-canvas) which is a canvas implementation for Node.js. It relies on [Cairo](https://cairographics.org/).
+Aside from the general [project requirements](/docs/gettingstarted#system-requirements) this module relies on [Canvas](https://github.com/Automattic/node-canvas) which is a canvas implementation for Node.js. It relies on [Cairo](https://cairographics.org/).
 
 By default, binaries for macOS, Linux and Windows will be downloaded during your project's `npm install`. If you don't have a supported OS or processor architecture, the module will be compiled on your system. This requires several dependencies, including Cairo and Pango.
 

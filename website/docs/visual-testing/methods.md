@@ -3,7 +3,7 @@ id: methods
 title: Methods
 ---
 
-The following methods are added to the global WebdriverIO [`browser`](/api/browser)-object.
+The following methods are added to the global WebdriverIO [`browser`](/docs/api/browser)-object.
 
 ## Save Methods
 
