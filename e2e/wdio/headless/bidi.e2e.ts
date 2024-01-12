@@ -11,7 +11,9 @@ describe('bidi e2e test', () => {
         }
 
         const result = await browser.browsingContextGetTree({})
+        const context = await browser.getWindowHandle()
         expect(result.contexts).toHaveLength(1)
+        expect(result.contexts[0].context).toBe(context)
     })
 
     it('can listen to events', async function () {
@@ -27,8 +29,12 @@ describe('bidi e2e test', () => {
         browser.on('log.entryAdded', (logEntry) => logEvents.push(logEntry))
         await browser.execute(() => console.log('Hello Bidi'))
         // eslint-disable-next-line wdio/no-pause
-        await browser.pause(100)
-        expect(logEvents).toHaveLength(1)
-        expect(logEvents[0].text).toBe('Hello Bidi')
+        await browser.waitUntil(
+            async () => logEvents.find((logEvent) => logEvent.text === 'Hello Bidi'),
+            {
+                timeout: 5000,
+                timeoutMsg: 'Expected bidi log entry to be added'
+            }
+        )
     })
 })

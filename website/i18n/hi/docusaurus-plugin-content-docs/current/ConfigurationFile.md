@@ -64,9 +64,8 @@ export const config = {
     // worker process. In order to have a group of spec files run in the same worker
     // process enclose them in an array within the specs array.
     //
-    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio`
-    // will be called from there.
+    // The path of the spec files will be resolved relative from the directory of
+    // of the config file unless it's absolute.
     //
     specs: [
         'test/spec/**',
@@ -454,7 +453,7 @@ export const config = {
       *
       * कुकुम्बर स्टेप से पहले रन करता है।
      * @param {Pickle.IPickleStep}    स्टेप    स्टेप डेटा
-      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल 
+      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल
       * @param {{object}}   संदर्भ   कुकुम्बर विश्व वस्तु
       */
      स्टेप से पहले: फ़ंक्शन (चरण, परिदृश्य, संदर्भ) {

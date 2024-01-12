@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/// <reference types="../@types/lerna-changelog.d.ts" />
 
 /**
  * script to auto update CHANGELOG.md file

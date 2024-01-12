@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import url from 'node:url'
-import util from 'node:util'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import type cp from 'node:child_process'
@@ -25,9 +24,16 @@ vi.mock('node:fs/promises', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => ({ spawn: vi.fn() }))
+vi.mock('child_process', () => ({
+    spawn: vi.fn(),
+    exec: vi.fn()
+}))
 vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
     url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
+}))
+
+vi.mock('get-port', () => ({
+    default: vi.fn().mockResolvedValue(4723)
 }))
 
 class MockProcess {
@@ -220,8 +226,7 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -240,8 +245,7 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -413,8 +417,7 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ browserName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -514,6 +517,11 @@ describe('Appium launcher', () => {
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
         })
+
+        test('throws if process is not set', async () => {
+            const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
+            await expect(launcher['_redirectLogStream']('/foo/bar')).rejects.toEqual(new Error('No Appium process to redirect log stream'))
+        })
     })
 
     describe('_getAppiumCommand', () => {
@@ -532,7 +540,7 @@ describe('Appium launcher', () => {
             const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
             vi.mocked(spawn).mockImplementationOnce(origSpawn)
             const launcher = new AppiumLauncher({}, [], {} as any)
-            await expect(util.promisify(launcher['_startAppium'])(
+            await expect(launcher['_startAppium'](
                 'node',
                 ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()']
             )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))

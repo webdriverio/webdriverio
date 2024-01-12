@@ -3,11 +3,15 @@ import type { Readable, TransformCallback } from 'node:stream'
 import { Transform } from 'node:stream'
 import { DEBUGGER_MESSAGES } from './constants.js'
 
-export default function runnerTransformStream(cid: string, inputStream: Readable): Readable {
+export default function runnerTransformStream(cid: string, inputStream: Readable, aggregator?: string[]): Readable {
     return inputStream
         .pipe(split(/\r?\n/, line => `${line}\n`))
         .pipe(ignore(DEBUGGER_MESSAGES))
-        .pipe(map(line => `[${cid}] ${line}`))
+        .pipe(map((line) => {
+            const newLine = `[${cid}] ${line}`
+            aggregator?.push(newLine)
+            return newLine
+        }))
 }
 
 function ignore(patternsToIgnore: string[]) {

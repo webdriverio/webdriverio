@@ -235,7 +235,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
         }
         return pkg
     } catch (e: any) {
-        throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
+        throw new Error(`Couldn't initialize "${name}".\n${e.stack}`)
     }
 }
 

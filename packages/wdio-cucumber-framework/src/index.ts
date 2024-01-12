@@ -476,7 +476,15 @@ class CucumberAdapter {
                  */
                 const isStep = !fn.name.startsWith('userHook')
 
-                return wrapStep(fn, isStep, config, cid, options, getHookParams)
+                /**
+                 * Steps without wrapperOptions are returned promptly, avoiding failures when steps are defined with timeouts.
+                 * However, steps with set wrapperOptions have limitations in utilizing timeouts.
+                 */
+                if (isStep && !options.retry) {
+                    return fn
+                }
+
+                return wrapStep(fn, isStep, config, cid, options, getHookParams, this._cucumberOpts.timeout)
             }
         )
     }
@@ -489,7 +497,8 @@ class CucumberAdapter {
      * @param   {string}    cid             cid
      * @param   {StepDefinitionOptions} options
      * @param   {Function}  getHookParams  step definition
-     * @return  {Function}                  wrapped step definition for sync WebdriverIO code
+     * @param   {number}    timeout        the maximum time (in milliseconds) to wait for
+     * @return  {Function}                 wrapped step definition for sync WebdriverIO code
      */
     wrapStep(
         code: Function,
@@ -497,7 +506,9 @@ class CucumberAdapter {
         config: Options.Testrunner,
         cid: string,
         options: StepDefinitionOptions,
-        getHookParams: Function
+        getHookParams: Function,
+        timeout?: number,
+        hookName: string | undefined = undefined,
     ): Function {
         return function (this: Cucumber.World, ...args: any[]) {
             const hookParams = getHookParams()
@@ -514,7 +525,7 @@ class CucumberAdapter {
                 { beforeFn: beforeFn as Function[], beforeFnArgs: (context: any) => [hookParams?.step, context] },
                 { afterFn: afterFn as Function[], afterFnArgs: (context: any) => [hookParams?.step, context] },
                 cid,
-                retryTest)
+                retryTest, hookName, timeout)
         }
     }
 }

@@ -37,7 +37,7 @@ WebdriverIO can only wait for elements when they are implicitly defined. This is
 
 ```js
 const divs = await $$('div')
-await divs[2].click() // can throw "Cannot read property 'click' of undefined"
+await divs[1].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
 It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend using [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
@@ -49,7 +49,7 @@ const div = await browser.waitUntil(async () => {
         return false
     }
 
-    return elems[2]
+    return elems[1]
 }, {
     timeoutMsg: 'Never found enough div elements'
 })

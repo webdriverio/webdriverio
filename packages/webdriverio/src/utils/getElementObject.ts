@@ -6,7 +6,7 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../middlewares.js'
 import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, ElementArray } from '../types.js'
+import type { Selector, AddCommandFn } from '../types.js'
 
 interface GetElementProps {
     isReactElement?: boolean
@@ -113,7 +113,7 @@ export const getElements = function getElements(
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: (ElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
-): ElementArray {
+): WebdriverIO.Element[] {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
@@ -134,7 +134,7 @@ export const getElements = function getElements(
          * if we already deal with an element, just return it
          */
         if ((res as WebdriverIO.Element).selector) {
-            return res
+            return res as WebdriverIO.Element
         }
 
         propertiesObject.scope = { value: 'element' }
@@ -169,15 +169,15 @@ export const getElements = function getElements(
             return client
         }, propertiesObject)
 
-        const elementInstance = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
+        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
-        elementInstance.addCommand = (name: string, fn: Function) => {
+        elementInstance.addCommand = (name: string, fn: AddCommandFn) => {
             browser.__propertiesObject__[name] = { value: fn }
             origAddCommand(name, fn)
         }
         return elementInstance
     })
 
-    return elements as ElementArray
+    return elements
 }

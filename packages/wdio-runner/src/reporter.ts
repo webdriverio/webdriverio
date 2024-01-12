@@ -1,6 +1,6 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
-import { initialisePlugin } from '@wdio/utils'
+import { initializePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
 const log = logger('@wdio/runner')
@@ -156,7 +156,7 @@ export default class BaseReporter {
     }
 
     /**
-     * initialise reporters
+     * initialize reporters
      */
     private async _loadReporter (reporter: Reporters.ReporterEntry) {
         let ReporterClass: Reporters.ReporterClass
@@ -211,7 +211,7 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = (await initialisePlugin(reporter, 'reporter')).default as Reporters.ReporterClass
+            ReporterClass = (await initializePlugin(reporter, 'reporter')).default as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, reporter)
                 : typeof options.logFile === 'string'

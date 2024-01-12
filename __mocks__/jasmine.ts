@@ -25,7 +25,16 @@ export const jasmine = {
         })
     },
     addAsyncMatchers: vi.fn(),
-    beforeAll: vi.fn((cb) => cb())
+    beforeAll: vi.fn((cb) => cb()),
+    expectAsync: {
+        any: vi.fn(),
+        anything: vi.fn(),
+        arrayContaining: vi.fn(),
+        objectContaining: vi.fn(),
+        stringContaining: vi.fn(),
+        stringMatching: vi.fn(),
+        not: vi.fn()
+    }
 }
 export default class JasmineMock {
     args: any[]

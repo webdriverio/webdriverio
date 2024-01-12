@@ -4,7 +4,7 @@ import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 import type { MockOverwriteFunction } from '../../../packages/webdriverio/src/utils/interception/types.ts'
-import type { ClickOptions, TouchAction, Selector, Action, ElementArray } from '../../../packages/webdriverio/build/types'
+import type { ClickOptions, TouchAction, Selector, Action } from '../../../packages/webdriverio/build/types'
 import { Key } from 'webdriverio'
 
 declare global {
@@ -83,7 +83,7 @@ async function bar() {
     const elemA = await remoteBrowser.$('')
     const elemB = await remoteBrowser.$('')
     const multipleElems = await $$([elemA, elemB])
-    expectType<ElementArray>(multipleElems)
+    expectType<WebdriverIO.ElementArray>(multipleElems)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -150,7 +150,7 @@ async function bar() {
         }
         return elems
     })
-    expectType<ElementArray>(waitUntilElems)
+    expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
     await browser.getCookies()
     await browser.getCookies('foobar')
@@ -310,6 +310,11 @@ async function bar() {
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
     expectType<void>(await el5.scrollIntoView(false))
+
+    // async iterator
+    const iteratorResult = await $$('').map((el) => el.getText())
+    expectType<string[]>(iteratorResult)
+    expectType<string[]>(await elems.map((el) => el.getText()))
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
@@ -507,7 +512,7 @@ async function bar() {
         }, {} as Random)
     )
 
-    const elemArrayTest: ElementArray = {} as any
+    const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
 }

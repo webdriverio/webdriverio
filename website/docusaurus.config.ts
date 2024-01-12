@@ -189,7 +189,7 @@ const config: Config = {
     } satisfies ThemeConfig,
     presets: [
         [
-            '@docusaurus/preset-classic', {
+            'classic', {
                 docs: {
                     sidebarPath: path.resolve(__dirname, 'sidebars.ts'),
                     // Please change this to your repo.
@@ -225,7 +225,7 @@ const config: Config = {
     ],
     plugins: [
         [
-            '@docusaurus/plugin-client-redirects',
+            'client-redirects',
             {
                 fromExtensions: ['html'],
                 /**
@@ -250,7 +250,7 @@ const config: Config = {
             }
         ],
         [
-            '@docusaurus/plugin-content-docs',
+            'content-docs',
             {
                 id: 'community',
                 path: 'community',
@@ -259,9 +259,9 @@ const config: Config = {
                 sidebarPath: path.resolve(__dirname, 'sidebarsCommunity.ts')
             },
         ],
-        '@docusaurus/plugin-ideal-image',
+        'ideal-image',
         [
-            '@docusaurus/plugin-pwa',
+            'pwa',
             {
                 debug: false,
                 offlineModeActivationStrategies: ['appInstalled', 'queryString'],
@@ -318,7 +318,7 @@ const config: Config = {
             },
         ],
     ],
-    themes: ['docusaurus-theme-github-codeblock'],
+    themes: [path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js')],
     stylesheets: [
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'

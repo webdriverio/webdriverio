@@ -7,7 +7,7 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
-import { UNICODE_CHARACTERS } from '@wdio/utils'
+import { UNICODE_CHARACTERS, asyncIterators } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -15,7 +15,7 @@ import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { ELEMENT_KEY, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
+import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
@@ -198,7 +198,7 @@ function fetchElementByJSFunction (
     scope: WebdriverIO.Browser | WebdriverIO.Element,
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
-    if (!(scope as WebdriverIO.Element).elementId) {
+    if (!('elementId' in scope)) {
         return scope.execute(selector as any, referenceId)
     }
     /**
@@ -493,6 +493,10 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
     }
 }
 
+type Entries<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
 /**
  * Enhance elements array with data required to refetch it
  * @param   {object[]}          elements    elements
@@ -503,24 +507,41 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: ElementArray,
+    elements: WebdriverIO.Element[],
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: any[] = []
 ) => {
     /**
+     * as we enhance the element array in this method we need to cast its
+     * type as well
+     */
+    const elementArray = elements as unknown as WebdriverIO.ElementArray
+
+    /**
      * if we have an element collection, e.g. `const elems = $$([elemA, elemB])`
-     * we cna't assign a common selector to the element array
+     * we can't assign a common selector to the element array
      */
     if (!Array.isArray(selector)) {
-        elements.selector = selector
+        elementArray.selector = selector
     }
 
-    elements.parent = parent
-    elements.foundWith = foundWith
-    elements.props = props
-    return elements
+    /**
+     * replace Array prototype methods with custom ones that support
+     * async iterators
+     */
+    for (const [name, fn] of Object.entries(asyncIterators) as Entries<typeof asyncIterators>) {
+        /**
+         * ToDo(Christian): typing fails here for unknown reason
+         */
+        elementArray[name] = fn.bind(null, elementArray as any)
+    }
+
+    elementArray.parent = parent
+    elementArray.foundWith = foundWith
+    elementArray.props = props
+    return elementArray
 }
 
 /**

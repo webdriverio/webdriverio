@@ -289,6 +289,19 @@ Whether or not retried spec files should be retried immediately or deferred to t
 
 Type: `Boolean`<br /> Default: `true`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br />
+Default: `false`
+
 ### services
 
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -623,3 +636,27 @@ Parameters:
 - `result.error` (`string`): error stack if scenario failed
 - `result.duration` (`number`): duration of scenario in milliseconds
 - `context` (`object`): Cucumber World object
+
+### beforeAssertion
+
+Hook that gets executed before a WebdriverIO assertion happens.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+
+### afterAssertion
+
+Hook that gets executed after a WebdriverIO assertion happened.
+
+Parameters:
+
+- `params`: assertion information
+- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.expectedValue`: value that is passed into the matcher
+- `params.options`: assertion options
+- `params.result`: assertion results
+

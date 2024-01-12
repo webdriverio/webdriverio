@@ -4,7 +4,6 @@
 import path from 'node:path'
 import { expect, describe, it, beforeAll, afterEach, afterAll, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 

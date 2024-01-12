@@ -11,8 +11,10 @@ vi.mock('yargs')
 vi.mock('execa')
 vi.mock('node:child_process', () => ({
     default: {
-        spawn: vi.fn()
-    }
+        spawn: vi.fn(),
+        exec: vi.fn()
+    },
+    exec: vi.fn()
 }))
 vi.mock('node:fs/promises', () => ({
     default: {

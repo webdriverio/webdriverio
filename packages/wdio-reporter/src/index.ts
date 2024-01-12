@@ -62,6 +62,8 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
+        this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
+        this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
         this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
@@ -249,6 +251,12 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onAfterCommand(commandArgs: AfterCommandArgs) { }
+    /* istanbul ignore next */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onBeforeAssertion(assertionArgs: unknown) { }
+    /* istanbul ignore next */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onAfterAssertion(assertionArgs: unknown) { }
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuiteStart(suiteStats: SuiteStats) { }

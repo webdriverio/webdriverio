@@ -39,6 +39,10 @@ export default class DevToolsService implements Services.ServiceInstance {
     }
 
     async afterCommand (commandName: string) {
+        if (commandName === 'switchToWindow') {
+            await this._setupHandler()
+        }
+
         return Promise.all(this._command.map(async c => await c._afterCmd(commandName)))
     }
 
@@ -136,6 +140,11 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         /**
+         * In case of switchToWindow, needs to not add more commands to the array
+         */
+        this._command.length = 0
+
+        /**
          * To avoid if-else, gather all browser instances into an array
          */
         const browsers = Object.keys(this._browser).includes('sessionId') ?
@@ -153,9 +162,14 @@ export default class DevToolsService implements Services.ServiceInstance {
                 throw new Error('Could not initiate Puppeteer instance')
             }
 
-            const target = await puppeteer.waitForTarget(
+            const url = await (browser as WebdriverIO.Browser).getUrl()
+            const target = url !== 'data:,' ?
+                await puppeteer.waitForTarget(
                 /* istanbul ignore next */
-                (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
+                    (t) => t.url().includes(url)) :
+                await puppeteer.waitForTarget(
+                    /* istanbul ignore next */
+                    (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
 
             /* istanbul ignore next */
             if (!target) {

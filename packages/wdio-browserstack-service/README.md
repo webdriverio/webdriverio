@@ -17,7 +17,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-WebdriverIO has BrowserStack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [BrowserStack](https://www.browserstack.com/automate/node#setting-local-tunnel) Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
+WebdriverIO has BrowserStack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [BrowserStack](https://www.browserstack.com/docs/automate/selenium/getting-started/nodejs/local-testing) Tunnel](https://www.browserstack.com/docs/automate/selenium/getting-started/nodejs/local-testing). Set `browserstackLocal: true` also to activate this feature.
 Reporting of session status on BrowserStack will respect `strict` setting of Cucumber options.
 
 ```js

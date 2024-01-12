@@ -13,25 +13,25 @@
     "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.0.0",
-    "@docusaurus/module-type-aliases": "^3.0.0",
-    "@docusaurus/plugin-client-redirects": "^3.0.0",
-    "@docusaurus/plugin-google-analytics": "^3.0.0",
-    "@docusaurus/plugin-ideal-image": "^3.0.0",
-    "@docusaurus/plugin-pwa": "^3.0.0",
-    "@docusaurus/preset-classic": "^3.0.0",
-    "@docusaurus/remark-plugin-npm2yarn": "^3.0.0",
-    "@docusaurus/theme-search-algolia": "^3.0.0",
-    "@docusaurus/tsconfig": "^3.0.0",
+    "@docusaurus/core": "^3.0.1",
+    "@docusaurus/module-type-aliases": "^3.0.1",
+    "@docusaurus/plugin-client-redirects": "^3.0.1",
+    "@docusaurus/plugin-google-analytics": "^3.0.1",
+    "@docusaurus/plugin-ideal-image": "^3.0.1",
+    "@docusaurus/plugin-pwa": "^3.0.1",
+    "@docusaurus/preset-classic": "^3.0.1",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.0.1",
+    "@docusaurus/theme-search-algolia": "^3.0.1",
+    "@docusaurus/tsconfig": "^3.0.1",
     "@mdx-js/react": "^3.0.0",
-    "@mendable/search": "^0.0.177",
+    "@mendable/search": "^0.0.183",
     "@tsconfig/docusaurus": "^2.0.2",
     "clsx": "^2.0.0",
-    "docusaurus-theme-github-codeblock": "^1.1.4",
+    "docusaurus-theme-github-codeblock": "^2.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-lite-youtube-embed": "^2.3.52",
-    "typescript": "^5.2.2",
+    "react-lite-youtube-embed": "^2.4.0",
+    "typescript": "^5.3.2",
     "workbox-routing": "^7.0.0",
     "workbox-strategies": "^7.0.0"
   },
@@ -51,6 +51,6 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/theme-common": "^3.0.0"
+    "@docusaurus/theme-common": "^3.0.1"
   }
 }

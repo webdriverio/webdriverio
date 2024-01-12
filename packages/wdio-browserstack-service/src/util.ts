@@ -6,6 +6,8 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -28,8 +30,11 @@ import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
+import BrowserstackLauncherService from './launcher.js'
 
 const pGitconfig = promisify(gitconfig)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -171,17 +176,25 @@ export async function nodeRequest(requestType: Method, apiEndpoint: string, opti
         }).json()
         return response
     } catch (error : any) {
+        const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
             if (errorMessage) {
-                BStackLogger.error(`${errorMessage} - ${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${errorMessage} - ${error.stack}`) : BStackLogger.error(`${errorMessage} - ${error.stack}`)
             } else {
-                BStackLogger.error(`${error.stack}`)
+                isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
+            }
+            if (isLogUpload) {
+                return
             }
             throw error
         } else {
-            BStackLogger.error(`Failed to fire api request due to ${error} - ${error.stack}`)
+            if (isLogUpload) {
+                BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
+                return
+            }
+            BStackLogger.debug(`Failed to fire api request due to ${error} - ${error.stack}`)
             throw error
         }
     }
@@ -1158,4 +1171,35 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
     )
 
     return response
+}
+
+export const isObject = (object: any) => {
+    return object !== null && typeof object === 'object' && !Array.isArray(object)
+}
+
+export const ObjectsAreEqual = (object1: any, object2: any) => {
+    const objectKeys1 = Object.keys(object1)
+    const objectKeys2 = Object.keys(object2)
+    if (objectKeys1.length !== objectKeys2.length) {
+        return false
+    }
+    for (const key of objectKeys1) {
+        const value1 = object1[key]
+        const value2 = object2[key]
+        const isBothAreObjects = isObject(value1) && isObject(value2)
+        if ((isBothAreObjects && !ObjectsAreEqual(value1, value2)) || (!isBothAreObjects && value1 !== value2)) {
+            return false
+        }
+    }
+    return true
+}
+
+export function setupExitHandlers() {
+    process.on('exit', (code) => {
+        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
+            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
+            childProcess.unref()
+            process.exit(code)
+        }
+    })
 }

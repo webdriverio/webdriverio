@@ -5,7 +5,7 @@ import { getElements } from '../../utils/getElementObject.js'
 import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
 import { findStrategy } from '../../utils/findStrategy.js'
 import { SHADOW_ELEMENT_KEY } from '../../constants.js'
-import type { Selector, ElementArray } from '../../types.js'
+import type { Selector } from '../../types.js'
 
 const log = logger('webdriverio')
 
@@ -40,7 +40,7 @@ export async function shadow$$ (
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         const res = await browser.findElementsFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         const elements = await getElements.call(this, selector as Selector, res, { isShadowElement: true })
-        return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
+        return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
     } catch (err: unknown) {
         log.warn(
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +

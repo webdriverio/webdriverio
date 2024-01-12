@@ -118,6 +118,7 @@ export const SUPPORTED_PACKAGES = {
         // internal or community driver services
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
+        { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
@@ -141,7 +142,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'image-comparison', value: 'wdio-image-comparison-service$--$image-comparison' },
         { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
         { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
@@ -903,6 +903,13 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         default: true
     },
     /**
+     * whether or not print the log output grouped by test files
+     */
+    groupLogsByTestSpec: {
+        type: 'boolean',
+        default: false
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
@@ -948,5 +955,12 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: HOOK_DEFINITION,
-    onReload: HOOK_DEFINITION
+    onReload: HOOK_DEFINITION,
+    beforeAssertion: HOOK_DEFINITION,
+    afterAssertion: HOOK_DEFINITION
+}
+
+export const WORKER_GROUPLOGS_MESSAGES = {
+    normalExit: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] *****`,
+    exitWithError: (cid: string) => `\n***** List of steps of WorkerID=[${cid}] that preceded the error above *****`
 }

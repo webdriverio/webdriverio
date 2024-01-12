@@ -66,9 +66,9 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     /**
-     * nothing to initialise when running locally
+     * nothing to initialize when running locally
      */
-    async initialise() {
+    async initialize() {
         log.info('Initiate browser environment')
         if (typeof this.#coverageOptions.clean === 'undefined' || this.#coverageOptions.clean) {
             const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
@@ -87,7 +87,7 @@ export default class BrowserRunner extends LocalRunner {
             log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
         }
 
-        await super.initialise()
+        await super.initialize()
     }
 
     async run (runArgs: RunArgs): Promise<WorkerInstance> {

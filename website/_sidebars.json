@@ -46,9 +46,9 @@
         "selectors",
         "timeouts",
         "emulation",
-        "accessibility",
         "mocksandspies",
         "customcommands",
+        "custommatchers",
         "pageobjects",
         "debugging",
         "repl",
@@ -117,6 +117,34 @@
         "extension-testing/web-extensions",
         "extension-testing/vscode-extensions"
       ]
+    },
+    {
+      "type": "category",
+      "label": "Accessibility Testing",
+      "items": ["accessibility-testing/axe-core"]
+    },
+    {
+      "type": "category",
+      "label": "Visual Testing",
+      "items": [
+        "visual-testing/writing-tests",
+        "visual-testing/methods",
+        {
+            "type": "category",
+            "label": "Options",
+            "items": [
+                "visual-testing/service-options",
+                "visual-testing/method-options"
+            ]
+        },
+        "visual-testing/test-output",
+        "visual-testing/considerations",
+        "visual-testing/faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "visual-testing"
+      }
     },
     {
       "type": "category",

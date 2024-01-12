@@ -47,7 +47,7 @@ mock.<%= it.command %>(<%= it.paramString %>)
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <% it.paramTags.forEach((paramTag) => { %>
-| <code><var><%= paramTag.name %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span class="label labelWarning">optional</span><% } %> | <%= Array.isArray(paramTag.types) ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join(', ') : paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %> | <%= paramTag.description %> |
+| <code><var><%= paramTag.name %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span className="label labelWarning">optional</span><% } %> | <%= Array.isArray(paramTag.types) ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join(', ') : paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %> | <%= paramTag.description %> |
 <% }) %>
 <% } %>
 

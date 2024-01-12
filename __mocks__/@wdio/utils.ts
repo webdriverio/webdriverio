@@ -26,7 +26,7 @@ class DotReporter {
 
 class RunnerMock {
     shutdown = vi.fn().mockResolvedValue(true)
-    initialise = vi.fn()
+    initialize = vi.fn()
 }
 class FoobarServiceMock {
     beforeSuite () {}
@@ -68,13 +68,13 @@ const pluginMocks = {
     framework: frameworkMocks
 }
 
-export const initialisePlugin = vi.fn().mockImplementation(
+export const initializePlugin = vi.fn().mockImplementation(
     async (name: keyof typeof frameworkMocks, type: keyof typeof pluginMocks) => (
         { default: (pluginMocks[type] as any)[name] }
     )
 )
-export const initialiseWorkerService = vi.fn().mockReturnValue([])
-export const initialiseLauncherService = vi.fn().mockReturnValue({
+export const initializeWorkerService = vi.fn().mockReturnValue([])
+export const initializeLauncherService = vi.fn().mockReturnValue({
     launcherServices: [],
     ignoredWorkerServices: []
 })
