@@ -1182,3 +1182,18 @@ export function setupExitHandlers() {
         }
     })
 }
+
+export function getPlatformVersion(caps: WebdriverIO.Capabilities) {
+    const bstackOptions = (caps)?.['bstack:options']
+    const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
+
+    for (const key of keys) {
+        if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+            return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
+        } else if (caps[key as keyof WebdriverIO.Capabilities]) {
+            return String(caps[key as keyof WebdriverIO.Capabilities])
+        }
+    }
+    return undefined
+}
+
