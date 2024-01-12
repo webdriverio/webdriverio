@@ -7,7 +7,7 @@ WebdriverIO viene con soporte incorporado para modificar las respuestas de la re
 
 :::info
 
-Actualmente, esta función solo se admite cuando se ejecutan pruebas locales en Chrome. Está previsto que sea compatible con [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) y [Sauce Labs](https://saucelabs.com/) pronto. Si encuentras problemas al usarlo, por favor registra [un problema](https://github.com/webdriverio/webdriverio/issues/new/choose) y háznoslo saber!
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
 
 :::
 
