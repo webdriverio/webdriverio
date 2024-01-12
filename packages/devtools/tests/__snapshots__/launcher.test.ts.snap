@@ -411,7 +411,7 @@ exports[`launch chrome without default flags and without puppeteer default args 
 [
   [
     {
-      "browserURL": "http://localhost:1234",
+      "browserURL": "http://127.0.0.1:1234",
       "defaultViewport": null,
       "ignoreDefaultArgs": true,
     },
