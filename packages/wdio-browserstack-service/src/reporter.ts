@@ -16,10 +16,11 @@ import {
     getGitMetaData,
     removeAnsiColors,
     getHookType,
-    pushDataToQueue
+    pushDataToQueue, getPlatformVersion
 } from './util.js'
 import RequestQueueHandler from './request-handler.js'
 import { BStackLogger } from './bstackLogger.js'
+import type { Capabilities } from '@wdio/types'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}
@@ -34,9 +35,11 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
     private _currentTest: CurrentRunInfo = {}
+    private _userCaps?: Capabilities.RemoteCapability = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
+        this._userCaps = this.getUserCaps(runnerStats)
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') {
@@ -44,6 +47,10 @@ class _TestReporter extends WDIOReporter {
         }
         await this.configureGit()
         this.registerListeners()
+    }
+
+    private getUserCaps(runnerStats: RunnerStats) {
+        return runnerStats.instanceOptions[runnerStats.sessionId].capabilities
     }
 
     registerListeners () {
@@ -257,6 +264,7 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
+                platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
             }
         }
 
