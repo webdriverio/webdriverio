@@ -7,7 +7,7 @@ WebdriverIO नेटवर्क प्रतिक्रियाओं को
 
 :::info
 
-यह सुविधा वर्तमान में केवल क्रोम पर स्थानीय परीक्षण चलाते समय ही समर्थित है। इसे जल्द ही [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) और [सॉस लैब्स](https://saucelabs.com/) पर समर्थित करने की योजना है। यदि आप इसका उपयोग करने में समस्या का सामना करते हैं तो कृपया [समस्या](https://github.com/webdriverio/webdriverio/issues/new/choose) फ़ाइल करें और हमें बताएं!
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
 
 :::
 
