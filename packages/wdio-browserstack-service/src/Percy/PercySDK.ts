@@ -2,7 +2,7 @@ import { PercyLogger } from './PercyLogger.js'
 
 const tryRequire = async function (pkg: string, fallback: any) {
     try {
-        return await import(pkg)
+        return (await import(pkg)).default
     } catch {
         return fallback
     }
