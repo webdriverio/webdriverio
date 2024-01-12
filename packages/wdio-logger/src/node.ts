@@ -112,7 +112,11 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
                 logCache.clear()
             }
 
-            return logFile.write(logText)
+            if (!logsContainInitPackageError(logText)) {
+                return logFile.write(logText)
+            }
+            // If we get Error during init of integration packages, write logs to both "outputDir" and the terminal
+            logFile.write(logText)
         }
 
         logCache.add(logText)
@@ -214,3 +218,15 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
 const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
 
 export type Logger = LoggerInterface
+
+function logsContainInitPackageError(logText: string) {
+    return ERROR_LOG_VALIDATOR.every(pattern => logText.includes(pattern))
+}
+
+const ERROR_LOG_VALIDATOR = [
+    'Couldn\'t find plugin',
+    'neither as wdio scoped package',
+    'nor as community package',
+    'Please make sure you have it installed'
+]
+
