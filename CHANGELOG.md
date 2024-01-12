@@ -21,6 +21,37 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.27.2 (2024-01-11)
+
+#### :rocket: New Feature
+* `wdio-sauce-service`
+  * [#11981](https://github.com/webdriverio/webdriverio/pull/11981) feat: Implement reporting of test runs to Sauce Labs Insights ([@tianfeng92](https://github.com/tianfeng92))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11990](https://github.com/webdriverio/webdriverio/pull/11990) Webdriverio: Fix regression in 11711 ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#11982](https://github.com/webdriverio/webdriverio/pull/11982) Sauce us east 4 ([@nullp2ike](https://github.com/nullp2ike))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#11906](https://github.com/webdriverio/webdriverio/pull/11906) (docs): add documentation on visual testing ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#11966](https://github.com/webdriverio/webdriverio/pull/11966) (docs): add docs on custom matcher ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11963](https://github.com/webdriverio/webdriverio/pull/11963) Update README.md ([@diwakar-s-maurya](https://github.com/diwakar-s-maurya))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diwakar ([@diwakar-s-maurya](https://github.com/diwakar-s-maurya))
+- Tian Feng ([@tianfeng92](https://github.com/tianfeng92))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@nullp2ike](https://github.com/nullp2ike)
+
+
 ## v8.27.1 (2023-12-28)
 
 #### :bug: Bug Fix

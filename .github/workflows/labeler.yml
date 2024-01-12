@@ -1,4 +1,5 @@
 name: Add comment on label
+
 on:
   issues:
     types:
@@ -6,6 +7,10 @@ on:
   pull_request:
     types:
       - labeled
+
+env:
+  GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+
 jobs:
   first-contribution:
     if: github.event.label.name == 'First Contribution 🎉'
@@ -16,7 +21,6 @@ jobs:
       - name: Add comment on first contribution label
         run: gh issue comment "$NUMBER" --body "$BODY"
         env:
-          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           BODY: >
@@ -41,7 +45,6 @@ jobs:
       - name: Add comment if a reproducible example is missing
         run: gh issue comment "$NUMBER" --body "$BODY"
         env:
-          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           BODY: >
@@ -65,7 +68,6 @@ jobs:
       - name: Add comment if more information is needed
         run: gh issue comment "$NUMBER" --body "$BODY"
         env:
-          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           BODY: >

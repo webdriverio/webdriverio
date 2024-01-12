@@ -21,39 +21,10 @@ interface EmulationOptions {
  *
  * :::
  *
- * <example>
-    :emulateColorScheme.js
-    it('should open WebdriverIO using light color scheme', async () => {
-        await browser.emulate('colorScheme', 'light')
-        await browser.url('https://webdriver.io')
-        const backgroundColor = await browser.$('nav').getCSSProperty('background-color')
-        console.log(backgroundColor.parsed.hex) // outputs: "#efefef"
-    })
-    it('should open WebdriverIO using dark color scheme'm async () => {
-        await browser.emulate('colorScheme', 'dark')
-        await browser.url('https://webdriver.io')
-        const backgroundColor = await browser.$('nav').getCSSProperty('background-color')
-        console.log(backgroundColor.parsed.hex) // outputs: "#000000"
-    })
- * </example>
- *
- * <example>
-    :emulateGeoLocation.js
-    it('should find my emulated geo location', async () => {
-        await browser.emulate('geolocation', {
-            latitude: 52.52,
-            longitude: 13.39,
-            accuracy: 100
-        })
-        await browser.url('https://www.google.com/maps')
-        await browser.$('aria/Show Your Location').click()
-        await browser.pause(5000)
-        console.log(await browser.getUrl()) // outputs: "https://www.google.com/maps/@52.52,13.39,16z?entry=ttu"
-    })
- * </example>
- *
  * @param {string} scope feature of the browser you like to emulate, can be either `geolocation`, `userAgent`, `colorScheme` or `onLine`
  * @param {EmulationOptions} options emulation option for specific scope
+ * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L4-L18
+ * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L20-L36
  * @returns `void`
  */
 export async function emulate<Scope extends SupportedScopes> (
