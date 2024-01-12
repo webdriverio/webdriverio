@@ -4,13 +4,13 @@ import chalk from 'chalk'
 
 import logger from '@wdio/logger'
 
-import { LOGS_FILE } from './constants.js'
-import { COLORS } from './util.js'
+import { PERCY_LOGS_FILE } from '../constants.js'
+import { COLORS } from '../util.js'
 
 const log = logger('@wdio/browserstack-service')
 
-export class BStackLogger {
-    public static logFilePath = path.join(process.cwd(), LOGS_FILE)
+export class PercyLogger {
+    public static logFilePath = path.join(process.cwd(), PERCY_LOGS_FILE)
     private static logFolderPath = path.join(process.cwd(), 'logs')
     private static logFileStream: fs.WriteStream | null
 
