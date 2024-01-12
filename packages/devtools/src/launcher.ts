@@ -129,7 +129,7 @@ async function launchChrome (capabilities: WebdriverIO.Capabilities) {
         ...chromeOptions,
         ...devtoolsOptions,
         defaultViewport: null,
-        browserURL: `http://localhost:${chrome.port}`
+        browserURL: `http://127.0.0.1:${chrome.port}`
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
