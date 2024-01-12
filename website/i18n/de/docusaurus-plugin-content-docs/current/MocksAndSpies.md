@@ -7,7 +7,7 @@ WebdriverIO verfügt über eine eingebaute Unterstützung zum Ändern von Netzwe
 
 :::info
 
-Diese Funktion wird derzeit nur unterstützt, wenn lokale Tests in Chrome ausgeführt werden. Es ist geplant, dies auch bald auf [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) und [Sauce Labs](https://saucelabs.com/) zu unterstützen. Wenn Sie Probleme bei der Verwendung haben, melden Sie bitte [ein Problem](https://github.com/webdriverio/webdriverio/issues/new/choose) und lassen Sie es uns wissen!
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
 
 :::
 
