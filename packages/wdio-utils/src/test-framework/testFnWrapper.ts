@@ -91,7 +91,7 @@ export const testFrameworkFnWrapper = async function (
     try {
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
         if (result === undefined &&
-            globalThis._wdioDynamicJasmineResultErrorList.length > 0
+            globalThis._wdioDynamicJasmineResultErrorList?.length > 0
         ) {
             globalThis._wdioDynamicJasmineResultErrorList[0].stack = filterStackTrace(globalThis._wdioDynamicJasmineResultErrorList[0].stack)
             error = globalThis._wdioDynamicJasmineResultErrorList[0]
