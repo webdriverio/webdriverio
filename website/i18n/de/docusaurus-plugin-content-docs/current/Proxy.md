@@ -97,7 +97,7 @@ export const config = {
             httpProxy: "corporate.proxy:8080",
             socksUsername: "codeceptjs",
             socksPassword: "secret",
-            noProxy: "localhost,localhost"
+            noProxy: "localhost"
         },
         // ...
     }],
