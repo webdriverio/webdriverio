@@ -11,7 +11,7 @@ import type {
 declare global {
     // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
     // eslint-disable-next-line no-var
-    var _wdioDynamicJasmineResultErrorList?: any
+    var _wdioDynamicJasmineResultErrorList: any | undefined
 }
 
 const STACKTRACE_FILTER = [
