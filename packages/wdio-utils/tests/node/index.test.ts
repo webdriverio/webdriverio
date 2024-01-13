@@ -110,7 +110,6 @@ describe('startWebDriver', () => {
             stderr: expect.any(Object)
         }))
         await expect(params).toEqual({
-            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'safari',
@@ -140,7 +139,6 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(params)).resolves.toBe('geckodriver')
         expect(params).toEqual({
-            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'firefox',
@@ -156,8 +154,7 @@ describe('startWebDriver', () => {
         expect(startGeckodriver).toBeCalledWith({
             port: 1234,
             foo: 'bar',
-            cacheDir: expect.any(String),
-            allowHosts: ['localhost']
+            cacheDir: expect.any(String)
         })
     })
 
@@ -170,7 +167,6 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(options)).resolves.toBe('edgedriver')
         expect(options).toEqual({
-            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'MicrosoftEdge',
@@ -201,7 +197,6 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -232,7 +227,6 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -263,9 +257,6 @@ describe('startWebDriver', () => {
         expect(res).toBe('geckodriver')
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
-            allowHosts: [
-                'localhost',
-            ],
             customGeckoDriverPath: '/my/geckodriver',
             port: 1234
         })

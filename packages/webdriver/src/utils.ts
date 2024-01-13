@@ -345,7 +345,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 
     // edge driver on localhost
     if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
-        return "Run edge driver on localhost instead of 127.0.0.1, ex: --host=localhost, or set `hostname: '127.0.0.1'` in your wdio.conf.js"
+        return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
     }
 
     const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
