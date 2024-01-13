@@ -294,7 +294,7 @@ describe('utils', () => {
         it('edge driver localhost issue', () => {
             expect(
                 getSessionError(new Error('Bad Request - Invalid Hostname 400 <br> HTTP Error 400'))
-            ).toContain('localhost instead of localhost')
+            ).toContain('127.0.0.1 instead of localhost')
         })
 
         it('illegal w3c cap passed to selenium standalone', () => {
