@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
@@ -9,6 +10,8 @@ import type {
     DevtoolsConfig, EnablePerformanceAuditsOptions,
     DeviceDescription, PWAAudits
 } from './types.js'
+
+const log = logger('@wdio/devtools-service')
 
 export default class DevToolsService implements Services.ServiceInstance {
     private _command: CommandHandler[] = []
@@ -153,8 +156,9 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         for (const browser of browsers) {
             const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch((e) => {
-                console.log(e)
-            }) as any as PuppeteerBrowser
+                log.warn(`Couldn't connect Puppeteer to the browser: ${e.message}`)
+            }) as PuppeteerBrowser | undefined
+
             if (!puppeteer) {
                 return setUnsupportedCommand(browser as WebdriverIO.Browser)
             }
