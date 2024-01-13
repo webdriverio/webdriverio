@@ -269,7 +269,7 @@ describe('utils', () => {
             expect(getSessionError({
                 name: 'Some Error',
                 code: 'ECONNREFUSED',
-                message: 'ECONNREFUSED localhost:4444'
+                message: 'ECONNREFUSED 127.0.0.1:4444'
             }, {
                 protocol: 'https',
                 hostname: 'foobar',

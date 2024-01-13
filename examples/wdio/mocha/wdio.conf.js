@@ -30,7 +30,6 @@ export const config = {
         ui: 'bdd',
         timeout: 15000
     },
-    services: ['devtools'],
 
     /**
      * hooks
