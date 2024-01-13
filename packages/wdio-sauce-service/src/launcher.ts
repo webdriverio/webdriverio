@@ -51,7 +51,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: `localhost,localhost,${ip.address()}` + (
+            noSslBumpDomains: `127.0.0.1,localhost,${ip.address()}` + (
                 this._options.sauceConnectOpts?.noSslBumpDomains
                     ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
                     : ''

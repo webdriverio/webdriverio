@@ -420,6 +420,7 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
  * @returns prototype with interface for bidi primitives
  */
 export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+    socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
     handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))

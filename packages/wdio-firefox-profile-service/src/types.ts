@@ -71,7 +71,7 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      *         ['firefox-profile', {
      *             proxy: {
      *                 proxyType: 'manual',
-     *                 httpProxy: 'localhost:8080'
+     *                 httpProxy: '127.0.0.1:8080'
      *             }
      *         }]
      *     ],
@@ -86,8 +86,8 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      *         ['firefox-profile', {
      *             proxy: {
      *                 proxyType: 'manual',
-     *                 httpProxy: 'localhost:8080',
-     *                 sslProxy: 'localhost:8080'
+     *                 httpProxy: '127.0.0.1:8080',
+     *                 sslProxy: '127.0.0.1:8080'
      *             }
      *         }]
      *     ],

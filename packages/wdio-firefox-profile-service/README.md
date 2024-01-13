@@ -99,7 +99,7 @@ Example:
             ['firefox-profile', {
                 proxy: {
                     proxyType: 'manual',
-                    httpProxy: 'localhost:8080'
+                    httpProxy: '127.0.0.1:8080'
                 }
             }]
         ],
@@ -116,8 +116,8 @@ Example:
             ['firefox-profile', {
                 proxy: {
                     proxyType: 'manual',
-                    httpProxy: 'localhost:8080',
-                    sslProxy: 'localhost:8080'
+                    httpProxy: '127.0.0.1:8080',
+                    sslProxy: '127.0.0.1:8080'
                 }
             }]
         ],
