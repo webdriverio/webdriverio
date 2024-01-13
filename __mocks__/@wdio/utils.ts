@@ -113,7 +113,7 @@ export const UNICODE_CHARACTERS = UNICODE_CHARACTERS_ORIG
 export const HOOK_DEFINITION = HOOK_DEFINITION_ORIG
 
 export const startWebDriver = vi.fn((params) => {
-    params.hostname = 'localhost'
+    params.hostname = '127.0.0.1'
     params.port = 4444
     params.path = '/'
 })

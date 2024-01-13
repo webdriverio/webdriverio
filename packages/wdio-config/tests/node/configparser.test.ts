@@ -493,7 +493,7 @@ describe('ConfigParser', () => {
                     [
                         FileNamed(FIXTURES_LOCAL_CONF).withContents({
                             config: {
-                                hostname: 'localhost',
+                                hostname: '127.0.0.1',
                                 port: 4444
                             }
                         })
@@ -505,7 +505,7 @@ describe('ConfigParser', () => {
             })
 
             const config = configParser.getConfig()
-            expect(config.hostname).toBe('localhost')
+            expect(config.hostname).toBe('127.0.0.1')
             expect(config.port).toBe(4444)
         })
 

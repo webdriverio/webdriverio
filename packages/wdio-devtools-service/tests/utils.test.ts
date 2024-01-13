@@ -44,7 +44,7 @@ test('setUnsupportedCommand', () => {
 
 describe('getLighthouseDriver', () => {
     test('should return a driver w/o creating new session', async () => {
-        const urlMock = vi.fn().mockReturnValue('ws://localhost:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
+        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
         const session = {
             connection: vi.fn().mockReturnValue({ url: urlMock })
         }
@@ -56,7 +56,7 @@ describe('getLighthouseDriver', () => {
     })
 
     test('should create a new session', async () => {
-        const urlMock = vi.fn().mockReturnValue('ws://localhost:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
+        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
         const session = {
             connection: vi.fn().mockReturnValue({ url: urlMock })
         }

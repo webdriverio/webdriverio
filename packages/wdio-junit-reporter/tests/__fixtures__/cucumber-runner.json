@@ -30,7 +30,7 @@
   },
   "sanitizedCapabilities": "iphone.ios.12_1",
   "config": {
-    "hostname": "localhost",
+    "hostname": "127.0.0.1",
     "port": 4444,
     "specs": [
       "./specs/sync.spec.js"

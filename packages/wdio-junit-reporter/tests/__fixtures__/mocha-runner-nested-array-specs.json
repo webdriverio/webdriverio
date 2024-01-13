@@ -33,7 +33,7 @@
     },
     "sanitizedCapabilities": "chrome.65_0_3325_181.macosx",
     "config": {
-        "hostname": "localhost",
+        "hostname": "127.0.0.1",
         "port": 4444,
         "specs": [
             [
