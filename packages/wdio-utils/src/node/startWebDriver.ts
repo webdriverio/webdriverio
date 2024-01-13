@@ -173,7 +173,6 @@ export async function startWebDriver (options: Options.WebDriver) {
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
-    options.hostname = 'localhost'
     options.port = port
     log.info(`Started ${driver} in ${Date.now() - start}ms on port ${port}`)
     return driverProcess
