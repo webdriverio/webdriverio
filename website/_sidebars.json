@@ -82,7 +82,19 @@
       "items": [
         "desktop-testing/macos",
         "desktop-testing/windows",
-        "desktop-testing/electron"
+        {
+          "type": "category",
+          "label": "Electron",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/electron"
+          },
+          "items": [
+            "desktop-testing/electron/configuration",
+            "desktop-testing/electron/api",
+            "desktop-testing/electron/mocking"
+          ]
+        }
       ]
     },
     {
