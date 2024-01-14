@@ -106,6 +106,7 @@ tests/.retry_succeeded
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md
+website/docs/desktop-testing/electron/
 scripts/bidi/cddl
 browserstack.err
 e2e/tailwind.config.js
