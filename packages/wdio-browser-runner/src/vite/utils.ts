@@ -3,8 +3,10 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
+import { expect } from 'expect'
 import { resolve } from 'import-meta-resolve'
 import type { InlineConfig } from 'vite'
+import type { AsymmetricMatchers } from 'expect-webdriverio'
 
 import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
@@ -236,4 +238,35 @@ export function getErrorTemplate(filename: string, error: Error) {
             }]
         </script>
     `
+}
+
+const SUPPORTED_ASYMMETRIC_MATCHER = {
+    Any: 'any',
+    Anything: 'anything',
+    ArrayContaining: 'arrayContaining',
+    ObjectContaining: 'objectContaining',
+    StringContaining: 'stringContaining',
+    StringMatching: 'stringMatching',
+    CloseTo: 'closeTo'
+} as const
+
+/**
+ * utility function to transform assertion parameters into asymmetric matchers if necessary
+ * @param arg raw value or a stringified asymmetric matcher
+ * @returns   raw value or an actual asymmetric matcher
+ */
+export function transformExpectArgs (arg: any) {
+    if ('$$typeof' in arg && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
+        const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
+        // @ts-expect-error
+        const matcher: any = arg.inverse ? expect.not[matcherKey] : expect[matcherKey]
+
+        if (!matcher) {
+            throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
+        }
+
+        return matcher(arg.sample)
+    }
+
+    return arg
 }

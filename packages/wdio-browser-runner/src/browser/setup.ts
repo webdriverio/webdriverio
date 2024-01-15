@@ -51,7 +51,7 @@ _setGlobal('$', browser.$.bind(browser), window.__wdioEnv__.injectGlobals)
 _setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 
 /**
- * run framework immediatelly on page load
+ * run framework immediately on page load
  */
 const mochaFramework = document.querySelector('mocha-framework') as MochaFramework
 if (mochaFramework) {

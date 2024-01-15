@@ -1,4 +1,5 @@
 import type { ErrorObject } from 'serialize-error'
+import type { MatcherState } from 'expect'
 import type { MESSAGE_TYPES } from '../constants.js'
 
 interface SocketMessagePayloadType<T extends MESSAGE_TYPES> {
@@ -12,6 +13,8 @@ export type SocketMessageValue = {
     [MESSAGE_TYPES.commandResponseMessage]: CommandResponseEvent
     [MESSAGE_TYPES.hookTriggerMessage]: HookTriggerEvent
     [MESSAGE_TYPES.hookResultMessage]: HookResultEvent
+    [MESSAGE_TYPES.expectRequestMessage]: ExpectRequestEvent
+    [MESSAGE_TYPES.expectResponseMessage]: ExpectResponseEvent
 }
 
 export type SocketMessagePayload<T extends MESSAGE_TYPES> = T extends any
@@ -47,8 +50,7 @@ export interface CommandRequestEvent extends MessageWithPendingPromiseId {
     args: unknown[]
 }
 
-export interface CommandResponseEvent {
-    id: string
+export interface CommandResponseEvent extends MessageWithPendingPromiseId {
     result?: unknown
     error?: ErrorObject
 }
@@ -61,4 +63,17 @@ export interface MockRequestEvent {
 
 export interface MockResponseEvent {
     path: string
+}
+
+export interface ExpectRequestEvent extends MessageWithPendingPromiseId {
+    cid: string
+    matcherName: string
+    scope: MatcherState,
+    args: unknown[]
+    elementId?: string
+}
+
+export interface ExpectResponseEvent extends MessageWithPendingPromiseId {
+    pass: boolean
+    message: string
 }

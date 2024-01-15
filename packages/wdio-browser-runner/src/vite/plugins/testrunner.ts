@@ -3,6 +3,7 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
+import { matchers } from 'expect-webdriverio'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
@@ -51,10 +52,12 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
-    const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
-    const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
-    const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
+    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
+    const mockModulePath = path.resolve(browserModules, 'mock.js')
+    const setupModulePath = path.resolve(browserModules, 'setup.js')
+    const spyModulePath = path.resolve(browserModules, 'spy.js')
+    const wdioExpectModulePath = path.resolve(browserModules, 'expect.js')
     return [{
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -73,6 +76,14 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
 
             if (id.endsWith('@wdio/browser-runner/setup')) {
                 return setupModulePath
+            }
+
+            /**
+             * run WebdriverIO assertions within the Node.js context so we can do things like
+             * visual assertions or snapshot testing
+             */
+            if (id === 'expect-webdriverio') {
+                return wdioExpectModulePath
             }
 
             /**
@@ -98,6 +109,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
+                    export const matchers = ${JSON.stringify(Object.keys(matchers))}
                     export const wrappedFn = (...args) => fn()(...args)
                 `
             }

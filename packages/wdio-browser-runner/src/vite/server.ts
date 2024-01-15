@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events'
 
 import getPort from 'get-port'
 import logger from '@wdio/logger'
+import { ELEMENT_KEY } from 'webdriver'
 import { deepmerge } from 'deepmerge-ts'
 import type { WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
@@ -11,17 +12,18 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import type { ViteDevServer, InlineConfig, ConfigEnv } from 'vite'
 import { createServer } from 'vite'
 import istanbulPlugin from 'vite-plugin-istanbul'
+import { matchers } from 'expect-webdriverio'
 import type { Services, Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
 import { mockHoisting } from './plugins/mockHoisting.js'
-import { userfriendlyImport } from './utils.js'
+import { userfriendlyImport, transformExpectArgs } from './utils.js'
 import { MockHandler } from './mock.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { MESSAGE_TYPES, DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
 import type {
     ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage,
-    HookResultEvent
+    HookResultEvent, ExpectResponseEvent, ExpectRequestEvent
 } from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
@@ -166,6 +168,9 @@ export class ViteServer extends EventEmitter {
                 if (payload.type === MESSAGE_TYPES.commandRequestMessage) {
                     return this.#handleCommand(ws, payload.value)
                 }
+                if (payload.type === MESSAGE_TYPES.expectRequestMessage) {
+                    return this.#handleExpectation(ws, payload.value)
+                }
 
                 throw new Error(`Unknown socket message ${JSON.stringify(payload)}`)
             } catch (err: any) {
@@ -262,6 +267,49 @@ export class ViteServer extends EventEmitter {
         }
     }
 
+    async #handleExpectation (ws: WebSocket, payload: ExpectRequestEvent) {
+        log.debug(`Received expectation message: ${JSON.stringify(payload)}`)
+        const cid = payload.cid
+        /**
+         * check if payload contains `cid` needed to get a browser instance from the pool
+         */
+        if (typeof cid !== 'string') {
+            const message = `No "cid" property passed into expect request message with id "${payload.id}"`
+            return ws.send(JSON.stringify(this.#expectResponse({ id: payload.id, pass: false, message })))
+        }
+
+        /**
+         * find browser
+         */
+        const browser = BROWSER_POOL.get(payload.cid) as WebdriverIO.Browser | undefined
+        if (!browser) {
+            const message = `Couldn't find browser with cid "${payload.cid}"`
+            return ws.send(JSON.stringify(this.#expectResponse({ id: payload.id, pass: false, message })))
+        }
+
+        /**
+         * find matcher, e.g. `toBeDisplayed` or `toHaveTitle`
+         */
+        const matcher = matchers[payload.matcherName as keyof typeof matchers]
+        if (!matcher) {
+            const message = `Couldn't find matcher with name "${payload.matcherName}"`
+            return ws.send(JSON.stringify(this.#expectResponse({ id: payload.id, pass: false, message })))
+        }
+
+        try {
+            const context = payload.elementId ? await browser.$({ [ELEMENT_KEY]: payload.elementId }) : browser
+            const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
+            return ws.send(JSON.stringify(this.#expectResponse({
+                id: payload.id,
+                pass: result.pass,
+                message: result.message()
+            })))
+        } catch (err: unknown) {
+            const message = `Failed to execute expect command "${payload.matcherName}": ${(err as Error).message}`
+            return ws.send(JSON.stringify(this.#expectResponse({ id: payload.id, pass: false, message })))
+        }
+    }
+
     #commandResponse (value: CommandResponseEvent): SocketMessage {
         return {
             type: MESSAGE_TYPES.commandResponseMessage,
@@ -272,6 +320,13 @@ export class ViteServer extends EventEmitter {
     #hookResponse (value: HookResultEvent): SocketMessage {
         return {
             type: MESSAGE_TYPES.hookResultMessage,
+            value
+        }
+    }
+
+    #expectResponse (value: ExpectResponseEvent): SocketMessage {
+        return {
+            type: MESSAGE_TYPES.expectResponseMessage,
             value
         }
     }

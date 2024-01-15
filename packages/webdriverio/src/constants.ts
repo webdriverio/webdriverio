@@ -11,9 +11,6 @@ export enum SupportedAutomationProtocols {
     stub = './protocol-stub.js'
 }
 
-export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
-export const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
-
 export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO> = {
     /**
      * allows to specify automation protocol
