@@ -1,13 +1,13 @@
-import url from 'node:url'
 import yauzl from 'yauzl'
 
 const fs = require('node:fs')
-import { https } from 'follow-redirects'
-
+import got from 'got'
 import path from 'node:path'
 import os from 'node:os'
+import fsp from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger'
+import type { Options } from '@wdio/types'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -15,7 +15,7 @@ class PercyBinary {
     #binaryName = 'percy'
 
     #orderedPaths = [
-        path.join(this.#homedir(), '.browserstack'),
+        path.join(os.homedir(), '.browserstack'),
         process.cwd(),
         os.tmpdir()
     ]
@@ -32,75 +32,38 @@ class PercyBinary {
         }
     }
 
-    #homedir(): any {
-        if (typeof os.homedir === 'function') {
-            return os.homedir()
+    async #makePath(path: string) {
+        if (await this.#checkPath(path)) {
+            return true
         }
-
-        const env = process.env
-        const home = env.HOME
-        const user = env.LOGNAME || env.USER || env.LNAME || env.USERNAME
-
-        if (process.platform === 'win32') {
-            return env.USERPROFILE || (env.HOMEDRIVE || 'null') + env.HOMEPATH || home || null
-        }
-
-        if (process.platform === 'darwin') {
-            return home || (user ? '/Users/' + user : null)
-        }
-
-        if (process.platform === 'linux') {
-            return home || (process.getuid && process.getuid() === 0 ? '/root' : (user ? '/home/' + user : null))
-        }
-
-        return home || null
+        return fsp.mkdir(path).then(() => true).catch(() => false)
     }
 
-    #makePath(path: string) {
+    async #checkPath(path: string) {
         try {
-            if (!this.#checkPath(path)) {
-                fs.mkdirSync(path)
+            const hasDir = await fsp.access(path).then(() => true, () => false)
+            if (hasDir) {
+                return true
             }
-            return true
-        } catch {
+        } catch (err) {
             return false
         }
     }
 
-    #checkPath(path: string, mode?: any) {
-        mode = mode || (fs.R_OK | fs.W_OK)
-        try {
-            fs.accessSync(path, mode)
-            return true
-        } catch (e) {
-            if (typeof fs.accessSync !== 'undefined') {
-                return false
-            }
-
-            // node v0.10
-            try {
-                fs.statSync(path)
-                return true
-            } catch (e) {
-                return false
-            }
-        }
-    }
-
-    #getAvailableDirs() {
+    async #getAvailableDirs() {
         for (let i = 0; i < this.#orderedPaths.length; i++) {
             const path = this.#orderedPaths[i]
-            if (this.#makePath(path)) {
+            if (await this.#makePath(path)) {
                 return path
             }
         }
         throw new Error('Error trying to download percy binary')
     }
 
-    async getBinaryPath(conf: any): Promise<string> {
-        const destParentDir = this.#getAvailableDirs()
+    async getBinaryPath(conf: Options.Testrunner): Promise<string> {
+        const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
-        if (this.#checkPath(binaryPath, fs.X_OK)) {
+        if (await this.#checkPath(binaryPath)) {
             return binaryPath
         }
         const downloadedBinaryPath: string = await this.download(conf, destParentDir)
@@ -130,9 +93,9 @@ class PercyBinary {
         })
     }
 
-    download(conf: any, destParentDir: any): Promise<string> {
-        if (!this.#checkPath(destParentDir)){
-            fs.mkdirSync(destParentDir)
+    async download(conf: any, destParentDir: any): Promise<string> {
+        if (!await this.#checkPath(destParentDir)){
+            await fsp.mkdir(destParentDir)
         }
 
         const binaryName = this.#binaryName
@@ -140,26 +103,20 @@ class PercyBinary {
         const binaryPath = path.join(destParentDir, binaryName)
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
-        const options: any = url.parse(this.#httpPath)
-
         return new Promise((resolve, reject) => {
-            https.get(options, function (response: any) {
-                response.pipe(downloadedFileStream)
-                response.on('error', function (err: any) {
-                    PercyLogger.error('Got Error in percy binary download response : ' + err)
-                    reject(err)
-                })
-                downloadedFileStream.on('error', function (err: any) {
-                    PercyLogger.error('Got Error while downloading percy binary file : ' + err)
-                    reject(err)
-                })
-                downloadedFileStream.on('close', function () {
-                    yauzl.open(zipFilePath, { lazyEntries: true }, function (err: any, zipfile: any) {
+            const stream = got.extend({ followRedirect: true }).get(this.#httpPath, { isStream: true })
+            stream.on('error', (err) => {
+                PercyLogger.error(`Got Error in percy binary download response: ${err}`)
+            })
+
+            stream.pipe(downloadedFileStream)
+                .on('finish', () => {
+                    yauzl.open(zipFilePath, { lazyEntries: true }, function (err, zipfile) {
                         if (err) {
                             return reject(err)
                         }
                         zipfile.readEntry()
-                        zipfile.on('entry', (entry: any) => {
+                        zipfile.on('entry', (entry) => {
                             if (/\/$/.test(entry.fileName)) {
                                 // Directory file names end with '/'.
                                 zipfile.readEntry()
@@ -168,7 +125,7 @@ class PercyBinary {
                                 const writeStream = fs.createWriteStream(
                                     path.join(destParentDir, entry.fileName)
                                 )
-                                zipfile.openReadStream(entry, function (zipErr: any, readStream: any) {
+                                zipfile.openReadStream(entry, function (zipErr, readStream) {
                                     if (zipErr) {
                                         reject(err)
                                     }
@@ -185,7 +142,7 @@ class PercyBinary {
                             }
                         })
 
-                        zipfile.on('error', (zipErr: any) => {
+                        zipfile.on('error', (zipErr) => {
                             reject(zipErr)
                         })
 
@@ -200,10 +157,6 @@ class PercyBinary {
                         })
                     })
                 })
-            }).on('error', function (err: any) {
-                PercyLogger.error('Got Error in percy binary downloading request : ' + err)
-                reject(err)
-            })
         })
     }
 }
