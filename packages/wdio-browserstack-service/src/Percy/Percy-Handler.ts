@@ -9,7 +9,6 @@ import PercyCaptureMap from './PercyCaptureMap'
 
 import * as PercySDK from './PercySDK'
 import { PercyLogger } from './PercyLogger'
-import { BrowserAsync } from '../@types/bstack-service-types'
 
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants'
 
@@ -62,8 +61,8 @@ class _PercyHandler {
                 await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName(sessionName ? sessionName : (this._sessionName as string), eventName)) : PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)))
                 this._percyScreenshotCounter -= 1
             }
-        } catch (err: any) {
-            this._percyScreenshotCounter -= 1;
+        } catch (err: unknown) {
+            this._percyScreenshotCounter -= 1
             this._percyCaptureMap?.decrement(sessionName ? sessionName : (this._sessionName as string), eventName as string)
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
         }
