@@ -44,13 +44,6 @@ export async function keys (
     }
 
     /**
-     * JsonWireProtocol action
-     */
-    if (!this.isW3C) {
-        return this.sendKeys(keySequence)
-    }
-
-    /**
      * W3C way of handle it key actions
      */
     const keyAction = this.action('key')

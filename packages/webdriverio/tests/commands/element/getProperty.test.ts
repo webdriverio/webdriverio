@@ -24,23 +24,6 @@ describe('getProperty test', () => {
         expect(property).toBe('BODY')
     })
 
-    it('should allow to get the property of an element jsonwp style', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-        const elem = await browser.$('#foo')
-        // @ts-expect-error mock feature
-        elem.elementId = { tagName: 'BODY' }
-        const property = await elem.getProperty('tagName')
-
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/execute')
-        expect(property).toBe('BODY')
-    })
-
     afterEach(() => {
         vi.mocked(got).mockClear()
     })

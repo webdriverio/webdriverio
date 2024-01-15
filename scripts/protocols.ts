@@ -9,7 +9,6 @@ import chromium from '../packages/wdio-protocols/src/protocols/chromium.js'
 import gecko from '../packages/wdio-protocols/src/protocols/gecko.js'
 import saucelabs from '../packages/wdio-protocols/src/protocols/saucelabs.js'
 import selenium from '../packages/wdio-protocols/src/protocols/selenium.js'
-import jsonwp from '../packages/wdio-protocols/src/protocols/jsonwp.js'
 
 import type { Protocol } from '../packages/wdio-protocols/src/types.js'
 
@@ -19,7 +18,6 @@ export const PROTOCOL_NAMES = {
     appium: 'Appium',
     chromium: 'Chromium',
     gecko: 'Firefox',
-    jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone',
@@ -38,7 +36,7 @@ const webdriverBidi = hasBidiTypesGenerated
     : {}
 
 export const PROTOCOLS: Protocols = {
-    appium, chromium, gecko, jsonwp, mjsonwp,
+    appium, chromium, gecko, mjsonwp,
     saucelabs, selenium, webdriver, webdriverBidi
 }
 
@@ -75,15 +73,6 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 \`\`\`
 `
 
-export const JSONWP_API_DESCRIPTION = /*md*/`
-:::caution deprecated
-
-The JSONWireProtocol is deprecated and replaced by the [WebDriver](/docs/api/webdriver)
-protocol.
-
-:::
-`
-
 export const BIDI_API_DESCRIPTION = /*md*/`
 These protocol commands are generated based on the current living
 [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) specification.
@@ -101,6 +90,5 @@ Last Updated: ${(new Date()).toString()}
 
 export const PROTOCOL_API_DESCRIPTION = {
     'saucelabs': SAUCE_API_DESCRIPTION,
-    'jsonwp': JSONWP_API_DESCRIPTION,
     'webdriverBidi': BIDI_API_DESCRIPTION
 }
