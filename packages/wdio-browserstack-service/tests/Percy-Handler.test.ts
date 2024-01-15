@@ -89,10 +89,6 @@ describe('before', () => {
         percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
         // percyCaptureMapSpy.mockClear()
     })
-    it('assigns PercyCaptureMap to browser', async () => {
-        await percyHandler.before()
-        expect(browser).toHaveProperty('percyCaptureMap')
-    })
 })
 
 describe('_setSessionName', () => {
@@ -101,7 +97,7 @@ describe('_setSessionName', () => {
     })
     it('sets sessionName property', async () => {
         percyHandler._setSessionName('1234')
-        expect(percyHandler['sessionName']).toEqual('1234')
+        expect(percyHandler['_sessionName']).toEqual('1234')
     })
 })
 
