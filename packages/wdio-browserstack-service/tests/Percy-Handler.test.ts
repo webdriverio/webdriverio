@@ -83,14 +83,6 @@ it('should initialize correctly', () => {
     expect(percyHandler['_percyScreenshotCounter']).toEqual(0)
 })
 
-describe('before', () => {
-    // const percyCaptureMapSpy = jest.spyOn(PercyCaptureMapExport, 'PercyCaptureMap' as any)
-    beforeEach(() => {
-        percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
-        // percyCaptureMapSpy.mockClear()
-    })
-})
-
 describe('_setSessionName', () => {
     beforeEach(() => {
         percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
