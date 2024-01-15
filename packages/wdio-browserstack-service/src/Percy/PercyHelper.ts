@@ -55,8 +55,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 let currBrowserName = (caps.capabilities as Capabilities.Capabilities).browserName
                 if ((caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    // @ts-ignore: Object is possibly 'null'.
-                    currBrowserName = (caps.capabilities as Capabilities.Capabilities)['bstack:options'].browserName || currBrowserName
+                    currBrowserName = (caps.capabilities as Capabilities.Capabilities)['bstack:options']?.browserName || currBrowserName
                 }
                 if (!bestBrowser || !bestPlatformCaps || (bestPlatformCaps.deviceName || bestPlatformCaps['bstack:options']?.deviceName)) {
                     bestBrowser = currBrowserName
@@ -68,7 +67,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
             })
             return bestPlatformCaps
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
         return null
     }

@@ -22,7 +22,7 @@ class Percy {
     #options: BrowserstackConfig & Options.Testrunner
     #config: Options.Testrunner
     #proc: any = null
-    #isApp: boolean = false
+    #isApp: boolean
     #projectName: string | undefined = undefined
 
     isProcessRunning = false
@@ -30,9 +30,7 @@ class Percy {
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
         this.#config = config
-        if (options.app) {
-            this.#isApp = true
-        }
+        this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
     }
 
@@ -78,7 +76,7 @@ class Percy {
         this.#proc = spawn(
             binaryPath,
             commandArgs,
-            { env: Object.assign(process.env, { PERCY_TOKEN: token }) }
+            { env: { ...process.env, PERCY_TOKEN: token } }
         )
 
         this.#proc.stdout.pipe(logStream)
@@ -86,8 +84,7 @@ class Percy {
         this.isProcessRunning = true
         const that = this
 
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        this.#proc.on('close', function (code: any) {
+        this.#proc.on('close', function () {
             that.isProcessRunning = false
         })
 

@@ -50,7 +50,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
-    private _percyBestPlatformCaps?: any
+    private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     public _testOpsBuildStopped?: boolean
 
     constructor (
@@ -160,7 +160,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 if (isThisBestPercyPlatform) {
                     process.env.BEST_PLATFORM_CID = cid
                 }
-                caps['wdio:cid'] = cid
             }
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
@@ -414,7 +413,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.on('beforeExit', handler)
             process.on('SIGINT', handler)
             process.on('SIGTERM', handler)
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.debug(`Error in percy setup ${err}`)
         }
     }
@@ -427,7 +426,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             await stopPercy(this._percy)
             PercyLogger.info('Percy stopped')
         } catch (err) {
-            PercyLogger.error('Error occured while stopping percy : ' + err)
+            PercyLogger.error(`Error occured while stopping percy : ${err}`)
         }
     }
 
