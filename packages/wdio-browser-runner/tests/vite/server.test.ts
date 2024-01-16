@@ -25,11 +25,6 @@ vi.mock('../../src/vite/mock.js', () => ({
     MockHandler: class {}
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('ws', () => ({
-    WebSocketServer: class {
-        on = vi.fn()
-    }
-}))
 vi.mock('foobar', () => ({ default: vi.fn().mockReturnValue('foobar') }))
 vi.mock('vite')
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
