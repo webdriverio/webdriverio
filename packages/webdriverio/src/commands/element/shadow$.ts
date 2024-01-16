@@ -1,10 +1,10 @@
 import logger from '@wdio/logger'
+import { SHADOW_ELEMENT_KEY } from 'webdriver'
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '../../utils/index.js'
 import { findStrategy } from '../../utils/findStrategy.js'
-import { SHADOW_ELEMENT_KEY } from '../../constants.js'
 
 const log = logger('webdriverio')
 

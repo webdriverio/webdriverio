@@ -1,7 +1,8 @@
+import { ELEMENT_KEY } from 'webdriver'
+
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { getBrowserObject } from './utils/index.js'
-import { ELEMENT_KEY } from './constants.js'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called

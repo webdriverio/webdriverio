@@ -1,4 +1,5 @@
-import { ELEMENT_KEY } from '../../constants.js'
+import { ELEMENT_KEY } from 'webdriver'
+
 import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 

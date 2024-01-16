@@ -284,6 +284,10 @@ describe('Lit Component testing', () => {
                 .toBe('Buffer')
         })
 
+        it('supports custom command registration in before hook', async () => {
+            expect(await browser.someCustomCommand()).toBe('Hello World')
+        })
+
         describe('a11y selectors', () => {
             it('aria label is received from element content', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B

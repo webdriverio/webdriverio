@@ -1,9 +1,8 @@
 import path from 'node:path'
+import { ELEMENT_KEY } from 'webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type { ElementReference } from '@wdio/protocols'
-
-import { ELEMENT_KEY } from '../src/constants.js'
 import {
     getElementFromResponse,
     getBrowserObject,

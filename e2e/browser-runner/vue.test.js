@@ -21,6 +21,7 @@ describe('Vue Component Testing', () => {
 
         getByText('Times clicked: 2')
         await expect($('p=Times clicked: 2')).toExist()
+        await expect($('p=Times clicked: 123')).not.toExist()
     })
 
     it('should support tailwindcss', async () => {
