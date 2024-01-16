@@ -2,6 +2,7 @@ import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { browser } from '@wdio/globals'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -17,7 +18,7 @@ interface CommandMessagePromise {
 
 const HIDE_REPORTER_FOR_COMMANDS = ['saveScreenshot', 'savePDF']
 const mochaFramework = document.querySelector('mocha-framework')
-
+let id = 0
 export default class ProxyDriver {
     static #commandMessages = new Map<number, CommandMessagePromise>()
 
@@ -41,52 +42,18 @@ export default class ProxyDriver {
          * listen on socket events from testrunner
          */
         import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleServerMessage.bind(this))
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateRequest,
+            value: { cid }
+        })
 
-        let id = 0
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
         const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
-            const isDebugCommand = commandName === 'debug'
             prev[commandName] = {
-                value: async (...args: unknown[]) => {
-                    if (!import.meta.hot) {
-                        throw new Error('Could not connect to testrunner')
-                    }
-
-                    id++
-
-                    /**
-                     * print information which command is executed (except for debug commands)
-                     */
-                    console.log(...(isDebugCommand
-                        ? ['[WDIO] %cDebug Mode Enabled', 'background: #ea5906; color: #fff; padding: 3px; border-radius: 5px;']
-                        : [`[WDIO] ${(new Date()).toISOString()} - id: ${id} - COMMAND: ${commandName}(${args.join(', ')})`]
-                    ))
-
-                    if (HIDE_REPORTER_FOR_COMMANDS.includes(commandName) && mochaFramework) {
-                        mochaFramework.setAttribute('style', 'display: none')
-                    }
-
-                    import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
-                        commandName,
-                        cid,
-                        id,
-                        args
-                    }))
-                    return new Promise((resolve, reject) => {
-                        let commandTimeout
-                        if (!isDebugCommand) {
-                            commandTimeout = setTimeout(
-                                () => reject(new Error(`Command "${commandName}" timed out`)),
-                                COMMAND_TIMEOUT
-                            )
-                        }
-
-                        this.#commandMessages.set(id, { resolve, reject, commandTimeout, commandName })
-                    })
-                }
+                value: this.#getMockedCommand(cid, commandName)
             }
             return prev
         }, {} as Record<string, { value: Function }>)
@@ -119,11 +86,57 @@ export default class ProxyDriver {
         return monad(window.__wdioEnv__.sessionId, commandWrapper)
     }
 
-    static #handleServerMessage ({ type, value }: Workers.SocketMessage) {
-        if (type !== MESSAGE_TYPES.commandResponseMessage) {
-            return
-        }
+    static #getMockedCommand (cid: string, commandName: string) {
+        const isDebugCommand = commandName === 'debug'
+        return async (...args: unknown[]) => {
+            if (!import.meta.hot) {
+                throw new Error('Could not connect to testrunner')
+            }
 
+            id++
+
+            /**
+             * print information which command is executed (except for debug commands)
+             */
+            console.log(...(isDebugCommand
+                ? ['[WDIO] %cDebug Mode Enabled', 'background: #ea5906; color: #fff; padding: 3px; border-radius: 5px;']
+                : [`[WDIO] ${(new Date()).toISOString()} - id: ${id} - COMMAND: ${commandName}(${args.join(', ')})`]
+            ))
+
+            if (HIDE_REPORTER_FOR_COMMANDS.includes(commandName) && mochaFramework) {
+                mochaFramework.setAttribute('style', 'display: none')
+            }
+
+            import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
+                commandName,
+                cid,
+                id,
+                args
+            }))
+            return new Promise((resolve, reject) => {
+                let commandTimeout
+                if (!isDebugCommand) {
+                    commandTimeout = setTimeout(
+                        () => reject(new Error(`Command "${commandName}" timed out`)),
+                        COMMAND_TIMEOUT
+                    )
+                }
+
+                this.#commandMessages.set(id, { resolve, reject, commandTimeout, commandName })
+            })
+        }
+    }
+
+    static #handleServerMessage (payload: Workers.SocketMessage) {
+        if (payload.type === MESSAGE_TYPES.commandResponseMessage) {
+            return this.#handleCommandResponse(payload.value)
+        }
+        if (payload.type === MESSAGE_TYPES.initiateBrowserStateResponse) {
+            return this.#handleBrowserInitiation(payload.value)
+        }
+    }
+
+    static #handleCommandResponse (value: Workers.CommandResponseEvent) {
         if (!value.id) {
             return console.error(`Message without id: ${JSON.stringify(value)}`)
         }
@@ -147,6 +160,22 @@ export default class ProxyDriver {
         console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
         commandMessage.resolve(value.result)
         this.#commandMessages.delete(value.id)
+    }
+
+    /**
+     * Initiate browser states even in case page loads happen. This is necessary so we can
+     * add a custom command that was added in the Node.js environment to the browser scope
+     * within the browser so the instance is aware of it and can translate the command
+     * request back to the worker process
+     */
+    static #handleBrowserInitiation (value: Workers.BrowserState) {
+        const cid = getCID()
+        if (!cid) {
+            return
+        }
+        for (const commandName of value.customCommands) {
+            browser.addCommand(commandName, this.#getMockedCommand(cid, commandName))
+        }
     }
 
     static #wrapConsolePrototype (cid: string) {
