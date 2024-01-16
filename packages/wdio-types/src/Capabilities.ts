@@ -579,6 +579,30 @@ export interface AppiumAndroidCapabilities {
     'appium:disableSuppressAccessibilityService'?: boolean;
     'appium:hideKeyboard'?: boolean;
     'appium:autoWebviewName'?: string;
+
+    'appium:uiautomator2ServerReadTimeout'?: number;
+    'appium:appWaitForLaunch'?: boolean;
+    'appium:remoteAppsCacheLimit'?: number;
+    'appium:enforceAppInstall'?: boolean;
+    'appium:clearDeviceLogsOnStart'?: boolean;
+    'appium:buildToolsVersion'?: string;
+    'appium:suppressKillServer'?: boolean;
+    'appium:ignoreHiddenApiPolicyError'?: boolean;
+    'appium:mockLocationApp'?: string;
+    'appium:logcatFormat'?: string;
+    'appium:logcatFilterSpecs'?: string;
+    'appium:allowDelayAdb'?: boolean;
+    'appium:avdEnv'?: { [key: string]: string };
+    'appium:unlockStrategy'?: string;
+    'appium:unlockSuccessTimeout'?: number;
+    'appium:webviewDevtoolsPort'?: number;
+    'appium:ensureWebviewsHavePages'?: boolean;
+    'appium:enableWebviewDetailsCollection'?: boolean;
+    'appium:extractChromeAndroidPackageFromContextName'?: boolean;
+    'appium:showChromedriverLog'?: boolean;
+    'appium:chromeOptions'?: { [key: string]: any };
+    'appium:chromeLoggingPrefs'?: { [key: string]: any };
+    'appium:userProfile'?: number;
 }
 
 /**
