@@ -9,7 +9,7 @@ import { COLORS } from './util.js'
 
 const log = logger('@wdio/browserstack-service')
 
-export abstract class BStackLogger {
+export class BStackLogger {
     public static logFilePath = path.join(process.cwd(), LOGS_FILE)
     private static logFolderPath = path.join(process.cwd(), 'logs')
     private static logFileStream: fs.WriteStream | null

@@ -121,5 +121,6 @@ export const filterStackTrace = (stack: string): string => {
     return stack
         .split('\n')
         .filter(line => !STACKTRACE_FILTER.some(l => line.includes(l)))
+        .map(line => line.replace(/\?invalidateCache=(\d\.\d+|\d)/g, ''))
         .join('\n')
 }

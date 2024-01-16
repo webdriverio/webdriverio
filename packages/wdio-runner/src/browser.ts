@@ -4,11 +4,12 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { CoverageMap } from 'istanbul-lib-coverage'
-import type { Capabilities, Workers, Options, Services } from '@wdio/types'
+import { matchers } from 'expect-webdriverio'
+import { type Capabilities, type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
 
+import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
-import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types.js'
+import type { TestFramework, WorkerResponseMessage } from './types.js'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
@@ -44,7 +45,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         private _reporter: BaseReporter
     ) {
         // listen on testrunner events
-        process.on('message', this.#handleProcessMessage.bind(this))
+        process.on('message', this.#processMessage.bind(this))
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
@@ -98,7 +99,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         /**
          * if a `sessionId` is part of `this._config` it means we are in watch mode and are
-         * re-using a previous session. Since Vite has already a hotreload feature, there
+         * re-using a previous session. Since Vite has already a hot-reload feature, there
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
@@ -142,9 +143,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                     let viteError
                     const viteErrorElem = document.querySelector('vite-error-overlay')
                     if (viteErrorElem && viteErrorElem.shadowRoot) {
-                        const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
-                        if (errorElems.length) {
-                            viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
+                        const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                        if (errorElements.length) {
+                            viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
                         }
                     }
                     const loadError = (
@@ -170,12 +171,16 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
             const coverageMap = await browser.execute(
-                () => (window.__coverage__ || {})  as CoverageMap)
-            process.send({
+                () => (window.__coverage__ || {}))
+            const workerEvent: Workers.WorkerEvent = {
                 origin: 'worker',
-                name: 'coverageMap',
-                content: { coverageMap }
-            })
+                name: 'workerEvent',
+                args: {
+                    type: MESSAGE_TYPES.coverageMap,
+                    value: coverageMap
+                }
+            }
+            process.send(workerEvent)
         }
 
         if (state.errors?.length) {
@@ -224,20 +229,179 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    async #handleProcessMessage (cmd: Workers.WorkerCommand) {
-        if (cmd.command === 'switchDebugState') {
-            this.#inDebugMode = cmd.args
+    async #processMessage (cmd: Workers.WorkerRequest) {
+        if (cmd.command !== 'workerRequest' || !process.send) {
             return
         }
-        if (cmd.command === 'workerHookExecution') {
-            const args = cmd.args as HookTriggerEvent
-            await executeHooksWithArgs(args.name, this._config[args.name as keyof Services.HookFunctions], args.args)
-                .catch((err) => log.warn(`Failed running "${args.name}" hook for cid ${args.cid}: ${err.message}`))
-            return process.send!(<WorkerHookResultMessage>{
-                origin: 'worker',
-                name: 'workerHookResult',
-                args
-            })
+
+        const { message, id } = cmd.args
+        if (message.type === MESSAGE_TYPES.switchDebugState) {
+            this.#inDebugMode = message.value
+            return
+        }
+
+        if (message.type === MESSAGE_TYPES.hookTriggerMessage) {
+            return this.#handleHook(id, message.value)
+        }
+
+        if (message.type === MESSAGE_TYPES.consoleMessage) {
+            return this.#handleConsole(message.value)
+        }
+
+        if (message.type === MESSAGE_TYPES.commandRequestMessage) {
+            return this.#handleCommand(id, message.value)
+        }
+
+        if (message.type === MESSAGE_TYPES.expectRequestMessage) {
+            return this.#handleExpectation(id, message.value)
+        }
+    }
+
+    async #handleHook (id: number, payload: Workers.HookTriggerEvent) {
+        const error: Error | undefined = await executeHooksWithArgs(
+            payload.name,
+            this._config[payload.name as keyof Services.HookFunctions],
+            payload.args
+        ).then(() => undefined, (err) => err)
+
+        if (error) {
+            log.warn(`Failed running "${payload.name}" hook for cid ${payload.cid}: ${error.message}`)
+        }
+
+        return this.#sendWorkerResponse(id, this.#hookResponse({ id: payload.id, error }))
+    }
+
+    #hookResponse (value: Workers.HookResultEvent): Workers.SocketMessage {
+        return {
+            type: MESSAGE_TYPES.hookResultMessage,
+            value
+        }
+    }
+
+    #sendWorkerResponse (id: number, message: Workers.SocketMessage) {
+        if (!process.send) {
+            return
+        }
+
+        const response: WorkerResponseMessage = {
+            origin: 'worker',
+            name: 'workerResponse',
+            args: { id, message }
+        }
+        process.send(response)
+    }
+
+    /**
+     * Print console message executed in browser to the terminal
+     * @param message console.log message args
+     * @returns void
+     */
+    #handleConsole (message: Workers.ConsoleEvent) {
+        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]') && message.type !== 'error')
+        if (message.name !== 'consoleEvent' || isWDIOLog) {
+            return
+        }
+        console[message.type](...(message.args || []))
+    }
+
+    async #handleCommand (id: number, payload: Workers.CommandRequestEvent) {
+        log.debug(`Received browser message: ${JSON.stringify(payload)}`)
+        const cid = payload.cid
+        if (typeof cid !== 'string') {
+            const { message, stack } = new Error(`No "cid" property passed into command message with id "${payload.id}"`)
+            const error = { message, stack, name: 'Error' }
+            return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error }))
+        }
+
+        /**
+         * emit debug state to be enabled to runner so it can be propagated to the worker
+         */
+        if (payload.commandName === 'debug') {
+            this.#inDebugMode = true
+        }
+
+        try {
+            /**
+             * double check if function is registered
+             */
+            if (typeof browser[payload.commandName as keyof typeof browser] !== 'function') {
+                throw new Error(`browser.${payload.commandName} is not a function`)
+            }
+
+            const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
+            const resultMsg = this.#commandResponse({ id: payload.id, result })
+
+            /**
+             * emit debug state to be disabled to runner so it can be propagated to the worker
+             */
+            if (payload.commandName === 'debug') {
+                this.#inDebugMode = false
+            }
+
+            log.debug(`Return command result: ${resultMsg}`)
+            return this.#sendWorkerResponse(id, resultMsg)
+        } catch (error: any) {
+            const { message, stack, name } = error
+            return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error: { message, stack, name } }))
+        }
+    }
+
+    #commandResponse (value: Workers.CommandResponseEvent): Workers.SocketMessage {
+        return {
+            type: MESSAGE_TYPES.commandResponseMessage,
+            value
+        }
+    }
+
+    /**
+     * handle expectation assertions within the worker process
+     * @param id message id from communicator
+     * @param payload information about the expectation to run
+     * @returns void
+     */
+    async #handleExpectation (id: number, payload: Workers.ExpectRequestEvent) {
+        log.debug(`Received expectation message: ${JSON.stringify(payload)}`)
+        const cid = payload.cid
+        /**
+         * check if payload contains `cid` needed to get a browser instance from the pool
+         */
+        if (typeof cid !== 'string') {
+            const message = `No "cid" property passed into expect request message with id "${payload.id}"`
+            return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
+        }
+
+        /**
+         * find matcher, e.g. `toBeDisplayed` or `toHaveTitle`
+         */
+        const matcher = matchers[payload.matcherName as keyof typeof matchers]
+        if (!matcher) {
+            const message = `Couldn't find matcher with name "${payload.matcherName}"`
+            return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
+        }
+
+        try {
+            const context = payload.element
+                ? Array.isArray(payload.element)
+                    ? await browser.$$(payload.element)
+                    : await browser.$(payload.element)
+                : browser
+            const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
+            return this.#sendWorkerResponse(id, this.#expectResponse({
+                id: payload.id,
+                pass: result.pass,
+                message: result.message()
+            }))
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? (err as Error).stack : err
+            const message = `Failed to execute expect command "${payload.matcherName}": ${errorMessage}`
+            return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
+        }
+    }
+
+    #expectResponse (value: Workers.ExpectResponseEvent): Workers.SocketMessage {
+        return {
+            type: MESSAGE_TYPES.expectResponseMessage,
+            value
         }
     }
 

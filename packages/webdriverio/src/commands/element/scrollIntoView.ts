@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
+import { ELEMENT_KEY } from 'webdriver'
 
-import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 
 const log = logger('webdriverio')
