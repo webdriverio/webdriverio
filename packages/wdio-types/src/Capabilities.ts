@@ -579,66 +579,66 @@ export interface AppiumAndroidCapabilities {
     'appium:autoWebviewTimeout'?: number
     'appium:chromedriverPort'?: number
     'appium:chromedriverPorts'?: (number | number[])[]
-    'appium:intentAction'?: string;
-    'appium:intentCategory'?: string;
-    'appium:intentFlags'?: string;
-    'appium:optionalIntentArguments'?: string;
-    'appium:dontStopAppOnReset'?: boolean;
-    'appium:unicodeKeyboard'?: boolean;
-    'appium:resetKeyboard'?: boolean;
-    'appium:noSign'?: boolean;
-    'appium:ignoreUnimportantViews'?: boolean;
-    'appium:disableAndroidWatchers'?: boolean;
-    'appium:recreateChromeDriverSessions'?: boolean;
-    'appium:nativeWebScreenshot'?: boolean;
-    'appium:androidScreenshotPath'?: string;
-    'appium:autoGrantPermissions'?: boolean;
-    'appium:networkSpeed'?: string;
-    'appium:gpsEnabled'?: boolean;
-    'appium:isHeadless'?: boolean;
-    'appium:adbExecTimeout'?: number;
-    'appium:localeScript'?: string;
-    'appium:skipDeviceInitialization'?: boolean;
-    'appium:chromedriverDisableBuildCheck'?: boolean;
-    'appium:skipUnlock'?: boolean;
-    'appium:unlockType'?: string;
-    'appium:unlockKey'?: string;
-    'appium:autoLaunch'?: boolean;
-    'appium:skipLogcatCapture'?: boolean;
-    'appium:uninstallOtherPackages'?: string;
-    'appium:disableWindowAnimation'?: boolean;
-    'appium:otherApps'?: string | string[];
-    'appium:uiautomator2ServerLaunchTimeout'?: number;
-    'appium:uiautomator2ServerInstallTimeout'?: number;
-    'appium:skipServerInstallation'?: boolean;
-    'appium:espressoServerLaunchTimeout'?: number;
-    'appium:disableSuppressAccessibilityService'?: boolean;
-    'appium:hideKeyboard'?: boolean;
-    'appium:autoWebviewName'?: string;
+    'appium:intentAction'?: string
+    'appium:intentCategory'?: string
+    'appium:intentFlags'?: string
+    'appium:optionalIntentArguments'?: string
+    'appium:dontStopAppOnReset'?: boolean
+    'appium:unicodeKeyboard'?: boolean
+    'appium:resetKeyboard'?: boolean
+    'appium:noSign'?: boolean
+    'appium:ignoreUnimportantViews'?: boolean
+    'appium:disableAndroidWatchers'?: boolean
+    'appium:recreateChromeDriverSessions'?: boolean
+    'appium:nativeWebScreenshot'?: boolean
+    'appium:androidScreenshotPath'?: string
+    'appium:autoGrantPermissions'?: boolean
+    'appium:networkSpeed'?: string
+    'appium:gpsEnabled'?: boolean
+    'appium:isHeadless'?: boolean
+    'appium:adbExecTimeout'?: number
+    'appium:localeScript'?: string
+    'appium:skipDeviceInitialization'?: boolean
+    'appium:chromedriverDisableBuildCheck'?: boolean
+    'appium:skipUnlock'?: boolean
+    'appium:unlockType'?: string
+    'appium:unlockKey'?: string
+    'appium:autoLaunch'?: boolean
+    'appium:skipLogcatCapture'?: boolean
+    'appium:uninstallOtherPackages'?: string
+    'appium:disableWindowAnimation'?: boolean
+    'appium:otherApps'?: string | string[]
+    'appium:uiautomator2ServerLaunchTimeout'?: number
+    'appium:uiautomator2ServerInstallTimeout'?: number
+    'appium:skipServerInstallation'?: boolean
+    'appium:espressoServerLaunchTimeout'?: number
+    'appium:disableSuppressAccessibilityService'?: boolean
+    'appium:hideKeyboard'?: boolean
+    'appium:autoWebviewName'?: string
 
-    'appium:uiautomator2ServerReadTimeout'?: number;
-    'appium:appWaitForLaunch'?: boolean;
-    'appium:remoteAppsCacheLimit'?: number;
-    'appium:enforceAppInstall'?: boolean;
-    'appium:clearDeviceLogsOnStart'?: boolean;
-    'appium:buildToolsVersion'?: string;
-    'appium:suppressKillServer'?: boolean;
-    'appium:ignoreHiddenApiPolicyError'?: boolean;
-    'appium:mockLocationApp'?: string;
-    'appium:logcatFormat'?: string;
-    'appium:logcatFilterSpecs'?: string;
-    'appium:allowDelayAdb'?: boolean;
-    'appium:avdEnv'?: { [key: string]: string };
-    'appium:unlockStrategy'?: string;
-    'appium:unlockSuccessTimeout'?: number;
-    'appium:webviewDevtoolsPort'?: number;
-    'appium:ensureWebviewsHavePages'?: boolean;
-    'appium:enableWebviewDetailsCollection'?: boolean;
-    'appium:extractChromeAndroidPackageFromContextName'?: boolean;
-    'appium:showChromedriverLog'?: boolean;
-    'appium:chromeOptions'?: { [key: string]: any };
-    'appium:chromeLoggingPrefs'?: { [key: string]: any };
-    'appium:userProfile'?: number;
+    'appium:uiautomator2ServerReadTimeout'?: number
+    'appium:appWaitForLaunch'?: boolean
+    'appium:remoteAppsCacheLimit'?: number
+    'appium:enforceAppInstall'?: boolean
+    'appium:clearDeviceLogsOnStart'?: boolean
+    'appium:buildToolsVersion'?: string
+    'appium:suppressKillServer'?: boolean
+    'appium:ignoreHiddenApiPolicyError'?: boolean
+    'appium:mockLocationApp'?: string
+    'appium:logcatFormat'?: string
+    'appium:logcatFilterSpecs'?: string
+    'appium:allowDelayAdb'?: boolean
+    'appium:avdEnv'?: { [key: string]: string }
+    'appium:unlockStrategy'?: string
+    'appium:unlockSuccessTimeout'?: number
+    'appium:webviewDevtoolsPort'?: number
+    'appium:ensureWebviewsHavePages'?: boolean
+    'appium:enableWebviewDetailsCollection'?: boolean
+    'appium:extractChromeAndroidPackageFromContextName'?: boolean
+    'appium:showChromedriverLog'?: boolean
+    'appium:chromeOptions'?: { [key: string]: any }
+    'appium:chromeLoggingPrefs'?: { [key: string]: any }
+    'appium:userProfile'?: number
 }
 
 /**
