@@ -33,7 +33,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * for visual regression or snapshot testing for example.
  */
 expect.extend(matchers.reduce((acc, matcherName) => {
-    acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element>, ...args: any[]) {
+    acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | ChainablePromiseArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -62,20 +62,19 @@ expect.extend(matchers.reduce((acc, matcherName) => {
          * Check if context is an WebdriverIO.Element
          */
         if ('elementId' in context && typeof context.elementId === 'string') {
-            expectRequest.elementId = context.elementId
+            expectRequest.element = context
         }
         /**
          * Check if context is ChainablePromiseElement
          */
         if ('then' in context && typeof (context as any).selector === 'object') {
-            expectRequest.elementId = (await context).elementId
+            expectRequest.element = await context
         }
         /**
          * Check if context is a `Element` and transtform it into a WebdriverIO.Element
          */
         if (context instanceof Element) {
-            const elem = await $(context as any as HTMLElement)
-            expectRequest.elementId = elem.elementId
+            expectRequest.element = await $(context as any as HTMLElement)
         }
 
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })

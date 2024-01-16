@@ -157,7 +157,7 @@ export interface ExpectRequestEvent extends MessageWithPendingPromiseId {
      */
     scope: any,
     args: unknown[]
-    elementId?: string
+    element?: any | any[]
 }
 
 export interface ExpectResponseEvent extends MessageWithPendingPromiseId {

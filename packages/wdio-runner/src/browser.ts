@@ -5,7 +5,6 @@ import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
-import { ELEMENT_KEY } from 'webdriver'
 import { type Capabilities, type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
@@ -381,7 +380,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         try {
-            const context = payload.elementId ? await browser.$({ [ELEMENT_KEY]: payload.elementId }) : browser
+            const context = payload.element
+                ? Array.isArray(payload.element)
+                    ? await browser.$$(payload.element)
+                    : await browser.$(payload.element)
+                : browser
             const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,
@@ -389,7 +392,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 message: result.message()
             }))
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? (err as Error).message : err
+            const errorMessage = err instanceof Error ? (err as Error).stack : err
             const message = `Failed to execute expect command "${payload.matcherName}": ${errorMessage}`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
         }
