@@ -39,16 +39,45 @@ export interface ProxyObject {
     noProxy?: string[];
 }
 
-export interface WdioOptions {
+export interface CapabilityOptions {
     /**
      * Maximum number of total parallel running workers (per capability)
      */
+    'wdio:maxInstances'?: number;
+    /**
+     * Maximum number of total parallel running workers (per capability)
+     * @deprecated please use `wdio:maxInstances` instead
+     */
     maxInstances?: number;
+
+     /**
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
+     */
+    'wdio:specs'?: string[];
+    /**
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
+     * @deprecated please use `wdio:specs` instead
+     */
+    specs?: string[];
+
+    /**
+     * Exclude specs from test execution.
+     */
+    'wdio:exclude'?: string[]
+    /**
+     * Exclude specs from test execution.
+     * @deprecated please use `wdio:exclude` instead
+     */
+    exclude?: string[];
 }
 
 declare global {
     namespace WebdriverIO {
-        interface Capabilities extends WdioOptions, VendorExtensions, ConnectionOptions {
+        interface Capabilities extends CapabilityOptions, VendorExtensions, ConnectionOptions {
             /**
              * Identifies the user agent.
              */
