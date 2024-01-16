@@ -31,7 +31,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * matchers that require Node.js specific modules like `fs` or `child_process`,
  * for visual regression or snapshot testing for example.
  */
-expect.extend([...matchers, 'toMatchElementSnapshot'].reduce((acc, matcherName) => {
+expect.extend(matchers.reduce((acc, matcherName) => {
     acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {

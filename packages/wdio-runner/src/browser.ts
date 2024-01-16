@@ -6,7 +6,6 @@ import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import type { CoverageMap } from 'istanbul-lib-coverage'
 import { type Capabilities, type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
@@ -173,7 +172,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
             const coverageMap = await browser.execute(
-                () => (window.__coverage__ || {})  as CoverageMap)
+                () => (window.__coverage__ || {}))
             const workerEvent: Workers.WorkerEvent = {
                 origin: 'worker',
                 name: 'workerEvent',
