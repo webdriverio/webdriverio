@@ -1,6 +1,7 @@
 import type {
     WebdriverIO as WebDriverIOOptions,
-    Connection as ConnectionOptions
+    Connection as ConnectionOptions,
+    Testrunner as TestrunnerOptions,
 } from './Options.js'
 
 type JSONLike = | { [property: string]: JSONLike } | readonly JSONLike[] | string | number | boolean | null
@@ -39,7 +40,7 @@ export interface ProxyObject {
     noProxy?: string[];
 }
 
-export interface CapabilityOptions {
+export interface CapabilityOptions extends Pick<TestrunnerOptions, 'specs' | 'exclude' | 'maxInstances'> {
     /**
      * Maximum number of total parallel running workers (per capability)
      */
