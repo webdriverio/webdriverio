@@ -70,10 +70,17 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                 return polyfillPath(normalizeId(id.replace('/promises', '')))
             }
 
+            /**
+             * fake the content of this package and load the implementation of the mock
+             * features from the browser module directory
+             */
             if (id === '@wdio/browser-runner') {
                 return spyModulePath
             }
 
+            /**
+             * allow to load the setup script from a script tag
+             */
             if (id.endsWith('@wdio/browser-runner/setup')) {
                 return setupModulePath
             }

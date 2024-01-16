@@ -161,8 +161,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         await server.close()
         expect(viteServer.close).toBeCalledTimes(1)
         expect(ws.close).toBeCalledTimes(1)
@@ -177,8 +175,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         vi.mocked(ws.on).mock.calls[0][1](Buffer.from('foobar'))
         expect(vi.mocked(ws.send).mock.calls[0][0]).toContain('Failed handling socket message')
     })
@@ -192,8 +188,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
             type: MESSAGE_TYPES.consoleMessage,
             value: {
@@ -215,8 +209,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
             type: MESSAGE_TYPES.consoleMessage,
             value: {
@@ -238,8 +230,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
             type: MESSAGE_TYPES.hookTriggerMessage,
             value: {
@@ -262,8 +252,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         const session: any = { config: { before: vi.fn().mockReturnValue(123) } }
         SESSIONS.set('1-2', session)
 
@@ -297,8 +285,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
             type: MESSAGE_TYPES.commandRequestMessage,
             value: {
@@ -320,8 +306,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         await vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
             type: MESSAGE_TYPES.commandRequestMessage,
             value: {
@@ -344,8 +328,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         const browser: any = { '$': vi.fn().mockResolvedValue('some result') }
         BROWSER_POOL.set('1-2', browser)
         await vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
@@ -374,8 +356,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         const browser: any = { debug: vi.fn(), emit: vi.fn() }
         BROWSER_POOL.set('1-2', browser)
         await vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
@@ -402,8 +382,6 @@ describe('ViteServer', () => {
         await server.start()
 
         const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
-        // @ts-ignore
-        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
         const commandError = new Error('ups')
         const browser: any = { '$': vi.fn().mockRejectedValue(commandError) }
         BROWSER_POOL.set('1-2', browser)

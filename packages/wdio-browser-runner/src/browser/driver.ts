@@ -1,12 +1,10 @@
-import stringify from 'fast-safe-stringify'
-
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { getCID } from './utils.js'
-import { MESSAGE_TYPES } from '../constants.js'
-import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
+import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
@@ -37,14 +35,12 @@ export default class ProxyDriver {
         /**
          * log all console events once connected
          */
-        const connectPromise = window.__wdioConnectPromise__
-        connectPromise.then(this.#wrapConsolePrototype.bind(this, cid))
+        this.#wrapConsolePrototype(cid)
 
         /**
-         * handle Vite server socket messages
+         * listen on socket events from testrunner
          */
-        const socket = window.__wdioSocket__
-        socket.addEventListener('message', this.#handleServerMessage.bind(this))
+        import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleServerMessage.bind(this))
 
         let commandId = 0
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
@@ -55,9 +51,10 @@ export default class ProxyDriver {
             const isDebugCommand = commandName === 'debug'
             prev[commandName] = {
                 value: async (...args: unknown[]) => {
-                    if (socket.readyState !== 1) {
-                        await connectPromise
+                    if (!import.meta.hot) {
+                        throw new Error('Could not connect to testrunner')
                     }
+
                     commandId++
 
                     /**
@@ -72,12 +69,12 @@ export default class ProxyDriver {
                         mochaFramework.setAttribute('style', 'display: none')
                     }
 
-                    socket.send(JSON.stringify(this.#commandRequest({
+                    import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
                         commandName,
                         cid,
                         id: commandId.toString(),
                         args
-                    })))
+                    }))
                     return new Promise((resolve, reject) => {
                         let commandTimeout
                         if (!isDebugCommand) {
@@ -122,65 +119,59 @@ export default class ProxyDriver {
         return monad(window.__wdioEnv__.sessionId, commandWrapper)
     }
 
-    static #handleServerMessage (ev: MessageEvent) {
-        try {
-            const { type, value } = JSON.parse(ev.data) as SocketMessagePayload<MESSAGE_TYPES.commandResponseMessage>
-            if (type !== MESSAGE_TYPES.commandResponseMessage) {
-                return
-            }
-
-            if (!value.id) {
-                return console.error(`Message without id: ${JSON.stringify(ev.data)}`)
-            }
-
-            const commandMessage = this.#commandMessages.get(value.id)
-            if (!commandMessage) {
-                return console.error(`Unknown command id "${value.id}"`)
-            }
-
-            if (HIDE_REPORTER_FOR_COMMANDS.includes(commandMessage.commandName) && mochaFramework) {
-                mochaFramework.removeAttribute('style')
-            }
-
-            if (value.error) {
-                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
-                return commandMessage.reject(new Error(value.error.message || 'unknown error'))
-            }
-            if (commandMessage.commandTimeout) {
-                clearTimeout(commandMessage.commandTimeout)
-            }
-            console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
-            commandMessage.resolve(value.result)
-            this.#commandMessages.delete(value.id)
-        } catch (err: any) {
-            console.error(`Failed handling command socket message "${err.message}"`)
+    static #handleServerMessage ({ type, value }: Workers.SocketMessage) {
+        if (type !== MESSAGE_TYPES.commandResponseMessage) {
+            return
         }
+
+        if (!value.id) {
+            return console.error(`Message without id: ${JSON.stringify(value)}`)
+        }
+
+        const commandMessage = this.#commandMessages.get(value.id)
+        if (!commandMessage) {
+            return console.error(`Unknown command id "${value.id}"`)
+        }
+
+        if (HIDE_REPORTER_FOR_COMMANDS.includes(commandMessage.commandName) && mochaFramework) {
+            mochaFramework.removeAttribute('style')
+        }
+
+        if (value.error) {
+            console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
+            return commandMessage.reject(new Error(value.error.message || 'unknown error'))
+        }
+        if (commandMessage.commandTimeout) {
+            clearTimeout(commandMessage.commandTimeout)
+        }
+        console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
+        commandMessage.resolve(value.result)
+        this.#commandMessages.delete(value.id)
     }
 
     static #wrapConsolePrototype (cid: string) {
-        const socket = window.__wdioSocket__
         for (const method of CONSOLE_METHODS) {
             const origCommand = console[method].bind(console)
             console[method] = (...args: unknown[]) => {
-                socket.send(stringify.default(this.#consoleMessage({
+                import.meta.hot?.send(WDIO_EVENT_NAME, this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
                     args,
                     cid
-                })))
+                }))
                 origCommand(...args)
             }
         }
     }
 
-    static #commandRequest (value: CommandRequestEvent): SocketMessage {
+    static #commandRequest (value: Workers.CommandRequestEvent): Workers.SocketMessage {
         return {
             type: MESSAGE_TYPES.commandRequestMessage,
             value
         }
     }
 
-    static #consoleMessage (value: ConsoleEvent): SocketMessage {
+    static #consoleMessage (value: Workers.ConsoleEvent): Workers.SocketMessage {
         return {
             type: MESSAGE_TYPES.consoleMessage,
             value

@@ -8,7 +8,7 @@ import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
 const EVENT_FILTER = [
-    'sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerHookResult',
+    'sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerResponse',
     'coverageMap'
 ]
 

@@ -1,9 +1,9 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { matchers } from 'virtual:wdio'
 
 import { getCID } from './utils.js'
-import { MESSAGE_TYPES } from '../constants.js'
-import type { ExpectRequestEvent, SocketMessagePayload } from '../vite/types.js'
+import { WDIO_EVENT_NAME } from '../constants.js'
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: any, ...expected: Array<any>): ExpectationResult;
@@ -19,7 +19,6 @@ const asymmetricMatcher =
         ? Symbol.for('jest.asymmetricMatcher')
         : 0x13_57_a5
 
-let hasSetupListener = false
 let matcherRequestCount = 0
 const matcherRequests = new Map<string, MatcherPayload>()
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -31,19 +30,14 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * matchers that require Node.js specific modules like `fs` or `child_process`,
  * for visual regression or snapshot testing for example.
  */
-expect.extend(matchers.reduce((acc, matcherName) => {
+expect.extend([...matchers, 'toMatchElementSnapshot'].reduce((acc, matcherName) => {
     acc[matcherName] = function (context: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
-        const socket = window.__wdioSocket__
         const cid = getCID()
-        if (!socket || !cid) {
+        if (!import.meta.hot || !cid) {
             return {
                 pass: false,
                 message: () => 'Could not connect to testrunner'
             }
-        }
-
-        if (!hasSetupListener) {
-            hasSetupListener = setupListener(socket)
         }
 
         if (typeof args[0] === 'object' && '$$typeof' in args[0] && args[0].$$typeof === asymmetricMatcher && args[0].asymmetricMatch) {
@@ -54,7 +48,7 @@ expect.extend(matchers.reduce((acc, matcherName) => {
             }
         }
 
-        const expectRequest: ExpectRequestEvent = {
+        const expectRequest: Workers.ExpectRequestEvent = {
             id: String(matcherRequestCount++),
             cid,
             scope: this,
@@ -62,7 +56,11 @@ expect.extend(matchers.reduce((acc, matcherName) => {
             args: args
         }
 
-        socket.send(JSON.stringify({ type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest }))
+        if ('elementId' in context) {
+            expectRequest.elementId = context.elementId
+        }
+
+        import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
         const contextString = 'elementId' in context ? 'WebdriverIO.Element' : 'WebdriverIO.Browser'
 
         return new Promise<SyncExpectationResult>((resolve, reject) => {
@@ -77,32 +75,24 @@ expect.extend(matchers.reduce((acc, matcherName) => {
     return acc
 }, {} as Record<string, RawMatcherFn<MatcherContext>>))
 
-function setupListener (socket: WebSocket) {
-    socket.addEventListener('message', (event) => {
-        let message: SocketMessagePayload<MESSAGE_TYPES.expectResponseMessage>
-        try {
-            message = JSON.parse(event.data) as SocketMessagePayload<MESSAGE_TYPES.expectResponseMessage>
-        } catch (err) {
-            return console.error('Couldn\'t parse message from testrunner:', event.data)
-        }
+/**
+ * listen on assertion results from testrunner
+ */
+import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
+    if (message.type !== MESSAGE_TYPES.expectResponseMessage) {
+        return
+    }
+    const payload = matcherRequests.get(message.value.id)
+    if (!payload) {
+        return console.warn(`Couldn't find payload for assertion result with id ${message.value.id}`)
+    }
 
-        if (message.type !== MESSAGE_TYPES.expectResponseMessage) {
-            return
-        }
-        const payload = matcherRequests.get(message.value.id)
-        if (!payload) {
-            return console.warn(`Couldn't find payload for assertion result with id ${message.value.id}`)
-        }
-
-        clearTimeout(payload.commandTimeout)
-        matcherRequests.delete(message.value.id)
-        payload.resolve({
-            pass: message.value.pass,
-            message: () => message.value.message
-        })
+    clearTimeout(payload.commandTimeout)
+    matcherRequests.delete(message.value.id)
+    payload.resolve({
+        pass: message.value.pass,
+        message: () => message.value.message
     })
-
-    return true
-}
+})
 
 export { expect }
