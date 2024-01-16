@@ -39,9 +39,16 @@ export interface ProxyObject {
     noProxy?: string[];
 }
 
+export interface WdioOptions {
+    /**
+     * Maximum number of total parallel running workers (per capability)
+     */
+    maxInstances?: number;
+}
+
 declare global {
     namespace WebdriverIO {
-        interface Capabilities extends VendorExtensions, ConnectionOptions {
+        interface Capabilities extends WdioOptions, VendorExtensions, ConnectionOptions {
             /**
              * Identifies the user agent.
              */
@@ -86,10 +93,6 @@ declare global {
              * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
              */
             webSocketUrl?: boolean;
-            /**
-             * Maximum number of total parallel running workers.
-             */
-            maxInstances?: number;
         }
     }
 }
