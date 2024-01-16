@@ -2,6 +2,7 @@ import { expect, type MatcherContext, type ExpectationResult, type SyncExpectati
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { matchers } from 'virtual:wdio'
 import { $ } from '@wdio/globals'
+import type { ChainablePromiseElement } from 'webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -32,7 +33,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * for visual regression or snapshot testing for example.
  */
 expect.extend(matchers.reduce((acc, matcherName) => {
-    acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
+    acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element>, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -58,13 +59,19 @@ expect.extend(matchers.reduce((acc, matcherName) => {
         }
 
         /**
-         * check if context is an WebdriverIO.Element
+         * Check if context is an WebdriverIO.Element
          */
-        if ('elementId' in context) {
+        if ('elementId' in context && typeof context.elementId === 'string') {
             expectRequest.elementId = context.elementId
         }
         /**
-         * check if context is a `Element` and transtform it into a WebdriverIO.Element
+         * Check if context is ChainablePromiseElement
+         */
+        if ('then' in context && typeof (context as any).selector === 'object') {
+            expectRequest.elementId = (await context).elementId
+        }
+        /**
+         * Check if context is a `Element` and transtform it into a WebdriverIO.Element
          */
         if (context instanceof Element) {
             const elem = await $(context as any as HTMLElement)

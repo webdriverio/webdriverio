@@ -339,7 +339,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 this.#inDebugMode = false
             }
 
-            log.info(`Return command result: ${resultMsg}`)
+            log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
         } catch (error: any) {
             const { message, stack, name } = error
