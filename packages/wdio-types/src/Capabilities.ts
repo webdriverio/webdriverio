@@ -40,7 +40,7 @@ export interface ProxyObject {
     noProxy?: string[];
 }
 
-export interface CapabilityOptions extends Pick<TestrunnerOptions, 'specs' | 'exclude' | 'maxInstances'> {
+export interface CapabilityOptions {
     /**
      * Maximum number of total parallel running workers (per capability)
      */
