@@ -341,7 +341,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }
 
             log.info(`Return command result: ${resultMsg}`)
-            return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, result: resultMsg }))
+            return this.#sendWorkerResponse(id, resultMsg)
         } catch (error: any) {
             const { message, stack, name } = error
             return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error: { message, stack, name } }))
@@ -390,7 +390,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 message: result.message()
             }))
         } catch (err: unknown) {
-            const message = `Failed to execute expect command "${payload.matcherName}": ${(err as Error).message}`
+            const errorMessage = err instanceof Error ? (err as Error).message : err
+            const message = `Failed to execute expect command "${payload.matcherName}": ${errorMessage}`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
         }
     }

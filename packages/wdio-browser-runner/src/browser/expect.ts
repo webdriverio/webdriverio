@@ -1,6 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { matchers } from 'virtual:wdio'
+import { $ } from '@wdio/globals'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -31,7 +32,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * for visual regression or snapshot testing for example.
  */
 expect.extend([...matchers, 'toMatchElementSnapshot'].reduce((acc, matcherName) => {
-    acc[matcherName] = function (context: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
+    acc[matcherName] = async function (context: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -56,8 +57,18 @@ expect.extend([...matchers, 'toMatchElementSnapshot'].reduce((acc, matcherName) 
             args: args
         }
 
+        /**
+         * check if context is an WebdriverIO.Element
+         */
         if ('elementId' in context) {
             expectRequest.elementId = context.elementId
+        }
+        /**
+         * check if context is a `Element` and transtform it into a WebdriverIO.Element
+         */
+        if (context instanceof Element) {
+            const elem = await $(context as any as HTMLElement)
+            expectRequest.elementId = elem.elementId
         }
 
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
