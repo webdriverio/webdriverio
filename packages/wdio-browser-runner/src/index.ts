@@ -60,6 +60,11 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     /**
+     * for testing purposes
+     */
+    private _servers = this.#servers
+
+    /**
      * nothing to initialize when running locally
      */
     async initialize() {
@@ -89,6 +94,7 @@ export default class BrowserRunner extends LocalRunner {
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 
         const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
+        this.#servers.add(server)
 
         try {
             await server.start()
@@ -107,14 +113,6 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     /**
-     * ToDo:
-     *  - create class for general message exchange between server and worker
-     *  - move command handling and expect handling into worker
-     *  - test visual custom matchers
-     *  - replace custom wss with vite socket server https://vitejs.dev/guide/api-plugin.html#client-server-communication
-     */
-
-    /**
      * shutdown vite server
      *
      * @return {Promise}  resolves when vite server has been shutdown
@@ -130,7 +128,7 @@ export default class BrowserRunner extends LocalRunner {
     private async _generateCoverageReports () {
         const coverageMaps = this.#communicator.coverageMaps
         if (!this.#coverageOptions.enabled || coverageMaps.length === 0) {
-            return true
+            return false
         }
 
         const firstCoverageMapEntry = coverageMaps.shift() as CoverageMap
