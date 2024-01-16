@@ -19,7 +19,7 @@ const HIDE_REPORTER_FOR_COMMANDS = ['saveScreenshot', 'savePDF']
 const mochaFramework = document.querySelector('mocha-framework')
 
 export default class ProxyDriver {
-    static #commandMessages = new Map<string, CommandMessagePromise>()
+    static #commandMessages = new Map<number, CommandMessagePromise>()
 
     static newSession (
         params: any,
@@ -42,7 +42,7 @@ export default class ProxyDriver {
          */
         import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleServerMessage.bind(this))
 
-        let commandId = 0
+        let id = 0
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
@@ -55,14 +55,14 @@ export default class ProxyDriver {
                         throw new Error('Could not connect to testrunner')
                     }
 
-                    commandId++
+                    id++
 
                     /**
                      * print information which command is executed (except for debug commands)
                      */
                     console.log(...(isDebugCommand
                         ? ['[WDIO] %cDebug Mode Enabled', 'background: #ea5906; color: #fff; padding: 3px; border-radius: 5px;']
-                        : [`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`]
+                        : [`[WDIO] ${(new Date()).toISOString()} - id: ${id} - COMMAND: ${commandName}(${args.join(', ')})`]
                     ))
 
                     if (HIDE_REPORTER_FOR_COMMANDS.includes(commandName) && mochaFramework) {
@@ -72,7 +72,7 @@ export default class ProxyDriver {
                     import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
                         commandName,
                         cid,
-                        id: commandId.toString(),
+                        id,
                         args
                     }))
                     return new Promise((resolve, reject) => {
@@ -84,7 +84,7 @@ export default class ProxyDriver {
                             )
                         }
 
-                        this.#commandMessages.set(commandId.toString(), { resolve, reject, commandTimeout, commandName })
+                        this.#commandMessages.set(id, { resolve, reject, commandTimeout, commandName })
                     })
                 }
             }

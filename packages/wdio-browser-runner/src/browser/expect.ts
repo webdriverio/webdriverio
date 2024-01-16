@@ -20,7 +20,7 @@ const asymmetricMatcher =
         : 0x13_57_a5
 
 let matcherRequestCount = 0
-const matcherRequests = new Map<string, MatcherPayload>()
+const matcherRequests = new Map<number, MatcherPayload>()
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 
 /**
@@ -49,7 +49,7 @@ expect.extend([...matchers, 'toMatchElementSnapshot'].reduce((acc, matcherName) 
         }
 
         const expectRequest: Workers.ExpectRequestEvent = {
-            id: String(matcherRequestCount++),
+            id: matcherRequestCount++,
             cid,
             scope: this,
             matcherName,

@@ -124,7 +124,7 @@ export interface ConsoleEvent {
 }
 
 interface MessageWithPendingPromiseId {
-    id: string
+    id: number
 }
 
 export interface HookTriggerEvent extends MessageWithPendingPromiseId {

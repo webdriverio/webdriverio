@@ -47,7 +47,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         private _reporter: BaseReporter
     ) {
         // listen on testrunner events
-        process.on('message', this.#handleProcessMessage.bind(this))
+        process.on('message', this.#processMessage.bind(this))
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
@@ -101,7 +101,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         /**
          * if a `sessionId` is part of `this._config` it means we are in watch mode and are
-         * re-using a previous session. Since Vite has already a hotreload feature, there
+         * re-using a previous session. Since Vite has already a hot-reload feature, there
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
@@ -145,9 +145,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                     let viteError
                     const viteErrorElem = document.querySelector('vite-error-overlay')
                     if (viteErrorElem && viteErrorElem.shadowRoot) {
-                        const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
-                        if (errorElems.length) {
-                            viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
+                        const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                        if (errorElements.length) {
+                            viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
                         }
                     }
                     const loadError = (
@@ -231,7 +231,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    async #handleProcessMessage (cmd: Workers.WorkerRequest) {
+    async #processMessage (cmd: Workers.WorkerRequest) {
         if (cmd.command !== 'workerRequest' || !process.send) {
             return
         }
@@ -243,9 +243,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         if (message.type === MESSAGE_TYPES.hookTriggerMessage) {
-            await executeHooksWithArgs(message.value.name, this._config[message.value.name as keyof Services.HookFunctions], message.value.args)
-                .catch((err) => log.warn(`Failed running "${message.value.name}" hook for cid ${message.value.cid}: ${err.message}`))
-            return this.#sendWorkerResponse(id, { type: MESSAGE_TYPES.hookResultMessage, value: message.value })
+            return this.#handleHook(id, message.value)
         }
 
         if (message.type === MESSAGE_TYPES.consoleMessage) {
@@ -258,6 +256,27 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         if (message.type === MESSAGE_TYPES.expectRequestMessage) {
             return this.#handleExpectation(id, message.value)
+        }
+    }
+
+    async #handleHook (id: number, payload: Workers.HookTriggerEvent) {
+        const error: Error | undefined = await executeHooksWithArgs(
+            payload.name,
+            this._config[payload.name as keyof Services.HookFunctions],
+            payload.args
+        ).then(() => undefined, (err) => err)
+
+        if (error) {
+            log.warn(`Failed running "${payload.name}" hook for cid ${payload.cid}: ${error.message}`)
+        }
+
+        return this.#sendWorkerResponse(id, this.#hookResponse({ id: payload.id, error }))
+    }
+
+    #hookResponse (value: Workers.HookResultEvent): Workers.SocketMessage {
+        return {
+            type: MESSAGE_TYPES.hookResultMessage,
+            value
         }
     }
 

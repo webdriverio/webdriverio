@@ -138,9 +138,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         </head>
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
-            <script type="module">
-                window.process.env = ${JSON.stringify(p.env)}
-            </script>
         </body>
     </html>`
 }

@@ -54,6 +54,7 @@
     "mlly": "^1.4.0",
     "modern-node-polyfills": "^1.0.0",
     "recast": "^0.23.2",
+    "safe-stringify": "^1.1.0",
     "serialize-error": "^11.0.0",
     "source-map-support": "^0.5.21",
     "vite": "~4.5.0",

@@ -1,3 +1,4 @@
+import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
@@ -30,7 +31,7 @@ export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string
     #require: string[]
-    #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
+    #hookResolver = new Map<number, { resolve: Function, reject: Function }>()
     #runnerEvents: any[] = []
     #isMinified = false
 
@@ -194,13 +195,13 @@ export class MochaFramework extends HTMLElement {
 
     #getHook (name: string) {
         return (...args: any[]) => new Promise((resolve, reject) => {
-            const id = (this.#hookResolver.size + 1).toString()
+            const id = this.#hookResolver.size + 1
             const cid = getCID()
             if (!cid) {
                 return reject(new Error('"cid" query parameter is missing'))
             }
 
-            this.#hookResolver.set(id.toString(), { resolve, reject })
+            this.#hookResolver.set(id, { resolve, reject })
             import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })
     }
@@ -208,7 +209,7 @@ export class MochaFramework extends HTMLElement {
     #hookTrigger (value: Workers.HookTriggerEvent): Workers.SocketMessage {
         return {
             type: MESSAGE_TYPES.hookTriggerMessage,
-            value
+            value: JSON.parse(safeStringify(value))
         }
     }
 }
