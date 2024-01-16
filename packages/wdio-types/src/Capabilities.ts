@@ -1138,9 +1138,9 @@ export interface BrowserStackCapabilities {
     debug?: boolean
     networkLogs?: boolean
     /**
-    * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
-    * Enable viewing the response data in the Network Logs tab on your session
-    */
+     * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
+     * Enable viewing the response data in the Network Logs tab on your session
+     */
     networkLogsOptions?: {
         captureContent?: boolean
     },
