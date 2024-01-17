@@ -67,7 +67,6 @@ describe('PercyLogger Log methods', () => {
     })
 })
 
-
 describe('PercyLogger clearLogger method', () => {
     let clearLoggerSpy: any
     beforeEach(() => {
@@ -75,7 +74,6 @@ describe('PercyLogger clearLogger method', () => {
     })
   
     it('should do nothing if logFileStream is null', () => {
-
         PercyLogger.clearLogger()
         expect(clearLoggerSpy).toBeCalled()
     })
@@ -85,12 +83,12 @@ describe('PercyLogger clearLogger method', () => {
     })
   })
 
-  describe('PercyLogger clearLogFile method', () => {
+describe('PercyLogger clearLogFile method', () => {
     let clearLogFileSpy: any
     beforeEach(() => {
         clearLogFileSpy = jest.spyOn(PercyLogger, 'clearLogFile')
     })
-  
+
     it('should do nothing if logFileStream is null', () => {
 
         PercyLogger.clearLogFile()
@@ -100,25 +98,25 @@ describe('PercyLogger clearLogger method', () => {
     afterEach(() => {
         jest.clearAllMocks()
     })
-  })
+})
 
-  describe('PercyLogger logToFile method', () => {
+describe('PercyLogger logToFile method', () => {
     let logToFileSpy: any
-    
+
     beforeEach(() => {
         logToFileSpy = jest.spyOn(PercyLogger, 'logToFile')
     })
-  
+
     it('should do nothing if logFileStream is null', () => {
 
         jest.spyOn(fs, 'existsSync' ).mockReturnValue(false)
         jest.spyOn(fs, 'mkdirSync' ).mockReturnValue(true)
 
-        jest.spyOn(fs, 'createWriteStream' ).mockReturnValue("filepath")
-        PercyLogger.logToFile("message", "info")
+        jest.spyOn(fs, 'createWriteStream' ).mockReturnValue('filepath')
+        PercyLogger.logToFile('message', 'info')
         expect(logToFileSpy).toBeCalled()
     })
     afterEach(() => {
         jest.clearAllMocks()
     })
-  })
+})
