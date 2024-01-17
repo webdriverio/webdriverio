@@ -68,9 +68,3 @@ export interface WorkerResponseMessage {
         message: Workers.SocketMessage
     }
 }
-
-export interface WorkerCoverageMapMessage {
-    origin: 'worker'
-    name: 'coverageMap',
-    content: { coverageMap: unknown }
-}
