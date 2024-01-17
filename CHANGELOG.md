@@ -21,6 +21,38 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.28.0 (2024-01-17)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#12005](https://github.com/webdriverio/webdriverio/pull/12005) (@wdio/browser-runner): move assertions to Node.js environment ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11865](https://github.com/webdriverio/webdriverio/pull/11865) Wdio Percy Support v8 ([@amaanbs](https://github.com/amaanbs))
+
+#### :bug: Bug Fix
+* `wdio-logger`
+  * [#11959](https://github.com/webdriverio/webdriverio/pull/11959) Closes [#11937](https://github.com/webdriverio/webdriverio/issues/11937):  Always print error message to terminal when integration package is not found ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#12030](https://github.com/webdriverio/webdriverio/pull/12030) addresses #12029 ([@ciekawy](https://github.com/ciekawy))
+* `wdio-utils`
+  * [#12002](https://github.com/webdriverio/webdriverio/pull/12002) wdio-utils: Fitler invalidateCache from stacktraces ([@WillBrock](https://github.com/WillBrock))
+* `wdio-browserstack-service`
+  * [#11997](https://github.com/webdriverio/webdriverio/pull/11997) [browserstack-service] Add platform version integration data for skipped tests ([@sriteja777](https://github.com/sriteja777))
+
+#### :memo: Documentation
+* [#12003](https://github.com/webdriverio/webdriverio/pull/12003) (docs): update electron docs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Klymenko ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Szymon Stasik ([@ciekawy](https://github.com/ciekawy))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
 ## v8.27.2 (2024-01-11)
 
 #### :rocket: New Feature
