@@ -7,7 +7,7 @@ authorImageURL: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
 
 ## "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks"
 
-![Enhanced Test Automation with WebdriverIO](assets/enhanced-test-automation-webdriverio/bookCover.jpg)
+![Enhanced Test Automation with WebdriverIO](assets/enhanced-test-automation-webdriverio/Cover.png)
 
 Embark on a transformative journey into the dynamic landscape of test automation with the compelling and instructive guide, "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks." Authored with the dual purpose of empowering both newcomers and seasoned developers, this comprehensive book serves as an indispensable manual for mastering advanced WebdriverIO concepts, specifically tailored for end-to-end testing of web applications.
 
