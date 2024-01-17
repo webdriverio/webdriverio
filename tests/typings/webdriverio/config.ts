@@ -1,8 +1,22 @@
 import { expectType } from 'tsd'
+import type { Capabilities } from '@wdio/types'
 
 class CustomService {
     onPrepare() {
         // TODO: something before all workers launch
+    }
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            'wdio:customCaps'?: {
+                // a foo cap
+                foo: string
+                // a bar cap
+                bar: number
+            }
+        }
     }
 }
 
@@ -54,21 +68,6 @@ const config: WebdriverIO.Config = {
             coverageReporter: {
                 enable: true,
                 type: 'foo'
-            }
-        }],
-        ['selenium-standalone', {
-            logs: 'string',
-            installArgs: {
-                version: ''
-            },
-            args: {
-                basePath: ''
-            },
-            skipSeleniumInstall: true,
-            drivers: {
-                chrome: 'yes',
-                // @ts-expect-error test wrong parameter
-                brave: 'no'
             }
         }],
         // @ts-expect-error test wrong parameter
@@ -159,10 +158,23 @@ const config: WebdriverIO.Config = {
             videoName: 'test.mp4'
         }
     }, {
+        'moon:options': {
+            logLevel: 'INFO',
+            mobileDevice: {
+                deviceName: 'Apple iPhone XR',
+                orientation: 'portrait' as Capabilities.MoonMobileDeviceOrientation
+            }
+        }
+    }, {
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: false
         }
-    }] as WebDriver.DesiredCapabilities[],
+    }, {
+        'wdio:customCaps': {
+            foo: 'bar',
+            bar: 123
+        }
+    }],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',

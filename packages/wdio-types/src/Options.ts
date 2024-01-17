@@ -2,7 +2,7 @@ import type http from 'node:http'
 import type https from 'node:https'
 import type { URL } from 'node:url'
 
-import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities.js'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
@@ -10,15 +10,17 @@ export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Agents = { http?: any, https?: any }
 
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+
 export interface RequestLibOptions {
     agent?: Agents
     followRedirect?: boolean
     headers?: Record<string, string | string[] | undefined>
     https?: Record<string, unknown>
     json?: Record<string, unknown>
-    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+    method?: Method
     responseType?: 'json' | 'buffer' | 'text'
-    retry?: { limit: number }
+    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
     searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     throwHttpErrors?: boolean
     timeout?: { response: number }
@@ -33,6 +35,17 @@ export interface RequestLibResponse {
     statusCode: number
     body?: any
     rawBody?: Buffer
+}
+
+export interface ShardOptions {
+    /**
+     * Total number of shards
+     */
+    total: number
+    /**
+     * Shard index to start from (starts with index 1)
+     */
+    current: number
 }
 
 /**
@@ -54,8 +67,6 @@ export interface Connection {
     hostname?: string
     /**
      * Port your WebDriver server is on.
-     *
-     * @default 4444
      */
     port?: number
     /**
@@ -202,6 +213,11 @@ export interface WebDriver extends Connection {
      * the `wdio` log.
      */
     outputDir?: string
+    /**
+     * The path to the root of the cache directory. This directory is used to store all drivers that are downloaded
+     * when attempting to start a session.
+     */
+    cacheDir?: string
 }
 
 export interface MultiRemoteBrowserOptions {
@@ -209,9 +225,9 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
-export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
+export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'us-east-4' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
-export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
+export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -261,7 +277,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      */
     automationProtocol?: SupportedProtocols
     /**
-     * If running on Sauce Labs, you can choose to run tests between different datacenters:
+     * If running on Sauce Labs, you can choose to run tests between different data centers:
      * US or EU. To change your region to EU, add region: 'eu' to your config.
      */
     region?: SauceRegions
@@ -297,7 +313,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```js
      * // wdio.conf.js
      * export const config = {
-     *   // ...
+     *   // define parallel running capabilities
      *   capabilities: [{
      *     browserName: 'safari',
      *     platformName: 'MacOS 10.13',
@@ -314,7 +330,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```
      * // wdio.conf.js
      * export const config = {
-     *   // ...
+     *   // multiremote example
      *   capabilities: {
      *     browserA: {
      *       browserName: 'chrome',
@@ -400,6 +416,16 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     specFileRetriesDeferred?: boolean
     /**
+     * Choose the log output view.
+     * If set to "false" logs from different test files will be printed in real-time.
+     * Please note that this may result in the mixing of log outputs from different Test Specs when running in parallel.
+     * If set to "true" log outputs will be grouped by test files and printed only when the test is completed.
+     * By default, it is set to "false" so logs are printed in real-time.
+     *
+     * @default false
+     */
+    groupLogsByTestSpec?: boolean,
+    /**
      * Services take over a specific job you don't want to take care of. They enhance
      * your test setup with almost no effort.
      */
@@ -446,6 +472,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * flags
      */
     watch?: boolean
+    /**
+     * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
+     */
+    shard?: ShardOptions
     /**
      * framework options
      */
@@ -560,7 +590,7 @@ export type Definition<T> = {
         type: 'string' | 'number' | 'object' | 'boolean' | 'function'
         default?: T[k]
         required?: boolean
-        validate?: (option: T[k]) => void
+        validate?: (option: T[k], keysToKeep?: (keyof T)[]) => void
         match?: RegExp
     }
 }
@@ -572,7 +602,7 @@ export interface RunnerStart {
     isMultiremote: boolean
     instanceOptions: Record<string, WebdriverIO>
     sessionId: string
-    capabilities: Capabilities
+    capabilities: WebdriverIO.Capabilities
     retry?: number
     failures?: number
     retries?: number

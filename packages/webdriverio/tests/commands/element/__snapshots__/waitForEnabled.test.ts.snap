@@ -7,7 +7,7 @@ exports[`waitForEnabled > should call waitUntil 1`] = `
     {
       "interval": 5,
       "timeout": 1000,
-      "timeoutMsg": "element (\\"#foo\\") still not enabled after 1000ms",
+      "timeoutMsg": "element ("#foo") still not enabled after 1000ms",
     },
   ],
 ]
@@ -20,7 +20,7 @@ exports[`waitForEnabled > should do reverse 1`] = `
     {
       "interval": 50,
       "timeout": 500,
-      "timeoutMsg": "element (\\"#foo\\") still enabled after 500ms",
+      "timeoutMsg": "element ("#foo") still enabled after 500ms",
     },
   ],
 ]

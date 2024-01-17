@@ -1,5 +1,5 @@
 import { beforeAll, describe, it, afterAll, expect } from 'vitest'
-import DevTools, { Client } from '../../packages/devtools/src/index'
+import DevTools, { type Client } from '../../packages/devtools/src/index.js'
 
 let browser: Client
 

@@ -1,14 +1,14 @@
 <%
-const harnessImport = installTestingLibrary
+const harnessImport = answers.installTestingLibrary
     ? `import { render, fireEvent } from '@testing-library/svelte'`
     : ``
-const renderCommand = installTestingLibrary
+const renderCommand = answers.installTestingLibrary
     ? `render(ExampleComponent)`
     : `new ExampleComponent({ target: container, props: {} })`
 %>
 import { $, expect } from '@wdio/globals'
 <%- harnessImport %>
-<% if (installTestingLibrary) { %>
+<% if (answers.installTestingLibrary) { %>
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 <% } %>
@@ -16,7 +16,7 @@ import ExampleComponent from './Component.svelte'
 import './Component.css'
 
 describe('Svelte Component Testing', () => {
-    <% if (installTestingLibrary) { %>
+    <% if (answers.installTestingLibrary) { %>
     it('should test component with Testing Library', async () => {
         const { getByText } = render(ExampleComponent)
 
@@ -29,7 +29,7 @@ describe('Svelte Component Testing', () => {
         expect(getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container<%- isUsingTypeScript ? `: Element` : '' %>
+    let container<%- answers.isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')

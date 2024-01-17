@@ -64,9 +64,8 @@ export const config = {
     // worker process. In order to have a group of spec files run in the same worker
     // process enclose them in an array within the specs array.
     //
-    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio`
-    // will be called from there.
+    // The path of the spec files will be resolved relative from the directory of
+    // of the config file unless it's absolute.
     //
     specs: [
         'test/spec/**',
@@ -333,14 +332,14 @@ export const config = {
      /**
       * परीक्षण निष्पादन शुरू होने से पहले निष्पादित हो जाता है। At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>}क्षमताओं के विवरण की क्षमताएं सूची
-      * @param {Array.<String>} स्पेक्स   चलाने के लिए स्पेक्स फ़ाइल पथों की सूची
-      * @param {object} ब्राउज़र   बनाए गए ब्राउज़र/डिवाइस सत्र का उदाहरण
-      */
-     पहले: फ़ंक्शन (क्षमताएं, स्पेक्स, ब्राउज़र) {
-     },
-     /**
-      * सूट शुरू होने से पहले निष्पादित हो जाता है।
+     * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {Array.<String>} specs        List of spec file paths that are to be run
+     * @param {object}         browser      instance of created browser/device session
+     */
+    before: function (capabilities, specs, browser) {
+    },
+    /**
+     * Gets executed before the suite starts (in Mocha/Jasmine only).
      * @param {object} सुइट सुइट विवरण
       */
      पहले सुइट: फ़ंक्शन (सूट) {
@@ -367,34 +366,34 @@ export const config = {
      },
      /**
       * WebdriverIO कमांड निष्पादित होने से पहले चलता है।
-     * @ param {string} कमांडनाम हुक कमांड नाम
-      * @param {Array} तर्क देता है कि कमांड प्राप्त होगा
-      */
-     कमांड से पहले: फ़ंक्शन (कमांडनाम, तर्क) {
-     },
-     /**
-      * WebdriverIO कमांड निष्पादित होने के बाद चलता है
-      * @ param {string} कमांडनाम हुक कमांड नाम
-      * @param {Array} उन तर्कों का तर्क देता है जो कमांड प्राप्त करेंगे
-      * @ param {number} परिणाम 0 - कमांड सफलता, 1 - कमांड त्रुटि
-      * @param {object} एरर एरर ऑब्जेक्ट, यदि कोई हो
-      */
-     afterCommand: फ़ंक्शन (कमांडनाम, तर्क, परिणाम, त्रुटि) {
-     },
-     /**
-      * एक परीक्षण के बाद निष्पादित किया जाने वाला कार्य (केवल मोचा/जेसमीन में)
-      * @ param {{object}} टेस्ट टेस्ट ऑब्जेक्ट
-      * @param {object} संदर्भ स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
-      * @param {Error} परिणाम। परीक्षण विफल होने की स्थिति में त्रुटि त्रुटि वस्तु, अन्यथा `अपरिभाषित`
-      * @param {*} result.result टेस्ट फंक्शन का रिटर्न ऑब्जेक्ट
-      * @param {number} परिणाम। परीक्षण की अवधि
-      * @param {boolean} परिणाम। यदि परीक्षण पास हो गया है तो सही है, अन्यथा गलत है
-      * @param {object} result.विशेष संबंधित पुनर्प्रयासों के लिए सूचनाओं का पुनः प्रयास करता है, उदा। `{प्रयास: 0, सीमा: 0}`
-      */
-     afterTest: फ़ंक्शन (परीक्षण, संदर्भ, {त्रुटि, परिणाम, अवधि, उत्तीर्ण, पुनर्प्रयास}) {
-     },
-     /**
-      * हुक जो सूट समाप्त होने के बाद निष्पादित हो जाता है।
+     * @param {string} commandName hook command name
+     * @param {Array} args arguments that the command would receive
+     */
+    beforeCommand: function (commandName, args) {
+    },
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param {string} commandName hook command name
+     * @param {Array} args arguments that command would receive
+     * @param {number} result 0 - command success, 1 - command error
+     * @param {object} error error object, if any
+     */
+    afterCommand: function (commandName, args, result, error) {
+    },
+    /**
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {object}  test             test object
+     * @param {object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {*}       result.result    return object of test function
+     * @param {number}  result.duration  duration of test
+     * @param {boolean} result.passed    true if test has passed, otherwise false
+     * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     */
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
+    },
+    /**
+     * Hook that gets executed after the suite has ended (in Mocha/Jasmine only).
      * @param {object} सुइट सुइट विवरण
       */
      afterSuite: फ़ंक्शन (सूट) {
@@ -454,7 +453,7 @@ export const config = {
       *
       * कुकुम्बर स्टेप से पहले रन करता है।
      * @param {Pickle.IPickleStep}    स्टेप    स्टेप डेटा
-      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल 
+      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल
       * @param {{object}}   संदर्भ   कुकुम्बर विश्व वस्तु
       */
      स्टेप से पहले: फ़ंक्शन (चरण, परिदृश्य, संदर्भ) {

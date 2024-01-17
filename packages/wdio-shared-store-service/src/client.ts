@@ -2,7 +2,7 @@ import type { RequestError } from 'got'
 import got from 'got'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
-import type { GetValueOptions } from './types'
+import type { GetValueOptions } from './types.js'
 
 let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
 const baseUrlPromise = new Promise<string>((resolve) => {
@@ -26,6 +26,9 @@ export const setPort = (port: number) => {
  * @returns {*}
  */
 export const getValue = async (key: string): Promise<string | number | boolean | JsonObject | JsonArray | null | undefined> => {
+    if (!isBaseUrlReady) {
+        throw new Error('Attempting to use `getValue` before the server has been initialized.')
+    }
     const baseUrl = await baseUrlPromise
     const res = await got.get(`${baseUrl}/${key}`, { responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
@@ -63,6 +66,9 @@ export const setResourcePool = async (key: string, value: JsonArray) => {
  * @param {*}       value
  */
 export const getValueFromPool = async (key: string, options?: GetValueOptions) => {
+    if (!isBaseUrlReady) {
+        throw new Error('Attempting to use `getValueFromPool` before the server has been initialized.')
+    }
     const baseUrl = await baseUrlPromise
     const res = await got.get(`${baseUrl}/pool/${key}${typeof options?.timeout === 'number' ? `?timeout=${options.timeout}` : '' }`, { responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
@@ -74,6 +80,9 @@ export const getValueFromPool = async (key: string, options?: GetValueOptions) =
  * @param {*}       value
  */
 export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCompatible) => {
+    if (!isBaseUrlReady) {
+        throw new Error('Attempting to use `addValueToPool` before the server has been initialized.')
+    }
     const baseUrl = await baseUrlPromise
     const res = await got.post(`${baseUrl}/pool/${key}`, { json: { value }, responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined

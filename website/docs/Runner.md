@@ -63,6 +63,7 @@ This runner uses [Vite](https://vitejs.dev/) to compile your test code and load 
 - Vue.js
 - Svelte
 - SolidJS
+- Stencil
 
 Every test file / test file group runs within a single page which means that between each test the page is being reloaded to guarantee isolation between tests.
 
@@ -95,7 +96,7 @@ The Browser runner allows following configurations:
 
 If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`.
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br />
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br />
 __Example:__
 
 ```js title="wdio.conf.js"

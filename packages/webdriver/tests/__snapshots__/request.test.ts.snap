@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`webdriver request > defines correct exceptions for request retries 1`] = `
+[
+  "/session/:sessionId/actions",
+]
+`;

@@ -63,6 +63,7 @@ export const {
 - Vue.js
 - Svelte
 - SolidJS
+- Stencil
 
 هر فایل تستی یا گروه فایل تست در یک صفحه اجرا می شود، به این معنی که بین هر تست، صفحه دوباره بارگذاری می شود تا جداسازی بین تست ها تضمین شود.
 
@@ -95,7 +96,7 @@ export const {
 
 اگر مؤلفه‌ها را با استفاده از یکی از چارچوب‌های ذکر شده در بالا آزمایش می‌کنید، می‌توانید یک پیش‌تنظیم تعریف کنید که مطمئن شود همه چیز در خارج پیکربندی می‌شود. این گزینه را نمی توان همراه با `viteConfig`استفاده کرد.
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br /> __Example:__
 
 ```js title="wdio.conf.js"
 export const {

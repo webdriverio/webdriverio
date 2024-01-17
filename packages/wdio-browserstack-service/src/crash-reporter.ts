@@ -1,12 +1,12 @@
-import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 import got from 'got'
 
 import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
+import { BStackLogger } from './bstackLogger.js'
 
-const log = logger('@wdio/browserstack-service')
+type Dict = Record<string, any>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -24,10 +24,11 @@ export default class CrashReporter {
 
     static setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
         const configWithoutPII = this.filterPII(userConfig)
+        const filteredCapabilities = this.filterCapabilities(capabilities)
         this.userConfigForReporting = {
             framework: userConfig.framework,
             services: configWithoutPII.services,
-            capabilities: capabilities,
+            capabilities: filteredCapabilities,
             env: {
                 'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
                 'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
@@ -44,10 +45,10 @@ export default class CrashReporter {
                 this.credentialsForCrashReportUpload = process.env.CREDENTIALS_FOR_CRASH_REPORTING !== undefined ? JSON.parse(process.env.CREDENTIALS_FOR_CRASH_REPORTING) : this.credentialsForCrashReportUpload
             }
         } catch (error) {
-            return log.error(`[Crash_Report_Upload] Failed to parse user credentials while reporting crash due to ${error}`)
+            return BStackLogger.error(`[Crash_Report_Upload] Failed to parse user credentials while reporting crash due to ${error}`)
         }
         if (!this.credentialsForCrashReportUpload.username || !this.credentialsForCrashReportUpload.password) {
-            return log.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
+            return BStackLogger.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
         }
 
         try {
@@ -55,7 +56,7 @@ export default class CrashReporter {
                 this.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
             }
         } catch (error) {
-            log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
+            BStackLogger.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
             this.userConfigForReporting = {}
         }
 
@@ -77,10 +78,27 @@ export default class CrashReporter {
             ...this.credentialsForCrashReportUpload,
             json: data
         }).text().then(response => {
-            log.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
+            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
         }).catch((error) => {
-            log.error(`[Crash_Report_Upload] Failed due to ${error}`)
+            BStackLogger.error(`[Crash_Report_Upload] Failed due to ${error}`)
         })
+    }
+
+    static recursivelyRedactKeysFromObject(obj: Dict | Array<Dict>, keys: string[]) {
+        if (!obj) {
+            return
+        }
+        if (Array.isArray(obj)) {
+            obj.map(ele => this.recursivelyRedactKeysFromObject(ele, keys))
+        } else {
+            for (const prop in obj) {
+                if (keys.includes(prop.toLowerCase())) {
+                    obj[prop] = '[REDACTED]'
+                } else if (typeof obj[prop] === 'object') {
+                    this.recursivelyRedactKeysFromObject(obj[prop], keys)
+                }
+            }
+        }
     }
 
     static deletePIIKeysFromObject(obj: {[key: string]: any}) {
@@ -88,6 +106,12 @@ export default class CrashReporter {
             return
         }
         ['user', 'username', 'key', 'accessKey'].forEach(key => delete obj[key])
+    }
+
+    static filterCapabilities(capabilities: Capabilities.RemoteCapability) {
+        const capsCopy = JSON.parse(JSON.stringify(capabilities))
+        this.recursivelyRedactKeysFromObject(capsCopy, ['extensions'])
+        return capsCopy
     }
 
     static filterPII(userConfig: Options.Testrunner) {
@@ -109,7 +133,7 @@ export default class CrashReporter {
             }
         } catch (err: any) {
             /* Wrong configuration like strings instead of json objects could break this method, needs no action */
-            log.error(`Error in parsing user config PII with error ${err ? (err.stack || err) : err}`)
+            BStackLogger.error(`Error in parsing user config PII with error ${err ? (err.stack || err) : err}`)
             return configWithoutPII
         }
         configWithoutPII.services = finalServices

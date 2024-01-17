@@ -7,6 +7,7 @@ import logger from '@wdio/logger'
 import BrowserstackService from '../src/service.js'
 import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -17,6 +18,9 @@ vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
 
 const log = logger('test')
 let service: BrowserstackService
@@ -304,6 +308,36 @@ describe('_printSessionURL Appium', () => {
     })
 })
 
+describe('_printSessionURL TurboScale', () => {
+    beforeEach(() => {
+        vi.mocked(got).mockResolvedValue({
+            body: {
+                name: 'Smoke Test',
+                duration: 65,
+                browser_version: '116',
+                browser: 'chrome',
+                status: 'failed',
+                reason: 'CLIENT_STOPPED_SESSION',
+                url: 'https://grid.browserstack.com/dashboard/builds/1/sessions/2'
+            }
+        })
+
+        browser.capabilities = {
+            browserName: 'chrome',
+            browserVersion: '116'
+        }
+    })
+
+    it('should get and log session details', async () => {
+        service['_browser'] = browser
+        service['_turboScale'] = true
+        await service._printSessionURL()
+        expect(log.info).toHaveBeenCalledWith(
+            'chrome 116 session: https://grid.browserstack.com/dashboard/builds/1/sessions/2'
+        )
+    })
+})
+
 describe('before', () => {
     it('should set auth to default values if not provided', async () => {
         let service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
@@ -424,6 +458,34 @@ describe('before', () => {
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
+    })
+
+    it('should initialize correctly for turboScale when option passed', () => {
+        const service = new BrowserstackService({
+            turboScale: true
+        } as any, {}, {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {}
+        })
+        service.before(service['_config'] as any, [], browser)
+
+        expect(service['_failReasons']).toEqual([])
+        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate-turboscale/v1/sessions')
+    })
+
+    it('should initialize correctly for turboScale when env var is set', () => {
+        process.env.BROWSERSTACK_TURBOSCALE = 'true'
+        const service = new BrowserstackService({} as any, {}, {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {}
+        })
+        service.before(service['_config'] as any, [], browser)
+        delete process.env.BROWSERSTACK_TURBOSCALE
+
+        expect(service['_failReasons']).toEqual([])
+        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate-turboscale/v1/sessions')
     })
 })
 

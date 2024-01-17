@@ -18,7 +18,7 @@ import {
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setAllureIds, isMochaBeforeEachHook,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -139,7 +139,7 @@ export default class AllureReporter extends WDIOReporter {
             const currentTest = this._state.pop() as AllureTest | AllureStep
 
             if (currentTest instanceof AllureTest) {
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
             } else {
                 currentTest.endStep()
@@ -171,7 +171,7 @@ export default class AllureReporter extends WDIOReporter {
         currentTest.status = AllureStatus.SKIPPED
 
         if (currentTest instanceof AllureTest) {
-            setHistoryId(currentTest, this._state.currentSuite)
+            setAllureIds(currentTest, this._state.currentSuite)
             currentTest.endTest()
         } else {
             currentTest.endStep()
@@ -194,7 +194,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (currentSpec instanceof AllureTest) {
-            setHistoryId(currentSpec, this._state.currentSuite)
+            setAllureIds(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
         } else {
             currentSpec.endStep()
@@ -358,7 +358,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.SKIPPED
                 currentTest.stage = Stage.PENDING
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -377,7 +377,7 @@ export default class AllureReporter extends WDIOReporter {
                     currentTest.detailsTrace = error.stack
                 }
 
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -391,7 +391,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
-                setHistoryId(currentTest, this._state.currentSuite)
+                setAllureIds(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -406,22 +406,14 @@ export default class AllureReporter extends WDIOReporter {
 
     onTestStart(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
-
         this._consoleOutput = ''
-
-        const testTitle = test.currentTest ? test.currentTest : test.title
-
-        if (this._state.currentTest?.wrappedItem.name === testTitle) {
-            // Test already in progress, most likely started by a before each hook
-            return
-        }
 
         if (useCucumberStepReporter) {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
 
-            this._startStep(testTitle)
+            this._startStep(test.title)
 
             if (dataTable) {
                 this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
@@ -429,7 +421,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this._startTest(testTitle, test.cid)
+        this._startTest(test.title, test.cid)
     }
 
     onTestPass() {
@@ -498,21 +490,18 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        if (!this._state.currentAllureTestOrStep || this._isMultiremote) {
-            return
-        }
-
-        const isScreenshot = isScreenshotCommand(command)
         const { value: commandResult } = command?.result || {}
-
+        const isScreenshot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
         }
 
-        if (!disableWebdriverStepsReporting) {
-            this.attachJSON('Response', commandResult)
-            this._endTest(AllureStatus.PASSED)
+        if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
+            return
         }
+
+        this.attachJSON('Response', commandResult)
+        this.endStep(AllureStatus.PASSED)
     }
 
     onHookStart(hook: HookStats) {
@@ -547,7 +536,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks } = this._options
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
         // ignore global hooks
         if (!hook.parent || !this._state.currentSuite) {
@@ -564,20 +553,44 @@ export default class AllureReporter extends WDIOReporter {
         // set beforeEach / afterEach hook (step) status
         if (disableMochaHooks && isMochaEachHook) {
             this._endTest(hook.error ? AllureStatus.FAILED : AllureStatus.PASSED, hook.error)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && hook.error) {
+                const fakeTestStat = Object.assign({}, hook, { title: hook.currentTest }) as TestStats
+                this._endTest(fakeTestStat.error ? AllureStatus.FAILED : AllureStatus.PASSED, fakeTestStat.error)
+            }
             return
         }
 
         if (hook.error) {
             // add hook as test to suite for mocha all hooks, when it didn't start before
-            if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+            if (disableMochaHooks && isMochaAllHook) {
                 this.onTestStart(hook)
             }
 
             this.onTestFail(hook)
+            // mocha doesn't fire onTestEnd for failed beforeEach hook
+            // we have to force mark test as failed test
+            if (isMochaBeforeEachHook(hook.title) && !disableMochaHooks) {
+                this.onTestFail(Object.assign({}, hook, { title: hook.currentTest }) as TestStats)
+            }
+
             return
         }
 
         this.onTestPass()
+
+        if (useCucumberStepReporter) {
+            // remove hook from suite if it has no steps or attachments
+            const currentItem = this._state.currentAllureTestOrStep?.wrappedItem
+            if (currentItem) {
+                const currentStep = currentItem.steps[currentItem.steps.length-1]
+
+                if (currentStep.steps.length === 0 && currentStep.attachments.length === 0 && currentItem.attachments.length === 0) {
+                    currentItem.steps.pop()
+                }
+            }
+        }
     }
 
     addLabel({

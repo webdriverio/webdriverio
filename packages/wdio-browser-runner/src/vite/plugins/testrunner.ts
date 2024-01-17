@@ -3,6 +3,7 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
+import { matchers } from 'expect-webdriverio'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
@@ -41,19 +42,22 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize'
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'decamelize', 'got',
+    'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
+    'lodash.isequal', '@wdio/repl'
 ]
 
 const POLYFILLS = [
     ...builtinModules,
     ...builtinModules.map((m) => `node:${m}`)
-].map((m) => m.replace('/promises', ''))
-
+]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
-    const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
-    const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
-    const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
+    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
+    const mockModulePath = path.resolve(browserModules, 'mock.js')
+    const setupModulePath = path.resolve(browserModules, 'setup.js')
+    const spyModulePath = path.resolve(browserModules, 'spy.js')
+    const wdioExpectModulePath = path.resolve(browserModules, 'expect.js')
     return [{
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -63,15 +67,30 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             }
 
             if (POLYFILLS.includes(id)) {
-                return polyfillPath(normalizeId(id))
+                return polyfillPath(normalizeId(id.replace('/promises', '')))
             }
 
+            /**
+             * fake the content of this package and load the implementation of the mock
+             * features from the browser module directory
+             */
             if (id === '@wdio/browser-runner') {
                 return spyModulePath
             }
 
+            /**
+             * allow to load the setup script from a script tag
+             */
             if (id.endsWith('@wdio/browser-runner/setup')) {
                 return setupModulePath
+            }
+
+            /**
+             * run WebdriverIO assertions within the Node.js context so we can do things like
+             * visual assertions or snapshot testing
+             */
+            if (id === 'expect-webdriverio') {
+                return wdioExpectModulePath
             }
 
             /**
@@ -94,8 +113,11 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === resolvedVirtualModuleId) {
                 return /*js*/`
+                    import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
+                    export const matchers = ${JSON.stringify(Object.keys(matchers))}
+                    export const wrappedFn = (...args) => fn()(...args)
                 `
             }
         },
@@ -123,7 +145,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * don't return test page when sourcemaps are requested
                      */
-                    if (!req.originalUrl || req.url?.endsWith('.map')) {
+                    if (!req.originalUrl || req.url?.endsWith('.map') || req.url?.endsWith('.wasm')) {
                         return next()
                     }
 

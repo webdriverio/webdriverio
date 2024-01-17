@@ -45,7 +45,7 @@ describe('waitForDisplayed', () => {
 
         expect(result).toBe(true)
         expect(vi.mocked(got).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     it('should call isDisplayed and return true if eventually true', async () => {

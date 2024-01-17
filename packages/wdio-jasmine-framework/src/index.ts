@@ -4,7 +4,7 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-import { matchers, getConfig } from 'expect-webdriverio'
+import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
@@ -18,6 +18,15 @@ const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
 }
 
+const EXPECT_ASYMMETRIC_MATCHERS = [
+    'any',
+    'anything',
+    'arrayContaining',
+    'objectContaining',
+    'stringContaining',
+    'stringMatching',
+    'not',
+] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
@@ -117,11 +126,11 @@ class JasmineAdapter {
 
         const emitHookEvent = (
             fnName: string,
-            eventType: string
+            eventType: string,
         ) => (
             _test: never,
             _context: never,
-            { error }: { error?: jasmine.FailedExpectation } = {}
+            { error }: { error?: jasmine.FailedExpectation } = {},
         ) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
             const hook = {
@@ -149,7 +158,7 @@ class JasmineAdapter {
          */
         INTERFACES.bdd.forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
-            const beforeHook = [...this._config.beforeHook]
+            const beforeHook = [...this._config.beforeHook] as ((test: any, context: any) => void)[]
             const afterHook = [...this._config.afterHook]
 
             /**
@@ -172,7 +181,7 @@ class JasmineAdapter {
         })
 
         /**
-         * for a clean stdout we need to avoid that Jasmine initialises the
+         * for a clean stdout we need to avoid that Jasmine initializes the
          * default reporter
          */
         Jasmine.prototype.configureDefaultReporter = NOOP
@@ -201,6 +210,17 @@ class JasmineAdapter {
         const expect = jasmineEnv.expectAsync
         const matchers = this.#setupMatchers(jasmine)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
+
+        /**
+         * make Jasmine and WebdriverIOs expect global more compatible by attaching
+         * support asymmetric matchers to the `expect` global
+         */
+        const wdioExpect = expectImport as ExpectWebdriverIO.Expect
+        for (const matcher of EXPECT_ASYMMETRIC_MATCHERS) {
+            expect[matcher] = wdioExpect[matcher]
+        }
+        expect.not = wdioExpect.not
+
         _setGlobal('expect', expect, this._config.injectGlobals)
 
         /**
@@ -223,8 +243,7 @@ class JasmineAdapter {
                 this._jrunner.addRequires(this._jasmineOpts.requires)
             }
             if (Array.isArray(this._jasmineOpts.helpers)) {
-                // @ts-ignore outdated types
-                this._jrunner.addHelperFiles(this._jasmineOpts.helpers)
+                this._jrunner.addMatchingHelperFiles(this._jasmineOpts.helpers)
             }
             // @ts-ignore outdated types
             await this._jrunner.loadRequires()
@@ -235,7 +254,7 @@ class JasmineAdapter {
             this._hasTests = this._totalTests > 0
         } catch (err: any) {
             log.warn(
-                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
                 `Spec file(s): ${this._specs.join(',')}\n`,
@@ -389,16 +408,32 @@ class JasmineAdapter {
         }
     }
 
-    #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
-        // @ts-expect-error not exported in jasmine
-        const jasmineMatchers: jasmine.CustomMatcherFactories = jasmine.matchers
-        const syncMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(jasmineMatchers).reduce((prev, [name, fn]) => {
+    #transformMatchers (matchers: jasmine.CustomMatcherFactories) {
+        return Object.entries(matchers).reduce((prev, [name, fn]) => {
             prev[name] = (util) => ({
                 compare: async <T>(actual: T, expected: T, ...args: any[]) => fn(util).compare(actual, expected, ...args),
-                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).negativeCompare!(actual, expected, ...args)
+                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
+                    const { pass, message } = fn(util).compare(actual, expected, ...args)
+                    return {
+                        pass: !pass,
+                        message
+                    }
+                }
             })
             return prev
         }, {} as jasmine.CustomAsyncMatcherFactories)
+    }
+
+    #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
+        /**
+         * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
+         * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous
+         * matchers are added to `expectAsync`
+         */
+        globalThis.jasmine.addMatchers = (matchers) => globalThis.jasmine.addAsyncMatchers(this.#transformMatchers(matchers))
+
+        // @ts-expect-error not exported in jasmine
+        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
         const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(matchers as Record<string, any>).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
@@ -496,5 +531,9 @@ declare global {
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}
+    }
+    namespace ExpectWebdriverIO {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        interface Matchers<R, T> extends jasmine.Matchers<R> {}
     }
 }

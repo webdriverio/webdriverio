@@ -63,7 +63,10 @@ class MochaAdapter {
         }
 
         const mocha = this._mocha = new Mocha(mochaOpts)
-        await mocha.loadFilesAsync()
+        // @ts-ignore outdated types
+        await mocha.loadFilesAsync({
+            esmDecorator: (file: string) => `${file}?invalidateCache=${Math.random()}`
+        })
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
@@ -80,13 +83,17 @@ class MochaAdapter {
         const { beforeTest, beforeHook, afterTest, afterHook } = this._config
         mocha.suite.on('pre-require', () =>
             setupEnv(this._cid, this._config.mochaOpts, beforeTest, beforeHook, afterTest, afterHook))
+        mocha.suite.on('require', () => mocha.unloadFiles())
         await this._loadFiles(mochaOpts)
         return this
     }
 
     async _loadFiles (mochaOpts: MochaOptsImport) {
         try {
-            await this._mocha!.loadFilesAsync()
+            // @ts-ignore outdated types
+            await this._mocha!.loadFilesAsync({
+                esmDecorator: (file: string) => `${file}?invalidateCache=${Math.random()}`
+            })
 
             /**
              * grep
@@ -99,7 +106,7 @@ class MochaAdapter {
             this._hasTests = mochaRunner.total > 0
         } catch (err: any) {
             const error = '' +
-                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
                 `Spec file(s): ${this._specs.join(',')}\n` +

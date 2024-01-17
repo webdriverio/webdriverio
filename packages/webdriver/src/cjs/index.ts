@@ -1,13 +1,17 @@
-import type { Options } from '@wdio/types'
-import type { Client, AttachOptions } from '../types.js'
+function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
+    return async function protocolCommand(this: unknown, ...args: unknown[]) {
+        const commandESM = await import('../command.js')
+        return commandESM.default(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
+    }
+}
 
 class WebDriver {
     static async newSession(
-        options: Options.WebDriver,
+        options: any,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
-    ): Promise<Client> {
+    ): Promise<any> {
         const WebDriver = (await import('../index.js')).default
         return WebDriver.newSession(options, modifier, userPrototype, customCommandWrapper)
     }
@@ -15,12 +19,12 @@ class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static async attachToSession(
-        options?: AttachOptions,
+    static async attachToSession (
+        options?: any,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         commandWrapper?: (...args: any[]) => any
-    ): Promise<Client> {
+    ): Promise<any> {
         const WebDriver = (await import('../index.js')).default
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
@@ -32,14 +36,19 @@ class WebDriver {
      * @param   {object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
      */
-    static async reloadSession(instance: Client) {
+    static async reloadSession (instance: any) {
         const WebDriver = (await import('../index.js')).default
         return WebDriver.reloadSession(instance)
     }
 
-    static get WebDriver() {
+    static get WebDriver () {
         return WebDriver
+    }
+
+    static get command () {
+        return command
     }
 }
 
 module.exports = WebDriver
+exports.command = command

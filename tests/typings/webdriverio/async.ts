@@ -1,9 +1,11 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, ElementArray } from 'webdriverio'
+import { remote, multiremote, SevereServiceError } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
-import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
+import type { MockOverwriteFunction } from '../../../packages/webdriverio/src/utils/interception/types.ts'
+import type { ClickOptions, TouchAction, Selector, Action } from '../../../packages/webdriverio/build/types'
+import { Key } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -20,6 +22,16 @@ declare global {
         }
     }
 }
+
+const actions: Action[] = [{
+    id: 'foobar',
+    type: 'key',
+    actions: [
+        { type: 'keyDown', value: Key.Enter },
+        { type: 'pause', duration: 2_000 },
+        { type: 'keyUp', value: Key.Enter }
+    ]
+}]
 
 async function bar() {
     // multiremote
@@ -71,7 +83,7 @@ async function bar() {
     const elemA = await remoteBrowser.$('')
     const elemB = await remoteBrowser.$('')
     const multipleElems = await $$([elemA, elemB])
-    expectType<ElementArray>(multipleElems)
+    expectType<WebdriverIO.ElementArray>(multipleElems)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -245,6 +257,8 @@ async function bar() {
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')
     await el2.click()
+    // @ts-expect-error don't allow browser commands on WebdriverIO.Element
+    await el1.url('https://webdriver.io')
     await el1.moveTo({ xOffset: 0, yOffset: 0 })
     const elementExists: true | void = await el2.waitForExist({
         timeout: 1,
@@ -297,6 +311,11 @@ async function bar() {
     expectType<string>(await el4.getAttribute('class'))
     expectType<void>(await el5.scrollIntoView(false))
 
+    // async iterator
+    const iteratorResult = await $$('').map((el) => el.getText())
+    expectType<string[]>(iteratorResult)
+    expectType<string[]>(await elems.map((el) => el.getText()))
+
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
     await elem.addValue('Delete')
@@ -323,8 +342,8 @@ async function bar() {
 
     // test access to base client properties
     expectType<string>(browser.sessionId)
-    expectType<string>((browser.capabilities as WebDriver.Capabilities).browserName)
-    expectType<string>((browser.requestedCapabilities as WebDriver.Capabilities).browserName)
+    expectType<string>((browser.capabilities as WebdriverIO.Capabilities).browserName)
+    expectType<string>((browser.requestedCapabilities as WebdriverIO.Capabilities).browserName)
     expectType<boolean>(browser.isMobile)
     expectType<boolean>(browser.isAndroid)
     expectType<boolean>(browser.isIOS)
@@ -389,8 +408,8 @@ async function bar() {
     })
 
     // network mocking
-    browser.throttle('Regular2G')
-    browser.throttle({
+    browser.throttleNetwork('Regular2G')
+    browser.throttleNetwork({
         offline: false,
         downloadThroughput: 50 * 1024 / 8,
         uploadThroughput: 20 * 1024 / 8,
@@ -493,7 +512,7 @@ async function bar() {
         }, {} as Random)
     )
 
-    const elemArrayTest: ElementArray = {} as any
+    const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
 }

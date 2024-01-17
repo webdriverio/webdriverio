@@ -1,5 +1,4 @@
 import os from 'node:os'
-import type { Capabilities } from '@wdio/types'
 
 import type { BaseActionParams } from './base.js'
 import BaseAction from './base.js'
@@ -15,12 +14,12 @@ export default class KeyAction extends BaseAction {
             throw new Error(`Invalid type for key input: "${typeof value}", expected a string!`)
         }
 
-        const platformName = (this.instance.capabilities as Capabilities.Capabilities).platformName
+        const platformName = (this.instance.capabilities as WebdriverIO.Capabilities).platformName
         const isMac = (
             // check capabilities first
             platformName && platformName.match(/mac(\s)*os/i) ||
             // if not set, expect we run locally
-            (this.instance.options.hostname?.match(/127\.0\.0\.1|local/i) && os.type().match(/darwin/i))
+            (this.instance.options.hostname?.match(/0\.0\.0\.0|127\.0\.0\.1|local/i) && os.type().match(/darwin/i))
         )
 
         if (value === Key.Ctrl) {

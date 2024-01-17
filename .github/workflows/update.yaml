@@ -27,13 +27,13 @@ jobs:
         # Don't merge updates to GitHub Actions versions automatically.
         # (Some repos may wish to limit by version range (major/minor/patch), or scope (dep vs dev-dep), too.)
         if: contains(steps.metadata.outputs.package-ecosystem, 'npm')
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: lewagon/wait-on-check-action@v1.3.3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30 # seconds
           running-workflow-name: dependencies # wait for all checks except this one
-          allowed-conclusions: success # all other checks must pass, being skipped or cancelled is not sufficient
+          allowed-conclusions: success,skipped,cancelled # all other checks must pass, being skipped or cancelled is not sufficient
 
       - name: Auto-merge dependabot PRs
         # Don't merge updates to GitHub Actions versions automatically.

@@ -1,14 +1,14 @@
 <%
-const harnessImport = installTestingLibrary
+const harnessImport = answers.installTestingLibrary
     ? `import { h } from 'preact'\nimport { render, screen, fireEvent } from '@testing-library/preact'`
     : `import { h, render } from 'preact'\nimport htm from 'https://esm.sh/htm'`
-const renderCommand = installTestingLibrary
+const renderCommand = answers.installTestingLibrary
     ? `render(<ExampleComponent />)`
     : "render(html`<${ExampleComponent} />`, container)"
 %>
 import { expect, $ } from '@wdio/globals'
 <%- harnessImport %>
-<% if (installTestingLibrary) { %>
+<% if (answers.installTestingLibrary) { %>
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 <% } else { %>
@@ -18,7 +18,7 @@ const html = htm.bind(h);
 import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
-    <% if (installTestingLibrary) { %>
+    <% if (answers.installTestingLibrary) { %>
     it('should test component with Testing Library', async () => {
         render(<ExampleComponent />)
         const component = screen.getByText(/count is 0/i)
@@ -30,7 +30,7 @@ describe('Preact Component Tests', () => {
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container<%- isUsingTypeScript ? `: Element` : '' %>
+    let container<%- answers.isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')

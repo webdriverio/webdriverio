@@ -88,3 +88,7 @@ Given(/^a table step$/, async function (table) {
 
 Given('this is ambiguous', () => {
 })
+
+Given('this is a step with timeout', { timeout: 6000 }, async () => {
+    await browser.pause(5500)
+})

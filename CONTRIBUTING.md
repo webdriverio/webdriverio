@@ -14,7 +14,8 @@ You can participate by:
 
 - contributing code
 - improving documentation
-- help out in the [Discord](https://discord.webdriver.io) support channel
+- help us [translate](https://translate.webdriver.io/project/webdriver-io) the project to more languages
+- answer questions and provide help in the [Discord](https://discord.webdriver.io) support channel
 - create educational content (blog posts, tutorials, videos, etc.)
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
@@ -36,9 +37,42 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 - __One issue, one bug:__ Please report a single bug per issue.
 - __Provide reproduction steps:__ List all the steps necessary to reproduce the issue. The person reading your bug report should be able to follow these steps to reproduce your issue with minimal effort.
 
+### Providing a reproducible example
+
+A reproducible example is a simple, self-contained script or program that demonstrates the issue or bug you're experiencing. The goal is to allow others to recreate the problem easily and efficiently.
+
+Steps to Create a Reproducible Example:
+
+1. Isolate the Problem:
+- Narrow down your code to the smallest amount that still reproduces the issue.
+- Remove any non-essential code or dependencies that are not related to the problem.
+
+2. Ensure that others can run your example and reproduce the issue:
+- It should not require any non-standard setup unless absolutely necessary, e.g. remove any need for special software or services like CI vendors.
+- Document steps necessary to execute the reproducible example
+
+3. Share project
+- Create a new public GitHub repository and push your reproducible example to it.
+- Share the link to the repository in the issue.
+- Document what behavior you observe and what behavior you would expect
+
+__Note:__ if you can't provide a reproducible example we unfortunately are forced to close the issue.
+
 ### Security Bugs
 
 See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
+
+## Flowcharts
+
+The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
+
+[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+
+[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+
+[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+
+[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
 
 ## Proposing a Change
 
@@ -214,9 +248,9 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   ```
 - *e2e Tests*
   Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These
-  tests spin up headless Chrome and Firefox browsers to test the commands implemented in the `devtools` package. Given that the WebDriver functionality
+  tests spin up headless Chrome, Firefox and Edge browsers to test various implementations like for example the commands implemented in the `devtools` package. Given that the WebDriver functionality
   is already tested with [WPT](https://github.com/web-platform-tests/wpt), we don't need to do it there.
-  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) is required.
+  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly), [Google Chrome](https://www.google.com/chrome/) and [Microsoft Edge](https://www.microsoft.com/en-us/edge/download)is required
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:e2e

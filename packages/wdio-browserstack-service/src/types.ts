@@ -1,4 +1,4 @@
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
 export interface SessionResponse {
@@ -7,6 +7,10 @@ export interface SessionResponse {
         // eslint-disable-next-line camelcase
         browser_url: string
     }
+}
+
+export interface TurboScaleSessionResponse {
+    url: string
 }
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
@@ -57,6 +61,33 @@ export interface BrowserstackConfig {
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
      */
     testObservabilityOptions?: TestObservabilityOptions;
+    /**
+     * Set this to true to enable BrowserStack Percy which will take screenshots
+     * and snapshots for your tests run on Browserstack
+     * @default false
+     */
+    percy?: boolean;
+    /**
+     * Accepts mode as a string to auto capture screenshots at different execution points
+     * Accepted values are auto, click, testcase, screenshot & manual
+     */
+    percyCaptureMode?: string;
+    /**
+     * Set the Percy related config options under this key.
+    */
+    percyOptions?: any;
+    /**
+    * Set this to true to enable BrowserStack Accessibility Automation which will
+    * automically conduct accessibility testing on your pre-existing test builds
+    * and generate health reports which can be viewed in the Accessibility dashboard.
+    * @default false
+    */
+    accessibility?: boolean;
+    /**
+    * Customise the Accessibility-related config options under this key.
+    * For e.g. wcagVersion, bestPractice issues, needsReview issues etc.
+    */
+    accessibilityOptions?: { [key: string]: any; };
     /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
@@ -127,6 +158,12 @@ export interface BrowserstackConfig {
      * @default true
      */
     setSessionStatus?: boolean
+    /**
+     * Set this to true while running tests on the automation grid created using BrowserStack Automate TurboScale
+     * to automatically set the session name and status for quick debugging.
+     * @default false
+    */
+    turboScale?: boolean;
 }
 
 /**
@@ -137,7 +174,7 @@ export interface PlatformMeta {
     browserName?: string,
     browserVersion?: string,
     platformName?: string,
-    caps?: Capabilities.Capabilities,
+    caps?: WebdriverIO.Capabilities,
     product?: string
 }
 
@@ -148,7 +185,15 @@ export interface TestMeta {
     steps?: StepData[],
     feature?: { name: string, path?: string, description: string | null },
     scenario?: { name: string },
-    examples?: string[]
+    examples?: string[],
+    hookType?: string,
+    testRunId?: string
+}
+
+export interface CurrentRunInfo {
+    uuid?: string,
+    test?: Frameworks.Test,
+    finished?: boolean
 }
 
 export interface TestData {
@@ -175,7 +220,8 @@ export interface TestData {
     hook_type?: string,
     hooks?: string[],
     meta?: TestMeta,
-    tags?: string[]
+    tags?: string[],
+    test_run_id?: string
 }
 
 export interface UserConfig {
@@ -183,7 +229,8 @@ export interface UserConfig {
     projectName?: string,
     buildTag?: string,
     bstackServiceVersion?: string,
-    buildIdentifier?: string
+    buildIdentifier?: string,
+    accessibilityOptions?: { [key: string]: any; }
 }
 
 export interface UploadType {
@@ -191,6 +238,16 @@ export interface UploadType {
     hook_run?: TestData,
     test_run?: TestData,
     logs?: any[]
+}
+
+export interface StdLog {
+    timestamp: string,
+    kind: string
+    level?: string,
+    message?: string,
+    http_response?: any,
+    test_run_uuid?: string,
+    hook_run_uuid?: string
 }
 
 export interface LaunchResponse {
@@ -216,12 +273,13 @@ export interface CredentialsForCrashReportUpload {
 }
 
 interface IntegrationObject {
-    capabilities?: Capabilities.Capabilities,
+    capabilities?: WebdriverIO.Capabilities,
     session_id?: string
     browser?: string
     browser_version?: string
     platform?: string
     product?: string
+    platform_version?: string
 }
 
 interface TestCodeBody {
@@ -243,3 +301,4 @@ interface StepData {
 interface Failure {
     backtrace: string[]
 }
+

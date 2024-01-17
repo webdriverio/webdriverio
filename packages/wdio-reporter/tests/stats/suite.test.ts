@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 import SuiteStats from '../../src/stats/suite.js'
 
-test('should get initialised', () => {
+test('should get initialized', () => {
     const suite = new SuiteStats({
         cid: '0-0',
         title: 'foobar',

@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
-import logger from '@wdio/logger'
 import type { Reporters, Options } from '@wdio/types'
 
 import { getErrorsFromEvent } from './utils.js'
@@ -14,7 +13,6 @@ import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 
 type CustomWriteStream = { write: (content: any) => boolean }
-const log = logger('WDIOReporter')
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -45,7 +43,7 @@ export default class WDIOReporter extends EventEmitter {
             try {
                 fs.mkdirSync(this.options.outputDir, { recursive: true })
             } catch (err: any) {
-                log.error(`Couldn't create output dir: ${err.stack}`)
+                throw new Error(`Couldn't create output directory at "${this.options.outputDir}": ${err.stack}`)
             }
         }
 
@@ -64,6 +62,8 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
+        this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
+        this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
         this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
@@ -251,6 +251,12 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onAfterCommand(commandArgs: AfterCommandArgs) { }
+    /* istanbul ignore next */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onBeforeAssertion(assertionArgs: unknown) { }
+    /* istanbul ignore next */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onAfterAssertion(assertionArgs: unknown) { }
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuiteStart(suiteStats: SuiteStats) { }

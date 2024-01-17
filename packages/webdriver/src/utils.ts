@@ -1,3 +1,4 @@
+import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
@@ -12,6 +13,8 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import RequestFactory from './request/factory.js'
 import command from './command.js'
+import { BidiHandler } from './bidi/handler.js'
+import type { Event } from './bidi/localTypes.js'
 import { REG_EXPS } from './constants.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
@@ -273,7 +276,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -319,7 +322,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
-            '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file as the service might had problems to start the driver.'
+            '\nIt seems like the service failed to start or is rejecting any connections.'
     }
 
     if (err.message === 'unhandled request') {
@@ -409,4 +412,42 @@ function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
     }
 
     return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
+}
+
+/**
+ * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
+ * @param socketUrl url to bidi interface
+ * @returns prototype with interface for bidi primitives
+ */
+export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+    socketUrl = socketUrl.replace('localhost', '127.0.0.1')
+    const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
+    const handler = new BidiHandler(socketUrl, bidiReqOpts)
+    handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+
+    return {
+        _bidiHandler: { value: handler },
+        ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
+            acc[cur.command] = {
+                value: handler[cur.command]?.bind(handler)
+            }
+            return acc
+        }, {} as PropertyDescriptorMap)
+    }
+}
+
+export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+    try {
+        // keep backwards compatibility
+        // ToDo(Christian): remove in v9
+        this.emit('message', data)
+
+        const payload: Event = JSON.parse(data.toString())
+        if (payload.type !== 'event') {
+            return
+        }
+        this.emit(payload.method, payload.params)
+    } catch (err: unknown) {
+        log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
+    }
 }

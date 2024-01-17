@@ -23,7 +23,7 @@ import { checkUnicode } from '../../utils/index.js'
  * @example https://github.com/webdriverio/example-recipes/blob/355434bdef13d29608d6d5fbfbeaa034c8a2aa74/keys/keys.js#L1-L17
  *
  */
-export function keys (
+export async function keys (
     this: WebdriverIO.Browser,
     value: string | string[]
 ) {
@@ -57,5 +57,7 @@ export function keys (
     keySequence.forEach((value) => keyAction.down(value))
     keyAction.pause(10)
     keySequence.forEach((value) => keyAction.up(value))
-    return keyAction.perform()
+
+    // pass true to skip release of keys as they are already released
+    return keyAction.perform(true)
 }

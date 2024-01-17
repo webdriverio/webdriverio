@@ -9,9 +9,9 @@ import { Readable } from 'node:stream'
 import unzipper, { type Entry } from 'unzipper'
 import { Octokit } from '@octokit/rest'
 
-const MAIN_BRANCH = 'master'
+const MAIN_BRANCH = 'main'
 
-export default async function downloadSpec () {
+export default async function downloadSpec (page = 1) {
     const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
     const targetDir = path.join(__dirname, 'cddl')
     const zipPath = path.join(targetDir, 'cddl.zip')
@@ -31,6 +31,8 @@ export default async function downloadSpec () {
     const artifacts = await api.rest.actions.listArtifactsForRepo({
         owner,
         repo,
+        page,
+        per_page: 100
     })
     // eslint-disable-next-line camelcase
     const cddlBuilds = artifacts.data.artifacts.filter(({ name, workflow_run }) => (
@@ -38,6 +40,14 @@ export default async function downloadSpec () {
         // eslint-disable-next-line camelcase
         workflow_run && workflow_run.head_branch === MAIN_BRANCH
     ))
+
+    if (page > 10) {
+        return false
+    }
+
+    if (cddlBuilds.length === 0) {
+        return downloadSpec(page + 1)
+    }
 
     const { data } = await api.rest.actions.downloadArtifact({
         owner,
@@ -75,5 +85,5 @@ export default async function downloadSpec () {
 
     await Promise.all(promiseChain)
     await fsp.unlink(zipPath)
-
+    return true
 }

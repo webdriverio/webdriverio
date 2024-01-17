@@ -1,12 +1,15 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants.js'
+import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice } from './constants.js'
 
 export interface Questionnair {
     runner: string
     preset?: string
     installTestingLibrary?: boolean
-    backend: typeof BACKEND_CHOICES[number]
+    electronAppBinaryPath?: string
+    electronBuildTool?: ElectronBuildToolChoice
+    electronBuilderConfigPath?: string
+    backend?: BackendChoice
     hostname?: string
     port?: string
     path?: string
@@ -18,16 +21,18 @@ export interface Questionnair {
     env_user?: string
     // eslint-disable-next-line
     env_key?: string
-    region?: typeof REGION_OPTION[number]
+    region?: RegionOptions
+    useSauceConnect?: boolean
     framework: string
     specs?: string
     stepDefinitions?: string
     generateTestFiles: boolean
     usePageObjects?: boolean
     pages?: string
-    isUsingCompiler: typeof COMPILER_OPTION_ANSWERS[number]
+    isUsingCompiler: CompilerOptions
     reporters: string[]
     services: string[]
+    serenityLibPath?: string
     plugins: string[]
     outputDir?: string
     baseUrl: string
@@ -35,19 +40,24 @@ export interface Questionnair {
     createPackageJSON?: boolean
     projectRootCorrect?: boolean
     projectRoot?: string
-    setupMobileEnvironment?: boolean
+    e2eEnvironment?: 'web' | 'mobile'
+    mobileEnvironment?: 'android' | 'ios'
+    browserEnvironment?: ('chrome' | 'firefox' | 'safari' | 'microsoftedge')[]
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
     rawAnswers: Questionnair
     runner: 'local' | 'browser'
+    projectName: string
     framework: string
+    purpose: string
     reporters: string[]
     plugins: string[]
     services: string[]
     packagesToInstall: string[]
     isUsingTypeScript: boolean
     isUsingBabel: boolean
+    serenityAdapter: string | false
     esmSupport: boolean
     isSync: boolean
     _async: string
@@ -55,6 +65,8 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     projectRootDir: string
     destSpecRootPath: string
     destPageObjectRootPath: string
+    destStepRootPath: string;
+    destSerenityLibRootPath: string
     relativePath: string
     hasRootTSConfig: boolean
     tsConfigFilePath: string
@@ -73,6 +85,7 @@ export interface RunCommandArguments {
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
     bail?: number
     baseUrl?: string
+    shard?: Options.ShardOptions
     waitforTimeout?: number
     framework?: string
     reporters?: Reporters.ReporterEntry[]
@@ -100,8 +113,7 @@ export interface ReplCommandArguments {
 }
 
 export interface InstallCommandArguments {
-    yarn: boolean
-    config: string
+    config?: string
     type: 'service' | 'reporter' | 'framework' | 'plugin'
     name: string
 }
@@ -115,6 +127,7 @@ export interface ConfigCommandArguments {
 export interface SupportedPackage {
     package: string
     short: string
+    purpose: string
 }
 
 export interface OnCompleteResult {

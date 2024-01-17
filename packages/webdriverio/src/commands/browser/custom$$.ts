@@ -1,21 +1,23 @@
+import { ELEMENT_KEY } from 'webdriver'
+
 import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
-import { ELEMENT_KEY } from '../../constants.js'
-import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types.js'
+import type { CustomStrategyFunction, CustomStrategyReference } from '../../types.js'
 
 /**
  *
- * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+ * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * Read more on custom selector strategies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>
     :example.js
     it('should get all the plugin wrapper buttons', async () => {
         await browser.url('https://webdriver.io')
-        await browser.addLocatorStrategy('myStrat', (selector) => {
+        await browser.addLocatorStrategy('myStrategy', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const pluginWrapper = await browser.custom$$('myStrat', '.pluginWrapper')
+        const pluginWrapper = await browser.custom$$('myStrategy', '.pluginWrapper')
 
         console.log(await pluginWrapper.length) // 4
     })
@@ -24,13 +26,13 @@ import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } fr
  * @alias custom$$
  * @param {string} strategyName
  * @param {*} strategyArguments
- * @return {ElementArray}
+ * @return {WebdriverIO.ElementArray}
  */
 export async function custom$$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]
-): Promise<ElementArray> {
+): Promise<WebdriverIO.ElementArray> {
     const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
@@ -51,6 +53,6 @@ export async function custom$$ (
 
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
+    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }

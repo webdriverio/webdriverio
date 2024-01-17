@@ -1,9 +1,8 @@
-import type { Capabilities } from '@wdio/types'
+import { ELEMENT_KEY } from 'webdriver'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { getBrowserObject } from './utils/index.js'
-import { ELEMENT_KEY } from './constants.js'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -25,7 +24,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
                  * as `stale element reference`
                  */
-                const caps = getBrowserObject(this).capabilities as Capabilities.Capabilities
+                const caps = getBrowserObject(this).capabilities as WebdriverIO.Capabilities
                 if (
                     caps && caps.browserName === 'safari' &&
                     result && result.error === 'no such element'

@@ -33,7 +33,11 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
             'tunnel-identifier': tbTunnelIdentifier,
         }, this.options.tbTunnelOpts)
 
-        const capabilitiesEntries = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
+        const capabilitiesEntries = Array.isArray(capabilities) ?
+            (capabilities as []).every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities)) ?
+                capabilities.flatMap((cap: Capabilities.MultiRemoteCapabilities ) => Object.values(cap))
+                : capabilities
+            : Object.values(capabilities)
         for (const capability of capabilitiesEntries) {
             const caps = (capability as Options.WebDriver).capabilities || capability
             const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps

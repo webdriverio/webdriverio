@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises'
-import http from 'node:http'
 import path from 'node:path'
 import { URL } from 'node:url'
 
@@ -8,17 +7,16 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
-import { SUPPORTED_BROWSER } from 'devtools'
-import { UNICODE_CHARACTERS } from '@wdio/utils'
+import { ELEMENT_KEY } from 'webdriver'
+import { UNICODE_CHARACTERS, asyncIterators } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
+import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
+import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
@@ -201,7 +199,7 @@ function fetchElementByJSFunction (
     scope: WebdriverIO.Browser | WebdriverIO.Element,
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
-    if (!(scope as WebdriverIO.Element).elementId) {
+    if (!('elementId' in scope)) {
         return scope.execute(selector as any, referenceId)
     }
     /**
@@ -464,17 +462,6 @@ export function validateUrl (url: string, origError?: Error): string {
     }
 }
 
-/**
- * get window's scrollX and scrollY
- * @param {object} scope
- */
-export function getScrollPosition (scope: WebdriverIO.Element) {
-    return getBrowserObject(scope)
-        .execute(/* istanbul ignore next */function (this: Window) {
-            return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
-        })
-}
-
 export async function hasElementId (element: WebdriverIO.Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
@@ -507,6 +494,10 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
     }
 }
 
+type Entries<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
 /**
  * Enhance elements array with data required to refetch it
  * @param   {object[]}          elements    elements
@@ -517,24 +508,49 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: ElementArray,
+    elements: WebdriverIO.Element[],
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: any[] = []
 ) => {
     /**
+     * as we enhance the element array in this method we need to cast its
+     * type as well
+     */
+    const elementArray = elements as unknown as WebdriverIO.ElementArray
+
+    /**
      * if we have an element collection, e.g. `const elems = $$([elemA, elemB])`
-     * we cna't assign a common selector to the element array
+     * we can't assign a common selector to the element array
      */
     if (!Array.isArray(selector)) {
-        elements.selector = selector
+        elementArray.selector = selector
     }
 
-    elements.parent = parent
-    elements.foundWith = foundWith
-    elements.props = props
-    return elements
+    /**
+     * if all elements have the same selector we actually can assign a selector
+     */
+    const elems = selector as WebdriverIO.Element[]
+    if (Array.isArray(selector) && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
+        elementArray.selector = elems[0].selector
+    }
+
+    /**
+     * replace Array prototype methods with custom ones that support
+     * async iterators
+     */
+    for (const [name, fn] of Object.entries(asyncIterators) as Entries<typeof asyncIterators>) {
+        /**
+         * ToDo(Christian): typing fails here for unknown reason
+         */
+        elementArray[name] = fn.bind(null, elementArray as any)
+    }
+
+    elementArray.parent = parent
+    elementArray.foundWith = foundWith
+    elementArray.props = props
+    return elementArray
 }
 
 /**
@@ -542,90 +558,6 @@ export const enhanceElementsArray = (
  * @param {string} automationProtocol
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub.js'
-
-export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
-    /**
-     * if automation protocol is set by user prefer this
-     */
-    if (config.automationProtocol) {
-        return config.automationProtocol
-    }
-
-    /**
-     * run WebDriver if hostname or port is set
-     */
-    if (config.hostname || config.port || config.path || (config.user && config.key)) {
-        return 'webdriver'
-    }
-
-    /**
-     * only run DevTools protocol if capabilities match supported platforms
-     */
-    const caps = (
-        ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
-        config.capabilities as Capabilities.Capabilities
-    ) || {}
-    const desiredCaps = caps as Capabilities.DesiredCapabilities
-    if (!SUPPORTED_BROWSER.includes(caps.browserName?.toLowerCase() as string)) {
-        return 'webdriver'
-    }
-
-    /**
-     * check if we are on mobile and use WebDriver if so
-     */
-    if (
-        desiredCaps.deviceName || caps['appium:deviceName'] ||
-        caps['appium:platformVersion'] ||
-        caps['appium:app']
-    ) {
-        return 'webdriver'
-    }
-
-    /**
-     * run WebDriver if capabilities clearly identify it as it
-     */
-    if (config.capabilities && ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
-        return 'webdriver'
-    }
-
-    /**
-     * make a head request to check if a driver is available
-     */
-    const resp: http.IncomingMessage | { error: Error } = await new Promise((resolve) => {
-        const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
-        req.on('error', (error) => resolve({ error }))
-        req.end()
-    })
-
-    /**
-     * kill agent otherwise process will stale
-     */
-    const driverEndpointHeaders = resp as http.IncomingMessage
-    if ((driverEndpointHeaders as any).req && (driverEndpointHeaders as any).req.agent) {
-        (driverEndpointHeaders as any).req.agent.destroy()
-    }
-
-    if (driverEndpointHeaders && driverEndpointHeaders.statusCode === 200) {
-        return 'webdriver'
-    }
-
-    return 'devtools'
-}
-
-/**
- * updateCapabilities allows modifying capabilities before session
- * is started
- *
- * NOTE: this method is executed twice when running the WDIO testrunner
- */
-export const updateCapabilities = (
-    params: Options.WebdriverIO | Options.Testrunner,
-    automationProtocol?: Options.SupportedProtocols
-) => {
-    if (automationProtocol && !params.automationProtocol) {
-        params.automationProtocol = automationProtocol
-    }
-}
 
 /**
  * compare if an object (`base`) contains the same values as another object (`match`)

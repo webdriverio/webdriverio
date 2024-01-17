@@ -4,6 +4,7 @@
 @import url(buttons.css);
 @import url(codeblock.css);
 @import url(youtube.css);
+@import url(flowcharts.css);
 
 :root {
     --ifm-color-primary: #ea5906;
@@ -27,6 +28,7 @@
     --ifm-table-border-color: #efefef;
     --ifm-navbar-height: 85px;
     --ifm-button-border-width: 0;
+    --ifm-tabs-padding-vertical: 0.5rem;
     --docusaurus-announcement-bar-height: auto!important;
 
     --wdio-spacing-vertical: 60px;
@@ -236,6 +238,10 @@ html[data-theme=dark] div[class^='codeBlockTitle'] {
 }
 div[role="tabpanel"] .prism-code {
     border-top-left-radius: 0;
+}
+
+ul.tabs {
+    margin-bottom: -1rem;
 }
 .tabs__item:hover {
     border-bottom-left-radius: 0;

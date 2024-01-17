@@ -3,7 +3,7 @@ import path from 'node:path'
 import { deepmerge } from 'deepmerge-ts'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 
-import { makeHeadless, getCoverageByFactor } from '../src/utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -38,6 +38,18 @@ describe('makeHeadless', () => {
         expect(deepmerge).toBeCalledTimes(4)
         makeHeadless({}, { browserName: 'safari' })
         expect(deepmerge).toBeCalledTimes(4)
+    })
+})
+
+describe('adjustWindowInWatchMode', () => {
+    it('does not adjust window size if not in watch mode', () => {
+        const caps: any = { foo: 'bar' }
+        expect(adjustWindowInWatchMode({} as any, caps)).toEqual(caps)
+    })
+
+    it('adjusts window size if in watch mode', () => {
+        adjustWindowInWatchMode({ watch: true } as any, { browserName: 'chrome' })
+        expect(deepmerge).toBeCalledTimes(1)
     })
 })
 

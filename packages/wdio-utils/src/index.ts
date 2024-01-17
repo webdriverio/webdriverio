@@ -1,24 +1,27 @@
 /* istanbul ignore file */
 
-import initialisePlugin from './initialisePlugin.js'
-import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices.js'
 import webdriverMonad from './monad.js'
+import initializePlugin from './initializePlugin.js'
+import { startWebDriver } from './startWebDriver.js'
+import { initializeWorkerService, initializeLauncherService } from './initializeServices.js'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
-    isFunctionAsync, transformCommandLogResult, canAccess, sleep
+    isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
+import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
 } from './envDetector.js'
-import { UNICODE_CHARACTERS } from './constants.js'
+import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 
 export {
-    initialisePlugin,
-    initialiseLauncherService,
-    initialiseWorkerService,
+    startWebDriver,
+    initializePlugin,
+    initializeLauncherService,
+    initializeWorkerService,
     isFunctionAsync,
     transformCommandLogResult,
     webdriverMonad,
@@ -26,8 +29,9 @@ export {
     isValidParameter,
     getArgumentType,
     safeImport,
-    canAccess,
     sleep,
+    isAppiumCapability,
+    asyncIterators,
 
     /**
      * runner shim
@@ -49,5 +53,6 @@ export {
     /**
      * constants
      */
-    UNICODE_CHARACTERS
+    UNICODE_CHARACTERS,
+    HOOK_DEFINITION
 }

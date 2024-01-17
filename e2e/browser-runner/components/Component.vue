@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p>Times clicked: {{ count }}</p>
+        <p class="text-amber-600">Times clicked: {{ count }}</p>
         <button @click="increment">increment</button>
     </div>
 </template>

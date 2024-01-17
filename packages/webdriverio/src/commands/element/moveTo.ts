@@ -1,8 +1,8 @@
-import { getElementRect, getScrollPosition, getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,
-    yOffset?: number
+    yOffset?: number,
 }
 
 /**
@@ -21,25 +21,38 @@ type MoveToOptions = {
  */
 export async function moveTo (
     this: WebdriverIO.Element,
-    { xOffset, yOffset }: MoveToOptions = {}
+    { xOffset, yOffset }: MoveToOptions = {},
 ) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xOffset, yOffset)
     }
-
-    /**
-     * get rect of element
-     */
-    const { x, y, width, height } = await getElementRect(this)
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const newXOffset = Math.floor(x - scrollX + (typeof xOffset === 'number' ? xOffset : (width / 2)))
-    const newYOffset = Math.floor(y - scrollY + (typeof yOffset === 'number' ? yOffset : (height / 2)))
-
     /**
      * W3C way of handle the mouse move actions
      */
     const browser = getBrowserObject(this)
-    return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
-        .move({ x: newXOffset, y: newYOffset })
-        .perform()
+    if (xOffset || yOffset) {
+        const { width, height } = await browser.getElementRect(this.elementId)
+        if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
+            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        }
+        if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
+            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+        }
+    }
+    const moveToNested = async () => {
+        await browser.action('pointer', { parameters: { pointerType: 'mouse' } })
+            .move({ origin: this, x: xOffset || 0, y: yOffset || 0 })
+            .perform()
+    }
+    try {
+        await moveToNested()
+    } catch {
+        /**
+        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+        */
+        await this.scrollIntoView({ block: 'center', inline: 'center' })
+        await moveToNested()
+    }
 }

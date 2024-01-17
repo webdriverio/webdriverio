@@ -24,6 +24,8 @@ const STACKTRACE_FILTER = [
  * @param   {object} after          afterFn and afterFnArgs
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
+ * @param   {string} hookName       the hook name
+ * @param   {number} timeout        the maximum time (in milliseconds) to wait for
  * @return  {*}                     specFn result
  */
 export const testFnWrapper = function (
@@ -34,7 +36,9 @@ export const testFnWrapper = function (
         BeforeHookParam<unknown>,
         AfterHookParam<unknown>,
         string,
-        number
+        number,
+        string?,
+        number?
     ]
 ) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
@@ -50,6 +54,8 @@ export const testFnWrapper = function (
  * @param   {object} after          afterFn and afterFnArgs function
  * @param   {string} cid            cid
  * @param   {number} repeatTest     number of retries if test fails
+ * @param   {string} hookName       the hook name
+ * @param   {number} timeout        the maximum time (in milliseconds) to wait for
  * @return  {*}                     specFn result
  */
 export const testFrameworkFnWrapper = async function (
@@ -60,10 +66,15 @@ export const testFrameworkFnWrapper = async function (
     { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
     { afterFn, afterFnArgs }: AfterHookParam<unknown>,
     cid: string,
-    repeatTest = 0
+    repeatTest = 0,
+    hookName?: string,
+    timeout?: number
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
+    if (type === 'Hook' && hookName) {
+        beforeArgs.push(hookName)
+    }
     await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
 
     let result
@@ -71,7 +82,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
     } catch (err: any) {
         if (err.stack) {
             err.stack = filterStackTrace(err.stack)
@@ -81,7 +92,6 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
-
     afterArgs.push({
         retries,
         error,
@@ -89,6 +99,10 @@ export const testFrameworkFnWrapper = async function (
         duration,
         passed: !error
     })
+
+    if (type === 'Hook' && hookName) {
+        afterArgs.push(hookName)
+    }
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
@@ -107,5 +121,6 @@ export const filterStackTrace = (stack: string): string => {
     return stack
         .split('\n')
         .filter(line => !STACKTRACE_FILTER.some(l => line.includes(l)))
+        .map(line => line.replace(/\?invalidateCache=(\d\.\d+|\d)/g, ''))
         .join('\n')
 }

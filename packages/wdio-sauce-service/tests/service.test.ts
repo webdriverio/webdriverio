@@ -19,9 +19,11 @@ vi.mock('saucelabs', () => ({
         default: class SauceLabsMock {
             public uploadJobAssets = vi.fn()
             public updateJob = vi.fn()
+            public createTestRunsV1 = vi.fn()
         }
     }
 }))
+
 vi.mock('fs/promises', () => ({
     default: {
         createReadStream: vi.fn(),
@@ -353,6 +355,39 @@ test('afterTest should not mark test as fail if pending was called in Jasmine', 
         passed: false,
     } as any)
     expect(service['_failures']).toBe(0)
+})
+
+test('afterTest should collect testRun info', () => {
+    const service = new SauceService({},
+        { browserName: 'chrome', build: 'my build', tags: ['tag1'] } as any,
+        {} as any)
+    expect(service['_failures']).toBe(0)
+    service.afterTest(
+        { parent: 'foo', title: 'bar' } as any,
+        {}, { passed: true, duration: 1234 } as any
+    )
+    expect(service['_testRuns'].length).toBe(1)
+    let testRun = service['_testRuns'][0]
+    expect(testRun.name).toBe('foo - bar')
+    expect(testRun.duration).toBe(1234)
+    expect(testRun.framework).toBe('webdriverio')
+    expect(testRun.build_name).toBe('my build')
+    expect(testRun.tags).toMatchObject(['tag1'])
+    expect(testRun.status).toBe('passed')
+
+    service.afterTest(
+        { parent: 'foo', title: 'bar', file: '/path/to/testfile' } as any,
+        {}, { passed: false, duration: 1234, error: { message: 'err' } } as any
+    )
+    expect(service['_testRuns'].length).toBe(2)
+    testRun = service['_testRuns'][1]
+    expect(testRun.name).toBe('foo - bar')
+    expect(testRun.duration).toBe(1234)
+    expect(testRun.framework).toBe('webdriverio')
+    expect(testRun.build_name).toBe('my build')
+    expect(testRun.tags).toMatchObject(['tag1'])
+    expect(testRun.status).toBe('failed')
+    expect(testRun.errors).toMatchObject([{ message: 'err', path: '/path/to/testfile' }])
 })
 
 test('beforeFeature should set job-name', async () => {
@@ -773,7 +808,7 @@ test('getBody', () => {
         passed: true
     })
 
-    service['_capabilities'] = {} as Capabilities.Capabilities
+    service['_capabilities'] = {} as WebdriverIO.Capabilities
     expect(service.getBody(1)).toEqual({
         passed: false
     })

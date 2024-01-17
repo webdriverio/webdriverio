@@ -12,9 +12,34 @@ import type { Capabilities, Options } from '@wdio/types'
 import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
+import * as bstackLogger from '../src/bstackLogger.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
+vi.mock('node:fs', () => ({
+    default: {
+        createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
+        existsSync: vi.fn(),
+        truncateSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        writeFileSync: vi.fn()
+    }
+}))
+
+vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Promise((resolve) => {
+    _user
+    _key
+    _uuid
+    resolve('success')
+}))
+
+const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
+bstackLoggerSpy.mockImplementation(() => {})
+
+vi.spyOn(bstackLogger.BStackLogger, 'clearLogFile').mockImplementation(() => {})
 
 const pkg = await vi.importActual('../package.json') as any
 const log = logger('test')
@@ -382,6 +407,8 @@ describe('onPrepare', () => {
         const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
         const service = new BrowserstackLauncher({} as any, caps, config)
         const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
@@ -399,6 +426,8 @@ describe('onPrepare', () => {
         } }]
         const service = new BrowserstackLauncher(options as any, caps, config)
         const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } }, { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } }]
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
@@ -414,6 +443,8 @@ describe('onPrepare', () => {
         } }]
         const service = new BrowserstackLauncher({} as any, caps, config)
         const capabilities = [{ 'bstack:options': { buildIdentifier: '#${BUILD_NUMBER}' } }]
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities as any)
@@ -424,6 +455,8 @@ describe('onPrepare', () => {
         const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: 'test ${BUILD_NUMBER}' } } } }
         const service = new BrowserstackLauncher({ buildIdentifier: '#${BUILD_NUMBER}' } as BrowserstackConfig & Options.Testrunner, caps, config)
         const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: 'test ${BUILD_NUMBER}' } } } }
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
@@ -437,6 +470,8 @@ describe('onPrepare', () => {
             key: '12345',
             capabilities: []
         })
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
@@ -457,6 +492,8 @@ describe('onPrepare', () => {
             key: '12345',
             capabilities: []
         })
+
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
 
         await service.onPrepare(config, capabilities)
@@ -523,6 +560,33 @@ describe('onPrepare', () => {
         expect(mockStart).toHaveBeenCalled()
         vi.clearAllMocks()
     })
+
+    it('should create accessibility test run if accessibility flag is true', async () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const serviceOptions = { accessibility: true }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
+        await service.onPrepare(config, caps)
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        vi.clearAllMocks()
+    })
+
+    it('should add accessibility options after filtering not allowed caps', async () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const caps: any = [{ 'bstack:options': {
+            buildName: 'browserstack wdio build'
+        } },
+        { 'bstack:options': {
+            buildName: 'browserstack wdio build'
+        } }]
+        const serviceOptions = { accessibility: true, accessibilityOptions: { wcagVersion: 'wcag2aa', includeTagsInTestingScope: ['@P1'] } }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build' } }, { 'bstack:options': { buildName: 'browserstack wdio build' } }]
+        await service.onPrepare(config, capabilities)
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(capabilities[0]['bstack:options']).toEqual({ buildName: 'browserstack wdio build', accessibilityOptions: { wcagVersion: 'wcag2aa' } })
+        vi.clearAllMocks()
+    })
 })
 
 describe('onComplete', () => {
@@ -560,6 +624,15 @@ describe('onComplete', () => {
         service.browserstackLocal = new Local()
         return expect(service.onComplete()).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
+    })
+
+    it('should stop accessibility test run on complete', () => {
+        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'stopAccessibilityTestRun')
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+
+        const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
+        service.onComplete()
+        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -621,6 +694,44 @@ describe('constructor', () => {
         new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': pkg.version } } })
+    })
+
+    it('should add the "accessibility" property to an array of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
+        new BrowserstackLauncher(serviceOptions as any, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true } },
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true } }
+        ])
+    })
+
+    it('should add the "accessibility" property to an array of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = [{ 'moz:firefoxOptions': {} }, { 'goog:chromeOptions': {} }]
+        new BrowserstackLauncher(serviceOptions as any, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true }, 'moz:firefoxOptions': {} },
+            { 'bstack:options': { wdioService: pkg.version, accessibility: true }, 'goog:chromeOptions': {} }
+        ])
+    })
+
+    it('should add the "accessibility" property to object of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
+        new BrowserstackLauncher(serviceOptions as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': pkg.version, 'accessibility': true }, 'goog:chromeOptions': {} } } })
+    })
+
+    it('should add the "accessibility" property to object of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const serviceOptions = { accessibility: true }
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {} } } }
+        new BrowserstackLauncher(serviceOptions as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': pkg.version, 'accessibility': true }, 'goog:chromeOptions': {} } } })
     })
 
     it('update spec list if it is a rerun', async () => {
@@ -762,6 +873,79 @@ describe('_updateCaps', () => {
     })
 })
 
+describe('_updateObjectTypeCaps', () => {
+    const options: BrowserstackConfig = { accessibilityOptions: { wcagVersion: 'wcag2a' } }
+    const caps: any = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should update the accessibilityOptions cap in capabilities', () => {
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps[0]['browserstack.accessibilityOptions'].includeIssueType).toEqual({ bestPractice: true, needsReview: true })
+    })
+
+    it('should update the accessibilityOptions cap if bstack:options is not present in caps array', () => {
+        const caps: any = [{ 'ms:edgeOptions': {} }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps[0]['bstack:options']['accessibilityOptions'].includeIssueType).toEqual({ bestPractice: true, needsReview: true })
+    })
+
+    it('should update accessibilityOptions in caps object if bstack:options is present', () => {
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': pkg.version, 'accessibilityOptions': { 'includeIssueType': { 'bestPractice': true, 'needsReview': true } } })
+    })
+
+    it('should update accessibilityOptions in caps object if bstack:options is not present', () => {
+        const caps = { chromeBrowser: { capabilities: {} } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version, 'browserstack.accessibilityOptions': { includeIssueType: { bestPractice: true, needsReview: true } } })
+    })
+
+    it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {
+        const caps = [{ 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } }]
+        const service = new BrowserstackLauncher(options as any, caps as any, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps[0]['bstack:options']).toEqual({ 'wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateObjectTypeCaps', () => {
+        const caps = { chromeBrowser: { capabilities: { 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } } } }
+        const service = new BrowserstackLauncher(options as any, caps as any, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateObjectTypeCaps', () => {
+        const caps = { chromeBrowser: { capabilities: { 'browserstack.accessibilityOptions': { wcagVersion: 'wcag2a' } } } }
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version })
+    })
+
+    it('should delete accessibilityOptions in caps object if value not passed in _updateCaps', () => {
+        const caps: any = [{ 'browserstack.accessibilityOptions': { wcagVersion: 'wcag2a' } }]
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+
+        service._updateObjectTypeCaps(caps, 'accessibilityOptions')
+        expect(caps[0]).toEqual({ 'browserstack.wdioService': pkg.version })
+    })
+})
+
 describe('_validateApp', () => {
     const caps: any = [{}]
     const config = {
@@ -878,6 +1062,7 @@ describe('_handleBuildIdentifier', () => {
         }]
         const service = new BrowserstackLauncher(options as any, caps, config)
 
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
         vi.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce('1')
         vi.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
         service._handleBuildIdentifier(caps)
@@ -991,6 +1176,7 @@ describe('_handleBuildIdentifier', () => {
         }]
         const service = new BrowserstackLauncher(options as any, caps, config)
         vi.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce(null)
+        vi.spyOn(utils, 'getCiInfo').mockReturnValueOnce(null)
 
         service._handleBuildIdentifier(caps)
         expect(caps[0]['bstack:options']?.buildIdentifier).toEqual('#${BUILD_NUMBER}')
@@ -1065,7 +1251,7 @@ describe('_updateLocalBuildCache', () => {
         expect(parsedBuildCacheFileData['browserstack wdio build test']['identifier']).toEqual(3)
     })
 
-    it('updates buildIdentifier in json file', async() => {
+    it('should not update buildIdentifier in json file', async() => {
         const writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
         writeFileSyncSpy.mockImplementation(() => {})
         vi.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test' : { 'identifier' : 3 } }))
@@ -1074,5 +1260,56 @@ describe('_updateLocalBuildCache', () => {
 
         service._updateLocalBuildCache(filePath, undefined, 3)
         expect(writeFileSyncSpy).not.toHaveBeenCalled()
+    })
+})
+
+describe('_uploadServiceLogs', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+
+    it('get observability build id', async() => {
+        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        expect(service._getClientBuildUuid()).toEqual('obs123')
+        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+    })
+
+    const service = new BrowserstackLauncher(options as any, caps, config)
+})
+
+describe('_getClientBuildUuid', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+
+    const service = new BrowserstackLauncher(options as any, caps, config)
+
+    it('get observability build id', async() => {
+        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        expect(service._getClientBuildUuid()).toEqual('obs123')
+        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+    })
+
+    it('get randomly generated id if both the conditions fail', async() => {
+        vi.mock('uuid', () => ({ v4: () => '123456789' }))
+        expect(service._getClientBuildUuid()).toEqual('123456789')
     })
 })

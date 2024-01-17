@@ -8,7 +8,8 @@ import { generateBrowserRunnerTestFiles } from '../src/utils.js'
 vi.mock('node:fs/promises', () => ({
     default: {
         writeFile: vi.fn().mockReturnValue(Promise.resolve()),
-        mkdir: vi.fn().mockReturnValue(Promise.resolve('/foo/bar'))
+        mkdir: vi.fn().mockReturnValue(Promise.resolve('/foo/bar')),
+        access: vi.fn().mockRejectedValue(new Error('dont exist'))
     }
 }))
 

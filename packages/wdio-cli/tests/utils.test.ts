@@ -7,10 +7,9 @@ import { $ } from 'execa'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
-import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser } from '@wdio/config/node'
 
 import {
     runLauncherHook,
@@ -21,7 +20,6 @@ import {
     replaceConfig,
     addServiceDeps,
     convertPackageHashToObject,
-    validateServiceAnswers,
     getCapabilities,
     generateTestFiles,
     getPathForFileGeneration,
@@ -39,20 +37,28 @@ import {
     setupBabel,
     createWDIOConfig,
     createWDIOScript,
-    runAppiumInstaller
+    runAppiumInstaller,
+    detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
-import { COMPILER_OPTION_ANSWERS, COMPILER_OPTIONS } from '../src/constants.js'
+import { CompilerOptions } from '../src/constants.js'
+import { installPackages } from '../src/install.js'
 import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')
-vi.mock('recursive-readdir')
+vi.mock('recursive-readdir', () => ({
+    default: vi.fn().mockResolvedValue([
+        '/foo/bar/loo/page.js.ejs',
+        '/foo/bar/example.e2e.js'
+    ] as any)
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
+        exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
@@ -60,7 +66,7 @@ vi.mock('child_process', () => {
 
 vi.mock('read-pkg-up', () => ({
     readPackageUp: vi.fn().mockResolvedValue({
-        path: '/foo/bar',
+        path: '/foo/package.json',
         packageJson: {
             name: 'cool-test-module',
             type: 'module'
@@ -68,17 +74,15 @@ vi.mock('read-pkg-up', () => ({
     })
 }))
 
-vi.mock('yarn-install', () => ({ default: vi.fn().mockReturnValue({ status: 0 }) }))
-
 vi.mock('node:fs/promises', () => ({
     default: {
-        access: vi.fn().mockResolvedValue({}),
+        access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
 }))
 
-vi.mock('@wdio/config', () => ({
+vi.mock('@wdio/config/node', () => ({
     ConfigParser: class ConfigParserMock {
         initialize() { }
         getCapabilities() { }
@@ -87,6 +91,11 @@ vi.mock('@wdio/config', () => ({
 
 vi.mock('execa', () => ({
     $: vi.fn().mockReturnValue(async (sh: string) => sh)
+}))
+
+vi.mock('../src/install', () => ({
+    installPackages: vi.fn(),
+    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
 
 beforeEach(() => {
@@ -307,7 +316,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver'],
+    services: [],
     framework: 'mocha',
 }`
         expect(replaceConfig(fakeConfig, 'service', 'sauce')).toBe(
@@ -316,7 +325,7 @@ describe('replaceConfig', () => {
     specs: [
         './test/specs/**/*.js'
     ],
-    services: ['chromedriver','sauce'],
+    services: ['sauce'],
     framework: 'mocha',
 }`
         )
@@ -326,7 +335,7 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual(['appium'])
     })
 
@@ -335,26 +344,8 @@ describe('addServiceDeps', () => {
         // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
         cp.execSyncRes = '1.13.0'
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)
         expect(packages).toEqual([])
-    })
-
-    it('should add chromedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
-        expect(packages).toEqual(['chromedriver'])
-    })
-
-    it('should add geckodriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-geckodriver-service', short: 'geckodriver' }], packages)
-        expect(packages).toEqual(['geckodriver'])
-    })
-
-    it('should add edgedriver', () => {
-        const packages: any = []
-        addServiceDeps([{ package: 'wdio-edgedriver-service', short: 'edgedriver' }], packages)
-        expect(packages).toEqual(['msedgedriver'])
     })
 
     afterEach(() => {
@@ -376,13 +367,6 @@ describe('convertPackageHashToObject', () => {
             short: 'package-name'
         })
     })
-})
-
-test('validateServiceAnswers', () => {
-    expect(validateServiceAnswers(['wdio-chromedriver-service', '@wdio/selenium-standalone-service']))
-        .toContain('wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service')
-    expect(validateServiceAnswers(['@wdio/static-server-service', '@wdio/selenium-standalone-service']))
-        .toBe(true)
 })
 
 describe('getCapabilities', () => {
@@ -440,7 +424,6 @@ describe('getCapabilities', () => {
             {
                 maxInstances: 5,
                 browserName: 'chrome',
-                acceptInsecureCerts: true,
                 'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
         ])
@@ -492,12 +475,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(4)
@@ -510,10 +493,6 @@ describe('generateTestFiles', () => {
     })
 
     it('jasmine with page objects', async () => {
-        vi.mocked(readDir).mockResolvedValue([
-            '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
-        ] as any)
         const answers = {
             runner: 'local',
             framework: 'jasmine',
@@ -526,7 +505,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
-        expect(vi.mocked(readDir).mock.calls[0][0]).toContain('jasmine')
+        expect(vi.mocked(readDir).mock.calls[0][0]).toContain('mochaJasmine')
         expect(vi.mocked(readDir).mock.calls[1][0]).toContain('pageobjects')
 
         /**
@@ -545,12 +524,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(4)
@@ -606,7 +585,8 @@ describe('generateTestFiles', () => {
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
             generateTestFiles: true,
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
+            destStepRootPath: '/tests/stepDefinitions'
         }
         await generateTestFiles(answers as any)
 
@@ -615,12 +595,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(2)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(2)
@@ -637,7 +617,7 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
-            stepDefinitions: '/some/step',
+            destStepRootPath: '/tests/stepDefinitions',
             destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
@@ -649,12 +629,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledTimes(6)
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
-            answers,
+            { answers },
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(6)
@@ -692,6 +672,29 @@ describe('getPathForFileGeneration', () => {
             framework: '@wdio/cucumber-service$--$cucumber'
         } as any, '/foo/bar')
         expect(generatedPaths.relativePath).toEqual('../page/objects')
+    })
+    it('Cucumber with pageobjects and steps different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'cucumber/features/steps',
+            pages: 'cucumber/features/pages',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('')
+    })
+
+    it('Cucumber with answer that is not a path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
+            stepDefinitions: 'y',
+            pages: 'h',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any, '/foo/bar')
+        expect(generatedPaths.relativePath).toEqual('../h')
     })
 
     it('Mocha with pageobjects default values', () => {
@@ -745,37 +748,40 @@ describe('getPathForFileGeneration', () => {
 
 test('getDefaultFiles', async () => {
     const files = '/foo/bar'
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[0] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Babel } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1], preset: 'vite-plugin-solid$--$solid' } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS, preset: 'vite-plugin-solid$--$solid' } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.tsx'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[2] } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Nil } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
-        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service', 'wdio-geckodriver-service'],
+        ['webdriverio', '@wdio/spec-reporter'],
         '8.0.0-alpha.249+4bc237701',
         'latest'
     )).toEqual([
         'webdriverio@^8.0.0-alpha.249',
-        '@wdio/spec-reporter@^8.0.0-alpha.249',
-        'wdio-chromedriver-service',
-        'wdio-geckodriver-service'
+        '@wdio/spec-reporter@^8.0.0-alpha.249'
     ])
 })
 
-test('getProjectRoot', () => {
-    expect(getProjectRoot({ projectRoot: '/foo/bar' } as any)).toBe('/foo/bar')
-    expect(getProjectRoot({} as any, { path: '/bar/foo' } as any)).toBe('/bar/foo')
-    const projectDir = process.cwd().substring(process.cwd().lastIndexOf(path.sep) + 1)
-    expect(getProjectRoot({} as any).includes(path.join(projectDir))).toBe(true)
+test('getProjectRoot', async () => {
+    expect(await getProjectRoot()).toBe('/foo')
+    expect(await getProjectRoot({
+        projectRootCorrect: true
+    } as any)).toBe('/foo')
+    expect(await getProjectRoot({
+        projectRootCorrect: false,
+        projectRoot: '/bar/foo'
+    } as any)).toBe('/bar/foo')
 })
 
 test('hasBabelConfig', async () => {
+    vi.mocked(fs.access).mockResolvedValue({} as any)
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
@@ -783,16 +789,16 @@ test('hasBabelConfig', async () => {
 
 test('detectCompiler', async () => {
     vi.mocked(fs.access).mockResolvedValue({} as any)
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.babel)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Babel)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.nil)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Nil)
     vi.mocked(fs.access).mockImplementation((path) => {
         if (path.toString().includes('tsconfig')) {
             return Promise.resolve({} as any)
         }
         return Promise.reject(new Error('ouch'))
     })
-    expect(await detectCompiler({} as any)).toBe(COMPILER_OPTIONS.ts)
+    expect(await detectCompiler({} as any)).toBe(CompilerOptions.TS)
 })
 
 test('getAnswers', async () => {
@@ -855,15 +861,17 @@ test('npmInstall', async () => {
             services: ['foo$--$bar'],
             preset: 'barfoo$--$vue'
         },
+        projectRootCorrect: false,
+        projectRoot: '/foo/bar',
         isUsingTypeScript: true,
         framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: true
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(1)
-    expect(vi.mocked(yarnInstall).mock.calls[0][0]).toMatchSnapshot()
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(1)
+    expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
 })
 
 test('not npmInstall', async () => {
@@ -876,8 +884,8 @@ test('not npmInstall', async () => {
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: false
     } as any
-    await npmInstall(parsedAnswers, true, 'next')
-    expect(yarnInstall).toBeCalledTimes(0)
+    await npmInstall(parsedAnswers, 'next')
+    expect(installPackages).toBeCalledTimes(0)
     expect(vi.mocked(console.log).mock.calls[0][0]).toContain('To install dependencies, execute')
 })
 
@@ -889,7 +897,10 @@ test('setupTypeScript', async () => {
         esmSupport: true,
         rawAnswers: {
             framework: 'foo',
-            services: []
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
         },
         packagesToInstall: [],
         tsConfigFilePath: '/foobar/tsconfig.json'
@@ -920,7 +931,6 @@ test('setup Babel', async () => {
 
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
-    answers.projectRootDir = '/foo/bar'
     answers.destSpecRootPath = '/tests/specs'
     answers.destPageObjectRootPath = '/tests/specs'
     answers.stepDefinitions = './foo/bar'
@@ -930,7 +940,7 @@ test('createWDIOConfig', async () => {
     expect(
         vi.mocked(fs.writeFile).mock.calls[0][0]
             .toString()
-            .endsWith(path.resolve('/foo/wdio.conf.js'))
+            .endsWith(path.resolve('wdio.conf.js'))
     ).toBe(true)
 })
 
@@ -950,7 +960,7 @@ describe('createWDIOScript', () => {
 })
 
 test('runAppiumInstaller', async () => {
-    expect(await runAppiumInstaller({ setupMobileEnvironment: false } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'web' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(0)
     expect($).toBeCalledTimes(0)
@@ -959,7 +969,7 @@ test('runAppiumInstaller', async () => {
         continueWithAppiumSetup: false
     })
 
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(1)
     expect($).toBeCalledTimes(0)
@@ -967,9 +977,19 @@ test('runAppiumInstaller', async () => {
     vi.mocked(inquirer.prompt).mockResolvedValue({
         continueWithAppiumSetup: true
     })
-    expect(await runAppiumInstaller({ setupMobileEnvironment: true } as any))
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+})
+
+test.each([
+    ['', 'npm'],
+    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
+    [path.resolve('~/.npm/npx/...'), 'npm'],
+    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
+    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
+])('detectPackageManager', async (path, pm) => {
+    expect(detectPackageManager(['', path])).toEqual(pm)
 })
 
 afterEach(() => {
@@ -980,5 +1000,5 @@ afterEach(() => {
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(ejs.renderFile).mockClear()
-    vi.mocked(yarnInstall).mockClear()
+    vi.mocked(installPackages).mockClear()
 })

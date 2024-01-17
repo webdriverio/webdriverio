@@ -63,6 +63,7 @@ Este corredor utiliza [Vite](https://vitejs.dev/) para compilar su código de pr
 - Vue.js
 - Svelte
 - SolidJS
+- Stencil
 
 Cada archivo de prueba / grupo de archivos de prueba se ejecuta dentro de una sola página, lo que significa que entre cada prueba la página se está recargando para garantizar el aislamiento entre pruebas.
 
@@ -95,7 +96,7 @@ El corredor del navegador permite las siguientes configuraciones:
 
 Si prueba componentes usando uno de los frameworks mencionados arriba, puede definir un preset que asegura que todo está configurado de nuevo. Esta opción no se puede usar junto con `viteConfig`.
 
-__Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
+__Type:__ `vue` | `svelte` | `solid` | `react` | `preact` | `stencil`<br /> __Example:__
 
 ```js title="wdio.conf.js"
 export const {

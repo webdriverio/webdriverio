@@ -1,11 +1,13 @@
+import { ELEMENT_KEY } from 'webdriver'
+
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '../../utils/index.js'
-import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
- * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+ * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * Read more on custom selector stratgies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>
     :example.js
@@ -25,6 +27,9 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @alias custom$
  * @param {string} strategyName
  * @param {*} strategyArguments
+ * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
+ * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
+ * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
  * @return {Element}
  */
 export async function custom$ (
@@ -64,5 +69,5 @@ export async function custom$ (
         return await getElement.call(this, strategyRef, res)
     }
 
-    throw Error('Your locator strategy script must return an element')
+    return await getElement.call(this, strategyRef, new Error('no such element'))
 }

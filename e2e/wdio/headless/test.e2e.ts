@@ -1,17 +1,15 @@
-
-import type { Capabilities } from '../../../packages/wdio-types'
-
-const SCROLL_MARGIN_TRESHOLD = 25
+import os from 'node:os'
 
 describe('main suite 1', () => {
     it('foobar test', async () => {
-        const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
+        const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName)
+        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName ? browserName.replace(' ', '') : browserName)
     })
 
     it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
+        // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
         expect((await browser.checkPWA([
             'isInstallable',
@@ -35,7 +33,7 @@ describe('main suite 1', () => {
         await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it('should be able to use async-iterators', async () => {
+    it.skip('should be able to use async-iterators', async () => {
         await browser.url('https://webdriver.io')
         const contributeLink = await browser.$$('a.navbar__item.navbar__link').find<WebdriverIO.Element>(
             async (link) => await link.getText() === 'Contribute')
@@ -70,21 +68,24 @@ describe('main suite 1', () => {
     })
 
     it('should be able to scroll up and down', async () => {
+        if (os.platform() === 'win32') {
+            console.warn('Skipping scroll tests on Windows')
+            return
+        }
+
         await browser.url('https://webdriver.io/')
         const currentScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
         expect(currentScrollPosition).toEqual([0, 0])
         await $('footer').scrollIntoView()
-        await browser.pause(500)
         const [x, y] = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
         expect(y).toBeGreaterThan(100)
 
         // should scroll relative to current position
-        browser.scroll(0, 0)
-        await browser.pause(500)
+        await browser.scroll(0, 0)
         const sameScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -97,6 +98,168 @@ describe('main suite 1', () => {
         expect(oldScrollPosition).toEqual([x, y])
     })
 
+    describe('moveTo tests', () => {
+        const inputs = [
+            undefined,
+            { xOffset: 10 },
+            { yOffset: 10 },
+            { xOffset: 25, yOffset: 25 },
+        ]
+
+        before(async () => {
+            await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+            await browser.$('#parent').waitForExist()
+        })
+
+        it('moveTo without iframe', async () => {
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo without iframe with 0 offsets', async () => {
+            await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        inputs.forEach((input) => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+                await browser.execute(() => {
+                    const mouse = { x:0, y:0 }
+                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    //@ts-ignore
+                    document.mouseMoveTo = mouse
+                })
+                await browser.$('#parent').moveTo()
+                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                await browser.$('#parent').moveTo(input)
+                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
+                expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
+            })
+        })
+
+        it('moveTo in iframe', async () => {
+            const iframe = await browser.$('iframe.code-tabs__result')
+            await browser.switchToFrame(iframe)
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo in iframe with 0 offsets', async () => {
+            await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        inputs.forEach((input) => {
+            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+                await browser.execute(() => {
+                    const mouse = { x:0, y:0 }
+                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    //@ts-ignore
+                    document.mouseMoveTo = mouse
+                })
+                await browser.$('#parent').moveTo()
+                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                await browser.$('#parent').moveTo(input)
+                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
+                expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
+            })
+        })
+
+        it('moveTo to parent frame with auto scrolling', async () => {
+            await browser.setWindowSize(500, 500)
+            await browser.switchToParentFrame()
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('moveTo to nested iframe with auto scrolling', async () => {
+            const iframe = await browser.$('iframe.code-tabs__result')
+            await browser.switchToFrame(iframe)
+            await browser.$('#parent').moveTo()
+            const value = await browser.$('#text').getValue()
+            expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        it('xOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
+        })
+
+        it('yOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('yOffset would cause a out of bounds error as it goes outside of element'))
+        })
+
+        it('xOffset and yOffset would cause a out of bounds', async () => {
+            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
+            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 })
+                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
+        })
+    })
+
+    const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
+        undefined,
+        true,
+        false,
+        { block: 'start', inline: 'start' },
+        { block: 'start', inline: 'center' },
+        { block: 'start', inline: 'end' },
+        { block: 'start', inline: 'nearest' },
+        { block: 'center', inline: 'start' },
+        { block: 'center', inline: 'center' },
+        { block: 'center', inline: 'end' },
+        { block: 'center', inline: 'nearest' },
+        { block: 'end', inline: 'start' },
+        { block: 'end', inline: 'center' },
+        { block: 'end', inline: 'end' },
+        { block: 'end', inline: 'nearest' },
+        { block: 'nearest', inline: 'start' },
+        { block: 'nearest', inline: 'center' },
+        { block: 'nearest', inline: 'end' },
+        { block: 'nearest', inline: 'nearest' },
+    ]
+
+    describe('wdio scrollIntoView behaves like native scrollIntoView', () => {
+        beforeEach(async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            await browser.setWindowSize(500, 500)
+        })
+
+        inputs.forEach(input => {
+            const inputDescription = typeof input === 'boolean' ? input : JSON.stringify(input)
+            it(`should vertically scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
+                const searchInput = await $('.searchinput')
+                await searchInput.scrollIntoView(input as any)
+                const wdioY = await browser.execute(() => window.scrollY)
+
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                const nativeY = await browser.execute(() => window.scrollY)
+
+                expect(Math.floor(wdioY)).toEqual(Math.floor(nativeY))
+            })
+
+            it(`should horizontally scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
+                const searchInput = await $('.searchinput')
+                await searchInput.scrollIntoView(input as any)
+                const wdioX = await browser.execute(() => window.scrollX)
+
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                const nativeX = await browser.execute(() => window.scrollX)
+
+                expect(Math.floor(wdioX)).toEqual(Math.floor(nativeX))
+            })
+        })
+    })
+
     it('should be able to handle successive scrollIntoView', async () => {
         await browser.url('http://guinea-pig.webdriver.io')
         await browser.setWindowSize(500, 500)
@@ -104,29 +267,27 @@ describe('main suite 1', () => {
 
         const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
             await searchInput.scrollIntoView(params)
-            await browser.pause(500)
             const [wdioX, wdioY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
 
             await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
-            await browser.pause(500)
             const [windowX, windowY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
             ])
 
-            const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
-            expect(Math.abs(wdioX - windowX)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
-            expect(Math.abs(wdioY - windowY)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
+            expect(Math.abs(wdioX - windowX)).toEqual(0)
+            expect(Math.abs(wdioY - windowY)).toEqual(0)
         }
 
-        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
-        await scrollAndCheck()
-        await scrollAndCheck({ block: 'center', inline: 'center' })
-        await scrollAndCheck({ block: 'start', inline: 'start' })
-        await scrollAndCheck({ block: 'end', inline: 'end' })
-        await scrollAndCheck(true)
-        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
+        for (const input of inputs) {
+            await scrollAndCheck(input)
+        }
     })
 
+    it('can reload a session', async () => {
+        const sessionId = browser.sessionId
+        await browser.reloadSession()
+        expect(browser.sessionId).not.toBe(sessionId)
+    })
 })

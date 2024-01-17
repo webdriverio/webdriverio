@@ -13,6 +13,17 @@ export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
 
+const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
+    for (const key in opts) {
+        if (opts[key] === 'true') {
+            opts[key] = true
+        } else if (opts[key] === 'false') {
+            opts[key] = false
+        }
+    }
+    return opts
+}
+
 export const cmdArgs = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
@@ -87,19 +98,32 @@ export const cmdArgs = {
         type: 'number'
     },
     mochaOpts: {
-        desc: 'Mocha options'
+        desc: 'Mocha options',
+        coerce: coerceOpts
     },
     jasmineOpts: {
-        desc: 'Jasmine options'
+        desc: 'Jasmine options',
+        coerce: coerceOpts
     },
     cucumberOpts: {
-        desc: 'Cucumber options'
+        desc: 'Cucumber options',
+        coerce: coerceOpts
     },
     autoCompileOpts: {
         desc: 'Auto compilation options'
     },
     coverage: {
         desc: 'Enable coverage for browser runner'
+    },
+    shard: {
+        desc: 'Shard tests and execute only the selected shard. Specify in the one-based form like `--shard x/y`, where x is the current and y the total shard.',
+        coerce: (shard: string) => {
+            const [current, total] = shard.split('/').map(Number)
+            if (Number.isNaN(current) || Number.isNaN(total)) {
+                throw new Error('Shard parameter must be in the form `x/y`, where x and y are positive integers.')
+            }
+            return { current, total }
+        }
     }
 } as const
 
@@ -108,6 +132,7 @@ export const builder = (yargs: Argv) => {
         .options(cmdArgs)
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
+        .example('$0 run wdio.conf.js --shard 1/4', 'Run only the first shard of 4 shards')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
         .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
         .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=./configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')
@@ -149,6 +174,16 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
         })
 }
 
+enum NodeVersion {
+    'major' = 0,
+    'minor' = 1,
+    'patch' = 2
+}
+
+function nodeVersion(type: keyof typeof NodeVersion): number {
+    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+}
+
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
@@ -168,6 +203,7 @@ export async function handler(argv: RunCommandArguments) {
      */
     const nodePath = process.argv[0]
     let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
+    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts')
     const runsWithLoader = (
         Boolean(
             process.argv.find((arg) => arg.startsWith('--loader')) &&
@@ -175,15 +211,26 @@ export async function handler(argv: RunCommandArguments) {
         ) ||
         NODE_OPTIONS?.includes('ts-node/esm')
     )
-    if (wdioConf.fullPath.endsWith('.ts') && !runsWithLoader && nodePath) {
+    if (isTSFile && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        if (nodeVersion('major') >= 20 || (nodeVersion('major') === 18 && nodeVersion('minor') >= 19)) {
+            // Changes in Node 18.19 (and up) and Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
+            // - https://github.com/webdriverio/webdriverio/issues/10901
+            // - https://github.com/TypeStrong/ts-node/issues/2053
+            NODE_OPTIONS += ' -r ts-node/register'
+        }
+        const tsNodeProjectFromEnvVar = process.env.TS_NODE_PROJECT &&
+            path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
+        const tsNodeProjectFromParams = params.autoCompileOpts?.tsNodeOpts?.project &&
+            path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
+        const tsNodeProjectRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+        if (tsNodeProjectFromParams) {
+            console.log('Deprecated: use the TS_NODE_PROJECT environment variable instead')
+        }
         const localTSConfigPath = (
-            (
-                params.autoCompileOpts?.tsNodeOpts?.project &&
-                path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
-            ) ||
-            path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        )
+            tsNodeProjectFromEnvVar ||
+            tsNodeProjectFromParams ||
+            tsNodeProjectRelativeToWdioConfig)
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
             reject: false,

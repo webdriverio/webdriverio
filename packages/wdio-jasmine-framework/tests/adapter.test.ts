@@ -9,9 +9,11 @@ import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 
 vi.mock('jasmine')
 vi.mock('expect-webdriverio', () => ({
+    expect: {},
     matchers: {
         toHaveTitle: vi.fn()
-    }
+    },
+    getConfig: vi.fn()
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
@@ -22,6 +24,11 @@ const INTERFACES = {
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const BEFORE_HOOK_IDX = 1
 const AFTER_HOOK_IDX = 3
+
+globalThis.jasmine = {
+    addMatchers: 'addMatchers',
+    addAsyncMatchers: 'addAsyncMatchers'
+}
 
 const wdioReporter: EventEmitter = {
     write: vi.fn(),
@@ -65,6 +72,22 @@ test('comes with a factory', async () => {
     )
     const result = await instance.run()
     expect(result).toBe(0)
+
+    globalThis.jasmine.addAsyncMatchers = vi.fn()
+    globalThis.jasmine.addMatchers({
+        testMatcher: function testMatcher(/*matcherUtils*/) {
+            return {
+                compare: function compare(/*actual, expected*/) {
+                    return { pass: true, message: 'Just good vibes.' }
+                }
+            }
+        }
+    })
+    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    const testMatcher = vi.mocked(globalThis.jasmine.addAsyncMatchers).mock.calls[0][0].testMatcher
+    const { compare, negativeCompare } = testMatcher({} as any)
+    expect(compare.constructor.name).toBe('AsyncFunction')
+    expect(negativeCompare?.constructor.name).toBe('AsyncFunction')
 })
 
 test('should properly set up jasmine', async () => {
@@ -483,7 +506,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         adapter['_jrunner']!.addRequires = vi.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner']!.addHelperFiles = vi.fn()
+        adapter['_jrunner']!.addMatchingHelperFiles = vi.fn()
         // @ts-ignore outdated types
         adapter['_jrunner']!.loadRequires = vi.fn()
         adapter['_jrunner']!.loadHelpers = vi.fn()
@@ -496,7 +519,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
+        expect(adapter['_jrunner']!.addMatchingHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
         expect(adapter['_hasTests']).toBe(false)
     })
 

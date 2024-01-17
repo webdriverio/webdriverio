@@ -1,29 +1,11 @@
-import iterators from 'p-iteration'
 import logger from '@wdio/logger'
-import type { Clients } from '@wdio/types'
+import type { Clients, Frameworks } from '@wdio/types'
+
+import * as iterators from './pIteration.js'
 
 const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
-
-interface Retries {
-    limit: number
-    attempts: number
-}
-
-declare global {
-    // eslint-disable-next-line no-var
-    var expectAsync: any
-}
-
-declare global {
-    namespace NodeJS {
-        interface Global {
-            expect: any
-            expectAsync: any
-        }
-    }
-}
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -36,7 +18,9 @@ const ELEMENT_PROPS = [
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+const TIME_BUFFER = 3
+
+export async function executeHooksWithArgs<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -51,12 +35,27 @@ const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: a
         args = [args]
     }
 
-    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
+    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve, reject) => {
         let result
 
         try {
             result = hook.apply(this, args)
         } catch (e: any) {
+            /**
+             * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
+             * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
+             * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
+             * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
+             */
+            if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
+                return reject()
+            }
+            /**
+            * in case of jasmine, when rejecting, we need to pass the message of rejection as well
+            */
+            if (/^=> marked Pending/.test(e)) {
+                return reject(e)
+            }
             log.error(e.stack)
             return resolve(e)
         }
@@ -88,7 +87,7 @@ const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: a
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
+export function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
@@ -238,6 +237,23 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
 
                             throw new Error(errMsg)
                         }
+
+                        /**
+                         * Jasmine uses `toJSON` to parse the target object for information.
+                         * Since WebdriverIo doesn't have this method on the Element object
+                         * we need to mimic it here
+                         */
+                        if (prop === 'toJSON') {
+                            return { ELEMENT: elem.elementId }
+                        }
+
+                        /**
+                         * provide a better error message than "TypeError: elem[prop] is not a function"
+                         */
+                        if (typeof elem[prop] !== 'function') {
+                            throw new Error(`Can't call "${prop}" on element with selector "${elem.selector}", it is not a function`)
+                        }
+
                         return elem[prop](...args)
                     })
                 }
@@ -274,15 +290,40 @@ const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): 
  * @param  {Function} fn         spec or hook method
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
+ * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+export async function executeAsync(this: any, fn: Function, retries: Frameworks.TestRetries, args: any[] = [], timeout: number = 20000): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
-        const result = fn.apply(this, args)
+        /**
+         * To prevent test failures due to timeout exceptions in Jasmine from overwriting test objects with subsequent values,
+         * we reduce the overall timeout by a constant known as TIME_BUFFER. TIME_BUFFER acts as a safety margin, allowing a small
+         * window of time for an operation to complete before triggering a timeout. This approach ensures that test results are handled
+         * properly without affecting the overall test execution timing.
+         */
+        // @ts-expect-error
+        const _timeout = (this?._runnable?._timeout || globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL || timeout) - TIME_BUFFER
+        /**
+         * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
+         */
+        let done = false
+        const result = await Promise.race([
+            fn.apply(this, args),
+            new Promise<void>((resolve, reject) => {
+                setTimeout(() => {
+                    if (done) {
+                        resolve()
+                    } else {
+                        reject(new Error('Timeout'))
+                    }
+                }, _timeout)
+            })
+        ])
+        done = true
 
-        if (result && typeof result.finally === 'function') {
+        if (result !== null && typeof result === 'object' && 'finally' in result && typeof result.finally === 'function') {
             result.catch((err: any) => err)
         }
 
@@ -295,10 +336,4 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
 
         throw err
     }
-}
-
-export {
-    executeHooksWithArgs,
-    wrapCommand,
-    executeAsync,
 }

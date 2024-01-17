@@ -1,5 +1,5 @@
-import logger from '@wdio/logger'
 import got from 'got'
+import type { OptionsOfJSONResponseBody } from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
@@ -9,15 +9,17 @@ import {
     isBrowserstackCapability,
     getParentSuiteName,
     isBrowserstackSession,
+    patchConsoleLogs
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
-import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
+import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
 import CrashReporter from './crash-reporter.js'
-
-const log = logger('@wdio/browserstack-service')
+import AccessibilityHandler from './accessibility-handler.js'
+import { BStackLogger } from './bstackLogger.js'
+import PercyHandler from './Percy/Percy-Handler.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -33,6 +35,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _insightsHandler?: InsightsHandler
+    private _accessibility
+    private _accessibilityHandler?: AccessibilityHandler
+    private _percy
+    private _percyHandler?: PercyHandler
+    private _turboScale
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -43,6 +50,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
+        this._accessibility = this._options.accessibility
+        this._percy = this._options.percy
+        this._turboScale = this._options.turboScale
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
@@ -50,22 +60,31 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
+
+        if (process.env.BROWSERSTACK_TURBOSCALE) {
+            this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
+        }
+
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
         if (strict) {
             this._failureStatuses.push('pending')
         }
+
+        if (process.env.WDIO_WORKER_ID === process.env.BEST_PLATFORM_CID) {
+            process.env.PERCY_SNAPSHOT = 'true'
+        }
     }
 
-    _updateCaps (fn: (caps: Capabilities.Capabilities | Capabilities.DesiredCapabilities) => void) {
+    _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
         const multiRemoteCap = this._caps as Capabilities.MultiRemoteCapabilities
 
         if (multiRemoteCap.capabilities) {
-            return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as Capabilities.Capabilities))
+            return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as WebdriverIO.Capabilities))
         }
 
-        return fn(this._caps as Capabilities.Capabilities)
+        return fn(this._caps as WebdriverIO.Capabilities)
     }
 
     beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
@@ -94,36 +113,88 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
+        if (this._turboScale) {
+            this._sessionBaseUrl = 'https://api.browserstack.com/automate-turboscale/v1/sessions'
+        }
+
         this._scenariosThatRan = []
 
-        if (this._observability && this._browser) {
-            try {
-                this._insightsHandler = new InsightsHandler(
+        if (this._browser) {
+            if (this._percy) {
+                this._percyHandler = new PercyHandler(
+                    this._options.percyCaptureMode,
                     this._browser,
+                    this._caps,
                     this._isAppAutomate(),
                     this._config.framework
                 )
-                await this._insightsHandler.before()
+                this._percyHandler.before()
+            }
+            try {
+                const sessionId = this._browser.sessionId
+                if (this._observability) {
+                    patchConsoleLogs()
+
+                    this._insightsHandler = new InsightsHandler(
+                        this._browser,
+                        this._isAppAutomate(),
+                        this._config.framework
+                    )
+                    await this._insightsHandler.before()
+                }
 
                 /**
                  * register command event
                  */
-                this._browser.on('command', (command) => this._insightsHandler?.browserCommand(
-                    'client:beforeCommand',
-                    Object.assign(command, { sessionId: this._browser?.sessionId }),
-                    this._currentTest
-                ))
+                this._browser.on('command', async (command) => {
+                    if (this._observability) {
+                        this._insightsHandler?.browserCommand(
+                            'client:beforeCommand',
+                            Object.assign(command, { sessionId }),
+                            this._currentTest
+                        )
+                    }
+                    await this._percyHandler?.browserBeforeCommand(
+                        Object.assign(command, { sessionId }),
+                    )
+                })
+
                 /**
                  * register result event
                  */
-                this._browser.on('result', (result) => this._insightsHandler?.browserCommand(
-                    'client:afterCommand',
-                    Object.assign(result, { sessionId: this._browser?.sessionId }),
-                    this._currentTest
-                ))
+                this._browser.on('result', (result) => {
+                    if (this._observability) {
+                        this._insightsHandler?.browserCommand(
+                            'client:afterCommand',
+                            Object.assign(result, { sessionId }),
+                            this._currentTest
+                        )
+                    }
+                    this._percyHandler?.browserAfterCommand(
+                        Object.assign(result, { sessionId }),
+                    )
+                })
             } catch (err) {
-                log.error(`Error in service class before function: ${err}`)
-                CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                BStackLogger.error(`Error in service class before function: ${err}`)
+                if (this._observability) {
+                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                }
+            }
+        }
+
+        if (this._browser && isBrowserstackSession(this._browser)) {
+            try {
+                this._accessibilityHandler = new AccessibilityHandler(
+                    this._browser,
+                    this._caps,
+                    this._isAppAutomate(),
+                    this._config.framework,
+                    this._accessibility,
+                    this._options.accessibilityOptions
+                )
+                await this._accessibilityHandler.before()
+            } catch (err) {
+                BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
             }
         }
 
@@ -140,20 +211,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
         this._insightsHandler?.setSuiteFile(suite.file)
+        this._accessibilityHandler?.setSuiteFile(suite.file)
 
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
         }
     }
 
-    async beforeHook (test: Frameworks.Test, context: any) {
+    async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
         if (this._config.framework !== 'cucumber') {
-            this._currentTest = test // not update currentTest when this is called for cucumber step
+            this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
         await this._insightsHandler?.beforeHook(test, context)
     }
 
-    async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
+    async afterHook(test: Frameworks.Test | CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 
@@ -175,6 +247,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         await this._insightsHandler?.beforeTest(test)
+        await this._accessibilityHandler?.beforeTest(suiteTitle, test)
     }
 
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -184,6 +257,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
         await this._insightsHandler?.afterTest(test, results)
+        await this._percyHandler?.afterTest()
+        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
     async after (result: number) {
@@ -206,6 +281,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.uploadPending()
         await this._insightsHandler?.teardown()
 
+        await this._percyHandler?.teardown()
+
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
@@ -225,6 +302,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
         await this._setAnnotation(`Feature: ${feature.name}`)
+        await this._insightsHandler?.beforeFeature(uri, feature)
     }
 
     /**
@@ -234,6 +312,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
         await this._insightsHandler?.beforeScenario(world)
+        await this._accessibilityHandler?.beforeScenario(world)
         const scenarioName = world.pickle.name || 'unknown scenario'
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
@@ -258,6 +337,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._insightsHandler?.afterScenario(world)
+        await this._percyHandler?.afterScenario()
+        await this._accessibilityHandler?.afterScenario(world)
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
@@ -279,11 +360,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const status = hasReasons ? 'failed' : 'passed'
 
         if (!this._browser.isMultiremote) {
-            log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
+            BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
             const browserName = (this._browser as any as WebdriverIO.MultiRemoteBrowser).instances.filter(
                 (browserName: string) => this._browser && (this._browser as any as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
-            log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
+            BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
         if (setSessionStatus) {
@@ -309,7 +390,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     _updateJob (requestBody: any) {
         return this._multiRemoteAction((sessionId: string, browserName: string) => {
-            log.info(browserName
+            BStackLogger.info(browserName
                 ? `Update multiremote job for browser "${browserName}" and sessionId ${sessionId}`
                 : `Update job with sessionId ${sessionId}`
             )
@@ -343,7 +424,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
-        log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        if (this._turboScale) {
+            return got.patch(sessionUrl, {
+                json: requestBody,
+                username: this._config.user,
+                password: this._config.key
+            })
+        }
         return got.put(sessionUrl, {
             json: requestBody,
             username: this._config.user,
@@ -357,12 +445,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
             const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
-            log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
-            const response = await got<SessionResponse>(sessionUrl, {
+            BStackLogger.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
+
+            let browserUrl
+            const reqOpts: OptionsOfJSONResponseBody = {
                 username: this._config.user,
                 password: this._config.key,
                 responseType: 'json'
-            })
+            }
+
+            if (this._turboScale) {
+                const response = await got<TurboScaleSessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.url
+            } else {
+                const response = await got<SessionResponse>(sessionUrl, reqOpts)
+                browserUrl = response.body.automation_session.browser_url
+            }
 
             if (!this._browser) {
                 return
@@ -370,7 +468,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
-            log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
+            BStackLogger.info(`${browserString} session: ${browserUrl}`)
         })
     }
 
@@ -393,6 +491,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
             name = `${pre}${test.parent}${post}`
         }
+
+        this._percyHandler?._setSessionName(name)
 
         if (name !== this._fullTitle) {
             this._fullTitle = name

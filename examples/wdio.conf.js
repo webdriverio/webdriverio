@@ -227,12 +227,12 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
      * @param  {string}   cid      capability id (e.g 0-0)
      * @param  {object}   caps     object containing capabilities for session that will be spawn in the worker
      * @param  {string[]} specs    specs to be run in the worker process
-     * @param  {object}   args     object that will be merged with the main configuration once worker is initialised
+     * @param  {object}   args     object that will be merged with the main configuration once worker is initialized
      * @param  {object}   execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
@@ -275,13 +275,13 @@ exports.config = {
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha). In Cucumber `context` is the World object.
      */
-    beforeHook: function (test, context) {
+    beforeHook: function (test, context, hookName) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha). In Cucumber `context` is the World object.
      */
-    afterHook: function (test, context, { error, result, duration, passed, retries }) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)
@@ -315,7 +315,7 @@ exports.config = {
      * @param {*}       result.result    return object of test function
      * @param {number}  result.duration  duration of test
      * @param {boolean} result.passed    true if test has passed, otherwise false
-     * @param {object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+     * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },

@@ -1,8 +1,8 @@
 import path from 'node:path'
+import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { ELEMENT_KEY } from '../../../src/constants.js'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
@@ -66,8 +66,11 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter((elem: WebdriverIO.Element) => elem.isReactElement
-        ).length).toBe(3)
+        expect(
+            (await elems.filter(
+                (elem) => Boolean(elem.isReactElement)
+            )).length
+        ).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })
 })

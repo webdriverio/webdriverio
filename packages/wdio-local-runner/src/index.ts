@@ -26,15 +26,15 @@ export default class LocalRunner {
     ) {}
 
     /**
-     * nothing to initialise when running locally
+     * nothing to initialize when running locally
      */
-    initialise () {}
+    initialize () {}
 
     getWorkerCount () {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, args, ...workerOptions }: RunArgs) {
+    async run ({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */

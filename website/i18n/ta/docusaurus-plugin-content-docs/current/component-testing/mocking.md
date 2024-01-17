@@ -3,7 +3,7 @@ id: mocking
 title: Mocking
 ---
 
-டெஸ்டுகளை எழுதும்போது, நீங்கள் இன்டெர்னல் அல்லது எக்ஸ்டெர்னல் சர்வீஸின் "போலி" பதிப்பை உருவாக்க வேண்டும். இது பொதுவாக மாக்கிங் என்று குறிப்பிடப்படுகிறது. WebdriverIO உங்களுக்கு உதவ பயன்பாட்டு செயல்பாடுகளை வழங்குகிறது. அதை அணுக `'@wdio/browser-runner'` இலிருந்து {fn, spyOn, mock, unmock } ஐ நீங்கள் இறக்குமதி செய்யலாம். <a href="/docs/api/modules#wdiobrowser-runner">API docs</a>இல் இருக்கும் மாக் செய்யும் பயன்பாடுகள்பற்றிய கூடுதல் தகவலைப் பார்க்கவும்.
+டெஸ்டுகளை எழுதும்போது, நீங்கள் இன்டெர்னல் அல்லது எக்ஸ்டெர்னல் சர்வீஸின் "போலி" பதிப்பை உருவாக்க வேண்டும். இது பொதுவாக மாக்கிங் என்று குறிப்பிடப்படுகிறது. WebdriverIO உங்களுக்கு உதவ பயன்பாட்டு செயல்பாடுகளை வழங்குகிறது. அதை அணுக `import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'` இறக்குமதி செய்யலாம். [API docs](/docs/api/modules#wdiobrowser-runner) இல் இருக்கும் மாக் செய்யும் பயன்பாடுகள்பற்றிய கூடுதல் தகவலைப் பார்க்கவும்.
 
 ## செயல்பாடுகள்
 
@@ -214,16 +214,15 @@ export const bar = () => 'bar';
 export default () => 'baz';
 ```
 
-உங்கள் டெஸ்டில் `origModuleFactory` செயல்பாட்டை அழைப்பதன் மூலம் அசல் தொகுதியை அணுகலாம்:
+The original module will be passed into the mock factory which you can use to e.g. partially mock a dependency:
 
 ```js
 import { mock, fn } from '@wdio/browser-runner'
 import defaultExport, { bar, foo } from './foo-bar-baz.js';
 
-mock('./foo-bar-baz.js', async (origModuleFactory) => {
-    const originalModule = await origModuleFactory()
-
-    //Mock the default export and named export 'foo'
+mock('./foo-bar-baz.js', async (originalModule) => {
+    // Mock the default export and named export 'foo'
+    // and propagate named export from the original module
     return {
         __esModule: true,
         ...originalModule,

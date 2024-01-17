@@ -2,6 +2,7 @@ import type { Clients } from '@wdio/types'
 
 import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
@@ -32,11 +33,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * WebDriver monad
      */
-    function unit (this: void, sessionId: string, commandWrapper?: Function, eventMiddleware?: { socket: Partial<EventEmitter> }) {
-        if (eventMiddleware) {
-            prototype.eventMiddleware = eventMiddleware
-        }
-
+    function unit (this: void, sessionId: string, commandWrapper?: Function) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -106,6 +103,29 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             } else {
                 unit.lift(name, customCommand, proto)
             }
+
+            /**
+             * When running component tests, custom commands might not be recognised when services attach them to the browser.
+             * This is because the `addCommand` function is called within the Node.js environment and not the browser.
+             * As a workaround, we check here if we are in a worker process and if so we send a message to the parent process
+             * to add the command to the browser.
+             *
+             * @todo(Christian): this won't be sufficient, e.g. in cases where the page is reloaded and the command is not re-added.
+             */
+            if (typeof process.send === 'function' && process.env.WDIO_WORKER_ID) {
+                const message: Workers.WorkerEvent = {
+                    origin: 'worker',
+                    name: 'workerEvent',
+                    args: {
+                        type: MESSAGE_TYPES.customCommand,
+                        value: {
+                            commandName: name,
+                            cid: process.env.WDIO_WORKER_ID,
+                        }
+                    }
+                }
+                process.send(message)
+            }
         }
 
         /**
@@ -172,9 +192,10 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
              * always transform result into promise
              */
             Promise.resolve(result).then((res: unknown) => {
+                const elem = res as { elementId: string, selector?: string }
                 let resultLog = res
-                if (res instanceof SCOPE_TYPES.element) {
-                    resultLog = `WebdriverIO.Element<${(res as { elementId: string }).elementId}>`
+                if (elem instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
                 } else if (res instanceof SCOPE_TYPES.browser) {
                     resultLog = 'WebdriverIO.Browser'
                 }
@@ -192,14 +213,8 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
      */
     for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
-            eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
-
-            if (prototype.eventMiddleware) {
-                if (typeof prototype.eventMiddleware[eventCommand as keyof EventEmitter] === 'function') {
-                    prototype.eventMiddleware.socket[eventCommand as keyof EventEmitter]!(...args as [never, any])
-                }
-            }
-
+            const method = eventCommand as keyof EventEmitter
+            eventHandler[method]?.(...args as [never, any])
             return this
         }
     }

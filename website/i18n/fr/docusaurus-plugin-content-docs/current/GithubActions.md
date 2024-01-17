@@ -5,7 +5,7 @@ title: Github Actions
 
 Si votre dépôt est hébergé sur Github, vous pouvez utiliser [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) pour exécuter vos tests sur l'infrastructure de Github.
 
-1. chaque fois que vous envoyez des changements
+1. every time you push changes
 2. à chaque création de pull request
 3. heure programmé
 4. lancement manuel

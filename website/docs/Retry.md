@@ -117,7 +117,7 @@ For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucum
 To define a rerun rate for a certain step definitions just apply a retry option to it, like:
 
 ```js
-module.exports = function () {
+export default function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
@@ -138,8 +138,9 @@ But in any tests which involve state (such as on a server or in a database) the 
 
 A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
 
-```js
-module.exports = function () {
+```js title="wdio.conf.js"
+export const config = {
+    // ...
     /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
@@ -159,9 +160,9 @@ module.exports = function () {
 
 This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified test(s) or suite(s) x number of times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
 
-When adding new tests to a codebase, espically through a CI/CD process the tests could pass and get merged but become flakly later on. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specifed in `--spec` along with `--multi-run` so it runs the new test x number of times. If the test fails any of those times then the test will not get merged and will need to be looked at why it failed.
+One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--multi-run` so it runs the new test x number of times. If the test fails any of those times then the test will not get merged and will need to be looked at why it failed.
 
 ```sh
 # This will run the example.e2e.js spec 5 times

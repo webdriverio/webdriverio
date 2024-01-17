@@ -1,4 +1,42 @@
 export default {
+    '/session/:sessionId/context': {
+        GET: {
+            command: 'getContext',
+            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            parameters: [],
+            returns: {
+                type: 'Context',
+                name: 'context',
+                description:
+                    "a string representing the current context or null representing 'no context'",
+            },
+        },
+        POST: {
+            command: 'switchContext',
+            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'a string representing an available context',
+                    required: true,
+                },
+            ],
+        },
+    },
+    '/session/:sessionId/contexts': {
+        GET: {
+            command: 'getContexts',
+            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            parameters: [],
+            returns: {
+                type: 'Context[]',
+                name: 'contexts',
+                description:
+                    "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
     '/session/:sessionId/appium/device/shake': {
         POST: {
             command: 'shake',
@@ -97,6 +135,9 @@ export default {
                 android: {
                     UiAutomator: '4.2+',
                 },
+                windows: {
+                    Windows: '10+',
+                },
             },
         },
     },
@@ -146,6 +187,9 @@ export default {
                 },
                 android: {
                     UiAutomator: '4.2+',
+                },
+                windows: {
+                    Windows: '10+',
                 },
             },
         },
@@ -293,14 +337,18 @@ export default {
                     required: false,
                 },
             ],
-            support: {},
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+            },
         },
     },
-    '/session/:sessionId/appium/device/rotate': {
+    '/session/:sessionId/rotation': {
         POST: {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/rotate/',
+            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-rotation',
             parameters: [
                 {
                     name: 'x',
@@ -319,47 +367,20 @@ export default {
                     default: 0,
                 },
                 {
-                    name: 'radius',
+                    name: 'z',
                     type: 'number',
                     description:
-                        'the distance in points from the center to the edge of the circular path',
+                        'z offset to use for the center of the rotate gesture',
                     required: true,
                     default: 0,
-                },
-                {
-                    name: 'rotation',
-                    type: 'number',
-                    description: 'the length of rotation in radians',
-                    required: true,
-                    default: 3.14159265359,
-                },
-                {
-                    name: 'touchCount',
-                    type: 'number',
-                    description:
-                        'the number of touches to use in the specified gesture',
-                    required: true,
-                    default: 2,
-                },
-                {
-                    name: 'duration',
-                    type: 'number',
-                    description:
-                        'the length of hold time for the specified gesture, in seconds',
-                    required: true,
-                    default: 1,
-                },
-                {
-                    name: 'element',
-                    type: 'string',
-                    description:
-                        'the id of an element returned in a previous call to execute the rotation on',
-                    required: false,
                 },
             ],
             support: {
                 ios: {
                     UIAutomation: '8.0 to 9.3',
+                },
+                android: {
+                    UiAutomator: '4.2+',
                 },
             },
         },
@@ -656,6 +677,9 @@ export default {
                 android: {
                     UiAutomator: '4.2+',
                 },
+                windows: {
+                    Windows: '10+',
+                },
             },
         },
     },
@@ -679,6 +703,9 @@ export default {
                 },
                 android: {
                     UiAutomator: '4.2+',
+                },
+                windows: {
+                    Windows: '10+',
                 },
             },
             returns: {
@@ -708,6 +735,9 @@ export default {
                 },
                 android: {
                     UiAutomator: '4.2+',
+                },
+                windows: {
+                    Windows: '10+',
                 },
             },
         },
@@ -982,8 +1012,9 @@ export default {
         POST: {
             command: 'launchApp',
             description:
-                'Launch an app on device. iOS tests with XCUITest can also use the `mobile: launchApp` method. See detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-launchapp).',
+                'Launch an app on device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/launch-app/',
+            deprecated: 'For iOS, utilize `driver.execute(\'mobile: launchApp\', { ... })`, and for Android, make use of `driver.execute(\'mobile: activateApp\', { ... })`.',
             parameters: [],
             support: {
                 ios: {
@@ -1001,6 +1032,7 @@ export default {
             command: 'closeApp',
             description: 'Close an app on device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/close-app/',
+            deprecated: 'Use `driver.execute(\'mobile: terminateApp\', { ... })` instead',
             parameters: [],
             support: {
                 ios: {
@@ -1017,8 +1049,9 @@ export default {
         POST: {
             command: 'background',
             description:
-                'Send the currently running app for this session to the background. iOS tests with XCUITest can also use the `mobile: terminateApp` method to terminate the current app (see detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-terminateapp)), and the `mobile: activateApp` to activate an existing application on the device under test and moves it to the foreground (see detailed [documentation](https://appium.github.io/appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-activateapp)).',
+                'Send the currently running app for this session to the background.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/background-app/',
+            deprecated: 'Use `driver.execute(\'mobile: backgroundApp\', { ... })` instead',
             parameters: [
                 {
                     name: 'seconds',
@@ -1115,15 +1148,18 @@ export default {
             ],
             parameters: [
                 {
-                    name: 'value',
+                    name: 'text',
                     type: 'string',
-                    description: 'value to set on element',
+                    description: 'text to set to an element',
                     required: true,
                 },
             ],
             support: {
                 ios: {
                     XCUITest: '9.3+',
+                },
+                android: {
+                    UiAutomator: '4.2+',
                 },
             },
         },
@@ -1224,7 +1260,12 @@ export default {
                     required: true,
                 },
             ],
-            support: {},
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                    UIAutomation: '8.0 to 9.3',
+                }
+            },
         },
     },
     '/session/:sessionId/appium/device/gsm_call': {
@@ -1422,6 +1463,14 @@ export default {
                 name: 'response',
                 description: 'Response from Appium server',
             },
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+                android: {
+                    UiAutomator: '4.2+',
+                },
+            },
         },
     },
     '/session/:sessionId/appium/device/get_clipboard': {
@@ -1443,6 +1492,14 @@ export default {
                 name: 'response',
                 description:
                     'Clipboard content as base64-encoded string or an empty string if the clipboard is empty',
+            },
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+                android: {
+                    UiAutomator: '4.2+',
+                },
             },
         },
     },
@@ -1545,16 +1602,16 @@ export default {
     },
     '/session/:sessionId/appium/execute_driver': {
         POST: {
-            command: 'driverScript',
+            command: 'executeDriverScript',
             description:
-                'This command allows you to define a webdriverio script in a string and send it to the Appium server to be executed locally to the server itself, thus reducing latency that might otherwise occur along with each command.',
+                'This command enables you to specify a WebdriverIO script as a string and transmit it to the Appium server for local execution on the server itself. This approach helps minimize potential latency associated with each command. ***To utilize this command with Appium 2.0, you must have the [`execute-driver-plugin`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin installed.***',
             ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md',
             parameters: [
                 {
                     name: 'script',
                     type: 'string',
                     description:
-                        "The script to execute. It has access to a 'driver' object which represents a webdriverio session attached to the current server.",
+                        "The script to execute. It has access to a 'driver' object which represents a WebdriverIO session attached to the current server.",
                     required: true,
                 },
                 {
@@ -1600,6 +1657,14 @@ export default {
                 description:
                     "A JSON hash of events like `{'commands' => [{'cmd' => 123455, ....}], 'startTime' => 1572954894127, }`.",
             },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
         },
     },
     '/session/:sessionId/appium/log_event': {
@@ -1623,13 +1688,21 @@ export default {
                     required: true,
                 },
             ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
         },
     },
     '/session/:sessionId/appium/compare_images': {
         POST: {
             command: 'compareImages',
             description:
-                'Performs images comparison using OpenCV framework features. It is expected that both OpenCV framework and opencv4nodejs module are installed on the machine where Appium server is running.',
+                'This feature conducts image comparisons utilizing the capabilities of the OpenCV framework. Please note that for this functionality to work, both the OpenCV framework and the opencv4nodejs module must be installed on the machine where the Appium server is operational. ***Furthermore, you\'ll need to have the [`images-plugin`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin installed to use this feature with Appium 2.0.***',
             ref: 'https://appium.github.io/appium.io/docs/en/writing-running-appium/image-comparison/',
             parameters: [
                 {

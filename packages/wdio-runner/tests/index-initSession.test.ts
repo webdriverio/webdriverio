@@ -2,11 +2,11 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import WDIORunner from '../src/index.js'
 import type BaseReporter from '../src/reporter.js'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 vi.mock('../src/utils', () => ({
     __esModule: true,
-    initialiseInstance() {
+    initializeInstance() {
         return {
             '$'() { },
             '$$'() { },
@@ -22,7 +22,7 @@ vi.mock('../src/utils', () => ({
 }))
 
 const config: Options.WebdriverIO = { capabilities: {} }
-const capability: Capabilities.Capabilities = { browserName: 'foo' }
+const capability: WebdriverIO.Capabilities = { browserName: 'foo' }
 
 describe('wdio-runner', () => {
     describe('_initSession', () => {

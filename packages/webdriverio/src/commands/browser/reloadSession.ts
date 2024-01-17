@@ -31,7 +31,7 @@ export async function reloadSession (this: WebdriverIO.Browser) {
      * end current running session, if session already gone suppress exceptions
      */
     try {
-        await this.deleteSession()
+        await this.deleteSession({ shutdownDriver: false })
     } catch (err: any) {
         /**
          * ignoring all exceptions that could be caused by browser.deleteSession()

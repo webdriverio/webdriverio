@@ -1,12 +1,12 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
 import type { SuiteStats, TestStats, RunnerStats, HookStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 import * as url from 'node:url'
 
 import { v4 as uuidv4 } from 'uuid'
+import type { CurrentRunInfo, StdLog } from './types.js'
 
 import type { BrowserstackConfig, TestData, TestMeta, UploadType } from './types.js'
 import {
@@ -15,14 +15,15 @@ import {
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
-    getHookType
+    getHookType,
+    pushDataToQueue, getPlatformVersion
 } from './util.js'
 import RequestQueueHandler from './request-handler.js'
-
-const log = logger('@wdio/browserstack-service')
+import { BStackLogger } from './bstackLogger.js'
+import type { Capabilities } from '@wdio/types'
 
 class _TestReporter extends WDIOReporter {
-    private _capabilities: Capabilities.Capabilities = {}
+    private _capabilities: WebdriverIO.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability = true
     private _sessionId?: string
@@ -32,15 +33,59 @@ class _TestReporter extends WDIOReporter {
     private static _tests: Record<string, TestMeta> = {}
     private _gitConfigPath?: string
     private _gitConfigured: boolean = false
+    private _currentHook: CurrentRunInfo = {}
+    private _currentTest: CurrentRunInfo = {}
+    private _userCaps?: Capabilities.RemoteCapability = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
-        this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
+        this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
+        this._userCaps = this.getUserCaps(runnerStats)
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') {
             this._observability = this._config.testObservability
         }
         await this.configureGit()
+        this.registerListeners()
+    }
+
+    private getUserCaps(runnerStats: RunnerStats) {
+        return runnerStats.instanceOptions[runnerStats.sessionId].capabilities
+    }
+
+    registerListeners () {
+        if (this._config?.framework !== 'jasmine') {
+            return
+        }
+        process.removeAllListeners(`bs:addLog:${process.pid}`)
+        process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
+    }
+
+    public async appendTestItemLog(stdLog: StdLog) {
+        if (this._currentHook.uuid && !this._currentHook.finished) {
+            stdLog.hook_run_uuid = this._currentHook.uuid
+        } else if (this._currentTest.uuid) {
+            stdLog.test_run_uuid = this._currentTest.uuid
+        }
+        if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
+            await pushDataToQueue({
+                event_type: 'LogCreated',
+                logs: [stdLog]
+            })
+        }
+    }
+
+    setCurrentHook(hookDetails: CurrentRunInfo) {
+        if (hookDetails.finished) {
+            if (this._currentHook.uuid === hookDetails.uuid) {
+                this._currentHook.finished = true
+            }
+            return
+        }
+        this._currentHook = {
+            uuid: hookDetails.uuid,
+            finished: false
+        }
     }
 
     async configureGit() {
@@ -71,7 +116,7 @@ class _TestReporter extends WDIOReporter {
                     filename = this._suiteName || suiteStats.file
                 }
             } catch (e) {
-                log.debug('Error in decoding file name of suite')
+                BStackLogger.debug('Error in decoding file name of suite')
             }
         }
         this._suiteName = filename
@@ -116,9 +161,11 @@ class _TestReporter extends WDIOReporter {
         if (testStats.fullTitle === '<unknown test>') {
             return
         }
+        const uuid = uuidv4()
+        this._currentTest.uuid = uuid
 
         _TestReporter._tests[testStats.fullTitle] = {
-            uuid: uuidv4(),
+            uuid: uuid,
         }
         await this.sendTestRunEvent(testStats, 'TestRunStarted')
     }
@@ -130,6 +177,7 @@ class _TestReporter extends WDIOReporter {
 
         const identifier = this.getHookIdentifier(hookStats)
         const hookId = uuidv4()
+        this.setCurrentHook({ uuid: hookId })
         _TestReporter._tests[identifier] = {
             uuid: hookId,
             startedAt: (new Date()).toISOString()
@@ -148,6 +196,11 @@ class _TestReporter extends WDIOReporter {
             _TestReporter._tests[identifier] = {
                 finishedAt: (new Date()).toISOString()
             }
+        }
+        this.setCurrentHook({ uuid: _TestReporter._tests[identifier].uuid, finished: true })
+
+        if (!hookStats.state && !hookStats.error) {
+            hookStats.state = 'passed'
         }
         await this.sendTestRunEvent(hookStats, 'HookRunFinished')
     }
@@ -200,7 +253,7 @@ class _TestReporter extends WDIOReporter {
             testData.retries = { limit: (testStats as TestStats).retries || 0, attempts: (testStats as TestStats).retries || 0 }
         }
 
-        if (eventType.startsWith('TestRun')) {
+        if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
@@ -211,6 +264,7 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
+                platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
             }
         }
 

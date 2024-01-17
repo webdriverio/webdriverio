@@ -56,7 +56,7 @@
     "description": "The label of footer link with label=Blog linking to blog"
   },
   "copyright": {
-    "message": "Авторско право © 2023 OpenJS Foundation",
+    "message": "Авторско право © 2024 OpenJS Foundation",
     "description": "The footer copyright"
   },
   "link.item.label.YouTube": {

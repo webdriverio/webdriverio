@@ -3,6 +3,7 @@
   "compilerOptions": {
     "useDefineForClassFields": false,
     "lib": ["DOM"],
+    "jsx": "preserve"
   },
   "include": [
     "**/*.ts",

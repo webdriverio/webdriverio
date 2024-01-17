@@ -21,11 +21,12 @@ exports[`formatMessage > should format an error message 1`] = `
 
 exports[`formatMessage > should format an error message with timeout error 1`] = `
 {
+  "body": undefined,
   "duration": undefined,
   "error": {
     "actual": undefined,
     "expected": undefined,
-    "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts).",
+    "message": "The execution in the test "parentfoo barfoo" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts).",
     "name": "Error",
     "type": "Error",
   },
@@ -40,6 +41,7 @@ exports[`formatMessage > should format an error message with timeout error 1`] =
 
 exports[`formatMessage > should format payload 1`] = `
 {
+  "body": undefined,
   "context": "some context",
   "currentTest": "current test",
   "duration": undefined,

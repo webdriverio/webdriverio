@@ -1,33 +1,21 @@
 [
   {
-    "packageName": "wdio-chromedriver-service",
-    "title": "ChromeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
-  },
-  {
-    "packageName": "wdio-geckodriver-service",
-    "title": "Geckodriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
-  },
-  {
-    "packageName": "wdio-safaridriver-service",
-    "title": "SafariDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-safaridriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-safaridriver-service"
-  },
-  {
-    "packageName": "wdio-edgedriver-service",
-    "title": "EdgeDriver",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
+    "packageName": "@wdio/visual-service",
+    "title": "Image Comparison (Visual Regression Testing)",
+    "githubUrl": "https://github.com/webdriverio/visual-testing",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/visual-service"
   },
   {
     "packageName": "wdio-vscode-service",
     "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
+  },
+  {
+    "packageName": "wdio-nuxt-service",
+    "title": "WDIO Nuxt Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
   },
   {
     "packageName": "wdio-intercept-service",
@@ -94,12 +82,6 @@
     "branch": "master",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-lambdatest-service"
-  },
-  {
-    "packageName": "wdio-image-comparison-service",
-    "title": "Image Comparison (Visual Regression Testing)",
-    "githubUrl": "https://github.com/wswebcreation/wdio-image-comparison-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-image-comparison-service"
   },
   {
     "packageName": "wdio-ng-apimock-service",
@@ -206,7 +188,8 @@
     "title": "Azure DevOps Test Plans",
     "githubUrl": "https://github.com/gianlucamangiapelo/wdio-azure-devops-service",
     "npmUrl": "https://www.npmjs.com/package/@gmangiapelo/wdio-azure-devops-service"
-  },  {
+  },
+  {
     "packageName": "@qajonatasmartins/wdio-google-chat-service",
     "title": "Google Chat",
     "githubUrl": "https://github.com/qajonatasmartins/wdio-google-chat-service",

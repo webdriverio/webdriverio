@@ -23,8 +23,11 @@ export const VALID_APP_EXTENSION = [
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
     setSessionStatus: true,
-    testObservability: true
+    testObservability: true,
+    accessibility: false
 }
+
+export const consoleHolder: typeof console = Object.assign({}, console)
 
 export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'
 export const DATA_EVENT_ENDPOINT = 'api/v1/event'
@@ -36,3 +39,24 @@ export const BATCH_EVENT_TYPES = ['LogCreated', 'TestRunStarted', 'TestRunFinish
 export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 export const BSTACK_SERVICE_VERSION = bstackServiceVersion
+
+export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
+export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+
+export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
+export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
+
+export const PERCY_LOGS_FILE = 'logs/percy.log'
+
+export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
+    '/session/:sessionId/url',
+    '/session/:sessionId/forward',
+    '/session/:sessionId/back',
+    '/session/:sessionId/refresh',
+    '/session/:sessionId/screenshot',
+    '/session/:sessionId/actions',
+    '/session/:sessionId/appium/device/shake'
+]
+
+export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']

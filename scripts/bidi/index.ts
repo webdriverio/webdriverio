@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import util from 'node:util'
 
 import camelcase from 'camelcase'
 import typescriptParser from 'recast/parsers/typescript.js'
@@ -9,7 +10,7 @@ import { parse as parseCDDL, type PropertyReference, type Property, type Group }
 
 import downloadSpec from './downloadSpec.js'
 import { writeFile } from './utils.js'
-import { BASE_PROTOCOL_SPEC, GENERATED_FILE_COMMENT } from './constants.js'
+import { BASE_PROTOCOL_SPEC, GENERATED_FILE_COMMENT, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -20,11 +21,22 @@ if (!process.env.GITHUB_AUTH) {
     process.exit(0)
 }
 
-await downloadSpec()
+const hasNewSpec = await downloadSpec()
+if (!hasNewSpec) {
+    console.log('No new spec, exiting!')
+    process.exit(0)
+}
 
 const cddlTypes = ['local', 'remote']
 const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
-    const ast = parseCDDL(path.join(__dirname, 'cddl', `${type}.cddl`))
+    let ast
+
+    try {
+        ast = parseCDDL(path.join(__dirname, 'cddl', `${type}.cddl`))
+    } catch (err: unknown) {
+        console.log(util.format(CDDL_PARSE_ERROR_MESSAGE, (err as Error).stack))
+        process.exit(0)
+    }
 
     /**
      * CDDL ast transformation
@@ -156,7 +168,7 @@ for (const assignment of astRemote) {
             parameters: [{
                 name: paramKey,
                 type: `\`${paramType}\``,
-                description: `<pre>${paramExample}</pre>`,
+                description: `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`,
                 required: true
             }],
             ...(example ? {
@@ -189,5 +201,8 @@ await writeFile(
 )
 await writeFile(
     path.resolve(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'protocols', 'webdriverBidi.ts'),
-    `export default ${JSON.stringify(jsonSpec, null, 4)}`
+    (
+        `const protocol = ${JSON.stringify(jsonSpec, null, 4)} as const\n` +
+        'export default protocol'
+    )
 )

@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, afterAll, describe, it, expect } from 'vitest'
 import DevTools from '../packages/devtools/build/index.js'
-import { ELEMENT_KEY } from '../packages/devtools/build/constants.js'
+import { ELEMENT_KEY } from '../packages/webdriver/build/constants.js'
 import type { Client } from '../packages/devtools/build/index.js'
 
 let browser: Client
@@ -131,10 +131,11 @@ describe('elements', () => {
         expect(await browser.getElementCSSValue(link[ELEMENT_KEY], 'color')).toBe('rgb(0, 136, 204)')
 
         const rect = await browser.getElementRect(link[ELEMENT_KEY])
-        expect(rect.height).toBe(16)
+        // can be 16 or 16.5 depending on the environment
+        expect(Math.floor(rect.height)).toBe(16)
         expect(rect.width > 21 && rect.width < 24) // changes depending where it is run
         expect(rect.x).toBe(15)
-        expect(rect.y).toBe(142)
+        expect(Math.round(rect.y)).toBe(142)
 
         const selectedCheckbox = await browser.findElement('css selector', '.checkbox_selected')
         expect(await browser.isElementSelected(selectedCheckbox[ELEMENT_KEY])).toBe(true)

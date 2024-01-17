@@ -42,11 +42,13 @@
       "type": "category",
       "label": "Guides",
       "items": [
+        "bestpractices",
         "selectors",
         "timeouts",
-        "accessibility",
+        "emulation",
         "mocksandspies",
         "customcommands",
+        "custommatchers",
         "pageobjects",
         "debugging",
         "repl",
@@ -66,10 +68,33 @@
         "frameworks",
         "assertion",
         "organizingsuites",
+        "parameterize-tests",
+        "sharding",
         "retry",
         "watcher",
         "customreporter",
         "customservices"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Desktop Testing",
+      "items": [
+        "desktop-testing/macos",
+        "desktop-testing/windows",
+        {
+          "type": "category",
+          "label": "Electron",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/electron"
+          },
+          "items": [
+            "desktop-testing/electron/configuration",
+            "desktop-testing/electron/api",
+            "desktop-testing/electron/mocking"
+          ]
+        }
       ]
     },
     {
@@ -89,7 +114,8 @@
             "component-testing/svelte",
             "component-testing/solid",
             "component-testing/react",
-            "component-testing/preact"
+            "component-testing/preact",
+            "component-testing/stencil"
           ]
         },
         "component-testing/coverage",
@@ -98,14 +124,39 @@
     },
     {
       "type": "category",
-      "label": "Web Extension Testing",
+      "label": "Extension Testing",
+      "items": [
+        "extension-testing/web-extensions",
+        "extension-testing/vscode-extensions"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Accessibility Testing",
+      "items": ["accessibility-testing/axe-core"]
+    },
+    {
+      "type": "category",
+      "label": "Visual Testing",
+      "items": [
+        "visual-testing/writing-tests",
+        "visual-testing/methods",
+        {
+            "type": "category",
+            "label": "Options",
+            "items": [
+                "visual-testing/service-options",
+                "visual-testing/method-options"
+            ]
+        },
+        "visual-testing/test-output",
+        "visual-testing/considerations",
+        "visual-testing/faq"
+      ],
       "link": {
         "type": "doc",
-        "id": "web-extension-testing"
-      },
-      "items": [
-        "web-extension-testing/tips-and-tricks"
-      ]
+        "id": "visual-testing"
+      }
     },
     {
       "type": "category",

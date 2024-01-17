@@ -1,33 +1,49 @@
-import { ELEMENT_KEY } from '../../constants.js'
+import { ELEMENT_KEY } from 'webdriver'
+
 import { getBrowserObject } from '../../utils/index.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
 /**
  *
- * Return true if the selected DOM-element found by given selector is partially visible and within the viewport.
+ * Return true if the selected DOM-element found by given selector is partially displayed and within the viewport.
  *
  * <example>
     :index.html
-    <div id="notDisplayed" style="display: none"></div>
-    <div id="notVisible" style="visibility: hidden"></div>
-    <div id="notInViewport" style="position:absolute; left: 9999999"></div>
-    <div id="zeroOpacity" style="opacity: 0"></div>
+    <div id="noSize"></div>
+    <div id="noSizeWithContent">Hello World!</div>
+    <div id="notDisplayed" style="width: 10px; height: 10px; display: none"></div>
+    <div id="notVisible" style="width: 10px; height: 10px; visibility: hidden"></div>
+    <div id="zeroOpacity" style="width: 10px; height: 10px; opacity: 0"></div>
+    <div id="notInViewport" style="width: 10px; height: 10px; position:fixed; top: 999999; left: 999999"></div>
     :isDisplayedInViewport.js
     :isDisplayed.js
-    it('should detect if an element is visible', async () => {
-        let isDisplayedInViewport = await $('#notDisplayed').isDisplayedInViewport();
+    it('should detect if an element is displayed', async () => {
+        elem = await $('#notExisting');
+        isDisplayedInViewport = await elem.isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = await $('#notVisible').isDisplayedInViewport();
+        let elem = await $('#noSize');
+        let isDisplayedInViewport = await elem.isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = await $('#notExisting').isDisplayedInViewport();
+        let elem = await $('#noSizeWithContent');
+        let isDisplayedInViewport = await elem.isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: true
+
+        let elem = await $('#notDisplayed');
+        let isDisplayedInViewport = await elem.isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = await $('#notInViewport').isDisplayedInViewport();
+        elem = await $('#notVisible');
+        isDisplayedInViewport = await elem.isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = await $('#zeroOpacity').isDisplayedInViewport();
+        elem = await $('#zeroOpacity');
+        isDisplayedInViewport = await elem.isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
+
+        elem = await $('#notInViewport');
+        isDisplayedInViewport = await elem.isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
     });
  * </example>

@@ -2,7 +2,7 @@ import type { JsonPrimitive, JsonCompatible, JsonArray } from '@wdio/types'
 
 import SharedStoreLauncher from './launcher.js'
 import SharedStoreService from './service.js'
-import type { GetValueOptions } from './types'
+import type { GetValueOptions } from './types.js'
 
 export { getValue, setValue, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 export default SharedStoreService

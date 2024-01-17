@@ -17,7 +17,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-WebdriverIO has BrowserStack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [BrowserStack](https://www.browserstack.com/automate/node#setting-local-tunnel) Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
+WebdriverIO has BrowserStack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [BrowserStack](https://www.browserstack.com/docs/automate/selenium/getting-started/nodejs/local-testing) Tunnel](https://www.browserstack.com/docs/automate/selenium/getting-started/nodejs/local-testing). Set `browserstackLocal: true` also to activate this feature.
 Reporting of session status on BrowserStack will respect `strict` setting of Cucumber options.
 
 ```js
@@ -216,8 +216,8 @@ Default: `true`
 ### buildIdentifier
 
 **buildIdentifier** is a unique id to differentiate every execution that gets appended to buildName. Choose your buildIdentifier format from the available expressions:
-* ${BUILD_NUMBER}: Generates an incremental counter with every execution
-* ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
+* `BUILD_NUMBER`: Generates an incremental counter with every execution
+* `DATE_TIME`: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
 
 ```js
 services: [

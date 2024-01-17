@@ -20,6 +20,7 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
     vue: ['@vitejs/plugin-vue', 'default', undefined],
     svelte: ['@sveltejs/vite-plugin-svelte', 'svelte', undefined],
     solid: ['vite-plugin-solid', 'default', undefined],
+    stencil: undefined,
     lit: undefined
 }
 
@@ -39,10 +40,9 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
          * the following deps are CJS packages and need to be optimized (compiled to ESM) by Vite
          */
         include: [
-            'expect', 'serialize-error', 'minimatch', 'css-shorthand-properties',
-            'lodash.merge', 'lodash.zip', 'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep',
-            'aria-query', 'grapheme-splitter', 'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify',
-            'deepmerge-ts', 'jest-util', 'jest-matcher-utils'
+            'expect', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip', 'ws',
+            'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
+            'css-value', 'rgb2hex', 'p-iteration', 'deepmerge-ts', 'jest-util', 'jest-matcher-utils', 'split2'
         ],
         esbuildOptions: {
             logLevel: 'silent',

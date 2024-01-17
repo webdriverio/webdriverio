@@ -1,18 +1,15 @@
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect } from 'vitest'
-import path from 'node:path'
-import fs from 'node:fs'
 
 import {
-    overwriteElementCommands, commandCallStructure, isValidParameter, canAccess,
+    overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
 } from '../src/utils.js'
-
-vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 
 describe('utils', () => {
     it('commandCallStructure', () => {
         const stringFunction = 'return (function () => { })()'
+        const asyncStringFunction = 'return (async function () => { })()'
         const anotherStringFunction = '!function(t,e){}'
         expect(commandCallStructure(
             'foobar',
@@ -23,12 +20,13 @@ describe('utils', () => {
                 { a: 123 },
                 () => true,
                 stringFunction,
+                asyncStringFunction,
                 anotherStringFunction,
                 null,
                 undefined,
                 (Buffer.from('some screenshot')).toString('base64')
             ]
-        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
             .toBe('foobar("<Screenshot[base64]>")')
         expect(commandCallStructure('findElement', ['/html/body/a']))
@@ -53,6 +51,8 @@ describe('utils', () => {
         expect(transformCommandLogResult({ script: 'return foobar' })).toEqual({ script: 'return foobar' })
         expect(transformCommandLogResult({ script: 'return (function isElementDisplayed(element) {\n...' }))
             .toEqual({ script: 'isElementDisplayed(...) [50 bytes]' })
+        expect(transformCommandLogResult({ script: 'return (async function isElementDisplayed(element) {\n...' }))
+            .toEqual({ script: 'isElementDisplayed(...) [56 bytes]' })
 
         expect(transformCommandLogResult({ script: '!function(t,e){"object"==typeof exports&&"object"==typeof mod...' }))
             .toEqual({ script: '<minified function> [64 bytes]' })
@@ -184,6 +184,17 @@ describe('utils', () => {
             expect(isFunctionAsync({} as unknown as Function)).toBe(false)
         })
     })
+
+    it('definesRemoteDriver', () => {
+        expect(definesRemoteDriver({})).toBe(false)
+        expect(definesRemoteDriver({ hostname: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ port: 1 })).toBe(true)
+        expect(definesRemoteDriver({ path: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ protocol: 'foo' })).toBe(true)
+        expect(definesRemoteDriver({ user: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ key: 'foo' })).toBe(false)
+        expect(definesRemoteDriver({ user: 'foo', key: 'bar' })).toBe(true)
+    })
 })
 
 describe('utils:filterSpecArgs', () => {
@@ -217,18 +228,5 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
-    })
-})
-
-describe('utils:canAccess', () => {
-    it('canAccess', () => {
-        expect(canAccess('/foobar')).toBe(true)
-        expect(fs.accessSync).toBeCalledWith('/foobar')
-
-        // @ts-ignore
-        fs.accessSync.mockImplementation(() => {
-            throw new Error('upps')
-        })
-        expect(canAccess('/foobar')).toBe(false)
     })
 })

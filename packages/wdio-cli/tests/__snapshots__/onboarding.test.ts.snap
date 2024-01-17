@@ -168,13 +168,13 @@ exports[`onboarding templates > lit > without testing-library 1`] = `
 "import { html, render } from 'lit'
 import { $, expect } from '@wdio/globals'
 
-import './Component.lit.js'
+import './Component.js'
 import './Component.css'
 
 describe('Lit component testing', () => {
     it('should increment value on click', async () => {
         render(
-            html\`<my-element id=\\"root\\">WebdriverIO Component Testing</my-element>\`,
+            html\`<my-element id="root">WebdriverIO Component Testing</my-element>\`,
             document.body
         )
 

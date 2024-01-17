@@ -115,7 +115,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
         const elem = await $('input')
         await elem.click() // make element active
 
-        await browser.action('key)
+        await browser.action('key')
             .down('f')
             .down('o')
             .down('o')

@@ -11,9 +11,12 @@ import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 import { initCount } from '../src/bidi/core.js'
 import type { Client } from '../src/types.js'
 
+vi.mock('geckodriver', () => ({ start: vi.fn() }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@wdio/utils/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils/node')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fs')
+vi.mock('wait-port')
 vi.mock('ws')
 vi.mock('got')
 
@@ -21,9 +24,16 @@ vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
         BidiCore: class BidiHandlerMock {
-            connect = vi.fn()
+            connect = vi.fn().mockResolvedValue({})
             constructor () {
                 ++initCount
+            }
+            get socket () {
+                return {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                    close: vi.fn()
+                }
             }
         },
         initCount: () => initCount
@@ -36,27 +46,6 @@ const sessionOptions = {
     port: 4444,
     path: '/',
     sessionId: 'foobar'
-}
-
-const OUTPUT_DIR = path.join('some', 'output', 'dir')
-const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
-
-const setUpLogCheck = (conditionFunction: () => boolean) => {
-    const logCheck = (...args: string[]) => {
-        if (!conditionFunction()) {
-            throw new Error(
-                'Log function was called before setting ' +
-                'process.env.WDIO_LOG_PATH.\n' +
-                'Passed arguments to log function:\n' +
-                args.map((arg, index) => `  [${index}]: ${arg}`).join('\n')
-            )
-        }
-    }
-
-    logMock.error.mockImplementation(logCheck)
-    logMock.warn.mockImplementation(logCheck)
-    logMock.info.mockImplementation(logCheck)
-    logMock.debug.mockImplementation(logCheck)
 }
 
 // @ts-expect-error
@@ -106,7 +95,6 @@ describe('WebDriver', () => {
                     desiredCapabilities: { browserName: 'firefox' }
                 } })
             )
-            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
         it('should allow to create a new session using w3c compliant caps', async () => {
@@ -150,43 +138,6 @@ describe('WebDriver', () => {
             })
 
             expect(logger.setLevel).toBeCalled()
-        })
-
-        it('should be possible to skip setting outputDir', async () => {
-            setUpLogCheck(() => !('WDIO_LOG_PATH' in process.env))
-
-            await WebDriver.newSession({
-                capabilities: { browserName: 'chrome' },
-            })
-
-            expect('WDIO_LOG_PATH' in process.env).toBe(false)
-        })
-
-        it('should be possible to set outputDir', async () => {
-            setUpLogCheck(() => process.env.WDIO_LOG_PATH === OUTPUT_FILE)
-
-            await WebDriver.newSession({
-                capabilities: { browserName: 'chrome' },
-                outputDir: OUTPUT_DIR,
-            })
-
-            expect(process.env.WDIO_LOG_PATH).toBe(OUTPUT_FILE)
-        })
-
-        it('should be possible to override outputDir with env var', async () => {
-            const customPath = '/some/custom/path'
-
-            setUpLogCheck(() => process.env.WDIO_LOG_PATH === customPath)
-
-            process.env.WDIO_LOG_PATH = customPath
-
-            await WebDriver.newSession({
-                capabilities: { browserName: 'chrome' },
-                outputDir: OUTPUT_DIR,
-            })
-
-            expect(process.env.WDIO_LOG_PATH).not.toBe(OUTPUT_DIR)
-            expect(process.env.WDIO_LOG_PATH).toBe(customPath)
         })
 
         it('propagates capabilities and requestedCapabilities', async () => {
@@ -305,10 +256,10 @@ describe('WebDriver', () => {
         })
 
         it('should apply default connection details', () => {
-            const client = WebDriver.attachToSession({ sessionId: '123' })
+            const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('localhost')
-            expect(client.options.port).toBe(4444)
+            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
 

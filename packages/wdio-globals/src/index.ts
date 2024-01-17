@@ -24,7 +24,12 @@ function proxyHandler (key: SupportedGlobals) {
                 throw new Error(GLOBALS_ERROR_MESSAGE)
             }
 
-            return globals.get(key)[prop]
+            const receiver = globals.get(key)
+            const field = receiver[prop]
+
+            return typeof field === 'function'
+                ? field.bind(receiver)
+                : field
         }
     }
 }
@@ -59,6 +64,34 @@ export const expect: ExpectWebdriverIO.Expect = ((...args: any) => {
     }
     return globals.get('expect')(...args)
 }) as ExpectWebdriverIO.Expect
+
+const ASYNC_MATCHERS = [
+    'any',
+    'anything',
+    'arrayContaining',
+    'objectContaining',
+    'stringContaining',
+    'stringMatching',
+] as const
+
+for (const matcher of ASYNC_MATCHERS) {
+    expect[matcher] = (...args: any) => {
+        if (!globals.has('expect')) {
+            throw new Error(GLOBALS_ERROR_MESSAGE)
+        }
+        return globals.get('expect')[matcher](...args)
+    }
+}
+
+expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {
+    acc[matcher] = (...args: any) => {
+        if (!globals.has('expect')) {
+            throw new Error(GLOBALS_ERROR_MESSAGE)
+        }
+        return globals.get('expect').not[matcher](...args)
+    }
+    return acc
+}, {} as ExpectWebdriverIO.AsymmetricMatchers)
 
 expect.extend = (...args: unknown[]) => {
     if (!globals.has('expect')) {

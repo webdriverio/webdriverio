@@ -67,7 +67,13 @@ export default class FirefoxProfileLauncher {
         const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
 
         if (Array.isArray(capabilities)) {
-            (capabilities as Capabilities.DesiredCapabilities[])
+            (capabilities as Capabilities.DesiredCapabilities[] | Capabilities.MultiRemoteCapabilities[])
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o) => o.capabilities)
+                    }
+                    return c as (Capabilities.DesiredCapabilities)
+                })
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
                     this._setProfile(capability, zippedProfile)
@@ -87,7 +93,7 @@ export default class FirefoxProfileLauncher {
         }
     }
 
-    _setProfile(capability: Capabilities.Capabilities, zippedProfile: string) {
+    _setProfile(capability: WebdriverIO.Capabilities, zippedProfile: string) {
         if (this._options.legacy) {
             // for older firefox and geckodriver versions
             capability.firefox_profile = zippedProfile

@@ -85,6 +85,10 @@ const scope: BaseClient = new FakeClient()
 type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
+    beforeEach(() => {
+        vi.mocked(log.warn).mockClear()
+    })
+
     it('should fail if wrong arguments are passed in', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
         await expect(commandFn)
@@ -174,25 +178,22 @@ describe('command wrapper', () => {
             false
         )
         vi.mocked(RequestMock).mockClear()
+        expect(log.warn).toHaveBeenCalledTimes(0)
     })
-})
 
-describe('Bidi support', () => {
-    it('it propagates command to middleware', async () => {
-        (scope as any).eventMiddleware = { send: vi.fn() }
-        const commandFn = commandWrapper('POST', 'sendCommand', {
-            command: 'send',
-            required: true,
-            parameters: [{ type: 'object', name: 'params' }]
-        } as any)
-        await commandFn.call(scope, { params: 'foobar' })
-        expect((scope as any).eventMiddleware.send).toHaveBeenCalledTimes(1)
-        expect((scope as any).eventMiddleware.send).toHaveBeenCalledWith({ params: 'foobar' })
+    it('should log deprecation notice', async () => {
+        const deprecatedCommandEndpoint = {
+            deprecated: 'This command will soon be deprecated.',
+            ...commandEndpoint
+        }
+        const commandFn = commandWrapper(commandMethod, commandPath, deprecatedCommandEndpoint)
+        await commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
+        expect(log.warn).toBeCalledWith('The "findElementFromElement" command will soon be deprecated.')
     })
 })
 
 describe('command wrapper result log', () => {
-    async function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
+    async function getRequestCallback (method: string, path: string, endpoint: CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
         await commandFn.call(scope)
         expect(RequestMock).toHaveBeenCalledTimes(1)

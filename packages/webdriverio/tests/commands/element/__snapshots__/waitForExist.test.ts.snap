@@ -20,7 +20,7 @@ exports[`waitForExists > should use default waitFor options 1`] = `
     {
       "interval": 5,
       "timeout": 1000,
-      "timeoutMsg": "element (\\"undefined\\") still not existing after 1000ms",
+      "timeoutMsg": "element ("undefined") still not existing after 1000ms",
     },
   ],
 ]

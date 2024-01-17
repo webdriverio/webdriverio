@@ -1,7 +1,18 @@
-<% if (answers.isUsingTypeScript) {
-    %>import type { Options } from '@wdio/types'
+<%
+if (answers.isUsingTypeScript && answers.purpose === 'electron') {
+    %>/// <reference types="wdio-electron-service" />
+<% }
 
-export const config: Options.Testrunner = {<%
+if (answers.isUsingTypeScript && !answers.serenityAdapter) {
+    %>import type { Options } from '@wdio/types'
+<% }
+
+if (answers.isUsingTypeScript && answers.serenityAdapter) {
+    %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
+<% }
+
+if (answers.isUsingTypeScript) {
+    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'Options.Testrunner' %> = {<%
 } else if (answers.esmSupport) {
     %>export const config = {<%
 } else {
@@ -35,16 +46,15 @@ export const config: Options.Testrunner = {<%
             transpileOnly: true
         }
     },
-    <% } %>
-    <% if(answers.expEnvAccessKey){ %>
+    <% }
+    if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
     <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
     <%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
     port: <%- answers.expEnvPort %>,
     path: '/wd/hub',
-    <% } else if(answers.hostname && answers.port) { %>
-    //
+    <% } else if(answers.hostname && answers.port) { %>//
     // =====================
     // Server Configurations
     // =====================
@@ -93,9 +103,8 @@ export const config: Options.Testrunner = {<%
     // worker process. In order to have a group of spec files run in the same worker
     // process simply enclose them in an array within the specs array.
     //
-    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio`
-    // will be called from there.
+    // The path of the spec files will be resolved relative from the directory of
+    // of the config file unless it's absolute.
     //
     specs: [
         <%- answers.specs ? `'${answers.specs}'` : '// ToDo: define location for spec files here' %>
@@ -126,25 +135,7 @@ export const config: Options.Testrunner = {<%
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [{<%
-    if (answers.expEnvAccessKey) { %>
-        // Experitest Access Key
-        // get more information at https://docs.experitest.com/display/TE/Obtaining+Access+Key
-        'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%
-    }
-    if (answers.setupMobileEnvironment) { %>
-        // capabilities for local Appium web tests on an Android Emulator
-        platformName: 'Android', // or "iOS"
-        browserName: 'Chrome', // or "Safari"
-        'appium:deviceName': 'Android GoogleAPI Emulator', // or "iPhone Simulator"
-        'appium:platformVersion': '12.0', // or "16.2" (for running iOS v16)
-        'appium:automationName': 'UiAutomator2' // or "XCUITest"<%
-    } else {
-        %>
-        // capabilities for local browser web tests
-        browserName: 'chrome' // or "firefox", "microsoftedge", "safari"<%
-    } %>
-    }],
+    <%- include('snippets/capabilities', { answers }) %>
     //
     // ===================
     // Test Configurations
@@ -193,8 +184,8 @@ export const config: Options.Testrunner = {<%
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
-    %>services: [<%- answers.services.map(service => `'${service}'`) %>],
-    <% } else {
+    %><%- include('snippets/services', { answers }) %><%
+    } else {
     %>// services: [],
     //<% } %>
     // Framework you want to run your specs with.
@@ -204,6 +195,7 @@ export const config: Options.Testrunner = {<%
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: '<%- answers.framework %>',
+    <%- answers.framework === '@serenity-js/webdriverio' ? include('snippets/serenity', { answers }) : '' %>
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -214,58 +206,11 @@ export const config: Options.Testrunner = {<%
     // Whether or not retried spec files should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
     //
-    <%- include('reporters', { reporters: answers.reporters }) %>
-    <% if(answers.framework === 'mocha') { %>
-    //
-    // Options to be passed to Mocha.
-    // See the full list at http://mochajs.org/
-    mochaOpts: {
-        ui: 'bdd',
-        timeout: 60000
-    },<%
-    }
-    if(answers.framework === 'jasmine') { %>
-    //
-    // Options to be passed to Jasmine.
-    jasmineOpts: {
-        // Jasmine default timeout
-        defaultTimeoutInterval: 60000,
-        //
-        // The Jasmine framework allows interception of each assertion in order to log the state of the application
-        // or website depending on the result. For example, it is pretty handy to take a screenshot every time
-        // an assertion fails.
-        expectationResultHandler: function(passed, assertion) {
-            // do something
-        }
-    },
-    <% }
-    if(answers.framework === 'cucumber') { %>//
-    // If you are using Cucumber you need to specify the location of your step definitions.
-    cucumberOpts: {
-        // <string[]> (file/dir) require files before executing features
-        require: ['<%- answers.stepDefinitions %>'],
-        // <boolean> show full backtrace for errors
-        backtrace: false,
-        // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        requireModule: [],
-        // <boolean> invoke formatters without executing steps
-        dryRun: false,
-        // <boolean> abort the run on first failure
-        failFast: false,
-        // <boolean> hide step definition snippets for pending steps
-        snippets: true,
-        // <boolean> hide source uris
-        source: true,
-        // <boolean> fail if there are any undefined or pending steps
-        strict: false,
-        // <string> (expression) only execute the features or scenarios with tags matching the expression
-        tagExpression: '',
-        // <number> timeout for step definitions
-        timeout: 60000,
-        // <boolean> Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false
-    },
-    <% } %>
+    <%- include('snippets/reporters', { reporters: answers.reporters })
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('mocha'), include('snippets/mocha', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('jasmine'), include('snippets/jasmine', { answers }))
+    %><%- _.if([ answers.serenityAdapter, answers.framework ].includes('cucumber'), include('snippets/cucumber', { answers }))
+    %>
     //
     // =====
     // Hooks
@@ -282,7 +227,7 @@ export const config: Options.Testrunner = {<%
     // onPrepare: function (config, capabilities) {
     // },
     /**
-     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
      * @param  {string} cid      capability id (e.g 0-0)
      * @param  {object} caps     object containing capabilities for session that will be spawn in the worker
@@ -343,15 +288,15 @@ export const config: Options.Testrunner = {<%
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
      */
-    // beforeHook: function (test, context) {
+    // beforeHook: function (test, context, hookName) {
     // },
     /**
      * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
      * afterEach in Mocha)
      */
-    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
+    // afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     // },
-    <%- include('afterTest', { reporters: answers.reporters }) %>
+    <%- include('snippets/afterTest', { reporters: answers.reporters }) %>
     /**
      * Hook that gets executed after the suite has ended
      * @param {object} suite suite details
@@ -461,5 +406,17 @@ export const config: Options.Testrunner = {<%
     * @param {string} newSessionId session ID of the new session
     */
     // onReload: function(oldSessionId, newSessionId) {
+    // }
+    /**
+    * Hook that gets executed before a WebdriverIO assertion happens.
+    * @param {object} params information about the assertion to be executed
+    */
+    // beforeAssertion: function(params) {
+    // }
+    /**
+    * Hook that gets executed after a WebdriverIO assertion happened.
+    * @param {object} params information about the assertion that was executed, including its results
+    */
+    // afterAssertion: function(params) {
     // }
 }
