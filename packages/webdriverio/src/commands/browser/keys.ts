@@ -55,6 +55,10 @@ export async function keys (
      */
     const keyAction = this.action('key')
     keySequence.forEach((value) => keyAction.down(value))
+    /**
+     * XCTest API only allows to send keypresses (e.g. keydown+keyup).
+     * There is no way to "split" them
+     */
     if (!this.isIOS){
         keyAction.pause(10)
     }
