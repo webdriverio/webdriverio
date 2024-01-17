@@ -77,6 +77,15 @@ expect.extend(matchers.reduce((acc, matcherName) => {
             expectRequest.element = await $(context as any as HTMLElement)
         }
 
+        /**
+         * Avoid serialization issues when sending over the element. If we create
+         * an element from an existing HTMLElement, it might have custom properties
+         * attached to it that can't be serialized.
+         */
+        if (typeof expectRequest.element?.selector !== 'string') {
+            expectRequest.element.selector = undefined
+        }
+
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
         const contextString = 'elementId' in context ? 'WebdriverIO.Element' : 'WebdriverIO.Browser'
 
