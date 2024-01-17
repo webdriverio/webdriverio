@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { PercyLogger } from '../src/Percy/PercyLogger'
+import fs from 'node:fs'
 
 const log = logger('test')
 
@@ -13,15 +14,6 @@ jest.mock('node:fs/promises', () => ({
                 write: jest.fn()
             }),
         stat: jest.fn().mockReturnValue(Promise.resolve({ size: 123 })),
-    }
-}))
-jest.mock('node:fs', () => ({
-    default: {
-        readFileSync: jest.fn().mockReturnValue('1234\nsomepath'),
-        existsSync: jest.fn(),
-        // existsSync: fs.existsSync,
-        truncateSync: jest.fn(),
-        mkdirSync: jest.fn()
     }
 }))
 
@@ -70,5 +62,63 @@ describe('PercyLogger Log methods', () => {
         expect(logToFileSpy).toBeCalled()
         expect(logDebugMock).toBeCalled()
     })
+    afterEach(() => {
+        jest.clearAllMocks()
+    })
 })
 
+
+describe('PercyLogger clearLogger method', () => {
+    let clearLoggerSpy: any
+    beforeEach(() => {
+        clearLoggerSpy = jest.spyOn(PercyLogger, 'clearLogger')
+    })
+  
+    it('should do nothing if logFileStream is null', () => {
+
+        PercyLogger.clearLogger()
+        expect(clearLoggerSpy).toBeCalled()
+    })
+  
+    afterEach(() => {
+        jest.clearAllMocks()
+    })
+  })
+
+  describe('PercyLogger clearLogFile method', () => {
+    let clearLogFileSpy: any
+    beforeEach(() => {
+        clearLogFileSpy = jest.spyOn(PercyLogger, 'clearLogFile')
+    })
+  
+    it('should do nothing if logFileStream is null', () => {
+
+        PercyLogger.clearLogFile()
+        expect(clearLogFileSpy).toBeCalled()
+    })
+
+    afterEach(() => {
+        jest.clearAllMocks()
+    })
+  })
+
+  describe('PercyLogger logToFile method', () => {
+    let logToFileSpy: any
+    
+    beforeEach(() => {
+        logToFileSpy = jest.spyOn(PercyLogger, 'logToFile')
+    })
+  
+    it('should do nothing if logFileStream is null', () => {
+
+        jest.spyOn(fs, 'existsSync' ).mockReturnValue(false)
+        jest.spyOn(fs, 'mkdirSync' ).mockReturnValue(true)
+
+        jest.spyOn(fs, 'createWriteStream' ).mockReturnValue("filepath")
+        PercyLogger.logToFile("message", "info")
+        expect(logToFileSpy).toBeCalled()
+    })
+    afterEach(() => {
+        jest.clearAllMocks()
+    })
+  })
