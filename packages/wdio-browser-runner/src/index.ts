@@ -127,8 +127,13 @@ export default class BrowserRunner extends LocalRunner {
 
     private async _generateCoverageReports () {
         const coverageMaps = this.#communicator.coverageMaps
+
+        /**
+         * if no coverage was collected we don't need to do anything
+         * and return `true` which will mark the test as successful
+         */
         if (!this.#coverageOptions.enabled || coverageMaps.length === 0) {
-            return false
+            return true
         }
 
         const firstCoverageMapEntry = coverageMaps.shift() as CoverageMap
