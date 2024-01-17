@@ -55,7 +55,9 @@ export async function keys (
      */
     const keyAction = this.action('key')
     keySequence.forEach((value) => keyAction.down(value))
-    keyAction.pause(10)
+    if (!this.isIOS){
+        keyAction.pause(10)
+    }
     keySequence.forEach((value) => keyAction.up(value))
 
     // pass true to skip release of keys as they are already released
