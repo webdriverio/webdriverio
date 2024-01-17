@@ -72,16 +72,16 @@ describe('PercyLogger clearLogger method', () => {
     beforeEach(() => {
         clearLoggerSpy = jest.spyOn(PercyLogger, 'clearLogger')
     })
-  
+
     it('should do nothing if logFileStream is null', () => {
         PercyLogger.clearLogger()
         expect(clearLoggerSpy).toBeCalled()
     })
-  
+
     afterEach(() => {
         jest.clearAllMocks()
     })
-  })
+})
 
 describe('PercyLogger clearLogFile method', () => {
     let clearLogFileSpy: any
