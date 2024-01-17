@@ -1,8 +1,8 @@
 ---
 title: 2024-01-18-Enhanced Test Automation with WebdriverIO
 author: Larry Goddard
-authorURL: http://linkedin.com/in/larryg
-authorImageURL:
+authorURL: https://linkedin.com/in/larryg
+authorImageURL: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
 ---
 
 ## "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks"
