@@ -93,6 +93,133 @@ describe('_setSessionName', () => {
     })
 })
 
+describe('sleep', () => {
+    beforeEach(() => {
+        percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
+    })
+    it('sets sleep', async () => {
+        percyHandler.sleep(234)
+    })
+})
+
+describe('cleanupDeferredScreenshots', () => {
+    beforeEach(() => {
+        percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
+    })
+    it('calls cleanupDeferredScreenshots', async () => {
+        percyHandler['_percyDeferredScreenshots'] = []
+        percyHandler.cleanupDeferredScreenshots()
+        expect(percyHandler['_percyDeferredScreenshots']).toEqual([])
+        expect(percyHandler['_isPercyCleanupProcessingUnderway']).toEqual(true)
+    })
+})
+
+describe('isDOMChangingCommand', () => {
+    beforeEach(() => {
+        percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
+    })
+    it('should call isDOMChangingCommand', async () => {
+        const args = {
+            endpoint: 'actions',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        // await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(false)
+    })
+    it('should call isDOMChangingCommand with method: DELETE', async () => {
+        const args = {
+            method: 'DELETE',
+            endpoint: '/session/:sessionId',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        // await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+    it('should call isDOMChangingCommand with method: POST', async () => {
+        const args = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/url',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        // await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+    it('should call isDOMChangingCommand with method: POST and click', async () => {
+        const args = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element/click',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        // await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+    it('should call isDOMChangingCommand with method: POST and clear', async () => {
+        const args = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element/clear',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+    it('should call isDOMChangingCommand with method: POST and command touch', async () => {
+        const args = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/touch',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+    it('should call isDOMChangingCommand with method: POST and command execute', async () => {
+        const args = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/execute',
+            body: {
+                script: 'script',
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        let res = percyHandler.isDOMChangingCommand(args as BeforeCommandArgs)
+        expect(res).toEqual(true)
+    })
+})
+
 describe('teardown', () => {
     beforeEach(() => {
         percyHandler = new PercyHandler('manual', browser, caps, false, 'framework')
@@ -104,6 +231,33 @@ describe('teardown', () => {
         }).catch((err: any) => {
             expect(percyHandler['_percyScreenshotCounter']).not.equal(0)
         })
+    })
+})
+
+describe('browserBeforeCommand', () => {
+    let isDOMChangingCommandSpy: any
+    let percyHandler: PercyHandler
+
+    beforeEach(() => {
+        percyHandler = new PercyHandler('auto', browser, caps, false, 'framework')
+        // isDOMChangingCommandSpy = jest.spyOn(PercyHandler.prototype, 'isDOMChangingCommand').mockReturnValue(true)
+    })
+
+    it('should call browserBeforeCommand', async () => {
+        const args = {
+            endpoint: 'actions',
+            body: {
+                actions: [{
+                    type: 'key'
+                }]
+            }
+        }
+        await percyHandler.browserBeforeCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        // expect(isDOMChangingCommandSpy).toBeCalledTimes(1)
+    })
+
+    afterEach(() => {
+        // isDOMChangingCommandSpy.mockClear()
     })
 })
 
@@ -150,6 +304,24 @@ describe('browserCommand', () => {
         }
         await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
         expect(percyAutoCaptureSpy).toBeCalledTimes(1)
+    })
+
+    it('should call percyAutoCapture for event type element and capture mode auto', async () => {
+        const args = {
+            endpoint: '/session/:sessionId/element/value'
+        }
+        percyHandler['_percyAutoCaptureMode'] = 'auto'
+
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        expect(percyAutoCaptureSpy).toBeCalledTimes(1)
+    })
+
+    it('should call percyAutoCapture for event type element and capture mode auto', async () => {
+        const args = {}
+        percyHandler['_percyAutoCaptureMode'] = 'auto'
+
+        await percyHandler.browserAfterCommand(args as BeforeCommandArgs & AfterCommandArgs)
+        expect(percyAutoCaptureSpy).toBeCalledTimes(0)
     })
 
     afterEach(() => {

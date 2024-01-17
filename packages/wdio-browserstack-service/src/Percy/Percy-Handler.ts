@@ -128,7 +128,7 @@ class _PercyHandler {
                     }
                 }, 1000)
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.error(`Error while trying to cleanup deferred screenshots ${err}`)
         }
     }
@@ -152,7 +152,7 @@ class _PercyHandler {
                     this.deferCapture(this._sessionName as string, eventName)
                 }
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
         }
     }
