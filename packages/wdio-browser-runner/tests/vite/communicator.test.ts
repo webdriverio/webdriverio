@@ -29,7 +29,7 @@ describe('ServerWorkerCommunicator', () => {
         await onWorkerMessage({ name: 'sessionEnded', cid: '0-0' }, {}, {})
         expect(SESSIONS.size).toBe(0)
         expect(communicator.coverageMaps).toHaveLength(0)
-        await onWorkerMessage({ name: 'workerEvent', args: { type: 8 } }, {}, {})
+        await onWorkerMessage({ name: 'workerEvent', args: { type: 7 } }, {}, {})
         expect(communicator.coverageMaps).toHaveLength(1)
 
         const onBrowserEvent = server.onBrowserEvent.mock.calls[0][0]

@@ -98,6 +98,21 @@ describe('keys', () => {
         ])
     })
 
+    it('should not send a pause for iOS', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'safari',
+                platformName: 'iOS',
+            }
+        })
+        await browser.keys(['c'])
+        expect(vi.mocked(got).mock.calls[1][1].json.actions[0].actions).toEqual([
+            { type: 'keyDown', value: 'c' },
+            { type: 'keyUp', value: 'c' }
+        ])
+    })
+
     afterEach(() => {
         vi.mocked(got).mockClear()
     })

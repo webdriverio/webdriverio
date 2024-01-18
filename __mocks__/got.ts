@@ -90,6 +90,10 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             }
         }
 
+        if (params.json.capabilities.alwaysMatch.platformName && params.json.capabilities.alwaysMatch.platformName.includes('iOS')) {
+            value.capabilities.platformName = 'iOS'
+        }
+
         break
     case `/session/${sessionId}/element`:
         if (params.json && params.json.value === '#nonexisting') {

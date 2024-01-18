@@ -16,9 +16,6 @@ declare global {
         WDIO_EVENT_NAME: string
         __wdioErrors__: WDIOErrorEvent[]
         __wdioSpec__: string
-        __wdioFailures__: number
-        __wdioEvents__: any[]
-        __wdioConnectPromise__: Promise<WebSocket>
         __wdioMockCache__: Map<string, any>
     }
 }

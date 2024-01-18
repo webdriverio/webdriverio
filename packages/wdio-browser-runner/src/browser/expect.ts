@@ -82,7 +82,7 @@ expect.extend(matchers.reduce((acc, matcherName) => {
          * an element from an existing HTMLElement, it might have custom properties
          * attached to it that can't be serialized.
          */
-        if (typeof expectRequest.element?.selector !== 'string') {
+        if (expectRequest.element && typeof expectRequest.element.selector !== 'string') {
             expectRequest.element.selector = undefined
         }
 

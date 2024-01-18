@@ -21,6 +21,31 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.28.6 (2024-01-18)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`, `wdio-types`
+  * [#12041](https://github.com/webdriverio/webdriverio/pull/12041) (@wdio/browser-runner): improve performance by less pulling ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.28.4 (2024-01-17)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12034](https://github.com/webdriverio/webdriverio/pull/12034) [browserstack-service] Fix integrations data ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#12040](https://github.com/webdriverio/webdriverio/pull/12040) fix: not add pause for iOS keys ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.28.0 (2024-01-17)
 
 #### :rocket: New Feature
