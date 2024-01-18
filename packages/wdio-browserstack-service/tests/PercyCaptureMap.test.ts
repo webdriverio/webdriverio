@@ -1,6 +1,5 @@
 import PercyCaptureMap from '../src/Percy/PercyCaptureMap'
 
-
 describe('PercyCaptureMap', () => {
     let percyCaptureMap: PercyCaptureMap
 
