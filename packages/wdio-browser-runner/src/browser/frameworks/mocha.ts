@@ -128,17 +128,19 @@ export class MochaFramework extends HTMLElement {
 
         const self = this
         const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
-        mochaBeforeHook(function () {
-            self.#getHook('beforeSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaBeforeHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('beforeSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
             })
         })
 
         const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
-        mochaAfterHook(function () {
-            self.#getHook('afterSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaAfterHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('afterSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
                 duration: Date.now() - startTime
             })
@@ -169,8 +171,7 @@ export class MochaFramework extends HTMLElement {
         /**
          * propagate results to browser so it can be picked up by the runner
          */
-        window.__wdioEvents__ = this.#runnerEvents
-        window.__wdioFailures__ = failures
+        this.#sendTestReport({ failures, events: this.#runnerEvents })
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
@@ -211,6 +212,13 @@ export class MochaFramework extends HTMLElement {
             type: MESSAGE_TYPES.hookTriggerMessage,
             value: JSON.parse(safeStringify(value))
         }
+    }
+
+    #sendTestReport (value: Workers.BrowserTestResults) {
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.browserTestResult,
+            value: JSON.parse(safeStringify(value))
+        })
     }
 }
 
