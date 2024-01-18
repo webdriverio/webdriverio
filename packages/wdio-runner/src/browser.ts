@@ -143,6 +143,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         clearTimeout(testTimeout)
         clearInterval(errorInterval)
 
+        console.log(state)
+
         /**
          * capture coverage if enabled
          */
@@ -171,6 +173,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * retry Vite dynamic import errors once
              */
+            console.log('CHECK', retried, errors)
             if (!retried && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, true)
