@@ -19,7 +19,7 @@ const DEFAULT_TIMEOUT = 60 * 1000
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 interface TestState {
     failures: number
-    events?: any[]
+    events: any[]
     errors?: WDIOErrorEvent[]
     hasViteError?: boolean
 }
@@ -366,11 +366,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     #handleTestFinish (payload: Workers.BrowserTestResults) {
-        this.#resolveTestStatePromise!({ failures: payload.failures })
+        this.#resolveTestStatePromise!({ failures: payload.failures, events: payload.events })
     }
 
     #onTestTimeout (message: string) {
         return this.#resolveTestStatePromise?.({
+            events: [],
             failures: 1,
             errors: [{ message }]
         })
@@ -399,6 +400,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
             this.#resolveTestStatePromise?.({
+                events: [],
                 failures: 1,
                 ...testError
             })
