@@ -78,8 +78,7 @@ class PercyBinary {
 
     async validateBinary(binaryPath: string) {
         const versionRegex = /^.*@percy\/cli \d.\d+.\d+/
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const proc = spawn(binaryPath, ['--version'])
             proc.stdout.on('data', (data) => {
                 if (versionRegex.test(data)) {
