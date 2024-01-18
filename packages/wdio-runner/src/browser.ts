@@ -102,7 +102,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return failures
     }
 
-    async #runSpec (spec: string, retried = false): Promise<number> {
+    async #runSpec (spec: string, retry = 2): Promise<number> {
         const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -173,10 +173,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * retry Vite dynamic import errors once
              */
-            console.log('CHECK', retried, errors)
-            if (!retried && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
+            console.log('CHECK', retry, errors)
+            if (retry === 0 && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
                 log.info('Retry test run due to dynamic import error')
-                return this.#runSpec(spec, true)
+                return this.#runSpec(spec, retry - 1)
             }
 
             const { name, message, stack } = new Error(state.hasViteError
