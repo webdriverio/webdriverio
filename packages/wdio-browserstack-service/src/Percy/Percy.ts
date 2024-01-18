@@ -15,40 +15,40 @@ import type { Options } from '@wdio/types'
 const logDir = 'logs'
 
 class Percy {
-    #logfile: string = path.join(logDir, 'percy.log')
-    #address: string = process.env.PERCY_SERVER_ADDRESS || 'http://127.0.0.1:5338'
+    _logfile: string = path.join(logDir, 'percy.log')
+    _address: string = process.env.PERCY_SERVER_ADDRESS || 'http://127.0.0.1:5338'
 
-    #binaryPath: string | any = null
-    #options: BrowserstackConfig & Options.Testrunner
-    #config: Options.Testrunner
-    #proc: any = null
-    #isApp: boolean
-    #projectName: string | undefined = undefined
+    _binaryPath: string | any = null
+    _options: BrowserstackConfig & Options.Testrunner
+    _config: Options.Testrunner
+    _proc: any = null
+    _isApp: boolean
+    _projectName: string | undefined = undefined
 
     isProcessRunning = false
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-        this.#options = options
-        this.#config = config
-        this.#isApp = Boolean(options.app)
-        this.#projectName = bsConfig.projectName
+        this._options = options
+        this._config = config
+        this._isApp = Boolean(options.app)
+        this._projectName = bsConfig.projectName
     }
 
-    async #getBinaryPath(): Promise<string> {
-        if (!this.#binaryPath) {
+    private async getBinaryPath(): Promise<string> {
+        if (!this._binaryPath) {
             const pb = new PercyBinary()
-            this.#binaryPath = await pb.getBinaryPath(this.#config)
+            this._binaryPath = await pb.getBinaryPath(this._config)
         }
-        return this.#binaryPath
+        return this._binaryPath
     }
 
-    async #sleep(ms: number) {
+    private async sleep(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms))
     }
 
     async healthcheck() {
         try {
-            const resp = await nodeRequest('GET', 'percy/healthcheck', null, this.#address)
+            const resp = await nodeRequest('GET', 'percy/healthcheck', null, this._address)
             if (resp) {
                 return true
             }
@@ -58,8 +58,8 @@ class Percy {
     }
 
     async start() {
-        const binaryPath: string = await this.#getBinaryPath()
-        const logStream = fs.createWriteStream(this.#logfile, { flags: 'a' })
+        const binaryPath: string = await this.getBinaryPath()
+        const logStream = fs.createWriteStream(this._logfile, { flags: 'a' })
         const token = await this.fetchPercyToken()
         const configPath = await this.createPercyConfig()
 
@@ -67,24 +67,24 @@ class Percy {
             return false
         }
 
-        const commandArgs = [`${this.#isApp ? 'app:exec' : 'exec'}:start`]
+        const commandArgs = [`${this._isApp ? 'app:exec' : 'exec'}:start`]
 
         if (configPath) {
             commandArgs.push('-c', configPath as string)
         }
 
-        this.#proc = spawn(
+        this._proc = spawn(
             binaryPath,
             commandArgs,
             { env: { ...process.env, PERCY_TOKEN: token } }
         )
 
-        this.#proc.stdout.pipe(logStream)
-        this.#proc.stderr.pipe(logStream)
+        this._proc.stdout.pipe(logStream)
+        this._proc.stderr.pipe(logStream)
         this.isProcessRunning = true
         const that = this
 
-        this.#proc.on('close', function () {
+        this._proc.on('close', function () {
             that.isProcessRunning = false
         })
 
@@ -95,14 +95,14 @@ class Percy {
                 return true
             }
 
-            await this.#sleep(1000)
+            await this.sleep(1000)
         } while (this.isProcessRunning)
 
         return false
     }
 
     async stop() {
-        const binaryPath = await this.#getBinaryPath()
+        const binaryPath = await this.getBinaryPath()
         return new Promise( (resolve) => {
             const proc = spawn(binaryPath, ['exec:stop'])
             proc.on('close', (code: any) => {
@@ -117,16 +117,16 @@ class Percy {
     }
 
     async fetchPercyToken() {
-        const projectName = this.#projectName
+        const projectName = this._projectName
 
         try {
-            const type = this.#isApp ? 'app' : 'automate'
+            const type = this._isApp ? 'app' : 'automate'
             const response: any = await nodeRequest(
                 'GET',
                 `api/app_percy/get_project_token?name=${projectName}&type=${type}`,
                 {
-                    username: getBrowserStackUser(this.#config),
-                    password: getBrowserStackKey(this.#config)
+                    username: getBrowserStackUser(this._config),
+                    password: getBrowserStackKey(this._config)
                 },
                 'https://api.browserstack.com'
             )
@@ -139,12 +139,12 @@ class Percy {
     }
 
     async createPercyConfig() {
-        if (!this.#options.percyOptions) {
+        if (!this._options.percyOptions) {
             return null
         }
 
         const configPath = path.join(os.tmpdir(), 'percy.json')
-        const percyOptions = this.#options.percyOptions
+        const percyOptions = this._options.percyOptions
 
         if (!percyOptions.version) {
             percyOptions.version = '2'
