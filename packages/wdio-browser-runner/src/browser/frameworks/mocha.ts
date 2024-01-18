@@ -128,17 +128,19 @@ export class MochaFramework extends HTMLElement {
 
         const self = this
         const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
-        mochaBeforeHook(function () {
-            self.#getHook('beforeSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaBeforeHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('beforeSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
             })
         })
 
         const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
-        mochaAfterHook(function () {
-            self.#getHook('afterSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaAfterHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('afterSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
                 duration: Date.now() - startTime
             })

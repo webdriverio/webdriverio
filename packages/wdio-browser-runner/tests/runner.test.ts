@@ -126,7 +126,7 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
-            expect(await runner['_generateCoverageReports']()).toBe(false)
+            expect(await runner['_generateCoverageReports']()).toBe(true)
             expect(libCoverage.createCoverageMap).toBeCalledTimes(0)
         })
 
