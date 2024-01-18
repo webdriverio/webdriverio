@@ -1,6 +1,5 @@
 import PercyBinary from '../src/Percy/PercyBinary'
 
-
 // Mocking dependencies
 jest.mock('got')
 jest.mock('node:fs/promises', () => ({
