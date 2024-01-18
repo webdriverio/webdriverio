@@ -85,11 +85,11 @@ export enum MESSAGE_TYPES {
     hookResultMessage,
     expectRequestMessage,
     expectResponseMessage,
-    switchDebugState,
     coverageMap,
     customCommand,
     initiateBrowserStateRequest,
     initiateBrowserStateResponse,
+    browserTestResult
     /**
      * @wdio/runner messages
      * TODO: add runner messages
@@ -109,11 +109,11 @@ export type SocketMessageValue = {
     [MESSAGE_TYPES.hookResultMessage]: HookResultEvent
     [MESSAGE_TYPES.expectRequestMessage]: ExpectRequestEvent
     [MESSAGE_TYPES.expectResponseMessage]: ExpectResponseEvent
-    [MESSAGE_TYPES.switchDebugState]: boolean
     [MESSAGE_TYPES.coverageMap]: any
     [MESSAGE_TYPES.customCommand]: CustomCommandEvent
     [MESSAGE_TYPES.initiateBrowserStateRequest]: BrowserStateRequest
     [MESSAGE_TYPES.initiateBrowserStateResponse]: BrowserState
+    [MESSAGE_TYPES.browserTestResult]: BrowserTestResults
 }
 
 export type SocketMessagePayload<T extends MESSAGE_TYPES> = T extends any
@@ -127,6 +127,11 @@ export interface ConsoleEvent {
     type: 'log' | 'info' | 'warn' | 'debug' | 'error'
     args: unknown[]
     cid: string
+}
+
+export interface BrowserTestResults {
+    failures: number
+    events: any[]
 }
 
 export interface CustomCommandEvent {

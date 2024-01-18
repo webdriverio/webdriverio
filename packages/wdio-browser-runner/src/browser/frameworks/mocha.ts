@@ -169,8 +169,7 @@ export class MochaFramework extends HTMLElement {
         /**
          * propagate results to browser so it can be picked up by the runner
          */
-        window.__wdioEvents__ = this.#runnerEvents
-        window.__wdioFailures__ = failures
+        this.#sendTestReport({ failures, events: this.#runnerEvents })
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
@@ -211,6 +210,13 @@ export class MochaFramework extends HTMLElement {
             type: MESSAGE_TYPES.hookTriggerMessage,
             value: JSON.parse(safeStringify(value))
         }
+    }
+
+    #sendTestReport (value: Workers.BrowserTestResults) {
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.browserTestResult,
+            value: JSON.parse(safeStringify(value))
+        })
     }
 }
 
