@@ -10,11 +10,11 @@ import { PercyLogger } from './PercyLogger'
 import type { Options } from '@wdio/types'
 
 class PercyBinary {
-    #hostOS = process.platform
-    #httpPath: any = null
-    #binaryName = 'percy'
+    _hostOS = process.platform
+    _httpPath: any = null
+    _binaryName = 'percy'
 
-    #orderedPaths = [
+    _orderedPaths = [
         path.join(os.homedir(), '.browserstack'),
         process.cwd(),
         os.tmpdir()
@@ -22,24 +22,24 @@ class PercyBinary {
 
     constructor() {
         const base = 'https://github.com/percy/cli/releases/latest/download'
-        if (this.#hostOS.match(/darwin|mac os/i)) {
-            this.#httpPath = base + '/percy-osx.zip'
-        } else if (this.#hostOS.match(/mswin|msys|mingw|cygwin|bccwin|wince|emc|win32/i)) {
-            this.#httpPath = base + '/percy-win.zip'
-            this.#binaryName = 'percy.exe'
+        if (this._hostOS.match(/darwin|mac os/i)) {
+            this._httpPath = base + '/percy-osx.zip'
+        } else if (this._hostOS.match(/mswin|msys|mingw|cygwin|bccwin|wince|emc|win32/i)) {
+            this._httpPath = base + '/percy-win.zip'
+            this._binaryName = 'percy.exe'
         } else {
-            this.#httpPath = base + '/percy-linux.zip'
+            this._httpPath = base + '/percy-linux.zip'
         }
     }
 
-    async #makePath(path: string) {
-        if (await this.#checkPath(path)) {
+    private async makePath(path: string) {
+        if (await this.checkPath(path)) {
             return true
         }
         return fsp.mkdir(path).then(() => true).catch(() => false)
     }
 
-    async #checkPath(path: string) {
+    private async checkPath(path: string) {
         try {
             const hasDir = await fsp.access(path).then(() => true, () => false)
             if (hasDir) {
@@ -50,10 +50,10 @@ class PercyBinary {
         }
     }
 
-    async #getAvailableDirs() {
-        for (let i = 0; i < this.#orderedPaths.length; i++) {
-            const path = this.#orderedPaths[i]
-            if (await this.#makePath(path)) {
+    private async _getAvailableDirs() {
+        for (let i = 0; i < this._orderedPaths.length; i++) {
+            const path = this._orderedPaths[i]
+            if (await this.makePath(path)) {
                 return path
             }
         }
@@ -61,9 +61,9 @@ class PercyBinary {
     }
 
     async getBinaryPath(conf: Options.Testrunner): Promise<string> {
-        const destParentDir = await this.#getAvailableDirs()
-        const binaryPath = path.join(destParentDir, this.#binaryName)
-        if (await this.#checkPath(binaryPath)) {
+        const destParentDir = await this._getAvailableDirs()
+        const binaryPath = path.join(destParentDir, this._binaryName)
+        if (await this.checkPath(binaryPath)) {
             return binaryPath
         }
         const downloadedBinaryPath: string = await this.download(conf, destParentDir)
@@ -94,17 +94,17 @@ class PercyBinary {
     }
 
     async download(conf: any, destParentDir: any): Promise<string> {
-        if (!await this.#checkPath(destParentDir)){
+        if (!await this.checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)
         }
 
-        const binaryName = this.#binaryName
+        const binaryName = this._binaryName
         const zipFilePath = path.join(destParentDir, binaryName + '.zip')
         const binaryPath = path.join(destParentDir, binaryName)
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
         return new Promise((resolve, reject) => {
-            const stream = got.extend({ followRedirect: true }).get(this.#httpPath, { isStream: true })
+            const stream = got.extend({ followRedirect: true }).get(this._httpPath, { isStream: true })
             stream.on('error', (err) => {
                 PercyLogger.error(`Got Error in percy binary download response: ${err}`)
             })
