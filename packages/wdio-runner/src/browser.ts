@@ -174,7 +174,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * retry Vite dynamic import errors once
              */
             console.log('CHECK', retry, errors)
-            if (retry === 0 && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
+            if (retry >= 0 && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, retry - 1)
             }
