@@ -12,6 +12,8 @@ declare global {
     // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
     // eslint-disable-next-line no-var
     var _wdioDynamicJasmineResultErrorList: any | undefined
+    // eslint-disable-next-line no-var
+    var _jasmineTestResult: any | undefined
 }
 
 const STACKTRACE_FILTER = [
@@ -90,9 +92,12 @@ export const testFrameworkFnWrapper = async function (
     const testStart = Date.now()
     try {
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
-        if (result === undefined &&
-            globalThis._wdioDynamicJasmineResultErrorList?.length > 0
-        ) {
+        if (globalThis._jasmineTestResult !== undefined) {
+            result = globalThis._jasmineTestResult
+            globalThis._jasmineTestResult = undefined
+        }
+
+        if (globalThis._wdioDynamicJasmineResultErrorList?.length > 0) {
             globalThis._wdioDynamicJasmineResultErrorList[0].stack = filterStackTrace(globalThis._wdioDynamicJasmineResultErrorList[0].stack)
             error = globalThis._wdioDynamicJasmineResultErrorList[0]
             globalThis._wdioDynamicJasmineResultErrorList = undefined

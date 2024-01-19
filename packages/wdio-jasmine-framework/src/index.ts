@@ -202,6 +202,7 @@ class JasmineAdapter {
             // @ts-ignore overwrite existing type
             self._lastTest.start = new Date().getTime()
             globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
+            globalThis._jasmineTestResult = this.result
             executeMock.apply(this, args)
         }
 
@@ -537,8 +538,4 @@ declare global {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R, T> extends jasmine.Matchers<R> {}
     }
-
-    // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test results in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils as workaround for Jasmine
-    // eslint-disable-next-line no-var
-    var _wdioDynamicJasmineResultErrorList: any
 }
