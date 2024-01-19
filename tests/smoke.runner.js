@@ -770,12 +770,12 @@ const jasmineHooksTestrunner = async () => {
 }
 
 const jasmineAfterHookArgsValidation = async () => {
-    const expectedPassedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'testPassed.json')
-    const expectedFailedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'testFailed.json')
+    const expectedPassedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
+    const expectedFailedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
 
     // Actual test results are written to files in tests\helpers\jasmine.after-hook-validation.conf.js - afterTest()
-    const actualPassedTestResultPath = path.join(__dirname, 'helpers', 'expectationResultsPassed.log')
-    const actualFailedTestResultPath = path.join(__dirname, 'helpers', 'expectationResultsFailed.log')
+    const actualPassedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsPassed.log')
+    const actualFailedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsFailed.log')
 
     await launch('jasmineAfterHookArgsValidation',
         path.resolve(__dirname, 'helpers', 'jasmine.after-hook-validation.conf.js'),
@@ -786,10 +786,10 @@ const jasmineAfterHookArgsValidation = async () => {
             ]
         }).catch((err) => err) // error expected
 
-    const actualPassedTestLogs = JSON.parse((await fs.readFile(actualPassedTestResultPath)).toString())
-    const actualFailedTestLogs = JSON.parse((await fs.readFile(actualFailedTestResultPath)).toString())
-    const expectedPassedTestLogs = JSON.parse((await fs.readFile(expectedPassedTestResultPath)).toString())
-    const expectedFailedTestLogs = JSON.parse((await fs.readFile(expectedFailedTestResultPath)).toString())
+    const actualPassedTestLogs = JSON.parse((await fs.readFile(actualPassedTestResultPath)))
+    const actualFailedTestLogs = JSON.parse((await fs.readFile(actualFailedTestResultPath)))
+    const expectedPassedTestLogs = JSON.parse((await fs.readFile(expectedPassedTestResultPath)))
+    const expectedFailedTestLogs = JSON.parse((await fs.readFile(expectedFailedTestResultPath)))
 
     // Check before removing
     assert.equal(typeof actualPassedTestLogs.test.start, 'number')

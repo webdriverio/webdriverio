@@ -22,7 +22,7 @@ export const config = {
         context,
         { error, result, duration, passed, retries }
     ) {
-        const expectationResults = {
+        const actualTestResult = {
             test: test,
             context: context,
             error: error,
@@ -33,9 +33,9 @@ export const config = {
         }
 
         if (test.description.includes('pass')) {
-            fs.writeFile(path.resolve(__dirname, 'expectationResultsPassed.log'), JSON.stringify(expectationResults))
+            fs.writeFile(path.resolve(__dirname, 'actualResultsPassed.log'), JSON.stringify(actualTestResult))
         } else {
-            fs.writeFile(path.resolve(__dirname, 'expectationResultsFailed.log'), JSON.stringify(expectationResults))
+            fs.writeFile(path.resolve(__dirname, 'actualResultsFailed.log'), JSON.stringify(actualTestResult))
         }
     }
 }
