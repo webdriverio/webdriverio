@@ -171,7 +171,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * retry Vite dynamic import errors once
              */
-            if (!retried && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
+            if (!retried && errors.some((err) => (
+                err.includes('Failed to fetch dynamically imported module') ||
+                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)')
+            ))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, true)
             }

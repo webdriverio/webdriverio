@@ -35,9 +35,6 @@ export default defineConfig({
                 branches: [85, 90],
                 lines: [85, 90]
             }
-        },
-        globalSetup: [
-            'scripts/test/globalSetup.ts'
-        ]
+        }
     }
 })
