@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
+import { compute } from '../../scripts/scrollIntoViewDeltaCalcScript.js'
 
 const log = logger('webdriverio')
 
@@ -43,7 +44,7 @@ function scrollIntoViewWeb (
  */
 export async function scrollIntoView (
     this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+    options: ScrollIntoViewOptions & {scrollMode?: 'if-needed' | 'always'} | boolean = { block: 'start', inline: 'nearest', scrollMode: 'if-needed' }
 ) {
     const browser = getBrowserObject(this)
 
@@ -51,66 +52,49 @@ export async function scrollIntoView (
      * Appium does not support the "wheel" action
      */
     if (browser.isMobile) {
-        return scrollIntoViewWeb.call(this, options)
+        return scrollIntoViewWeb.call(this, options as any)
     }
+    const element = {
+        [ELEMENT_KEY]: this.elementId, // w3c compatible
+        ELEMENT: this.elementId, // jsonwp compatible
+    } as any as HTMLElement
+    let parsedOptions
 
+    if (typeof options === 'boolean') {
+        parsedOptions = options ? { scrollMode: 'always', block: 'start', inline: 'nearest' } : { scrollMode: 'always', block: 'end', inline: 'nearest' }
+    } else {
+        parsedOptions = options
+    }
     try {
-        /**
-         * by default the WebDriver action scrolls the element just into the
-         * viewport. In order to stay complaint with `Element.scrollIntoView()`
-         * we need to adjust the values a bit.
-         */
-        const elemRect = await browser.getElementRect(this.elementId)
-        const viewport = await browser.getWindowSize()
-        let [scrollX, scrollY] = await browser.execute(() => [
-            window.scrollX, window.scrollY
-        ])
-
-        // handle elements outside of the viewport
-        scrollX = elemRect.x <= viewport.width ? elemRect.x : viewport.width / 2
-        scrollY = elemRect.y <= viewport.height ? elemRect.y : viewport.height / 2
-
-        const deltaByOption = {
-            start: { y: elemRect.y - elemRect.height, x: elemRect.x - elemRect.width },
-            center: { y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2), x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2) },
-            end: { y: elemRect.y - (viewport.height - elemRect.height), x: elemRect.x - (viewport.width - elemRect.width) }
+        const deltaPosition = (await browser.execute(
+            compute,
+            element,
+            parsedOptions as Record<string, any>
+        )) as {
+            el?: Element;
+            top: number;
+            left: number;
+            isVisible?: boolean
         }
-
-        let [deltaX, deltaY] = [deltaByOption.start.x, deltaByOption.start.y]
-        if (options === true) {
-            options = { block: 'start', inline: 'nearest' }
+        // eslint-disable-next-line unicorn/prefer-ternary
+        if (deltaPosition && 'isVisible' in deltaPosition && deltaPosition.isVisible && parsedOptions.scrollMode !== 'if-needed') {
+            await scrollIntoViewWeb.call(this, options as any)
+        } else {
+            await browser
+                .action('wheel')
+                .scroll({
+                    duration: 50,
+                    deltaX: Math.round(deltaPosition && deltaPosition.left ? deltaPosition.left : 0),
+                    deltaY: Math.round(deltaPosition && deltaPosition.top ? deltaPosition.top : 0),
+                    origin: this,
+                })
+                .perform()
         }
-        if (options === false) {
-            options = { block: 'end', inline: 'nearest' }
-        }
-        if (options && typeof options === 'object') {
-            const { block, inline } = options
-            if (block === 'nearest') {
-                const nearestYDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.y))
-                deltaY = Object.values(deltaByOption).find(delta => delta.y === nearestYDistance)!.y
-            } else if (block) {
-                deltaY = deltaByOption[block].y
-            }
-            if (inline === 'nearest') {
-                const nearestXDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.x))
-                deltaX = Object.values(deltaByOption).find(delta => delta.x === nearestXDistance)!.x
-            } else if (inline) {
-                deltaX = deltaByOption[inline].x
-            }
-        }
-
-        // take into account the current scroll position
-        deltaX = Math.round(deltaX - scrollX)
-        deltaY = Math.round(deltaY - scrollY)
-
-        await browser.action('wheel')
-            .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
-            .perform()
     } catch (err: any) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${err.message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'
         )
-        await scrollIntoViewWeb.call(this, options)
+        await scrollIntoViewWeb.call(this, options as any)
     }
 }

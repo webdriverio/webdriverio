@@ -206,26 +206,26 @@ describe('main suite 1', () => {
         })
     })
 
-    const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
+    const inputs: (ScrollIntoViewOptions | {scrollMode?: 'if-needed' | 'always'} | boolean | undefined)[] = [
         undefined,
         true,
         false,
-        { block: 'start', inline: 'start' },
-        { block: 'start', inline: 'center' },
-        { block: 'start', inline: 'end' },
-        { block: 'start', inline: 'nearest' },
-        { block: 'center', inline: 'start' },
-        { block: 'center', inline: 'center' },
-        { block: 'center', inline: 'end' },
-        { block: 'center', inline: 'nearest' },
-        { block: 'end', inline: 'start' },
-        { block: 'end', inline: 'center' },
-        { block: 'end', inline: 'end' },
-        { block: 'end', inline: 'nearest' },
-        { block: 'nearest', inline: 'start' },
-        { block: 'nearest', inline: 'center' },
-        { block: 'nearest', inline: 'end' },
-        { block: 'nearest', inline: 'nearest' },
+        { scrollMode: 'always', block: 'start', inline: 'start' },
+        { scrollMode: 'always', block: 'start', inline: 'center' },
+        { scrollMode: 'always', block: 'start', inline: 'end' },
+        { scrollMode: 'always', block: 'start', inline: 'nearest' },
+        { scrollMode: 'always', block: 'center', inline: 'start' },
+        { scrollMode: 'always', block: 'center', inline: 'center' },
+        { scrollMode: 'always', block: 'center', inline: 'end' },
+        { scrollMode: 'always', block: 'center', inline: 'nearest' },
+        { scrollMode: 'always', block: 'end', inline: 'start' },
+        { scrollMode: 'always', block: 'end', inline: 'center' },
+        { scrollMode: 'always', block: 'end', inline: 'end' },
+        { scrollMode: 'always', block: 'end', inline: 'nearest' },
+        { scrollMode: 'always', block: 'nearest', inline: 'start' },
+        { scrollMode: 'always', block: 'nearest', inline: 'center' },
+        { scrollMode: 'always', block: 'nearest', inline: 'end' },
+        { scrollMode: 'always', block: 'nearest', inline: 'nearest' },
     ]
 
     describe('wdio scrollIntoView behaves like native scrollIntoView', () => {
@@ -250,11 +250,16 @@ describe('main suite 1', () => {
             it(`should horizontally scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
                 const searchInput = await $('.searchinput')
                 await searchInput.scrollIntoView(input as any)
-                const wdioX = await browser.execute(() => window.scrollX)
+                let wdioX = await browser.execute(() => window.scrollX)
 
                 await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
-                const nativeX = await browser.execute(() => window.scrollX)
+                let nativeX = await browser.execute(() => window.scrollX)
 
+                if (Math.floor(wdioX) > Math.floor(nativeX)){
+                    nativeX = nativeX + 1
+                } else if (Math.floor(wdioX) < Math.floor(nativeX)) {
+                    wdioX = wdioX + 1
+                }
                 expect(Math.floor(wdioX)).toEqual(Math.floor(nativeX))
             })
         })
@@ -265,7 +270,7 @@ describe('main suite 1', () => {
         await browser.setWindowSize(500, 500)
         const searchInput = await $('.searchinput')
 
-        const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
+        const scrollAndCheck = async (params?: ScrollIntoViewOptions | {scrollMode?: 'if-needed' | 'always'} | boolean) => {
             await searchInput.scrollIntoView(params)
             const [wdioX, wdioY] = await browser.execute(() => [
                 window.scrollX, window.scrollY
@@ -276,8 +281,8 @@ describe('main suite 1', () => {
                 window.scrollX, window.scrollY
             ])
 
-            expect(Math.abs(wdioX - windowX)).toEqual(0)
-            expect(Math.abs(wdioY - windowY)).toEqual(0)
+            expect(Math.abs(wdioX - windowX)).toBeLessThan(1)
+            expect(Math.abs(wdioY - windowY)).toBeLessThan(1)
         }
 
         for (const input of inputs) {

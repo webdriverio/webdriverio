@@ -74,7 +74,7 @@ describe('scrollIntoView test', () => {
             const optionsCenter = vi.mocked(got).mock.calls.slice(-2, -1)[0][1] as any
             expect(optionsCenter.json.actions[0].actions[0].deltaX).toBe(0)
             expect(optionsCenter.json.actions[0].actions[0].deltaY).toBe(0)
-            expect(optionsCenter.json.actions[0].actions[0].y).toBe(-385)
+            expect(optionsCenter.json.actions[0].actions[0].y).toBe(0)
         })
 
     })
@@ -107,7 +107,7 @@ describe('scrollIntoView test', () => {
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(executeCallOptions.json.script).toEqual('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)')
             expect(executeCallOptions.json.args).toHaveLength(2)
-            expect(executeCallOptions.json.args[1]).toEqual({ block: 'start', inline: 'nearest' })
+            expect(executeCallOptions.json.args[1]).toEqual({ block: 'start', inline: 'nearest', scrollMode: 'if-needed' })
         })
 
         it('scrolls element when using boolean scroll options', async () => {
