@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.28.8 (2024-01-20)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-utils`
+  * [#11957](https://github.com/webdriverio/webdriverio/pull/11957) Closes [#11684](https://github.com/webdriverio/webdriverio/issues/11684): Improve AfterTest() for Jasmine ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :memo: Documentation
+* Other
+  * [#12052](https://github.com/webdriverio/webdriverio/pull/12052) Update AUTHORS.md ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-cli`
+  * [#12046](https://github.com/webdriverio/webdriverio/pull/12046) Add QUnit service ([@mauriciolauffer](https://github.com/mauriciolauffer))
+
+#### Committers: 3
+- Dmytro Klymenko ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+- Mauricio Lauffer ([@mauriciolauffer](https://github.com/mauriciolauffer))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.28.6 (2024-01-18)
 
 #### :bug: Bug Fix
