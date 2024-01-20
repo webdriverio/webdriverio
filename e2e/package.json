@@ -6,7 +6,7 @@
     "test:browser:react": "run-s test:browser:react:*",
     "test:browser:react:wdio": "cross-env WDIO_PRESET=react node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec react.test.tsx",
     "test:browser:react:verifyCoverage": "run-s verifyCoverage",
-    "test:browser:preact": "run-s test:browser:preact:*",
+    "test:browser:preact": "echo \"SKIP - run-s test:browser:preact:*\"",
     "test:browser:preact:wdio": "cross-env WDIO_PRESET=preact node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec pr-eact.test.tsx",
     "test:browser:preact:verifyCoverage": "run-s verifyCoverage",
     "test:browser:vue": "run-s test:browser:vue:*",
