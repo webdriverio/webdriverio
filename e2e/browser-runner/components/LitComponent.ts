@@ -64,3 +64,25 @@ export class SimpleGreeting extends LitElement {
         this.requestUpdate()
     }
 }
+
+@customElement('joke-machine')
+export class JokeMachine extends LitElement {
+    #joke = 'Loading...'
+
+    render() {
+        return html`<div>
+            <em>${this.#joke}</em>
+            <button @click="${() => this.#getJoke()}">Get Joke</button>
+        </div>`
+    }
+
+    async #getJoke() {
+        const data = await fetch('https://icanhazdadjoke.com/j/tWL6U01obpb', {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        this.#joke = (await data.json()).joke
+        this.requestUpdate()
+    }
+}

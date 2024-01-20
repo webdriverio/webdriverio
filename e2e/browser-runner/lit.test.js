@@ -95,7 +95,7 @@ describe('Lit Component testing', () => {
         expect(stringWidth('a')).toBe(123)
     })
 
-    it('should allow to unmock', () => {
+    it('should allow to un-mock', () => {
         expect(isUrl).not.toBe('mocked value')
     })
 
@@ -107,7 +107,7 @@ describe('Lit Component testing', () => {
 
     it('should allow to manual mock dependencies', async function () {
         /**
-         * this fails in Safari as the click on the button is not recognised
+         * this fails in Safari as the click on the button is not recognized
          */
         if (browser.capabilities.browserName.toLowerCase() === 'safari') {
             return this.skip()
@@ -119,6 +119,33 @@ describe('Lit Component testing', () => {
         )
         await $('simple-greeting').$('>>> button').click()
         await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
+    })
+
+    it('should allow to mock graphql request using browser API', async () => {
+        /**
+         * this fails in Safari as the click on the button is not recognized
+         */
+        if (browser.capabilities.browserName.toLowerCase() === 'safari') {
+            return this.skip()
+        }
+
+        render(
+            html`<joke-machine />`,
+            document.body
+        )
+        await expect($('joke-machine').$('>>> em')).toHaveText('Loading...')
+        await $('joke-machine').$('>>> button').click()
+        await expect($('joke-machine').$('>>> em')).toHaveText(
+            expect.stringContaining('Thanks for explaining the word "many" to me.')
+        )
+
+        const jokeAPIMock = await browser.mock('https://icanhazdadjoke.com/j/**')
+        jokeAPIMock.respond({
+            statusCode: 200,
+            body: { joke: 'This is a mocked joke' }
+        })
+        await $('joke-machine').$('>>> button').click()
+        await expect($('joke-machine').$('>>> em')).toHaveText('This is a mocked joke')
     })
 
     it('should be able to chain shadow$ commands', async () => {

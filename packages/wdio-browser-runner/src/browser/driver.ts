@@ -17,6 +17,7 @@ interface CommandMessagePromise {
 }
 
 const HIDE_REPORTER_FOR_COMMANDS = ['saveScreenshot', 'savePDF']
+const COMMANDS_FOR_NODEJS_ONLY = ['debug', 'saveScreenshot', 'savePDF', 'mock', 'mockClearAll', 'mockRestoreAll']
 const mochaFramework = document.querySelector('mocha-framework')
 let id = 0
 export default class ProxyDriver {
@@ -50,7 +51,7 @@ export default class ProxyDriver {
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
-        const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
+        const commandsProcessedInNodeWorld = [...commands, ...COMMANDS_FOR_NODEJS_ONLY]
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
             prev[commandName] = {
                 value: this.#getMockedCommand(cid, commandName)
@@ -61,9 +62,9 @@ export default class ProxyDriver {
         /**
          * handle certain commands on the server side
          */
-        delete userPrototype.debug
-        delete userPrototype.saveScreenshot
-        delete userPrototype.savePDF
+        for (const cmd of COMMANDS_FOR_NODEJS_ONLY) {
+            delete userPrototype[cmd]
+        }
 
         const prototype = {
             /**
