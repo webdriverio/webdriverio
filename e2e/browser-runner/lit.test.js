@@ -81,7 +81,7 @@ describe('Lit Component testing', () => {
 
     it('should allow to manual mock namespaces deps', async () => {
         expect(someExport).toBe('foobarloo')
-        expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default'])
+        expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default', 'userEvent'])
     })
 
     it('should allow to have different mock return values', () => {
