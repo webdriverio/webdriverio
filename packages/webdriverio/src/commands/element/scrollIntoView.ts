@@ -62,6 +62,8 @@ export async function scrollIntoView (
 
     if (typeof options === 'boolean') {
         parsedOptions = options ? { scrollMode: 'always', block: 'start', inline: 'nearest' } : { scrollMode: 'always', block: 'end', inline: 'nearest' }
+    } else if (!options.scrollMode) {
+        parsedOptions = { ...options, ...{ scrollMode: 'if-needed' } }
     } else {
         parsedOptions = options
     }
