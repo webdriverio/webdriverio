@@ -145,7 +145,7 @@ describe('Percy Class', () => {
         })
         it('should stop', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
-            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath')
+            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('mock_binary_path')
 
             percyInstance.stop().then(() => {
                 expect(getBinaryPathSpy).toBeCalledTimes(1)
@@ -162,7 +162,7 @@ describe('Percy Class', () => {
         it('should return false when token is not there', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
-            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath')
+            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('mock_binary_path')
             const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
             const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue(null)
 
@@ -177,7 +177,7 @@ describe('Percy Class', () => {
         it('should return false when token is health check false', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
-            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath')
+            const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('mock_binary_path')
             const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
             const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
             const createPercyConfigSpy = jest.spyOn(percyInstance, 'createPercyConfig').mockReturnValue('config_path')
@@ -216,7 +216,6 @@ describe('Percy Class', () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
             const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('getBinaryPath_path')
-            // const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath')
 
             const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
             const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
