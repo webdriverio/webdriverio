@@ -1,13 +1,4 @@
 import PercyBinary from '../src/Percy/PercyBinary'
-
-import got from 'got'
-import yauzl from 'yauzl'
-
-
-import path from 'path/win32'
-import fs, { WriteStream } from 'fs'
-import { resolve } from 'path'
-
 import childProcess from 'node:child_process'
 
 // Mocking dependencies
@@ -93,7 +84,6 @@ describe('PercyBinary', () => {
             expect(result).toBe('download_path')
         })
     })
-
 
     describe('validateBinary', () => {
         it('should resolve to true for a valid binary version', async () => {
