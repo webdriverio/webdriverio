@@ -1,6 +1,6 @@
 {
   "name": "@wdio/json-reporter",
-  "version": "8.28.6",
+  "version": "8.29.0",
   "description": "A WebdriverIO plugin to report results in json format.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-json-reporter",
@@ -35,8 +35,8 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.28.6",
-    "@wdio/types": "8.28.6"
+    "@wdio/reporter": "8.29.0",
+    "@wdio/types": "8.29.0"
   },
   "publishConfig": {
     "access": "public"
