@@ -9,12 +9,12 @@ Similar to other test frameworks WebdriverIO will take a snapshot of the given v
 
 :::info Cross Platform Support
 
-These snapshot capabilities are available for running end-to-end tests within the Node.js environment as well as for running [unit and component](https://webdriver.io/docs/component-testing) tests in the browser or on mobile devices.
+These snapshot capabilities are available for running end-to-end tests within the Node.js environment as well as for running [unit and component](/docs/component-testing) tests in the browser or on mobile devices.
 
 :::
 
 ## Use Snapshots
-To snapshot a value, you can use the `toMatchSnapshot()` from [`expect()`](/docs/api/expect) API:
+To snapshot a value, you can use the `toMatchSnapshot()` from [`expect()`](/docs/api/expect-webdriverio) API:
 
 ```ts
 import { browser, expect } from '@wdio/globals'
@@ -84,7 +84,7 @@ This allows you to see the expected output directly without jumping across diffe
 
 Taking a DOM snapshot of an element might not be the best idea, especially if the DOM structure is too big and contains dynamic element properties. In these cases, it is recommended to rely on visual snapshots for elements.
 
-To enable visual snapshots, add the `@wdio/visual-service` to your setup. You can follow the set-up instructions in the [documentation](https://webdriver.io/docs/visual-testing#installation) for Visual Testing.
+To enable visual snapshots, add the `@wdio/visual-service` to your setup. You can follow the set-up instructions in the [documentation](/docs/visual-testing#installation) for Visual Testing.
 
 You can then take a visual snapshot via `toMatchElementSnapshot()`, e.g.:
 
@@ -97,4 +97,4 @@ it('can take inline DOM snapshots', () => {
 })
 ```
 
-An image is then stored in the baseline directory. Check out the [Visual Testing](https://webdriver.io/docs/visual-testing) for more information.
+An image is then stored in the baseline directory. Check out the [Visual Testing](/docs/visual-testing) for more information.
