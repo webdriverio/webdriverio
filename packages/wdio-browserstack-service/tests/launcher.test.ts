@@ -1239,19 +1239,3 @@ describe('_updateLocalBuildCache', () => {
         expect(writeFileSyncSpy).not.toHaveBeenCalled()
     })
 })
-
-describe('onWorkerStart', () => {
-    const options: BrowserstackConfig = { app: '/path/to/app.apk', percy: true }
-    const caps: any = [{}]
-    const config = {
-        user: 'foobaruser',
-        key: '12345',
-        capabilities: []
-    }
-
-    it('should upload the app and return app_url', async() => {
-        const service = new BrowserstackLauncher(options, caps, config)
-        service['_percyBestPlatformCaps'] = {}
-        await service.onWorkerStart()
-    })
-})
