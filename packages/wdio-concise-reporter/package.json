@@ -32,7 +32,7 @@
     "@wdio/reporter": "8.28.6",
     "@wdio/types": "8.28.6",
     "chalk": "^5.0.1",
-    "pretty-ms": "^7.0.1"
+    "pretty-ms": "^9.0.0"
   },
   "publishConfig": {
     "access": "public"
