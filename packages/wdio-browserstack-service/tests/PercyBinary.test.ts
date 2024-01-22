@@ -1,5 +1,8 @@
 import PercyBinary from '../src/Percy/PercyBinary'
 import childProcess from 'node:child_process'
+import yauzl from 'yauzl'
+import got from 'got'
+import path from 'node:path'
 
 // Mocking dependencies
 
@@ -8,7 +11,11 @@ jest.mock('node:fs/promises', () => ({
     mkdir: jest.fn().mockResolvedValue(true),
 }))
 jest.mock('node:fs', () => ({
-    createWriteStream: jest.fn(),
+    createWriteStream: jest.fn().mockImplementation(() => {
+        return {
+            close: jest.fn()
+        }
+    }),
     chmod: jest.fn().mockImplementation((_, __, callback) => callback()),
 }))
 jest.mock('yauzl')
@@ -105,7 +112,69 @@ describe('PercyBinary', () => {
             percyBinary.validateBinary(validVersionOutput).then(() => {
             }).catch(() => {
             })
+        })
+    })
 
+    describe('download', () => {
+        it('should download', async () => {
+            const percyBinary = new PercyBinary()
+            percyBinary['_binaryName'] = 'binary_name'
+            jest.spyOn(percyBinary, 'checkPath').mockReturnValue(true)
+
+            const mockedGot = jest.mocked(got)
+            const mockReadStream = {
+                on: jest.fn().mockImplementation((event, entry) => {
+                    entry({ fileName: 'filename' })
+                }),
+                pipe: jest.fn()
+            }
+
+            const mockZipFile = {
+                on: jest.fn().mockImplementation((event, entry) => {
+                    if (event === 'entry'){
+                        entry({
+                            fileName: 'filename'
+                        })
+                    }
+                }),
+                readEntry: jest.fn(),
+                openReadStream: jest.fn().mockImplementation((event, readStream) => {
+                    readStream(null, mockReadStream)
+                }),
+                close: jest.fn(),
+                once: jest.fn().mockImplementation((event, end) => {
+                    end()
+                }),
+            }
+            jest.spyOn(yauzl, 'open').mockImplementation((event, arg1, arg2) => {
+                arg2(null, mockZipFile)
+            })
+
+            const stream = {
+                on: jest.fn().mockImplementation((event, error) => {
+                    error()
+                }),
+                pipe: jest.fn().mockReturnValue({
+                    on: jest.fn().mockImplementation((event, finish) => {
+                        finish()
+                    }),
+                })
+            }
+
+            mockedGot.get = jest.fn().mockReturnValue(stream)
+
+            jest.mock('got', () => ({
+                extend: jest.fn().mockImplementation(() => new Promise(() => {
+                    resolve(mockedGot)
+                }))
+            }))
+
+            mockedGot.extend = jest.fn().mockReturnValue({
+                get: () => stream
+            })
+
+            jest.spyOn(path, 'join')
+            await percyBinary.download('conf', 'dir_path')
         })
     })
 })
