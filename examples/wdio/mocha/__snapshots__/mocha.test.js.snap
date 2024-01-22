@@ -1,0 +1,10 @@
+// Snapshot v1
+
+exports[`webdriver.io page > should have the right title > uppsu 1`] = `
+{
+  "bar": {
+    "loo": "lisssu",
+  },
+  "foo": "bar",
+}
+`;

@@ -46,6 +46,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.1",
+    "@vitest/snapshot": "^1.2.1",
     "@wdio/config": "8.28.8",
     "@wdio/globals": "8.28.8",
     "@wdio/logger": "8.28.0",

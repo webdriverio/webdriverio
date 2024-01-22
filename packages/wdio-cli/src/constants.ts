@@ -671,6 +671,7 @@ export const QUESTIONNAIRE = [{
     default: true
 }]
 
+const SUPPORTED_SNAPSHOTSTATE_OPTIONS = ['all', 'new', 'none'] as const
 export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-electron-service',
     'wdio-vscode-service',
@@ -881,6 +882,18 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
      */
     injectGlobals: {
         type: 'boolean'
+    },
+    /**
+     * Set to true if you want to update your snapshots.
+     */
+    updateSnapshots: {
+        type: 'string',
+        default: SUPPORTED_SNAPSHOTSTATE_OPTIONS[1],
+        validate: (param: Options.Testrunner['updateSnapshots']) => {
+            if (param && !SUPPORTED_SNAPSHOTSTATE_OPTIONS.includes(param)) {
+                throw new Error(`the "updateSnapshots" options needs to be one of "${SUPPORTED_SNAPSHOTSTATE_OPTIONS.join('", "')}"`)
+            }
+        }
     },
     /**
      * The number of times to retry the entire specfile when it fails as a whole
