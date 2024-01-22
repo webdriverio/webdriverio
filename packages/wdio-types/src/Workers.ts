@@ -182,6 +182,11 @@ export interface ExpectRequestEvent extends MessageWithPendingPromiseId {
     scope: any,
     args: unknown[]
     element?: any | any[]
+    context?: unknown
+    /**
+     * propagate error stack for inline snapshots
+     */
+    errorStack?: string
 }
 
 export interface ExpectResponseEvent extends MessageWithPendingPromiseId {

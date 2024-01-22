@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events'
 import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
+import { SnapshotManager } from '@vitest/snapshot/manager'
+import type { SnapshotResult } from '@vitest/snapshot'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
@@ -26,6 +28,10 @@ interface CLIInterfaceEvent {
 }
 
 export default class WDIOCLInterface extends EventEmitter {
+    #snapshotManager = new SnapshotManager({
+        updateSnapshot: 'new'
+    })
+
     public hasAnsiSupport: boolean
     public result = {
         finished: 0,
@@ -245,6 +251,13 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.emit('job:start', event.content)
         }
 
+        if (event.name === 'snapshot') {
+            const snapshotResults = event.content as SnapshotResult[]
+            return snapshotResults.forEach((snapshotResult) => {
+                this.#snapshotManager.add(snapshotResult)
+            })
+        }
+
         if (event.name === 'error') {
             return this.log(
                 `[${event.cid}]`,
@@ -309,6 +322,28 @@ export default class WDIOCLInterface extends EventEmitter {
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
         const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
+
+        const snapshotSummary = this.#snapshotManager.summary
+        const snapshotNotes: string[] = []
+
+        if (snapshotSummary.added > 0) {
+            snapshotNotes.push(chalk.green(`${snapshotSummary.added} snapshot(s) added.`))
+        }
+        if (snapshotSummary.updated > 0) {
+            snapshotNotes.push(chalk.yellow(`${snapshotSummary.updated} snapshot(s) updated.`))
+        }
+        if (snapshotSummary.unmatched > 0) {
+            snapshotNotes.push(chalk.red(`${snapshotSummary.unmatched} snapshot(s) unmatched.`))
+        }
+        if (snapshotSummary.unchecked > 0) {
+            snapshotNotes.push(chalk.gray(`${snapshotSummary.unchecked} snapshot(s) unchecked.`))
+        }
+
+        if (snapshotNotes.length > 0) {
+            this.log('\nSnapshot Summary:')
+            snapshotNotes.forEach((note) => this.log(note))
+        }
+
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             this.#hasShard()

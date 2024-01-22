@@ -41,13 +41,6 @@ export const config: Options.Testrunner = {
             args: ['-headless']
         }
     }, {
-        browserName: 'firefox',
-        webSocketUrl: true,
-        browserVersion: 'latest',
-        'moz:firefoxOptions': {
-            args: ['-headless']
-        }
-    }, {
         browserName: 'edge',
         webSocketUrl: true,
         'ms:edgeOptions': {
@@ -83,6 +76,20 @@ if (os.platform() !== 'win32') {
         webSocketUrl: true,
         'goog:chromeOptions': {
             args: ['headless', 'disable-gpu']
+        }
+    })
+}
+
+/**
+ * latest Firefox 124.0a1 is not available on Linux
+ */
+if (os.platform() === 'win32' || os.platform() === 'darwin') {
+    (config.capabilities as WebdriverIO.Capabilities[]).push({
+        browserName: 'firefox',
+        webSocketUrl: true,
+        browserVersion: 'latest',
+        'moz:firefoxOptions': {
+            args: ['-headless']
         }
     })
 }

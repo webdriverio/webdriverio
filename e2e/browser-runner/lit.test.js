@@ -73,6 +73,36 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
+    it('should support snapshot testing', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+
+        const elem = $('simple-greeting')
+        await expect(elem).toMatchSnapshot()
+        await expect(elem).toMatchInlineSnapshot(`"<simple-greeting name="WebdriverIO"></simple-greeting>"`)
+        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
+        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+          {
+            "parsed": {
+              "alpha": 0,
+              "hex": "#000000",
+              "rgba": "rgba(0,0,0,0)",
+              "type": "color",
+            },
+            "property": "background-color",
+            "value": "rgba(0,0,0,0)",
+          }
+        `)
+        await expect({ foo: 'bar' }).toMatchSnapshot()
+        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+          {
+            "foo": "bar",
+          }
+        `)
+    })
+
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')

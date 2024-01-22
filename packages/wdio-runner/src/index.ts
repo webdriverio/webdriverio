@@ -6,10 +6,10 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions } from 'expect-webdriverio'
+import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -17,7 +17,7 @@ import { initializeInstance, filterLogTypes, getInstancesData } from './utils.js
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
     TestFramework, SingleConfigOption, MultiRemoteCaps, SessionStartedMessage,
-    SessionEndedMessage
+    SessionEndedMessage, SnapshotResultMessage
 } from './types.js'
 
 const log = logger('@wdio/runner')
@@ -35,6 +35,7 @@ export default class Runner extends EventEmitter {
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RemoteCapability
+    private _snapshotService?: Services.ServiceInstance & { results: any }
 
     /**
      * run test suite
@@ -68,6 +69,12 @@ export default class Runner extends EventEmitter {
         const capabilities = this._configParser.getCapabilities() as Capabilities.RemoteCapability
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
+
+        /**
+         * add built-in services
+         */
+        this._snapshotService = SnapshotService.initiate(this._config.updateSnapshots)
+        this._configParser.addService(this._snapshotService)
 
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
@@ -106,7 +113,7 @@ export default class Runner extends EventEmitter {
         browser = await this._initSession(this._config as SingleConfigOption, this._caps)
 
         /**
-         * return if session initialisation failed
+         * return if session initialization failed
          */
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
@@ -130,7 +137,7 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * initialisation successful, send start message
+         * initialization successful, send start message
          */
         const multiRemoteBrowser = browser as unknown as WebdriverIO.MultiRemoteBrowser
         this._reporter.emit('runner:start', {
@@ -193,6 +200,15 @@ export default class Runner extends EventEmitter {
         if (!args.watch) {
             await this.endSession()
         }
+
+        /**
+         * send snapshot result upstream
+         */
+        process.send!(<SnapshotResultMessage>{
+            origin: 'worker',
+            name: 'snapshot',
+            content: this._snapshotService.results
+        })
 
         return this._shutdown(failures, retries)
     }
@@ -415,7 +431,7 @@ export default class Runner extends EventEmitter {
         initiationFailed = false
     ) {
         /**
-         * In case of initialisation failed, the sessionId is undefined and the runner:start is not triggered.
+         * In case of initialization failed, the sessionId is undefined and the runner:start is not triggered.
          * So, to be able to perform the runner:end into the reporters, we need to launch the runner:start just before the runner:end.
          */
         if (this._reporter && initiationFailed) {
