@@ -152,7 +152,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
     async onWorkerStart (cid: any, caps: any) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {

@@ -1,6 +1,5 @@
 /// <reference path="../../webdriverio/src/@types/async.d.ts" />
 
-import got from 'got'
 import logger from '@wdio/logger'
 
 import PercyHandler from '../src/Percy/Percy-Handler'
@@ -17,7 +16,6 @@ let percyHandler: PercyHandler
 let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
 let caps: Capabilities.RemoteCapability
 
-jest.mock('got')
 // jest.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 jest.mock('uuid', () => ({ v4: () => '123456789' }))
@@ -27,16 +25,6 @@ PercyLoggerSpy.mockImplementation(() => {})
 
 beforeEach(() => {
     jest.mocked(log.info).mockClear()
-    jest.mocked(got).mockClear()
-    jest.mocked(got.put).mockClear()
-    jest.mocked(got).mockResolvedValue({
-        body: {
-            automation_session: {
-                browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-            }
-        }
-    })
-    jest.mocked(got.put).mockResolvedValue({})
 
     browser = {
         sessionId: 'session123',

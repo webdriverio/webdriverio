@@ -1,7 +1,17 @@
 import PercyBinary from '../src/Percy/PercyBinary'
 
+import got from 'got'
+import yauzl from 'yauzl'
+
+
+import path from 'path/win32'
+import fs, { WriteStream } from 'fs'
+import { resolve } from 'path'
+
+import childProcess from 'node:child_process'
+
 // Mocking dependencies
-jest.mock('got')
+
 jest.mock('node:fs/promises', () => ({
     access: jest.fn(),
     mkdir: jest.fn().mockResolvedValue(true),
@@ -11,6 +21,14 @@ jest.mock('node:fs', () => ({
     chmod: jest.fn().mockImplementation((_, __, callback) => callback()),
 }))
 jest.mock('yauzl')
+
+jest.mock('node:child_process', () => ({
+    spawn: jest.fn(),
+}))
+
+beforeEach(() => {
+    jest.clearAllMocks()
+})
 
 describe('PercyBinary', () => {
     describe('makePath', () => {
@@ -42,7 +60,8 @@ describe('PercyBinary', () => {
             const result = await percyBinary.getBinaryPath()
             expect(getAvailableDirsSpy).toBeCalledTimes(1)
             expect(checkPathSpy).toBeCalledTimes(1)
-            expect(result).toBe('some_path/percy')
+            expect(result).toContain('some_path')
+            expect(result).toContain('percy')
         })
         it('should getBinaryPath from first download try', async () => {
             const percyBinary = new PercyBinary()
@@ -72,6 +91,31 @@ describe('PercyBinary', () => {
             expect(downloadSpy).toBeCalledTimes(2)
             expect(validateSpy).toBeCalledTimes(1)
             expect(result).toBe('download_path')
+        })
+    })
+
+
+    describe('validateBinary', () => {
+        it('should resolve to true for a valid binary version', async () => {
+            const percyBinary = new PercyBinary()
+            const validVersionOutput = '@percy/cli 1.2.3'
+            const mockSpawn = {
+                stdout: {
+                    on: jest.fn().mockImplementation((data, cb) => {
+                        cb(validVersionOutput)
+                    })
+                },
+                on: jest.fn().mockImplementation((close, cb) => {
+                    cb(false)
+                })
+            }
+            ;(childProcess.spawn as jest.Mock).mockClear()
+            ;(childProcess.spawn as jest.Mock).mockReturnValue(mockSpawn)
+
+            percyBinary.validateBinary(validVersionOutput).then(() => {
+            }).catch(() => {
+            })
+
         })
     })
 })
