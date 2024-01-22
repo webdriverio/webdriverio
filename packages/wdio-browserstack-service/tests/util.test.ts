@@ -1397,3 +1397,16 @@ describe('getBrowserStackKey', function () {
     })
 })
 
+describe('ObjectsAreEqual', function () {
+    it('should return true for equal values ', function () {
+        expect(utils.ObjectsAreEqual({ 'a': true }, { 'a': true })).toEqual(true)
+    })
+
+    it('should return false for unequal lengths', function () {
+        expect(utils.ObjectsAreEqual({ 'a': true }, { 'a': true, 'b': false })).toEqual(false)
+    })
+
+    it('should return false for unequal values', function () {
+        expect(utils.ObjectsAreEqual({ 'a': true }, { 'b': false })).toEqual(false)
+    })
+})
