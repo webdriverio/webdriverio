@@ -1,9 +1,6 @@
-:::warning
-
-***Please note that this protocol would be deprecated in future and would be replaced by the [WebDriver](/docs/api/webdriver)
+> [!WARNING]  
+> ***Please note that this protocol would be deprecated in future and would be replaced by the [WebDriver](/docs/api/webdriver)
 protocol.***
-
-:::
 
 DevTools
 ========
