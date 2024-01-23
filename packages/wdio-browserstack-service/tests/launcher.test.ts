@@ -8,6 +8,10 @@ import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
 import * as utils from '../src/util'
 
+import * as PercyHelper from '../src/Percy/PercyHelper'
+import * as PercyLogger from '../src/Percy/PercyLogger'
+import Percy from '../src/Percy/Percy'
+
 import fs from 'fs'
 
 // @ts-ignore
@@ -15,6 +19,7 @@ import { version as bstackServiceVersion } from '../package.json'
 import { Testrunner } from '@wdio/types/build/Options'
 
 const expect = global.expect as unknown as jest.Expect
+let _percy: Percy
 
 const log = logger('test')
 const error = new Error('I\'m an error!')
@@ -1237,5 +1242,64 @@ describe('_updateLocalBuildCache', () => {
 
         service._updateLocalBuildCache(filePath, undefined, 3)
         expect(writeFileSyncSpy).not.toHaveBeenCalled()
+    })
+})
+
+describe('setupPercy', () => {
+    const options: BrowserstackConfig & Testrunner = { capabilities: [] }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+    const service = new BrowserstackLauncher({ percy: true }, caps, config)
+
+    it('should return if percy is already running', async() => {
+        const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
+        const start = jest.spyOn(PercyHelper, 'startPercy')
+
+        await service.setupPercy(options, config, {
+            projectName: 'projectName'
+        })
+        expect(start).toBeCalledTimes(1)
+        expect(PercyLoggerInfoSpy).toBeCalledTimes(1)
+    })
+})
+
+describe('stopPercy', () => {
+    const options: BrowserstackConfig & Testrunner = { capabilities: [] }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+    _percy = new Percy(options, config, {})
+    const service = new BrowserstackLauncher({ percy: true }, caps, config)
+
+    it('should return if percy is not defined', async() => {
+        service.stopPercy()
+    })
+    it('should return if percy is already running', async() => {
+        service._percy = _percy
+        const mockPercyisRunning = jest.spyOn(_percy, 'isRunning').mockImplementation(() => (true))
+        const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
+        const mockPercyStart = jest.spyOn(PercyHelper, 'stopPercy')
+
+        await service.stopPercy()
+        expect(mockPercyisRunning).toBeCalledTimes(1)
+        expect(mockPercyStart).toBeCalledTimes(1)
+        expect(PercyLoggerInfoSpy).toBeCalledTimes(1)
     })
 })
