@@ -97,6 +97,17 @@ export class MochaFramework extends HTMLElement {
             }
         }
 
+        const cid = getCID()
+        if (!cid) {
+            throw new Error('"cid" query parameter is missing')
+        }
+
+        const beforeHook = this.#getHook('beforeHook')
+        const beforeTest = this.#getHook('beforeTest')
+        const afterHook = this.#getHook('afterHook')
+        const afterTest = this.#getHook('afterTest')
+        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
+
         /**
          * import test case (order is important here)
          */
@@ -114,17 +125,6 @@ export class MochaFramework extends HTMLElement {
          * listen on socket events from testrunner
          */
         import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleSocketMessage.bind(this))
-
-        const cid = getCID()
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
-        const beforeHook = this.#getHook('beforeHook')
-        const beforeTest = this.#getHook('beforeTest')
-        const afterHook = this.#getHook('afterHook')
-        const afterTest = this.#getHook('afterTest')
-        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         const self = this
         const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
@@ -203,6 +203,13 @@ export class MochaFramework extends HTMLElement {
             }
 
             this.#hookResolver.set(id, { resolve, reject })
+            args = args.map((arg) => {
+                if (typeof arg === 'object') {
+                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
+                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
+                }
+                return arg
+            })
             import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })
     }

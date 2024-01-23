@@ -404,6 +404,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     bail?: number
     /**
+     * Set to true if you want to update your snapshots.
+     */
+    updateSnapshots?: 'all' | 'new' | 'none'
+    /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */
     specFileRetries?: number

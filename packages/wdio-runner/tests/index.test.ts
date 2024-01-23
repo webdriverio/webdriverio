@@ -7,7 +7,7 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setOptions } from 'expect-webdriverio'
+import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
@@ -15,7 +15,15 @@ vi.mock('fs/promises', () => ({
     default: { writeFile: vi.fn() }
 }))
 vi.mock('util')
-vi.mock('expect-webdriverio')
+vi.mock('expect-webdriverio', () => ({
+    setOptions: vi.fn(),
+    expect: vi.fn(),
+    SnapshotService: {
+        initiate: vi.fn().mockReturnValue({
+            results: ['foobar']
+        })
+    }
+}))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -329,6 +337,33 @@ describe('wdio-runner', () => {
 
             expect(failures).toBe(0)
             expect(runner['_browser']?.url).not.toBeCalled()
+        })
+
+        it('should attach snapshot service to service list', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                updateSnapshots: 'do it'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            const addServiceSpy = vi.spyOn(ConfigParser.prototype, 'addService')
+            runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
+            runner['_startSession'] = vi.fn().mockReturnValue({ })
+            runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
+            await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
+
+            expect(addServiceSpy).toBeCalledWith({
+                results: ['foobar']
+            })
+            expect(SnapshotService.initiate).toBeCalledWith('do it')
+            expect(process.send).toBeCalledWith({
+                origin: 'worker',
+                name: 'snapshot',
+                content: ['foobar']
+            })
         })
 
         it('should set failures to 1 in case of error', async () => {

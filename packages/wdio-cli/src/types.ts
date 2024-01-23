@@ -97,6 +97,7 @@ export interface RunCommandArguments {
     cucumberOpts?: WebdriverIO.CucumberOpts
     autoCompileOpts?: Options.AutoCompileConfig
     configPath: string
+    updateSnapshots?: Options.Testrunner['updateSnapshots']
 
     /**
      * @internal
