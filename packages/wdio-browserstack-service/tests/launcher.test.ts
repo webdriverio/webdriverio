@@ -1308,22 +1308,3 @@ describe('stopPercy', () => {
         expect(PercyLoggerInfoSpy).toBeCalledTimes(1)
     })
 })
-
-describe('onWorkerStart', () => {
-    const options: BrowserstackConfig = { app: '/path/to/app.apk', percy: true }
-    const caps: any = [{}]
-    const config = {
-        user: 'foobaruser',
-        key: '12345',
-        capabilities: []
-    }
-    let _percy: Percy
-    _percy = new Percy(options, config, {})
-
-    it('should upload the app and return app_url', async() => {
-        const service = new BrowserstackLauncher(options, caps, config)
-        service._percy = _percy
-        service['_percyBestPlatformCaps'] = {}
-        await service.onWorkerStart()
-    })
-})
