@@ -13,7 +13,9 @@ If you have questions regarding tiers, payment logistics, or sponsor exposure da
 ## Sponsoring WebdriverIO as a Business​
 Sponsoring WebdriverIO gives you great exposure through our website (60k+ page views per month) and GitHub project READMEs. In addition, supporting OSS improves the reputation of your brand, which is an important asset for any company that interacts with developers.
 
-If you are using WebdriverIO to test a revenue-generating product, it makes business sense to sponsor WebdriverIO's development: it ensures the project that your product relies on stays healthy and actively maintained. The exposure and positive brand image in the WebdriverIO community also makes it easier to attract and recruit developers and QA engineers with WebdriverIO experience.
+If you are using WebdriverIO to test a revenue-generating product, it makes business sense to sponsor WebdriverIO's development: it ensures the project that your product relies on stays healthy and actively maintained. The exposure and positive brand image in the WebdriverIO community also make it easier to attract and recruit developers and QA engineers with WebdriverIO experience.
+
+__Note:__ We do not accept donations from gambling sites, paper writing services, political groups, hate groups, adult entertainment sites, or any other organization that we don't believe is contributing to the good of the project. We don't offer advertising, we are an open-source project looking for financial support from our users.
 
 ## Sponsoring WebdriverIO as an Individual​
 If you are an individual user and have enjoyed the productivity of using WebdriverIO, consider donating as a sign of appreciation - like buying us coffee once in a while. Many of our team members accept sponsorships and donations via GitHub Sponsors.
