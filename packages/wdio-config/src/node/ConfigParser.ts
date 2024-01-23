@@ -206,8 +206,18 @@ export default class ConfigParser {
         if (addPathToSpecs && spec.length > 0) {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
-        if (addPathToSpecs && exclude.length > 0) {
+        /**
+         * At this step function allKeywordsContainPath() allows us to make sure
+         * that all arguments, passed to '--exclude' param, are paths to specs.
+         * So they can be processed in setFilePathToFilterOptions()
+         * Otherwise, the application crashes with an error.
+         * Therefore, if --exclude contains not paths, but keywords, e.g. 'dialog', 'test.component' etc.,
+         * then filtering of excluded specs occurs in the filterSpecs() method
+         */
+        if (exclude.length > 0 && allKeywordsContainPath(exclude)) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
+        } else if (exclude.length > 0) {
+            this._config.exclude = exclude
         }
     }
 
@@ -259,11 +269,11 @@ export default class ConfigParser {
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
-        let exclude = ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
+        let exclude = allKeywordsContainPath(this._config.exclude!) ? ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService) : this._config.exclude!
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0){
+        if (Array.isArray(capExclude) && exclude!.length === 0){
             exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
@@ -307,7 +317,7 @@ export default class ConfigParser {
         }
 
         return this.shard(
-            this.filterSpecs(specs, <string[]>exclude)
+            this.filterSpecs(specs, <string[]>exclude!)
         )
     }
 
@@ -454,15 +464,29 @@ export default class ConfigParser {
      * returns specs files with the excludes filtered
      *
      * @param  {String[] | String[][]} spec files -  list of spec files
-     * @param  {string[]} exclude files -  list of exclude files
+     * @param  {string[]} excludeList files -  list of exclude files
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
-    filterSpecs(specs: Spec[], exclude: string[]) {
-        return specs.reduce((returnVal: Spec[], spec) => {
-            if (Array.isArray(spec)) {
-                returnVal.push(spec.filter(specItem => !exclude.includes(specItem)))
-            } else if (exclude.indexOf(spec) === -1) {
-                returnVal.push(spec)
+    filterSpecs(specs: Spec[], excludeList: string[]) {
+        // If 'exclude' is array of paths
+        if (allKeywordsContainPath(excludeList)) {
+            return specs.reduce((returnVal: Spec[], currSpec) => {
+                if (Array.isArray(currSpec)) {
+                    returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
+                } else if (excludeList.indexOf(currSpec) === -1) {
+                    returnVal.push(currSpec)
+                }
+                return returnVal
+            }, [])
+        }
+        // If 'exclude' is array of keywords
+        return specs.reduce((returnVal: Spec[], currSpec) => {
+            if (Array.isArray(currSpec)) {
+                returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
+            }
+            const isSpecExcluded = excludeList.some(excludedVal => currSpec.includes(excludedVal))
+            if (!isSpecExcluded) {
+                returnVal.push(currSpec)
             }
             return returnVal
         }, [])
@@ -479,4 +503,8 @@ export default class ConfigParser {
         const end = current === total ? undefined : specsPerShard * current
         return specs.slice(current * specsPerShard - specsPerShard, end)
     }
+}
+
+function allKeywordsContainPath(excludedSpecList: string[]) {
+    return excludedSpecList.every(val => val.includes('/') || val.includes('\\'))
 }
