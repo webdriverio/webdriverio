@@ -19,7 +19,6 @@ import { version as bstackServiceVersion } from '../package.json'
 import { Testrunner } from '@wdio/types/build/Options'
 
 const expect = global.expect as unknown as jest.Expect
-let _percy: Percy
 
 const log = logger('test')
 const error = new Error('I\'m an error!')
@@ -1246,6 +1245,9 @@ describe('_updateLocalBuildCache', () => {
 })
 
 describe('setupPercy', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
     const options: BrowserstackConfig & Testrunner = { capabilities: [] }
     const config = {
         user: 'foobaruser',
@@ -1262,7 +1264,9 @@ describe('setupPercy', () => {
 
     it('should return if percy is already running', async() => {
         const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
-        const start = jest.spyOn(PercyHelper, 'startPercy')
+        const mockPercy = new Percy(options, config, {})
+
+        const start = jest.spyOn(PercyHelper, 'startPercy').mockReturnValue(mockPercy)
 
         await service.setupPercy(options, config, {
             projectName: 'projectName'
@@ -1273,6 +1277,7 @@ describe('setupPercy', () => {
 })
 
 describe('stopPercy', () => {
+    let _percy: Percy
     const options: BrowserstackConfig & Testrunner = { capabilities: [] }
     const config = {
         user: 'foobaruser',
@@ -1295,7 +1300,7 @@ describe('stopPercy', () => {
         service._percy = _percy
         const mockPercyisRunning = jest.spyOn(_percy, 'isRunning').mockImplementation(() => (true))
         const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
-        const mockPercyStart = jest.spyOn(PercyHelper, 'stopPercy')
+        const mockPercyStart = jest.spyOn(PercyHelper, 'stopPercy').mockImplementation()
 
         await service.stopPercy()
         expect(mockPercyisRunning).toBeCalledTimes(1)
