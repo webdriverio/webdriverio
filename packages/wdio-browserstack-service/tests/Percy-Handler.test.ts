@@ -69,6 +69,9 @@ it('should initialize correctly', () => {
     expect(percyHandler['_capabilities']).toEqual(caps)
     expect(percyHandler['_framework']).toEqual('framework')
     expect(percyHandler['_percyScreenshotCounter']).toEqual(0)
+    percyHandler['_percyAutoCaptureMode'] = 'auto'
+    expect(percyHandler['_percyAutoCaptureMode']).toEqual('auto')
+
 })
 
 describe('_setSessionName', () => {
@@ -215,20 +218,17 @@ describe('teardown', () => {
     it('resolves promise if _percyScreenshotCounter is 0', async () => {
         percyHandler.teardown().then(() => {
             expect(percyHandler['_percyScreenshotCounter']).toEqual(0)
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        }).catch((err: any) => {
+        }).catch(() => {
             expect(percyHandler['_percyScreenshotCounter']).not.equal(0)
         })
     })
 })
 
 describe('browserBeforeCommand', () => {
-    let isDOMChangingCommandSpy: any
     let percyHandler: PercyHandler
 
     beforeEach(() => {
         percyHandler = new PercyHandler('auto', browser, caps, false, 'framework')
-        // isDOMChangingCommandSpy = jest.spyOn(PercyHandler.prototype, 'isDOMChangingCommand').mockReturnValue(true)
     })
 
     it('should call browserBeforeCommand', async () => {
@@ -241,11 +241,9 @@ describe('browserBeforeCommand', () => {
             }
         }
         await percyHandler.browserBeforeCommand(args as BeforeCommandArgs & AfterCommandArgs)
-        // expect(isDOMChangingCommandSpy).toBeCalledTimes(1)
     })
 
     afterEach(() => {
-        // isDOMChangingCommandSpy.mockClear()
     })
 })
 
