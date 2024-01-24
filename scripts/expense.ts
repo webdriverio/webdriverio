@@ -12,6 +12,16 @@ const repo = 'webdriverio'
 const from = 'WebdriverIO Team <sponsor@webdriver.io>'
 const bcc = 'expense@webdriver.io'
 
+const TSC_MEMBERS = [
+    'abjerstedt',
+    'christian-bromann',
+    'erwinheitzman',
+    'klamping',
+    'mgrybyk',
+    'WillBrock',
+    'wswebcreation'
+]
+
 /**
  * create a authentication key for contributor
  */
@@ -48,23 +58,16 @@ if (!eventData) {
     throw new Error('Could not get event data!')
 }
 
-console.log('DEBUG', eventData)
+if (!TSC_MEMBERS.includes(eventData.sender.login)) {
+    throw new Error(`User ${eventData.sender.login} is not a TSC member and can't grant expenses!`)
+}
 
-const api = new Octokit({ auth: process.env.GH_TOKEN })
-const pr = await api.pulls.get({
-    owner: 'webdriverio',
-    repo: 'webdriverio',
-    pull_number: 12052
-})
-
-const expenseAmount = pr.data.labels
-    .filter((l) => l.name.startsWith('Expensable'))
-    .map((l) => l.name.split(' ')[1])
-    .shift()
+const expenseAmount = eventData.label.name.split(' ')[1]?.slice(1)
 if (!expenseAmount) {
     throw new Error(`Could not find expense amount. Please make sure to attach an expense label to PR #${eventData.pull_request.number}`)
 }
 
+const api = new Octokit({ auth: process.env.GH_TOKEN })
 const commits = await api.pulls.listCommits({
     owner,
     repo,
