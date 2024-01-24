@@ -46,6 +46,12 @@ title: Протоколи автоматизації
 
 ## DevTools протокол
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you can use the [`getPuppeteer`](/docs/api/browser/getPuppeteer) command to get ahold of a Puppeteer instance for Chrome Devtools introspection and automation.
+
+:::
+
 DevTools — це інтерфейс браузера, який зазвичай використовується для віддаленого налагодження браузера за допомогою іншої програми (наприклад, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Окрім його можливостей переглядати вміст браузера майже у всіх можливих формах, його також можна використовувати для керування браузером.
 
 Раніше кожен браузер мав власний внутрішній інтерфейс DevTools, який насправді не був доступний користувачеві, але зараз все більше браузерів використовують [Chrome DevTools протокол](https://chromedevtools.github.io/devtools-protocol/). Цей протокол використовується або для налагодження веб застосунку за допомогою Chrome DevTools, або для керування Chrome за допомогою таких інструментів, як от [Puppeteer](https://pptr.dev).
