@@ -60,6 +60,10 @@ const pr = await api.pulls.get({
     pull_number: prNumber
 })
 
+if (pr.data.labels.find((label) => label.name.includes('Expensable'))) {
+    throw new Error('Pull request has already been expensed!')
+}
+
 /**
  * currently we only support one author per PR, so the person
  * who makes the first commit receives the funds
