@@ -270,16 +270,12 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
      */
     capabilities: RemoteCapability
     /**
-     * :::caution Deprecation Warning
-     *
-     * Please note that [`devtools`](https://www.npmjs.com/package/devtools) protocol would be deprecated in future release.
-     * Please use [`webdriver`](https://www.npmjs.com/package/webdriver) protocol instead.
-     *
-     * :::
      * Define the protocol you want to use for your browser automation.
      * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
      * [`devtools`](https://www.npmjs.com/package/devtools) are supported,
      * as these are the main browser automation technologies available.
+     *
+     * @deprecated this option will be removed in future versions of WebdriverIO. We recommend to use WebDriver for browser or mobile automation.
      */
     automationProtocol?: SupportedProtocols
     /**
