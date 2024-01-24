@@ -164,7 +164,7 @@ We distribute the funds for project development between Non-Project Members __35
 
 Contributors who have made significant and impactful contributions to the project are eligible to submit expenses related to their work. This policy is designed to recognize and support the valuable efforts of our dedicated community members, ensuring they are to some extent compensated for their meaningful contributions to the project's success.
 
-TSC members can label approved and merged pull requests by non-members with a label that notes their allowed expense amount, e.g. `Expansible $10 💸`. This will trigger the WebdriverIO bot to post a comment to the pull request with information on how to expense the money. The value chosen by the TSC member is a _rule-of-thumb estimate_ of the complexity and time investment of the contribution.
+TSC members can trigger [the expense workflow](https://github.com/webdriverio/webdriverio/actions/workflows/expense.yml) with information about the merged PR, submitted by a non-member, that was approved before. A WebdriverIO bot will then send out an email to the PR author with a description of how to claim the funds including a key to authenticate their request. The value chosen by the TSC member is a _rule-of-thumb estimate_ of the complexity and time investment of the contribution.
 
 Once a label is assigned a bot will email the PR author with a token that can be used to verify the author when claiming their expense on OpenCollective. If the author doesn't claim the expense within 30 days, the token will expire and funds will be moved back into the collective.
 

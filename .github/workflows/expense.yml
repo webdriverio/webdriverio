@@ -1,4 +1,4 @@
-name: Manual NPM Publish
+name: Expense Contribution
 
 on:
   workflow_dispatch:
