@@ -62,14 +62,13 @@ export const ExpenseEmail = ({
                             Hello <strong>{username}</strong>,
                         </Text>
                         <Text className="text-black text-[14px] leading-[24px]">
-                            The WebdriverIO team would like to thank you deeply for your contribution on pull request (
-                            <Link
+                            The WebdriverIO team would like to thank you deeply for your contribution on pull request <Link
                                 href={prURL}
                                 className="text-blue-600 no-underline"
                             >
                                 <CodeInline>#{prNumber}</CodeInline>
-                            </Link>
-                            ). This project thrives on the invaluable involvement of our community and we would like to
+                            </Link>.
+                            This project thrives on the invaluable involvement of our community and we would like to
                             give back to everyone who has taken time to improve the project.
                         </Text>
                         <Text className="text-black text-[14px] leading-[24px]">
