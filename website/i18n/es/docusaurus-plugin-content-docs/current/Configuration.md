@@ -169,6 +169,12 @@ Las siguientes opciones (incluyendo las mencionadas arriba) se pueden utilizar c
 
 ### automationProtocol
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you should use [`webdriver`](https://www.npmjs.com/package/webdriver) .
+
+:::
+
 Defina el protocolo que desea utilizar para la automatización de su navegador. Actualmente, solo se admiten [`webdriver`](https://www.npmjs.com/package/webdriver) y [`devtools`](https://www.npmjs.com/package/devtools), ya que estas son las principales tecnologías de automatización de navegadores disponibles.
 
 Si desea automatizar el navegador usando `devtools`, asegúrese de que tiene instalado el paquete NPM (`$ npm install --save-dev devtool`).
@@ -221,7 +227,7 @@ Type: `(String | String[])[]`<br /> Default: `[]`
 
 ### exclude
 
-Excluir las especificaciones de la ejecución de pruebas. Todas las rutas son vistas como relativas desde la ruta del archivo de configuración.
+Excluir las especificaciones de la ejecución de pruebas. All paths are seen as relative from the config file path.
 
 Type: `String[]`<br /> Default: `[]`
 
@@ -455,7 +461,7 @@ Parámetros:
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parámetros:
+Parameters:
 
 - `suite` (`objeto`): detalles de suite
 
