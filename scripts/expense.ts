@@ -76,18 +76,17 @@ const commits = await api.pulls.listCommits({
 const pr = await api.pulls.get({
     owner: 'webdriverio',
     repo: 'webdriverio',
-    pull_number: 12052
+    pull_number: eventData.pull_request.number
 })
-
-const prAuthors = new Set(commits.data.map((commit) => commit.commit.author?.email).filter(Boolean))
-if (prAuthors.size > 1) {
-    throw new Error('Pull request contains commits from multiple authors!')
-}
 
 /**
  * currently we only support one author per PR, so the person
  * who makes the first commit receives the funds
  */
+const prAuthors = new Set(commits.data.map((commit) => commit.commit.author?.email).filter(Boolean))
+if (prAuthors.size > 1) {
+    throw new Error('Pull request contains commits from multiple authors!')
+}
 const prAuthorEmail = prAuthors.values().next().value
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -110,6 +109,26 @@ const data = await resend.emails.send({
 if (data.error) {
     throw new Error(`Could not send email: ${data.error}`)
 }
+
+/**
+ * Add a comment to the PR that an expense email has been sent out
+ */
+await api.issues.createComment({
+    owner,
+    repo,
+    issue_number: eventData.pull_request.number,
+    body: `Hey ${pr.data.user.login} 👋
+
+Thank you for your contribution to WebdriverIO! Your pull request has been marked as an "Expensable" contribution.
+We've sent you an email with further instructions on how to claim your expenses from our development fund. Please
+make sure to check your spam folder as well. If you have any questions, feel free to reach out to us at __expense@webdriver.io__
+or in the contributing channel on [Discord](https://discord.webdriver.io).
+
+We are looking forward to more contributions from you in the future 🙌
+
+Have a nice day,
+The WebdriverIO Team 🤖`
+})
 
 async function getEventData (eventPath: string) {
     try {
