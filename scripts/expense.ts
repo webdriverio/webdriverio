@@ -48,6 +48,8 @@ if (!eventData) {
     throw new Error('Could not get event data!')
 }
 
+console.log('DEBUG', eventData)
+
 const api = new Octokit({ auth: process.env.GH_TOKEN })
 const pr = await api.pulls.get({
     owner: 'webdriverio',
