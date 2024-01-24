@@ -33,6 +33,7 @@
     "docs:generate": "run-s clean:website generate:bidi && node --loader ts-node/esm ./scripts/docs-generation/generateDocs.ts",
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node --loader ts-node/esm ./scripts/updateDocs.ts",
+    "sendExpenseMail": "node --loader ts-node/esm ./scripts/expense.ts",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
     "test:depcheck": "node --loader ts-node/esm ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",

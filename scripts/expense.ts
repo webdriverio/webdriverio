@@ -19,11 +19,11 @@ const randomString = crypto.randomUUID()
 const secretKey = crypto.createHash('sha256').update(randomString).digest('hex')
 
 /**
- * check if `GITHUB_AUTH` environment variable is set to interact with GitHub API
+ * check if `GH_TOKEN` environment variable is set to interact with GitHub API
  */
-if (!process.env.GITHUB_AUTH) {
+if (!process.env.GH_TOKEN) {
     throw new Error(
-        'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
+        'Please export a "GH_TOKEN" access token to generate the changelog.\n' +
         'See also https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#release-new-version'
     )
 }
@@ -48,7 +48,7 @@ if (!eventData) {
     throw new Error('Could not get event data!')
 }
 
-const api = new Octokit({ auth: process.env.GITHUB_AUTH })
+const api = new Octokit({ auth: process.env.GH_TOKEN })
 const pr = await api.pulls.get({
     owner: 'webdriverio',
     repo: 'webdriverio',
