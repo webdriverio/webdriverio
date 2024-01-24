@@ -70,11 +70,21 @@ const commits = await api.pulls.listCommits({
     repo,
     pull_number: eventData.pull_request.number
 })
+const pr = await api.pulls.get({
+    owner: 'webdriverio',
+    repo: 'webdriverio',
+    pull_number: 12052
+})
 
 const prAuthors = new Set(commits.data.map((commit) => commit.commit.author?.email).filter(Boolean))
 if (prAuthors.size > 1) {
     throw new Error('Pull request contains commits from multiple authors!')
 }
+
+/**
+ * currently we only support one author per PR, so the person
+ * who makes the first commit receives the funds
+ */
 const prAuthorEmail = prAuthors.values().next().value
 
 const resend = new Resend(process.env.RESEND_API_KEY)
