@@ -169,6 +169,12 @@ Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ### automationProtocol
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you should use [`webdriver`](https://www.npmjs.com/package/webdriver) .
+
+:::
+
 تعریف پروتکلی که می خواهید برای اتوماسیون مرورگر خود استفاده کنید. در حال حاضر فقط [`webdriver`](https://www.npmjs.com/package/webdriver) و [`devtools`](https://www.npmjs.com/package/devtools) پشتیبانی می شوند، زیرا اینها فناوری های اصلی اتوماسیون مرورگر موجود هستند.
 
 اگر می‌خواهید مرورگر را با استفاده از `devtools` خودکار کنید، مطمئن شوید که بسته NPM را نصب کرده‌اید (`$ npm install --save-dev devtools`).
@@ -221,7 +227,7 @@ Type: `(String | String[])[]`<br /> Default: `[]`
 
 ### exclude
 
-مستثنی کردن spec ها برای اجرای تست. همه مسیرها از مسیر فایل پیکربندی به صورت نسبی دیده می شوند.
+مستثنی کردن spec ها برای اجرای تست. All paths are seen as relative from the config file path.
 
 Type: `String[]`<br /> Default: `[]`
 
