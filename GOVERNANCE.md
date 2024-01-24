@@ -134,3 +134,82 @@ This governance model necessarily leaves many situations unspecified. If questio
 This work is a derivative of the [ESLint Project Governance Model](https://github.com/eslint/eslint/blob/main/docs/src/maintainer-guide/governance.md).
 
 This work is licensed under a [Creative Commons Attribution-ShareAlike 2.0 UK: England & Wales License](https://creativecommons.org/licenses/by-sa/2.0/uk/).
+
+## Sponsoring and Donations
+
+The WebdriverIO project offers a variety of [sponsoring tiers](https://webdriver.io/docs/sponsor#tier-benefits) that allow interested companies or individuals to fund the development of the project. Donations to the project can be made through several channels for the convenience of our supporters. These include:
+
+- [Open Collective](https://opencollective.com/webdriverio)
+- [GitHub Sponsors](https://github.com/sponsors/webdriverio)
+- [Tidelift](https://tidelift.com/subscription/pkg/npm-webdriverio?utm_source=npm-webdriverio&utm_medium=github_sponsor_button)
+
+### Allocation of Funds
+
+We have a structured allocation for the funds we receive:
+
+- __60%__ Project Development
+- __20%__ Travel and Event Expenses
+- __10%__ Support Systems
+- __10%__ Dependencies
+
+#### Project Development
+
+The primary focus of our project funding is channeled into project development, ensuring continuous growth and improvement. By encouraging and accepting expenses for contributions from a broad range of individuals, we aim to expand our pool of long-term contributors. This inclusive approach not only diversifies our funding sources but also fosters a deeper sense of community and ownership among those involved, ultimately contributing to the sustained success and vitality of our project.
+
+Expenses can be submitted by project members (Project Contributors or TSC Members) as well as first-time contributors to the project and everyone in between. Contributions include submitting code, writing documentation, answering questions in our Discord server, and more.
+
+We distribute the funds for project development between Non-Project Members __35%__ and Project Committers and TSC Members __65%__.
+
+##### Expenses from Non-Project Members
+
+Contributors who have made significant and impactful contributions to the project are eligible to submit expenses related to their work. This policy is designed to recognize and support the valuable efforts of our dedicated community members, ensuring they are to some extent compensated for their meaningful contributions to the project's success.
+
+TSC members can label approved and merged pull requests by non-members with a label that notes their allowed expense amount, e.g. `Expansible $10 💸`. This will trigger the WebdriverIO bot to post a comment to the pull request with information on how to expense the money. The value chosen by the TSC member is a _rule-of-thumb estimate_ of the complexity and time investment of the contribution.
+
+Once a label is assigned a bot will email the PR author with a token that can be used to verify the author when claiming their expense on OpenCollective. If the author doesn't claim the expense within 30 days, the token will expire and funds will be moved back into the collective.
+
+##### Expenses from Project Committers and TSC Members
+
+Every project committer is responsible for tracking the time they spend directly on the project with information about their activities, e.g. working on issue `#1234`, triaging issues or supporting the community on Discord. At the end of the month, the time sheet needs to be submitted via email to `expenses@webdriver.io`.
+
+The project treasurer then distributes the funds fairly between the project members who spend time working on the project. All members are asked to be honest and respectful to other contributors when keeping track of their work. Every effort that is being tracked needs to be aligned with the project roadmap connected to a release that has been shipped to the user. Unfinished work can't be expensed.
+
+#### Travel and Event Expenses
+
+If you are a member of the _Technical Steering Committee_ team you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to __$1000__. Reimbursement requirements for travel expenses include:
+
+- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
+- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accommodations.
+- You must submit receipts with your reimbursement request.
+
+If you host an event that has a speaker talking about using WebdriverIO and its features you can expense up to $100. Reimbursement requirements for event expenses include:
+
+- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
+- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
+- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
+- You must submit receipts with your reimbursement request.
+
+Our goal with this expense policy is to help the community run events, promote the project and support anyone learning about WebdriverIO. We've already seen project meetups happening in New York and The Netherlands and hope to see more of this in the future.
+
+#### Support Systems
+
+We would like to put some money aside for services and purchases related to the project. Such items can be:
+
+- __Translation Services:__ Funding is available for services that assist in translating project documentation, thereby making our project more accessible to a global audience.
+- __Software License Fees:__ We cover the costs of software licenses required by project members for their work on the project. This includes, but is not limited to, licenses for video editing software, Integrated Development Environments (IDEs), and other essential tools.
+- __Infrastructure Costs:__ We provide support for essential infrastructure expenses, such as costs incurred for using cloud services like AWS. This ensures the smooth operation and scalability of our project.
+
+#### Dependencies
+
+We use a small amount to help support our project dependencies. We believe that open-source projects who are lucky enough to get funded have a responsibility to help support the smaller projects they rely on. We are working with [thanks.dev](https://thanks.dev/home) to help analyse our dependencies and calculate the amounts we donate back.
+
+### Amendment of Policies
+These policies can be amended with a two-thirds majority vote among the TSC members to adapt to the changing needs and structure of our project.
+
+### Donation Refunds
+Generally, donations are non-refundable. However, in extraordinary circumstances, exceptions can be considered at the discretion of the project’s governance body.
+
+### Dispute Resolution
+Any disputes related to the allocation or use of funds will be addressed by an independent committee, comprising respected members of the open source community.
+
+These policies are established to ensure the effective, transparent, and accountable use of donations, fostering trust within our community and among our donors. Regular reviews and updates of these policies are essential to align them with the evolving dynamics of our project.
