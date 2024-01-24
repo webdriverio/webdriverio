@@ -103,7 +103,7 @@ export const ExpenseEmail = ({
                             have any questions, please reply to this email. You can find more information
                             about our expense policy in our{' '}
                             <Link
-                                href={'https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md'}
+                                href={'https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md#sponsoring-and-donations'}
                                 className="text-blue-600 no-underline"
                             >
                                 governance documentation

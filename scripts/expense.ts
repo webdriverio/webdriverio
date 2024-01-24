@@ -117,7 +117,7 @@ await api.issues.createComment({
     owner,
     repo,
     issue_number: eventData.pull_request.number,
-    body: `Hey ${pr.data.user.login} 👋
+    body: `Hey __${pr.data.user.login}__ 👋
 
 Thank you for your contribution to WebdriverIO! Your pull request has been marked as an "Expensable" contribution.
 We've sent you an email with further instructions on how to claim your expenses from our development fund. Please
