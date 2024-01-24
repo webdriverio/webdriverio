@@ -347,7 +347,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ? Array.isArray(payload.element)
                     ? await browser.$$(payload.element)
                     : await browser.$(payload.element)
-                : browser
+                : payload.context || browser
             const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,

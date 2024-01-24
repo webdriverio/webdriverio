@@ -730,7 +730,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this.addLink({
             url: tmsLink,
-            name: linkName,
+            name: linkName || 'tms',
             type: LinkType.TMS
         })
     }

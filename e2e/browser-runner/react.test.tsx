@@ -16,4 +16,10 @@ describe('React Component Testing', () => {
         await userEvent.click(buttonEl)
         expect(buttonEl).toContainHTML('dark')
     })
+
+    it('supports snapshot tests', async () => {
+        const { container } = render(<App />)
+        await expect(container).toMatchSnapshot()
+        await expect(container).toMatchInlineSnapshot(`"<div><button>Current theme: light</button></div>"`)
+    })
 })
