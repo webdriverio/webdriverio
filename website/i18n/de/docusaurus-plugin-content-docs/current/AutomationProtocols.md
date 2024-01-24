@@ -46,6 +46,12 @@ Es gibt auch viele Dienste, mit denen Sie Ihren Automatisierungstest in großem 
 
 ## DevTools-Protokoll
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you can use the [`getPuppeteer`](/docs/api/browser/getPuppeteer) command to get ahold of a Puppeteer instance for Chrome Devtools introspection and automation.
+
+:::
+
 Die DevTools-Schnittstelle ist eine native Browserschnittstelle, die normalerweise zum Debuggen des Browsers von einer Remoteanwendung (z. B. [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)) verwendet wird. Neben seiner Fähigkeit, den Browser in nahezu allen möglichen Formen zu inspizieren, kann es auch zur Steuerung verwendet werden.
 
 Während früher jeder Browser seine eigene interne DevTools-Oberfläche hatte, die dem Benutzer nicht wirklich offengelegt wurde, übernehmen jetzt immer mehr Browser das [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). Es wird verwendet, um entweder eine Webanwendung mit Chrome DevTools zu debuggen oder Chrome mit Tools wie [Puppeteer](https://pptr.dev)zu steuern.
