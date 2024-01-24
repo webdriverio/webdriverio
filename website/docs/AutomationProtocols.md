@@ -46,7 +46,7 @@ There are also plenty of services that allow you to run your automation test in 
 
 ## DevTools Protocol
 
-:::warning
+:::warning Deprecation
 
 ***Please note that this protocol would be deprecated in future and would be replaced by the [WebDriver](/docs/api/webdriver)
 protocol.***
