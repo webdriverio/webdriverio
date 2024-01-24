@@ -10,6 +10,7 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
 jobs:
   first-contribution:
