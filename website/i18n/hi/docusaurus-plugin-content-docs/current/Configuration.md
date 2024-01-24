@@ -169,6 +169,12 @@ Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ### automationProtocol
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you should use [`webdriver`](https://www.npmjs.com/package/webdriver) .
+
+:::
+
 उस प्रोटोकॉल को परिभाषित करें जिसे आप अपने ब्राउज़र स्वचालन के लिए उपयोग करना चाहते हैं। वर्तमान में केवल [`webdriver`](https://www.npmjs.com/package/webdriver) और [`devtools`](https://www.npmjs.com/package/devtools) समर्थित हैं, क्योंकि ये मुख्य ब्राउज़र स्वचालन तकनीकें उपलब्ध हैं।
 
 यदि आप `devtools`का उपयोग करके ब्राउज़र को स्वचालित करना चाहते हैं, तो सुनिश्चित करें कि आपके पास NPM पैकेज इंस्टाल है (`$ npm install --save-dev devtools`)।
@@ -221,7 +227,7 @@ Type: `(String | String[])[]`<br /> Default: `[]`
 
 ### exclude
 
-परीक्षण निष्पादन से विशिष्टताओं को बाहर करें। सभी पथ कॉन्फ़िग फ़ाइल पथ से संबंधित के रूप में देखे जाते हैं।
+परीक्षण निष्पादन से विशिष्टताओं को बाहर करें। All paths are seen as relative from the config file path.
 
 Type: `String[]`<br /> Default: `[]`
 
@@ -455,7 +461,7 @@ WDIO टेस्टरनर आपको परीक्षण जीवनच
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-पैरामीटर:
+Parameters:
 
 - `suite` (`object`): सुइट विवरण
 
