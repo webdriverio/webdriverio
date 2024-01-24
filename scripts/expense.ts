@@ -69,10 +69,10 @@ if (pr.data.labels.find((label) => label.name.includes('Expensable'))) {
  * who makes the first commit receives the funds
  */
 const prAuthors = new Set(commits.data.map((commit) => commit.commit.author?.email).filter(Boolean))
-if (prAuthors.size > 1) {
-    throw new Error('Pull request contains commits from multiple authors!')
-}
 const prAuthorEmail = prAuthors.values().next().value
+
+console.log(`Send expense email to ${prAuthorEmail} for PR #${prNumber}`)
+console.log(`Amount to be expensed: $${expenseAmount}`)
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const subject = 'Thank you for contributing to WebdriverIO!'
@@ -98,6 +98,7 @@ if (data.error) {
 /**
  * Add a comment to the PR that an expense email has been sent out
  */
+console.log(`Adding comment to PR #${prNumber}, letting user know...`)
 await api.issues.createComment({
     owner,
     repo,
@@ -115,9 +116,12 @@ Have a nice day,
 The WebdriverIO Team 🤖`
 })
 
+console.log(`Adding expense label to PR #${prNumber}...`)
 await api.issues.addLabels({
     owner,
     repo,
     issue_number: prNumber,
     labels: [`Expensable $${expenseAmount} 💸`]
 })
+
+console.log('All good 🎉 feels good to give back!')
