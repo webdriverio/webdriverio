@@ -48,8 +48,7 @@ There are also plenty of services that allow you to run your automation test in 
 
 :::warning Deprecation
 
-***Please note that this protocol would be deprecated in future and would be replaced by the [WebDriver](/docs/api/webdriver)
-protocol.***
+WebdriverIO is be deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead you can use the [`getPuppeteer`](/docs/api/browser/getPuppeteer) command to get ahold of a Puppeteer instance for Chrome Devtools introspection and automation.
 
 :::
 
