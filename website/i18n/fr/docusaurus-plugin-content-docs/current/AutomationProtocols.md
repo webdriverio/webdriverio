@@ -46,6 +46,12 @@ Il existe également de nombreux services qui vous permettent d'exécuter votre 
 
 ## Protocole DevTools
 
+:::warning Deprecation
+
+WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you can use the [`getPuppeteer`](/docs/api/browser/getPuppeteer) command to get ahold of a Puppeteer instance for Chrome Devtools introspection and automation.
+
+:::
+
 L'interface DevTools est une interface de navigateur native qui est généralement utilisée pour déboguer le navigateur à partir d'une application distante (par exemple, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Outre ses capacités à inspecter le navigateur sous presque toutes les formes possibles, il peut également être utilisé pour le contrôler.
 
 Alors que chaque navigateur avait sa propre interface DevTools interne qui n'était pas vraiment exposée à l'utilisateur, de plus en plus de navigateurs adoptent désormais le [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). Il est utilisé soit pour déboguer une application Web à l'aide de Chrome DevTools, soit pour contrôler Chrome à l'aide d'outils tels que [Puppeteer](https://pptr.dev).
