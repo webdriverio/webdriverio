@@ -60,6 +60,10 @@ const pr = await api.pulls.get({
     pull_number: prNumber
 })
 
+if (!pr.data.merge_commit_sha) {
+    throw new Error('Pull request has not been merged yet!')
+}
+
 if (pr.data.labels.find((label) => label.name.includes('Expensable'))) {
     throw new Error('Pull request has already been expensed!')
 }
