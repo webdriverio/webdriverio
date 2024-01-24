@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs'
 import crypto from 'node:crypto'
 import { Resend } from 'resend'
 import { Octokit } from '@octokit/rest'
@@ -11,16 +10,6 @@ const owner = 'webdriverio'
 const repo = 'webdriverio'
 const from = 'WebdriverIO Team <sponsor@webdriver.io>'
 const bcc = 'expense@webdriver.io'
-
-const TSC_MEMBERS = [
-    'abjerstedt',
-    'christian-bromann',
-    'erwinheitzman',
-    'klamping',
-    'mgrybyk',
-    'WillBrock',
-    'wswebcreation'
-]
 
 /**
  * create a authentication key for contributor
@@ -39,44 +28,36 @@ if (!process.env.GH_TOKEN) {
 }
 
 /**
+ * make sure `AMOUNT` and `PR_NUMBER` environment variables are set
+ */
+if (!process.env.AMOUNT) {
+    throw new Error('Please export an "AMOUNT" environment variable.')
+}
+if (!process.env.PR_NUMBER) {
+    throw new Error('Please export a "PR_NUMBER" environment variable.')
+}
+
+/**
  * ensure that Resend API key is given
  */
 if (!process.env.RESEND_API_KEY) {
     throw new Error('Please export a "RESEND_API_KEY" access token into the environment.')
 }
 
-const eventPath = process.env.GITHUB_EVENT_PATH
-/**
- * Make sure this script is run from a GitHub Action
- */
-if (!eventPath) {
-    throw new Error('Please run this script from a GitHub Action!')
-}
-
-const eventData = await getEventData(eventPath)
-if (!eventData) {
-    throw new Error('Could not get event data!')
-}
-
-if (!TSC_MEMBERS.includes(eventData.sender.login)) {
-    throw new Error(`User ${eventData.sender.login} is not a TSC member and can't grant expenses!`)
-}
-
-const expenseAmount = eventData.label.name.split(' ')[1]?.slice(1)
-if (!expenseAmount) {
-    throw new Error(`Could not find expense amount. Please make sure to attach an expense label to PR #${eventData.pull_request.number}`)
-}
+const prNumber = parseInt(process.env.PR_NUMBER, 10)
+const expenseAmount = parseInt(process.env.AMOUNT, 10)
+const prURL = `https://github.com/${owner}/${repo}/pull/${prNumber}`
 
 const api = new Octokit({ auth: process.env.GH_TOKEN })
 const commits = await api.pulls.listCommits({
     owner,
     repo,
-    pull_number: eventData.pull_request.number
+    pull_number: prNumber
 })
 const pr = await api.pulls.get({
     owner: 'webdriverio',
     repo: 'webdriverio',
-    pull_number: eventData.pull_request.number
+    pull_number: prNumber
 })
 
 /**
@@ -99,9 +80,9 @@ const data = await resend.emails.send({
     text: subject,
     react: Email({
         username: pr.data.user.login,
-        prNumber: eventData.pull_request.number,
-        prURL: `https://github.com/${owner}/${repo}/pull/${eventData.pull_request.number}`,
-        expenseAmount: parseInt(expenseAmount, 10),
+        prNumber,
+        prURL,
+        expenseAmount,
         secretKey
     })
 })
@@ -116,7 +97,7 @@ if (data.error) {
 await api.issues.createComment({
     owner,
     repo,
-    issue_number: eventData.pull_request.number,
+    issue_number: prNumber,
     body: `Hey __${pr.data.user.login}__ 👋
 
 Thank you for your contribution to WebdriverIO! Your pull request has been marked as an "Expensable" contribution.
@@ -130,11 +111,9 @@ Have a nice day,
 The WebdriverIO Team 🤖`
 })
 
-async function getEventData (eventPath: string) {
-    try {
-        const ev = JSON.parse(await fs.readFileSync(eventPath, 'utf8'))
-        return ev
-    } catch (err) {
-        return null
-    }
-}
+await api.issues.addLabels({
+    owner,
+    repo,
+    issue_number: prNumber,
+    labels: [`Expensable $${expenseAmount} 💸`]
+})

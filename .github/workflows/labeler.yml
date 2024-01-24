@@ -10,7 +10,6 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
-  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
 jobs:
   first-contribution:
@@ -81,17 +80,3 @@ jobs:
             [contribution guidelines](https://webdriver.io/docs/contribute) or join our friendly
             [Discord](http://discord.webdriver.io/) development server, where you can ask any
             questions you may have. Thank you for your support, and cheers!
-  expense:
-    if: startsWith(github.event.label.name, 'Expensable')
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-      - name: Install Dependencies
-        run: npm ci
-      - name: Run Expense Flow
-        run: npm run sendExpenseMail
