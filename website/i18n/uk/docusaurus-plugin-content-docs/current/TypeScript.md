@@ -11,7 +11,7 @@ title: Налаштування TypeScript
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO автоматично визначить, чи встановлено ці залежності, і скомпілює вашу конфігурацію та тести для вас. Переконайтеся, що `tsconfig.json` знаходиться в тому самому каталозі, що й конфігурація WDIO. Якщо вам потрібно налаштувати роботу ts-node, скористайтеся змінними середовища для [ts-node](https://www.npmjs.com/package/ts-node#options) або скористайтеся [розділом autoCompileOpts](configurationfile) конфігурації wdio.
+WebdriverIO автоматично визначить, чи встановлено ці залежності, і скомпілює вашу конфігурацію та тести для вас. Переконайтеся, що `tsconfig.json` знаходиться в тому самому каталозі, що й конфігурація WDIO. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](/docs/configurationfile).
 
 ## Конфігурація
 
