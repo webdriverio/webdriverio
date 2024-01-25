@@ -669,7 +669,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'npmInstall',
-    message: `Do you want me to run \`${detectPackageManager()} install\``,
+    message: () => `Do you want me to run \`${detectPackageManager()} install\``,
     default: true
 }]
 
