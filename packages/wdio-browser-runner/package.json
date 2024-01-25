@@ -26,7 +26,10 @@
   "types": "./build/index.d.ts",
   "exports": {
     ".": "./build/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./stencil": {
+      "types": "./stencil/index.d.ts"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {

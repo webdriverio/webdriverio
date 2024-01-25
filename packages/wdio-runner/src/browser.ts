@@ -346,7 +346,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const context = payload.element
                 ? Array.isArray(payload.element)
                     ? await browser.$$(payload.element)
-                    : await browser.$(payload.element)
+                    /**
+                     * check if element contains an `elementId` property, if so the element was already
+                     * found, so we can transform it into an `WebdriverIO.Element` object, if not we
+                     * need to find it first, so we pass in the selector.
+                     */
+                    : payload.element.elementId
+                        ? await browser.$(payload.element)
+                        : await browser.$(payload.element.selector)
                 : payload.context || browser
             const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
