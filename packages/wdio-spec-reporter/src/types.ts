@@ -54,6 +54,12 @@ export interface SpecReporterOptions {
      * @default: `true`
      */
      showPreface?: boolean
+     /**
+     * Ability to enable or disable colored output in terminal')
+     *
+     * @default: `false`
+     */
+     colors?: boolean
 }
 
 export interface TestLink {

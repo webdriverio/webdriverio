@@ -164,6 +164,21 @@ and with `true` (default) each line will be prefixed with the preface:
 [loremipsum 50 Windows 10 #0-0]
 ```
 
+### colors
+Set to true to display colored output in terminal
+
+Type: `boolean`
+Default: `false`
+
+```js
+[
+  "spec",
+  {
+    colors: false,
+  },
+]
+```
+
 ## Environment Options
 
 There are certain options you can set through environment variables:

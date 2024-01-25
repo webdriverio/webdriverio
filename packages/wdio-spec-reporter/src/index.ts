@@ -44,6 +44,7 @@ export default class SpecReporter extends WDIOReporter {
         failed: '✖'
     }
 
+    private _colors = false
     private _onlyFailures = false
     private _sauceLabsSharableLinks = true
 
@@ -55,6 +56,7 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
+        this._colors = options.colors || false
         this._realtimeReporting = options.realtimeReporting || false
         this._showPreface = options.showPreface !== false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
@@ -127,6 +129,14 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     /**
+     *  Return text based on color option
+     */
+
+    private _setTextColor(state: string, text: string){
+        return this._colors ? chalk[this.getColor(state)](text) : text
+    }
+
+    /**
      * Print the report to the stdout realtime
      */
     printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
@@ -148,8 +158,8 @@ export default class SpecReporter extends WDIOReporter {
 
         const content = stat.type === 'test'
             ? `${this._preface} ${indent}` +
-              `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
-              ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+              `${this._setTextColor(state, this.getSymbol(state))} ${title}` +
+              ` » ${this._setTextColor(state, '[')} ${this._suiteName} ${this._setTextColor(state, ']')}`
             : stat.type !== 'hook' ?
                 `${suiteStartBanner}${this._preface} ${title}` :
                 title
@@ -349,14 +359,14 @@ export default class SpecReporter extends WDIOReporter {
             // display suite description (Cucumber only)
             if (suite.description) {
                 output.push(...suite.description.trim().split('\n')
-                    .map((l) => `${suiteIndent}${chalk.grey(l.trim())}`))
+                    .map((l) => `${suiteIndent}${this._setTextColor('default', l.trim())}`))
                 output.push('') // empty line
             }
 
             // display suite rule (Cucumber only)
             if (suite.rule) {
                 output.push(...suite.rule.trim().split('\n')
-                    .map((l) => `${suiteIndent}${chalk.grey(l.trim())}`))
+                    .map((l) => `${suiteIndent}${this._setTextColor('default', l.trim())}`))
             }
 
             const eventsToReport = this.getEventsToReport(suite)
@@ -366,7 +376,7 @@ export default class SpecReporter extends WDIOReporter {
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle.trim()}`)
+                output.push(`${testIndent}${this._setTextColor(state!, this.getSymbol(state))} ${testTitle.trim()}`)
 
                 // print cucumber data table cells and docstring
                 const arg = (test as TestStats).argument
@@ -425,21 +435,21 @@ export default class SpecReporter extends WDIOReporter {
         // Get the passes
         if (this._stateCounts.passed > 0) {
             const text = `${this._stateCounts.passed} passing ${duration}`
-            output.push(chalk[this.getColor('passed')](text))
+            output.push(this._setTextColor('passed', text))
             duration = ''
         }
 
         // Get the failures
         if (this._stateCounts.failed > 0) {
             const text = `${this._stateCounts.failed} failing ${duration}`.trim()
-            output.push(chalk[this.getColor('failed')](text))
+            output.push(this._setTextColor('failed', text))
             duration = ''
         }
 
         // Get the skipped tests
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(chalk[this.getColor('skipped')](text))
+            output.push(this._setTextColor('skipped', text))
         }
 
         return output
@@ -472,10 +482,10 @@ export default class SpecReporter extends WDIOReporter {
                 )
                 for (const error of errors) {
                     !error?.stack?.includes('new AssertionError')
-                        ? output.push(chalk.red(error.message))
+                        ? output.push(this._setTextColor('failed', error.message))
                         : output.push(...error.message.split('\n'))
                     if (error.stack) {
-                        output.push(...error.stack.split(/\n/g).map(value => chalk.gray(value)))
+                        output.push(...error.stack.split(/\n/g).map(value => this._setTextColor('default', value)))
                     }
                 }
             }
