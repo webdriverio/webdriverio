@@ -1,6 +1,8 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice } from './constants.js'
+import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice, PMs } from './constants.js'
+
+export type PM = typeof PMs[number]
 
 export interface Questionnair {
     runner: string
