@@ -20,30 +20,32 @@ WebdriverIO by default uses Puppeteer to automate a browser like Chrome, Firefox
 ```js
 import { remote } from 'webdriverio'
 
-let browser
-
-;(async () => {
-    browser = await remote({
-        capabilities: { browserName: 'chrome' }
-    })
-
-    await browser.navigateTo('https://www.google.com/ncr')
-
-    const searchInput = await browser.$('#lst-ib')
-    await searchInput.setValue('WebdriverIO')
-
-    const searchBtn = await browser.$('input[value="Google Search"]')
-    await searchBtn.click()
-
-    console.log(await browser.getTitle()) // outputs "WebdriverIO - Google Search"
-
-    await browser.deleteSession()
-})().catch((err) => {
-    console.error(err)
-    return browser.deleteSession()
+const browser = await remote({
+    capabilities: { browserName: 'chrome' }
 })
+
+await browser.navigateTo('https://www.google.com/ncr')
+
+const searchInput = await browser.$('#lst-ib')
+await searchInput.setValue('WebdriverIO')
+
+const searchBtn = await browser.$('input[value="Google Search"]')
+await searchBtn.click()
+
+console.log(await browser.getTitle()) // outputs "WebdriverIO - Google Search"
+
+await browser.deleteSession()
 ```
 
 See the raw [protocol example](https://www.npmjs.com/package/webdriver#example) using the `webdriver` package to get a glance at the differences.
 
 For more information on [options](https://webdriver.io/docs/options#webdriver-options), [multiremote usage](https://webdriver.io/docs/multiremote) or integration into [cloud services](https://webdriver.io/docs/cloudservices) please check out the [docs](https://webdriver.io/docs/gettingstarted).
+
+---
+
+<center>Package Sponsors:</center>
+<p align="center">
+    <a href="https://www.browserstack.com/automation-webdriverio">
+        <img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" alt="BrowserStack" width="300" />
+    </a>
+</p>
