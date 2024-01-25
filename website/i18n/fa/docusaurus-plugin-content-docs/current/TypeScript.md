@@ -11,7 +11,7 @@ title: راه اندازی TypeScript
 $ npm install typescript ts-node --save-dev
 ```
 
-WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. اگر نیاز به پیکربندی نحوه اجرای ts-node دارید، از متغیرهای محیطی (Environment Variables) برای [ts-node](https://www.npmjs.com/package/ts-node#options) استفاده کنید یا از تنظیم wdio در بخش autoCompileOpts استفاده کنید.
+WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](/docs/configurationfile).
 
 ## پیکربندی
 
