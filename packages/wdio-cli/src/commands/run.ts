@@ -72,7 +72,7 @@ export const cmdArgs = {
         type: 'number'
     },
     updateSnapshots: {
-        alias: 'u',
+        alias: 's',
         desc: 'update DOM, image or test snapshots',
         type: 'string',
         coerce: (value: string) => {
