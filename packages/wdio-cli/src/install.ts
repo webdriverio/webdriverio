@@ -1,5 +1,6 @@
 import { execa } from 'execa'
-import { detectPackageManager, type PM } from './utils.js'
+import { detectPackageManager } from './utils.js'
+import type { PM } from './types.js'
 
 const installCommand: Record<PM, string> = {
     npm: 'install',

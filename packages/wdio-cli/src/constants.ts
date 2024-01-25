@@ -9,6 +9,7 @@ import {
     getDefaultFiles,
     convertPackageHashToObject,
     getProjectRoot,
+    detectPackageManager,
 } from './utils.js'
 import type { Questionnair } from './types.js'
 
@@ -23,6 +24,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
 🤖 Successfully setup project at ${ projectRootDir } 🎉
@@ -667,7 +669,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'npmInstall',
-    message: 'Do you want me to run `npm install`',
+    message: () => `Do you want me to run \`${detectPackageManager()} install\``,
     default: true
 }]
 
