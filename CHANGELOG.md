@@ -21,6 +21,27 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.1 (2024-01-25)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#12089](https://github.com/webdriverio/webdriverio/pull/12089) (@wdio/cli): use proper package manager when asking if to install ([@christian-bromann](https://github.com/christian-bromann))
+  * [#12088](https://github.com/webdriverio/webdriverio/pull/12088) (@wdio/cli): use -s for updating snapshots as -u is used to provide a username ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#12076](https://github.com/webdriverio/webdriverio/pull/12076) Added default name for tms link to be displayed in allure reports ([@AndreiSakalouski](https://github.com/AndreiSakalouski))
+
+#### :memo: Documentation
+* `devtools`, `wdio-types`
+  * [#12072](https://github.com/webdriverio/webdriverio/pull/12072) chore(devtools): ([@gromanas](https://github.com/gromanas))
+* Other
+  * [#12080](https://github.com/webdriverio/webdriverio/pull/12080) (docs): add governance policies around using donation funds ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Andrei Sakalouski ([@AndreiSakalouski](https://github.com/AndreiSakalouski))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- George Romanas ([@gromanas](https://github.com/gromanas))
+
+
 ## v8.29.0 (2024-01-22)
 
 #### :rocket: New Feature
