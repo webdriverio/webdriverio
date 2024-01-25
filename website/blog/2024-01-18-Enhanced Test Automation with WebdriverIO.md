@@ -1,5 +1,5 @@
 ---
-title: 2024-01-18-Enhanced Test Automation with WebdriverIO
+title: Enhanced Test Automation with WebdriverIO
 author: Larry Goddard
 authorURL: https://linkedin.com/in/larryg
 authorImageURL: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
