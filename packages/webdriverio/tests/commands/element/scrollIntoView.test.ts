@@ -107,7 +107,7 @@ describe('scrollIntoView test', () => {
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(executeCallOptions.json.script).toEqual('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)')
             expect(executeCallOptions.json.args).toHaveLength(2)
-            expect(executeCallOptions.json.args[1]).toEqual({ block: 'start', inline: 'nearest', scrollMode: 'if-needed' })
+            expect(executeCallOptions.json.args[1]).toEqual({ block: 'start', inline: 'nearest' })
         })
 
         it('scrolls element when using boolean scroll options', async () => {
