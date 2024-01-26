@@ -1,4 +1,5 @@
-import { ELEMENT_KEY } from '../../constants.js'
+import { ELEMENT_KEY } from 'webdriver'
+
 import { getBrowserObject } from '../../utils/index.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 

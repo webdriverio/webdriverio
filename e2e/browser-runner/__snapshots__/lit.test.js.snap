@@ -1,0 +1,22 @@
+// Snapshot v1
+
+exports[`Lit Component testing > should support snapshot testing 1`] = `"<simple-greeting name="WebdriverIO"></simple-greeting>"`;
+
+exports[`Lit Component testing > should support snapshot testing 3`] = `
+{
+  "parsed": {
+    "alpha": 0,
+    "hex": "#000000",
+    "rgba": "rgba(0,0,0,0)",
+    "type": "color",
+  },
+  "property": "background-color",
+  "value": "rgba(0,0,0,0)",
+}
+`;
+
+exports[`Lit Component testing > should support snapshot testing 5`] = `
+{
+  "foo": "bar",
+}
+`;

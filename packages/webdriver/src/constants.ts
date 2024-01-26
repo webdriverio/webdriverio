@@ -152,3 +152,6 @@ export const REG_EXPS = {
     commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
     execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
 }
+
+export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+export const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'

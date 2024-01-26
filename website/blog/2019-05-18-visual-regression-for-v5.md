@@ -5,6 +5,12 @@ authorURL: http://github.com/wswebcreation
 authorImageURL: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
 ---
 
+:::info NEW UPDATED SERVICE
+
+We have updated the service and renamed its package name as part of that update. Please find all documentation about WebdriverIO Visual Testing [in the docs](/docs/visual-testing).
+
+:::
+
 We are pleased to announce that we now have a new Visual Regression service for WebdriverIO V5 called `wdio-image-comparison-service`.
 
 ## What can it do?

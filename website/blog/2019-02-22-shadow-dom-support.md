@@ -174,7 +174,7 @@ This component object can now be used in tests for any page or section of your a
 
 
 ## Future
-Currently the [WebDriver protocol](https://w3c.github.io/webdriver/) does not provide native support for shadow DOM, but there has been [progress](https://github.com/w3c/webdriver/pull/1320) made for it. Once the spec is finalized, WebdriverIO will implement the spec. There's a decent chance that the `shadow` commands will change under the hood, but I'm pretty confident that they're usage will be the same as it is today, and that test code that uses them will need little to no refactoring.
+Currently, the [WebDriver](https://w3c.github.io/webdriver/) protocol does not provide native support for shadow DOM, but there has been [progress](https://github.com/w3c/webdriver/pull/1320) made for it. Once the spec is finalized, WebdriverIO will implement the spec. There's a decent chance that the `shadow` commands will change under the hood, but I'm pretty confident that they're usage will be the same as it is today, and that test code that uses them will need little to no refactoring.
 
 ## Browser Support
 IE11-Edge: Shadow DOM is not supported in IE or Edge, but can be polyfilled. The shadow commands work great with the polyfills.

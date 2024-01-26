@@ -1,4 +1,4 @@
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Options, Capabilities, Services, Workers } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
@@ -54,31 +54,32 @@ export interface SessionStartedMessage {
     cid?: string
 }
 
+export interface SnapshotResultMessage {
+    origin: 'worker'
+    name: 'snapshot'
+    content: {
+       filepath: string
+       added: number
+       fileDeleted: boolean
+       matched: number
+       unchecked: number
+       uncheckedKeys: string[]
+       unmatched: number
+       updated: number
+    }[]
+}
+
 export interface SessionEndedMessage {
     origin: 'worker'
     name: 'sessionEnded',
     cid: string
 }
 
-export interface WorkerHookResultMessage {
+export interface WorkerResponseMessage {
     origin: 'worker'
-    name: 'workerHookResult',
-    args: HookTriggerEvent
-}
-
-export interface WorkerCoverageMapMessage {
-    origin: 'worker'
-    name: 'coverageMap',
-    content: { coverageMap: unknown }
-}
-
-/**
- * Duplicate of @wdio/browser-runner type, refactoring needed
- * see https://github.com/webdriverio/webdriverio/issues/9299
- */
-export interface HookTriggerEvent {
-    id: string
-    cid: string
-    name: string
-    args: unknown[]
+    name: 'workerResponse',
+    args: {
+        id: number
+        message: Workers.SocketMessage
+    }
 }

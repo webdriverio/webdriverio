@@ -562,6 +562,14 @@ export default class AllureReporter extends WDIOReporter {
         this._endTest(AllureStatus.PASSED)
     }
 
+    onTestRetry(test: TestStats) {
+        this.attachLogs()
+
+        const status = getTestStatus(test, this._config)
+
+        this._endTest(status, getErrorFromFailedTest(test))
+    }
+
     onTestFail(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
 
@@ -911,8 +919,8 @@ export default class AllureReporter extends WDIOReporter {
 
         this.addLink({
             url: tmsLink,
-            name: linkName,
-            type: LinkType.TMS,
+            name: linkName || 'tms',
+            type: LinkType.TMS
         })
     }
 

@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '../../constants.js'
+import { ELEMENT_KEY } from 'webdriver'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
