@@ -101,7 +101,7 @@ function Home() {
             </header>
             <section className="sponsorSection">
                 <div>
-                    <h3>Thank you to the WebdriverIO 💎 Premium Sponsors:</h3>
+                    <h3>Supported by the following 💎 Premium Sponsors:</h3>
                     <div className="sponsorLogos">
                         <ImageSwitcher
                             lightImageSrc="/img/sponsors/browserstack_black.svg"

@@ -1,6 +1,6 @@
 .sponsorSection {
     width: 100%;
-    border-top: #EA5907 1px solid;
+    border-top: var(--ifm-color-primary) 1px solid;
     position: relative;
     background: var(--wdio-dark-section-background-color);
     display: flex;
@@ -8,7 +8,7 @@
 }
 .sponsorSection > div {
     width: 350px;
-    border: 1px solid #EA5907;
+    border: 1px solid var(--ifm-color-primary);
     border-radius: 10px;
     margin: 0 auto;
     background-color: var(--wdio-section-background-color);
