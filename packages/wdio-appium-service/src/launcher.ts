@@ -158,9 +158,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         // just for validate the first error
-        let errorCaptured = false;
+        let errorCaptured = false
         // to set a timeout for the promise
-        let timeoutId:number;
+        let timeoutId:number
         // to store the first error
         let error: Error | undefined
 
@@ -181,8 +181,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             process.stderr.once('data', (err) => {
                 error = (err || new Error('Appium exited without unknown error message')) as Error
                 log.error(error.toString());
-                rejectOnce(error);
-
+                rejectOnce(error)
             })
 
             process.once('exit', (exitCode: number) => {
@@ -190,7 +189,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
                 } else if (errorCaptured) {
-                    errorMessage += `\n${error?.toString()}`;
+                    errorMessage += `\n${error?.toString()}`
                 }
                 if (exitCode !== 0) {
                     log.error(errorMessage)
@@ -217,8 +216,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * e.g. if the port is already in use, reject the promise.
              */
             timeoutId = setTimeout(() => {
-                rejectOnce(new Error("Timeout: Appium did not start within expected time"));
-            }, timeout);
+                rejectOnce(new Error("Timeout: Appium did not start within expected time"))
+            }, timeout)
         })
     }
 
