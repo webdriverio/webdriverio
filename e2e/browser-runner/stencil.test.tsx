@@ -17,9 +17,17 @@ describe('Stencil Component Testing', () => {
         await expect($('>>>.app-profile')).toHaveText(
             expect.stringContaining('Hello! My name is Stencil.')
         )
-        await expect($('>>>.app-profile')).toHaveText(
-            expect.stringContaining('I am a nested component!')
-        )
+
+        /**
+         * this assertion for Safari due to: https://github.com/w3c/webdriver/issues/1786
+         */
+        // eslint-disable-next-line no-undef
+        if ((browser.capabilities as WebdriverIO.Capabilities).browserName !== 'safari') {
+            await expect($('>>>.app-profile')).toHaveText(
+                expect.stringContaining('I am a nested component!')
+            )
+        }
+
         await expect($('>>>.app-profile').getCSSProperty('font-weight'))
             .toMatchInlineSnapshot(`
           {
