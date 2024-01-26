@@ -154,10 +154,14 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             this._process.kill()
         }
     }
-
-    private _startAppium(command: string, args: Array<string>) {
+    private _startAppium(command: string, args: Array<string>, timeout:number = 60000) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        // just for validate the first error
+        let errorCaptured = false;
+        // to set a timeout for the promise
+        let timeoutId:number;
+        // to store the first error
         let error: Error | undefined
 
         return new Promise<ChildProcessByStdio<null, Readable, Readable>>((resolve, reject) => {
@@ -166,25 +170,55 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     log.info(`Appium started with ID: ${process.pid}`)
                     resolve(process)
                 }
+                // if the data does not include the above string, it is probably an error.
+                log.error(data.toString());
+                rejectOnce(new Error('The appium service started but with errors. Check logs.'))
             })
 
             /**
              * only capture first error to print it in case Appium failed to start.
              */
-            process.stderr.once('data', (err) => { error = err })
+            process.stderr.once('data', (err) => {
+                error = (err || new Error('Appium exited without unknown error message')) as Error
+                log.error(error.toString());
+                rejectOnce(error);
 
-            process.once('exit', exitCode => {
+            })
+
+            process.once('exit', (exitCode: number) => {
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-                } else if (error) {
-                    errorMessage += `\n${error.toString()}`
+                } else if (errorCaptured) {
+                    errorMessage += `\n${error?.toString()}`;
                 }
                 if (exitCode !== 0) {
                     log.error(errorMessage)
                 }
-                reject(new Error(errorMessage))
+                rejectOnce(new Error(errorMessage))
             })
+
+            /**
+             * reject promise if Appium does not start within given timeout,
+             * e.g. if the port is already in use
+             *
+             * @param err - error to reject with
+             */
+            const rejectOnce = (err: Error) => {
+                if (!errorCaptured) {
+                    errorCaptured = true
+                    clearTimeout(timeoutId)
+                    reject(err)
+                }
+            }
+
+            /**
+             * set timeout for promise. If Appium does not start within given timeout,
+             * e.g. if the port is already in use, reject the promise.
+             */
+            timeoutId = setTimeout(() => {
+                rejectOnce(new Error("Timeout: Appium did not start within expected time"));
+            }, timeout);
         })
     }
 
