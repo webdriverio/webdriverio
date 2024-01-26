@@ -170,9 +170,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     log.info(`Appium started with ID: ${process.pid}`)
                     resolve(process)
                 }
-                // if the data does not include the above string, it is probably an error.
-                log.error(data.toString());
-                rejectOnce(new Error('The appium service started but with errors. Check logs.'))
+                // if the data does not include the above string, it is probably an error or debugger message.
+                log.warn(data.toString())
+                resolve('The appium service is starting... Check logs above for possible issues.')
             })
 
             /**
