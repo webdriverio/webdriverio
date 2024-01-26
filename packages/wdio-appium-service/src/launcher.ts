@@ -168,11 +168,11 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             process.stdout.on('data', (data) => {
                 if (data.includes('Appium REST http interface listener started')) {
                     log.info(`Appium started with ID: ${process.pid}`)
-                    resolve(process)
                 }
                 // if the data does not include the above string, it is probably an error or debugger message.
                 log.warn(data.toString())
-                resolve('The appium service is starting... Check logs above for possible issues.')
+                // in both cases the promise is resolved as the appium process was executed successfully.
+                resolve(process)
             })
 
             /**
