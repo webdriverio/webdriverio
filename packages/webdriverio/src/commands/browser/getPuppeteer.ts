@@ -1,7 +1,7 @@
-import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
+import { userImport } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
+import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
@@ -43,6 +43,15 @@ const log = logger('webdriverio')
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 export async function getPuppeteer (this: WebdriverIO.Browser) {
+    const puppeteer = await userImport<Puppeteer>('puppeteer-core')
+
+    if (!puppeteer) {
+        throw new Error(
+            'You need to install "puppeteer-core" package as a dependency ' +
+            'in order to use the "getPuppeteer" method'
+        )
+    }
+
     /**
      * check if we already connected Puppeteer and if so return
      * that instance
