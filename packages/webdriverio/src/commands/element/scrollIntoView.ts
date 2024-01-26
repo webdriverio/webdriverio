@@ -44,7 +44,7 @@ function scrollIntoViewWeb (
  */
 export async function scrollIntoView (
     this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions & {scrollMode?: 'if-needed' | 'always'} | boolean = { block: 'start', inline: 'nearest', scrollMode: 'if-needed' }
+    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {
     const browser = getBrowserObject(this)
 
@@ -62,8 +62,8 @@ export async function scrollIntoView (
 
     if (typeof options === 'boolean') {
         parsedOptions = options ? { scrollMode: 'always', block: 'start', inline: 'nearest' } : { scrollMode: 'always', block: 'end', inline: 'nearest' }
-    } else if (!options.scrollMode) {
-        parsedOptions = { ...options, ...{ scrollMode: 'if-needed' } }
+    } else if (options) {
+        parsedOptions = { ...options, ...{ scrollMode: 'always' } }
     } else {
         parsedOptions = options
     }
@@ -78,10 +78,19 @@ export async function scrollIntoView (
             left: number;
             isVisible?: boolean
         }
+
+        /**
+         * If element already is intoView we will use scrollIntoViewWeb for accurate position within view.
+         * browser.action behave in the case as 'nearest' that's why it's complicated to calculate precise position regarding current position
+         */
         // eslint-disable-next-line unicorn/prefer-ternary
-        if (deltaPosition && 'isVisible' in deltaPosition && deltaPosition.isVisible && parsedOptions.scrollMode !== 'if-needed') {
+        if (deltaPosition && 'isVisible' in deltaPosition && deltaPosition.isVisible) {
             await scrollIntoViewWeb.call(this, options as any)
         } else {
+            /**
+             * when element out of view it behaves as 'end' in the case calculation can be done and then used browser.actions
+             * it moves element to end and them we can use delta regarding end.
+             */
             await browser
                 .action('wheel')
                 .scroll({
