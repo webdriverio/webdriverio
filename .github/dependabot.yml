@@ -15,12 +15,6 @@ updates:
     # these packages don't support Node.js v16 anymore
     - dependency-name: "got"
     - dependency-name: "ky"
-    - dependency-name: "@octokit/rest"
-    - dependency-name: "@cucumber/cucumber"
-    - dependency-name: "jsdom"
-    - dependency-name: "pretty-ms"
-    - dependency-name: "@puppeteer/browsers"
-    - dependency-name: "inquirer"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7

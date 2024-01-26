@@ -33,7 +33,7 @@
     "@wdio/types": "8.31.1",
     "chalk": "^5.1.2",
     "easy-table": "^1.2.0",
-    "pretty-ms": "^7.0.0"
+    "pretty-ms": "^9.0.0"
   },
   "publishConfig": {
     "access": "public"
