@@ -63,6 +63,9 @@ html[data-theme=dark] {
     body .footer__bottom > div {
         text-align: center;
     }
+    body .footer__item img {
+        max-width: 200px;
+    }
 }
 
 @media (max-width: 500px) {

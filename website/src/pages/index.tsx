@@ -96,22 +96,20 @@ function Home() {
                             <Translate>Watch on YouTube</Translate>
                         </Link>
                     </div>
+                    <section className="sponsorSection">
+                        <div>
+                            <em>Supported by the following 💎 Premium Sponsors:</em>
+                            <ImageSwitcher
+                                lightImageSrc="/img/sponsors/browserstack_black.svg"
+                                darkImageSrc="/img/sponsors/browserstack_white.svg"
+                                alt="BrowserStack"
+                                link="https://www.browserstack.com/automation-webdriverio"
+                            />
+                        </div>
+                    </section>
                     <Features features={features} />
                 </div>
             </header>
-            <section className="sponsorSection">
-                <div>
-                    <h3>Supported by the following 💎 Premium Sponsors:</h3>
-                    <div className="sponsorLogos">
-                        <ImageSwitcher
-                            lightImageSrc="/img/sponsors/browserstack_black.svg"
-                            darkImageSrc="/img/sponsors/browserstack_white.svg"
-                            alt="BrowserStack"
-                            link="https://www.browserstack.com/automation-webdriverio"
-                        />
-                    </div>
-                </div>
-            </section>
             <main>
                 <Highlight
                     img={<CodeBlock language="js" children={ComponentTestingExample}></CodeBlock>}
