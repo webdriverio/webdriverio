@@ -1,0 +1,33 @@
+.sponsorSection {
+    width: 100%;
+    border-top: #EA5907 1px solid;
+    position: relative;
+    background: var(--wdio-dark-section-background-color);
+    display: flex;
+    margin-bottom: -65px;
+}
+.sponsorSection > div {
+    width: 350px;
+    border: 1px solid #EA5907;
+    border-radius: 10px;
+    margin: 0 auto;
+    background-color: var(--wdio-section-background-color);
+    transform: translateY(-50%);
+}
+.sponsorSection h3 {
+    font-size: .8em;
+    text-align: center;
+    width: 100%;
+    margin: 15px 0 5px;
+}
+
+.sponsorLogos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 0 30px;
+}
+.sponsorLogos img {
+    max-width: 250px;
+}

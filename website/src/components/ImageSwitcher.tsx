@@ -16,3 +16,5 @@ export function ImageSwitcher ({ lightImageSrc, darkImageSrc, alt, link }) {
         <img src={isDarkTheme ? darkImageSrc : lightImageSrc} alt={alt} />
     )
 }
+
+export default ImageSwitcher

@@ -9,6 +9,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl'
 import LogoCarousel from '../components/LogoCarousel.tsx'
 import Features from '../components/Features.tsx'
 import Section from '../components/Section.tsx'
+import ImageSwitcher from '../components/ImageSwitcher.tsx'
 import Highlight from '../components/Highlight.tsx'
 import Robot from '../components/Robot.tsx'
 import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
@@ -98,6 +99,19 @@ function Home() {
                     <Features features={features} />
                 </div>
             </header>
+            <section className="sponsorSection">
+                <div>
+                    <h3>Thank you to the WebdriverIO 💎 Premium Sponsors:</h3>
+                    <div className="sponsorLogos">
+                        <ImageSwitcher
+                            lightImageSrc="/img/sponsors/browserstack_black.svg"
+                            darkImageSrc="/img/sponsors/browserstack_white.svg"
+                            alt="BrowserStack"
+                            link="https://www.browserstack.com/automation-webdriverio"
+                        />
+                    </div>
+                </div>
+            </section>
             <main>
                 <Highlight
                     img={<CodeBlock language="js" children={ComponentTestingExample}></CodeBlock>}
