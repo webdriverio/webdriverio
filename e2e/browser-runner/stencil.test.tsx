@@ -22,7 +22,7 @@ describe('Stencil Component Testing', () => {
          * this assertion for Safari due to: https://github.com/w3c/webdriver/issues/1786
          */
         // eslint-disable-next-line no-undef
-        if ((browser.capabilities as WebdriverIO.Capabilities).browserName !== 'safari') {
+        if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() !== 'safari') {
             await expect($('>>>.app-profile')).toHaveText(
                 expect.stringContaining('I am a nested component!')
             )
