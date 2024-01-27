@@ -21,6 +21,166 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.2 (2024-01-26)
+
+#### 🐛  Bug Fix
+* `wdio-allure-reporter`
+  * [#12047](https://github.com/webdriverio/webdriverio/pull/12047) in case of onTestRetry first has status unknown in allure report  ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`
+  * [#12093](https://github.com/webdriverio/webdriverio/pull/12093) (@wdio/browser-runner): improved stencil test integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#12098](https://github.com/webdriverio/webdriverio/pull/12098) Update allure report links ([@epszaw](https://github.com/epszaw))
+* Other
+  * [#12036](https://github.com/webdriverio/webdriverio/pull/12036) blog post for "Enhanced Test Automation" book  ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- LarryG ([@larryg01](https://github.com/larryg01))
+- maksym-alavatskyi ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+
+## v8.29.1 (2024-01-25)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#12089](https://github.com/webdriverio/webdriverio/pull/12089) (@wdio/cli): use proper package manager when asking if to install ([@christian-bromann](https://github.com/christian-bromann))
+  * [#12088](https://github.com/webdriverio/webdriverio/pull/12088) (@wdio/cli): use -s for updating snapshots as -u is used to provide a username ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#12076](https://github.com/webdriverio/webdriverio/pull/12076) Added default name for tms link to be displayed in allure reports ([@AndreiSakalouski](https://github.com/AndreiSakalouski))
+
+#### :memo: Documentation
+* `devtools`, `wdio-types`
+  * [#12072](https://github.com/webdriverio/webdriverio/pull/12072) chore(devtools): ([@gromanas](https://github.com/gromanas))
+* Other
+  * [#12080](https://github.com/webdriverio/webdriverio/pull/12080) (docs): add governance policies around using donation funds ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Andrei Sakalouski ([@AndreiSakalouski](https://github.com/AndreiSakalouski))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- George Romanas ([@gromanas](https://github.com/gromanas))
+
+
+## v8.29.0 (2024-01-22)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`, `wdio-types`
+  * [#12058](https://github.com/webdriverio/webdriverio/pull/12058) (@wdio/cli): add support for snapshot testing ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.28.8 (2024-01-20)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-utils`
+  * [#11957](https://github.com/webdriverio/webdriverio/pull/11957) Closes [#11684](https://github.com/webdriverio/webdriverio/issues/11684): Improve AfterTest() for Jasmine ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :memo: Documentation
+* Other
+  * [#12052](https://github.com/webdriverio/webdriverio/pull/12052) Update AUTHORS.md ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-cli`
+  * [#12046](https://github.com/webdriverio/webdriverio/pull/12046) Add QUnit service ([@mauriciolauffer](https://github.com/mauriciolauffer))
+
+#### Committers: 3
+- Dmytro Klymenko ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+- Mauricio Lauffer ([@mauriciolauffer](https://github.com/mauriciolauffer))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v8.28.6 (2024-01-18)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`, `wdio-types`
+  * [#12041](https://github.com/webdriverio/webdriverio/pull/12041) (@wdio/browser-runner): improve performance by less pulling ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.28.4 (2024-01-17)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12034](https://github.com/webdriverio/webdriverio/pull/12034) [browserstack-service] Fix integrations data ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#12040](https://github.com/webdriverio/webdriverio/pull/12040) fix: not add pause for iOS keys ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v8.28.0 (2024-01-17)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#12005](https://github.com/webdriverio/webdriverio/pull/12005) (@wdio/browser-runner): move assertions to Node.js environment ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11865](https://github.com/webdriverio/webdriverio/pull/11865) Wdio Percy Support v8 ([@amaanbs](https://github.com/amaanbs))
+
+#### :bug: Bug Fix
+* `wdio-logger`
+  * [#11959](https://github.com/webdriverio/webdriverio/pull/11959) Closes [#11937](https://github.com/webdriverio/webdriverio/issues/11937):  Always print error message to terminal when integration package is not found ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#12030](https://github.com/webdriverio/webdriverio/pull/12030) addresses #12029 ([@ciekawy](https://github.com/ciekawy))
+* `wdio-utils`
+  * [#12002](https://github.com/webdriverio/webdriverio/pull/12002) wdio-utils: Fitler invalidateCache from stacktraces ([@WillBrock](https://github.com/WillBrock))
+* `wdio-browserstack-service`
+  * [#11997](https://github.com/webdriverio/webdriverio/pull/11997) [browserstack-service] Add platform version integration data for skipped tests ([@sriteja777](https://github.com/sriteja777))
+
+#### :memo: Documentation
+* [#12003](https://github.com/webdriverio/webdriverio/pull/12003) (docs): update electron docs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Klymenko ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Szymon Stasik ([@ciekawy](https://github.com/ciekawy))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v8.27.2 (2024-01-11)
+
+#### :rocket: New Feature
+* `wdio-sauce-service`
+  * [#11981](https://github.com/webdriverio/webdriverio/pull/11981) feat: Implement reporting of test runs to Sauce Labs Insights ([@tianfeng92](https://github.com/tianfeng92))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#11990](https://github.com/webdriverio/webdriverio/pull/11990) Webdriverio: Fix regression in 11711 ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#11982](https://github.com/webdriverio/webdriverio/pull/11982) Sauce us east 4 ([@nullp2ike](https://github.com/nullp2ike))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#11906](https://github.com/webdriverio/webdriverio/pull/11906) (docs): add documentation on visual testing ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#11966](https://github.com/webdriverio/webdriverio/pull/11966) (docs): add docs on custom matcher ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#11963](https://github.com/webdriverio/webdriverio/pull/11963) Update README.md ([@diwakar-s-maurya](https://github.com/diwakar-s-maurya))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diwakar ([@diwakar-s-maurya](https://github.com/diwakar-s-maurya))
+- Tian Feng ([@tianfeng92](https://github.com/tianfeng92))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@nullp2ike](https://github.com/nullp2ike)
+
+
 ## v8.27.1 (2023-12-28)
 
 #### :bug: Bug Fix

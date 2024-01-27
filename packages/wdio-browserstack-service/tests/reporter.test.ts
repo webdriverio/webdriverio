@@ -1,6 +1,6 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import type { StdLog } from '../src/index.js'
 
 import TestReporter from '../src/reporter.js'
@@ -136,6 +136,15 @@ describe('test-reporter', () => {
         const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData').mockImplementation(() => Promise.resolve())
         const getCloudProviderSpy = vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = vi.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockReset()
+        })
 
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
@@ -200,6 +209,15 @@ describe('test-reporter', () => {
         vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testStartStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = vi.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockReset()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})
@@ -247,6 +265,15 @@ describe('test-reporter', () => {
         vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testEndStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = vi.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockReset()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})

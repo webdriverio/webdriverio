@@ -1,8 +1,9 @@
+import { ELEMENT_KEY } from 'webdriver'
+import type { ElementReference } from '@wdio/protocols'
+
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { ELEMENT_KEY } from '../../constants.js'
 import type { Selector } from '../../types.js'
-import type { ElementReference } from '@wdio/protocols'
 
 /**
  * The `$` command is a short and handy way in order to fetch a single element on the page.

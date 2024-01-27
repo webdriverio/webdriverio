@@ -2,6 +2,7 @@ import type { Clients } from '@wdio/types'
 
 import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
@@ -101,6 +102,29 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
                 this.__propertiesObject__[name] = { value: customCommand }
             } else {
                 unit.lift(name, customCommand, proto)
+            }
+
+            /**
+             * When running component tests, custom commands might not be recognised when services attach them to the browser.
+             * This is because the `addCommand` function is called within the Node.js environment and not the browser.
+             * As a workaround, we check here if we are in a worker process and if so we send a message to the parent process
+             * to add the command to the browser.
+             *
+             * @todo(Christian): this won't be sufficient, e.g. in cases where the page is reloaded and the command is not re-added.
+             */
+            if (typeof process.send === 'function' && process.env.WDIO_WORKER_ID) {
+                const message: Workers.WorkerEvent = {
+                    origin: 'worker',
+                    name: 'workerEvent',
+                    args: {
+                        type: MESSAGE_TYPES.customCommand,
+                        value: {
+                            commandName: name,
+                            cid: process.env.WDIO_WORKER_ID,
+                        }
+                    }
+                }
+                process.send(message)
             }
         }
 

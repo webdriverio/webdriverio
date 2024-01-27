@@ -201,6 +201,8 @@ class JasmineAdapter {
             self._lastTest = this.result
             // @ts-ignore overwrite existing type
             self._lastTest.start = new Date().getTime()
+            globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
+            globalThis._jasmineTestResult = this.result
             executeMock.apply(this, args)
         }
 

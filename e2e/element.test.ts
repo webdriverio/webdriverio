@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, afterAll, describe, it, expect } from 'vitest'
 import DevTools from '../packages/devtools/build/index.js'
-import { ELEMENT_KEY } from '../packages/devtools/build/constants.js'
+import { ELEMENT_KEY } from '../packages/webdriver/build/constants.js'
 import type { Client } from '../packages/devtools/build/index.js'
 
 let browser: Client
@@ -169,7 +169,7 @@ describe('elements', () => {
     })
 
     it('elementSendKeys can use special characters', async () => {
-        await browser.navigateTo('https://todomvc.com/examples/vue/')
+        await browser.navigateTo('https://todomvc.com/examples/vue/dist/#/')
         const todoInput = await browser.findElement('css selector', '.new-todo')
         await browser.elementSendKeys(todoInput[ELEMENT_KEY], 'ToDo #1\uE007ToDo #2\uE007ToDo #3\uE007')
         const todoCountElem = await browser.findElement('css selector', '.todo-count strong')

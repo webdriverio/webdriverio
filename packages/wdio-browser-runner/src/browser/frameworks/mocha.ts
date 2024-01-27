@@ -1,10 +1,9 @@
-import stringify from 'fast-safe-stringify'
-
+import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { getCID } from '../utils.js'
-import { MESSAGE_TYPES, EVENTS } from '../../constants.js'
-import type { HookResultEvent, HookTriggerEvent, SocketMessage } from '../../vite/types.js'
+import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
 
 const startTime = Date.now()
 
@@ -31,9 +30,8 @@ class HTMLReporter extends BaseReporter {
 export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string
-    #socket?: WebSocket
     #require: string[]
-    #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
+    #hookResolver = new Map<number, { resolve: Function, reject: Function }>()
     #runnerEvents: any[] = []
     #isMinified = false
 
@@ -86,7 +84,7 @@ export class MochaFramework extends HTMLElement {
         }
     }
 
-    async run (socket: WebSocket) {
+    async run () {
         const globalTeardownScripts: Function[] = []
         const globalSetupScripts: Function[] = []
         for (const r of this.#require) {
@@ -98,6 +96,17 @@ export class MochaFramework extends HTMLElement {
                 globalTeardownScripts.push(mochaGlobalTeardown)
             }
         }
+
+        const cid = getCID()
+        if (!cid) {
+            throw new Error('"cid" query parameter is missing')
+        }
+
+        const beforeHook = this.#getHook('beforeHook')
+        const beforeTest = this.#getHook('beforeTest')
+        const afterHook = this.#getHook('afterHook')
+        const afterTest = this.#getHook('afterTest')
+        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         /**
          * import test case (order is important here)
@@ -112,32 +121,26 @@ export class MochaFramework extends HTMLElement {
             await setupScript()
         }
 
-        this.#socket = socket
-        socket.addEventListener('message', this.#handleSocketMessage.bind(this))
-        const cid = getCID()
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
-        const beforeHook = this.#getHook('beforeHook')
-        const beforeTest = this.#getHook('beforeTest')
-        const afterHook = this.#getHook('afterHook')
-        const afterTest = this.#getHook('afterTest')
-        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
+        /**
+         * listen on socket events from testrunner
+         */
+        import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleSocketMessage.bind(this))
 
         const self = this
         const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
-        mochaBeforeHook(function () {
-            self.#getHook('beforeSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaBeforeHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('beforeSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
             })
         })
 
         const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
-        mochaAfterHook(function () {
-            self.#getHook('afterSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaAfterHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('afterSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
                 duration: Date.now() - startTime
             })
@@ -168,25 +171,17 @@ export class MochaFramework extends HTMLElement {
         /**
          * propagate results to browser so it can be picked up by the runner
          */
-        window.__wdioEvents__ = this.#runnerEvents
-        window.__wdioFailures__ = failures
+        this.#sendTestReport({ failures, events: this.#runnerEvents })
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
-    #handleSocketMessage (payload: MessageEvent) {
-        try {
-            const message: SocketMessage = JSON.parse(payload.data)
-            if (message.type === MESSAGE_TYPES.hookResultMessage) {
-                return this.#handleHookResult(message.value)
-            }
-
-            // no-op
-        } catch (err: any) {
-            console.error(`Failed handling message from Vite server: ${err.stack}`)
+    #handleSocketMessage (message: Workers.SocketMessage) {
+        if (message.type === MESSAGE_TYPES.hookResultMessage) {
+            return this.#handleHookResult(message.value)
         }
     }
 
-    #handleHookResult (result: HookResultEvent) {
+    #handleHookResult (result: Workers.HookResultEvent) {
         const resolver = this.#hookResolver.get(result.id)
         if (!resolver) {
             return console.warn(`[WDIO] couldn't find resolve for id "${result.id}"`)
@@ -201,22 +196,36 @@ export class MochaFramework extends HTMLElement {
 
     #getHook (name: string) {
         return (...args: any[]) => new Promise((resolve, reject) => {
-            const id = (this.#hookResolver.size + 1).toString()
+            const id = this.#hookResolver.size + 1
             const cid = getCID()
             if (!cid) {
                 return reject(new Error('"cid" query parameter is missing'))
             }
 
-            this.#hookResolver.set(id.toString(), { resolve, reject })
-            this.#socket?.send(stringify.default(this.#hookTrigger({ name, id, cid, args })))
+            this.#hookResolver.set(id, { resolve, reject })
+            args = args.map((arg) => {
+                if (typeof arg === 'object') {
+                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
+                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
+                }
+                return arg
+            })
+            import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })
     }
 
-    #hookTrigger (value: HookTriggerEvent): SocketMessage {
+    #hookTrigger (value: Workers.HookTriggerEvent): Workers.SocketMessage {
         return {
             type: MESSAGE_TYPES.hookTriggerMessage,
-            value
+            value: JSON.parse(safeStringify(value))
         }
+    }
+
+    #sendTestReport (value: Workers.BrowserTestResults) {
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.browserTestResult,
+            value: JSON.parse(safeStringify(value))
+        })
     }
 }
 

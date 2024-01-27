@@ -36,13 +36,13 @@ import {
 
     DataTable,
     World,
-    Status
+    Status,
 } from '@cucumber/cucumber'
 import Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type { Feature, GherkinDocument } from '@cucumber/messages'
 import type Cucumber from '@cucumber/cucumber'
-import type { IRunEnvironment } from '@cucumber/cucumber/api'
+import type { IConfiguration, IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
 import { DEFAULT_OPTS } from './constants.js'
@@ -269,7 +269,7 @@ class CucumberAdapter {
             }
 
             const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts },
+                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration> },
                 environment
             )
 

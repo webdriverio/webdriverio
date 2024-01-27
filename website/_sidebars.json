@@ -46,8 +46,10 @@
         "selectors",
         "timeouts",
         "emulation",
+        "snapshot",
         "mocksandspies",
         "customcommands",
+        "custommatchers",
         "pageobjects",
         "debugging",
         "repl",
@@ -81,7 +83,19 @@
       "items": [
         "desktop-testing/macos",
         "desktop-testing/windows",
-        "desktop-testing/electron"
+        {
+          "type": "category",
+          "label": "Electron",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/electron"
+          },
+          "items": [
+            "desktop-testing/electron/configuration",
+            "desktop-testing/electron/api",
+            "desktop-testing/electron/mocking"
+          ]
+        }
       ]
     },
     {
@@ -120,7 +134,30 @@
     {
       "type": "category",
       "label": "Accessibility Testing",
-      "items": ["accessibility/axe-core"]
+      "items": ["accessibility-testing/axe-core"]
+    },
+    {
+      "type": "category",
+      "label": "Visual Testing",
+      "items": [
+        "visual-testing/writing-tests",
+        "visual-testing/methods",
+        {
+            "type": "category",
+            "label": "Options",
+            "items": [
+                "visual-testing/service-options",
+                "visual-testing/method-options"
+            ]
+        },
+        "visual-testing/test-output",
+        "visual-testing/considerations",
+        "visual-testing/faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "visual-testing"
+      }
     },
     {
       "type": "category",

@@ -75,7 +75,8 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 
 export const BIDI_API_DESCRIPTION = /*md*/`
 These protocol commands are generated based on the current living
-[WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) specification.
+[WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) specification. To enable the protocol
+for your test make sure to have \`webSocketUrl: true\` set in your capabilities.
 
 :::caution Use with Caution!
 

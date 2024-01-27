@@ -7,13 +7,14 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
+import { ELEMENT_KEY } from 'webdriver'
 import { UNICODE_CHARACTERS, asyncIterators } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { ELEMENT_KEY, DEEP_SELECTOR, Key } from '../constants.js'
+import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
@@ -525,6 +526,14 @@ export const enhanceElementsArray = (
      */
     if (!Array.isArray(selector)) {
         elementArray.selector = selector
+    }
+
+    /**
+     * if all elements have the same selector we actually can assign a selector
+     */
+    const elems = selector as WebdriverIO.Element[]
+    if (Array.isArray(selector) && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
+        elementArray.selector = elems[0].selector
     }
 
     /**

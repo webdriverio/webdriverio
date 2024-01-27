@@ -63,5 +63,16 @@ export const config = {
         ui: 'bdd',
         timeout: 150000,
         require: ['./__fixtures__/setup.js']
+    },
+
+    before: () => {
+        /**
+         * only run this test in lit
+         */
+        if (process.env.WDIO_PRESET !== 'lit') {
+            return
+        }
+
+        browser.addCommand('someCustomCommand', () => 'Hello World')
     }
 }

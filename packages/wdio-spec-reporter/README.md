@@ -164,3 +164,10 @@ and with `true` (default) each line will be prefixed with the preface:
 [loremipsum 50 Windows 10 #0-0]
 ```
 
+## Environment Options
+
+There are certain options you can set through environment variables:
+
+### `FORCE_COLOR`
+
+If set to true, e.g. via `FORCE_COLOR=0 npx wdio run wdio.conf.js`, all terminal coloring will be disabled.

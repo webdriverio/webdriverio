@@ -8,7 +8,28 @@ vi.mock('@stencil/core/compiler/stencil.js', () => ({
     transpileSync: vi.fn().mockReturnValue({
         code: 'the transpiled code',
         inputFilePath: '/foo/bar/StencilComponent.tsx'
-    })
+    }),
+    ts: {
+        findConfigFile: vi.fn().mockReturnValue('/foo/bar/tsconfig.json'),
+        sys: {
+            resolvePath: vi.fn().mockReturnValue('/foo/bar/tsconfig.json'),
+            fileExists: vi.fn().mockReturnValue(true)
+        },
+        readConfigFile: vi.fn().mockReturnValue({
+            config: {
+                compilerOptions: {
+                    baseUrl: './',
+                    paths: {
+                        '@stencil/core': ['node_modules/@stencil/core/dist/types']
+                    },
+                    target: 'es2017'
+                }
+            }
+        }),
+        parseJsonConfigFileContent: vi.fn().mockReturnValue({
+            options: {}
+        })
+    }
 }))
 
 vi.mock('../../../src/vite/utils.js', () => ({
@@ -50,7 +71,7 @@ test('optimizeForStencil', async () => {
         "import { Component, Prop, h } from '@stencil/core'",
         '/foo/bar/StencilComponent.tsx', {})
     ).toEqual({
-        code: 'the transpiled code',
+        code: "import { Fragment } from '@stencil/core';\nthe transpiled code",
         inputFilePath: '/foo/bar/StencilComponent.tsx'
     })
     expect((opt.plugins?.[0] as any).transform(

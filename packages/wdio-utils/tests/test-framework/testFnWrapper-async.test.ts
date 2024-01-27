@@ -133,4 +133,18 @@ describe('filterStackTrace', () => {
             expect(filteredStack).toBe(filterStackTrace(fullStack))
         }
     })
+
+    it('should remove invalidateCache', () => {
+        const stacktrace = `
+            at async Context.<anonymous> (/foo/bar/test/specs/example.e2e.ts:8:9)
+            at Context.testFrameworkFnWrapper (/foo/bar/baz/testFnWrapper.js?invalidateCache=0.2342342342334:50:32)
+        `
+
+        const filteredStack = `
+            at async Context.<anonymous> (/foo/bar/test/specs/example.e2e.ts:8:9)
+            at Context.testFrameworkFnWrapper (/foo/bar/baz/testFnWrapper.js:50:32)
+        `
+
+        expect(filteredStack).toBe(filterStackTrace(stacktrace))
+    })
 })

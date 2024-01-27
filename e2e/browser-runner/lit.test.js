@@ -73,6 +73,36 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
+    it('should support snapshot testing', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+
+        const elem = $('simple-greeting')
+        await expect(elem).toMatchSnapshot()
+        await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
+        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
+        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+          {
+            "parsed": {
+              "alpha": 0,
+              "hex": "#000000",
+              "rgba": "rgba(0,0,0,0)",
+              "type": "color",
+            },
+            "property": "background-color",
+            "value": "rgba(0,0,0,0)",
+          }
+        `)
+        await expect({ foo: 'bar' }).toMatchSnapshot()
+        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+          {
+            "foo": "bar",
+          }
+        `)
+    })
+
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
@@ -81,7 +111,7 @@ describe('Lit Component testing', () => {
 
     it('should allow to manual mock namespaces deps', async () => {
         expect(someExport).toBe('foobarloo')
-        expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default'])
+        expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default', 'userEvent'])
     })
 
     it('should allow to have different mock return values', () => {
@@ -282,6 +312,10 @@ describe('Lit Component testing', () => {
             }
             expect((await browser.savePDF('./screenshot.pdf')).type)
                 .toBe('Buffer')
+        })
+
+        it('supports custom command registration in before hook', async () => {
+            expect(await browser.someCustomCommand()).toBe('Hello World')
         })
 
         describe('a11y selectors', () => {

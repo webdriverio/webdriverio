@@ -30,6 +30,7 @@ import {
     TESTING_LIBRARY_PACKAGES,
     COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
     usesSerenity,
+    PMs,
 } from './constants.js'
 import type {
     OnCompleteResult,
@@ -815,8 +816,6 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 }
 
-export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
-export type PM = typeof PMs[number]
 /**
  * detect the package manager that was used
  */

@@ -6,6 +6,7 @@ import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
 import type { InlineConfig } from 'vite'
 
+import { WDIO_EVENT_NAME } from '../constants.js'
 import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
 
@@ -68,6 +69,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <script type="module">
                 const alias = ${JSON.stringify(alias)}
                 window.__wdioMockCache__ = new Map()
+                window.WDIO_EVENT_NAME = '${WDIO_EVENT_NAME}'
                 window.wdioImport = function (modName, mod) {
                     /**
                      * attempt to resolve direct import
@@ -136,9 +138,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         </head>
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
-            <script type="module">
-                window.process.env = ${JSON.stringify(p.env)}
-            </script>
         </body>
     </html>`
 }

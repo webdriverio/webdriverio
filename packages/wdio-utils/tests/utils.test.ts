@@ -1,9 +1,11 @@
+import path from 'node:path'
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect } from 'vitest'
 
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
-    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
+    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
+    userImport
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -228,5 +230,26 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
+    })
+})
+
+describe('utils:userImport', () => {
+    it('should import module', async () => {
+        const mod = await userImport('path')
+        expect(mod).toEqual(path)
+        const join = await userImport('path', 'join')
+        expect(join).toEqual(path.join)
+    })
+
+    it('throws error message if named import not found', async () => {
+        await expect(userImport('path', 'foo'))
+            .rejects
+            .toThrow('Couldn\'t find "foo" in module "path"')
+    })
+
+    it('throws error message if module not found', async () => {
+        await expect(userImport('foobar'))
+            .rejects
+            .toThrow('Couldn\'t import "foobar"! Do you have it installed? If not run "npm install foobar"!')
     })
 })

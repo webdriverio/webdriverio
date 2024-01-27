@@ -15,7 +15,7 @@ import RunnerStream from './stdStream.js'
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const ACCEPTABLE_BUSY_COMMANDS = ['switchDebugState', 'workerHookExecution', 'endSession']
+const ACCEPTABLE_BUSY_COMMANDS = ['workerRequest', 'endSession']
 
 const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()

@@ -1,0 +1,59 @@
+{
+    "test": {
+        "id": "spec1",
+        "description": "should failed",
+        "fullName": "Jasmine afterTest() hook validation should failed",
+        "parentSuiteId": "suite1",
+        "failedExpectations": [
+            {
+                "matcherName": "toBe",
+                "message": "Expected false to be true.",
+                "passed": false,
+                "expected": true,
+                "actual": false
+            }
+        ],
+        "passedExpectations": [],
+        "deprecationWarnings": [],
+        "pendingReason": "",
+        "duration": null,
+        "properties": null,
+        "debugLogs": null
+    },
+    "context": {
+        "wdioRetries": 0
+    },
+    "error": {
+        "matcherName": "toBe",
+        "message": "Expected false to be true.",
+        "passed": false,
+        "expected": true,
+        "actual": false
+    },
+    "result": {
+        "id": "spec1",
+        "description": "should failed",
+        "fullName": "Jasmine afterTest() hook validation should failed",
+        "parentSuiteId": "suite1",
+        "failedExpectations": [
+            {
+                "matcherName": "toBe",
+                "message": "Expected false to be true.",
+                "passed": false,
+                "expected": true,
+                "actual": false
+            }
+        ],
+        "passedExpectations": [],
+        "deprecationWarnings": [],
+        "pendingReason": "",
+        "duration": null,
+        "properties": null,
+        "debugLogs": null
+    },
+    "passed": false,
+    "retries": {
+        "attempts": 0,
+        "limit": 0
+    }
+}
