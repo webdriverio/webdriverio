@@ -65,7 +65,8 @@
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.zip": "^4.2.6",
-    "got": "^12.6.0"
+    "got": "^12.6.0",
+    "puppeteer-core": "^20.9.0"
   },
   "dependencies": {
     "@types/node": "^20.1.0",
@@ -86,7 +87,6 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "^9.0.0",
-    "puppeteer-core": "^20.9.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
@@ -94,10 +94,14 @@
     "webdriver": "8.29.1"
   },
   "peerDependencies": {
-    "devtools": "^8.14.0"
+    "devtools": "^8.14.0",
+    "puppeteer-core": "^20.9.0"
   },
   "peerDependenciesMeta": {
     "devtools": {
+      "optional": true
+    },
+    "puppeteer-core": {
       "optional": true
     }
   }
