@@ -203,6 +203,20 @@ We would like to put some money aside for services and purchases related to the 
 
 We use a small amount to help support our project dependencies. We believe that open-source projects who are lucky enough to get funded have a responsibility to help support the smaller projects they rely on. We are working with [thanks.dev](https://thanks.dev/home) to help analyse our dependencies and calculate the amounts we donate back.
 
+The project currently contributes back to the following collectives:
+
+- [Sindre Sorhus](https://opencollective.com/sindresorhus)
+- [Lars Kappert](https://github.com/sponsors/webpro)
+- [isaacs](https://github.com/sponsors/isaacs)
+- [Eslint](https://opencollective.com/eslint)
+- [typescript-eslint](https://opencollective.com/typescript-eslint)
+- [Vitest](https://opencollective.com/vitest)
+- [Vite](https://opencollective.com/vite)
+- [Jest](https://opencollective.com/jest)
+- [Husky](https://opencollective.com/husky)
+- [Electron](https://opencollective.com/electron)
+- [depcheck](https://opencollective.com/depcheck)
+
 ### Amendment of Policies
 These policies can be amended with a two-thirds majority vote among the TSC members to adapt to the changing needs and structure of our project.
 
