@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { safeImport } from '@wdio/utils'
+import { userImport } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 
@@ -43,7 +43,8 @@ const log = logger('webdriverio')
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 export async function getPuppeteer (this: WebdriverIO.Browser) {
-    const puppeteer = (await safeImport('puppeteer-core'))?.default as unknown as Puppeteer
+    const puppeteer = await userImport<Puppeteer>('puppeteer-core')
+
     if (!puppeteer) {
         throw new Error(
             'You need to install "puppeteer-core" package as a dependency ' +

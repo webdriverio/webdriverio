@@ -122,7 +122,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
 }
 
 /**
- * checks if command argument is valid according to specificiation
+ * checks if command argument is valid according to specification
  *
  * @param  {*}       arg           command argument
  * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
@@ -165,6 +165,25 @@ export function isValidParameter (arg: any, expectedType: string) {
  */
 export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
+}
+
+/**
+ * Utility to import modules with user friendly error message
+ * @param moduleName  The name of the module to import
+ * @param namedImport The name of the import to return
+ * @returns          The imported module
+ */
+export async function userImport<T> (moduleName: string, namedImport = 'default'): Promise<T> {
+    try {
+        const mod = await import(moduleName)
+        if (namedImport in mod) {
+            return mod[namedImport]
+        }
+    } catch (err) {
+        throw new Error(`Couldn't import "${moduleName}"! Do you have it installed? If not run "npm install ${moduleName}"!`)
+    }
+
+    throw new Error(`Couldn't find "${namedImport}" in module "${moduleName}"`)
 }
 
 /**
