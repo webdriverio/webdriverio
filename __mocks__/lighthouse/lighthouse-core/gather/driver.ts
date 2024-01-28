@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import tracelog from '../../../../packages/wdio-devtools-service/tests/__fixtures__/tracelog.json' assert { type: 'json' }
+import tracelog from '../../../../packages/wdio-lighthouse-service/tests/__fixtures__/tracelog.json' assert { type: 'json' }
 
 export const beginTrace = vi.fn()
 export const endTrace = vi.fn().mockResolvedValue(tracelog)

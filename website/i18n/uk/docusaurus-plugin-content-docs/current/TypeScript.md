@@ -89,7 +89,7 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 
 ## Сервіси
 
-Якщо ви використовуєте сервіси, які додають команди до об'єкта браузера, вам також потрібно додати їх у свій `tsconfig.json`. Наприклад, якщо ви використовуєте `@wdio/devtools-service` переконайтеся, що ви додали його до `types`, як показано тут:
+Якщо ви використовуєте сервіси, які додають команди до об'єкта браузера, вам також потрібно додати їх у свій `tsconfig.json`. Наприклад, якщо ви використовуєте `@wdio/lighthouse-service` переконайтеся, що ви додали його до `types`, як показано тут:
 
 ```json title="tsconfig.json"
 {
@@ -98,7 +98,7 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
             "node",
             "@wdio/globals/types",
             "@wdio/mocha-framework",
-            "@wdio/devtools-service"
+            "@wdio/lighthouse-service"
         ]
     }
 }

@@ -194,7 +194,7 @@ Furthermore, it exposes the utility methods the service is using for its perform
 
 ### `startTracing(categories, samplingFrequency)` Command
 
-Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
+Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
 
 ```js
 await browser.startTracing()

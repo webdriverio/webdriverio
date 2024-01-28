@@ -21,7 +21,7 @@ import Auditor from './auditor.js'
 import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
 
-const log = logger('@wdio/devtools-service:CommandHandler')
+const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class CommandHandler {

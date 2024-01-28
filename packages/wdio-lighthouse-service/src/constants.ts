@@ -70,7 +70,7 @@ export const MAX_TRACE_WAIT_TIME = 45000
 export const DEFAULT_NETWORK_THROTTLING_STATE = 'online' as const
 export const DEFAULT_FORM_FACTOR = 'desktop' as const
 export const UNSUPPORTED_ERROR_MESSAGE = (
-    'Can\'t connect to Chrome DevTools! The @wdio/devtools-service currently only supports Chrome, Chromium and Firefox!\n\n' +
+    'Can\'t connect to Chrome DevTools! The @wdio/lighthouse-service currently only supports Chrome and Chromium!\n\n' +
     'Given that cloud vendors don\'t expose access to the Chrome DevTools Protocol this service also usually only works when ' +
     'running tests locally or through a Selenium Grid (https://www.selenium.dev/documentation/grid/) v4 or higher.'
 )
