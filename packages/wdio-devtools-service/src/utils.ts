@@ -9,11 +9,9 @@ import type { GathererDriver } from './types.js'
 
 const CUSTOM_COMMANDS = [
     'cdp',
-    'getNodeId',
     'getMetrics',
     'startTracing',
     'getDiagnostics',
-    'getCoverageReport',
     'enablePerformanceAudits',
     'disablePerformanceAudits',
     'getMainThreadWorkBreakdown',

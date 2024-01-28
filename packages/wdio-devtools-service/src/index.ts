@@ -1,61 +1,55 @@
-import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
+import logger from '@wdio/logger'
+import type { Services, FunctionProperties, ThenArg } from '@wdio/types'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
 import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
 import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
-import type {
-    DevtoolsConfig, EnablePerformanceAuditsOptions,
-    DeviceDescription, PWAAudits
-} from './types.js'
+import type { EnablePerformanceAuditsOptions, PWAAudits } from './types.js'
 
-export default class DevToolsService implements Services.ServiceInstance {
-    private _command: CommandHandler[] = []
+const log = logger('@wdio/lighthouse-service')
 
-    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-
-    constructor (private _options: DevtoolsConfig) {}
+export default class LighthouseService implements Services.ServiceInstance {
+    #browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * holds all command handler instances, e.g. if we use multiremote, we have multiple
+     */
+    #commandHandler: CommandHandler[] = []
 
     async before (
-        caps: Capabilities.RemoteCapability,
-        specs: string[],
+        _: unknown, // caps: Capabilities.RemoteCapability,
+        __: unknown, // specs: string[],
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
-        this._browser = browser
-        return await this._setupHandler()
+        this.#browser = browser
+        return await this.#setupHandler()
     }
 
     async onReload () {
-        if (!this._browser) {
+        if (!this.#browser) {
             return
         }
 
-        return this._setupHandler()
+        return this.#setupHandler()
     }
 
     async beforeCommand (commandName: string, params: any[]) {
-        return Promise.all(this._command.map(async c => await c._beforeCmd(commandName, params)))
+        return Promise.all(this.#commandHandler.map(async c => await c._beforeCmd(commandName, params)))
     }
 
     async afterCommand (commandName: string) {
         if (commandName === 'switchToWindow') {
-            await this._setupHandler()
+            await this.#setupHandler()
         }
 
-        return Promise.all(this._command.map(async c => await c._afterCmd(commandName)))
-    }
-
-    async after () {
-        for (const c of this._command) {
-            await c._logCoverage()
-        }
+        return Promise.all(this.#commandHandler.map(async c => await c._afterCmd(commandName)))
     }
 
     /**
      * set flag to run performance audits for page transitions
      */
-    _enablePerformanceAudits ({ networkThrottling, cpuThrottling, cacheEnabled, formFactor }: EnablePerformanceAuditsOptions = DEFAULT_THROTTLE_STATE) {
+    #enablePerformanceAudits ({ networkThrottling, cpuThrottling, cacheEnabled, formFactor }: EnablePerformanceAuditsOptions = DEFAULT_THROTTLE_STATE) {
         if (!NETWORK_STATES[networkThrottling]) {
             throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
         }
@@ -64,102 +58,44 @@ export default class DevToolsService implements Services.ServiceInstance {
             throw new Error(`CPU throttling rate needs to be typeof number but was "${typeof cpuThrottling}"`)
         }
 
-        if (this._command.length === 1) {
-            this._command[0].enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor })
-        } else {
-            for (const c of this._command) {
-                c.enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor })
-            }
-        }
+        this.#commandHandler.forEach(
+            (c) => c.enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor }))
     }
 
     /**
      * custom command to disable performance audits
      */
-    _disablePerformanceAudits () {
-        if (this._command.length === 1) {
-            this._command[0].disablePerformanceAudits()
-        } else {
-            for (const c of this._command) {
-                c.disablePerformanceAudits()
-            }
-        }
+    #disablePerformanceAudits () {
+        this.#commandHandler.forEach(c => c.disablePerformanceAudits())
     }
 
-    /**
-     * set device emulation
-     */
-    async _emulateDevice (device: string | DeviceDescription, inLandscape?: boolean) {
-        if (this._command.length === 1) {
-            return await this._command[0].emulateDevice(device, inLandscape)
-        }
-
-        return Promise.all(this._command.map(async c => await c.emulateDevice(device, inLandscape)))
+    async #checkPWA (auditsToBeRun?: PWAAudits[]) {
+        const results = await Promise.all(this.#commandHandler.map(async c => await c.checkPWA(auditsToBeRun)))
+        return this.#commandHandler.length === 1 ? results[0] : results
     }
 
-    async _setThrottlingProfile(
-        networkThrottling = DEFAULT_THROTTLE_STATE.networkThrottling,
-        cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
-        cacheEnabled: boolean = DEFAULT_THROTTLE_STATE.cacheEnabled
-    ) {
-        if (this._command.length === 1) {
-            this._command[0].setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
-        } else {
-            for (const c of this._command) {
-                c.setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
-            }
-        }
-    }
-
-    async _checkPWA (auditsToBeRun?: PWAAudits[]) {
-        if (this._command.length === 1) {
-            return await this._command[0].checkPWA(auditsToBeRun)
-        }
-        return Promise.all(this._command.map(async c => await c.checkPWA(auditsToBeRun)))
-    }
-
-    async _getCoverageReport () {
-        if (this._command.length === 1) {
-            return this._command[0].getCoverageReport()
-        }
-
-        return await Promise.all(this._command.map(c => c.getCoverageReport()))
-    }
-
-    _cdp (domain: string, command: string, args = {}) {
-        if (this._command.length === 1) {
-            return this._command[0].cdp(domain, command, args)
-        }
-
-        return Promise.all(this._command.map(async c => await c.cdp(domain, command, args)))
-    }
-
-    async _setupHandler () {
-        if (!this._browser) {
+    async #setupHandler () {
+        if (!this.#browser) {
             return
         }
 
         /**
          * In case of switchToWindow, needs to not add more commands to the array
          */
-        this._command.length = 0
+        this.#commandHandler.length = 0
 
         /**
          * To avoid if-else, gather all browser instances into an array
          */
-        const browsers = Object.keys(this._browser).includes('sessionId') ?
-            [this._browser] :
-            (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i))
+        const browsers = Object.keys(this.#browser).includes('sessionId') ?
+            [this.#browser] :
+            (this.#browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this.#browser as WebdriverIO.MultiRemoteBrowser).getInstance(i))
 
         for (const browser of browsers) {
             const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as any as PuppeteerBrowser
             if (!puppeteer) {
+                log.error('Could not initiate Puppeteer instance')
                 return setUnsupportedCommand(browser as WebdriverIO.Browser)
-            }
-
-            /* istanbul ignore next */
-            if (!puppeteer) {
-                throw new Error('Could not initiate Puppeteer instance')
             }
 
             const url = await (browser as WebdriverIO.Browser).getUrl()
@@ -185,17 +121,14 @@ export default class DevToolsService implements Services.ServiceInstance {
             const session = await target.createCDPSession()
             const driver = await getLighthouseDriver(session, target)
 
-            const cmd = new CommandHandler(session, page, driver, this._options, browser)
+            const cmd = new CommandHandler(session, page, driver, browser)
             await cmd._initCommand()
-            this._command.push(cmd)
+            this.#commandHandler.push(cmd)
         }
 
-        this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
-        this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
-        this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
-        this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
-        this._browser.addCommand('getCoverageReport', this._getCoverageReport.bind(this))
-        this._browser.addCommand('cdp', this._cdp.bind(this))
+        this.#browser.addCommand('enablePerformanceAudits', this.#enablePerformanceAudits.bind(this))
+        this.#browser.addCommand('disablePerformanceAudits', this.#disablePerformanceAudits.bind(this))
+        this.#browser.addCommand('checkPWA', this.#checkPWA.bind(this))
     }
 }
 
@@ -215,10 +148,6 @@ export type BrowserExtensionSync = {
 }
 
 declare global {
-    namespace WebdriverIO {
-        interface ServiceOption extends DevtoolsConfig {}
-    }
-
     namespace WebdriverIO {
         interface Browser extends BrowserExtension { }
         interface MultiRemoteBrowser extends BrowserExtension { }

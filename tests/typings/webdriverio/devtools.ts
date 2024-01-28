@@ -31,10 +31,6 @@ async function bar() {
     browser.emulateDevice('iPad')
     browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })
 
-    const cdpResponse = await browser.cdp('test', 'test')
-    expectType<number>(await browser.getNodeId('selector'))
-    expectType<number[]>(await browser.getNodeIds('selector'))
-
     browser.startTracing()
     browser.startTracing({ path: '/foo' })
     browser.endTracing()
@@ -44,7 +40,4 @@ async function bar() {
 
     const pageWeight = await browser.getPageWeight()
     expectType<number>(pageWeight.requestCount)
-
-    const coverage = await browser.getCoverageReport()
-    expectType<number>(coverage.lines.total)
 }

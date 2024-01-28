@@ -11,34 +11,18 @@ import NetworkHandler from './handler/network.js'
 import { CLICK_TRANSITION, DEFAULT_THROTTLE_STATE, DEFAULT_TRACING_CATEGORIES, NETWORK_STATES } from './constants.js'
 import { sumByKey } from './utils.js'
 import type {
-    Device,
-    DeviceDescription, DevtoolsConfig,
     EnablePerformanceAuditsOptions,
     FormFactor,
     GathererDriver,
     PWAAudits
 } from './types.js'
-import { KnownDevices } from 'puppeteer-core'
-import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
 import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
-import CoverageGatherer from './gatherer/coverage.js'
 
 const log = logger('@wdio/devtools-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
-
-function isCDPSessionOnMessageObject(
-    data: any
-): data is CDPSessionOnMessageObject {
-    return (
-        data !== null &&
-        typeof data === 'object' &&
-        Object.prototype.hasOwnProperty.call(data, 'params') &&
-        Object.prototype.hasOwnProperty.call(data, 'method')
-    )
-}
 
 export default class CommandHandler {
     private _isTracing = false
@@ -54,14 +38,12 @@ export default class CommandHandler {
 
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
-    private _coverageGatherer?: CoverageGatherer
     private _pwaGatherer?: PWAGatherer
 
     constructor (
         private _session: CDPSession,
         private _page: Page,
         private _driver: GathererDriver,
-        private _options: DevtoolsConfig,
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._networkHandler = new NetworkHandler(_session)
@@ -86,44 +68,6 @@ export default class CommandHandler {
         ))
 
         this._devtoolsGatherer = new DevtoolsGatherer()
-        _session.on('*', this._propagateWSEvents.bind(this))
-    }
-
-    /**
-     * The cdp command is a custom command added to the browser scope that allows you
-     * to call directly commands to the protocol.
-     */
-    cdp (domain: string, command: string, args = {}) {
-        log.info(`Send command "${domain}.${command}" with args: ${JSON.stringify(args)}`)
-        return this._session.send(`${domain}.${command}` as any, args)
-    }
-
-    /**
-     * Helper method to get the nodeId of an element in the page.
-     * NodeIds are similar like WebDriver node ids an identifier for a node.
-     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
-     */
-    async getNodeId (selector: string) {
-        const document = await this._session.send('DOM.getDocument')
-        const { nodeId } = await this._session.send(
-            'DOM.querySelector',
-            { nodeId: document.root.nodeId, selector }
-        )
-        return nodeId
-    }
-
-    /**
-     * Helper method to get the nodeId of an element in the page.
-     * NodeIds are similar like WebDriver node ids an identifier for a node.
-     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
-     */
-    async getNodeIds (selector: string) {
-        const document = await this._session.send('DOM.getDocument')
-        const { nodeIds } = await this._session.send(
-            'DOM.querySelectorAll',
-            { nodeId: document.root.nodeId, selector }
-        )
-        return nodeIds
     }
 
     /**
@@ -213,30 +157,6 @@ export default class CommandHandler {
     }
 
     /**
-     * set device emulation
-     */
-    async emulateDevice (device: string | DeviceDescription, inLandscape?: boolean) {
-        if (!this._page) {
-            throw new Error('No page has been captured yet')
-        }
-
-        if (typeof device === 'string') {
-            const deviceName = device + (inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
-            const deviceCapabilities = KnownDevices[deviceName]
-            if (!deviceCapabilities) {
-                const deviceNames = Object.values(KnownDevices)
-                    .map((device: Device) => device.name)
-                    .filter((device: string) => !device.endsWith('landscape'))
-                throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
-            }
-
-            return this._page.emulate(deviceCapabilities)
-        }
-
-        return this._page.emulate(device)
-    }
-
-    /**
      * helper method to set throttling profile
      */
     async setThrottlingProfile(
@@ -259,44 +179,7 @@ export default class CommandHandler {
         return auditor._auditPWA(artifacts, auditsToBeRun)
     }
 
-    getCoverageReport () {
-        return this._coverageGatherer!.getCoverageReport()
-    }
-
-    async _logCoverage() {
-        if (this._coverageGatherer) {
-            await this._coverageGatherer.logCoverage()
-        }
-    }
-
-    private _propagateWSEvents (data: any) {
-        if (!isCDPSessionOnMessageObject(data)) {
-            return
-        }
-
-        this._devtoolsGatherer?.onMessage(data)
-        const method = data.method || 'event'
-        try {
-            // can fail due to "Cannot convert a Symbol value to a string"
-            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-        } catch {
-            // ignore
-        }
-        if (this._browser) {
-            this._browser.emit(method, data.params)
-        }
-    }
-
     async _initCommand () {
-        /**
-         * register coverage gatherer if options is set by user
-         */
-        if (this._options.coverageReporter?.enable) {
-            this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
-            this._browser.addCommand('getCoverageReport', this.getCoverageReport.bind(this))
-            await this._coverageGatherer.init()
-        }
-
         /**
          * enable domains for client
          */

@@ -37,36 +37,3 @@ exports[`CoverageGatherer > _handleRequests should transform if file is not part
   ],
 ]
 `;
-
-exports[`CoverageGatherer > getCoverageReport 1`] = `
-{
-  "files": {
-    "/bar/foo.js": {
-      "some": "coverage",
-    },
-    "/foo/bar.js": {
-      "some": "coverage",
-    },
-  },
-  "some": "coverageData",
-}
-`;
-
-exports[`CoverageGatherer > should return untransformed file if transformation fails 1`] = `
-[
-  [
-    "Fetch.getResponseBody",
-    {
-      "requestId": "123",
-    },
-  ],
-  [
-    "Fetch.fulfillRequest",
-    {
-      "body": undefined,
-      "requestId": "123",
-      "responseCode": 444,
-    },
-  ],
-]
-`;

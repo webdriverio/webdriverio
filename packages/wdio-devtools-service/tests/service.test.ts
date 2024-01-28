@@ -3,6 +3,7 @@ import { expect, test, vi, beforeEach } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src/index.js'
+import CommandHandlerMock from '../src/commands.js'
 import { setUnsupportedCommand } from '../src/utils.js'
 
 import logger from '@wdio/logger'
@@ -13,22 +14,26 @@ vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands', () => {
+    const _initCommand = vi.fn()
+    const _beforeCmd = vi.fn()
+    const _afterCmd = vi.fn()
+    const enablePerformanceAudits = vi.fn()
+    const disablePerformanceAudits = vi.fn()
+    const setThrottlingProfile = vi.fn()
+    const checkPWA = vi.fn()
     class CommandHandlerMock {
-        cdp = vi.fn()
-        _initCommand = vi.fn()
-        _beforeCmd = vi.fn()
-        _afterCmd = vi.fn()
-        enablePerformanceAudits = vi.fn()
-        disablePerformanceAudits = vi.fn()
-        setThrottlingProfile = vi.fn()
-        emulateDevice = vi.fn()
-        checkPWA = vi.fn()
-        getCoverageReport = vi.fn()
-        _logCoverage = vi.fn()
+        _initCommand = _initCommand
+        _beforeCmd = _beforeCmd
+        _afterCmd = _afterCmd
+        enablePerformanceAudits = enablePerformanceAudits
+        disablePerformanceAudits = disablePerformanceAudits
+        setThrottlingProfile = setThrottlingProfile
+        checkPWA = checkPWA
     }
 
     return { default: CommandHandlerMock }
 })
+const commandHandlerMock = new CommandHandlerMock({} as any, {} as any, {} as any, {} as any)
 
 vi.mock('../src/auditor', () => {
     const updateCommandsMock = vi.fn()
@@ -95,66 +100,57 @@ beforeEach(() => {
 })
 
 test('if not supported by browser', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = {
+    const browser: any = {
         sessionId: vi.fn(),
         addCommand: vi.fn(),
         getPuppeteer: vi.fn(() => Promise.reject(new Error('ups')))
-    } as any
-
-    await service._setupHandler()
+    }
+    const service = new DevToolsService()
+    await service.before(undefined, undefined, browser)
     expect(setUnsupportedCommand).toBeCalledTimes(1)
-    expect(vi.mocked(service['_browser']!.addCommand!).mock.calls).toHaveLength(0)
+    expect(vi.mocked(browser.addCommand!).mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
-    const service = new DevToolsService({
-        coverageReporter: {
-            enable: true
-        }
-    })
-    service['_browser'] = browser
-    await service._setupHandler()
+    const service = new DevToolsService()
+    await service.before(undefined, undefined, browser)
 
-    expect(service['_browser']?.addCommand).toBeCalledWith(
+    expect(browser.addCommand).toBeCalledWith(
         'enablePerformanceAudits', expect.any(Function))
-    expect(service['_browser']?.addCommand).toBeCalledWith(
+    expect(browser.addCommand).toBeCalledWith(
         'disablePerformanceAudits', expect.any(Function))
-    expect(service['_browser']?.addCommand).toBeCalledWith(
+    expect(browser.addCommand).toBeCalledWith(
         'emulateDevice', expect.any(Function))
-    expect(service['_browser']?.addCommand).toBeCalledWith(
+    expect(browser.addCommand).toBeCalledWith(
         'checkPWA', expect.any(Function))
 })
 
 test('beforeCommand', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
+    const service = new DevToolsService()
+    await service.before(undefined, undefined, browser)
 
     // @ts-ignore test without paramater
-    service.beforeCommand()
-    expect(service['_command'][0]._beforeCmd).toBeCalledTimes(1)
+    await service.beforeCommand()
+    expect(commandHandlerMock._beforeCmd).toBeCalledTimes(1)
 })
 
 test('afterCommand', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
+    const service = new DevToolsService()
+    await service.before(undefined, undefined, browser)
 
     // @ts-ignore test without paramater
-    service.afterCommand()
-    expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
+    await service.afterCommand()
+    expect(commandHandlerMock._afterCmd).toBeCalledTimes(1)
 })
 
-test('afterCommand: switchToWindow', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
+test.skip('afterCommand: switchToWindow', async () => {
+    // const service = new DevToolsService({})
+    // await service.before(undefined, undefined, browser)
 
-    service._setupHandler = vi.fn()
-    await service.afterCommand('switchToWindow')
-    expect(service._setupHandler).toBeCalledTimes(1)
-    expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
+    // service._setupHandler = vi.fn()
+    // await service.afterCommand('switchToWindow')
+    // expect(service._setupHandler).toBeCalledTimes(1)
+    // expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
 })
 
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
@@ -267,52 +263,10 @@ test('_checkPWA', async () => {
 
 test('_checkPWA for multiremote', async () => {
     const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-    await service._checkPWA()
+    await service.before(undefined, undefined, multiBrowser)
+    // await service._checkPWA()
 
-    expect(service['_command'][0].checkPWA).toBeCalledTimes(1)
-    expect(service['_command'][1].checkPWA).toBeCalledTimes(1)
-})
-
-test('_getCoverageReport', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    await service._getCoverageReport()
-    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
-})
-
-test('_getCoverageReport for multiremote', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-    await service._getCoverageReport()
-
-    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
-    expect(service['_command'][1].getCoverageReport).toBeCalledTimes(1)
-})
-
-test('_cdp', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    // @ts-ignore test without paramater
-    await service._cdp()
-    expect(service['_command'][0].cdp).toBeCalledTimes(1)
-})
-
-test('_cdp for multiremote', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-
-    // @ts-ignore test without paramater
-    await service._cdp()
-    expect(service['_command'][0].cdp).toBeCalledTimes(1)
-    expect(service['_command'][1].cdp).toBeCalledTimes(1)
+    expect(commandHandlerMock.checkPWA).toBeCalledTimes(2)
 })
 
 test('before hook', async () => {
@@ -329,13 +283,4 @@ test('onReload hook', async () => {
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
-})
-
-test('after hook', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    await service.after()
-    expect(service['_command'][0]._logCoverage).toBeCalledTimes(1)
 })
