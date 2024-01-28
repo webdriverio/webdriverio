@@ -23,7 +23,7 @@ import type {
 import type { Trace } from './gatherer/trace.js'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 
-const log = logger('@wdio/devtools-service:Auditor')
+const log = logger('@wdio/lighthouse-service:Auditor')
 
 type RunAuditResult = [string, LHAuditResult | ErrorAudit]
 

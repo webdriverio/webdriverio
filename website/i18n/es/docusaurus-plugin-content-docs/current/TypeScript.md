@@ -89,7 +89,7 @@ Por ejemplo, si decide utilizar el framework Mocha, necesitas instalar `@types/m
 
 ## Servicios
 
-Si utiliza servicios que añaden comandos al ámbito del navegador, también necesita incluirlos en su `tsconfig.json`. Por ejemplo, si utiliza `@wdio/devtools-service` asegúrese de añadirlo a los `tipos` también, por ejemplo.:
+Si utiliza servicios que añaden comandos al ámbito del navegador, también necesita incluirlos en su `tsconfig.json`. Por ejemplo, si utiliza `@wdio/lighthouse-service` asegúrese de añadirlo a los `tipos` también, por ejemplo.:
 
 ```json title="tsconfig.json"
 {
@@ -98,7 +98,7 @@ Si utiliza servicios que añaden comandos al ámbito del navegador, también nec
             "node",
             "@wdio/globals/types",
             "@wdio/mocha-framework",
-            "@wdio/devtools-service"
+            "@wdio/lighthouse-service"
         ]
     }
 }

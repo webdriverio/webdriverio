@@ -20,7 +20,7 @@ import {
 import { isSupportedUrl } from '../utils.js'
 import type { GathererDriver } from '../types.js'
 
-const log = logger('@wdio/devtools-service:TraceGatherer')
+const log = logger('@wdio/lighthouse-service:TraceGatherer')
 
 export interface Trace {
     traceEvents: TraceEvent[]

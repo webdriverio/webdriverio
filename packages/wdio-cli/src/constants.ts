@@ -120,7 +120,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
+        { name: 'lighthouse', value: '@wdio/lighthouse-service$--$lighthouse' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },

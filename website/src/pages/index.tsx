@@ -293,8 +293,8 @@ function Home() {
                                         </Link>
                                     ),
                                     devtoolsServiceLink: (
-                                        <Link to={useBaseUrl('/docs/devtools-service')}>
-                                            <code>@wdio/devtools-service</code>
+                                        <Link to={useBaseUrl('/docs/lighthouse-service')}>
+                                            <code>@wdio/lighthouse-service</code>
                                         </Link>
                                     )
                                 }}>
