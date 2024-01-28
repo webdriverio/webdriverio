@@ -1,5 +1,6 @@
 import { format } from 'node:util'
-import chalk from 'chalk'
+import type chalk from 'chalk'
+import { Chalk, type ChalkInstance } from 'chalk'
 import prettyMs from 'pretty-ms'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import WDIOReporter, { TestStats } from '@wdio/reporter'
@@ -43,8 +44,7 @@ export default class SpecReporter extends WDIOReporter {
         pending: '?',
         failed: '✖'
     }
-
-    private _colors = false
+    private _chalk: ChalkInstance
     private _onlyFailures = false
     private _sauceLabsSharableLinks = true
 
@@ -56,7 +56,6 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
-        this._colors = options.colors || false
         this._realtimeReporting = options.realtimeReporting || false
         this._showPreface = options.showPreface !== false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
@@ -71,7 +70,16 @@ export default class SpecReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+        this._chalk = new Chalk(options.color === false ? { level:0 } : {})
+    }
 
+    /**
+     * @param color color in which you want the message to appear
+     * @param msg the message to print in terminal
+     * @returns colord value based on chalk to print in terminal
+     */
+    setMessageColor(color:'green' | 'cyan' | 'red' | 'gray' | 'grey', message:string): string{
+        return this._chalk[color](message)
     }
 
     onRunnerStart (runner: RunnerStats) {
@@ -129,14 +137,6 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     /**
-     *  Return text based on color option
-     */
-
-    private _setTextColor(state: string, text: string){
-        return this._colors ? chalk[this.getColor(state)](text) : text
-    }
-
-    /**
      * Print the report to the stdout realtime
      */
     printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
@@ -158,8 +158,8 @@ export default class SpecReporter extends WDIOReporter {
 
         const content = stat.type === 'test'
             ? `${this._preface} ${indent}` +
-              `${this._setTextColor(state, this.getSymbol(state))} ${title}` +
-              ` » ${this._setTextColor(state, '[')} ${this._suiteName} ${this._setTextColor(state, ']')}`
+              `${this.setMessageColor(this.getColor(state), this.getSymbol(state))} ${title}` +
+              ` » ${this.setMessageColor(this.getColor(state), '[')} ${this._suiteName} ${this.setMessageColor(this.getColor(state), ']')}`
             : stat.type !== 'hook' ?
                 `${suiteStartBanner}${this._preface} ${title}` :
                 title
@@ -359,14 +359,14 @@ export default class SpecReporter extends WDIOReporter {
             // display suite description (Cucumber only)
             if (suite.description) {
                 output.push(...suite.description.trim().split('\n')
-                    .map((l) => `${suiteIndent}${this._setTextColor('default', l.trim())}`))
+                    .map((l) => `${suiteIndent}${this.setMessageColor('grey', l.trim())}`))
                 output.push('') // empty line
             }
 
             // display suite rule (Cucumber only)
             if (suite.rule) {
                 output.push(...suite.rule.trim().split('\n')
-                    .map((l) => `${suiteIndent}${this._setTextColor('default', l.trim())}`))
+                    .map((l) => `${suiteIndent}${this.setMessageColor('grey', l.trim())}`))
             }
 
             const eventsToReport = this.getEventsToReport(suite)
@@ -376,7 +376,7 @@ export default class SpecReporter extends WDIOReporter {
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${this._setTextColor(state!, this.getSymbol(state))} ${testTitle.trim()}`)
+                output.push(`${testIndent}${this.setMessageColor(this.getColor(state), this.getSymbol(state))} ${testTitle.trim()}`)
 
                 // print cucumber data table cells and docstring
                 const arg = (test as TestStats).argument
@@ -435,21 +435,21 @@ export default class SpecReporter extends WDIOReporter {
         // Get the passes
         if (this._stateCounts.passed > 0) {
             const text = `${this._stateCounts.passed} passing ${duration}`
-            output.push(this._setTextColor('passed', text))
+            output.push(this.setMessageColor(this.getColor('passed'), text))
             duration = ''
         }
 
         // Get the failures
         if (this._stateCounts.failed > 0) {
             const text = `${this._stateCounts.failed} failing ${duration}`.trim()
-            output.push(this._setTextColor('failed', text))
+            output.push(this.setMessageColor(this.getColor('failed'), text))
             duration = ''
         }
 
         // Get the skipped tests
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(this._setTextColor('skipped', text))
+            output.push(this.setMessageColor(this.getColor('skipped'), text))
         }
 
         return output
@@ -482,10 +482,10 @@ export default class SpecReporter extends WDIOReporter {
                 )
                 for (const error of errors) {
                     !error?.stack?.includes('new AssertionError')
-                        ? output.push(this._setTextColor('failed', error.message))
+                        ? output.push(this.setMessageColor('red', error.message))
                         : output.push(...error.message.split('\n'))
                     if (error.stack) {
-                        output.push(...error.stack.split(/\n/g).map(value => this._setTextColor('default', value)))
+                        output.push(...error.stack.split(/\n/g).map(value => this.setMessageColor('gray', value)))
                     }
                 }
             }
@@ -565,7 +565,7 @@ export default class SpecReporter extends WDIOReporter {
      * @param  {string} state Test state
      * @return {String}       State color
      */
-    getColor (state?: string) {
+    getColor (state?: string): 'green' | 'cyan' | 'red' | 'gray' {
         // In case of an unknown state
         let color: keyof typeof chalk = 'gray'
 

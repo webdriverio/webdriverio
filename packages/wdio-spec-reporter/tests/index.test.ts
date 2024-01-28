@@ -818,6 +818,22 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('colors in terminal', () => {
+        it('should give colors', () => {
+            const tmpReporter = new SpecReporter({})
+            expect(tmpReporter.setMessageColor('green', 'passed')).toEqual('green passed')
+            expect(tmpReporter.setMessageColor('red', 'failed')).toEqual('red failed')
+            expect(tmpReporter.setMessageColor('gray', 'skipped')).toEqual('gray skipped')
+        })
+
+        it('should not give any color', () => {
+            const tmpReporter = new SpecReporter({ color: false })
+            expect(tmpReporter.setMessageColor('green', 'passed')).toEqual('passed')
+            expect(tmpReporter.setMessageColor('red', 'failed')).toEqual('failed')
+            expect(tmpReporter.setMessageColor('gray', 'skipped')).toEqual('skipped')
+        })
+    })
+
     describe('getEnviromentCombo', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
