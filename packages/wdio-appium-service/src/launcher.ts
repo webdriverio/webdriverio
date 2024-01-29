@@ -24,6 +24,7 @@ const DEFAULT_CONNECTION = {
     hostname: '127.0.0.1',
     path: '/'
 }
+const APPIUM_START_TIMEOUT = 30 * 1000
 
 export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
@@ -154,7 +155,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             this._process.kill()
         }
     }
-    private _startAppium(command: string, args: Array<string>, timeout:number = 60000) {
+    private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         // just for validate the first error
