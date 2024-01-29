@@ -1,7 +1,4 @@
 import path from 'node:path'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
-import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
-import SpecReporter from '../src/index.js'
 import {
     RUNNER,
     SUITE_UIDS,
@@ -13,6 +10,10 @@ import {
     SUITES_WITH_DOC_STRING,
     SUITES_WITH_RETRY
 } from './__fixtures__/testdata.js'
+import { State } from '../src/types.js'
+import SpecReporter from '../src/index.js'
+import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 
 vi.mock('chalk')
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
@@ -94,7 +95,7 @@ describe('SpecReporter', () => {
         beforeAll(() => {
             reporter.onTestPass({
                 title:'test1',
-                state:'passed'
+                state:State.PASSED
             } as any)
         })
 
@@ -107,7 +108,7 @@ describe('SpecReporter', () => {
         beforeAll(() => {
             reporter.onTestFail({
                 title:'test1',
-                state:'failed'
+                state:State.FAILED
             } as any)
         })
 
@@ -120,7 +121,7 @@ describe('SpecReporter', () => {
         beforeAll(() => {
             reporter.onTestSkip({
                 title:'test1',
-                state:'skipped',
+                state:State.SKIPPED,
                 pendingReason: 'some random reason'
             } as any)
         })
@@ -555,7 +556,7 @@ describe('SpecReporter', () => {
                 hooks: [{
                     type: 'hook',
                     title: '"before all" hook in "{root}"',
-                    state: 'failed'
+                    state: State.FAILED
                 }, {
                     type: 'hook',
                     title: '"after all" hook in "{root}"',
@@ -563,7 +564,7 @@ describe('SpecReporter', () => {
                 }, {
                     type: 'hook',
                     title: '"after all" hook in "{root}"',
-                    state: 'failed'
+                    state: State.FAILED
                 }]
             }] as any
             const result = tmpReporter.getOrderedSuites()
@@ -593,15 +594,15 @@ describe('SpecReporter', () => {
 
     describe('getSymbol', () => {
         it('should get the checkbox symbol', () => {
-            expect(tmpReporter.getSymbol('passed')).toBe('✓')
+            expect(tmpReporter.getSymbol(State.PASSED)).toBe('✓')
         })
 
         it('should get the x symbol', () => {
-            expect(tmpReporter.getSymbol('failed')).toBe('✖')
+            expect(tmpReporter.getSymbol(State.FAILED)).toBe('✖')
         })
 
         it('should get the - symbol', () => {
-            expect(tmpReporter.getSymbol('skipped')).toBe('-')
+            expect(tmpReporter.getSymbol(State.SKIPPED)).toBe('-')
         })
 
         it('should get the ? symbol', () => {
@@ -616,15 +617,15 @@ describe('SpecReporter', () => {
         })
 
         it('should get new passed symbol', () => {
-            expect(tmpReporter.getSymbol('passed')).toBe(options.symbols.passed)
+            expect(tmpReporter.getSymbol(State.PASSED)).toBe(options.symbols.passed)
         })
 
         it('should get new failed symbol', () => {
-            expect(tmpReporter.getSymbol('failed')).toBe(options.symbols.failed)
+            expect(tmpReporter.getSymbol(State.FAILED)).toBe(options.symbols.failed)
         })
 
         it('should get the skipped symbol that is not set', () => {
-            expect(tmpReporter.getSymbol('skipped')).toBe('-')
+            expect(tmpReporter.getSymbol(State.SKIPPED)).toBe('-')
         })
     })
 
@@ -639,7 +640,7 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestPass({
                 title:'test1',
-                state:'passed'
+                state:State.PASSED
             } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
@@ -654,7 +655,7 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestFail({
                 title:'test1',
-                state:'failed'
+                state:State.FAILED
             } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
@@ -669,7 +670,7 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestSkip({
                 title:'test1',
-                state:'skipped'
+                state:State.SKIPPED
             } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
@@ -683,7 +684,7 @@ describe('SpecReporter', () => {
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter.onTestSkip({
                 title:'test1',
-                state:'skipped',
+                state:State.SKIPPED,
                 pendingReason:'some random Reasons'
             } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Pending Reasons')
@@ -801,16 +802,16 @@ describe('SpecReporter', () => {
 
     describe('getColor', () => {
         it('should get green', () => {
-            expect(tmpReporter.getColor('passed')).toBe('green')
+            expect(tmpReporter.getColor(State.PASSED)).toBe('green')
         })
 
         it('should get red', () => {
-            expect(tmpReporter.getColor('failed')).toBe('red')
+            expect(tmpReporter.getColor(State.FAILED)).toBe('red')
         })
 
         it('should get cyan', () => {
-            expect(tmpReporter.getColor('skipped')).toBe('cyan')
-            expect(tmpReporter.getColor('pending')).toBe('cyan')
+            expect(tmpReporter.getColor(State.SKIPPED)).toBe('cyan')
+            expect(tmpReporter.getColor(State.PENDING)).toBe('cyan')
         })
 
         it('should get null', () => {
@@ -821,16 +822,16 @@ describe('SpecReporter', () => {
     describe('colors in terminal', () => {
         it('should give colors', () => {
             const tmpReporter = new SpecReporter({})
-            expect(tmpReporter.setMessageColor('green', 'passed')).toEqual('green passed')
-            expect(tmpReporter.setMessageColor('red', 'failed')).toEqual('red failed')
-            expect(tmpReporter.setMessageColor('gray', 'skipped')).toEqual('gray skipped')
+            expect(tmpReporter.setMessageColor('test', State.PASSED)).toEqual('green test')
+            expect(tmpReporter.setMessageColor('test', State.FAILED)).toEqual('red test')
+            expect(tmpReporter.setMessageColor('test', State.SKIPPED)).toEqual('cyan test')
         })
 
         it('should not give any color', () => {
             const tmpReporter = new SpecReporter({ color: false })
-            expect(tmpReporter.setMessageColor('green', 'passed')).toEqual('passed')
-            expect(tmpReporter.setMessageColor('red', 'failed')).toEqual('failed')
-            expect(tmpReporter.setMessageColor('gray', 'skipped')).toEqual('skipped')
+            expect(tmpReporter.setMessageColor('test', State.PASSED)).toEqual('test')
+            expect(tmpReporter.setMessageColor('test', State.FAILED)).toEqual('test')
+            expect(tmpReporter.setMessageColor('test', State.SKIPPED)).toEqual('test')
         })
     })
 
@@ -1013,11 +1014,11 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestPass({
                 title:'test1',
-                state:'passed'
+                state:State.PASSED
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
-                state:'passed'
+                state:State.PASSED
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -1032,11 +1033,11 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestPass({
                 title:'test1',
-                state:'failed'
+                state:State.FAILED
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
-                state:'failed'
+                state:State.FAILED
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -1051,11 +1052,11 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestPass({
                 title:'test1',
-                state:'skipped'
+                state:State.SKIPPED
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
-                state:'skipped'
+                state:State.SKIPPED
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -1071,11 +1072,11 @@ describe('SpecReporter', () => {
         tmpReporter['_consoleOutput']='Printing to console spec'
         tmpReporter.onHookEnd({
             title:'test1',
-            state:'failed'
+            state:State.FAILED
         } as any)
         expect(tmpReporter.printCurrentStats).toBeCalledWith({
             title:'test1',
-            state:'failed'
+            state:State.FAILED
         })
         tmpReporter.onSuiteEnd()
         tmpReporter.onRunnerEnd(runnerEnd())

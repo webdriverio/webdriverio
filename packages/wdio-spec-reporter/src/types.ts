@@ -47,19 +47,39 @@ export interface SpecReporterOptions {
      *
      * @default: `false`
      */
-     realtimeReporting?: boolean
+    realtimeReporting?: boolean
     /**
      * Ability to show or hide preface on each line of the report ('[MultiRemote ...]')
      *
      * @default: `true`
      */
-     showPreface?: boolean
-     /**
-     * Ability to enable or disable colored output in terminal')
-     *
-     * @default: `true`
-     */
-     color?: boolean
+    showPreface?: boolean
+    /**
+    * Ability to enable or disable colored output in terminal')
+    *
+    * @default: `true`
+    */
+    color?: boolean
+}
+
+export enum ChalkColors {
+    RED = 'red',
+    GREEN = 'green',
+    CYAN = 'cyan',
+    GRAY = 'gray',
+    GREY = 'grey',
+    BLACCK = 'black',
+    YELLOW = 'yellow',
+    BLUE = 'blue',
+    MAGENTA = 'magenta',
+    WHITE = 'white',
+}
+
+export enum State {
+    FAILED = 'failed',
+    PASSED = 'passed',
+    PENDING = 'pending',
+    SKIPPED = 'skipped',
 }
 
 export interface TestLink {
