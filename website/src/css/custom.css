@@ -5,6 +5,7 @@
 @import url(codeblock.css);
 @import url(youtube.css);
 @import url(flowcharts.css);
+@import url(sponsors.css);
 
 :root {
     --ifm-color-primary: #ea5906;
@@ -61,6 +62,9 @@ html[data-theme=dark] {
 
     body .footer__bottom > div {
         text-align: center;
+    }
+    body .footer__item img {
+        max-width: 200px;
     }
 }
 

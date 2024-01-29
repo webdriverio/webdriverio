@@ -157,6 +157,14 @@ Does your company use WebdriverIO? Ask your manager or marketing team if your co
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/gold-sponsor.svg?avatarHeight=36&width=600"></a>
 
+### 💎 Premium Sponsor
+
+We are immensely grateful to our exclusive Premium Sponsor for their invaluable support in the development of this project:
+
+<p align="center">
+    <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" alt="BrowserStack" /></a>
+</p>
+
 ### 🥈 Silver Sponsor
 
 <p align="center">
