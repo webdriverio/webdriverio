@@ -162,42 +162,19 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         let errorCaptured = false
         // to set a timeout for the promise
         let timeoutId: NodeJS.Timeout
-        // to store the first error
-        let error: Error | undefined
+        // to store the first error message
+        let error: string
 
         return new Promise<ChildProcessByStdio<null, Readable, Readable>>((resolve, reject) => {
-            process.stdout.on('data', (data) => {
-                if (data.includes('Appium REST http interface listener started')) {
-                    log.info(`Appium started with ID: ${process.pid}`)
-                }
-                // if the data does not include the above string, it is probably an error or debugger message.
-                log.warn(data.toString())
-                // in both cases the promise is resolved as the appium process was executed successfully.
-                resolve(process)
-            })
 
+            let outputBuffer = ''
             /**
-             * only capture first error to print it in case Appium failed to start.
+             * set timeout for promise. If Appium does not start within given timeout,
+             * e.g. if the port is already in use, reject the promise.
              */
-            process.stderr.once('data', (err: Error) => {
-                error = err || new Error('Appium exited without unknown error message')
-                log.error(error.toString())
-                rejectOnce(error)
-            })
-
-            process.once('exit', (exitCode: number) => {
-                let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
-                if (exitCode === 2) {
-                    errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-                } else if (errorCaptured) {
-                    errorMessage += `\n${error?.toString()}`
-                }
-                if (exitCode !== 0) {
-                    log.error(errorMessage)
-                }
-                rejectOnce(new Error(errorMessage))
-            })
-
+            timeoutId = setTimeout(() => {
+                rejectOnce(new Error('Timeout: Appium did not start within expected time'))
+            }, timeout)
             /**
              * reject promise if Appium does not start within given timeout,
              * e.g. if the port is already in use
@@ -212,13 +189,36 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 }
             }
 
+            process.stdout.on('data', (data) => {
+                outputBuffer += data.toString()
+                if (outputBuffer.includes('Appium REST http interface listener started')) {
+                    log.info(`Appium started with ID: ${process.pid}`)
+                    clearTimeout(timeoutId)
+                    resolve(process)
+                }
+            })
+
             /**
-             * set timeout for promise. If Appium does not start within given timeout,
-             * e.g. if the port is already in use, reject the promise.
+             * only capture first error to print it in case Appium failed to start.
              */
-            timeoutId = setTimeout(() => {
-                rejectOnce(new Error('Timeout: Appium did not start within expected time'))
-            }, timeout)
+            process.stderr.once('data', (data) => {
+                error = data.toString() || 'Appium exited without unknown error message'
+                log.error(error)
+                rejectOnce(new Error(error))
+            })
+
+            process.once('exit', (exitCode: number) => {
+                let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
+                if (exitCode === 2) {
+                    errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
+                } else if (errorCaptured) {
+                    errorMessage += `\n${error?.toString()}`
+                }
+                if (exitCode !== 0) {
+                    log.error(errorMessage)
+                }
+                rejectOnce(new Error(errorMessage))
+            })
         })
     }
 
