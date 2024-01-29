@@ -545,6 +545,28 @@ describe('Appium launcher', () => {
                 ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()']
             )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))
         })
+
+        test('should validate timeout parameter (timout reach)', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(launcher['_startAppium'](
+                'node',
+                ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'done\'})); }, 5000); })()'],
+                1000
+            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('Timeout: Appium did not start within expected time') }))
+        })
+
+        test('should validate timeout parameter (no timeout reach)', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(launcher['_startAppium'](
+                'node',
+                ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'done\'})); }, 5000); })()'],
+                10000
+            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('done') }))
+        })
     })
 
     afterEach(() => {
