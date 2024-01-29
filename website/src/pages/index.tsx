@@ -5,10 +5,12 @@ import CodeBlock from '@theme/CodeBlock'
 import Link from '@docusaurus/Link'
 import Translate, { translate } from '@docusaurus/Translate'
 import useBaseUrl from '@docusaurus/useBaseUrl'
+import BrowserOnly from '@docusaurus/BrowserOnly'
 
 import LogoCarousel from '../components/LogoCarousel.tsx'
 import Features from '../components/Features.tsx'
 import Section from '../components/Section.tsx'
+import ImageSwitcher from '../components/ImageSwitcher.tsx'
 import Highlight from '../components/Highlight.tsx'
 import Robot from '../components/Robot.tsx'
 import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
@@ -95,6 +97,21 @@ function Home() {
                             <Translate>Watch on YouTube</Translate>
                         </Link>
                     </div>
+                    <BrowserOnly>
+                        {() => (
+                            <section className="sponsorSection">
+                                <div>
+                                    <em>Supported by the following 💎 Premium Sponsors:</em>
+                                    <ImageSwitcher
+                                        lightImageSrc="/img/sponsors/browserstack_black.svg"
+                                        darkImageSrc="/img/sponsors/browserstack_white.svg"
+                                        alt="BrowserStack"
+                                        link="https://www.browserstack.com/automation-webdriverio"
+                                    />
+                                </div>
+                            </section>
+                        )}
+                    </BrowserOnly>
                     <Features features={features} />
                 </div>
             </header>
