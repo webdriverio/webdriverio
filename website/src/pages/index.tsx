@@ -102,7 +102,6 @@ function Home() {
                             <section className="sponsorSection">
                                 <div>
                                     <em>Supported by the following 💎 Premium Sponsors:</em>
-                                    import BrowserOnly from '@docusaurus/BrowserOnly'
                                     <ImageSwitcher
                                         lightImageSrc="/img/sponsors/browserstack_black.svg"
                                         darkImageSrc="/img/sponsors/browserstack_white.svg"
