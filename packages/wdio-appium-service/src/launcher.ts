@@ -160,7 +160,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         // just for validate the first error
         let errorCaptured = false
         // to set a timeout for the promise
-        let timeoutId:number
+        let timeoutId: NodeJS.Timeout
         // to store the first error
         let error: Error | undefined
 
