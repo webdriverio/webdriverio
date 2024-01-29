@@ -296,12 +296,18 @@ export default class SpecReporter extends WDIOReporter {
              */
             ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
                 if (currentItem instanceof TestStats) {
-                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats)
-                    const existingTest = accumulator[existingTestIndex] as TestStats
-                    if (currentItem.retries && existingTest.retries && currentItem.retries > existingTest.retries) {
-                        accumulator.splice(existingTestIndex - 1, 1)
-                    } else {
+                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    if (existingTestIndex === -1) {
                         accumulator.push(currentItem)
+                    } else {
+                        const existingTest = accumulator[existingTestIndex] as TestStats
+                        if (currentItem.retries !== undefined && existingTest.retries !== undefined) {
+                            if (currentItem.retries > existingTest.retries) {
+                                accumulator.splice(existingTestIndex, 1, currentItem)
+                            } else {
+                                accumulator.push(currentItem)
+                            }
+                        }
                     }
                 } else {
                     accumulator.push(currentItem)
