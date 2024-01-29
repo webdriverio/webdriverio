@@ -24,6 +24,7 @@ const DEFAULT_CONNECTION = {
     hostname: '127.0.0.1',
     path: '/'
 }
+const APPIUM_START_TIMEOUT = 30 * 1000
 
 export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
@@ -154,16 +155,45 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             this._process.kill()
         }
     }
-
-    private _startAppium(command: string, args: Array<string>) {
+    private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
-        let error: Error | undefined
+        // just for validate the first error
+        let errorCaptured = false
+        // to set a timeout for the promise
+        let timeoutId: NodeJS.Timeout
+        // to store the first error message
+        let error: string
 
         return new Promise<ChildProcessByStdio<null, Readable, Readable>>((resolve, reject) => {
+
+            let outputBuffer = ''
+            /**
+             * set timeout for promise. If Appium does not start within given timeout,
+             * e.g. if the port is already in use, reject the promise.
+             */
+            timeoutId = setTimeout(() => {
+                rejectOnce(new Error('Timeout: Appium did not start within expected time'))
+            }, timeout)
+            /**
+             * reject promise if Appium does not start within given timeout,
+             * e.g. if the port is already in use
+             *
+             * @param err - error to reject with
+             */
+            const rejectOnce = (err: Error) => {
+                if (!errorCaptured) {
+                    errorCaptured = true
+                    clearTimeout(timeoutId)
+                    reject(err)
+                }
+            }
+
             process.stdout.on('data', (data) => {
-                if (data.includes('Appium REST http interface listener started')) {
+                outputBuffer += data.toString()
+                if (outputBuffer.includes('Appium REST http interface listener started')) {
                     log.info(`Appium started with ID: ${process.pid}`)
+                    clearTimeout(timeoutId)
                     resolve(process)
                 }
             })
@@ -171,19 +201,23 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             /**
              * only capture first error to print it in case Appium failed to start.
              */
-            process.stderr.once('data', (err) => { error = err })
+            process.stderr.once('data', (data) => {
+                error = data.toString() || 'Appium exited without unknown error message'
+                log.error(error)
+                rejectOnce(new Error(error))
+            })
 
-            process.once('exit', exitCode => {
+            process.once('exit', (exitCode: number) => {
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-                } else if (error) {
-                    errorMessage += `\n${error.toString()}`
+                } else if (errorCaptured) {
+                    errorMessage += `\n${error?.toString()}`
                 }
                 if (exitCode !== 0) {
                     log.error(errorMessage)
                 }
-                reject(new Error(errorMessage))
+                rejectOnce(new Error(errorMessage))
             })
         })
     }
