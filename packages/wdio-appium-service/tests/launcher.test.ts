@@ -536,7 +536,7 @@ describe('Appium launcher', () => {
     })
 
     describe('_startAppium', () => {
-        test('should propagate error messgae', async () => {
+        test('should propagate error message', async () => {
             const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
             vi.mocked(spawn).mockImplementationOnce(origSpawn)
             const launcher = new AppiumLauncher({}, [], {} as any)
@@ -546,7 +546,7 @@ describe('Appium launcher', () => {
             )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))
         })
 
-        test('should validate timeout parameter (timout reach)', async () => {
+        test('should validate timeout parameter (timeout reach)', async () => {
             const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
             vi.mocked(spawn).mockImplementationOnce(origSpawn)
             const launcher = new AppiumLauncher({}, [], {} as any)
@@ -565,7 +565,7 @@ describe('Appium launcher', () => {
                 'node',
                 ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'done\'})); }, 5000); })()'],
                 10000
-            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('done') }))
+            )).resolvegit .toEqual(expect.objectContaining({ message: expect.stringContaining('done') }))
         })
     })
 
