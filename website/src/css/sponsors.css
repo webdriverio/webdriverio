@@ -18,10 +18,11 @@
     margin: 0 auto;
     background-color: var(--wdio-section-background-color);
     transform: translateY(-50%);
+    justify-content: center;
 }
 .sponsorSection em {
     font-size: .8em;
-    margin: 5px 10px 2px;
+    margin: 5px 10px 2px 0;
     font-style: normal;
     line-height: 2.2em;
 }
