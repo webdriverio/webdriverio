@@ -21,6 +21,29 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.2 (2024-01-26)
+
+#### 🐛  Bug Fix
+* `wdio-allure-reporter`
+  * [#12047](https://github.com/webdriverio/webdriverio/pull/12047) in case of onTestRetry first has status unknown in allure report  ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`
+  * [#12093](https://github.com/webdriverio/webdriverio/pull/12093) (@wdio/browser-runner): improved stencil test integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#12098](https://github.com/webdriverio/webdriverio/pull/12098) Update allure report links ([@epszaw](https://github.com/epszaw))
+* Other
+  * [#12036](https://github.com/webdriverio/webdriverio/pull/12036) blog post for "Enhanced Test Automation" book  ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- LarryG ([@larryg01](https://github.com/larryg01))
+- maksym-alavatskyi ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+
 ## v8.29.1 (2024-01-25)
 
 #### :bug: Bug Fix

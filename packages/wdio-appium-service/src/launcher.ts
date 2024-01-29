@@ -161,7 +161,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         // just for validate the first error
         let errorCaptured = false
         // to set a timeout for the promise
-        let timeoutId:number
+        let timeoutId: NodeJS.Timeout
         // to store the first error
         let error: Error | undefined
 
@@ -179,8 +179,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             /**
              * only capture first error to print it in case Appium failed to start.
              */
-            process.stderr.once('data', (err) => {
-                error = (err || new Error('Appium exited without unknown error message')) as Error
+            process.stderr.once('data', (err: Error) => {
+                error = err || new Error('Appium exited without unknown error message')
                 log.error(error.toString());
                 rejectOnce(error)
             })

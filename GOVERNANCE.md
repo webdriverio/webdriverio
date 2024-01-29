@@ -170,9 +170,13 @@ Once a label is assigned a bot will email the PR author with a token that can be
 
 ##### Expenses from Project Committers and TSC Members
 
-Every project committer is responsible for tracking the time they spend directly on the project with information about their activities, e.g. working on issue `#1234`, triaging issues or supporting the community on Discord. At the end of the month, the time sheet needs to be submitted via email to `expenses@webdriver.io`.
+Each month, all WebdriverIO Project committers and TSC members can submit an invoice for the number of hours they worked on the project. Anything they do on the project counts, whether that is writing code, writing documentation, triaging issues, participating in our Discord server, attending meetings on behalf of WebdriverIO, contributing to our upstream dependencies, and so on. All contributions to an open-source project are valuable, and we feel like compensating team members for any time they spend on the project is the right thing to do.
 
-The project treasurer then distributes the funds fairly between the project members who spend time working on the project. All members are asked to be honest and respectful to other contributors when keeping track of their work. Every effort that is being tracked needs to be aligned with the project roadmap connected to a release that has been shipped to the user. Unfinished work can't be expensed.
+Every project committer is responsible for tracking the time they spend directly on the project with information about their activities. At the end of the month, the time sheet needs to be submitted via email to `expenses@webdriver.io`.
+
+The per-hour rate for Technical Steering Committee (TSC) members is $80/hour; the per-hour rate for Committers is $50/hour.
+
+In case all project members have worked on WebdriverIO, and the total time worked exceeds the funding available, the project treasurer will distribute the funds based on the proportion of time each member has contributed. For example, if the total funds are $5000 and _member A_ worked 20% of the total time, _member B_ 30%, _member C_ 25%, and _member D_ 25%, then _member A_ would receive $1000 (20% of $5000), _member B_ $1500 (30% of $5000), _member C_ $1250 (25% of $5000), and _member D_ $1250 (25% of $5000). All members are asked to be honest and respectful to other contributors when keeping track of their work. Every effort that is being tracked needs to be aligned with the project roadmap connected to a release that has been shipped to the user. Unfinished work can't be expensed.
 
 #### Travel and Event Expenses
 
@@ -202,6 +206,20 @@ We would like to put some money aside for services and purchases related to the 
 #### Dependencies
 
 We use a small amount to help support our project dependencies. We believe that open-source projects who are lucky enough to get funded have a responsibility to help support the smaller projects they rely on. We are working with [thanks.dev](https://thanks.dev/home) to help analyse our dependencies and calculate the amounts we donate back.
+
+The project currently contributes back to the following collectives:
+
+- [Sindre Sorhus](https://opencollective.com/sindresorhus)
+- [Lars Kappert](https://github.com/sponsors/webpro)
+- [isaacs](https://github.com/sponsors/isaacs)
+- [Eslint](https://opencollective.com/eslint)
+- [typescript-eslint](https://opencollective.com/typescript-eslint)
+- [Vitest](https://opencollective.com/vitest)
+- [Vite](https://opencollective.com/vite)
+- [Jest](https://opencollective.com/jest)
+- [Husky](https://opencollective.com/husky)
+- [Electron](https://opencollective.com/electron)
+- [depcheck](https://opencollective.com/depcheck)
 
 ### Amendment of Policies
 These policies can be amended with a two-thirds majority vote among the TSC members to adapt to the changing needs and structure of our project.
