@@ -181,7 +181,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              */
             process.stderr.once('data', (err: Error) => {
                 error = err || new Error('Appium exited without unknown error message')
-                log.error(error.toString());
+                log.error(error.toString())
                 rejectOnce(error)
             })
 
@@ -217,7 +217,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * e.g. if the port is already in use, reject the promise.
              */
             timeoutId = setTimeout(() => {
-                rejectOnce(new Error("Timeout: Appium did not start within expected time"))
+                rejectOnce(new Error('Timeout: Appium did not start within expected time'))
             }, timeout)
         })
     }
