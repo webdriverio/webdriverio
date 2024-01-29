@@ -12,7 +12,7 @@
 .sponsorSection > div {
     display: flex;
     flex-direction: row;
-    width: 480px;
+    width: 500px;
     border: 1px solid var(--ifm-color-primary);
     border-radius: 10px;
     margin: 0 auto;
