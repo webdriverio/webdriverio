@@ -10,6 +10,14 @@ We would like to thank ❤️🙏 all our Bakers and sponsors:
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/baker.svg?avatarHeight=36&width=600"></a>
 
+### 💎 Premium Sponsor
+
+We are immensely grateful to our exclusive Premium Sponsor for their invaluable support in the development of this project:
+
+<p align="center">
+    <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" alt="BrowserStack" /></a>
+</p>
+
 ### 🥇 Gold Sponsor
 
 [Become a Gold Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?sponsor=christian-bromann&tier_id=303973&preview=false)

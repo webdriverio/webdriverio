@@ -46,6 +46,19 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 
 ## Current Sponsors
 
+### 💎 Premium
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/browserstack_black.svg"
+    darkImageSrc="/img/sponsors/browserstack_white.svg"
+    alt="BrowserStack"
+    link="https://www.browserstack.com/automation-webdriverio"
+/>
+
+### 🥇 Gold
+
+Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-sponsor-26921/checkout?interval=month&amount=500&contributeAs=me).
+
 ### 🥈 Silver
 
 <ImageSwitcher
@@ -54,3 +67,7 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     alt="Lambdatest"
     link="https://www.lambdatest.com/"
 />
+
+### 🥉 Bronze
+
+Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bronze-sponsor-69224/checkout?interval=month&amount=100&contributeAs=me).
