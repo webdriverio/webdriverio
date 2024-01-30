@@ -10,7 +10,9 @@ Examples of **incorrect** code for this rule:
 describe('my feature', () => {
     it('should do something', async () => {
         const myButton = $('>>>button');
-        expect(myButton).toBeDisplayed();
+         const myButtons = $$('>>>button');
+        await expect(myButton).toBeDisplayed();
+        await expect($('>>>.foo')).toBeDisplayed();
     });
 });
 ```
@@ -21,7 +23,9 @@ Examples of **correct** code for this rule:
 describe('my feature', () => {
     it('should do something', async () => {
         const myButton = await $('>>>button');
-        expect(myButton).toBeDisplayed();
+        const myButtons = await $$('>>>button');
+        await expect(myButton).toBeDisplayed();
+        await expect(await $('>>>.foo')).toBeDisplayed();
     });
 });
 ```

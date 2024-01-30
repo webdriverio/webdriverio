@@ -19,8 +19,11 @@ const rule: Rule.RuleModule = {
             Identifier(node) {
                 if (
                     node.type === 'Identifier' &&
-                    node.name === '$' &&
+                    (node.name === '$' || node.name === '$$') &&
                     node.parent.parent.type !== 'AwaitExpression' &&
+                    node.parent.parent.type !== 'MemberExpression' &&
+                    node.parent.parent.type !== 'ReturnStatement' &&
+                    node.parent.parent.type !== 'ArrowFunctionExpression' &&
                     'arguments' in node.parent &&
                     node.parent.arguments.some(
                         a => 'value' in a && typeof a.value === 'string' && /.*>>>.*/.test(a.value || '')

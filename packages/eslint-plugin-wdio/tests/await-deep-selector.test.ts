@@ -13,9 +13,12 @@ ruleTester.run('await-deep-selector-check', rule, {
     valid : [
         'it(`bar`, async () => { await expect(await $(`>>>.foo`)).toBeDisplayed(); });',
         'it(`bar`, async () => { await expect(await $(`>>>.foo`)).toExist(); });',
-        'it(`bar`, async () => { await expect($(`>>>.foo`)).toExist(); });',
         'it(`bar`, async () => { const foo = await $(`>>>.foo`)); });',
-        'it(`bar`, async () => { const foo = await $(`.foo`)); });',
+        'it(`bar`, async () => { const foo = $(`.foo`)); });',
+        'it(`bar`, async () => { const foo = await $$(`>>>.foo`)); });',
+        'it(`bar`, async () => { const foo = $$(`.foo`)); });',
+        'it(`bar`, async () => { const foo = await browser.$$(`>>>.foo`)); });',
+        'it(`bar`, async () => { const foo = await browser.$(`>>>.foo`)); });',
         'it(`bar`, async () => expect(`.foo`).toHaveTitle() );',
         'bar()',
     ],
@@ -27,6 +30,14 @@ ruleTester.run('await-deep-selector-check', rule, {
         {
             code : 'const foo = $(`>>>.foo`)',
             errors,
-        }
+        },
+        {
+            code : 'it(`foo`, async () => { const foo = $$(`>>>.foo`)); });',
+            errors,
+        },
+        {
+            code : 'it(`foo`, async () => { const foo = browser.$(`>>>.foo`)); });',
+            errors,
+        },
     ],
 })
