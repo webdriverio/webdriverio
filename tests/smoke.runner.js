@@ -740,6 +740,90 @@ const runSpecsWithFlagNoArg = async () => {
     assert.strictEqual(passed, 3)
     assert.strictEqual(skippedSpecs, 0)
 }
+
+const cliExcludeParamValidationAllExcludedByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['general']
+        }
+    ).catch((err) => err) // expected error
+
+    assert.strictEqual(passed, undefined)
+    assert.strictEqual(skippedSpecs, undefined)
+    assert.strictEqual(failed, undefined)
+}
+
+const cliExcludeParamValidationSomeExcludedByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['general2']
+        }
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationSomeExcludedByPath = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['./general.test.js']
+        }
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeNonExistentByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['newgeneral']
+        }
+    )
+
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeFromConfigByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.with-exclude-prop.conf.js')
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: [
+                './general.test.js',
+                './general2.test.js'
+            ]
+        }
+    )
+
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
 // *** END - tests for CLI --spec ***
 
 // *************************
@@ -858,7 +942,13 @@ const jasmineAfterHookArgsValidation = async () => {
         runSpecsWithFlagDirectPath,
         runSpecsWithFlagNoArg,
         jasmineHooksTestrunner,
-        jasmineAfterHookArgsValidation
+        jasmineAfterHookArgsValidation,
+        cliExcludeParamValidationAllExcludedByKeyword,
+        cliExcludeParamValidationSomeExcludedByKeyword,
+        cliExcludeParamValidationSomeExcludedByPath,
+        cliExcludeParamValidationExcludeNonExistentByKeyword,
+        cliExcludeParamValidationExcludeFromConfigByKeyword,
+        cliExcludeParamValidationExcludeMultipleSpecsByPath
     ]
 
     console.log('\nRunning smoke tests...\n')

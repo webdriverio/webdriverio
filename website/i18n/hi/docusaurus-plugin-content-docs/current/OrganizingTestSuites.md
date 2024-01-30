@@ -207,6 +207,14 @@ wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
+If the `--exclude` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+
+To exclude all specs with the word “dialog” in the spec file names, you could use:
+
+```sh
+wdio wdio.conf.js --exclude dialog
+```
+
 जब `--exclude` विकल्प प्रदान किया जाता है, तो यह कॉन्फ़िगरेशन या क्षमता स्तर के `exclude` पैरामीटर द्वारा परिभाषित किसी भी पैटर्न को ओवरराइड कर देगा।
 
 ## सूट और टेस्ट स्पेक्स चलाएं
