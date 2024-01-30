@@ -269,11 +269,13 @@ export default class ConfigParser {
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
-        let exclude = allKeywordsContainPath(this._config.exclude!) ? ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService) : this._config.exclude!
+        let exclude = allKeywordsContainPath(this._config.exclude!)
+            ? ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
+            : this._config.exclude || []
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude!.length === 0){
+        if (Array.isArray(capExclude) && exclude.length === 0){
             exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
@@ -317,7 +319,7 @@ export default class ConfigParser {
         }
 
         return this.shard(
-            this.filterSpecs(specs, <string[]>exclude!)
+            this.filterSpecs(specs, <string[]>exclude)
         )
     }
 
