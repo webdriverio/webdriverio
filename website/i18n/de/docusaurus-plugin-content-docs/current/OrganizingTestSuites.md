@@ -231,6 +231,14 @@ Oder schließen Sie eine Test-Datei aus, wenn Sie mit einer Suite filtern:
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
+If the `--exclude` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+
+To exclude all specs with the word “dialog” in the spec file names, you could use:
+
+```sh
+wdio wdio.conf.js --exclude dialog
+```
+
 Wenn die Option `--exclude` angegeben wird, überschreibt sie alle Muster, die durch den Parameter `Exclude` der Konfigurations- oder auf Capability-Ebene definiert sind.
 
 ## Ausführen von Suites und Test Datein
