@@ -1,5 +1,5 @@
-import { format } from 'node:util'
 import prettyMs from 'pretty-ms'
+import { format } from 'node:util'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats } from '@wdio/reporter'
@@ -76,7 +76,7 @@ export default class SpecReporter extends WDIOReporter {
      * @param msg the message to print in terminal
      * @returns colord value based on chalk to print in terminal
      */
-    setMessageColor(message:string, state = 'default'): string{
+    setMessageColor(message:string, state?: State): string{
         return this._chalk[this.getColor(state)](message)
     }
 
@@ -142,7 +142,7 @@ export default class SpecReporter extends WDIOReporter {
             return
         }
 
-        const title = stat.title, state = (stat as TestStats).state
+        const title = stat.title, state = (stat as TestStats).state as State
         const divider = '------------------------------------------------------------------'
 
         const indent = (stat.type==='test') ?
@@ -370,11 +370,11 @@ export default class SpecReporter extends WDIOReporter {
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
                 const testTitle = `${test.title} ${(test instanceof TestStats && test.retries && test.retries > 0) ? `(${test.retries} retries)` : ''}`
-                const state = test.state
+                const state = test.state as State
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state!)} ${testTitle.trim()}`)
+                output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state)} ${testTitle.trim()}`)
 
                 // print cucumber data table cells and docstring
                 const arg = (test as TestStats).argument
@@ -585,11 +585,12 @@ export default class SpecReporter extends WDIOReporter {
 
     /**
      * Get information about the enviroment
-     * @param  {Object}  caps    Enviroment details
+     * @param capability
      * @param  {Boolean} verbose
+     * @param isMultiremote
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false) {
+    getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false): string {
         if (isMultiremote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
             const browserName = browserNames.length > 1

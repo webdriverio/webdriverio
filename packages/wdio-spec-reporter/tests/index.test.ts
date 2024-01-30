@@ -1,18 +1,18 @@
 import path from 'node:path'
 import {
     RUNNER,
-    SUITE_UIDS,
     SUITES,
+    SUITE_UIDS,
     SUITES_NO_TESTS,
+    SUITES_WITH_RETRY,
     SUITES_WITH_DATA_TABLE,
-    SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS,
     SUITES_WITH_DOC_STRING,
-    SUITES_WITH_RETRY
+    SUITES_NO_TESTS_WITH_HOOK_ERROR,
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 
 vi.mock('chalk')
@@ -410,8 +410,7 @@ describe('SpecReporter', () => {
 
         it('should print multiple lines doc string', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
-                return suites
+                return Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DOC_STRING))) as any[]
             })
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
