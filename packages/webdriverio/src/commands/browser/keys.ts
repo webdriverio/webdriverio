@@ -54,7 +54,15 @@ export async function keys (
      * W3C way of handle it key actions
      */
     const keyAction = this.action('key')
-    keySequence.forEach((value) => keyAction.down(value))
+    keySequence.forEach((value) => {
+        if (!this.isIOS && value === ','){
+            /**
+             * comma can't be printed within sequence without extra pause here more then 200ms
+             */
+            keyAction.pause(225)
+        }
+        keyAction.down(value)
+    })
     /**
      * XCTest API only allows to send keypresses (e.g. keydown+keyup).
      * There is no way to "split" them
