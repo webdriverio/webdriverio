@@ -57,7 +57,7 @@ export async function keys (
     keySequence.forEach((value) => {
         if (!this.isIOS && value === ','){
             /**
-             * comma can't be printed within sequence without extra pause here more then 200ms
+             * comma can't be typed within sequence without extra pause here more than 200ms
              */
             keyAction.pause(225)
         }
