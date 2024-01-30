@@ -215,6 +215,7 @@ The project currently contributes back to the following collectives:
 - [Eslint](https://opencollective.com/eslint)
 - [typescript-eslint](https://opencollective.com/typescript-eslint)
 - [Vitest](https://opencollective.com/vitest)
+- [Mocha](https://opencollective.com/mochajs)
 - [Vite](https://opencollective.com/vite)
 - [Jest](https://opencollective.com/jest)
 - [Husky](https://opencollective.com/husky)
