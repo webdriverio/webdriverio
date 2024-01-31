@@ -168,7 +168,13 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥈 Silver Sponsor
 
 <p align="center">
-    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" alt="Lambdatest" /></a>
+    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" width="300" alt="Lambdatest" /></a>
+</p>
+
+### 🥉 Bronze Sponsor
+
+<p align="center">
+    <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
 </p>
 
 ## :page_facing_up: License
