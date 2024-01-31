@@ -8,11 +8,7 @@ export const RUNNER = {
     specs: ['/foo/bar/baz.js'],
 }
 
-const suiteIds = [
-    'Foo test1',
-    'Bar test2',
-    'Baz test3',
-]
+const suiteIds = ['Foo test1', 'Bar test2', 'Baz test3']
 export const SUITE_UIDS = new Set(suiteIds)
 
 export const SUITES = {
@@ -21,65 +17,75 @@ export const SUITES = {
         title: suiteIds[0].slice(0, -1),
         file: '/foo/bar/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'foo1',
-            title: 'foo',
-            state: 'passed',
-            type: 'test'
-        }, {
-            uid: 'bar1',
-            title: 'bar',
-            state: 'passed',
-            type: 'test'
-        }]
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+            },
+        ],
     },
     [suiteIds[1]]: {
         uid: suiteIds[1],
         title: suiteIds[1].slice(0, -1),
         file: '/bar/foo/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'some test1',
-            title: 'some test',
-            state: 'passed',
-            type: 'test'
-        }, {
-            uid: 'a failed test2',
-            title: 'a failed test',
-            state: 'failed',
-            type: 'test',
-            error: {
-                message: 'expected foo to equal bar',
-                stack: 'Failed test stack trace'
-            }
-        }, {
-            uid: 'a failed test3',
-            title: 'a failed test with no stack',
-            state: 'failed',
-            error: {
-                message: 'expected foo to equal bar'
-            }
-        }]
+        tests: [
+            {
+                uid: 'some test1',
+                title: 'some test',
+                state: 'passed',
+                type: 'test',
+            },
+            {
+                uid: 'a failed test2',
+                title: 'a failed test',
+                state: 'failed',
+                type: 'test',
+                error: {
+                    message: 'expected foo to equal bar',
+                    stack: 'Failed test stack trace',
+                },
+            },
+            {
+                uid: 'a failed test3',
+                title: 'a failed test with no stack',
+                state: 'failed',
+                error: {
+                    message: 'expected foo to equal bar',
+                },
+            },
+        ],
     },
     [suiteIds[2]]: {
         uid: suiteIds[2],
         title: suiteIds[2].slice(0, -1),
         file: '/bar/loo/foo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'foo bar baz1',
-            title: 'foo bar baz',
-            state: 'passed',
-            type: 'test'
-        }, {
-            uid: 'a skipped test2',
-            title: 'a skipped test',
-            state: 'skipped',
-            type: 'test'
-        }]
-    }
+        tests: [
+            {
+                uid: 'foo bar baz1',
+                title: 'foo bar baz',
+                state: 'passed',
+                type: 'test',
+            },
+            {
+                uid: 'a skipped test2',
+                title: 'a skipped test',
+                state: 'skipped',
+                type: 'test',
+            },
+        ],
+    },
 }
-Object.values(SUITES).forEach(suite => {
+Object.values(SUITES).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
@@ -92,51 +98,79 @@ export const SUITES_WITH_DATA_TABLE = {
         description: '\tSome important\ndescription to read!',
         file: '/foo/bar/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'foo1',
-            title: 'foo',
-            state: 'passed',
-            type: 'test',
-            argument: {
-                rows: [{
-                    cells: ['Vegetable', 'Rating'],
-                    locations: [{
-                        line: 23, column: 15
-                    }, {
-                        line: 23, column: 27
-                    }]
-                }, {
-                    cells: ['Apricot', 5],
-                    locations: [{
-                        line: 24, column: 15
-                    }, {
-                        line: 24, column: 27
-                    }]
-                }, {
-                    cells: ['Brocolli', 2],
-                    locations: [{
-                        line: 25, column: 15
-                    }, {
-                        line: 25, column: 27
-                    }]
-                }, {
-                    cells: ['Cucumber', 10],
-                    locations: [{
-                        line: 26, column: 15
-                    }, {
-                        line: 26, column: 27
-                    }]
-                }]
-            }
-        }, {
-            uid: 'bar1',
-            title: 'bar',
-            state: 'passed',
-            type: 'test'
-        }]
-    }
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+                argument: {
+                    rows: [
+                        {
+                            cells: ['Vegetable', 'Rating'],
+                            locations: [
+                                {
+                                    line: 23,
+                                    column: 15,
+                                },
+                                {
+                                    line: 23,
+                                    column: 27,
+                                },
+                            ],
+                        },
+                        {
+                            cells: ['Apricot', 5],
+                            locations: [
+                                {
+                                    line: 24,
+                                    column: 15,
+                                },
+                                {
+                                    line: 24,
+                                    column: 27,
+                                },
+                            ],
+                        },
+                        {
+                            cells: ['Brocolli', 2],
+                            locations: [
+                                {
+                                    line: 25,
+                                    column: 15,
+                                },
+                                {
+                                    line: 25,
+                                    column: 27,
+                                },
+                            ],
+                        },
+                        {
+                            cells: ['Cucumber', 10],
+                            locations: [
+                                {
+                                    line: 26,
+                                    column: 15,
+                                },
+                                {
+                                    line: 26,
+                                    column: 27,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+            },
+        ],
+    },
 }
-Object.values(SUITES_WITH_DATA_TABLE).forEach(suite => {
+Object.values(SUITES_WITH_DATA_TABLE).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
@@ -147,44 +181,55 @@ export const SUITES_MULTIPLE_ERRORS = {
         title: suiteIds[0].slice(0, -1),
         file: '/foo/bar/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'foo1',
-            title: 'foo',
-            state: 'passed',
-            type: 'test'
-        }, {
-            uid: 'bar1',
-            title: 'bar',
-            state: 'passed',
-            type: 'test'
-        }]
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+            },
+        ],
     },
     [suiteIds[1]]: {
         uid: suiteIds[1],
         title: suiteIds[1].slice(0, -1),
         file: '/bar/foo/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'some test1',
-            title: 'some test',
-            state: 'passed',
-            type: 'test'
-        }, {
-            uid: 'a failed test',
-            title: 'a test with two failures',
-            state: 'failed',
-            type: 'test',
-            errors: [{
-                message: 'expected the party on the first part to be the party on the first part',
-                stack: 'First failed stack trace'
-            }, {
-                message: 'expected the party on the second part to be the party on the second part',
-                stack: 'Second failed stack trace'
-            }]
-        }]
-    }
+        tests: [
+            {
+                uid: 'some test1',
+                title: 'some test',
+                state: 'passed',
+                type: 'test',
+            },
+            {
+                uid: 'a failed test',
+                title: 'a test with two failures',
+                state: 'failed',
+                type: 'test',
+                errors: [
+                    {
+                        message:
+                            'expected the party on the first part to be the party on the first part',
+                        stack: 'First failed stack trace',
+                    },
+                    {
+                        message:
+                            'expected the party on the second part to be the party on the second part',
+                        stack: 'Second failed stack trace',
+                    },
+                ],
+            },
+        ],
+    },
 }
-Object.values(SUITES_MULTIPLE_ERRORS).forEach(suite => {
+Object.values(SUITES_MULTIPLE_ERRORS).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
@@ -197,8 +242,8 @@ export const SUITES_NO_TESTS = {
         tests: [],
         suites: [],
         hooks: [],
-        hooksAndTests: []
-    }
+        hooksAndTests: [],
+    },
 }
 
 export const SUITES_NO_TESTS_WITH_HOOK_ERROR = {
@@ -208,19 +253,21 @@ export const SUITES_NO_TESTS_WITH_HOOK_ERROR = {
         file: '/foo/bar/loo.e2e.js',
         tests: [],
         suites: [],
-        hooks: [{
-            uid: 'a failed hook2',
-            title: 'a failed hook',
-            state: 'failed',
-            error: {
-                message: 'expected foo to equal bar',
-                stack: 'Failed test stack trace'
-            }
-        }]
-    }
+        hooks: [
+            {
+                uid: 'a failed hook2',
+                title: 'a failed hook',
+                state: 'failed',
+                error: {
+                    message: 'expected foo to equal bar',
+                    stack: 'Failed test stack trace',
+                },
+            },
+        ],
+    },
 }
 
-Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR).forEach(suite => {
+Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.hooks]
 })
@@ -233,32 +280,42 @@ export const SUITES_WITH_DOC_STRING = {
         description: '\tSome important\ndescription to read!',
         file: '/foo/bar/loo.e2e.js',
         hooks: [],
-        tests: [{
-            uid: 'foo1',
-            title: 'foo',
-            state: 'passed',
-            type: 'test',
-            argument: 'Docstring line 1\nDocstring line 2\nDocstring line 3'
-        }, {
-            uid: 'bar1',
-            title: 'bar',
-            state: 'passed',
-            type: 'test',
-            argument: 'Docstring line 4\nDocstring line 5\nDocstring line 6'
-        }]
-    }
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+                argument:
+                    'Docstring line 1\nDocstring line 2\nDocstring line 3',
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+                argument:
+                    'Docstring line 4\nDocstring line 5\nDocstring line 6',
+            },
+        ],
+    },
 }
-Object.values(SUITES_WITH_DOC_STRING).forEach(suite => {
+Object.values(SUITES_WITH_DOC_STRING).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
 
-const createTestStatsInstance = (uid: string, title: string, type: 'pass' | 'fail' | 'skip', retries: number = 0) => {
+const createTestStatsInstance = (
+    uid: string,
+    title: string,
+    type: 'pass' | 'fail' | 'skip',
+    retries: number = 0
+) => {
     const testStat = new TestStats({
         uid,
         title,
         fullTitle: title,
-        retries: retries
+        retries: retries,
     } as Test)
     if (type === 'pass') {
         testStat.pass()
@@ -280,9 +337,10 @@ export const SUITES_WITH_RETRY = {
             createTestStatsInstance('bar1', 'bar', 'pass'),
             createTestStatsInstance('loo1', 'loo', 'fail'),
             createTestStatsInstance('loo1', 'loo', 'pass', 1),
-            createTestStatsInstance('baz1', 'baz', 'skip')
-        ]
-    }
+            createTestStatsInstance('bar1', 'bar', 'pass'),
+            createTestStatsInstance('baz1', 'baz', 'skip'),
+        ],
+    },
 }
 Object.values(SUITES_WITH_RETRY).forEach((suite) => {
     // @ts-expect-error

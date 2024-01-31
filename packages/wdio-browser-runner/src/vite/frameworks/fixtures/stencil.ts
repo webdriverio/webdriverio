@@ -1,5 +1,9 @@
 import { h } from '@stencil/core'
 
+/**
+ * Emulate Node.js `nextTick` function in browser.
+ * This is used by Stencil.js internally.
+ */
 process.nextTick = (cb) => setTimeout(cb, 0)
 
 // @ts-expect-error
@@ -80,7 +84,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         win: win,
         doc: doc,
         body: stage as any,
-        styles: styles as Map<string, string>
+        styles
     } as const
 
     const lazyBundles: LazyBundlesRuntimeData = opts.components.map((Cstr: ComponentTestingConstructor) => {
@@ -108,6 +112,11 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             }
         }
         registerModule(bundleId, Cstr)
+
+        /**
+         * Register the component as a custom element
+         */
+        customElements.define(Cstr.COMPILER_META.tagName, Cstr as any)
 
         const lazyBundleRuntimeMeta = formatLazyBundleRuntimeMeta(bundleId, [Cstr.COMPILER_META])
         return lazyBundleRuntimeMeta

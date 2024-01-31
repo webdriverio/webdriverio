@@ -304,6 +304,8 @@ export default class SpecReporter extends WDIOReporter {
                         if (currentItem.retries !== undefined && existingTest.retries !== undefined) {
                             if (currentItem.retries > existingTest.retries) {
                                 accumulator.splice(existingTestIndex, 1, currentItem)
+                            } else {
+                                accumulator.push(currentItem)
                             }
                         }
                     }
