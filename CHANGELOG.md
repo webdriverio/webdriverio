@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.4 (2024-01-31)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#12137](https://github.com/webdriverio/webdriverio/pull/12137) Fix Bug#12134 adding a step to clean the buffer after first log. ([@lararojasmr](https://github.com/lararojasmr))
+
+#### Committers: 1
+- Manuel Lara ([@lararojasmr](https://github.com/lararojasmr))
+
+
 ## v8.29.3 (2024-01-30)
 
 #### :rocket: New Feature
