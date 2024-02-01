@@ -45,4 +45,22 @@ describe('Stencil Component Testing', () => {
         expect(page.container.tagName.toLowerCase()).toBe('stencil-stage')
         expect(page.root.tagName.toLowerCase()).toBe('app-profile')
     })
+
+    it('can determine root if rendered somewhere nested', async () => {
+        const page = render({
+            components: [AppProfile, NestedComponent],
+            autoApplyChanges: true,
+            template: () => (
+                <div>
+                    <div>
+                        {/* @ts-ignore: types don't exist as we don't compile the components with Stencil */}
+                        <app-profile match={{ params: { name: 'stencil' } }}></app-profile>
+                    </div>
+                </div>
+            )
+        })
+
+        expect(page.root.tagName.toLowerCase()).toBe('app-profile')
+        expect(page.root.parentElement?.parentElement?.parentElement?.tagName.toLowerCase()).toBe('stencil-stage')
+    })
 })

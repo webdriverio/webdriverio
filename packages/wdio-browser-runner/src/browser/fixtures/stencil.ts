@@ -1,4 +1,5 @@
 import { h } from '@stencil/core'
+import type { StencilEnvironment } from '../../../stencil/index.d.ts'
 
 /**
  * Emulate Node.js `nextTick` function in browser.
@@ -6,9 +7,12 @@ import { h } from '@stencil/core'
  */
 process.nextTick = (cb) => setTimeout(cb, 0)
 
+/**
+ * in case the user has his tsconfig.json configured to expect "jsx" to be "react"
+ */
 // @ts-expect-error
 window.React = {
-    createElement: h,
+    createElement: h
 }
 
 import type {
@@ -31,15 +35,6 @@ import {
     writeTask,
     // @ts-expect-error
 } from '@stencil/core/internal/testing/index.js'
-
-interface StencilEnvironment {
-    /**
-     * After changes have been made to a component, such as a update to a property or
-     * attribute, the test page does not automatically apply the changes. In order to
-     * wait for, and apply the update, call await `flushAll()`.
-     */
-    flushAll: () => void
-}
 
 /**
  * Creates a new spec page for unit testing
@@ -105,9 +100,11 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         registerModule(bundleId, Cstr)
 
         /**
-         * Register the component as a custom element
+         * Register the component as a custom element only if not already registered
          */
-        customElements.define(Cstr.COMPILER_META.tagName, Cstr as any)
+        if (!customElements.get(Cstr.COMPILER_META.tagName)) {
+            customElements.define(Cstr.COMPILER_META.tagName, Cstr as any)
+        }
 
         const lazyBundleRuntimeMeta = formatLazyBundleRuntimeMeta(bundleId, [Cstr.COMPILER_META])
         return lazyBundleRuntimeMeta
@@ -116,7 +113,8 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
     const page = {
         container,
         styles,
-        flushAll
+        flushAll,
+        unmount: () => container.remove()
     } as const
 
     if (typeof opts.direction === 'string') {
@@ -139,7 +137,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             $flags$: 0,
             $modeName$: undefined,
             $cmpMeta$: cmpMeta,
-            $hostElement$: document.body,
+            $hostElement$: container,
         }
         renderVdom(ref, opts.template())
     }
@@ -148,16 +146,12 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
     Object.defineProperty(page, 'root', {
         get() {
             if (!rootComponent) {
-                rootComponent = findRootComponent(cmpTags, document.body)
+                rootComponent = findRootComponent(cmpTags, container)
             }
             if (rootComponent) {
                 return rootComponent
             }
-            const firstElementChild = document.body.firstElementChild
-            if (!firstElementChild) {
-                return firstElementChild as any
-            }
-            return null
+            return container.firstElementChild
         },
     })
 
@@ -169,7 +163,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         startAutoApplyChanges()
     }
 
-    return page
+    return page as StencilEnvironment
 }
 
 /**
