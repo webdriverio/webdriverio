@@ -1,5 +1,5 @@
 export default {
-    '/session/:sessionId/file': {
+    '/session/:sessionId/se/file': {
         POST: {
             command: 'file',
             description:
