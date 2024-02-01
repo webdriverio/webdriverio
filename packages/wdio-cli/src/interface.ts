@@ -112,16 +112,16 @@ export default class WDIOCLInterface extends EventEmitter {
             : ''
         this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers${shardNote} started at`), this._start.toISOString())
         if (this._inDebugMode) {
-            this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
+            this.log(chalk.bgYellow(chalk.black('DEBUG mode enabled!')))
         }
         if (this._isWatchMode) {
-            this.log(chalk.bgYellow.black('WATCH mode enabled!'))
+            this.log(chalk.bgYellow(chalk.black('WATCH mode enabled!')))
         }
         this.log('')
     }
 
     onSpecRunning (rid: string) {
-        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
+        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold(chalk.cyan('RUNNING')))
     }
 
     onSpecRetry (rid: string, job?: Workers.Job, retries = 0) {
@@ -130,11 +130,11 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onSpecPass (rid: string, job?: Workers.Job, retries = 0) {
-        this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.green('PASSED')))
     }
 
     onSpecFailure (rid: string, job?: Workers.Job, retries = 0) {
-        this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.red('FAILED')))
     }
 
     onSpecSkip (rid: string, job?: Workers.Job) {
@@ -261,7 +261,7 @@ export default class WDIOCLInterface extends EventEmitter {
         if (event.name === 'error') {
             return this.log(
                 `[${event.cid}]`,
-                chalk.white.bgRed.bold(' Error: '),
+                chalk.white(chalk.bgRed(chalk.bold(' Error: '))),
                 event.content ? (event.content.message || event.content.stack || event.content) : ''
             )
         }
@@ -310,7 +310,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const reporter = this._messages.reporter
         this._messages.reporter = {}
         for (const [reporterName, messages] of Object.entries(reporter)) {
-            this.log('\n', chalk.bold.magenta(`"${reporterName}" Reporter:`))
+            this.log('\n', chalk.bold(chalk.magenta(`"${reporterName}" Reporter:`)))
             this.log(messages.join(''))
         }
     }

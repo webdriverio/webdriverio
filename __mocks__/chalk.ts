@@ -1,9 +1,6 @@
 import { vi } from 'vitest'
 
 class Chalk {
-    white = {}
-    bgRed = {}
-    bgYellow = {}
     supportsColor = { hasBasic: true }
 
     private color = true
@@ -12,11 +9,14 @@ class Chalk {
     }
 
     bold(msg: string) { return `bold ${msg}` }
+    bgYellow(msg: string) { return `bgYellow ${msg}` }
+    bgRed(msg: string) { return `bgRed ${msg}` }
     cyanBright = vi.fn().mockImplementation((msg) => this.color ? `cyanBright ${msg}` : msg)
     greenBright = vi.fn().mockImplementation((msg) => this.color ? `greenBright ${msg}` : msg)
     whiteBright = vi.fn().mockImplementation((msg) => this.color ? `whiteBright ${msg}` : msg)
     redBright = vi.fn().mockImplementation((msg) => this.color ? `redBright ${msg}` : msg)
     cyan = vi.fn().mockImplementation((msg) => this.color ? `cyan ${msg}` : msg)
+    white = vi.fn().mockImplementation((msg) => this.color ? `white ${msg}` : msg)
     blue = vi.fn().mockImplementation((msg) => this.color ? `blue ${msg}` : msg)
     grey = vi.fn().mockImplementation((msg) => this.color ? `grey ${msg}` : msg)
     green = vi.fn().mockImplementation((msg) => this.color ? `green ${msg}` : msg)
