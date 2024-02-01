@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.5 (2024-02-01)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`
+  * [#12140](https://github.com/webdriverio/webdriverio/pull/12140) (@wdio/browser-runner): improved stencil test integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.29.4 (2024-01-31)
 
 #### :bug: Bug Fix
