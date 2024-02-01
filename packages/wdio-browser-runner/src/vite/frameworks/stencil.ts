@@ -20,7 +20,7 @@ export async function isUsingStencilJS(rootDir: string, options: WebdriverIO.Bro
 }
 
 export async function optimizeForStencil(rootDir: string) {
-    const stencilConfig = await import(path.join(rootDir, 'stencil.config.ts')).catch(() => ({ config: {} }))
+    const stencilConfig = await importStencilConfig(rootDir)
     const stencilPlugins = stencilConfig.config.plugins
     const stencilOptimizations: InlineConfig = {
         plugins: [await stencilVitePlugin(rootDir)],
@@ -47,7 +47,7 @@ export async function optimizeForStencil(rootDir: string) {
 
 async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
     const { transpileSync, ts } = await import('@stencil/core/compiler/stencil.js')
-    const stencilHelperPath = path.resolve(__dirname, 'fixtures', 'stencil.js')
+    const stencilHelperPath = path.resolve(__dirname, '..', '..', 'browser', 'fixtures', 'stencil.js')
     return {
         name: 'wdio-stencil',
         enforce: 'pre',
@@ -62,7 +62,29 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
                 .filter((imp) => imp.specifier === STENCIL_IMPORT)
                 .map((imp) => parseStaticImport(imp))
             const isStencilComponent = stencilImports.some((imp) => 'Component' in (imp.namedImports || {}))
+
+            /**
+             * if file doesn't define a Stencil component
+             */
             if (!isStencilComponent) {
+                /**
+                 * if a test imports the `@wdio/browser-runner/stencil` package we want to automatically
+                 * import `h` and `Fragment` from the `@stencil/core` package
+                 */
+                const stencilHelperImport = staticImports.find((imp) => imp.specifier === '@wdio/browser-runner/stencil')
+                if (stencilHelperImport) {
+                    const imports = parseStaticImport(stencilHelperImport)
+                    const hasHImport = stencilImports.find((imp) => 'h' in (imp.namedImports || {}))
+                    const hasFragmentImport = stencilImports.find((imp) => 'Fragment' in (imp.namedImports || {}))
+                    if ('render' in (imports.namedImports || {})) {
+                        if (!hasHImport) {
+                            code = `import { h } from '@stencil/core';\n${code}`
+                        }
+                        if (!hasFragmentImport) {
+                            code = `import { Fragment } from '@stencil/core';\n${code}`
+                        }
+                    }
+                }
                 return { code }
             }
 
@@ -155,4 +177,22 @@ function getCompilerOptions(ts: any, rootDir: string): CompilerOptions | null {
 
     _tsCompilerOptions = parseResult.options
     return _tsCompilerOptions
+}
+
+/**
+ * helper method to import a Stencil config file
+ */
+export async function importStencilConfig(rootDir: string) {
+    const configPath = path.join(rootDir, 'stencil.config.ts')
+    const config = await import(configPath).catch(() => ({ config: {} }))
+
+    /**
+     * if we import the config within a CJS environment we need to
+     * access the default property even though there is a named export
+     */
+    if ('default' in config) {
+        return config.default
+    }
+
+    return config
 }
