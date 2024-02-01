@@ -28,7 +28,6 @@ import {
     setSupportsShadowDom,
     startAutoApplyChanges,
     styles,
-    win,
     writeTask,
     // @ts-expect-error
 } from '@stencil/core/internal/testing/index.js'
@@ -52,15 +51,16 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         throw new Error('NewSpecPageOptions required')
     }
 
+    const components = opts.components || []
     const stencilStage = document.querySelector('stencil-stage')
     if (stencilStage) {
         stencilStage.remove()
     }
-    const stage = document.createElement('stencil-stage')
-    document.body.appendChild(stage)
+    const container = document.createElement('stencil-stage')
+    document.body.appendChild(container)
 
-    if (Array.isArray(opts.components)) {
-        registerComponents(opts.components)
+    if (Array.isArray(components)) {
+        registerComponents(components)
     }
 
     if (opts.hydrateClientSide) {
@@ -78,16 +78,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         }
     }
     const cmpTags = new Set<string>()
-    const doc = win.document
-
-    const page = {
-        win: win,
-        doc: doc,
-        body: stage as any,
-        styles
-    } as const
-
-    const lazyBundles: LazyBundlesRuntimeData = opts.components.map((Cstr: ComponentTestingConstructor) => {
+    const lazyBundles: LazyBundlesRuntimeData = components.map((Cstr: ComponentTestingConstructor) => {
         // eslint-disable-next-line eqeqeq
         if (Cstr.COMPILER_META == null) {
             throw new Error('Invalid component class: Missing static "COMPILER_META" property.')
@@ -122,12 +113,18 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         return lazyBundleRuntimeMeta
     })
 
+    const page = {
+        container,
+        styles,
+        flushAll
+    } as const
+
     if (typeof opts.direction === 'string') {
-        page.doc.documentElement.setAttribute('dir', opts.direction)
+        document.documentElement.setAttribute('dir', opts.direction)
     }
 
     if (typeof opts.language === 'string') {
-        page.doc.documentElement.setAttribute('lang', opts.language)
+        document.documentElement.setAttribute('lang', opts.language)
     }
 
     bootstrapLazy(lazyBundles)
@@ -142,7 +139,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             $flags$: 0,
             $modeName$: undefined,
             $cmpMeta$: cmpMeta,
-            $hostElement$: page.body,
+            $hostElement$: document.body,
         }
         renderVdom(ref, opts.template())
     }
@@ -151,12 +148,12 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
     Object.defineProperty(page, 'root', {
         get() {
             if (!rootComponent) {
-                rootComponent = findRootComponent(cmpTags, page.body)
+                rootComponent = findRootComponent(cmpTags, document.body)
             }
             if (rootComponent) {
                 return rootComponent
             }
-            const firstElementChild = page.body.firstElementChild
+            const firstElementChild = document.body.firstElementChild
             if (!firstElementChild) {
                 return firstElementChild as any
             }
@@ -165,15 +162,14 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
     })
 
     if (opts.hydrateServerSide) {
-        insertVdomAnnotations(doc, [])
+        insertVdomAnnotations(document, [])
     }
 
     if (opts.autoApplyChanges) {
         startAutoApplyChanges()
     }
 
-    flushAll()
-    return { flushAll }
+    return page
 }
 
 /**

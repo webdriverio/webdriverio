@@ -6,7 +6,7 @@ import { NestedComponent } from './components/StencilComponentNested.jsx'
 
 describe('Stencil Component Testing', () => {
     it('should render component correctly', async () => {
-        render({
+        const page = render({
             components: [AppProfile, NestedComponent],
             autoApplyChanges: true,
             template: () => (
@@ -41,5 +41,8 @@ describe('Stencil Component Testing', () => {
             "value": 700,
           }
         `)
+
+        expect(page.container.tagName.toLowerCase()).toBe('stencil-stage')
+        expect(page.root.tagName.toLowerCase()).toBe('app-profile')
     })
 })

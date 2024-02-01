@@ -81,3 +81,47 @@ test('optimizeForStencil', async () => {
         code: "import { Component, Prop, h } from 'something else'"
     })
 })
+
+test('auto imports "h" from Stencil', async () => {
+    const opt = await optimizeForStencil('/foo/bar')
+    const codeWithoutFragment = `
+    import { some as thing } from '@stencil/core';
+    import { h, foobar } from '@stencil/core';
+    import { render as renderMe } from '@wdio/browser-runner/stencil';
+
+    console.log("Hello");
+    `
+
+    const transformedCode = (opt.plugins?.[0] as any).transform(
+        codeWithoutFragment,
+        '/foo/bar/StencilComponent.tsx', {}
+    )
+    expect(transformedCode).toEqual({
+        code: expect.stringContaining('import { Fragment } from \'@stencil/core\';')
+    })
+    expect(transformedCode).toEqual({
+        code: expect.not.stringContaining('import { h } from \'@stencil/core\';')
+    })
+})
+
+test('auto imports "h" and "Fragment" from Stencil', async () => {
+    const opt = await optimizeForStencil('/foo/bar')
+    const codeWithoutAny = `
+    import { some as thing } from '@stencil/core';
+    import { foobar } from '@stencil/core';
+    import { render as renderMe } from '@wdio/browser-runner/stencil';
+
+    console.log("Hello");
+    `
+
+    const transformedCode = (opt.plugins?.[0] as any).transform(
+        codeWithoutAny,
+        '/foo/bar/StencilComponent.tsx', {}
+    )
+    expect(transformedCode).toEqual({
+        code: expect.stringContaining('import { Fragment } from \'@stencil/core\';')
+    })
+    expect(transformedCode).toEqual({
+        code: expect.stringContaining('import { h } from \'@stencil/core\';')
+    })
+})

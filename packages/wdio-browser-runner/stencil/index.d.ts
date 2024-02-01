@@ -6,7 +6,7 @@ interface RenderOptions {
     /**
      * An array of components to test. Component classes can be imported into the spec file, then their reference should be added to the `component` array in order to be used throughout the test.
      */
-    components: any[];
+    components?: any[];
     /**
      * If `false`, do not flush the render queue on initial test setup.
      */
@@ -65,6 +65,18 @@ interface StencilEnvironment {
      * wait for, and apply the update, call await `flushAll()`.
      */
     flushAll: () => void
+    /**
+     * All styles defined by components.
+     */
+    styles: Record<string, string>
+    /**
+     * Container element in which the template is being rendered.
+     */
+    container: HTMLElement
+    /**
+     * The root component of the template.
+     */
+    root: HTMLElement
 }
 
 export function render(opts: RenderOptions): StencilEnvironment

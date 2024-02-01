@@ -35,7 +35,6 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
-    #testStatePromise: Promise<TestState>
     #resolveTestStatePromise?: (value: TestState) => void
 
     constructor (
@@ -50,14 +49,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
-
-        /**
-         * create promise to resolve test state which is being sent through the socket
-         * connection from the browser through the main process to the worker
-         */
-        this.#testStatePromise = new Promise((resolve) => {
-            this.#resolveTestStatePromise = resolve
-        })
     }
 
     /**
@@ -107,6 +98,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
         /**
+         * create promise to resolve test state which is being sent through the socket
+         * connection from the browser through the main process to the worker
+         */
+        const testStatePromise = new Promise<TestState>((resolve) => {
+            this.#resolveTestStatePromise = resolve
+        })
+
+        /**
          * if a `sessionId` is part of `this._config` it means we are in watch mode and are
          * re-using a previous session. Since Vite has already a hot-reload feature, there
          * is no need to call the url command again
@@ -139,7 +138,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             this.#checkForTestError.bind(this),
             ERROR_CHECK_INTERVAL)
 
-        const state: TestState = await this.#testStatePromise
+        const state: TestState = await testStatePromise
         clearTimeout(testTimeout)
         clearInterval(errorInterval)
 
