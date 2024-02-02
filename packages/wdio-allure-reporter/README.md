@@ -1,7 +1,7 @@
 WDIO Allure Reporter
 ====================
 
-> A WebdriverIO reporter plugin to create [Allure Test Reports](https://docs.qameta.io/allure-report/).
+> A WebdriverIO reporter plugin to create [Allure Test Reports](https://allurereport.org/docs/webdriverio/).
 
 ![Allure Reporter Example](/img/allure.png)
 
@@ -165,7 +165,7 @@ Feature: Test user role
 
 ## Displaying the report
 
-The results can be consumed by any of the [reporting tools](https://docs.qameta.io/allure#_reporting) offered by Allure. For example:
+The results can be consumed by any of the [reporting tools](https://allurereport.org/) offered by Allure. For example:
 
 ### Command-line
 
@@ -219,7 +219,7 @@ export const config = {
 
 ### Jenkins
 
-Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#_jenkins)
+Install and configure the [Allure Jenkins plugin](https://allurereport.org/docs/integrations-jenkins/)
 
 ## Add Screenshots
 

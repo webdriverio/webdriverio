@@ -2,7 +2,7 @@ import type { Environment } from './types.js'
 import type { ReportOptions } from 'istanbul-reports'
 
 export const SESSIONS = new Map<string, Environment>()
-export const BROWSER_POOL: Map<string, WebdriverIO.Browser> = new Map()
+export const WDIO_EVENT_NAME = 'wdio:workerMessage'
 
 export const EVENTS = {
     'suite': 'suite:start',
@@ -18,14 +18,6 @@ export const EVENTS = {
 } as const
 
 export const FRAMEWORK_SUPPORT_ERROR = 'Currently only "mocha" is supported as framework when using @wdio/browser-runner.'
-
-export enum MESSAGE_TYPES {
-    consoleMessage = 0,
-    commandRequestMessage,
-    commandResponseMessage,
-    hookTriggerMessage,
-    hookResultMessage
-}
 
 export const DEFAULT_INCLUDE = ['**']
 export const DEFAULT_FILE_EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']

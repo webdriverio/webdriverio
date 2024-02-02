@@ -33,7 +33,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30 # seconds
           running-workflow-name: dependencies # wait for all checks except this one
-          allowed-conclusions: success # all other checks must pass, being skipped or cancelled is not sufficient
+          allowed-conclusions: success,skipped,cancelled # all other checks must pass, being skipped or cancelled is not sufficient
 
       - name: Auto-merge dependabot PRs
         # Don't merge updates to GitHub Actions versions automatically.

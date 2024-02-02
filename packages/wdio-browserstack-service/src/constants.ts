@@ -46,3 +46,17 @@ export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTa
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
 export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
+
+export const PERCY_LOGS_FILE = 'logs/percy.log'
+
+export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
+    '/session/:sessionId/url',
+    '/session/:sessionId/forward',
+    '/session/:sessionId/back',
+    '/session/:sessionId/refresh',
+    '/session/:sessionId/screenshot',
+    '/session/:sessionId/actions',
+    '/session/:sessionId/appium/device/shake'
+]
+
+export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']

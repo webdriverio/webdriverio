@@ -5,6 +5,7 @@ import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
+import type { AsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 
 const log = logger('@wdio/runner')
@@ -179,4 +180,34 @@ export function getInstancesData (
     })
 
     return instances
+}
+
+const SUPPORTED_ASYMMETRIC_MATCHER = {
+    Any: 'any',
+    Anything: 'anything',
+    ArrayContaining: 'arrayContaining',
+    ObjectContaining: 'objectContaining',
+    StringContaining: 'stringContaining',
+    StringMatching: 'stringMatching',
+    CloseTo: 'closeTo'
+} as const
+
+/**
+ * utility function to transform assertion parameters into asymmetric matchers if necessary
+ * @param arg raw value or a stringified asymmetric matcher
+ * @returns   raw value or an actual asymmetric matcher
+ */
+export function transformExpectArgs (arg: any) {
+    if (typeof arg === 'object' && '$$typeof' in arg && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
+        const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
+        const matcher: any = arg.inverse ? expect.not[matcherKey] : expect[matcherKey]
+
+        if (!matcher) {
+            throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
+        }
+
+        return matcher(arg.sample)
+    }
+
+    return arg
 }

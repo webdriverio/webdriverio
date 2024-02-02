@@ -165,6 +165,7 @@ export default class WebDriver {
  */
 export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
+export * from './constants.js'
 export * from './bidi/handler.js'
 export * as local from './bidi/localTypes.js'
 export * as remote from './bidi/remoteTypes.js'

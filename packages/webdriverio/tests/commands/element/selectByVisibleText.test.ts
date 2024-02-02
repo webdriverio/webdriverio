@@ -1,8 +1,8 @@
 import path from 'node:path'
+import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
-import { ELEMENT_KEY } from '../../../src/constants.js'
 import * as utils from '../../../src/utils/index.js'
 
 vi.mock('fetch')

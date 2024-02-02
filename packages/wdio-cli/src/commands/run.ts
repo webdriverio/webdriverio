@@ -71,6 +71,17 @@ export const cmdArgs = {
         desc: 'timeout for all waitForXXX commands',
         type: 'number'
     },
+    updateSnapshots: {
+        alias: 's',
+        desc: 'update DOM, image or test snapshots',
+        type: 'string',
+        coerce: (value: string) => {
+            if (value === '') {
+                return 'all'
+            }
+            return value
+        }
+    },
     framework: {
         alias: 'f',
         desc: 'defines the framework (Mocha, Jasmine or Cucumber) to run the specs',

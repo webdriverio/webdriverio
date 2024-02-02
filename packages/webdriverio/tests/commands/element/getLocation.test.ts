@@ -23,24 +23,6 @@ describe('getLocation test', () => {
         expect(size.y).toBe(20)
     })
 
-    it('should allow to get the width and height of an element using jsonwp spec', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                // @ts-ignore mock feature
-                jsonwpMode: true,
-                browserName: 'foobar'
-            }
-        } as any)
-        const elem = await browser.$('#foo')
-        const size = await elem.getLocation()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/location')
-        expect(size.x).toBe(15)
-        expect(size.y).toBe(20)
-    })
-
     it('should allow to get the x or y value of an element', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

@@ -1,0 +1,3 @@
+// Snapshot v1
+
+exports[`React Component Testing > supports snapshot tests 1`] = `"<div><button>Current theme: light</button></div>"`;

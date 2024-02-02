@@ -109,7 +109,7 @@ describe('isDisplayed test', () => {
             .toBe('/session/foobar-123/execute/sync')
     })
 
-    it('should refect React element if non existing', async () => {
+    it('should refetch React element if non existing', async () => {
         elem = await browser.react$('FooCmp')
         // @ts-ignore test scenario
         delete elem.elementId

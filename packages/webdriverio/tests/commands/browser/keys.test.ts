@@ -30,49 +30,11 @@ describe('keys', () => {
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
-    it('should send keys (no w3c)', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.keys('foobar')
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toEqual(JSON.stringify({ value: ['f', 'o', 'o', 'b', 'a', 'r'] }))
-
-        await browser.keys('Enter')
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toEqual(JSON.stringify({ value: ['\uE007'] }))
-    })
-
-    it('should allow send keys as array', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toEqual(JSON.stringify({ value: ['f', 'o', '\uE007', 'b', 'a', 'r'] }))
-
-        await browser.keys('Enter')
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toEqual(JSON.stringify({ value: ['\uE007'] }))
-    })
-
     it('should throw if invalid character was provided', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
+                browserName: 'foobar'
             }
         })
 
@@ -97,6 +59,21 @@ describe('keys', () => {
             { type: 'keyDown', value: 'c' },
             { type: 'pause', duration: 10 },
             { type: 'keyUp', value: expect.any(String) },
+            { type: 'keyUp', value: 'c' }
+        ])
+    })
+
+    it('should not send a pause for iOS', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'safari',
+                platformName: 'iOS',
+            }
+        })
+        await browser.keys(['c'])
+        expect(vi.mocked(got).mock.calls[1][1].json.actions[0].actions).toEqual([
+            { type: 'keyDown', value: 'c' },
             { type: 'keyUp', value: 'c' }
         ])
     })

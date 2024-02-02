@@ -6,6 +6,11 @@ import type * as Reporters from './Reporters.js'
 import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
 
+/**
+ * exported constant values
+ */
+export { MESSAGE_TYPES } from './Workers.js'
+
 export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
 
 export type JsonPrimitive = string | number | boolean | null

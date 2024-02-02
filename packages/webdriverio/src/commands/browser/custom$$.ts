@@ -1,6 +1,7 @@
+import { ELEMENT_KEY } from 'webdriver'
+
 import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
-import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction, CustomStrategyReference } from '../../types.js'
 
 /**

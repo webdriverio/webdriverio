@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest'
 
 import DevTools from '../packages/devtools/build/index.js'
-import { ELEMENT_KEY } from '../packages/devtools/build/constants.js'
+import { ELEMENT_KEY } from '../packages/webdriver/build/constants.js'
 
 import type { Client } from '../packages/devtools/build/index.js'
 

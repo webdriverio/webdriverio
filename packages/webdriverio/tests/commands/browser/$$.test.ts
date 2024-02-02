@@ -1,7 +1,8 @@
 import path from 'node:path'
+
+import { ELEMENT_KEY } from 'webdriver'
 import { describe, it, afterEach, expect, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { ELEMENT_KEY } from '../../../src/constants.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

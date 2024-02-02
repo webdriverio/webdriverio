@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { findElement } from '../../src/utils/index.js'
-import { ELEMENT_KEY } from '../../src/constants.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)

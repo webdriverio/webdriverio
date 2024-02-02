@@ -11,7 +11,7 @@ import {
     frameworkSupportsHook,
     getCloudProvider, getFailureObject,
     getGitMetaData,
-    getHookType,
+    getHookType, getPlatformVersion,
     getScenarioExamples,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
@@ -871,23 +871,8 @@ class _InsightsHandler {
             browser_version: this._platformMeta?.browserVersion,
             platform: this._platformMeta?.platformName,
             product: this._platformMeta?.product,
-            platform_version: this.getPlatformVersion()
+            platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
         }
-    }
-
-    private getPlatformVersion() {
-        const caps = (this._userCaps as WebdriverIO.Capabilities)
-        const bstackOptions = (this._userCaps as WebdriverIO.Capabilities)?.['bstack:options']
-        const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
-
-        for (const key of keys) {
-            if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
-                return bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]
-            } else if (caps[key as keyof WebdriverIO.Capabilities]) {
-                return caps[key as keyof WebdriverIO.Capabilities]
-            }
-        }
-        return null
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {

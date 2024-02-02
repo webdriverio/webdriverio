@@ -42,9 +42,5 @@ export async function setWindowSize(
 
     const browser = getBrowserObject(this)
 
-    if (!browser.isW3C) {
-        return browser._setWindowSize(width, height)
-    }
-
     await browser.setWindowRect(null, null, width, height)
 }

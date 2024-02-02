@@ -135,7 +135,7 @@ describe('CucumberAdapter', () => {
     it('can run without errors', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { format: [] }
-        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.registerRequiredModules = vi.fn()
         adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
@@ -217,7 +217,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
         adapter.addWdioHooks(
             {
@@ -325,7 +325,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -353,7 +353,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -381,7 +381,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -409,7 +409,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -437,7 +437,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -465,7 +465,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -493,7 +493,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -520,7 +520,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
@@ -538,7 +538,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(2)
@@ -566,7 +566,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -593,7 +593,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             true,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(0)

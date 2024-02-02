@@ -3,13 +3,14 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
+import { matchers } from 'expect-webdriverio'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 } from '@wdio/protocols'
@@ -21,7 +22,7 @@ const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const commands = deepmerge(
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 )
@@ -51,10 +52,12 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
-    const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
-    const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
-    const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
+    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
+    const mockModulePath = path.resolve(browserModules, 'mock.js')
+    const setupModulePath = path.resolve(browserModules, 'setup.js')
+    const spyModulePath = path.resolve(browserModules, 'spy.js')
+    const wdioExpectModulePath = path.resolve(browserModules, 'expect.js')
     return [{
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -67,12 +70,27 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                 return polyfillPath(normalizeId(id.replace('/promises', '')))
             }
 
+            /**
+             * fake the content of this package and load the implementation of the mock
+             * features from the browser module directory
+             */
             if (id === '@wdio/browser-runner') {
                 return spyModulePath
             }
 
+            /**
+             * allow to load the setup script from a script tag
+             */
             if (id.endsWith('@wdio/browser-runner/setup')) {
                 return setupModulePath
+            }
+
+            /**
+             * run WebdriverIO assertions within the Node.js context so we can do things like
+             * visual assertions or snapshot testing
+             */
+            if (id === 'expect-webdriverio') {
+                return wdioExpectModulePath
             }
 
             /**
@@ -98,6 +116,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
+                    export const matchers = ${JSON.stringify(Object.keys(matchers))}
                     export const wrappedFn = (...args) => fn()(...args)
                 `
             }

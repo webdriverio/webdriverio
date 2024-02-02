@@ -1,7 +1,7 @@
 /// <reference path="../../webdriverio/src/@types/async.d.ts" />
 import path from 'node:path'
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import logger from '@wdio/logger'
 import type { StdLog } from '../src/index.js'
 
@@ -600,6 +600,11 @@ describe('afterHook', () => {
 
 describe('getIntegrationsObject', () => {
     let insightsHandler: InsightsHandler
+    let getPlatformVersionSpy
+
+    beforeAll(() => {
+        getPlatformVersionSpy = vi.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+    })
 
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, false, 'framework')
@@ -607,7 +612,13 @@ describe('getIntegrationsObject', () => {
     })
 
     it('return hash', () => {
-        expect(insightsHandler['getIntegrationsObject']()).toBeInstanceOf(Object)
+        const integrationsObject = insightsHandler['getIntegrationsObject']()
+        expect(integrationsObject).toBeInstanceOf(Object)
+        expect(integrationsObject.platform_version).toEqual('some version')
+    })
+
+    afterAll(() => {
+        getPlatformVersionSpy.mockReset()
     })
 })
 
