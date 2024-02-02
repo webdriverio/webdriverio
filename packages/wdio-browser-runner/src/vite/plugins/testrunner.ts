@@ -10,7 +10,7 @@ import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 } from '@wdio/protocols'
@@ -22,7 +22,7 @@ const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const commands = deepmerge(
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 )

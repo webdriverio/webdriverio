@@ -31,45 +31,11 @@ describe('keys', () => {
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
-    it('should send keys (no w3c)', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.keys('foobar')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
-
-        await browser.keys('Enter')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
-    })
-
-    it('should allow send keys as array', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
-
-        await browser.keys('Enter')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
-        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
-    })
-
     it('should throw if invalid character was provided', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
+                browserName: 'foobar'
             }
         })
 

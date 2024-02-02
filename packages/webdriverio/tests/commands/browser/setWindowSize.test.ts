@@ -28,22 +28,6 @@ describe('setWindowSize', () => {
             .toEqual({ x: null, y: null, width: 777, height: 888 })
     })
 
-    it('should resize NO-W3C browser window', async () => {
-        browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.setWindowSize(999, 1111)
-        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
-            .toBe('/session/foobar-123/window/current/size')
-        expect(vi.mocked(got).mock.calls[1][1]!.json)
-            .toEqual({ width: 999, height: 1111 })
-    })
-
     describe('input checks', () => {
         it('should throw error if width or height is not number', async () => {
             const invalidTypeError = 'setWindowSize expects width and height of type number'

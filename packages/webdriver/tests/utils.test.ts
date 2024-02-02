@@ -39,21 +39,12 @@ describe('utils', () => {
     })
 
     it('getPrototype', () => {
-        const isW3C = false
         const isChrome = false
         const isMobile = false
         const isSauce = false
         const isIOS = false
         const isAndroid = false
         const isSeleniumStandalone = false
-
-        const jsonWireProtocolPrototype = getPrototype({
-            isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
-        })
-        expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
-        expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
-        expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
-        expect(typeof jsonWireProtocolPrototype.lock).toBe('undefined')
 
         const webdriverPrototype = getPrototype({
             isW3C: true, isChrome, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid

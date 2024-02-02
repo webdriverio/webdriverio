@@ -60,64 +60,6 @@ describe('setTimeout', () => {
         expect((vi.mocked(got).mock.calls[5][1] as any).json).toEqual({})
     })
 
-    it('should set timeout (no w3c)', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        await browser.setTimeout({ implicit: 5000 })
-        expect(vi.mocked(got).mock.calls).toHaveLength(2)
-        expect((vi.mocked(got).mock.calls[1][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[1][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[1][1] as any).json)
-            .toEqual({ type: 'implicit', ms: 5000 })
-
-        await browser.setTimeout({ pageLoad: 10000 })
-        expect(vi.mocked(got).mock.calls).toHaveLength(3)
-        expect((vi.mocked(got).mock.calls[2][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[2][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[2][1] as any).json)
-            .toEqual({ type: 'page load', ms: 10000 })
-
-        await browser.setTimeout({ script: 60000 })
-        expect(vi.mocked(got).mock.calls).toHaveLength(4)
-        expect((vi.mocked(got).mock.calls[3][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[3][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[3][1] as any).json)
-            .toEqual({ type: 'script', ms: 60000 })
-
-        await browser.setTimeout({
-            implicit: 0,
-            pageLoad: 300000,
-            script: 30000,
-        })
-        expect(vi.mocked(got).mock.calls).toHaveLength(7)
-        expect((vi.mocked(got).mock.calls[4][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[4][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[4][1] as any).json)
-            .toEqual({ type: 'implicit', ms: 0 })
-        expect((vi.mocked(got).mock.calls[5][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[5][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[5][1] as any).json)
-            .toEqual({ type: 'page load', ms: 300000 })
-        expect((vi.mocked(got).mock.calls[6][1] as any).method).toBe('POST')
-        expect((vi.mocked(got).mock.calls[6][0] as any).pathname)
-            .toBe('/session/foobar-123/timeouts')
-        expect((vi.mocked(got).mock.calls[6][1] as any).json)
-            .toEqual({ type: 'script', ms: 30000 })
-
-        await browser.setTimeout({})
-        expect(vi.mocked(got).mock.calls).toHaveLength(7)
-    })
-
     it('should throw error on setting invalid timeout', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

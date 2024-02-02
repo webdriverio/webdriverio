@@ -10,7 +10,7 @@ describe('main suite 1', () => {
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
-        await expect($('.findme')).toMatchInlineSnapshot(`"<h1 class="findme">Test CSS Attributes</h1>"`)
+        await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
     it('should allow to check for PWA', async () => {

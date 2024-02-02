@@ -51,7 +51,7 @@ const sessionOptions = {
 // @ts-expect-error
 interface TestClient extends Client {
     getUrl (): string
-    getApplicationCacheStatus (): void
+    rotateDevice (): void
     takeElementScreenshot (): void
     getDeviceTime (): void
 }
@@ -189,22 +189,8 @@ describe('WebDriver', () => {
             expect(client.isChrome).toBeFalsy()
             expect(client.isMobile).toBeFalsy()
             expect(client.isSauce).toBeFalsy()
-            expect(client.getApplicationCacheStatus).toBeFalsy()
+            expect(client.rotateDevice).toBeFalsy()
             expect(client.takeElementScreenshot).toBeTruthy()
-            expect(client.getDeviceTime).toBeFalsy()
-        })
-
-        it('should allow to attach to existing session - non W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions,
-                isW3C: false,
-                isSauce: true,
-            }) as any as TestClient
-
-            await client.getUrl()
-
-            expect(client.isSauce).toBe(true)
-            expect(client.getApplicationCacheStatus).toBeTruthy()
-            expect(client.takeElementScreenshot).toBeFalsy()
             expect(client.getDeviceTime).toBeFalsy()
         })
 
@@ -218,7 +204,7 @@ describe('WebDriver', () => {
 
             expect(client.isChrome).toBe(true)
             expect(client.isMobile).toBe(true)
-            expect(client.getApplicationCacheStatus).toBeTruthy()
+            expect(client.rotateDevice).toBeTruthy()
             expect(client.takeElementScreenshot).toBeTruthy()
             expect(client.getDeviceTime).toBeTruthy()
         })

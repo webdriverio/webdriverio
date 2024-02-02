@@ -5,8 +5,6 @@ import { getBrowserObject } from '../../utils/index.js'
 
 const ACTION_BUTTON = 0 as const
 
-const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
-
 type DragAndDropOptions = {
     duration?: number
 }
@@ -84,18 +82,6 @@ export async function dragAndDrop (
      * allow to specify an element or an x/y vector
      */
     const isMovingToElement = target.constructor.name === 'Element'
-
-    if (!this.isW3C) {
-        await this.moveTo()
-        await this.buttonDown(ACTION_BUTTON)
-
-        isMovingToElement
-            ? await moveToElement.moveTo()
-            : await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
-
-        await sleep(duration)
-        return this.buttonUp(ACTION_BUTTON)
-    }
 
     const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
     const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
