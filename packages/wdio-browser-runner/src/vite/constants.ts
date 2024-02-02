@@ -40,7 +40,7 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
          * the following deps are CJS packages and need to be optimized (compiled to ESM) by Vite
          */
         include: [
-            'expect', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
+            'expect', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip', 'ws',
             'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
             'css-value', 'rgb2hex', 'p-iteration', 'deepmerge-ts', 'jest-util', 'jest-matcher-utils', 'split2'
         ],

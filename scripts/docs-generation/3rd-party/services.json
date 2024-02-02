@@ -212,5 +212,11 @@
     "title": "Robonut",
     "githubUrl": "https://github.com/udarrr/wdio-robonut-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-robonut-service"
-  }
+  },
+  {
+    "packageName": "wdio-qunit-service",
+    "title": "QUnit",
+    "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
+   }
 ]

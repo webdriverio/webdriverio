@@ -64,17 +64,58 @@ expect.extend(matchers.reduce((acc, matcherName) => {
         if ('elementId' in context && typeof context.elementId === 'string') {
             expectRequest.element = context
         }
+
         /**
          * Check if context is ChainablePromiseElement
          */
         if ('then' in context && typeof (context as any).selector === 'object') {
             expectRequest.element = await context
         }
+
         /**
          * Check if context is a `Element` and transtform it into a WebdriverIO.Element
          */
         if (context instanceof Element) {
             expectRequest.element = await $(context as any as HTMLElement)
+        } else if (typeof context === 'object' && !('sessionId' in context)) {
+            /**
+             * check if context is an object or promise and resolve it
+             * but not pass through the browser object
+             */
+            expectRequest.context = context
+            if ('then' in context) {
+                expectRequest.context = await context
+            }
+        }
+
+        /**
+         * Avoid serialization issues when sending over the element. If we create
+         * an element from an existing HTMLElement, it might have custom properties
+         * attached to it that can't be serialized.
+         */
+        if (expectRequest.element && typeof expectRequest.element.selector !== 'string') {
+            expectRequest.element.selector = undefined
+        }
+
+        /**
+         * pass along the stack trace from the browser to the testrunner so that
+         * the snapshot tool can determine the correct location to update the
+         * snapshot call.
+         */
+        if (matcherName === 'toMatchInlineSnapshot') {
+            expectRequest.scope.errorStack = (new Error('inline snapshot error'))
+                .stack
+                ?.split('\n')
+                .find((line) => line.includes(window.__wdioSpec__))
+                /**
+                 * stack traces within the browser have an url path, e.g.
+                 * `http://localhost:8080/@fs/path/to/__tests__/unit/snapshot.test.js:123:45`
+                 * that we want to remove so that the stack trace is properly
+                 * parsed by Vitest, e.g. make it to:
+                 * `/__tests__/unit/snapshot.test.js:123:45`
+                 */
+                ?.replace(/http:\/\/localhost:\d+/g, '')
+                .replace('/@fs/', '/')
         }
 
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })

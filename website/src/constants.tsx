@@ -228,6 +228,8 @@ describe('Component Testing', () => {
         await button.click()
         await button.click()
 
-        getByText('count is 2')
+        await expect(button).toMatchInlineSnapshot(
+            "count is 2"
+        )
     })
 })`

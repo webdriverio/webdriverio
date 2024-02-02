@@ -147,7 +147,7 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.log).toBeCalledTimes(1)
-        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'foo')
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'white bgRed bold  Error: ', 'foo')
     })
 
     it('should print message on worker error', () => {
@@ -160,7 +160,7 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.log).toBeCalledTimes(1)
-        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'bar')
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'white bgRed bold  Error: ', 'bar')
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
@@ -280,7 +280,7 @@ describe('cli interface', () => {
             cid,
             job,
             retries: 0,
-            message: chalk.bold.cyan('RUNNING')
+            message: chalk.bold(chalk.cyan('RUNNING'))
         }, {
             method: 'onSpecRetry',
             cid,
@@ -292,13 +292,13 @@ describe('cli interface', () => {
             cid,
             job,
             retries,
-            message: chalk.bold.green('PASSED')
+            message: chalk.bold(chalk.green('PASSED'))
         }, {
             method: 'onSpecFailure',
             cid,
             job,
             retries,
-            message: chalk.bold.red('FAILED')
+            message: chalk.bold(chalk.red('FAILED'))
         }]
 
         scenarios.forEach(scenario => {

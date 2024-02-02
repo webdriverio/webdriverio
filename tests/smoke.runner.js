@@ -740,8 +740,95 @@ const runSpecsWithFlagNoArg = async () => {
     assert.strictEqual(passed, 3)
     assert.strictEqual(skippedSpecs, 0)
 }
+
+const cliExcludeParamValidationAllExcludedByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['general']
+        }
+    ).catch((err) => err) // expected error
+
+    assert.strictEqual(passed, undefined)
+    assert.strictEqual(skippedSpecs, undefined)
+    assert.strictEqual(failed, undefined)
+}
+
+const cliExcludeParamValidationSomeExcludedByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['general2']
+        }
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationSomeExcludedByPath = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['./general.test.js']
+        }
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeNonExistentByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: ['newgeneral']
+        }
+    )
+
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeFromConfigByKeyword = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.with-exclude-prop.conf.js')
+    )
+
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeParamValidationAllExcluded',
+        path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
+        {
+            exclude: [
+                './general.test.js',
+                './general2.test.js'
+            ]
+        }
+    )
+
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
 // *** END - tests for CLI --spec ***
 
+// *************************
+// *** Tests for Jasmine ***
+// *************************
 const jasmineHooksTestrunner = async () => {
     const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
     await launch('jasmineHooksTestrunner',
@@ -765,6 +852,59 @@ const jasmineHooksTestrunner = async () => {
         specLogs.includes('skip test'),
     )
 }
+
+const jasmineAfterHookArgsValidation = async () => {
+    const expectedPassedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
+    const expectedFailedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
+
+    // Actual test results are written to files in tests\helpers\jasmine.after-hook-validation.conf.js - afterTest()
+    const actualPassedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsPassed.log')
+    const actualFailedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsFailed.log')
+
+    await launch('jasmineAfterHookArgsValidation',
+        path.resolve(__dirname, 'helpers', 'jasmine.after-hook-validation.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test.after-hook-validation.ts')
+            ]
+        }).catch((err) => err) // error expected
+
+    const actualPassedTestLogs = JSON.parse((await fs.readFile(actualPassedTestResultPath)))
+    const actualFailedTestLogs = JSON.parse((await fs.readFile(actualFailedTestResultPath)))
+    const expectedPassedTestLogs = JSON.parse((await fs.readFile(expectedPassedTestResultPath)))
+    const expectedFailedTestLogs = JSON.parse((await fs.readFile(expectedFailedTestResultPath)))
+
+    // Check before removing
+    assert.equal(typeof actualPassedTestLogs.test.start, 'number')
+    assert.equal(typeof actualPassedTestLogs.result.start, 'number')
+    assert.equal(typeof actualPassedTestLogs.duration, 'number')
+    assert.equal(typeof actualFailedTestLogs.test.start, 'number')
+    assert.equal(typeof actualFailedTestLogs.duration, 'number')
+    assert.equal(typeof actualFailedTestLogs.test.failedExpectations[0].stack, 'string')
+    assert.equal(typeof actualFailedTestLogs.result.failedExpectations[0].stack, 'string')
+    assert.equal(typeof actualFailedTestLogs.result.start, 'number')
+    assert.equal(typeof actualFailedTestLogs.error.stack, 'string')
+
+    // Remove dynamic values that will be different every time you run tests, e.g. start time or filepaths
+    delete actualPassedTestLogs.test.start
+    delete actualPassedTestLogs.test.filename
+    delete actualPassedTestLogs.result.start
+    delete actualPassedTestLogs.result.filename
+    delete actualPassedTestLogs.duration
+    delete actualFailedTestLogs.test.start
+    delete actualFailedTestLogs.test.filename
+    delete actualFailedTestLogs.test.failedExpectations[0].stack
+    delete actualFailedTestLogs.error.stack
+    delete actualFailedTestLogs.result.start
+    delete actualFailedTestLogs.result.filename
+    delete actualFailedTestLogs.result.failedExpectations[0].stack
+    delete actualFailedTestLogs.duration
+
+    assert.deepStrictEqual(actualPassedTestLogs, expectedPassedTestLogs)
+    assert.deepStrictEqual(actualFailedTestLogs, expectedFailedTestLogs)
+}
+// *** END - Tests for Jasmine ***
 
 (async () => {
     const smokeTests = [
@@ -801,7 +941,14 @@ const jasmineHooksTestrunner = async () => {
         runSpecsWithFlagSeveralPassed,
         runSpecsWithFlagDirectPath,
         runSpecsWithFlagNoArg,
-        jasmineHooksTestrunner
+        jasmineHooksTestrunner,
+        jasmineAfterHookArgsValidation,
+        cliExcludeParamValidationAllExcludedByKeyword,
+        cliExcludeParamValidationSomeExcludedByKeyword,
+        cliExcludeParamValidationSomeExcludedByPath,
+        cliExcludeParamValidationExcludeNonExistentByKeyword,
+        cliExcludeParamValidationExcludeFromConfigByKeyword,
+        cliExcludeParamValidationExcludeMultipleSpecsByPath
     ]
 
     console.log('\nRunning smoke tests...\n')

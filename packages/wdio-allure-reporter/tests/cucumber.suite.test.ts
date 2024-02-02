@@ -359,6 +359,44 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
     })
 
+    describe('Unfinished tests', () => {
+        outputDir = temporaryDirectory()
+
+        beforeAll(() => {
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('my-awesome-feature-at-scenario-level'))
+            reporter.onTestStart(cucumberHelper.testStart())
+
+            const suiteResults: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results, containers } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(containers).toHaveLength(1)
+
+            allureResult = results[0]
+            allureContainer = containers[0]
+        })
+
+        afterAll(() => {
+            clean(outputDir)
+            vi.resetAllMocks()
+        })
+
+        it('sets stage and status for tests which haven\'t been finished before the feature', () => {
+            expect(allureResult.steps).toHaveLength(1)
+            expect(allureResult.steps[0].stage).toBe(Stage.FINISHED)
+            expect(allureResult.steps[0].status).toBe(Status.PASSED)
+        })
+    })
+
     describe('Skipped test after several steps passed', () => {
         outputDir = temporaryDirectory()
 

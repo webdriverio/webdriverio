@@ -54,6 +54,21 @@ export interface SessionStartedMessage {
     cid?: string
 }
 
+export interface SnapshotResultMessage {
+    origin: 'worker'
+    name: 'snapshot'
+    content: {
+       filepath: string
+       added: number
+       fileDeleted: boolean
+       matched: number
+       unchecked: number
+       uncheckedKeys: string[]
+       unmatched: number
+       updated: number
+    }[]
+}
+
 export interface SessionEndedMessage {
     origin: 'worker'
     name: 'sessionEnded',
@@ -67,10 +82,4 @@ export interface WorkerResponseMessage {
         id: number
         message: Workers.SocketMessage
     }
-}
-
-export interface WorkerCoverageMapMessage {
-    origin: 'worker'
-    name: 'coverageMap',
-    content: { coverageMap: unknown }
 }

@@ -1,10 +1,11 @@
 import { vi } from 'vitest'
 
 import { EventEmitter } from 'node:events'
-import HookStats from '../../packages/wdio-reporter/src/stats/hook'
-import RunnerStats from '../../packages/wdio-reporter/src/stats/runner'
-import SuiteStats from '../../packages/wdio-reporter/src/stats/suite'
-import TestStats from '../../packages/wdio-reporter/src/stats/test'
+import HookStats from '../../packages/wdio-reporter/src/stats/hook.ts'
+import RunnerStats from '../../packages/wdio-reporter/src/stats/runner.ts'
+import SuiteStats from '../../packages/wdio-reporter/src/stats/suite.ts'
+import TestStats from '../../packages/wdio-reporter/src/stats/test.ts'
+import { Chalk } from '../chalk.ts'
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: { write: Function }
@@ -22,6 +23,7 @@ export default class WDIOReporter extends EventEmitter {
         failures: number
     }
     retries: number
+    _chalk: Chalk
     runnerStat?: RunnerStats
     constructor (public options: any) {
         super()
@@ -41,6 +43,7 @@ export default class WDIOReporter extends EventEmitter {
             failures: 0
         }
         this.retries = 0
+        this._chalk = new Chalk(!options.color ? { level : 0 } : {})
     }
 
     get isSynchronised () {

@@ -174,6 +174,14 @@ const config: Config = {
                     label: 'YouTube',
                     href: youtubeUrl,
                 }],
+            }, {
+                title: 'Sponsored by',
+                items: [{
+                    html: `
+                      <a href="https://www.browserstack.com/automation-webdriverio" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor BrowserStack">
+                        <img src="/img/sponsors/browserstack_white.svg" alt="BrowserStack" />
+                      </a>`
+                }]
             }],
             logo: {
                 alt: 'OpenJS Foundation Logo',

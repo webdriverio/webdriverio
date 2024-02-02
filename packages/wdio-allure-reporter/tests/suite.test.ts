@@ -245,6 +245,35 @@ describe('Failed tests', () => {
         expect(browserParameter.value).toEqual(testStart().cid)
     })
 
+    it('should detect failed test case onTestRetry', () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestRetry(testFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+
+        const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
+
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.FAILED)
+        expect(results[0].parameters).toHaveLength(1)
+        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
+        expect(browserParameter.value).toEqual(testStart().cid)
+
+    })
+
     it('should detect failed test case without start event', () => {
         const reporter = new AllureReporter({ outputDir })
 

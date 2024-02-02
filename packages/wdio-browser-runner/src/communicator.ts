@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
 import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
-import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage, WorkerCoverageMapMessage } from '@wdio/runner'
+import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'
 import { WDIO_EVENT_NAME } from './constants.js'
@@ -13,7 +13,7 @@ import type { ViteServer } from './vite/server.js'
 
 const log = logger('@wdio/browser-runner')
 
-type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerResponseMessage | WorkerCoverageMapMessage | Workers.WorkerEvent
+type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerResponseMessage | Workers.WorkerEvent
 
 interface WorkerMessage {
     id: number

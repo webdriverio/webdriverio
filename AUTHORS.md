@@ -10,7 +10,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [klamping](https://github.com/klamping) - __Kevin Lamping__ <[klamping@pm.me](klamping@pm.me)><br />
 [mgrybyk](https://github.com/mgrybyk) - __Mykola Grybyk__ <[mykola.grybyk@gmail.com](mykola.grybyk@gmail.com)><br />
 [WillBrock](https://github.com/WillBrock) - __Will Brock__ <[wpbrock@gmail.com](wpbrock@gmail.com)><br />
-[wswebcreation](https://github.com/wswebcreation) - __Wim Selles__ <[wim.selles@saucelabs.com](wim.selles@saucelabs.com)>
+[wswebcreation](https://github.com/wswebcreation) - __Wim Selles__ <[wim@techchamps.io](wim@techchamps.io)>
 
 ## Project Committers
 

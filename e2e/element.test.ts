@@ -169,7 +169,7 @@ describe('elements', () => {
     })
 
     it('elementSendKeys can use special characters', async () => {
-        await browser.navigateTo('https://todomvc.com/examples/vue/')
+        await browser.navigateTo('https://todomvc.com/examples/vue/dist/#/')
         const todoInput = await browser.findElement('css selector', '.new-todo')
         await browser.elementSendKeys(todoInput[ELEMENT_KEY], 'ToDo #1\uE007ToDo #2\uE007ToDo #3\uE007')
         const todoCountElem = await browser.findElement('css selector', '.todo-count strong')

@@ -1,0 +1,50 @@
+{
+    "test": {
+        "id": "spec0",
+        "description": "should pass",
+        "fullName": "Jasmine afterTest() hook validation should pass",
+        "parentSuiteId": "suite1",
+        "failedExpectations": [],
+        "passedExpectations": [
+            {
+                "matcherName": "toBe",
+                "message": "Passed.",
+                "stack": "",
+                "passed": true
+            }
+        ],
+        "deprecationWarnings": [],
+        "pendingReason": "",
+        "duration": null,
+        "properties": null,
+        "debugLogs": null
+    },
+    "context": {
+        "wdioRetries": 0
+    },
+    "result": {
+        "id": "spec0",
+        "description": "should pass",
+        "fullName": "Jasmine afterTest() hook validation should pass",
+        "parentSuiteId": "suite1",
+        "failedExpectations": [],
+        "passedExpectations": [
+            {
+                "matcherName": "toBe",
+                "message": "Passed.",
+                "stack": "",
+                "passed": true
+            }
+        ],
+        "deprecationWarnings": [],
+        "pendingReason": "",
+        "duration": null,
+        "properties": null,
+        "debugLogs": null
+    },
+    "passed": true,
+    "retries": {
+        "attempts": 0,
+        "limit": 0
+    }
+}

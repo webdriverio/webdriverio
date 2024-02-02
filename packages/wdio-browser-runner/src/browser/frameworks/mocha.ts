@@ -97,6 +97,17 @@ export class MochaFramework extends HTMLElement {
             }
         }
 
+        const cid = getCID()
+        if (!cid) {
+            throw new Error('"cid" query parameter is missing')
+        }
+
+        const beforeHook = this.#getHook('beforeHook')
+        const beforeTest = this.#getHook('beforeTest')
+        const afterHook = this.#getHook('afterHook')
+        const afterTest = this.#getHook('afterTest')
+        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
+
         /**
          * import test case (order is important here)
          */
@@ -115,30 +126,21 @@ export class MochaFramework extends HTMLElement {
          */
         import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleSocketMessage.bind(this))
 
-        const cid = getCID()
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
-        const beforeHook = this.#getHook('beforeHook')
-        const beforeTest = this.#getHook('beforeTest')
-        const afterHook = this.#getHook('afterHook')
-        const afterTest = this.#getHook('afterTest')
-        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
-
         const self = this
         const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
-        mochaBeforeHook(function () {
-            self.#getHook('beforeSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaBeforeHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('beforeSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
             })
         })
 
         const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
-        mochaAfterHook(function () {
-            self.#getHook('afterSuite')({
-                ...this.test?.parent?.suites[0],
+        mochaAfterHook(async function () {
+            const { title, tests, pending, delayed } = this.test?.parent?.suites[0] || {}
+            await self.#getHook('afterSuite')({
+                ...({ title, tests, pending, delayed }),
                 file,
                 duration: Date.now() - startTime
             })
@@ -169,8 +171,7 @@ export class MochaFramework extends HTMLElement {
         /**
          * propagate results to browser so it can be picked up by the runner
          */
-        window.__wdioEvents__ = this.#runnerEvents
-        window.__wdioFailures__ = failures
+        this.#sendTestReport({ failures, events: this.#runnerEvents })
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
@@ -202,6 +203,13 @@ export class MochaFramework extends HTMLElement {
             }
 
             this.#hookResolver.set(id, { resolve, reject })
+            args = args.map((arg) => {
+                if (typeof arg === 'object') {
+                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
+                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
+                }
+                return arg
+            })
             import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })
     }
@@ -211,6 +219,13 @@ export class MochaFramework extends HTMLElement {
             type: MESSAGE_TYPES.hookTriggerMessage,
             value: JSON.parse(safeStringify(value))
         }
+    }
+
+    #sendTestReport (value: Workers.BrowserTestResults) {
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.browserTestResult,
+            value: JSON.parse(safeStringify(value))
+        })
     }
 }
 

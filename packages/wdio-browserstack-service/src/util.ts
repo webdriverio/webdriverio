@@ -1204,7 +1204,10 @@ export function setupExitHandlers() {
     })
 }
 
-export function getPlatformVersion(caps: WebdriverIO.Capabilities) {
+export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities) {
+    if (!caps) {
+        return undefined
+    }
     const bstackOptions = (caps)?.['bstack:options']
     const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
@@ -1216,5 +1219,5 @@ export function getPlatformVersion(caps: WebdriverIO.Capabilities) {
         }
     }
     return undefined
-}
+})
 

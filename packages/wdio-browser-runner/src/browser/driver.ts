@@ -4,7 +4,7 @@ import { getEnvironmentVars } from 'webdriver'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { browser } from '@wdio/globals'
 
-import { getCID } from './utils.js'
+import { getCID, sanitizeConsoleArgs } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -185,7 +185,7 @@ export default class ProxyDriver {
                 import.meta.hot?.send(WDIO_EVENT_NAME, this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
-                    args,
+                    args: sanitizeConsoleArgs(args),
                     cid
                 }))
                 origCommand(...args)
