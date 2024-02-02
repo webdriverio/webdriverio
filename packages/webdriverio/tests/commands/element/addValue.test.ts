@@ -44,38 +44,6 @@ describe('addValue test', () => {
         })
     })
 
-    describe('should allow to add value to an input element using jsonwp', () => {
-        beforeEach(async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'foobar-noW3C'
-                }
-            })
-        })
-
-        it('add string', async () => {
-            const elem = await browser.$('#foo')
-
-            await elem.addValue('foobar')
-            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(vi.mocked(got).mock.calls[2][1]!.json.value)
-                .toEqual(['foobar'])
-            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual(undefined)
-        })
-
-        it('add number', async () => {
-            const elem = await browser.$('#foo')
-
-            await elem.addValue(42)
-            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['42'])
-            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual(undefined)
-        })
-    })
-
     describe('should allow to add value to an input element as workaround for /webdriverio/issues/4936', () => {
         beforeEach(async () => {
             browser = await remote({

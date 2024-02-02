@@ -4,7 +4,7 @@ import { deepmergeCustom } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Protocol } from '@wdio/protocols'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
@@ -181,8 +181,8 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? deepmerge(JsonWProtocol, WebDriverProtocol)
-            : isW3C ? WebDriverProtocol : JsonWProtocol,
+            ? deepmerge(AppiumProtocol, WebDriverProtocol)
+            : WebDriverProtocol,
         /**
          * enable Bidi protocol for W3C sessions
          */
