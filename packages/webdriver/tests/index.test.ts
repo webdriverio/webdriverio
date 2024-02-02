@@ -241,7 +241,7 @@ describe('WebDriver', () => {
         it('should apply default connection details', () => {
             const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.hostname).toBe('localhost')
             expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
