@@ -117,10 +117,7 @@ describe('startWebDriver', () => {
                 'wdio:safaridriverOptions': {
                     foo: 'bar'
                 },
-            },
-            headers: {
-                Host: 'localhost',
-            },
+            }
         })
         expect(startSafaridriver).toBeCalledTimes(1)
         expect(startSafaridriver).toBeCalledWith({
