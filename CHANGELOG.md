@@ -21,6 +21,82 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.5 (2024-02-01)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`
+  * [#12140](https://github.com/webdriverio/webdriverio/pull/12140) (@wdio/browser-runner): improved stencil test integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.29.4 (2024-01-31)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#12137](https://github.com/webdriverio/webdriverio/pull/12137) Fix Bug#12134 adding a step to clean the buffer after first log. ([@lararojasmr](https://github.com/lararojasmr))
+
+#### Committers: 1
+- Manuel Lara ([@lararojasmr](https://github.com/lararojasmr))
+
+
+## v8.29.3 (2024-01-30)
+
+#### :rocket: New Feature
+* `wdio-config`
+  * [#12077](https://github.com/webdriverio/webdriverio/pull/12077) Feat: Add free text search to '--exclude' param ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#12129](https://github.com/webdriverio/webdriverio/pull/12129) Fix problem with tests which had been finished before the parent suite finished  ([@epszaw](https://github.com/epszaw))
+* `wdio-appium-service`
+  * [#12095](https://github.com/webdriverio/webdriverio/pull/12095) Bug #12094 - Fix _appiumStart method ([@lararojasmr](https://github.com/lararojasmr))
+* `wdio-spec-reporter`
+  * [#12044](https://github.com/webdriverio/webdriverio/pull/12044) Issue 11996: Not skip duplicate steps ([@perillai](https://github.com/perillai))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#12127](https://github.com/webdriverio/webdriverio/pull/12127) update ua-parser-js for ReDoS ([@smarkows](https://github.com/smarkows))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#12131](https://github.com/webdriverio/webdriverio/pull/12131) Missing ' in $ example ([@Meeeee3443](https://github.com/Meeeee3443))
+  * [#12124](https://github.com/webdriverio/webdriverio/pull/12124) (docs): partnership with BrowserStack ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 7
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Klymenko ([@tech-dm-klymenko](https://github.com/tech-dm-klymenko))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- Manuel Lara ([@lararojasmr](https://github.com/lararojasmr))
+- Perillai ([@perillai](https://github.com/perillai))
+- Simon Markowski ([@smarkows](https://github.com/smarkows))
+- [@Meeeee3443](https://github.com/Meeeee3443)
+
+
+## v8.29.2 (2024-01-26)
+
+#### 🐛  Bug Fix
+* `wdio-allure-reporter`
+  * [#12047](https://github.com/webdriverio/webdriverio/pull/12047) in case of onTestRetry first has status unknown in allure report  ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`
+  * [#12093](https://github.com/webdriverio/webdriverio/pull/12093) (@wdio/browser-runner): improved stencil test integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#12098](https://github.com/webdriverio/webdriverio/pull/12098) Update allure report links ([@epszaw](https://github.com/epszaw))
+* Other
+  * [#12036](https://github.com/webdriverio/webdriverio/pull/12036) blog post for "Enhanced Test Automation" book  ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- LarryG ([@larryg01](https://github.com/larryg01))
+- maksym-alavatskyi ([@maksym-alavatskyi](https://github.com/maksym-alavatskyi))
+
+
 ## v8.29.1 (2024-01-25)
 
 #### :bug: Bug Fix

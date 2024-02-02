@@ -137,6 +137,10 @@ export default class AllureReporter extends WDIOReporter {
 
         while (this._state.currentAllureTestOrStep) {
             const currentTest = this._state.pop() as AllureTest | AllureStep
+            const isAnyStepFailed = currentTest.wrappedItem.steps.some((step) => step.status === AllureStatus.FAILED)
+
+            currentTest.stage = Stage.FINISHED
+            currentTest.status = isAnyStepFailed ? AllureStatus.FAILED : AllureStatus.PASSED
 
             if (currentTest instanceof AllureTest) {
                 setAllureIds(currentTest, this._state.currentSuite)
@@ -178,14 +182,14 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    _endTest(status: AllureStatus, error?: Error) {
+    _endTest(status: AllureStatus, error?: Error, stage?: Stage) {
         if (!this._state.currentAllureTestOrStep) {
             return
         }
 
         const currentSpec = this._state.pop() as AllureTest | AllureStep
 
-        currentSpec.stage = Stage.FINISHED
+        currentSpec.stage = stage ?? Stage.FINISHED
         currentSpec.status = status
 
         if (error) {
@@ -349,36 +353,21 @@ export default class AllureReporter extends WDIOReporter {
             })
 
             const suiteChildren = [...suite.tests!, ...suite.hooks]
-
             // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
             const isSkipped = suite.tests.every(item => [AllureStatus.SKIPPED].includes(item.state as AllureStatus)) && suite.hooks.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isSkipped) {
-                const currentTest = this._state.pop() as AllureTest
-
-                currentTest.status = AllureStatus.SKIPPED
-                currentTest.stage = Stage.PENDING
-                setAllureIds(currentTest, this._state.currentSuite)
-                currentTest.endTest()
+                this._endTest(AllureStatus.SKIPPED, undefined, Stage.PENDING)
                 return
             }
 
             const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
-                const currentTest = this._state.pop() as AllureTest
-
-                currentTest.status = getTestStatus(isFailed)
-                currentTest.stage = Stage.FINISHED
+                const testStatus = getTestStatus(isFailed)
                 const error = getErrorFromFailedTest(isFailed)
 
-                if (error) {
-                    currentTest.detailsMessage = error.message
-                    currentTest.detailsTrace = error.stack
-                }
-
-                setAllureIds(currentTest, this._state.currentSuite)
-                currentTest.endTest()
+                this._endTest(testStatus, error)
                 return
             }
 
@@ -387,12 +376,7 @@ export default class AllureReporter extends WDIOReporter {
             const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isPassed || isPartiallySkipped) {
-                const currentTest = this._state.pop() as AllureTest
-
-                currentTest.status = AllureStatus.PASSED
-                currentTest.stage = Stage.FINISHED
-                setAllureIds(currentTest, this._state.currentSuite)
-                currentTest.endTest()
+                this._endTest(AllureStatus.PASSED)
                 return
             }
 

@@ -2,11 +2,11 @@
 /**
  * Options pertaining to the creation and functionality of a {@link SpecPage}
  */
-interface RenderOptions {
+export interface RenderOptions {
     /**
      * An array of components to test. Component classes can be imported into the spec file, then their reference should be added to the `component` array in order to be used throughout the test.
      */
-    components: any[];
+    components?: any[];
     /**
      * If `false`, do not flush the render queue on initial test setup.
      */
@@ -58,13 +58,29 @@ interface RenderOptions {
     strictBuild?: boolean;
 }
 
-interface StencilEnvironment {
+export interface StencilEnvironment {
     /**
      * After changes have been made to a component, such as a update to a property or
      * attribute, the test page does not automatically apply the changes. In order to
      * wait for, and apply the update, call await `flushAll()`.
      */
     flushAll: () => void
+    /**
+     * All styles defined by components.
+     */
+    styles: Record<string, string>
+    /**
+     * Container element in which the template is being rendered into.
+     */
+    container: HTMLElement
+    /**
+     * The root component of the template.
+     */
+    root: HTMLElement
+    /**
+     * Removes the container element from the DOM.
+     */
+    unmount: () => void
 }
 
 export function render(opts: RenderOptions): StencilEnvironment

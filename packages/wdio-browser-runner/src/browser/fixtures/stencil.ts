@@ -1,10 +1,18 @@
 import { h } from '@stencil/core'
+import type { StencilEnvironment } from '../../../stencil/index.d.ts'
 
+/**
+ * Emulate Node.js `nextTick` function in browser.
+ * This is used by Stencil.js internally.
+ */
 process.nextTick = (cb) => setTimeout(cb, 0)
 
+/**
+ * in case the user has his tsconfig.json configured to expect "jsx" to be "react"
+ */
 // @ts-expect-error
 window.React = {
-    createElement: h,
+    createElement: h
 }
 
 import type {
@@ -24,19 +32,9 @@ import {
     setSupportsShadowDom,
     startAutoApplyChanges,
     styles,
-    win,
     writeTask,
     // @ts-expect-error
 } from '@stencil/core/internal/testing/index.js'
-
-interface StencilEnvironment {
-    /**
-     * After changes have been made to a component, such as a update to a property or
-     * attribute, the test page does not automatically apply the changes. In order to
-     * wait for, and apply the update, call await `flushAll()`.
-     */
-    flushAll: () => void
-}
 
 /**
  * Creates a new spec page for unit testing
@@ -48,15 +46,16 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         throw new Error('NewSpecPageOptions required')
     }
 
+    const components = opts.components || []
     const stencilStage = document.querySelector('stencil-stage')
     if (stencilStage) {
         stencilStage.remove()
     }
-    const stage = document.createElement('stencil-stage')
-    document.body.appendChild(stage)
+    const container = document.createElement('stencil-stage')
+    document.body.appendChild(container)
 
-    if (Array.isArray(opts.components)) {
-        registerComponents(opts.components)
+    if (Array.isArray(components)) {
+        registerComponents(components)
     }
 
     if (opts.hydrateClientSide) {
@@ -74,16 +73,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         }
     }
     const cmpTags = new Set<string>()
-    const doc = win.document
-
-    const page = {
-        win: win,
-        doc: doc,
-        body: stage as any,
-        styles: styles as Map<string, string>
-    } as const
-
-    const lazyBundles: LazyBundlesRuntimeData = opts.components.map((Cstr: ComponentTestingConstructor) => {
+    const lazyBundles: LazyBundlesRuntimeData = components.map((Cstr: ComponentTestingConstructor) => {
         // eslint-disable-next-line eqeqeq
         if (Cstr.COMPILER_META == null) {
             throw new Error('Invalid component class: Missing static "COMPILER_META" property.')
@@ -109,16 +99,30 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
         }
         registerModule(bundleId, Cstr)
 
+        /**
+         * Register the component as a custom element only if not already registered
+         */
+        if (!customElements.get(Cstr.COMPILER_META.tagName)) {
+            customElements.define(Cstr.COMPILER_META.tagName, Cstr as any)
+        }
+
         const lazyBundleRuntimeMeta = formatLazyBundleRuntimeMeta(bundleId, [Cstr.COMPILER_META])
         return lazyBundleRuntimeMeta
     })
 
+    const page = {
+        container,
+        styles,
+        flushAll,
+        unmount: () => container.remove()
+    } as const
+
     if (typeof opts.direction === 'string') {
-        page.doc.documentElement.setAttribute('dir', opts.direction)
+        document.documentElement.setAttribute('dir', opts.direction)
     }
 
     if (typeof opts.language === 'string') {
-        page.doc.documentElement.setAttribute('lang', opts.language)
+        document.documentElement.setAttribute('lang', opts.language)
     }
 
     bootstrapLazy(lazyBundles)
@@ -133,7 +137,7 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             $flags$: 0,
             $modeName$: undefined,
             $cmpMeta$: cmpMeta,
-            $hostElement$: page.body,
+            $hostElement$: container,
         }
         renderVdom(ref, opts.template())
     }
@@ -142,29 +146,24 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
     Object.defineProperty(page, 'root', {
         get() {
             if (!rootComponent) {
-                rootComponent = findRootComponent(cmpTags, page.body)
+                rootComponent = findRootComponent(cmpTags, container)
             }
             if (rootComponent) {
                 return rootComponent
             }
-            const firstElementChild = page.body.firstElementChild
-            if (!firstElementChild) {
-                return firstElementChild as any
-            }
-            return null
+            return container.firstElementChild
         },
     })
 
     if (opts.hydrateServerSide) {
-        insertVdomAnnotations(doc, [])
+        insertVdomAnnotations(document, [])
     }
 
     if (opts.autoApplyChanges) {
         startAutoApplyChanges()
     }
 
-    flushAll()
-    return { flushAll }
+    return page as StencilEnvironment
 }
 
 /**

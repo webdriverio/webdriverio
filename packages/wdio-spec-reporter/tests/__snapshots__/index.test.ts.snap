@@ -158,6 +158,7 @@ exports[`SpecReporter > onRetry > should group retried test cases 1`] = `
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]    green ✓ loo (1 retries)
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]    cyan ? baz
 [loremipsum 50 Windows 10 #0-0]
 ",
