@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { getBrowserObject } from './utils/index.js'
+import { getBrowserObject, isStaleElementError } from './utils/index.js'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -37,7 +37,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 
                 return result
             } catch (err: any) {
-                if (err.name === 'stale element reference') {
+                if (err.name === 'stale element reference' || isStaleElementError(err)) {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent

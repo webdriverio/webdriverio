@@ -1,7 +1,7 @@
 import path from 'node:path'
 import url from 'node:url'
 
-import { findStaticImports, parseStaticImport } from 'mlly'
+import { findStaticImports, parseStaticImport, type ParsedStaticImport } from 'mlly'
 import type { InlineConfig, Plugin } from 'vite'
 
 import { hasFileByExtensions } from '../utils.js'
@@ -47,7 +47,7 @@ export async function optimizeForStencil(rootDir: string) {
 
 async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
     const { transpileSync, ts } = await import('@stencil/core/compiler/stencil.js')
-    const stencilHelperPath = path.resolve(__dirname, '..', '..', 'browser', 'fixtures', 'stencil.js')
+    const stencilHelperPath = path.resolve(__dirname, '..', '..', 'browser', 'integrations', 'stencil.js')
     return {
         name: 'wdio-stencil',
         enforce: 'pre',
@@ -74,15 +74,8 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
                 const stencilHelperImport = staticImports.find((imp) => imp.specifier === '@wdio/browser-runner/stencil')
                 if (stencilHelperImport) {
                     const imports = parseStaticImport(stencilHelperImport)
-                    const hasHImport = stencilImports.find((imp) => 'h' in (imp.namedImports || {}))
-                    const hasFragmentImport = stencilImports.find((imp) => 'Fragment' in (imp.namedImports || {}))
                     if ('render' in (imports.namedImports || {})) {
-                        if (!hasHImport) {
-                            code = `import { h } from '@stencil/core';\n${code}`
-                        }
-                        if (!hasFragmentImport) {
-                            code = `import { Fragment } from '@stencil/core';\n${code}`
-                        }
+                        code = injectStencilImports(code, stencilImports)
                     }
                 }
                 return { code }
@@ -122,14 +115,7 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
              * StencilJS does not import the `h` or `Fragment` function by default. We need to add it so the user
              * doesn't need to.
              */
-            const hasRenderFunctionImport = stencilImports.some((imp) => 'h' in (imp.namedImports || {}))
-            if (!hasRenderFunctionImport) {
-                transformedCode = `import { h } from '@stencil/core';\n${transformedCode}`
-            }
-            const hasFragmentImport = stencilImports.some((imp) => 'Fragment' in (imp.namedImports || {}))
-            if (!hasFragmentImport) {
-                transformedCode = `import { Fragment } from '@stencil/core';\n${transformedCode}`
-            }
+            transformedCode = injectStencilImports(transformedCode, stencilImports)
 
             return {
                 ...transpiledCode,
@@ -138,6 +124,23 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
             }
         }
     }
+}
+
+/**
+ * StencilJS does not import the `h` or `Fragment` function by default. We need to add it so the user
+ * doesn't need to.
+ */
+function injectStencilImports(code: string, imports: ParsedStaticImport[]) {
+    const hasRenderFunctionImport = imports.some((imp) => 'h' in (imp.namedImports || {}))
+    if (!hasRenderFunctionImport) {
+        code = `import { h } from '@stencil/core/internal/client';\n${code}`
+    }
+    const hasFragmentImport = imports.some((imp) => 'Fragment' in (imp.namedImports || {}))
+    if (!hasFragmentImport) {
+        code = `import { Fragment } from '@stencil/core/internal/client';\n${code}`
+    }
+
+    return code
 }
 
 let _tsCompilerOptions: CompilerOptions | null = null
