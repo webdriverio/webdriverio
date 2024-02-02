@@ -1,4 +1,5 @@
 import { h } from '@stencil/core'
+import { $ } from '@wdio/globals'
 import type { StencilEnvironment } from '../../../stencil/index.d.ts'
 
 /**
@@ -18,6 +19,7 @@ window.React = {
 import type {
     ComponentRuntimeMeta,
     ComponentTestingConstructor,
+    HostElement,
     HostRef,
     LazyBundlesRuntimeData,
     NewSpecPageOptions,
@@ -140,6 +142,8 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             $hostElement$: container,
         }
         renderVdom(ref, opts.template())
+    } else if (typeof opts.html === 'string') {
+        container.innerHTML = opts.html
     }
 
     let rootComponent: any = null
@@ -153,6 +157,17 @@ export function render(opts: NewSpecPageOptions): StencilEnvironment {
             }
             return container.firstElementChild
         },
+    })
+
+    Object.defineProperty(page, '$root', {
+        get() {
+            return $((page as any).root)
+        }
+    })
+    Object.defineProperty(page, '$container', {
+        get() {
+            return $(container)
+        }
     })
 
     if (opts.hydrateServerSide) {
@@ -264,6 +279,39 @@ function findRootComponent(cmpTags: Set<string>, node: Element): Element | null 
         }
     }
     return null
+}
+
+/**
+ * Helper method to wait until all Stencil components are rendered
+ */
+export function waitForChanges (documentElement = document.documentElement) {
+    return new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+            const promiseChain: Promise<void>[] = []
+
+            const waitComponentOnReady = (elm: Element | ShadowRoot, promises: Promise<void>[]) => {
+                if ('shadowRoot' in elm && elm.shadowRoot instanceof ShadowRoot) {
+                    waitComponentOnReady(elm.shadowRoot, promises)
+                }
+                const children = elm.children
+                const len = children.length
+                for (let i = 0; i < len; i++) {
+                    const childElm = children[i]
+                    const childStencilElm = childElm as HostElement
+                    if (childElm.tagName.includes('-') && typeof childStencilElm.componentOnReady === 'function') {
+                        promises.push(childStencilElm.componentOnReady().then(() => {}))
+                    }
+                    waitComponentOnReady(childElm, promises)
+                }
+            }
+
+            waitComponentOnReady(documentElement, promiseChain)
+
+            Promise.all(promiseChain)
+                .then(() => resolve())
+                .catch(() => resolve())
+        })
+    })
 }
 
 /**
