@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.29.7 (2024-02-02)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-spec-reporter`
+  * [#12092](https://github.com/webdriverio/webdriverio/pull/12092) (@wdio/spec-reporter): introduce `color` option to disable colors for spec reporter ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+
+#### :bug: Bug Fix
+* `wdio-protocols`
+  * [#12141](https://github.com/webdriverio/webdriverio/pull/12141) fix upload file in selenium 4 ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `webdriverio`
+  * [#12145](https://github.com/webdriverio/webdriverio/pull/12145) (@wdio/browser-runner): document stencil component testing integration better ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Muhammad Hammad Faisal ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+
+
 ## v8.29.5 (2024-02-01)
 
 #### :bug: Bug Fix
