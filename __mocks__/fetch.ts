@@ -119,7 +119,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             }
         }
 
-        if (params.json.capabilities.alwaysMatch.platformName && params.json.capabilities.alwaysMatch.platformName.includes('iOS')) {
+        if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('iOS')) {
             value.capabilities.platformName = 'iOS'
         }
 
