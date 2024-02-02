@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement } from '../../src/utils/index.js'
+import { findElement, isStaleElementError } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -52,4 +52,15 @@ describe('findElement', () => {
             expect.any(String)
         )
     })
+})
+
+it('isStaleElementError', () => {
+    const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
+    expect(isStaleElementError(staleElementChromeError)).toBe(true)
+    const staleElementFirefoxError = new Error('The element <nested-component> is no longer attached to the DOM')
+    expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
+    const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
+    expect(isStaleElementError(staleElementSafariError)).toBe(true)
+    const otherError = new Error('something else')
+    expect(isStaleElementError(otherError)).toBe(false)
 })

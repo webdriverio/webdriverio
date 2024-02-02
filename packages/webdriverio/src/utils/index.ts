@@ -223,6 +223,17 @@ export function isElement (o: Selector){
     )
 }
 
+export function isStaleElementError (err: Error) {
+    return (
+        // Chrome
+        err.message.includes('stale element reference') ||
+        // Firefox
+        err.message.includes('is no longer attached to the DOM') ||
+        // Safari
+        err.message.includes('Stale element found')
+    )
+}
+
 /**
  * logic to find an element
  */
@@ -297,7 +308,7 @@ export async function findElement(
              * WebDriver throws a stale element reference error if the element is not found
              * and therefor can't be serialized
              */
-            if (err.message.includes('stale element reference')) {
+            if (isStaleElementError(err)) {
                 return undefined
             }
             throw err
