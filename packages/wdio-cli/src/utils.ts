@@ -30,6 +30,7 @@ import {
     TESTING_LIBRARY_PACKAGES,
     COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
     usesSerenity,
+    PMs,
 } from './constants.js'
 import type {
     OnCompleteResult,
@@ -717,7 +718,7 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
             dependencies: {},
             devDependencies: {}
         }, null, 2))
-        console.log(chalk.green.bold('✔ Success!\n'))
+        console.log(chalk.green(chalk.bold('✔ Success!\n')))
     }
 }
 
@@ -807,7 +808,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
         console.log(`Installing packages using ${pm}:${SEP}${parsedAnswers.packagesToInstall.join(SEP)}`)
         const success = await installPackages(cwd, parsedAnswers.packagesToInstall, true)
         if (success) {
-            console.log(chalk.green.bold('✔ Success!\n'))
+            console.log(chalk.green(chalk.bold('✔ Success!\n')))
         }
     } else {
         const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
@@ -815,8 +816,6 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 }
 
-export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
-export type PM = typeof PMs[number]
 /**
  * detect the package manager that was used
  */
@@ -937,7 +936,7 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
         JSON.stringify(config, null, 4)
     )
 
-    console.log(chalk.green.bold('✔ Success!\n'))
+    console.log(chalk.green(chalk.bold('✔ Success!\n')))
 }
 
 function getPreset (parsedAnswers: ParsedAnswers) {
@@ -990,7 +989,7 @@ export async function setupBabel(parsedAnswers: ParsedAnswers) {
                 ]
             }, null, 4)}`
         )
-        console.log(chalk.green.bold('✔ Success!\n'))
+        console.log(chalk.green(chalk.bold('✔ Success!\n')))
     }
 }
 
@@ -1003,12 +1002,12 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
             _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
         })
         await fs.writeFile(parsedAnswers.wdioConfigPath, renderedTpl)
-        console.log(chalk.green.bold('✔ Success!\n'))
+        console.log(chalk.green(chalk.bold('✔ Success!\n')))
 
         if (parsedAnswers.generateTestFiles) {
             console.log('Autogenerating test files...')
             await generateTestFiles(parsedAnswers)
-            console.log(chalk.green.bold('✔ Success!\n'))
+            console.log(chalk.green(chalk.bold('✔ Success!\n')))
         }
     } catch (err: any) {
         throw new Error(`⚠️ Couldn't write config file: ${err.stack}`)
@@ -1066,7 +1065,7 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
             return false
         }
     }
-    console.log(chalk.green.bold('✔ Success!'))
+    console.log(chalk.green(chalk.bold('✔ Success!')))
     return true
 }
 

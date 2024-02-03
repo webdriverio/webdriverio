@@ -49,13 +49,13 @@ await browser.saveElement("#element-id", "example-element-tag")
     ]}
 >
 <TabItem value="desktop">
-![saveElement Desktop](./img/test-output/wdioLogo-chrome-latest-1-1366x768.png)
+![saveElement Desktop](/img/visual/wdioLogo-chrome-latest-1-1366x768.png)
 </TabItem>
 <TabItem value="android">
-![saveElement Mobile Android](./img/test-output/wdioLogo-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
+![saveElement Mobile Android](/img/visual/wdioLogo-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
-![saveElement Mobile iOS](./img/test-output/wdioLogo-Iphone12Portrait16-390x844.png)
+![saveElement Mobile iOS](/img/visual/wdioLogo-Iphone12Portrait16-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -76,13 +76,13 @@ await browser.saveScreen("example-page-tag")
     ]}
 >
 <TabItem value="desktop">
-![saveScreen Desktop](./img/test-output/examplePage-chrome-latest-1366x768.png)
+![saveScreen Desktop](/img/visual/examplePage-chrome-latest-1366x768.png)
 </TabItem>
 <TabItem value="android-chromedriver">
-![saveScreen Mobile Android ChromeDriver](./img/test-output/screenshot-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
+![saveScreen Mobile Android ChromeDriver](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
 </TabItem>
 <TabItem value="android-native">
-![saveScreen Mobile Android nativeWebScreenshot](./img/test-output/screenshot-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
+![saveScreen Mobile Android nativeWebScreenshot](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
 
@@ -90,7 +90,7 @@ await browser.saveScreen("example-page-tag")
 iOS `saveScreen` executions are by default not with the device bezel corners. To have this please add the `addIOSBezelCorners:true` option when instantiating the service, see [this](./service-options#addiosbezelcorners)
 :::
 
-![saveScreen Mobile iOS](./img/test-output/screenshot-Iphone12Portrait15-390x844.png)
+![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -110,13 +110,13 @@ await browser.saveFullPageScreen("full-page-tag")
     ]}
 >
 <TabItem value="desktop">
-![saveFullPageScreens Desktop](./img/test-output/fullPage-chrome-latest-1366x768.png)
+![saveFullPageScreens Desktop](/img/visual/fullPage-chrome-latest-1366x768.png)
 </TabItem>
 <TabItem value="android">
-![saveFullPageScreens Mobile Android](./img/test-output/fullPage-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
+![saveFullPageScreens Mobile Android](/img/visual/fullPage-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
 </TabItem>
 <TabItem value="ios">
-![saveFullPageScreens Mobile iOS](./img/test-output/fullPage-Iphone12Portrait16-390x844.png)
+![saveFullPageScreens Mobile iOS](/img/visual/fullPage-Iphone12Portrait16-390x844.png)
 </TabItem>
 </Tabs>
 </TabItem>
@@ -175,7 +175,7 @@ await browser.checkElement("#element-id", "example-element-tag")
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](./img/test-output/button-check.png)
+![Button Check Result](/img/visual/button-check.png)
 </TabItem>
 
 <TabItem value="checkscreen">
@@ -188,7 +188,7 @@ await browser.checkScreen("example-page-tag")
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](./img/test-output/screen-check.png)
+![Button Check Result](/img/visual/screen-check.png)
 
 </TabItem>
 
@@ -202,7 +202,7 @@ await browser.checkFullPageScreen("full-page-tag")
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](./img/test-output/fullpage-check.png)
+![Button Check Result](/img/visual/fullpage-check.png)
 
 </TabItem>
 
@@ -210,14 +210,25 @@ The button text has been changed from `Get Started` to `Getting Started!` and de
 
 ## Block-Outs
 
-:::info
-Not all block-out options are shown here, but below you will find an output for Android NativeWebScreenshot and iOS where the status+address and toolbar are blocked out.
-:::
+Here you will find an example output for block-outs in Android NativeWebScreenshot and iOS where the status+address and toolbar are blocked out.
 
-### Android nativeWebScreenshot
+<Tabs
+    defaultValue="nativeWebScreenshot"
+    values={[
+        {label: 'Android nativeWebScreenshot', value: 'nativeWebScreenshot'},
+        {label: 'iOS', value: 'ios'},
+    ]}
+>
+<TabItem value="nativeWebScreenshot">
 
-![Blockouts Android](./img/test-output/android.blockouts.png)
+![Blockouts Android](/img/visual/android.blockouts.png)
 
-### iOS
+</TabItem>
 
-![Blockouts iOS](./img/test-output/ios.blockouts.png)
+<TabItem value="ios">
+
+![Blockouts iOS](/img/visual/ios.blockouts.png)
+
+</TabItem>
+
+</Tabs>

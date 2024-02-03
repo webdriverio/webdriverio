@@ -395,7 +395,7 @@ describe('Appium launcher', () => {
             vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
+            const expectedError = new Error('Error: Uups')
             expect(error).toEqual(expectedError)
         })
 
@@ -536,14 +536,36 @@ describe('Appium launcher', () => {
     })
 
     describe('_startAppium', () => {
-        test('should propagate error messgae', async () => {
+        test('should propagate error message', async () => {
             const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
             vi.mocked(spawn).mockImplementationOnce(origSpawn)
             const launcher = new AppiumLauncher({}, [], {} as any)
             await expect(launcher['_startAppium'](
                 'node',
-                ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()']
+                ['-e', '(() => { process.stderr.write(\'something went wrong\\n\'); throw new Error(\'ups\') })()'], 2000
             )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('something went wrong') }))
+        })
+
+        test('should validate timeout parameter (timeout reach)', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(launcher['_startAppium'](
+                'node',
+                ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'done\'})); }, 5000); })()'],
+                1000
+            )).rejects.toEqual(expect.objectContaining({ message: expect.stringContaining('Timeout: Appium did not start within expected time') }))
+        })
+
+        test('should validate timeout parameter (no timeout reach)', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await expect(launcher['_startAppium'](
+                'node',
+                ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'Appium REST http interface listener started\'})); }, 3000); })()'],
+                10000
+            )).resolves.toEqual(expect.objectContaining({ spawnargs: expect.arrayContaining(['-e', expect.any(String)]) }))
         })
     })
 

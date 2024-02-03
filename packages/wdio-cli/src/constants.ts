@@ -9,6 +9,7 @@ import {
     getDefaultFiles,
     convertPackageHashToObject,
     getProjectRoot,
+    detectPackageManager,
 } from './utils.js'
 import type { Questionnair } from './types.js'
 
@@ -23,6 +24,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
 🤖 Successfully setup project at ${ projectRootDir } 🎉
@@ -156,7 +158,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
         { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
-        { name: 'robonut', value: 'wdio-robonut-service$--$robonut' }
+        { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
+        { name: 'qunit', value: 'wdio-qunit-service$--$qunit' }
     ]
 }
 
@@ -666,10 +669,11 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'npmInstall',
-    message: 'Do you want me to run `npm install`',
+    message: () => `Do you want me to run \`${detectPackageManager()} install\``,
     default: true
 }]
 
+const SUPPORTED_SNAPSHOTSTATE_OPTIONS = ['all', 'new', 'none'] as const
 export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-electron-service',
     'wdio-vscode-service',
@@ -880,6 +884,18 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
      */
     injectGlobals: {
         type: 'boolean'
+    },
+    /**
+     * Set to true if you want to update your snapshots.
+     */
+    updateSnapshots: {
+        type: 'string',
+        default: SUPPORTED_SNAPSHOTSTATE_OPTIONS[1],
+        validate: (param: Options.Testrunner['updateSnapshots']) => {
+            if (param && !SUPPORTED_SNAPSHOTSTATE_OPTIONS.includes(param)) {
+                throw new Error(`the "updateSnapshots" options needs to be one of "${SUPPORTED_SNAPSHOTSTATE_OPTIONS.join('", "')}"`)
+            }
+        }
     },
     /**
      * The number of times to retry the entire specfile when it fails as a whole

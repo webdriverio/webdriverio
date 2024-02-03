@@ -18,6 +18,7 @@ updates:
     - dependency-name: "@octokit/rest"
     - dependency-name: "@cucumber/cucumber"
     - dependency-name: "jsdom"
+    - dependency-name: "pretty-ms"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7

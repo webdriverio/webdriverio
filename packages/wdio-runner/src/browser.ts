@@ -13,11 +13,13 @@ import type { TestFramework, WorkerResponseMessage } from './types.js'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
+const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 interface TestState {
-    failures?: number | null
+    failures: number
+    events: any[]
     errors?: WDIOErrorEvent[]
     hasViteError?: boolean
 }
@@ -31,11 +33,9 @@ declare global {
     }
 }
 
-const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
-
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
-    #inDebugMode = false
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
+    #resolveTestStatePromise?: (value: TestState) => void
 
     constructor (
         private _cid: string,
@@ -52,7 +52,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     /**
-     * always return true as it is unrelevant for component testing
+     * always return true as it is irrelevant for component testing
      */
     hasTests () {
         return true
@@ -98,6 +98,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
         /**
+         * create promise to resolve test state which is being sent through the socket
+         * connection from the browser through the main process to the worker
+         */
+        const testStatePromise = new Promise<TestState>((resolve) => {
+            this.#resolveTestStatePromise = resolve
+        })
+
+        /**
          * if a `sessionId` is part of `this._config` it means we are in watch mode and are
          * re-using a previous session. Since Vite has already a hot-reload feature, there
          * is no need to call the url command again
@@ -119,52 +127,20 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * wait for test results or page errors
          */
-        let state: TestState = {}
-        const now = Date.now()
-        await browser.waitUntil(async () => {
-            while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
-                if ((Date.now() - now) > timeout) {
-                    return false
-                }
+        const testTimeout = setTimeout(
+            () => this.#onTestTimeout(`Timed out after ${timeout / 1000}s waiting for test results`),
+            timeout)
 
-                await sleep()
+        /**
+         * run checks for errors here to avoid breakage in communication with the browser
+         */
+        const errorInterval = setInterval(
+            this.#checkForTestError.bind(this),
+            ERROR_CHECK_INTERVAL)
 
-                /**
-                 * don't fetch events if user has called debug command
-                 */
-                if (this.#inDebugMode) {
-                    continue
-                }
-
-                state = await browser?.execute(function fetchExecutionState () {
-                    const failures = window.__wdioEvents__ && window.__wdioEvents__.length > 0
-                        ? window.__wdioFailures__
-                        : null
-                    let viteError
-                    const viteErrorElem = document.querySelector('vite-error-overlay')
-                    if (viteErrorElem && viteErrorElem.shadowRoot) {
-                        const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
-                        if (errorElements.length) {
-                            viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
-                        }
-                    }
-                    const loadError = (
-                        typeof window.__wdioErrors__ === 'undefined' &&
-                        document.title !== 'WebdriverIO Browser Test' &&
-                        !document.querySelector('mocha-framework')
-                    )
-                        ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
-                        : null
-                    const errors = viteError || window.__wdioErrors__ || loadError
-                    return { failures, errors, hasViteError: Boolean(viteError) }
-                }).catch((err: any) => ({ errors: [{ message: err.message }] }))
-            }
-
-            return true
-        }, {
-            timeoutMsg: 'browser test timed out',
-            timeout
-        })
+        const state: TestState = await testStatePromise
+        clearTimeout(testTimeout)
+        clearInterval(errorInterval)
 
         /**
          * capture coverage if enabled
@@ -183,6 +159,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             process.send(workerEvent)
         }
 
+        /**
+         * let runner fail if we detect an error
+         */
         if (state.errors?.length) {
             const errors = state.errors.map((ev) => state.hasViteError
                 ? `${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`
@@ -191,7 +170,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * retry Vite dynamic import errors once
              */
-            if (!retried && errors.some((err) => err.includes('Failed to fetch dynamically imported module'))) {
+            if (!retried && errors.some((err) => (
+                err.includes('Failed to fetch dynamically imported module') ||
+                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)')
+            ))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, true)
             }
@@ -207,16 +189,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return 1
         }
 
-        await this.#fetchEvents(browser, spec)
-        return state.failures || 0
-    }
-
-    async #fetchEvents (browser: WebdriverIO.Browser, spec: string) {
         /**
-         * populate events to the reporter
+         * report browser events to WebdriverIO reporter
          */
-        const events = await browser.execute(() => window.__wdioEvents__)
-        for (const ev of events) {
+        for (const ev of (state.events || [])) {
             if ((ev.type === 'suite:start' || ev.type === 'suite:end') && ev.title === '') {
                 continue
             }
@@ -227,6 +203,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 cid: this._cid
             })
         }
+        return state.failures || 0
     }
 
     async #processMessage (cmd: Workers.WorkerRequest) {
@@ -235,11 +212,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         const { message, id } = cmd.args
-        if (message.type === MESSAGE_TYPES.switchDebugState) {
-            this.#inDebugMode = message.value
-            return
-        }
-
         if (message.type === MESSAGE_TYPES.hookTriggerMessage) {
             return this.#handleHook(id, message.value)
         }
@@ -254,6 +226,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         if (message.type === MESSAGE_TYPES.expectRequestMessage) {
             return this.#handleExpectation(id, message.value)
+        }
+
+        if (message.type === MESSAGE_TYPES.browserTestResult) {
+            return this.#handleTestFinish(message.value)
         }
     }
 
@@ -313,13 +289,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error }))
         }
 
-        /**
-         * emit debug state to be enabled to runner so it can be propagated to the worker
-         */
-        if (payload.commandName === 'debug') {
-            this.#inDebugMode = true
-        }
-
         try {
             /**
              * double check if function is registered
@@ -330,13 +299,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
             const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
             const resultMsg = this.#commandResponse({ id: payload.id, result })
-
-            /**
-             * emit debug state to be disabled to runner so it can be propagated to the worker
-             */
-            if (payload.commandName === 'debug') {
-                this.#inDebugMode = false
-            }
 
             log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
@@ -383,8 +345,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const context = payload.element
                 ? Array.isArray(payload.element)
                     ? await browser.$$(payload.element)
-                    : await browser.$(payload.element)
-                : browser
+                    /**
+                     * check if element contains an `elementId` property, if so the element was already
+                     * found, so we can transform it into an `WebdriverIO.Element` object, if not we
+                     * need to find it first, so we pass in the selector.
+                     */
+                    : payload.element.elementId
+                        ? await browser.$(payload.element)
+                        : await browser.$(payload.element.selector)
+                : payload.context || browser
             const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,
@@ -402,6 +371,48 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return {
             type: MESSAGE_TYPES.expectResponseMessage,
             value
+        }
+    }
+
+    #handleTestFinish (payload: Workers.BrowserTestResults) {
+        this.#resolveTestStatePromise!({ failures: payload.failures, events: payload.events })
+    }
+
+    #onTestTimeout (message: string) {
+        return this.#resolveTestStatePromise?.({
+            events: [],
+            failures: 1,
+            errors: [{ message }]
+        })
+    }
+
+    async #checkForTestError () {
+        const testError = await browser.execute(function fetchExecutionState () {
+            let viteError
+            const viteErrorElem = document.querySelector('vite-error-overlay')
+            if (viteErrorElem && viteErrorElem.shadowRoot) {
+                const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                if (errorElements.length) {
+                    viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
+                }
+            }
+            const loadError = (
+                typeof window.__wdioErrors__ === 'undefined' &&
+                document.title !== 'WebdriverIO Browser Test' &&
+                !document.querySelector('mocha-framework')
+            )
+                ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
+                : null
+            const errors = viteError || window.__wdioErrors__ || loadError
+            return { errors, hasViteError: Boolean(viteError) }
+        })
+
+        if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
+            this.#resolveTestStatePromise?.({
+                events: [],
+                failures: 1,
+                ...testError
+            })
         }
     }
 

@@ -85,7 +85,7 @@ Default: `false`
 ```
 
 ### addConsoleLogs
-Set to true to show console logs from steps in final report
+Set to `true` to show console logs from steps in final report
 
 Type: `boolean`
 Default: `false`
@@ -100,7 +100,7 @@ Default: `false`
 ```
 
 ### realtimeReporting
-Set to true to display test status realtime than just at the end of the run
+Set to `true` to display test status realtime than just at the end of the run
 
 Type: `boolean`
 Default: `false`
@@ -115,7 +115,7 @@ Default: `false`
 ```
 
 ### showPreface
-Set to false to disable `[ MutliRemoteBrowser ... ]` preface in the reports.
+Set to `false` to disable `[ MutliRemoteBrowser ... ]` preface in the reports.
 
 Type: `boolean`
 Default: `true`
@@ -164,3 +164,25 @@ and with `true` (default) each line will be prefixed with the preface:
 [loremipsum 50 Windows 10 #0-0]
 ```
 
+### color
+Set to `true` to display colored output in terminal
+
+Type: `boolean`
+Default: `true`
+
+```js
+[
+  "spec",
+  {
+    color: true,
+  },
+]
+```
+
+## Environment Options
+
+There are certain options you can set through environment variables:
+
+### `FORCE_COLOR`
+
+If set to true, e.g. via `FORCE_COLOR=0 npx wdio run wdio.conf.js`, all terminal coloring will be disabled.

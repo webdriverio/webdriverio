@@ -274,6 +274,8 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
      * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
      * [`devtools`](https://www.npmjs.com/package/devtools) are supported,
      * as these are the main browser automation technologies available.
+     *
+     * @deprecated this option will be removed in future versions of WebdriverIO. We recommend to use WebDriver for browser or mobile automation.
      */
     automationProtocol?: SupportedProtocols
     /**
@@ -403,6 +405,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * be required.
      */
     bail?: number
+    /**
+     * Set to true if you want to update your snapshots.
+     */
+    updateSnapshots?: 'all' | 'new' | 'none'
     /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */

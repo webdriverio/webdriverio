@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events'
 import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
+import { SnapshotManager } from '@vitest/snapshot/manager'
+import type { SnapshotResult } from '@vitest/snapshot'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
@@ -26,6 +28,10 @@ interface CLIInterfaceEvent {
 }
 
 export default class WDIOCLInterface extends EventEmitter {
+    #snapshotManager = new SnapshotManager({
+        updateSnapshot: 'new'
+    })
+
     public hasAnsiSupport: boolean
     public result = {
         finished: 0,
@@ -106,16 +112,16 @@ export default class WDIOCLInterface extends EventEmitter {
             : ''
         this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers${shardNote} started at`), this._start.toISOString())
         if (this._inDebugMode) {
-            this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
+            this.log(chalk.bgYellow(chalk.black('DEBUG mode enabled!')))
         }
         if (this._isWatchMode) {
-            this.log(chalk.bgYellow.black('WATCH mode enabled!'))
+            this.log(chalk.bgYellow(chalk.black('WATCH mode enabled!')))
         }
         this.log('')
     }
 
     onSpecRunning (rid: string) {
-        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
+        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold(chalk.cyan('RUNNING')))
     }
 
     onSpecRetry (rid: string, job?: Workers.Job, retries = 0) {
@@ -124,11 +130,11 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onSpecPass (rid: string, job?: Workers.Job, retries = 0) {
-        this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.green('PASSED')))
     }
 
     onSpecFailure (rid: string, job?: Workers.Job, retries = 0) {
-        this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.red('FAILED')))
     }
 
     onSpecSkip (rid: string, job?: Workers.Job) {
@@ -245,10 +251,17 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.emit('job:start', event.content)
         }
 
+        if (event.name === 'snapshot') {
+            const snapshotResults = event.content as SnapshotResult[]
+            return snapshotResults.forEach((snapshotResult) => {
+                this.#snapshotManager.add(snapshotResult)
+            })
+        }
+
         if (event.name === 'error') {
             return this.log(
                 `[${event.cid}]`,
-                chalk.white.bgRed.bold(' Error: '),
+                chalk.white(chalk.bgRed(chalk.bold(' Error: '))),
                 event.content ? (event.content.message || event.content.stack || event.content) : ''
             )
         }
@@ -297,7 +310,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const reporter = this._messages.reporter
         this._messages.reporter = {}
         for (const [reporterName, messages] of Object.entries(reporter)) {
-            this.log('\n', chalk.bold.magenta(`"${reporterName}" Reporter:`))
+            this.log('\n', chalk.bold(chalk.magenta(`"${reporterName}" Reporter:`)))
             this.log(messages.join(''))
         }
     }
@@ -309,6 +322,28 @@ export default class WDIOCLInterface extends EventEmitter {
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
         const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
+
+        const snapshotSummary = this.#snapshotManager.summary
+        const snapshotNotes: string[] = []
+
+        if (snapshotSummary.added > 0) {
+            snapshotNotes.push(chalk.green(`${snapshotSummary.added} snapshot(s) added.`))
+        }
+        if (snapshotSummary.updated > 0) {
+            snapshotNotes.push(chalk.yellow(`${snapshotSummary.updated} snapshot(s) updated.`))
+        }
+        if (snapshotSummary.unmatched > 0) {
+            snapshotNotes.push(chalk.red(`${snapshotSummary.unmatched} snapshot(s) unmatched.`))
+        }
+        if (snapshotSummary.unchecked > 0) {
+            snapshotNotes.push(chalk.gray(`${snapshotSummary.unchecked} snapshot(s) unchecked.`))
+        }
+
+        if (snapshotNotes.length > 0) {
+            this.log('\nSnapshot Summary:')
+            snapshotNotes.forEach((note) => this.log(note))
+        }
+
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             this.#hasShard()

@@ -67,7 +67,7 @@ export const getPrototype = (scope: 'browser' | 'element') => {
  * @param  {?Object|undefined} res         body object from response or null
  * @return {?string}   element id or null if element couldn't be found
  */
-export const getElementFromResponse = (res: ElementReference) => {
+export const getElementFromResponse = (res?: ElementReference) => {
     /**
     * a function selector can return null
     */
@@ -223,6 +223,17 @@ export function isElement (o: Selector){
     )
 }
 
+export function isStaleElementError (err: Error) {
+    return (
+        // Chrome
+        err.message.includes('stale element reference') ||
+        // Firefox
+        err.message.includes('is no longer attached to the DOM') ||
+        // Safari
+        err.message.includes('Stale element found')
+    )
+}
+
 /**
  * logic to find an element
  */
@@ -292,7 +303,16 @@ export async function findElement(
         const uid = Math.random().toString().slice(2)
         window.__wdio_element[uid] = selector as HTMLElement
         selector = ((id: string) => window.__wdio_element[id]) as any as ElementFunction
-        let elem = await fetchElementByJSFunction(selector, this, uid)
+        let elem = await fetchElementByJSFunction(selector, this, uid).catch((err) => {
+            /**
+             * WebDriver throws a stale element reference error if the element is not found
+             * and therefor can't be serialized
+             */
+            if (isStaleElementError(err)) {
+                return undefined
+            }
+            throw err
+        })
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
