@@ -1,4 +1,3 @@
-import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import {
@@ -13,10 +12,6 @@ import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
 
-interface BaseClientWithEventHandler extends BaseClient {
-    _driverProcess?: ChildProcess
-}
-
 export default function (
     method: string,
     endpointUri: string,
@@ -25,7 +20,7 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
+    return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -125,54 +120,55 @@ export default function (
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (typeof result.value !== 'undefined') {
-                let resultLog = result.value
+        const result = await request.makeRequest(this.options, this.sessionId)
 
-                if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
-                    resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
-                    resultLog = `[${result.value.length} framework events captured]`
-                }
+        if (typeof result.value !== 'undefined') {
+            let resultLog = result.value
 
-                log.info('RESULT', resultLog)
+            if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
+                resultLog = `${result.value.slice(0, 61)}...`
+            } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
+                resultLog = `[${result.value.length} framework events captured]`
             }
 
-            this.emit('result', { method, endpoint, body, result })
+            log.info('RESULT', resultLog)
+        }
 
-            if (command === 'deleteSession') {
-                /**
-                 * kill driver process if there is one
-                 */
-                if (this._driverProcess && body.deleteSessionOpts?.shutdownDriver !== false) {
-                    log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
-                    const killedSuccessfully = this._driverProcess.kill('SIGKILL')
-                    if (!killedSuccessfully) {
-                        log.warn('Failed to kill driver process, manully clean-up might be required')
-                    }
-                    this._driverProcess = undefined
+        this.emit('result', { method, endpoint, body, result })
 
-                    setTimeout(() => {
-                        /**
-                         * clear up potential leaked TLS Socket handles
-                         * see https://github.com/puppeteer/puppeteer/pull/10667
-                         */
-                        for (const handle of process._getActiveHandles()) {
-                            if (handle.servername && handle.servername.includes('edgedl.me')) {
-                                handle.destroy()
-                            }
+        if (command === 'deleteSession') {
+            const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
+            /**
+             * kill driver process if there is one
+             */
+            if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
+                log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
+                const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
+                if (!killedSuccessfully) {
+                    log.warn('Failed to kill driver process, manually clean-up might be required')
+                }
+
+                setTimeout(() => {
+                    /**
+                     * clear up potential leaked TLS Socket handles
+                     * see https://github.com/puppeteer/puppeteer/pull/10667
+                     */
+                    for (const handle of process._getActiveHandles()) {
+                        if (handle.servername && handle.servername.includes('edgedl.me')) {
+                            handle.destroy()
                         }
-                    }, 10)
-                }
-
-                /**
-                 * clear logger stream if session has been terminated
-                 */
-                if (!process.env.WDIO_WORKER_ID) {
-                    logger.clearLogger()
-                }
+                    }
+                }, 10)
             }
-            return result.value
-        })
+
+            /**
+             * clear logger stream if session has been terminated
+             */
+            if (!process.env.WDIO_WORKER_ID) {
+                logger.clearLogger()
+            }
+        }
+
+        return result.value
     }
 }

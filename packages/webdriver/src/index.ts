@@ -33,8 +33,13 @@ export default class WebDriver {
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
-        const driverPrototype: Record<string, PropertyDescriptor> = {
-            _driverProcess: { value: driverProcess, configurable: false, writable: true }
+
+        /**
+         * attach driver process to instance capabilities so we can kill the driver process
+         * even after attaching to this session
+         */
+        if (driverProcess?.pid) {
+            capabilities['wdio:driverPID'] = driverProcess.pid
         }
 
         /**
@@ -53,7 +58,6 @@ export default class WebDriver {
                 ...protocolCommands,
                 ...environmentPrototype,
                 ...userPrototype,
-                ...driverPrototype,
                 ...bidiPrototype
             }
         )

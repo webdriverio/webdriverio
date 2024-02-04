@@ -23,4 +23,8 @@ test('allow to attach to an existing session', async () => {
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()
+
+    const error = await browser.status().catch((err) => err)
+    expect(error.message).not.toBe('ChromeDriver ready for new sessions.')
+    expect(error.message).toEqual(expect.stringContaining('ECONNREFUSED'))
 })
