@@ -14,6 +14,7 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
+import type { CapabilityOptions } from '../../wdio-types/build/Capabilities.js'
 
 const log = logger('@wdio/cli:launcher')
 
@@ -229,7 +230,7 @@ class Launcher {
                  */
                 const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
-                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
+                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability
 
                 this._schedule.push({
                     cid: cid++,
@@ -271,7 +272,9 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        const specs = (capabilities as Capabilities.DesiredCapabilities).specs || (capabilities as CapabilityOptions)['wdio:specs']
+        const excludes = (capabilities as Capabilities.DesiredCapabilities).exclude || (capabilities as CapabilityOptions)['wdio:exclude']
+        const files = this.configParser.getSpecs(specs, excludes)
 
         return files.map(file => {
             if (typeof file === 'string') {
