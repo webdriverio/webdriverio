@@ -117,7 +117,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['0.0.0.0'] })
+        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['localhost'] })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
