@@ -53,7 +53,7 @@ export const setValue = async (key: string, value: JsonCompatible | JsonPrimitiv
         }).catch(errHandler)
     })
 
-    return isBaseUrlReady ? (await setPromise).json() : Promise.resolve()
+    return isBaseUrlReady ? (await setPromise).status : Promise.resolve()
 }
 
 /**
@@ -70,7 +70,7 @@ export const setResourcePool = async (key: string, value: JsonArray) => {
         }).catch(errHandler)
     })
 
-    return isBaseUrlReady ? (await setPromise).json() : Promise.resolve()
+    return isBaseUrlReady ? (await setPromise).status : Promise.resolve()
 }
 
 /**
@@ -106,8 +106,7 @@ export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCom
         body: JSON.stringify({ value }),
         headers
     }).catch(errHandler)
-    const responseBody = await res.json()
-    return responseBody.value ?? undefined
+    return res.status
 }
 
 const errHandler= async (err: Error) => {

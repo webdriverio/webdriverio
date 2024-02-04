@@ -110,15 +110,15 @@ describe('client', () => {
 
     describe('when calling setResourcePool', () => {
         describe('and after setPort is called', () => {
-            it("should call /pool/set and return it's response", async () => {
-                vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: 'postResult' }))
+            it("should call /pool/set and return it's response code", async () => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 const result = await setResourcePool('foo', ['bar'])
                 expect(fetch).toBeCalledWith(`${baseUrl}/pool`, {
                     method: 'post',
                     body: JSON.stringify({ key: 'foo', value: ['bar'] }),
                     headers
                 })
-                expect(result).toEqual({ value: 'postResult' })
+                expect(result).toEqual(200)
             })
         })
 
@@ -153,14 +153,14 @@ describe('client', () => {
 
     describe('when calling addValueToPool', () => {
         describe('and after setPort is called', () => {
-            it("should call /pool/add and return it's response", async () => {
-                vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: 'postResult' }))
+            it("should call /pool/add and return it's response code", async () => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 const result = await addValueToPool('foo', 'bar')
                 expect(fetch).toBeCalledWith(`${baseUrl}/pool/foo`, {
                     method: 'post',
                     body: JSON.stringify({ value: 'bar' }),
                     headers })
-                expect(result).toEqual('postResult')
+                expect(result).toEqual(200)
             })
         })
 
