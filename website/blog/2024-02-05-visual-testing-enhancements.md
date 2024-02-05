@@ -14,7 +14,7 @@ The module now supports `saveElement`, `checkElement`, `saveScreen`, and `checkS
 #### Key Changes and Improvements
 
 - **`resizeDimensions` Update**: Now exclusively accepts an object format.
-- **Native App Context**: Methods like `saveFullPageScreen` and `checkTabbablePage` are not compatible with native mobile apps.
+- **Native App Context**: Methods like `saveFullPageScreen` and `checkTabbablePage` are now compatible with native mobile apps.
 - **Baseline Image Handling**: `autoSaveBaseline` is now true by default, auto-creating new baselines when needed.
 - **Mobile Screenshot Enhancements**: Automatically excludes OS elements like notification bars; `blockOutSideBar`, `blockOutStatusBar`, and `blockOutToolBar` are set to `true`.
 
