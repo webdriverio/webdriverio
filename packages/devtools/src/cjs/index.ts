@@ -29,9 +29,9 @@ class Devtools {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
      */
-    static async reloadSession (instance: any) {
+    static async reloadSession (instance: any, newCapabilities: any) {
         const Devtools = (await import('../index.js')).default
-        return Devtools.reloadSession(instance)
+        return Devtools.reloadSession(instance, newCapabilities)
     }
 
     static get Devtools () {
