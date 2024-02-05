@@ -92,7 +92,7 @@ Compare images and discard alpha.
 ### `blockOutSideBar`
 
 - **Type:** `boolean`
-- **Default:** `false`
+- **Default:** `true`
 - **Mandatory:** no
 - **Remark:** _Can only be used for `checkScreen()`. It will override the plugin setting. This is **iPad only**_
 
@@ -101,7 +101,7 @@ Automatically block out the sidebar for iPads in landscape mode during compariso
 ### `blockOutStatusBar`
 
 - **Type:** `boolean`
-- **Default:** `false`
+- **Default:** `true`
 - **Mandatory:** no
 - **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
@@ -110,7 +110,7 @@ Automatically block out the status and address bar during comparisons. This prev
 ### `blockOutToolBar`
 
 - **Type:** `boolean`
-- **Default:** `false`
+- **Default:** `true`
 - **Mandatory:** no
 - **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
