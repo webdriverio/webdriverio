@@ -1,8 +1,8 @@
 ---
 title: "Introducing Enhanced Native App Support in WebdriverIO's Visual Testing Module!"
-author: Wim Selles
-authorURL: http://twitter.com/wswebcreation
-authorImageURL: https://avatars.githubusercontent.com/u/11979740?v=4
+author: WebdriverIO Team
+authorURL: https://twitter.com/webdriverio
+authorImageURL: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d781679fe5cda99067d8193890ad5cb7450e4a&v=4
 ---
 
 We're excited to announce an update to the Visual Testing Module with a key focus: **Native App Snapshot Testing**. Our vision has always been to provide a comprehensive, versatile testing tool that simplifies your workflow. This update is a step towards creating a 'Swiss Army Knife' for visual testing, catering to diverse requirements across platforms and extending our support to native mobile applications, making your testing process more efficient and seamless.
@@ -14,7 +14,7 @@ The module now supports `saveElement`, `checkElement`, `saveScreen`, and `checkS
 #### Key Changes and Improvements
 
 - **`resizeDimensions` Update**: Now exclusively accepts an object format.
-- **Native App Context**: Methods like `saveFullPageScreen` and `checkTabbablePage` are now compatible with native mobile apps.
+- **Native App Context**: All methods, except `saveFullPageScreen` and `checkTabbablePage`, are now compatible with native mobile apps.
 - **Baseline Image Handling**: `autoSaveBaseline` is now true by default, auto-creating new baselines when needed.
 - **Mobile Screenshot Enhancements**: Automatically excludes OS elements like notification bars; `blockOutSideBar`, `blockOutStatusBar`, and `blockOutToolBar` are set to `true`.
 
