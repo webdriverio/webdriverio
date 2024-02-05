@@ -90,9 +90,9 @@ Add bezel corners and notch/dynamic island to the screenshot for iOS devices.
 
 - **Type:** `boolean`
 - **Mandatory:** No
-- **Default:** `false`
+- **Default:** `true`
 
-If no baseline image is found during the comparison the image is automatically copied to the baseline folder when this is set to `true`
+If no baseline image is found during the comparison the image is automatically copied to the baseline folder.
 
 ### `baselineFolder`
 
@@ -347,4 +347,4 @@ The width of the line.
 
 ## Compare options
 
-The compare options can be set as service options, see [Method Compare options](./method-options#compare-check-options)
+The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
