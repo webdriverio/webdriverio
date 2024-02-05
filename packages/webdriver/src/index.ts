@@ -1,3 +1,5 @@
+import type { ChildProcess } from 'node:child_process'
+
 import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
@@ -153,13 +155,23 @@ export default class WebDriver {
         const capabilities = deepmerge(instance.requestedCapabilities, newCapabilities || {})
         const params: Options.WebDriver = { ...instance.options, capabilities }
 
+        let driverProcess: ChildProcess | undefined
         if (newCapabilities?.browserName) {
             delete params.port
             delete params.hostname
-            await startWebDriver(params)
+            driverProcess = await startWebDriver(params)
         }
 
         const { sessionId, capabilities: newSessionCapabilities } = await startWebDriverSession(params)
+
+        /**
+         * attach driver process to instance capabilities so we can kill the driver process
+         * even after attaching to this session
+         */
+        if (driverProcess?.pid) {
+            newSessionCapabilities['wdio:driverPID'] = driverProcess.pid
+        }
+
         instance.options.hostname = params.hostname
         instance.options.port = params.port
         instance.sessionId = sessionId
