@@ -31,7 +31,9 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
     specs?: Spec[]
+    'wdio:specs'?: Spec[]
     exclude?: string[]
+    'wdio:exclude'?: string[]
 }
 
 export default class ConfigParser {
@@ -169,12 +171,17 @@ export default class ConfigParser {
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
 
         /**
-         * overwrite config specs that got piped into the wdio command
+         * overwrite config specs that got piped into the wdio command,
+         * also adhering to the wdio-prefixes from a capability
          */
-        if (object.specs && object.specs.length > 0) {
+        if (object['wdio:specs'] && object['wdio:specs'].length > 0) {
+            this._config.specs = object['wdio:specs'] as Spec[]
+        } else if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs as string[]
         }
-        if (object.exclude && object.exclude.length > 0) {
+        if (object['wdio:exclude'] && object['wdio:exclude'].length > 0) {
+            this._config.exclude = object['wdio:exclude'] as string[]
+        } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
         }
 

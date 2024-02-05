@@ -127,10 +127,13 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
         FileNamed(path.join(baseDir, 'test-a.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'test-b.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'typescript.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-01.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-02.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.local.conf.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.wdio-prefix.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, '../app/src/index.ts')).withContents('source contents')]
 }
 
@@ -607,6 +610,25 @@ describe('ConfigParser', () => {
             // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
             expect(specs).toHaveLength(1)
             expect(specs).toContain(configParserPath)
+        })
+
+        it('should overwrite specs w/ wdio:specs files from capabilitoes', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile])
+            expect(specs).toContain(prefixedTestFile)
+        })
+
+        it('should overwrite exclude w/ wdio:exclude files from capabilities', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            const excludedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-02.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile], 'wdio:exclude' : [excludedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile, excludedTestFile])
+            expect(specs).not.toContain(excludedTestFile)
         })
 
         it('should set hooks to empty arrays as default', async () => {
