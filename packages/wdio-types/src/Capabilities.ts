@@ -211,6 +211,10 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
 }
 
 export interface WebdriverIOCapabilities {
+    /**
+     * process id of driver attached to given session
+     */
+    'wdio:driverPID'?: number
     'wdio:chromedriverOptions'?: WebdriverIO.ChromedriverOptions
     'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
     'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions

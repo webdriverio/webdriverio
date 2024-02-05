@@ -1,4 +1,3 @@
-import type { ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import {
@@ -13,10 +12,6 @@ import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
 
-interface BaseClientWithEventHandler extends BaseClient {
-    _driverProcess?: ChildProcess
-}
-
 export default function (
     method: string,
     endpointUri: string,
@@ -25,7 +20,7 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
+    return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -125,6 +120,9 @@ export default function (
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
+        /**
+         * use then here so we can better unit test what happens before and after the request
+         */
         return request.makeRequest(this.options, this.sessionId).then((result) => {
             if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
@@ -141,16 +139,16 @@ export default function (
             this.emit('result', { method, endpoint, body, result })
 
             if (command === 'deleteSession') {
+                const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
-                if (this._driverProcess && body.deleteSessionOpts?.shutdownDriver !== false) {
-                    log.info(`Kill ${this._driverProcess.spawnfile} driver process with command line: ${this._driverProcess.spawnargs.slice(1).join(' ')}`)
-                    const killedSuccessfully = this._driverProcess.kill('SIGKILL')
+                if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
+                    log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
+                    const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
                     if (!killedSuccessfully) {
-                        log.warn('Failed to kill driver process, manully clean-up might be required')
+                        log.warn('Failed to kill driver process, manually clean-up might be required')
                     }
-                    this._driverProcess = undefined
 
                     setTimeout(() => {
                         /**
@@ -172,6 +170,7 @@ export default function (
                     logger.clearLogger()
                 }
             }
+
             return result.value
         })
     }
