@@ -120,55 +120,58 @@ export default function (
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
-        const result = await request.makeRequest(this.options, this.sessionId)
+        /**
+         * use then here so we can better unit test what happens before and after the request
+         */
+        return request.makeRequest(this.options, this.sessionId).then((result) => {
+            if (typeof result.value !== 'undefined') {
+                let resultLog = result.value
 
-        if (typeof result.value !== 'undefined') {
-            let resultLog = result.value
-
-            if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
-                resultLog = `${result.value.slice(0, 61)}...`
-            } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
-                resultLog = `[${result.value.length} framework events captured]`
-            }
-
-            log.info('RESULT', resultLog)
-        }
-
-        this.emit('result', { method, endpoint, body, result })
-
-        if (command === 'deleteSession') {
-            const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
-            /**
-             * kill driver process if there is one
-             */
-            if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
-                log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
-                const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
-                if (!killedSuccessfully) {
-                    log.warn('Failed to kill driver process, manually clean-up might be required')
+                if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
+                    resultLog = `${result.value.slice(0, 61)}...`
+                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
+                    resultLog = `[${result.value.length} framework events captured]`
                 }
 
-                setTimeout(() => {
-                    /**
-                     * clear up potential leaked TLS Socket handles
-                     * see https://github.com/puppeteer/puppeteer/pull/10667
-                     */
-                    for (const handle of process._getActiveHandles()) {
-                        if (handle.servername && handle.servername.includes('edgedl.me')) {
-                            handle.destroy()
-                        }
+                log.info('RESULT', resultLog)
+            }
+
+            this.emit('result', { method, endpoint, body, result })
+
+            if (command === 'deleteSession') {
+                const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
+                /**
+                 * kill driver process if there is one
+                 */
+                if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
+                    log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
+                    const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
+                    if (!killedSuccessfully) {
+                        log.warn('Failed to kill driver process, manually clean-up might be required')
                     }
-                }, 10)
+
+                    setTimeout(() => {
+                        /**
+                         * clear up potential leaked TLS Socket handles
+                         * see https://github.com/puppeteer/puppeteer/pull/10667
+                         */
+                        for (const handle of process._getActiveHandles()) {
+                            if (handle.servername && handle.servername.includes('edgedl.me')) {
+                                handle.destroy()
+                            }
+                        }
+                    }, 10)
+                }
+
+                /**
+                 * clear logger stream if session has been terminated
+                 */
+                if (!process.env.WDIO_WORKER_ID) {
+                    logger.clearLogger()
+                }
             }
 
-            /**
-             * clear logger stream if session has been terminated
-             */
-            if (!process.env.WDIO_WORKER_ID) {
-                logger.clearLogger()
-            }
-        }
-
-        return result.value
+            return result.value
+        })
     }
 }
