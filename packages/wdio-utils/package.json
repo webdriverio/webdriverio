@@ -37,7 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@puppeteer/browsers": "^1.6.0",
+    "@puppeteer/browsers": "^2.0.0",
     "@wdio/logger": "8.28.0",
     "@wdio/types": "8.29.1",
     "decamelize": "^6.0.0",
