@@ -4,7 +4,10 @@ describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName ? browserName.replace(' ', '') : browserName)
+
+        const actualUA = (await $('#useragent').getText()).toLowerCase()
+        const expectedUA = browserName ? browserName.replace(' ', '').replace('-headless-shell', '') : browserName
+        await expect(actualUA).toContain(expectedUA)
     })
 
     it('supports snapshot testing', async () => {
@@ -291,20 +294,22 @@ describe('main suite 1', () => {
         }
     })
 
-    it('can reload a session', async () => {
-        const sessionId = browser.sessionId
-        await browser.reloadSession()
-        expect(browser.sessionId).not.toBe(sessionId)
-    })
-
-    it('can reload a session with new capabilities', async () => {
-        expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome')
-        await browser.reloadSession({
-            browserName: 'firefox',
-            'moz:firefoxOptions': {
-                args: ['-headless']
-            }
+    describe('reloadSession', () => {
+        it('can reload a session', async () => {
+            const sessionId = browser.sessionId
+            await browser.reloadSession()
+            expect(browser.sessionId).not.toBe(sessionId)
         })
-        expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('firefox')
+
+        it('can reload a session with new capabilities', async () => {
+            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome-headless-shell')
+            await browser.reloadSession({
+                browserName: 'firefox',
+                'moz:firefoxOptions': {
+                    args: ['-headless']
+                }
+            })
+            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('firefox')
+        })
     })
 })
