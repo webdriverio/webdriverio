@@ -81,7 +81,7 @@ describe('Lit Component testing', () => {
 
         const elem = $('simple-greeting')
         await expect(elem).toMatchSnapshot()
-        await expect(elem).toMatchInlineSnapshot(`"<simple-greeting name="WebdriverIO"></simple-greeting>"`)
+        await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
         await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
         await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
           {
@@ -316,6 +316,19 @@ describe('Lit Component testing', () => {
 
         it('supports custom command registration in before hook', async () => {
             expect(await browser.someCustomCommand()).toBe('Hello World')
+        })
+
+        it('supports custom matchers added by services', async () => {
+            await expect('foo').toBeFoo()
+
+            let error
+            try {
+                await expect('bar').toBeFoo()
+            } catch (err) {
+                error = err
+            }
+
+            expect(error.message).toBe('expected bar to be foo')
         })
 
         describe('a11y selectors', () => {

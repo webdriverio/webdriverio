@@ -3,6 +3,7 @@ import type { EventEmitter } from 'node:events'
 import type { Options, Capabilities } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 import type { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 import type { EventEmitter as PuppeteerEventEmitter } from 'puppeteer-core/lib/esm/puppeteer/common/EventEmitter.js'
 
 declare global {
@@ -43,7 +44,9 @@ export interface BaseClient extends EventEmitter {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommands {}
+export interface Client extends BaseClient, ProtocolCommands {
+    puppeteer: Browser
+}
 
 /**
  * Interface keeping together information allowing to remove active listener from emitter.

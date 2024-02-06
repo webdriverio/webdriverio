@@ -231,6 +231,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (message.type === MESSAGE_TYPES.browserTestResult) {
             return this.#handleTestFinish(message.value)
         }
+
+        if (message.type === MESSAGE_TYPES.expectMatchersRequest) {
+            return this.#sendWorkerResponse(
+                id,
+                this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
+            )
+        }
     }
 
     async #handleHook (id: number, payload: Workers.HookTriggerEvent) {
@@ -245,6 +252,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         return this.#sendWorkerResponse(id, this.#hookResponse({ id: payload.id, error }))
+    }
+
+    #expectMatcherResponse (value: Workers.ExpectMatchersResponse): Workers.SocketMessage {
+        return {
+            type: MESSAGE_TYPES.expectMatchersResponse,
+            value
+        }
     }
 
     #hookResponse (value: Workers.HookResultEvent): Workers.SocketMessage {
@@ -335,7 +349,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * find matcher, e.g. `toBeDisplayed` or `toHaveTitle`
          */
-        const matcher = matchers[payload.matcherName as keyof typeof matchers]
+        const matcher = matchers.get(payload.matcherName)
         if (!matcher) {
             const message = `Couldn't find matcher with name "${payload.matcherName}"`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))

@@ -181,6 +181,11 @@ const config: Config = {
                       <a href="https://www.browserstack.com/automation-webdriverio" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor BrowserStack">
                         <img src="/img/sponsors/browserstack_white.svg" alt="BrowserStack" />
                       </a>`
+                }, {
+                    html: `
+                      <a href="https://saucelabs.com/" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor Sauce Labs">
+                        <img src="/img/sponsors/saucelabs_white.svg" alt="Sauce Labs" />
+                      </a>`
                 }]
             }],
             logo: {

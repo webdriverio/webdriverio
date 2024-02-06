@@ -98,12 +98,19 @@ function Home() {
                     </div>
                     <section className="sponsorSection">
                         <div>
-                            <em>Supported by the following 💎 Premium Sponsors:</em>
+                            <em>Sponsored by</em>
                             <ImageSwitcher
                                 lightImageSrc="/img/sponsors/browserstack_black.svg"
                                 darkImageSrc="/img/sponsors/browserstack_white.svg"
                                 alt="BrowserStack"
                                 link="https://www.browserstack.com/automation-webdriverio"
+                            />
+                            <em style={{ marginRight: 0 }}>&nbsp; and &nbsp;</em>
+                            <ImageSwitcher
+                                lightImageSrc="/img/sponsors/saucelabs_black.svg"
+                                darkImageSrc="/img/sponsors/saucelabs_white.svg"
+                                alt="Sauce Labs"
+                                link="https://www.saucelabs.com"
                             />
                         </div>
                     </section>

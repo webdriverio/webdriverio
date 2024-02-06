@@ -19,6 +19,7 @@ updates:
     - dependency-name: "@cucumber/cucumber"
     - dependency-name: "jsdom"
     - dependency-name: "pretty-ms"
+    - dependency-name: "@puppeteer/browsers"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7

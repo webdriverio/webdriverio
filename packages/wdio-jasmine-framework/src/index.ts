@@ -436,7 +436,7 @@ class JasmineAdapter {
 
         // @ts-expect-error not exported in jasmine
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(matchers as Record<string, any>).reduce((prev, [name, fn]) => {
+        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = [...matchers.entries()].reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
                     const context = getConfig()

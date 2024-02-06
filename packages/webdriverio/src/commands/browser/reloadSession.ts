@@ -18,20 +18,34 @@ const log = logger('webdriverio')
         await browser.reloadSession()
         console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
+
+    it('should reload my session with new capabilities', async () => {
+        console.log(browser.capabilities.browserName) // outputs: chrome
+        await browser.reloadSession({
+            browserName: 'firefox'
+        })
+        console.log(browser.capabilities.browserName) // outputs: firefox
+    })
  * </example>
  *
  * @alias browser.reloadSession
+ * @param newCapabilities new capabilities to create a session with
  * @type utility
  *
  */
-export async function reloadSession (this: WebdriverIO.Browser) {
+export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?: WebdriverIO.Capabilities) {
     const oldSessionId = (this as WebdriverIO.Browser).sessionId
+
+    /**
+     * if a new browser name is given we can shut down the driver since we start a new one
+     */
+    const shutdownDriver = Boolean(newCapabilities?.browserName)
 
     /**
      * end current running session, if session already gone suppress exceptions
      */
     try {
-        await this.deleteSession({ shutdownDriver: false })
+        await this.deleteSession({ shutdownDriver })
     } catch (err: any) {
         /**
          * ignoring all exceptions that could be caused by browser.deleteSession()
@@ -47,7 +61,7 @@ export async function reloadSession (this: WebdriverIO.Browser) {
     }
 
     const ProtocolDriver = (await import(this.options.automationProtocol!)).default
-    await ProtocolDriver.reloadSession(this)
+    await ProtocolDriver.reloadSession(this, newCapabilities)
 
     const options = this.options as Options.Testrunner
     if (Array.isArray(options.onReload) && options.onReload.length) {

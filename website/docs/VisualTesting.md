@@ -8,7 +8,14 @@ import TabItem from '@theme/TabItem';
 
 ## What can it do?
 
-WebdriverIO provides image comparisons on screens, elements or a full-page for browsers, mobile browsers as well as hybrid apps through the [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) which is a lightweight WebdriverIO service.
+WebdriverIO provides image comparisons on screens, elements or a full-page for
+
+-   🖥️ Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
+-   📱 Mobile / Tablet browsers (Chrome on Android emulators / Safari on iOS Simulators / Simulators / real devices) via Appium
+-   📱 Native Apps (Android emulators / iOS Simulators / real devices) via Appium (🌟 __NEW__ 🌟)
+-   📳 Hybrid apps via Appium
+
+through the [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) which is a lightweight WebdriverIO service.
 
 This allows you to:
 
@@ -17,19 +24,15 @@ This allows you to:
 -   __block out custom regions__ and even __automatically exclude__ a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
 -   use __different comparison methods__ and a set of __additional matchers__ for better readable tests
--   You can now verify how your website will __support tabbing with your keyboard)__, see also [Tabbing through a website](#tabbing-through-a-website)
+-   verify how your website will __support tabbing with your keyboard)__, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
 The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](http://rsmbl.github.io/Resemble.js/).
 
-It can be used for:
+:::info NOTE For Native/Hybrid Apps
+The methods `saveScreen`, `saveElement`, `checkScreen`, `checkElement` and the matchers `toMatchScreenSnapshot` and `toMatchElementSnapshot` can be used for Native Apps/Context.
 
--   🖥️ Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
--   📱 Mobile / Tablet browsers (Chrome / Safari on emulators / real devices) via Appium
--   📳 Hybrid apps via Appium
-
-:::info NOTE For Hybrid Apps
-Please use the property `isHybridApp:true` in your service settings
+Please use the property `isHybridApp:true` in your service settings when you want to use it for Hybrid Apps.
 :::
 
 ## Installation
@@ -84,7 +87,7 @@ export const config = {
 }
 ```
 
-More service options can be found [here](/docs/visual-testing/service-options). Once set-up in your WebdriverIO configuration you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
+More service options can be found [here](/docs/visual-testing/service-options). Once set up in your WebdriverIO configuration, you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
 
 ### WebdriverIO MultiRemote
 
@@ -159,7 +162,7 @@ await browser.deleteSession()
 ### Tabbing through a website
 
 You can check if a website is accessible by using the keyboard <kbd>TAB</kbd>-key. Testing this part of accessibility has always been a time-consuming (manual) job and pretty hard to do through automation.
-With the methods `saveTabbablePage` and `checkTabbablePage` you can now draw lines and dots on your website to verify the tabbing order.
+With the methods `saveTabbablePage` and `checkTabbablePage`, you can now draw lines and dots on your website to verify the tabbing order.
 
 Be aware of the fact that this is only useful for desktop browsers and **NOT**** for mobile devices. All desktop browsers support this feature.
 
@@ -213,7 +216,7 @@ Aside from the general [project requirements](/docs/gettingstarted#system-requir
 
 By default, binaries for macOS, Linux and Windows will be downloaded during your project's `npm install`. If you don't have a supported OS or processor architecture, the module will be compiled on your system. This requires several dependencies, including Cairo and Pango.
 
-For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). One-line installation instructions for common OSes are below. Note that libgif/giflib, librsvg and libjpeg are optional and only required if you need GIF, SVG and JPEG support, respectively. Cairo v1.10.0 or later is required.
+For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). One-line installation instructions for common OSes are below. Note that `libgif/giflib`, `librsvg` and `libjpeg` are optional and only required if you need GIF, SVG and JPEG support, respectively. Cairo v1.10.0 or later is required.
 
 <Tabs
     defaultValue="osx"

@@ -33,7 +33,14 @@ export default async function downloadSpec (page = 1) {
         repo,
         page,
         per_page: 100
+    }).catch((error) => {
+        console.log(`Failed to download spec file: ${error.message}`)
     })
+
+    if (!artifacts || artifacts.data.artifacts.length === 0) {
+        return false
+    }
+
     // eslint-disable-next-line camelcase
     const cddlBuilds = artifacts.data.artifacts.filter(({ name, workflow_run }) => (
         name === 'cddl' &&
