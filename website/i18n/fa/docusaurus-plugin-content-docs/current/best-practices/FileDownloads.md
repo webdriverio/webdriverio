@@ -3,8 +3,6 @@ id: file-download
 title: File Download
 ---
 
-# File Download
-
 When automating file downloads in web testing, it's essential to handle them consistently across different browsers to ensure reliable test execution.
 
 Here, we provide best practices for file downloads and demonstrate how to configure download directories for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**.
@@ -37,22 +35,37 @@ await browser.pause(5000);
 await waitUntil(async ()=> await fs.existsSync(downloadPath), 5000);
 ```
 
-## Configuring Download Directories With WebdriverIO
+## Configuring Download Directories
 
 To override file download behavior for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**, provide the download directory in the WebDriverIO capabilities:
 
+<Tabs
+defaultValue="chrome"
+values={[
+{label: 'Chrome', value: 'chrome'},
+{label: 'Firefox', value: 'firefox'},
+{label: 'Microsoft Edge', value: 'edge'},
+]
+}>
+
+<TabItem value='chrome'>
+
 ```javascript
-// Google Chrome
 capabilities: {
     browserName: 'chrome',
     'goog:chromeOptions': {
         prefs: {
-            "download.default_directory": downloadPath
+            'download.default_directory': downloadPath
         }
     }
 }
+```
 
-// Mozilla Firefox
+</TabItem>
+
+<TabItem value='firefox'>
+
+```javascript
 capabilities: {
     browserName: 'firefox',
     'moz:firefoxOptions': {
@@ -64,30 +77,39 @@ capabilities: {
         }
     }
 }
+```
 
-// Microsoft Edge
+</TabItem>
+
+<TabItem value='edge'>
+
+```javascript
 capabilities: {
     browserName: 'msedge',
     'ms:edgeOptions': {
         prefs: {
-            "download.default_directory": downloadPath
+            'download.default_directory': downloadPath
         }
     }
 }
 ```
 
+</TabItem>
+
+</Tabs>
+
 For an example implementation, refer to the [WebdriverIO Test Download Behavior Recipe](https://github.com/webdriverio/example-recipes/tree/main/testDownloadBehavior).
 
-## Configuring Chromium Browser Downloads with WebDriverIO
+## Configuring Chromium Browser Downloads
 
-To change the download path for __Chromium-based__ browsers (such as Chrome, Edge, Brave, etc.) using WebDriverIO.
+To change the download path for __Chromium-based__ browsers (such as Chrome, Edge, Brave, etc.) using WebDriverIOs `getPuppeteer` method for accessing Chrome DevTools.
 
 ```javascript
 const page = await browser.getPuppeteer();
 // Initiate a CDP Session:
 const cdpSession = await page.target().createCDPSession();
 // Set the Download Path:
-await cdpSession.send("Browser.setDownloadBehavior", { behavior: "allow", downloadPath: downloadPath });
+await cdpSession.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadPath });
 ```
 
 ## Handling Multiple File Downloads
