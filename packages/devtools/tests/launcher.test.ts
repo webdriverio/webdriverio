@@ -407,12 +407,12 @@ test('launch Chrome with defaultViewPort as null', async () => {
     await launch({
         browserName: 'chrome',
         'wdio:devtoolsOptions': { defaultViewport: null }
-    });
+    })
     expect(launchChromeBrowser).toBeCalledWith(
         expect.objectContaining({
             chromeFlags: expect.not.arrayContaining(
                 ['--window-size=1200,900', '--window-position=0,0']
             )
         })
-    );
-});
+    )
+})
