@@ -220,8 +220,8 @@ export interface WebdriverIOCapabilities {
     'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
     /**
- * Maximum number of total parallel running workers (per capability)
- */
+    * Maximum number of total parallel running workers (per capability)
+    */
     'wdio:maxInstances'?: number
     /**
      * Maximum number of total parallel running workers (per capability)
