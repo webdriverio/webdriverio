@@ -42,7 +42,17 @@
       "type": "category",
       "label": "Guides",
       "items": [
-        "bestpractices",
+        {
+          "type": "category",
+          "label": "Best Practices",
+          "link": {
+            "type": "doc",
+            "id": "bestpractices"
+          },
+          "items": [
+            "best-practices/file-download"
+          ]
+        },
         "selectors",
         "timeouts",
         "emulation",
