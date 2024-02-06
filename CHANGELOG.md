@@ -21,6 +21,28 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.30.0 (2024-02-06)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#12147](https://github.com/webdriverio/webdriverio/pull/12147) (webdriverio): allow to define new capabilities when calling `reloadSession ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-runner`, `wdio-types`
+  * [#12184](https://github.com/webdriverio/webdriverio/pull/12184) (@wdio/browser-runner): allow services and other hooks to register custom matcher ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`, `webdriver`
+  * [#12146](https://github.com/webdriverio/webdriverio/pull/12146) (webdriver): have a more reliable way to shut down attached session driver ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#12148](https://github.com/webdriverio/webdriverio/pull/12148) feat: add native app compare docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.29.7 (2024-02-02)
 
 #### :rocket: New Feature
