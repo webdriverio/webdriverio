@@ -4,13 +4,16 @@ describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName ? browserName.replace(' ', '') : browserName)
+
+        const actualUA = (await $('#useragent').getText()).toLowerCase()
+        const expectedUA = browserName ? browserName.replace(' ', '').replace('-headless-shell', '') : browserName
+        await expect(actualUA).toContain(expectedUA)
     })
 
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
-        await expect($('.findme')).toMatchInlineSnapshot(`"<h1 class="findme">Test CSS Attributes</h1>"`)
+        await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
     it('should allow to check for PWA', async () => {
@@ -291,9 +294,22 @@ describe('main suite 1', () => {
         }
     })
 
-    it('can reload a session', async () => {
-        const sessionId = browser.sessionId
-        await browser.reloadSession()
-        expect(browser.sessionId).not.toBe(sessionId)
+    describe('reloadSession', () => {
+        it('can reload a session', async () => {
+            const sessionId = browser.sessionId
+            await browser.reloadSession()
+            expect(browser.sessionId).not.toBe(sessionId)
+        })
+
+        it('can reload a session with new capabilities', async () => {
+            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome-headless-shell')
+            await browser.reloadSession({
+                browserName: 'edge',
+                'ms:edgeOptions': {
+                    args: ['headless', 'disable-gpu']
+                }
+            })
+            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('edge-headless-shell')
+        })
     })
 })

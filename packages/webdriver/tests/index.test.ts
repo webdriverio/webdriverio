@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mock feature
 import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
+import { startWebDriver } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
@@ -289,8 +290,26 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
+            vi.mocked(startWebDriver).mockClear()
             await WebDriver.reloadSession(session)
+            expect(startWebDriver).not.toHaveBeenCalledOnce()
             expect(got).toHaveBeenCalledTimes(2)
+        })
+
+        it('starts a new driver process if browserName is given', async () => {
+            vi.mocked(startWebDriver).mockImplementation((params) => {
+                params.hostname = 'localhost'
+                params.port = 4444
+                return { pid: 1234 } as any
+            })
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            vi.mocked(startWebDriver).mockClear()
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+            expect(startWebDriver).toHaveBeenCalledOnce()
+            expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
         })
     })
 
@@ -302,5 +321,6 @@ describe('WebDriver', () => {
         vi.mocked(logger.setLevel).mockClear()
         vi.mocked(got).mockClear()
         vi.mocked(sessionEnvironmentDetector).mockClear()
+        vi.mocked(startWebDriver).mockClear()
     })
 })

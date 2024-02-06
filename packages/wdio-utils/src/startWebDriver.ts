@@ -14,6 +14,9 @@ export async function startWebDriver (options: Options.WebDriver) {
         return
     }
 
+    /**
+     * only import `startWebDriver` when run in Node.js
+     */
     if (globalThis.process) {
         const { startWebDriver } = await import('./node/index.js')
         return startWebDriver(options)
