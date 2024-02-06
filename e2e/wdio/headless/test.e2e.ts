@@ -304,12 +304,12 @@ describe('main suite 1', () => {
         it('can reload a session with new capabilities', async () => {
             expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome-headless-shell')
             await browser.reloadSession({
-                browserName: 'firefox',
-                'moz:firefoxOptions': {
-                    args: ['-headless']
+                browserName: 'edge',
+                'ms:edgeOptions': {
+                    args: ['headless', 'disable-gpu']
                 }
             })
-            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('firefox')
+            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('edge-headless-shell')
         })
     })
 })
