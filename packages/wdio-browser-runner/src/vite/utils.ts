@@ -19,6 +19,11 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
 
+    /**
+     * clean up some values that might cause serialization issues
+     */
+    delete env.config.runner
+
     let vueDeps = ''
     if (options.preset === 'vue') {
         try {
