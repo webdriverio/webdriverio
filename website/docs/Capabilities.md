@@ -61,6 +61,24 @@ If the driver `binary` is set, WebdriverIO won't attempt to download a driver bu
 
 :::
 
+#### `wdio:maxInstances`
+
+Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
+
+Type: `number`
+
+#### `wdio:specs`
+
+Define specs for test execution for that browser/capability. Same as the [regular `specs` configuration option](configuration#specs), but specific to the browser/capability. Takes precedence over `specs`.
+
+Type: `(String | String[])[]`
+
+#### `wdio:exclude`
+
+Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Takes precedence over `exclude`.
+
+Type: `String[]`
+
 #### Browser Specific Driver Options
 
 In order to propagate options to the driver you can use the following custom capabilities:
