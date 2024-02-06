@@ -2,6 +2,7 @@ import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import { loadEnv } from 'vite'
+import { expect } from '@wdio/globals'
 
 const isMac = os.platform() === 'darwin' && process.env.CI
 const isWindows = os.platform() === 'win32'
@@ -64,6 +65,28 @@ export const config = {
         timeout: 150000,
         require: ['./__fixtures__/setup.js']
     },
+
+    /**
+     * in order to test custom matchers added by services, we push a service instance
+     * to the service list
+     */
+    services: [[{
+        before() {
+            expect.extend({
+                toBeFoo(received) {
+                    return received === 'foo'
+                        ? {
+                            message: () => `expected ${received} not to be foo`,
+                            pass: true
+                        }
+                        : {
+                            message: () => `expected ${received} to be foo`,
+                            pass: false
+                        }
+                }
+            })
+        }
+    }, {}]],
 
     before: () => {
         /**

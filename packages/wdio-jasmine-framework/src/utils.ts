@@ -10,7 +10,7 @@ const buildJasmineFromJestResult = (result: JestExpectationResult, isNot: boolea
     }
 }
 
-export const jestResultToJasmine = (result: JestExpectationResult, isNot: boolean) => {
+export const jestResultToJasmine = (result: JestExpectationResult | Promise<JestExpectationResult>, isNot: boolean) => {
     if (result instanceof Promise) {
         return result.then(jestStyleResult => buildJasmineFromJestResult(jestStyleResult, isNot))
     }

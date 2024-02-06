@@ -3,7 +3,6 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
-import { matchers } from 'expect-webdriverio'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
@@ -116,7 +115,6 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
-                    export const matchers = ${JSON.stringify(Object.keys(matchers))}
                     export const wrappedFn = (...args) => fn()(...args)
                 `
             }
