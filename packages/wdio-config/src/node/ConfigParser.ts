@@ -31,7 +31,9 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
     specs?: Spec[]
+    'wdio:specs'?: Spec[]
     exclude?: string[]
+    'wdio:exclude'?: string[]
 }
 
 export default class ConfigParser {
