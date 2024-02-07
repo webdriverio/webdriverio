@@ -321,7 +321,6 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine` | `cucu
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 Spezifische Framework-bezogene Optionen. Informationen zu den verfügbaren Optionen finden Sie in der Dokumentation zum Framework-Adapter. Lesen Sie mehr dazu in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
@@ -374,6 +373,24 @@ Type: `String[]`<br /> Default: `null`
 Eine Reihe von Glob-unterstützenden Pfadpatterns, die dem Testrunner mitteilen, dass er zusätzlich diese Dateien auf Änderungen beobachten soll, z. B. Anwendungsdateien, im Falle der Parameter `--watch` wurde gesetzt. Standardmäßig überwacht der Testrunner bereits alle Testdateien.
 
 Type: `String[]`<br /> Default: `[]`
+
+### updateSnapshots
+
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+
+### resolveSnapshotPath
+
+Overrides default snapshot path. For example, to store snapshots next to test files.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
+
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
 ### autoCompileOpts
 
@@ -461,7 +478,7 @@ Parameter:
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parameters:
+Parameter:
 
 - `suite` (`Objekt`): Suite-Details
 
@@ -469,7 +486,7 @@ Parameters:
 
 Hook, die ausgeführt wird, *bevor* eine Hook innerhalb der Suite beginnt (z. B. läuft vor dem Aufruf von beforeEach in Mocha)
 
-Parameter:
+Parameters:
 
 - `test` (`Objekt`): Testdetails
 - `context` (`Objekt`): Testkontext (repräsentiert World-Objekt in Cucumber)
@@ -614,7 +631,7 @@ Parameter:
 - `result.passed` (`boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
 - `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
 - `result.duration` (`ziffer`): Testdauer
-- `context` (`Objekt`): Cucumber World-Objekt
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
@@ -630,7 +647,7 @@ Parameter:
 
 Läuft nach einem Cucumber Schritt.
 
-Parameter:
+Parameters:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber Objekt
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber-Szenario Objekt
