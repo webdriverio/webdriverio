@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.31.0 (2024-02-07)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-cli`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`, `wdio-types`
+  * [#12189](https://github.com/webdriverio/webdriverio/pull/12189) (@wdio/cli): allow to define path for snapshot file ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#12186](https://github.com/webdriverio/webdriverio/pull/12186) File Downloads Best Practices ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Muhammad Hammad Faisal ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+
+
 ## v8.30.0 (2024-02-06)
 
 #### :rocket: New Feature
