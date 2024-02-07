@@ -346,7 +346,8 @@ describe('wdio-runner', () => {
                 reporters: [],
                 beforeSession: [],
                 runner: 'local',
-                updateSnapshots: 'do it'
+                updateSnapshots: 'do it',
+                resolveSnapshotPath: 'resolve me'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             const addServiceSpy = vi.spyOn(ConfigParser.prototype, 'addService')
@@ -358,7 +359,10 @@ describe('wdio-runner', () => {
             expect(addServiceSpy).toBeCalledWith({
                 results: ['foobar']
             })
-            expect(SnapshotService.initiate).toBeCalledWith('do it')
+            expect(SnapshotService.initiate).toBeCalledWith({
+                updateState: 'do it',
+                resolveSnapshotPath: 'resolve me'
+            })
             expect(process.send).toBeCalledWith({
                 origin: 'worker',
                 name: 'snapshot',

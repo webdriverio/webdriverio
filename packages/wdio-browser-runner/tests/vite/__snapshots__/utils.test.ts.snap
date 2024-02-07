@@ -43,7 +43,7 @@ exports[`getTemplate > renders template correctly 1`] = `
                 /**
                  * Inject environment variables
                  */
-                window.__wdioEnv__ = {}
+                window.__wdioEnv__ = {"config":{}}
                 window.__wdioSpec__ = '/spec.js'
                 window.__wdioEvents__ = []
                 /**

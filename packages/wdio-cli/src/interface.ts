@@ -29,7 +29,7 @@ interface CLIInterfaceEvent {
 
 export default class WDIOCLInterface extends EventEmitter {
     #snapshotManager = new SnapshotManager({
-        updateSnapshot: 'new'
+        updateSnapshot: 'new' // ignored in this context
     })
 
     public hasAnsiSupport: boolean
