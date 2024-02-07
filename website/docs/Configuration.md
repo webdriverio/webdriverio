@@ -366,7 +366,6 @@ Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br />
@@ -427,6 +426,26 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 
 Type: `String[]`<br />
 Default: `[]`
+
+### updateSnapshots
+
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+
+Type: `'new' | 'all' | 'none'`<br />
+Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+
+### resolveSnapshotPath
+
+Overrides default snapshot path. For example, to store snapshots next to test files.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
+
+Type: `(testPath: string, snapExtension: string) => string`<br />
+Default: stores snapshot files in `__snapshots__` directory next to test file
 
 ### autoCompileOpts
 
