@@ -189,7 +189,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
+    private _runMode(config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -489,7 +489,7 @@ class Launcher {
         worker.on('exit', this._endHandler.bind(this))
     }
 
-    private _workerHookError (error: HookError) {
+    private _workerHookError(error: HookError) {
         if (!this.interface) {
             throw new Error('Internal Error: no interface initialized, call run() first')
         }
@@ -505,7 +505,7 @@ class Launcher {
      * @param  {number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    private _getRunnerId (cid: number): string {
+    private _getRunnerId(cid: number): string {
         if (!this._rid[cid]) {
             this._rid[cid] = 0
         }
@@ -583,7 +583,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    private _exitHandler (callback?: (value: boolean) => void): void | Promise<void> {
+    private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
         if (!callback || !this.runner || !this.interface) {
             return
         }
