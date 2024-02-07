@@ -270,11 +270,14 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        const caps = 'alwaysMatch' in (capabilities as Capabilities.W3CCapabilities)
-            ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
-            : 'capabilities' in (capabilities as Capabilities.MultiRemoteCapabilities)[Object.keys(capabilities)[0]]
-                ? {} as WebdriverIO.Capabilities
-                : capabilities as WebdriverIO.Capabilities
+        let caps: WebdriverIO.Capabilities
+        if ('alwaysMatch' in capabilities) {
+            caps = capabilities.alwaysMatch
+        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.MultiRemoteCapabilities)[Object.keys(capabilities)[0]]) {
+            caps = {}
+        } else {
+            caps = capabilities as WebdriverIO.Capabilities
+        }
         const specs = caps.specs || caps['wdio:specs']
         const excludes = caps.exclude || caps['wdio:exclude']
         const files = this.configParser.getSpecs(specs, excludes)
