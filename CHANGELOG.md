@@ -675,6 +675,10 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ## v8.21.0 (2023-11-02)
 
+#### :boom: Breaking Change
+* `webdriverio`
+  * [#11529](https://github.com/webdriverio/webdriverio/pull/11529) changed moveTo to like it's been implemented in click ([@udarrr](https://github.com/udarrr))
+
 #### :bug: Bug Fix
 * `webdriverio`
   * [#11537](https://github.com/webdriverio/webdriverio/pull/11537) Fix name selector to allow other characters ([@aristotelos](https://github.com/aristotelos))
@@ -687,8 +691,6 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 #### :nail_care: Polish
 * `wdio-browserstack-service`
   * [#11488](https://github.com/webdriverio/webdriverio/pull/11488) [browserstack-service] Add more CIs ([@samarsault](https://github.com/samarsault))
-* `webdriverio`
-  * [#11529](https://github.com/webdriverio/webdriverio/pull/11529) changed moveTo to like it's been implemented in click ([@udarrr](https://github.com/udarrr))
 * `wdio-types`, `wdio-utils`
   * [#11509](https://github.com/webdriverio/webdriverio/pull/11509) (@wdio/utils): Add envDetector for browserstack ([@Pi-fe](https://github.com/Pi-fe))
 

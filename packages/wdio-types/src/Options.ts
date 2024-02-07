@@ -410,6 +410,11 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     updateSnapshots?: 'all' | 'new' | 'none'
     /**
+     * Overrides default snapshot path. For example, to store snapshots next to test files.
+     * @default __snapshots__ stores snapshot files in __snapshots__ directory next to the test file.
+     */
+    resolveSnapshotPath?: (testPath: string, snapExtension: string) => string
+    /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */
     specFileRetries?: number
