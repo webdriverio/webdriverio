@@ -22,7 +22,9 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     /**
      * clean up some values that might cause serialization issues
      */
-    delete env.config.runner
+    if ('runner' in env.config) {
+        delete env.config.runner
+    }
 
     let vueDeps = ''
     if (options.preset === 'vue') {
