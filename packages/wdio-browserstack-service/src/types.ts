@@ -61,6 +61,21 @@ export interface BrowserstackConfig {
      */
     testObservabilityOptions?: TestObservabilityOptions;
     /**
+     * Set this to true to enable BrowserStack Percy which will take screenshots
+     * and snapshots for your tests run on Browserstack
+     * @default false
+     */
+    percy?: boolean;
+    /**
+     * Accepts mode as a string to auto capture screenshots at different execution points
+     * Accepted values are auto, click, testcase, screenshot & manual
+     */
+    percyCaptureMode?: string;
+    /**
+     * Set the Percy related config options under this key.
+    */
+    percyOptions?: any;
+    /**
     * Set this to true to enable BrowserStack Accessibility Automation which will
     * automically conduct accessibility testing on your pre-existing test builds
     * and generate health reports which can be viewed in the Accessibility dashboard.

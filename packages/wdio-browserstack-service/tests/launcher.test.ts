@@ -8,6 +8,10 @@ import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
 import * as utils from '../src/util'
 
+import * as PercyHelper from '../src/Percy/PercyHelper'
+import * as PercyLogger from '../src/Percy/PercyLogger'
+import Percy from '../src/Percy/Percy'
+
 import fs from 'fs'
 
 // @ts-ignore
@@ -1237,5 +1241,70 @@ describe('_updateLocalBuildCache', () => {
 
         service._updateLocalBuildCache(filePath, undefined, 3)
         expect(writeFileSyncSpy).not.toHaveBeenCalled()
+    })
+})
+
+describe('setupPercy', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+    const options: BrowserstackConfig & Testrunner = { capabilities: [] }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+    const service = new BrowserstackLauncher({ percy: true }, caps, config)
+
+    it('should return if percy is already running', async() => {
+        const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
+        const mockPercy = new Percy(options, config, {})
+
+        const start = jest.spyOn(PercyHelper, 'startPercy').mockReturnValue(mockPercy)
+
+        await service.setupPercy(options, config, {
+            projectName: 'projectName'
+        })
+        expect(start).toBeCalledTimes(1)
+        expect(PercyLoggerInfoSpy).toBeCalledTimes(1)
+    })
+})
+
+describe('stopPercy', () => {
+    let _percy: Percy
+    const options: BrowserstackConfig & Testrunner = { capabilities: [] }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+    const caps: any = [{
+        'bstack:options': {
+            buildName: 'browserstack wdio build test',
+            buildIdentifier: '#${BUILD_NUMBER}'
+        }
+    }]
+    _percy = new Percy(options, config, {})
+    const service = new BrowserstackLauncher({ percy: true }, caps, config)
+
+    it('should return if percy is not defined', async() => {
+        service.stopPercy()
+    })
+    it('should return if percy is already running', async() => {
+        service._percy = _percy
+        const mockPercyisRunning = jest.spyOn(_percy, 'isRunning').mockImplementation(() => (true))
+        const PercyLoggerInfoSpy = jest.spyOn(PercyLogger.PercyLogger, 'info').mockImplementation((string) => string)
+        const mockPercyStart = jest.spyOn(PercyHelper, 'stopPercy').mockImplementation()
+
+        await service.stopPercy()
+        expect(mockPercyisRunning).toBeCalledTimes(1)
+        expect(mockPercyStart).toBeCalledTimes(1)
+        expect(PercyLoggerInfoSpy).toBeCalledTimes(1)
     })
 })

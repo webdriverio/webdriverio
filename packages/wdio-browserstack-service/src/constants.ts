@@ -37,3 +37,17 @@ export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 
 export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+
+export const PERCY_LOGS_FILE = 'logs/percy.log'
+
+export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
+    '/session/:sessionId/url',
+    '/session/:sessionId/forward',
+    '/session/:sessionId/back',
+    '/session/:sessionId/refresh',
+    '/session/:sessionId/screenshot',
+    '/session/:sessionId/actions',
+    '/session/:sessionId/appium/device/shake'
+]
+
+export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']

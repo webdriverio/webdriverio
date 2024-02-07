@@ -35,7 +35,10 @@
     "got": "^11.0.2",
     "uuid": "^9.0.1",
     "webdriverio": "7.34.0",
-    "winston-transport": "^4.5.0"
+    "winston-transport": "^4.5.0",
+    "yauzl": "^2.10.0",
+    "@percy/appium-app": "^2.0.1",
+    "@percy/selenium-webdriver": "^2.0.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0"

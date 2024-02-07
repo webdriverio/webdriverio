@@ -10,6 +10,10 @@ export default BrowserstackService
 export const launcher = BrowserstackLauncher
 export const log4jsAppender = { configure }
 export const BStackTestOpsLogger = logReportingAPI
+
+import * as Percy from './Percy/PercySDK'
+export const PercySDK = Percy
+
 export * from './types'
 
 declare global {

@@ -15,7 +15,8 @@ import { spawn } from 'node:child_process'
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 import CrashReporter from './crash-reporter'
-import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
+import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper'
+import type { App, AppConfig, AppUploadResponse, BrowserstackConfig, UserConfig } from './types'
 import { VALID_APP_EXTENSION, NOT_ALLOWED_KEYS_IN_CAPS } from './constants'
 import {
     launchTestSession,
@@ -27,15 +28,18 @@ import {
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
+    ObjectsAreEqual,
     isTrue
 } from './util'
 import PerformanceTester from './performance-tester'
+import { PercyLogger } from './Percy/PercyLogger'
+import type Percy from './Percy/Percy'
 
 const log = logger('@wdio/browserstack-service')
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
-    stop(callback: (err?: any) => void): void;
+    stop(callback: (err?: Error) => void): void;
 }
 
 export default class BrowserstackLauncherService implements Services.ServiceInstance {
@@ -45,6 +49,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildTag?: string
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean
+    private _percy?: Percy
+    private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     public _testOpsBuildStopped?: boolean
 
     constructor (
@@ -52,6 +58,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
+        PercyLogger.clearLogFile()
         // added to maintain backward compatibility with webdriverIO v5
         this.setupExitHandlers()
         this._config || (this._config = _options)
@@ -142,6 +149,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
             log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
+        }
+    }
+
+    async onWorkerStart (cid: any, caps: any) {
+        try {
+            if (this._options.percy && this._percyBestPlatformCaps) {
+                const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
+                if (isThisBestPercyPlatform) {
+                    process.env.BEST_PLATFORM_CID = cid
+                }
+            }
+        } catch (err: unknown) {
+            PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
     }
 
@@ -248,6 +268,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
+        if (this._options.percy) {
+            try {
+                const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
+                this._percyBestPlatformCaps = bestPlatformPercyCaps
+                await this.setupPercy(this._options, this._config, {
+                    projectName: this._projectName
+                })
+            } catch (err: unknown) {
+                PercyLogger.error(`Error while setting up Percy ${err}`)
+            }
+        }
+
         if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
@@ -322,6 +354,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             log.info(`Total duration is ${duration / 1000 } s`)
         }
 
+        if (this._options.percy) {
+            await this.stopPercy()
+        }
+
+        PercyLogger.clearLogger()
+
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -354,6 +392,41 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             clearTimeout(timer)
             return Promise.reject(err)
         })
+    }
+
+    async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+        if (this._percy?.isRunning()) {
+            return
+        }
+        try {
+            this._percy = await startPercy(options, config, bsConfig)
+            if (!this._percy) {
+                throw new Error('Could not start percy, check percy logs for info.')
+            }
+            PercyLogger.info('Percy started successfully')
+            let signal = 0
+            const handler = async () => {
+                signal++
+                signal === 1 && await this.stopPercy()
+            }
+            process.on('beforeExit', handler)
+            process.on('SIGINT', handler)
+            process.on('SIGTERM', handler)
+        } catch (err: unknown) {
+            PercyLogger.debug(`Error in percy setup ${err}`)
+        }
+    }
+
+    async stopPercy() {
+        if (!this._percy || !this._percy.isRunning()) {
+            return
+        }
+        try {
+            await stopPercy(this._percy)
+            PercyLogger.info('Percy stopped')
+        } catch (err) {
+            PercyLogger.error(`Error occured while stopping percy : ${err}`)
+        }
     }
 
     async _uploadApp(app:App): Promise<AppUploadResponse> {
