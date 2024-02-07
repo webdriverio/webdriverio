@@ -33,7 +33,7 @@ const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.nam
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome (capabilities: ExtendedCapabilities) {
+async function launchChrome(capabilities: ExtendedCapabilities) {
     const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
@@ -79,12 +79,11 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
         touch: devtoolsOptions.defaultViewport.isMobile
     }) || {}
+    const windowFlags = devtoolsOptions.defaultViewport !== null ?
+        [`--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`, `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`] : []
     const chromeFlags = [
         ...defaultFlags,
-        ...[
-            `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
-            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
-        ],
+        ...windowFlags,
         ...(headless ? [
             '--headless',
             '--no-sandbox'
@@ -141,7 +140,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     return browser
 }
 
-function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
+function launchBrowser(capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
     const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
     const vendorCapKey = VENDOR_PREFIX[browserType]
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
@@ -196,7 +195,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
+function connectBrowser(connectionUrl: string, capabilities: ExtendedCapabilities) {
     const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
     const options: puppeteer.ConnectOptions = {
@@ -206,7 +205,7 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
     return puppeteer.connect(options) as unknown as Promise<Browser>
 }
 
-export default async function launch (capabilities: ExtendedCapabilities) {
+export default async function launch(capabilities: ExtendedCapabilities) {
     puppeteer.unregisterCustomQueryHandler('shadow')
     puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
     const browserName = capabilities.browserName?.toLowerCase()
