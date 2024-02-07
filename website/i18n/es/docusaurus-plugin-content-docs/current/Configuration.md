@@ -321,7 +321,6 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 Opciones específicas relacionadas con el framework. Vea la documentación del adaptador del framework sobre qué opciones están disponibles. Lea más sobre esto en [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
@@ -374,6 +373,24 @@ Type: `String[]`<br /> Default: `null`
 Una lista de glob que soporta patrones de cadenas que le dicen al testrunner que lo tenga adicionalmente para ver otros archivos.. archivos de aplicación al ejecutarlo con la bandera `--watch`. Por defecto, el testrunner ya observa todos los archivos de especialización.
 
 Type: `String[]`<br /> Default: `[]`
+
+### updateSnapshots
+
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+
+### resolveSnapshotPath
+
+Overrides default snapshot path. For example, to store snapshots next to test files.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
+
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
 ### autoCompileOpts
 
@@ -461,7 +478,7 @@ Parámetros:
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parameters:
+Parámetros:
 
 - `suite` (`objeto`): detalles de suite
 
@@ -469,7 +486,7 @@ Parameters:
 
 Gancho que se ejecuta *antes de* que se inicie un gancho dentro de la suite (por ejemplo, se ejecuta antes de llamar a beforeEach en Mocha)
 
-Parámetros:
+Parameters:
 
 - `test` (`object`): detalles de prueba
 - `contexto` (`objeto`): contexto de prueba (representa el objeto del mundo en cupón)
@@ -614,7 +631,7 @@ Parámetros:
 - `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
 - `result.error` (`string`): pila de errores si el escenario falló
 - `result.duration` (`number`): duración del escenario en milisegundos
-- `contexto` (`objeto`): objeto Cucumber World
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
@@ -630,7 +647,7 @@ Parámetros:
 
 Se ejecuta antes de una Característica de Cucumber
 
-Parámetros:
+Parameters:
 
 - `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
 - `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
