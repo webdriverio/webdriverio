@@ -50,48 +50,30 @@ values={[
 
 <TabItem value='chrome'>
 
-```javascript
-capabilities: {
-    browserName: 'chrome',
-    'goog:chromeOptions': {
-        prefs: {
-            'download.default_directory': downloadPath
-        }
-    }
-}
+```javascript reference title="wdio.conf.js"
+
+https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L8-L16
+
 ```
 
 </TabItem>
 
 <TabItem value='firefox'>
 
-```javascript
-capabilities: {
-    browserName: 'firefox',
-    'moz:firefoxOptions': {
-        prefs: {
-            'browser.download.dir': downloadPath,
-            'browser.download.folderList': 2,
-            'browser.download.manager.showWhenStarting': false,
-            'browser.helperApps.neverAsk.saveToDisk': '*/*'
-        }
-    }
-}
+```javascript reference title="wdio.conf.js"
+
+https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L20-L32
+
 ```
 
 </TabItem>
 
 <TabItem value='edge'>
 
-```javascript
-capabilities: {
-    browserName: 'msedge',
-    'ms:edgeOptions': {
-        prefs: {
-            'download.default_directory': downloadPath
-        }
-    }
-}
+```javascript reference title="wdio.conf.js"
+
+https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L36-L44
+
 ```
 
 </TabItem>
