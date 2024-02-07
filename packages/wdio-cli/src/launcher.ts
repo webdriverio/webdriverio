@@ -14,8 +14,6 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
-import type { CapabilityOptions } from '../../wdio-types/build/Capabilities.js'
-
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -272,11 +270,16 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        const specs = (capabilities as Capabilities.DesiredCapabilities).specs || (capabilities as CapabilityOptions)['wdio:specs']
-        const excludes = (capabilities as Capabilities.DesiredCapabilities).exclude || (capabilities as CapabilityOptions)['wdio:exclude']
+        const caps = 'alwaysMatch' in (capabilities as Capabilities.W3CCapabilities)
+            ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+            : 'capabilities' in (capabilities as Capabilities.MultiRemoteCapabilities)[Object.keys(capabilities)[0]]
+                ? {} as WebdriverIO.Capabilities
+                : capabilities as WebdriverIO.Capabilities
+        const specs = caps.specs || caps['wdio:specs']
+        const excludes = caps.exclude || caps['wdio:exclude']
         const files = this.configParser.getSpecs(specs, excludes)
 
-        return files.map(file => {
+        return files.map((file: String | String[]) => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
             } else if (Array.isArray(file)) {
