@@ -321,7 +321,6 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
@@ -374,6 +373,24 @@ Type: `String[]`<br /> Default: `null`
 A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
 
 Type: `String[]`<br /> Default: `[]`
+
+### updateSnapshots
+
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+
+### resolveSnapshotPath
+
+Overrides default snapshot path. For example, to store snapshots next to test files.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
+
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
 ### autoCompileOpts
 
@@ -461,7 +478,7 @@ Gets executed before test execution begins. At this point you can access to all 
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parameters:
+Параметры:
 
 - `suite` (`object`): suite details
 
@@ -469,7 +486,7 @@ Parameters:
 
 Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
 
-Параметры:
+Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
