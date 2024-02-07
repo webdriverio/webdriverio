@@ -279,7 +279,7 @@ class Launcher {
         const excludes = caps.exclude || caps['wdio:exclude']
         const files = this.configParser.getSpecs(specs, excludes)
 
-        return files.map((file: String | String[]) => {
+        return files.map((file: string | string[]) => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
             } else if (Array.isArray(file)) {
