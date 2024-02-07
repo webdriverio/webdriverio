@@ -898,6 +898,17 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         }
     },
     /**
+     * Overrides default snapshot path. For example, to store snapshots next to test files.
+     */
+    resolveSnapshotPath: {
+        type: 'function',
+        validate: (param: Options.Testrunner['resolveSnapshotPath']) => {
+            if (param && typeof param !== 'function') {
+                throw new Error('the "resolveSnapshotPath" options needs to be a function')
+            }
+        }
+    },
+    /**
      * The number of times to retry the entire specfile when it fails as a whole
      */
     specFileRetries: {

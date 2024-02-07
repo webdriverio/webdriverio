@@ -73,7 +73,10 @@ export default class Runner extends EventEmitter {
         /**
          * add built-in services
          */
-        this._snapshotService = SnapshotService.initiate(this._config.updateSnapshots)
+        this._snapshotService = SnapshotService.initiate({
+            updateState: this._config.updateSnapshots,
+            resolveSnapshotPath: this._config.resolveSnapshotPath
+        })
         this._configParser.addService(this._snapshotService)
 
         /**
