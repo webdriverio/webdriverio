@@ -21,7 +21,7 @@ await $('.button');
 All these selectors should return a single element.
 
 ```js
-// 👍 
+// 👍
 await $('aria/Submit');
 await $('[test-id="submit-button"]');
 await $('#submit-button');
@@ -50,7 +50,7 @@ await $('table tr td');
 The only time you should use chaining is when you want to combine different [selector strategies](https://webdriver.io/docs/selectors/#custom-selector-strategies). In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#deep-selectors), which is a strategy to go inside the shadow DOM of an element.
 
 ``` js
-// 👍 
+// 👍
 await $('custom-datepicker').$('>>>#calendar').$('aria/Select');
 ```
 
