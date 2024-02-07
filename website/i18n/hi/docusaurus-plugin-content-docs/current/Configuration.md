@@ -321,7 +321,6 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
@@ -374,6 +373,24 @@ Type: `String[]`<br /> Default: `null`
 स्ट्रिंग पैटर्न का समर्थन करने वाले ग्लोब की एक सूची जो टेस्टरनर को बताती है कि इसे `- watch` फ़्लैग के साथ चलाते समय अन्य फ़ाइलों, जैसे एप्लिकेशन फ़ाइलों को अतिरिक्त रूप से देखने के लिए कहा जाता है। डिफ़ॉल्ट रूप से टेस्टरनर पहले से ही सभी विशेष फाइलों को देखता है।
 
 Type: `String[]`<br /> Default: `[]`
+
+### updateSnapshots
+
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+
+### resolveSnapshotPath
+
+Overrides default snapshot path. For example, to store snapshots next to test files.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
+
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
 ### autoCompileOpts
 
@@ -461,7 +478,7 @@ WDIO टेस्टरनर आपको परीक्षण जीवनच
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parameters:
+पैरामीटर:
 
 - `suite` (`object`): सुइट विवरण
 
@@ -469,7 +486,7 @@ Parameters:
 
 हुक जो सूट के भीतर *से पहले* निष्पादित हो जाता है, सूट शुरू होता है (उदाहरण के लिए मोचा में पहले कॉल करने से पहले चलता है)
 
-पैरामीटर:
+Parameters:
 
 - `suite` (`object`): सुइट विवरण
 - `context` (`object`): परीक्षण संदर्भ (ककड़ी में विश्व वस्तु का प्रतिनिधित्व करता है)
@@ -614,7 +631,7 @@ Parameters:
 - `result.passed` (`बूलियन`): यदि परिदृश्य पास हो गया है तो सच है
 - `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि ढेर
 - `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
-- `context` (`object`): कुकुम्बर विश्व वस्तु
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
@@ -630,7 +647,7 @@ Parameters:
 
 कुकुम्बर स्टेप से बाद में रन करता है।
 
-पैरामीटर:
+Parameters:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): कुकुम्बर स्टेप ऑब्जेक्ट
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): कुकुम्बर परिदृश्य वस्तु
