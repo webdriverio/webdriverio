@@ -38,6 +38,40 @@ While the amount of fixed defined capabilities is very low, everyone can provide
 
 WebdriverIO manages installing and running browser driver for you. WebdriverIO uses a custom capability that allows you to pass in parameters to the driver.
 
+#### `wdio:chromedriverOptions`
+
+Specific options passed into Chromedriver when starting it.
+
+#### `wdio:geckodriverOptions`
+
+Specific options passed into Geckodriver when starting it.
+
+#### `wdio:edgedriverOptions`
+
+Specific options passed into Edgedriver when starting it.
+
+#### `wdio:safaridriverOptions`
+
+Specific options passed into Safari when starting it.
+
+#### `wdio:maxInstances`
+
+Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
+
+Type: `number`
+
+#### `wdio:specs`
+
+Define specs for test execution for that browser/capability. Same as the [regular `specs` configuration option](configuration#specs), but specific to the browser/capability. Takes precedence over `specs`.
+
+Type: `(String | String[])[]`
+
+#### `wdio:exclude`
+
+Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Takes precedence over `exclude`.
+
+Type: `String[]`
+
 #### Common Driver Options
 
 While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
