@@ -181,6 +181,28 @@ describe('launcher', () => {
 
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
+
+        it('should mixin wdio:maxInstances per capability + precedence over maxInstancesPerCapability', () => {
+            const wdioPrefixMaxInstances = [
+                {
+                    browserName: 'chrome',
+                    'wdio:maxInstances': 11
+                },
+                {
+                    browserName: 'safari',
+                    'wdio:maxInstances': 22
+                }
+            ]
+            launcher['_runSpecs'] = vi.fn()
+            launcher['_runMode'](
+                { specs: ['./'], maxInstancesPerCapability: 3 } as any,
+                wdioPrefixMaxInstances
+            )
+
+            expect(launcher['_schedule']).toHaveLength(2)
+            expect(launcher['_schedule'][0].availableInstances).toBe(11)
+            expect(launcher['_schedule'][1].availableInstances).toBe(22)
+        })
     })
 
     describe('hasTriggeredExitRoutine', () => {
