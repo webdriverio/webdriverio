@@ -72,9 +72,6 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 
 Type: `String[]`
 
-WebdriverIO manages installing and running browser driver for you. WebdriverIO uses a custom capability that allows you to pass in parameters to the driver.
-
-
 #### Common Driver Options
 
 While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
