@@ -61,7 +61,7 @@ function createMatcher (matcherName: string) {
         /**
          * Check if context is an WebdriverIO.Element
          */
-        if (isContextObject && 'elementId' in context && typeof context.elementId === 'string') {
+        if (isContextObject && 'selector' in context && typeof context.selector === 'string') {
             expectRequest.element = context
         }
 
