@@ -2,13 +2,12 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { createRequire } from 'node:module'
 import { WebDriverProtocol } from '@wdio/protocols'
-import type { URL } from 'node:url'
+import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { URLFactory } from './factory.js'
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
 const require = createRequire(import.meta.url)
@@ -17,16 +16,6 @@ const pkg = require('../../package.json')
 type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
-
-const RETRY_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'HEAD',
-    'DELETE',
-    'OPTIONS',
-    'TRACE'
-] as Options.Method[]
 
 export class RequestLibError extends Error {
     statusCode?: number
@@ -54,7 +43,7 @@ export interface WebDriverResponse {
 export const COMMANDS_WITHOUT_RETRY = [
     findCommandPathByName('performActions'),
 ]
-const MAX_RETRY_TIMEOUT = 100 // 100ms
+
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -102,23 +91,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            retry: {
-                limit: options.connectionRetryCount as number,
-                /**
-                 * this enables request retries for all commands except for the
-                 * ones defined in `COMMANDS_WITHOUT_RETRY` since they have their
-                 * own retry mechanism. Including a request based retry mechanism
-                 * here also ensures we retry if e.g. a connection to the server
-                 * can't be established at all.
-                 */
-                ...(COMMANDS_WITHOUT_RETRY.includes(this.endpoint)
-                    ? {}
-                    : {
-                        methods: RETRY_METHODS,
-                        calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
-                    }
-                ),
-            },
             timeout: options.connectionRetryTimeout
         }
 
@@ -128,6 +100,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.json = this.body
+            // @ts-ignore
             requestOptions.headers!['Content-Length'] = `${contentLength}`
         }
 
@@ -144,11 +117,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = await URLFactory.getInstance(
-            `${options.protocol}://` +
-            `${options.hostname}:${options.port}` +
-            (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
-        )
+        requestOptions.url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)}`)
 
         if (searchParams) {
             requestOptions.url.search = new URLSearchParams(searchParams).toString()

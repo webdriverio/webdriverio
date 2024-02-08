@@ -11,7 +11,7 @@ import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
 
-import RequestFactory from './request/factory.js'
+import Request from './request/request.js'
 import command from './command.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
@@ -74,7 +74,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = await RequestFactory.getInstance(
+    const sessionRequest = new Request(
         'POST',
         '/session',
         {

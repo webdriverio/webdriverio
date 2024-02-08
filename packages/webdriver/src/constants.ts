@@ -93,12 +93,6 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     /**
      * Override default agent
      */
-    agent: {
-        type: 'object'
-    },
-    /**
-     * Override default agent
-     */
     logLevels: {
         type: 'object'
     },

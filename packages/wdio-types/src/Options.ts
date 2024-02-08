@@ -1,5 +1,3 @@
-import type http from 'node:http'
-import type https from 'node:https'
 import type { URL } from 'node:url'
 
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
@@ -11,19 +9,14 @@ export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
-export interface RequestLibOptions {
-    headers?: Record<string, string | string[] | undefined>
-    https?: Record<string, unknown>
+export interface RequestLibOptions extends RequestInit {
     json?: Record<string, unknown>
-    method?: Method
-    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
     searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     timeout?: number
     url?: URL
     path?: string
     username?: string
     password?: string
-    body?: any
 }
 
 export interface RequestLibResponse {
@@ -160,21 +153,6 @@ export interface WebDriver extends Connection {
      */
     headers?: {
         [name: string]: string
-    }
-    /**
-     * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
-     *
-     * @default
-     * ```js
-     * {
-     *     http: new http.Agent({ keepAlive: true }),
-     *     https: new https.Agent({ keepAlive: true })
-     * }
-     * ```
-     */
-    agent?: {
-        http: http.Agent,
-        https: https.Agent
     }
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
