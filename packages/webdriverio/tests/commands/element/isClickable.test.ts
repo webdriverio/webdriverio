@@ -62,6 +62,16 @@ describe('isClickable test', () => {
         expect(scope.execute).toBeCalledTimes(1)
     })
 
+    it('should not perform the scroll', async () => {
+        await elem.isClickable( { scroll: false } )
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(vi.mocked(got).mock.calls[0][1]!.json.args[0]).toEqual({
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            ELEMENT: 'some-elem-123'
+        })
+    })
+
     afterEach(() => {
         vi.mocked(got).mockClear()
     })

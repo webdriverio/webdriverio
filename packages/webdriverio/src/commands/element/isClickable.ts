@@ -3,15 +3,18 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '../../utils/index.js'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
 
+import type { ClickableOptions } from '../../types.js'
 /**
  *
  * Return true if the selected DOM-element:
  *
  * - exists
  * - is visible
- * - is within viewport (if not try scroll to it)
+ * - is within viewport
  * - its center is not overlapped with another element
  * - is not disabled
+ *
+ *By default try to scroll it if not within viewport (can set to false in option)
  *
  * otherwise return false.
  *
@@ -30,18 +33,23 @@ import isElementClickableScript from '../../scripts/isElementClickable.js'
         let clickable = await el.isClickable();
         console.log(clickable); // outputs: true or false
 
+        // is clickable without perform the scroll
+        let clickable = await el.isClickable({ scroll: false });
+
         // wait for element to be clickable
-        await browser.waitUntil(() => el.isClickable())
+        await browser.waitUntil(() => el.isClickable());
     });
  * </example>
  *
  * @alias element.isClickable
  * @return {Boolean}            true if element is clickable
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
+ * @param {ClickableOptions=} options           isClickable command options
+ * @param {scroll=}             options.scroll    try scrolling to element if it's not clickable (default: true)
  * @type state
  *
  */
-export async function isClickable (this: WebdriverIO.Element) {
+export async function isClickable (this: WebdriverIO.Element, { scroll = true }: ClickableOptions = {}) {
     if (!await this.isDisplayed()) {
         return false
     }
@@ -58,5 +66,5 @@ export async function isClickable (this: WebdriverIO.Element) {
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    } as any as HTMLElement, scroll)
 }

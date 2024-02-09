@@ -50,6 +50,21 @@ describe('waitForClickable', () => {
         expect(result).toBe(true)
     })
 
+    it('should call isClickable and return true without perform the scroll', async () => {
+        const tmpElem = await browser.$('#foo')
+        const elem = {
+            selector : '#foo',
+            waitForClickable : tmpElem.waitForClickable,
+            elementId : 123,
+            waitUntil : tmpElem.waitUntil,
+            isClickable : vi.fn(() => true),
+            options : { waitforTimeout : 500, waitforInterval: 50 },
+        } as any as WebdriverIO.Element
+        const result = await elem.waitForClickable({ timeout: duration }, { scroll: false })
+
+        expect(result).toBe(true)
+    })
+
     it('should call isClickable and return true if eventually true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {

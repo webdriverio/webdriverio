@@ -3,7 +3,7 @@
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           false if element is not overlapped
  */
-export default function isElementClickable (elem: HTMLElement) {
+export default function isElementClickable (elem: HTMLElement, scroll: boolean = true) {
     if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !elem.getClientRects || !document.elementFromPoint) {
         return false
     }
@@ -127,8 +127,8 @@ export default function isElementClickable (elem: HTMLElement) {
         )
     }
 
-    // scroll to the element if it's not clickable
-    if (!isClickable(elem)) {
+    // scroll to the element if it's not clickable and expected
+    if (!isClickable(elem) && scroll) {
         // works well in dialogs, but the element may be still overlapped by some sticky header/footer
         elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'nearest', inline: 'nearest' } : false)
 

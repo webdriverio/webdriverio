@@ -460,6 +460,10 @@ export type DragAndDropCoordinate = {
     y: number
 }
 
+export type ClickableOptions = {
+    scroll?: boolean
+}
+
 /**
  * WebdriverIO Mock definition
  */
