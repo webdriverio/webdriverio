@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.31.1 (2024-02-09)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#12200](https://github.com/webdriverio/webdriverio/pull/12200) (webdriverio): don't fail getContext is not supported, e.g. using Tizen TV driver ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`
+  * [#12198](https://github.com/webdriverio/webdriverio/pull/12198) (@wdio/browser-runner): fix scope propagation for not found elements ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#12199](https://github.com/webdriverio/webdriverio/pull/12199) (@wdio/cli): ensure ts-node is installed if tsconfig.json is found ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-config`, `wdio-types`
+  * [#11992](https://github.com/webdriverio/webdriverio/pull/11992) feat(wdio-prefix): introduce `wdio:{maxInstances,specs,exclude}` to WebdriverIO.Capabilities ([@vobu](https://github.com/vobu))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Volker Buzek ([@vobu](https://github.com/vobu))
+
+
 ## v8.31.0 (2024-02-07)
 
 #### :nail_care: Polish
