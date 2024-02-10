@@ -10,13 +10,9 @@ export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
 export interface RequestLibOptions extends RequestInit {
-    json?: Record<string, unknown>
-    searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     timeout?: number
     url?: URL
-    path?: string
-    username?: string
-    password?: string
+    body?: any
 }
 
 export interface RequestLibResponse {

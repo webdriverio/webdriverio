@@ -393,7 +393,7 @@ function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
 }
 
 function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
-    const { json: cmdJson } = requestOptions
+    const { body: cmdJson } = requestOptions
 
     if (typeof cmdJson !== 'object') {
         return ''

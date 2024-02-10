@@ -86,25 +86,24 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
-        const searchParams = isBrowser ?
-            undefined :
-            (typeof options.queryParams === 'object' ? options.queryParams : undefined)
         const requestOptions: RequestLibOptions = {
-            headers: {
-                ...DEFAULT_HEADERS,
-                ...(typeof options.headers === 'object' ? options.headers : {})
-            },
             timeout: options.connectionRetryTimeout
         }
+
+        const requestHeaders: HeadersInit = new Headers({
+            ...DEFAULT_HEADERS,
+            ...(typeof options.headers === 'object' ? options.headers : {})
+        })
+
+        const searchParams = isBrowser ? undefined : (typeof options.queryParams === 'object' ? options.queryParams : undefined)
 
         /**
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.json = this.body
-            // @ts-ignore
-            requestOptions.headers!['Content-Length'] = `${contentLength}`
+            requestOptions.body = this.body
+            requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
         /**
@@ -130,9 +129,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.username = options.user
-            requestOptions.password = options.key
+            requestHeaders.set('Authorization', 'Basic ' + btoa(options.user + ':' + options.key))
         }
+
+        requestOptions.headers = requestHeaders
 
         return requestOptions
     }
@@ -153,8 +153,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(fullRequestOptions.url as URL).href}`)
 
-        if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
+        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
         }
 
         const { url, ...requestLibOptions } = fullRequestOptions
@@ -212,7 +212,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body, fullRequestOptions.json)
+        const error = getErrorFromResponseBody(response.body, fullRequestOptions.body)
 
         /**
          * retry connection refused errors

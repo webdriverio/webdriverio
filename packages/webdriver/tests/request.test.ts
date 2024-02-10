@@ -53,7 +53,7 @@ describe('webdriver request', () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
-            json: { foo: 'baz' }
+            body: { foo: 'baz' }
         }))
 
         await req.makeRequest({
@@ -89,7 +89,7 @@ describe('webdriver request', () => {
         }, 'foobar-123')
 
         expect(transformResponse.mock.calls[0][0]).toHaveProperty('body')
-        expect(transformResponse.mock.calls[0][1].json).toEqual({ foo: 'requestBody' })
+        expect(transformResponse.mock.calls[0][1].body).toEqual({ foo: 'requestBody' })
         await expect(responseBody).toEqual({ value: { foo: 'transformedResponse' } })
         vi.mocked(fetch).mockClear()
     })
@@ -114,8 +114,8 @@ describe('webdriver request', () => {
 
             expect((options.url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
-            expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'foo', 'Content-Length'])
+            expect([...options.headers.keys()])
+                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'foo', 'user-agent'])
             expect(options.timeout).toEqual(10 * 1000)
         })
 
@@ -131,18 +131,19 @@ describe('webdriver request', () => {
             expect((options.url as URL).href).toBe('https://localhost:4445/grid/api/hub')
         })
 
-        it('should add auth if user and key is given', async () => {
+        it('should add authorization header if user and key is given', async () => {
             const req = new WebDriverRequest('POST', webdriverPath, { some: 'body' })
+            const user = 'foo'
+            const key = 'bar'
             const options = await req['_createOptions']({
                 ...defaultOptions,
-                user: 'foo',
-                key: 'bar',
+                user,
+                key,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(options.username).toEqual('foo')
-            expect(options.password).toEqual('bar')
-            expect(options.json).toEqual({ some: 'body' })
+            expect(options.headers.get('Authorization')).toEqual('Basic ' + btoa(user + ':' + key))
+            expect(options.body).toEqual({ some: 'body' })
         })
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', async () => {
@@ -152,7 +153,7 @@ describe('webdriver request', () => {
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Boolean(options.json)).toEqual(false)
+            expect(Boolean(options.body)).toEqual(false)
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', async () => {
@@ -162,7 +163,7 @@ describe('webdriver request', () => {
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Boolean(options.json)).toEqual(false)
+            expect(Boolean(options.body)).toEqual(false)
         })
 
         it('should attach an empty object body when POST is used', async () => {
@@ -172,7 +173,7 @@ describe('webdriver request', () => {
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(options.json).toEqual({})
+            expect(options.body).toEqual({})
         })
 
         it('should add the Content-Length header when a request object has a body', async () => {
@@ -182,9 +183,9 @@ describe('webdriver request', () => {
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'Content-Length'])
-            expect((options.headers as Record<string, string>)['Content-Length']).toBe('13')
+            expect([...options.headers.keys()])
+                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'user-agent'])
+            expect(options.headers.get('Content-Length')).toBe('13')
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
@@ -194,10 +195,8 @@ describe('webdriver request', () => {
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            const headers = options.headers as Record<string, string>
-            expect(Object.keys(headers)).toContain('Content-Length')
-            expect(headers.foo).toContain('bar')
-            expect(headers['Content-Length']).toBe('13')
+            expect(options.headers.get('foo')).toContain('bar')
+            expect(options.headers.get('Content-Length')).toBe('13')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
@@ -208,9 +207,8 @@ describe('webdriver request', () => {
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            const headers = options.headers as Record<string, string>
-            expect(Object.keys(headers)).not.toContain('Content-Length')
-            expect(headers.foo).toContain('bar')
+            expect([...options.headers.keys()]).not.toContain('content-length')
+            expect(options.headers.get('foo')).toContain('bar')
         })
     })
 
@@ -431,22 +429,6 @@ describe('webdriver request', () => {
                 (e) => e
             )
             expect(result.message).toBe('ups')
-        })
-
-        it('should correctly handle username and password options', async () => {
-            const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
-            const req = new WebDriverRequest('POST', webdriverPath, {})
-
-            const opts = Object.assign(
-                { url: { pathname: '/session/foobar-123/element' }, username: 'foo', password: 'bar' },
-            )
-            const res = await req['_request'](opts)
-
-            expect(res).toEqual(expectedResponse)
-            expect(fetch).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({ headers: { Authorization: 'Basic Zm9vOmJhcg==' } })
-            )
         })
     })
 

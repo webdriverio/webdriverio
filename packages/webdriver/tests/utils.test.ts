@@ -401,7 +401,7 @@ describe('utils', () => {
             it('command args as stringified object', async () => {
                 const err = new Error('Timeout')
                 const cmdArgs = { foo: 'bar' }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
                 const timeoutErr = getTimeoutError(err, reqOpts)
 
@@ -415,7 +415,7 @@ describe('utils', () => {
 
                 const err = new Error('Timeout')
                 const cmdArgs = { script: Buffer.from('script').toString('base64') }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
                 const timeoutErr = getTimeoutError(err, reqOpts)
 
@@ -427,7 +427,7 @@ describe('utils', () => {
             it('command args with function script without extra wrapper', async () => {
                 const err = new Error('Timeout')
                 const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
                 const timeoutErr = getTimeoutError(err, reqOpts)
 
@@ -441,7 +441,7 @@ describe('utils', () => {
 
                 const err = new Error('Timeout')
                 const cmdArgs = { file: Buffer.from('screen').toString('base64') }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
                 const timeoutErr = getTimeoutError(err, reqOpts)
 

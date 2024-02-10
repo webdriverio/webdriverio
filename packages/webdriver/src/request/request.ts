@@ -19,23 +19,13 @@ export default class FetchRequest extends WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
         try {
-            let headers: any = { ...opts.headers }
-
-            if (opts.username && opts.password) {
-                const encodedAuth = Buffer.from(`${opts.username}:${opts.password}`, 'utf8').toString('base64')
-                headers = {
-                    ...headers,
-                    Authorization: `Basic ${encodedAuth}`,
-                }
-            }
-
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), opts.timeout || 120000)
 
             const response = await fetch(url, {
                 method: opts.method,
-                body: opts.body ?? JSON.stringify(opts.json),
-                headers,
+                body: JSON.stringify(opts.body),
+                headers: opts.headers,
                 signal: controller.signal,
             })
 
