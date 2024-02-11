@@ -1215,72 +1215,6 @@ export default {
             ],
         },
     },
-    '/session/:sessionId/touch/down': {
-        POST: {
-            command: 'touchDown',
-            description: 'Finger down on the screen.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchdown',
-            deprecated: TOUCH_DEPRECATION_NOTICE,
-            parameters: [
-                {
-                    name: 'x',
-                    type: 'number',
-                    description: 'x coordinate on the screen',
-                    required: true,
-                },
-                {
-                    name: 'y',
-                    type: 'number',
-                    description: 'y coordinate on the screen',
-                    required: true,
-                },
-            ],
-        },
-    },
-    '/session/:sessionId/touch/up': {
-        POST: {
-            command: 'touchUp',
-            description: 'Finger up on the screen.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup',
-            deprecated: TOUCH_DEPRECATION_NOTICE,
-            parameters: [
-                {
-                    name: 'x',
-                    type: 'number',
-                    description: 'x coordinate on the screen',
-                    required: true,
-                },
-                {
-                    name: 'y',
-                    type: 'number',
-                    description: 'y coordinate on the screen',
-                    required: true,
-                },
-            ],
-        },
-    },
-    '/session/:sessionId/touch/move': {
-        POST: {
-            command: 'touchMove',
-            description: 'Finger move on the screen.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchmove',
-            deprecated: TOUCH_DEPRECATION_NOTICE,
-            parameters: [
-                {
-                    name: 'x',
-                    type: 'number',
-                    description: 'x coordinate on the screen',
-                    required: true,
-                },
-                {
-                    name: 'y',
-                    type: 'number',
-                    description: 'y coordinate on the screen',
-                    required: true,
-                },
-            ],
-        },
-    },
     '/session/:sessionId/touch/scroll': {
         POST: {
             command: 'touchScroll',
@@ -1321,23 +1255,6 @@ export default {
                     name: 'element',
                     type: 'string',
                     description: 'ID of the element to double tap on',
-                    required: true,
-                },
-            ],
-        },
-    },
-    '/session/:sessionId/touch/longclick': {
-        POST: {
-            command: 'touchLongClick',
-            description:
-                'Long press on the touch screen using finger motion events.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchlongclick',
-            deprecated: TOUCH_DEPRECATION_NOTICE,
-            parameters: [
-                {
-                    name: 'element',
-                    type: 'string',
-                    description: 'ID of the element to long press on',
                     required: true,
                 },
             ],
