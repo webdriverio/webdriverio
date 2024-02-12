@@ -1039,15 +1039,15 @@ describe('shouldScanTestForAccessibility', () => {
         expect(shouldScanTestForAccessibility('suite title', 'test title', { includeTagsInTestingScope: 'title' })).toEqual(true)
     })
 
-    it.only('returns false if full test name contains excludeTags', async () => {
+    it('returns false if full test name contains excludeTags', async () => {
         expect(shouldScanTestForAccessibility('suite title', 'test title', { excludeTagsInTestingScope: 'title' })).toEqual(true)
     })
 
-    it.only('returns true if cucumber tags contain includeTags', async () => {
+    it('returns true if cucumber tags contain includeTags', async () => {
         expect(shouldScanTestForAccessibility('suite title', 'test title', { includeTagsInTestingScope: 'someTag' }, cucumberWorldObj, true )).toEqual(true)
     })
 
-    it.only('returns false if cucumber tags contain excludeTags', async () => {
+    it('returns false if cucumber tags contain excludeTags', async () => {
         expect(shouldScanTestForAccessibility('suite title', 'test title', { excludeTagsInTestingScope: 'someTag' }, cucumberWorldObj, true)).toEqual(true)
     })
 })
