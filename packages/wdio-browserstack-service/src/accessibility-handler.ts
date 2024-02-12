@@ -133,6 +133,7 @@ class _AccessibilityHandler {
     }
 
     async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
+        BStackLogger.debug('Accessibility after test hook. Before sending test stop event')
         if (
             this._framework !== 'mocha' ||
             !this.shouldRunTestHooks(this._browser, this._accessibility)
@@ -211,7 +212,7 @@ class _AccessibilityHandler {
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
-        BStackLogger.debug('Automate test case execution has ended.')
+        BStackLogger.debug('Accessibility after scenario hook. Before sending test stop event')
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
@@ -229,7 +230,7 @@ class _AccessibilityHandler {
             }
 
             if (shouldScanTestForAccessibility) {
-                BStackLogger.info('Processing for accessibility testing is underway. ')
+                BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
             }
 
             const dataForExtension = {
