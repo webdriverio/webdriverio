@@ -186,7 +186,7 @@ class _AccessibilityHandler {
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
-        const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
+        const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
         const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 
         if (!isPageOpened) {
@@ -211,6 +211,7 @@ class _AccessibilityHandler {
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
+        BStackLogger.debug('Automate test case execution has ended.')
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
@@ -228,7 +229,7 @@ class _AccessibilityHandler {
             }
 
             if (shouldScanTestForAccessibility) {
-                BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
+                BStackLogger.info('Processing for accessibility testing is underway. ')
             }
 
             const dataForExtension = {
