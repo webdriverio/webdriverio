@@ -110,7 +110,7 @@
     "ejs-lint": "^2.0.0",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-unicorn": "^50.0.1",
+    "eslint-plugin-unicorn": "^51.0.1",
     "eslint-plugin-wdio": "^8.24.12",
     "eta": "^3.2.0",
     "glob": "^10.3.10",
