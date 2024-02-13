@@ -100,7 +100,7 @@ If no baseline image is found during the comparison the image is automatically c
 
 -   **Type:** `any`
 -   **Mandatory:** No
--   **Default:** `./wic/baseline/`
+-   **Default:** `.path/to/testfile/__snapshots__/`
 
 The directory will hold all the baseline images that are used during the comparison. If not set, the default value will be used. A function that accepts an option object can also be used to set the `baselineFolder` value:
 
