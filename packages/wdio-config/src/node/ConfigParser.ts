@@ -31,7 +31,9 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
     specs?: Spec[]
+    'wdio:specs'?: Spec[]
     exclude?: string[]
+    'wdio:exclude'?: string[]
 }
 
 export default class ConfigParser {
@@ -69,7 +71,7 @@ export default class ConfigParser {
     /**
      * initializes the config object
      */
-    async initialize (object: MergeConfig = {}) {
+    async initialize(object: MergeConfig = {}) {
         /**
          * only run auto compile functionality once but allow the config parse to be initialized
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
@@ -169,12 +171,17 @@ export default class ConfigParser {
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
 
         /**
-         * overwrite config specs that got piped into the wdio command
+         * overwrite config specs that got piped into the wdio command,
+         * also adhering to the wdio-prefixes from a capability
          */
-        if (object.specs && object.specs.length > 0) {
+        if (object['wdio:specs'] && object['wdio:specs'].length > 0) {
+            this._config.specs = object['wdio:specs'] as Spec[]
+        } else if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs as string[]
         }
-        if (object.exclude && object.exclude.length > 0) {
+        if (object['wdio:exclude'] && object['wdio:exclude'].length > 0) {
+            this._config.exclude = object['wdio:exclude'] as string[]
+        } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
         }
 
@@ -275,12 +282,12 @@ export default class ConfigParser {
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0){
+        if (Array.isArray(capExclude) && exclude.length === 0) {
             exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
-        if (!isSpecParamPassed && Array.isArray(capSpecs)){
+        if (!isSpecParamPassed && Array.isArray(capSpecs)) {
             specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
@@ -381,7 +388,7 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig () {
+    getConfig() {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
@@ -494,7 +501,7 @@ export default class ConfigParser {
         }, [])
     }
 
-    shard (specs: Spec[]) {
+    shard(specs: Spec[]) {
         if (!this._config.shard || this._config.shard.total === 1) {
             return specs
         }

@@ -836,9 +836,17 @@ export function detectPackageManager(argv = process.argv) {
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     /**
      * don't create a `tsconfig.json` if user doesn't want to use TypeScript
-     * or if a `tsconfig.json` already exists
      */
-    if (!parsedAnswers.isUsingTypeScript || parsedAnswers.hasRootTSConfig) {
+    if (!parsedAnswers.isUsingTypeScript) {
+        return
+    }
+
+    /**
+     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `ts-node`
+     * as it is a requirement for running TypeScript tests
+     */
+    if (parsedAnswers.hasRootTSConfig) {
+        parsedAnswers.packagesToInstall.push('ts-node')
         return
     }
 

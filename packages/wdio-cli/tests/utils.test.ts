@@ -910,6 +910,45 @@ test('setupTypeScript', async () => {
     expect(parsedAnswers.packagesToInstall).toEqual(['ts-node', 'typescript'])
 })
 
+test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {
+    const parsedAnswers = {
+        isUsingTypeScript: false,
+        esmSupport: true,
+        rawAnswers: {
+            framework: 'foo',
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
+        },
+        packagesToInstall: [],
+        tsConfigFilePath: '/foobar/tsconfig.json'
+    } as any
+    await setupTypeScript(parsedAnswers)
+    expect(fs.writeFile).not.toBeCalled()
+    expect(parsedAnswers.packagesToInstall).toEqual([])
+})
+
+test('setupTypeScript does not create tsconfig.json if there is already one', async () => {
+    const parsedAnswers = {
+        isUsingTypeScript: true,
+        esmSupport: true,
+        rawAnswers: {
+            framework: 'foo',
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
+        },
+        packagesToInstall: [],
+        tsConfigFilePath: '/foobar/tsconfig.json',
+        hasRootTSConfig: true
+    } as any
+    await setupTypeScript(parsedAnswers)
+    expect(fs.writeFile).not.toBeCalled()
+    expect(parsedAnswers.packagesToInstall).toEqual(['ts-node'])
+})
+
 test('setup Babel', async () => {
     await setupBabel({} as any)
     expect(fs.writeFile).toBeCalledTimes(0)

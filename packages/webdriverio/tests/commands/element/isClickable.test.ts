@@ -50,6 +50,18 @@ describe('isClickable test', () => {
         await expect(() => elem.isClickable.call(scope)).rejects.toThrow()
     })
 
+    it('should not throw if getContext fails', async () => {
+        const scope = {
+            isDisplayed: vi.fn().mockResolvedValue(true),
+            execute: vi.fn(),
+            options: {},
+            isMobile: true,
+            getContext: vi.fn().mockRejectedValue(new Error('command does not exist'))
+        }
+        await elem.isClickable.call(scope)
+        expect(scope.execute).toBeCalledTimes(1)
+    })
+
     afterEach(() => {
         vi.mocked(got).mockClear()
     })

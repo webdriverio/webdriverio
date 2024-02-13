@@ -23,6 +23,7 @@ const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
+const FIXTURES_PREFIX_CONF = path.resolve(FIXTURES_PATH, 'wdio.wdio-prefix.conf.ts')
 const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
@@ -88,12 +89,12 @@ async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<File
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../node/FileSystemPathService.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents('test file contents'),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
@@ -127,10 +128,13 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
         FileNamed(path.join(baseDir, 'test-a.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'test-b.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'typescript.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-01.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-02.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.local.conf.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.wdio-prefix.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, '../app/src/index.ts')).withContents('source contents')]
 }
 
@@ -411,7 +415,7 @@ describe('ConfigParser', () => {
 
         it('should allow specifying mutliple single spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, FIXTURES_CONF] })
+            await configParser.initialize({ spec: [INDEX_PATH, FIXTURES_CONF] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
@@ -421,7 +425,7 @@ describe('ConfigParser', () => {
 
         it('should allow to specify partial matching spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : ['PathService'] })
+            await configParser.initialize({ spec: ['PathService'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
@@ -429,7 +433,7 @@ describe('ConfigParser', () => {
 
         it('should handle an array in the config_specs', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
-            await configParser.initialize({ spec : ['PathService'] })
+            await configParser.initialize({ spec: ['PathService'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
@@ -437,7 +441,7 @@ describe('ConfigParser', () => {
 
         it('should exclude duplicate spec files', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, INDEX_PATH] })
+            await configParser.initialize({ spec: [INDEX_PATH, INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -607,6 +611,25 @@ describe('ConfigParser', () => {
             // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
             expect(specs).toHaveLength(1)
             expect(specs).toContain(configParserPath)
+        })
+
+        it('should overwrite specs w/ wdio:specs files from capabilitoes', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile])
+            expect(specs).toContain(prefixedTestFile)
+        })
+
+        it('should overwrite exclude w/ wdio:exclude files from capabilities', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            const excludedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-02.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile], 'wdio:exclude' : [excludedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile, excludedTestFile])
+            expect(specs).not.toContain(excludedTestFile)
         })
 
         it('should set hooks to empty arrays as default', async () => {
@@ -822,7 +845,7 @@ describe('ConfigParser', () => {
             ])
         })
 
-        it('should not include spec if blank spec parameter passed', async ()=> {
+        it('should not include spec if blank spec parameter passed', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['mobile'], spec: [] })
 

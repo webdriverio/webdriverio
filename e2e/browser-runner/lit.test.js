@@ -73,6 +73,15 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
+    it('does not stale on elements not found', async () => {
+        const start = Date.now()
+        await expect($('non-existing-element')).not.toBePresent()
+        await expect($('non-existing-element')).not.toBeDisplayed()
+        await expect(await $('non-existing-element')).not.toBePresent()
+        await expect(await $('non-existing-element')).not.toBeDisplayed()
+        expect(Date.now() - start).toBeLessThan(1000)
+    })
+
     it('should support snapshot testing', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,

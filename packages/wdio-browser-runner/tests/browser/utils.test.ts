@@ -24,17 +24,22 @@ describe('browser utils', () => {
             1,
             'foo',
             { foo: 'bar' },
-            { elementId: 'foobar' },
-            { sessionId: 'foobar' },
+            { selector: '.foobar' },
+            {
+                sessionId: 'foobar',
+                capabilities: { browserName: 'chrome' }
+            },
             new Error('foobar'),
+            Promise.resolve('foobar'),
             () => {}
         ])).toEqual([
             1,
             'foo',
             { foo: 'bar' },
-            'WebdriverIO.Element<foobar>',
-            'WebdriverIO.Browser<foobar>',
+            'WebdriverIO.Element<".foobar">',
+            'WebdriverIO.Browser<chrome>',
             expect.stringContaining('Error: foobar'),
+            '[object Promise]',
             '() => {\n      }'
         ])
     })

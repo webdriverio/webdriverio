@@ -14,7 +14,6 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
-
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -188,7 +187,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
+    private _runMode(config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -229,7 +228,7 @@ class Launcher {
                  */
                 const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
-                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
+                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability
 
                 this._schedule.push({
                     cid: cid++,
@@ -271,9 +270,19 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        let caps: WebdriverIO.Capabilities
+        if ('alwaysMatch' in capabilities) {
+            caps = capabilities.alwaysMatch
+        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.MultiRemoteCapabilities)[Object.keys(capabilities)[0]]) {
+            caps = {}
+        } else {
+            caps = capabilities as WebdriverIO.Capabilities
+        }
+        const specs = caps.specs || caps['wdio:specs']
+        const excludes = caps.exclude || caps['wdio:exclude']
+        const files = this.configParser.getSpecs(specs, excludes)
 
-        return files.map(file => {
+        return files.map((file: string | string[]) => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
             } else if (Array.isArray(file)) {
@@ -486,7 +495,7 @@ class Launcher {
         worker.on('exit', this._endHandler.bind(this))
     }
 
-    private _workerHookError (error: HookError) {
+    private _workerHookError(error: HookError) {
         if (!this.interface) {
             throw new Error('Internal Error: no interface initialized, call run() first')
         }
@@ -502,7 +511,7 @@ class Launcher {
      * @param  {number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    private _getRunnerId (cid: number): string {
+    private _getRunnerId(cid: number): string {
         if (!this._rid[cid]) {
             this._rid[cid] = 0
         }
@@ -580,7 +589,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    private _exitHandler (callback?: (value: boolean) => void): void | Promise<void> {
+    private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
         if (!callback || !this.runner || !this.interface) {
             return
         }
