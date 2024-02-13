@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.35.0 (2024-02-13)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#11904](https://github.com/webdriverio/webdriverio/pull/11904) Wdio Percy Support v7 ([@amaanbs](https://github.com/amaanbs))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#12100](https://github.com/webdriverio/webdriverio/pull/12100) Repair chrome maximize devtools ([@rdelhaise-wiiisdom](https://github.com/rdelhaise-wiiisdom))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- [@rdelhaise-wiiisdom](https://github.com/rdelhaise-wiiisdom)
+
+
 ## v7.34.0 (2023-12-21)
 
 #### :rocket: New Feature
