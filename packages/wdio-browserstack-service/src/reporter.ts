@@ -50,7 +50,7 @@ class _TestReporter extends WDIOReporter {
     }
 
     private getUserCaps(runnerStats: RunnerStats) {
-        return runnerStats.instanceOptions[runnerStats.sessionId].capabilities
+        return runnerStats.instanceOptions[runnerStats.sessionId]?.capabilities
     }
 
     registerListeners () {
