@@ -11,7 +11,7 @@ import type { Options } from '@wdio/types'
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
 let pkg = { version: '' }
-if (process?.versions?.node) {
+if ('process' in globalThis && globalThis.process.versions?.node) {
     const require = createRequire(import.meta.url)
     pkg = require('../../package.json')
 }

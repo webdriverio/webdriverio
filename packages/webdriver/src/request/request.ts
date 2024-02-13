@@ -8,7 +8,7 @@ import WebDriverRequest, { RequestLibError } from './index.js'
 
 // As per this https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012 we are setting ipv4first as default IP resolver.
 // This can be removed when we drop Node18 support.
-if (process?.versions?.node) {
+if ('process' in globalThis && globalThis.process.versions?.node) {
     dns.setDefaultResultOrder('ipv4first')
 }
 
