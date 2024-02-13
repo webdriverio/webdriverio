@@ -156,7 +156,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
         const json = this.getBody(failures, calledOnReload, browserName)
         this._failures = 0
-        let headers: any = {
+        let headers: Record<string, string> = {
             'Content-Type': 'application/json; charset=utf-8',
         }
         if (this._cbtUsername && this._cbtAuthkey) {

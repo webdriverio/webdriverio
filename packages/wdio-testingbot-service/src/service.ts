@@ -194,7 +194,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         if (!this._browser) {
             return
         }
-        let headers: any = {
+        let headers: Record<string, string> = {
             'Content-Type': 'application/json; charset=utf-8',
         }
         if (this._tbUser && this._tbSecret) {

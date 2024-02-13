@@ -1,5 +1,3 @@
-import type { URL } from 'node:url'
-
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
@@ -8,12 +6,6 @@ export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
-
-export interface RequestLibOptions extends RequestInit {
-    timeout?: number
-    url?: URL
-    body?: any
-}
 
 export interface RequestLibResponse {
     statusCode: number
@@ -153,11 +145,11 @@ export interface WebDriver extends Connection {
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: RequestLibOptions) => RequestLibOptions
+    transformRequest?: (requestOptions: RequestInit) => RequestInit
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse
+    transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

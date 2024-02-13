@@ -374,8 +374,8 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * return timeout error with information about the executing command on which the test hangs
  */
-export function getTimeoutError(error: Error, requestOptions: Options.RequestLibOptions): Error {
-    const cmdName = getExecCmdName(requestOptions)
+export function getTimeoutError(error: Error, requestOptions: RequestInit, url: URL): Error {
+    const cmdName = getExecCmdName(url)
     const cmdArgs = getExecCmdArgs(requestOptions)
 
     const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
@@ -385,15 +385,15 @@ export function getTimeoutError(error: Error, requestOptions: Options.RequestLib
     return Object.assign(timeoutErr, error)
 }
 
-function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
-    const { href } = requestOptions.url as URL
+function getExecCmdName(url: URL): string {
+    const { href } = url
     const res = href.match(REG_EXPS.commandName) || []
 
     return res[1] || href
 }
 
-function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
-    const { body: cmdJson } = requestOptions
+function getExecCmdArgs(requestOptions: RequestInit): string {
+    const { body: cmdJson }: any = requestOptions
 
     if (typeof cmdJson !== 'object') {
         return ''

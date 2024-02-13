@@ -274,7 +274,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
         const encodedAuth = Buffer.from(`${getObservabilityUser(options, config)}:${getObservabilityKey(options, config)}`, 'utf8').toString('base64')
-        const headers: any = {
+        const headers: Record<string, string> = {
             ...DEFAULT_REQUEST_CONFIG.headers,
             Authorization: `Basic ${encodedAuth}`,
         }

@@ -107,7 +107,7 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: Options.RequestLibOptions) => requestOptions
+        default: (requestOptions: RequestInit) => requestOptions
     },
     /**
      * Function transforming the response object after it is received

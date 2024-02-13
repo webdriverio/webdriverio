@@ -17,23 +17,17 @@ export default class FetchRequest extends WebDriverRequest {
         super(method, endpoint, body, isHubCommand)
     }
 
-    protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
+    protected async _libRequest (url: URL, opts: RequestInit) {
         try {
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), opts.timeout || 120000)
-
             const response = await fetch(url, {
                 method: opts.method,
                 body: JSON.stringify(opts.body),
                 headers: opts.headers,
-                signal: controller.signal,
+                signal: opts.signal,
             })
 
             // Cloning the response to prevent body unusable error
             const resp = response.clone()
-
-            // Clear the timeout as the request completed successfully
-            clearTimeout(timeoutId)
 
             return {
                 statusCode: resp.status,

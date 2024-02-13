@@ -16,7 +16,6 @@ if (process?.versions?.node) {
     pkg = require('../../package.json')
 }
 
-type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
@@ -73,21 +72,25 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
-        let fullRequestOptions: RequestLibOptions = Object.assign(
+        const { url, requestOptions } = await this._createOptions(options, sessionId)
+        let fullRequestOptions: RequestInit = Object.assign(
             { method: this.method },
-            await this._createOptions(options, sessionId)
+            requestOptions
         )
         if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
 
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
+        return this._request(url, fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
-        const requestOptions: RequestLibOptions = {
-            timeout: options.connectionRetryTimeout
+    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+        const controller = new AbortController()
+        setTimeout(() => controller.abort(), options.connectionRetryTimeout|| 120000)
+
+        const requestOptions: RequestInit = {
+            signal: controller.signal
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -102,7 +105,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body
+            requestOptions.body = this.body as any
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -119,10 +122,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)}`)
+        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)}`)
 
         if (searchParams) {
-            requestOptions.url.search = new URLSearchParams(searchParams).toString()
+            url.search = new URLSearchParams(searchParams).toString()
         }
 
         /**
@@ -134,10 +137,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         requestOptions.headers = requestHeaders
 
-        return requestOptions
+        return { url, requestOptions }
     }
 
-    protected async _libRequest(url: URL, options: RequestLibOptions): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
+    protected async _libRequest(url: URL, options: RequestInit): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
         throw new Error('This function must be implemented')
     }
 
@@ -146,18 +149,19 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     private async _request (
-        fullRequestOptions: RequestLibOptions,
-        transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse,
+        url: URL,
+        fullRequestOptions: RequestInit,
+        transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
     ): Promise<WebDriverResponse> {
-        log.info(`[${fullRequestOptions.method}] ${(fullRequestOptions.url as URL).href}`)
+        log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as any))
         }
 
-        const { url, ...requestLibOptions } = fullRequestOptions
+        const { ...requestLibOptions } = fullRequestOptions
         const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: RequestLibError) => err)
@@ -185,7 +189,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(msg)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
+            return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
 
         /**
@@ -196,7 +200,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
              * handle timeouts
              */
             if ((response as RequestLibError).code === 'ETIMEDOUT') {
-                const error = getTimeoutError(response, fullRequestOptions)
+                const error = getTimeoutError(response, fullRequestOptions, url)
 
                 return retry(error, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
