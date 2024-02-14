@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
 
-import got from 'got'
 import CrossBrowserTestingService from '../src/service.js'
 import type { Frameworks } from '@wdio/types'
 
-vi.mock('got')
-vi.mocked(got.put).mockResolvedValue({ body: '{}' })
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const uri = 'some/uri'
@@ -51,7 +49,7 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     afterEach(() => {
         execute.mockReset()
-        vi.mocked(got.put).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('constructor', () => {
@@ -387,23 +385,23 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('updateJob success', async () => {
-        const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})
+        const user = 'test'
+        const key = 'testy'
+        const service = new CrossBrowserTestingService({ user: user, key: key } as any, {})
         service['_browser'] = browser
         service['_suiteTitle'] = 'my test'
 
         await service.updateJob('12345', 23, true)
         expect(service['_failures']).toBe(0)
-        expect(got.put).toHaveBeenCalled()
-        // @ts-expect-error
-        expect(vi.mocked(got.put).mock.calls[0][1]?.username).toBe('test')
-        // @ts-expect-error
-        expect(vi.mocked(got.put).mock.calls[0][1]?.password).toBe('testy')
+        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
+        const encodedAuth = Buffer.from(`${user}:${key}`, 'utf8').toString('base64')
+        expect(vi.mocked(fetch).mock.calls[0][1]?.headers?.Authorization).toEqual(`Basic ${encodedAuth}`)
     })
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
         response.statusCode = 500
-        vi.mocked(got.put).mockRejectedValue(response)
+        vi.mocked(fetch).mockRejectedValue(response)
 
         const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})
         service['_browser'] = browser

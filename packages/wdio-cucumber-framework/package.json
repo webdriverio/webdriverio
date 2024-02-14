@@ -46,7 +46,6 @@
     "@wdio/types": "8.31.1",
     "@wdio/utils": "8.31.1",
     "glob": "^10.2.2",
-    "got": "^12.6.1",
     "is-glob": "^4.0.0"
   },
   "devDependencies": {

@@ -35,6 +35,9 @@ export default defineConfig({
                 branches: [85, 90],
                 lines: [85, 90]
             }
-        }
+        },
+        setupFiles: [
+            '__mocks__/fetch.ts'
+        ]
     }
 })

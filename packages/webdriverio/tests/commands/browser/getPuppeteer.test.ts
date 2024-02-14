@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('puppeteer-core')
 /**
  * Given that Puppeteer is not a direct dependency of this package, we can't mock

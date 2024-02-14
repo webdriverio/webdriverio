@@ -1,10 +1,8 @@
 import path from 'node:path'
 import { expect, describe, afterEach, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('react$', () => {
@@ -23,8 +21,8 @@ describe('react$', () => {
         const elem = await browser.react$('myComp', options)
 
         expect(elem.elementId).toBe('some-elem-123')
-        expect(got).toBeCalledTimes(4)
-        expect(got.mock.calls.pop()[1].json.args)
+        expect(fetch).toBeCalledTimes(4)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]?.body as any).args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
     })
 
@@ -37,7 +35,7 @@ describe('react$', () => {
         })
 
         await browser.react$('myComp')
-        expect(got.mock.calls.pop()[1].json.args).toEqual(['myComp', {}, {}])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]?.body as any).args).toEqual(['myComp', {}, {}])
     })
 
     it('should call getElement with React flag true', async () => {
@@ -53,6 +51,6 @@ describe('react$', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

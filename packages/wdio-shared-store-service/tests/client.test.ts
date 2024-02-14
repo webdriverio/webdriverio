@@ -1,43 +1,34 @@
 import path from 'node:path'
-import type { SpyInstance } from 'vitest'
 import { describe, expect, it, vi, beforeAll, afterEach } from 'vitest'
-import got from 'got'
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from '../src/client.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('got', () => {
-    const handler = (url, options) => new Promise((resolve, reject) => {
-        const key = url.split('/').pop() || options?.json.key as string
+vi.spyOn(global, 'fetch').mockImplementation((URL: string | URL | globalThis.Request, options?: RequestInit) => {
+    const url = URL as string
+    const body = options?.body as string
+    const key = url.split('/').pop() || JSON.parse(body).key
 
-        if (key === 'fail') {
-            return reject({
-                message: 'Response code 404 (Not Found)',
-                response: {
-                    body: 'Mock error'
-                }
-            })
-        }
-        if (key === 'not-present') {
-            return resolve({})
-        }
-        return resolve({ body: { value: 'store value' } })
-    })
-    return {
-        default: {
-            post: vi.fn().mockImplementation(handler),
-            get: vi.fn().mockImplementation(handler)
-        }
+    if (key === 'fail') {
+        return Promise.reject({
+            message: 'Mock error'
+        })
     }
+    if (key === 'not-present') {
+        return Promise.resolve(Response.json({ value: undefined }))
+    }
+
+    return Promise.resolve(Response.json({ value: 'store value' }))
 })
 
 const port = 3000
 const baseUrl = `http://localhost:${port}`
-const mockedGet = got.get as unknown as SpyInstance
-const mockedPost = got.post as unknown as SpyInstance
+const headers = {
+    'Content-Type': 'application/json'
+}
 
 describe('client', () => {
     afterEach(() => {
-        vi.mocked(got.post).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     describe('when used in launcher process', () => {
@@ -53,12 +44,26 @@ describe('client', () => {
             const result3 = await setResourcePool('foo', ['bar'])
             expect([result1, result2, result3]).toEqual([undefined, undefined, undefined])
 
-            expect(got.post).toBeCalledTimes(0)
+            expect(fetch).toBeCalledTimes(0)
             setPort(port)
             await Promise.resolve()
-            expect(got.post).toBeCalledTimes(3)
+            expect(vi.mocked(fetch)).toBeCalledTimes(3)
+            for (let i = 1; i <= 3; i++) {
+                expect(vi.mocked(fetch)).toHaveBeenNthCalledWith(
+                    i,
+                    expect.any(String),
+                    expect.objectContaining({ method: 'post' })
+                )
+            }
             await setValue('another', 'item')
-            expect(got.post).toBeCalledTimes(4)
+            expect(vi.mocked(fetch).mockName('post')).toBeCalledTimes(4)
+            for (let i = 1; i <= 4; i++) {
+                expect(vi.mocked(fetch)).toHaveBeenNthCalledWith(
+                    i,
+                    expect.any(String),
+                    expect.objectContaining({ method: 'post' })
+                )
+            }
         })
     })
 
@@ -69,18 +74,28 @@ describe('client', () => {
 
         it('should set value', async () => {
             await setValue('foo', 'bar')
-            expect(got.post).toBeCalledWith(`${baseUrl}/`, { json: { key: 'foo', value: 'bar' } })
+            expect(fetch).toBeCalledWith(`${baseUrl}/`, {
+                method: 'post',
+                body: JSON.stringify({ key: 'foo', value: 'bar' }),
+                headers
+            })
         })
 
         it('should get value', async () => {
             const result = await getValue('foo')
-            expect(got.get).toBeCalledWith(`${baseUrl}/foo`, { responseType: 'json' })
+            expect(fetch).toBeCalledWith(`${baseUrl}/foo`, {
+                method: 'get',
+                headers
+            })
             expect(result).toBe('store value')
         })
 
         it('should not fail if key is not in store', async () => {
             const result = await getValue('not-present')
-            expect(got.get).toBeCalledWith(`${baseUrl}/not-present`, { responseType: 'json' })
+            expect(fetch).toBeCalledWith(`${baseUrl}/not-present`, {
+                method: 'get',
+                headers
+            })
             expect(result).toBeUndefined()
         })
 
@@ -95,18 +110,21 @@ describe('client', () => {
 
     describe('when calling setResourcePool', () => {
         describe('and after setPort is called', () => {
-            it("should call /pool/set and return it's response", async () => {
-                mockedPost.mockResolvedValue({ body: { value: 'postResult' } })
+            it("should call /pool/set and return it's response code", async () => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 const result = await setResourcePool('foo', ['bar'])
-                expect(got.post).toBeCalledWith(`${baseUrl}/pool`, { json: { key: 'foo', value: ['bar'] } })
-                expect(result).toEqual({ body: { value: 'postResult' } })
+                expect(fetch).toBeCalledWith(`${baseUrl}/pool`, {
+                    method: 'post',
+                    body: JSON.stringify({ key: 'foo', value: ['bar'] }),
+                    headers
+                })
+                expect(result).toEqual(200)
             })
         })
 
         describe('and when /pool/set fails', () => {
             it('should throw the error', async () => {
-                mockedPost.mockRejectedValue({ response: { body: 'postError' } })
-
+                vi.mocked(fetch).mockRejectedValue({ message: 'postError' })
                 await expect(() => setResourcePool('fail', ['bar'])).rejects.toThrowError('postError')
             })
         })
@@ -115,17 +133,19 @@ describe('client', () => {
     describe('when calling getValueFromPool', () => {
         describe('and after setPort is called', () => {
             it("should call /pool/get and return it's response", async () => {
-                mockedGet.mockResolvedValue({ body: { value: 'getResult' } })
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: 'getResult' }))
                 const result = await getValueFromPool('foo', { timeout: 100 })
-                expect(got.get).toBeCalledWith(`${baseUrl}/pool/foo?timeout=100`, { responseType: 'json' })
+                expect(fetch).toBeCalledWith(`${baseUrl}/pool/foo?timeout=100`, {
+                    method: 'get',
+                    headers
+                })
                 expect(result).toEqual('getResult')
             })
         })
 
         describe('and when /pool/get fails', () => {
             it('should throw the error', async () => {
-                mockedGet.mockRejectedValue({ response: { body: 'getError' } })
-
+                vi.mocked(fetch).mockRejectedValue({ message: 'getError' })
                 await expect(() => getValueFromPool('foo')).rejects.toThrowError('getError')
             })
         })
@@ -133,18 +153,20 @@ describe('client', () => {
 
     describe('when calling addValueToPool', () => {
         describe('and after setPort is called', () => {
-            it("should call /pool/add and return it's response", async () => {
-                mockedPost.mockResolvedValue({ body: { value: 'postResult' } })
+            it("should call /pool/add and return it's response code", async () => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 const result = await addValueToPool('foo', 'bar')
-                expect(got.post).toBeCalledWith(`${baseUrl}/pool/foo`, { json: { value: 'bar' }, responseType: 'json' })
-                expect(result).toEqual('postResult')
+                expect(fetch).toBeCalledWith(`${baseUrl}/pool/foo`, {
+                    method: 'post',
+                    body: JSON.stringify({ value: 'bar' }),
+                    headers })
+                expect(result).toEqual(200)
             })
         })
 
         describe('and when /pool/add fails', () => {
             it('should throw the error', async () => {
-                mockedPost.mockRejectedValue({ response: { body: 'postError' } })
-
+                vi.mocked(fetch).mockRejectedValue({ message: 'postError' })
                 await expect(() => addValueToPool('foo', {})).rejects.toThrowError('postError')
             })
         })

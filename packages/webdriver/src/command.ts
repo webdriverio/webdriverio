@@ -5,7 +5,7 @@ import {
     type CommandEndpoint,
 } from '@wdio/protocols'
 
-import RequestFactory from './request/factory.js'
+import Request from './request/request.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
@@ -116,7 +116,7 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
+        const request = new Request(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))

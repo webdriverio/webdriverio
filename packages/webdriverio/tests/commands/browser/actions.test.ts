@@ -1,10 +1,8 @@
 import path from 'node:path'
 import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
-// @ts-expect-error
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('actions command', () => {
@@ -20,7 +18,7 @@ describe('actions command', () => {
     })
 
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should support multiple actions', async () => {
@@ -80,7 +78,7 @@ describe('actions command', () => {
                 })
         ])
 
-        const calls = vi.mocked(got).mock.calls
+        const calls = vi.mocked(fetch).mock.calls
         expect(calls).toHaveLength(2)
         const [
             [performActionUrl, performActionParam],
@@ -90,6 +88,6 @@ describe('actions command', () => {
         expect(releaseActionUrl.pathname).toBe('/session/foobar-123/actions')
         expect(performActionParam.method).toBe('POST')
         expect(releaseActionParam.method).toBe('DELETE')
-        expect(performActionParam.json).toMatchSnapshot()
+        expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
     })
 })

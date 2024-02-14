@@ -1,13 +1,11 @@
 import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 import logger from '@wdio/logger'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import { remote } from '../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
@@ -70,7 +68,7 @@ describe('middleware', () => {
         expect(vi.mocked(warn).mock.calls).toHaveLength(1)
         expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
         // @ts-ignore mock feature
-        got.retryCnt = 0
+        vi.mocked(fetch).retryCnt = 0
     })
 
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
@@ -88,10 +86,10 @@ describe('middleware', () => {
         const elem = await browser.$('#foo')
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        got.setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
+        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should successfully click on a stale element', async () => {

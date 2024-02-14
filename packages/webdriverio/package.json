@@ -65,7 +65,6 @@
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.zip": "^4.2.6",
-    "got": "^12.6.0",
     "puppeteer-core": "^20.9.0"
   },
   "dependencies": {

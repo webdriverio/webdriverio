@@ -1,19 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 import path from 'node:path'
-import http from 'node:http'
-import https from 'node:https'
-import type { Agents } from 'got'
-import got from 'got'
+
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import * as utils from '../src/utils.js'
-import WebDriverRequest from '../src/request/node.js'
+import WebDriverRequest from '../src/request/request.js'
 import { COMMANDS_WITHOUT_RETRY } from '../src/request/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('got')
+vi.mock('fetch')
 const { warn, error } = logger('test')
 
 const webdriverPath = '/session'
@@ -22,10 +19,11 @@ const defaultOptions = {
     hostname: 'localhost',
     port: 4444
 }
+const baseUrl = `${defaultOptions.protocol}://${defaultOptions.hostname}:${defaultOptions.port}`
 
 describe('webdriver request', () => {
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should have some default options', () => {
@@ -36,15 +34,20 @@ describe('webdriver request', () => {
 
     it('should be able to make request', async () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const url =  new URL('/foo/bar', baseUrl)
         req['_createOptions'] = vi.fn().mockImplementation((opts, sessionId) => ({
-            foo: 'bar',
-            sessionId
+            url,
+            requestOptions:{
+                foo: 'bar',
+                sessionId
+            }
         }))
         req.emit = vi.fn()
         req['_request'] = vi.fn()
 
         await req.makeRequest({ connectionRetryCount: 43, logLevel: 'warn' }, 'some_id')
         expect(req['_request']).toHaveBeenCalledWith(
+            url,
             expect.objectContaining({ foo: 'bar', sessionId: 'some_id' }),
             undefined,
             43,
@@ -56,7 +59,7 @@ describe('webdriver request', () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
-            json: { foo: 'baz' }
+            body: { foo: 'baz' }
         }))
 
         await req.makeRequest({
@@ -67,9 +70,9 @@ describe('webdriver request', () => {
             path: '/wd/hub/',
             logLevel: 'warn'
         }, 'some_id')
-        expect(got).toHaveBeenCalledWith(
+        expect(vi.mocked(fetch)).toHaveBeenCalledWith(
             expect.any(Object),
-            expect.objectContaining({ json: { foo: 'baz' } })
+            expect.objectContaining({ body: JSON.stringify( { foo: 'baz' }) })
         )
     })
 
@@ -81,7 +84,7 @@ describe('webdriver request', () => {
             body: { value: { foo: 'transformedResponse' } },
         }))
 
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
         const responseBody = await req.makeRequest({
             transformResponse,
             protocol: 'https',
@@ -92,20 +95,20 @@ describe('webdriver request', () => {
         }, 'foobar-123')
 
         expect(transformResponse.mock.calls[0][0]).toHaveProperty('body')
-        expect(transformResponse.mock.calls[0][1].json).toEqual({ foo: 'requestBody' })
+        expect(transformResponse.mock.calls[0][1].body).toEqual({ foo: 'requestBody' })
         await expect(responseBody).toEqual({ value: { foo: 'transformedResponse' } })
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     describe('createOptions', () => {
         it('fails if command requires sessionId but none given', async () => {
             const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            await expect(() => req['_createOptions']({ logLevel: 'warn' })).rejects.toThrow()
+            await expect(() => req['_createOptions']({ logLevel: 'warn' })).rejects.toThrow('A sessionId is required')
         })
 
         it('creates proper options set', async () => {
             const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            const options: Options.RequestLibOptions = await req['_createOptions']({
+            const { url, requestOptions } = await req['_createOptions']({
                 protocol: 'https',
                 hostname: 'localhost',
                 port: 4445,
@@ -115,34 +118,11 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             }, 'foobar12345')
 
-            // @ts-ignore
-            expect((options.agent! as gotOrig.Agents).https!.protocol).toBe('https:')
-            // @ts-ignore
-            expect((options.agent! as gotOrig.Agents).http!.protocol).toBe('http:')
-            expect((options.url! as URL).href)
+            expect((url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
-            expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'foo', 'Content-Length'])
-            expect(options.timeout).toEqual({ response: 10 * 1000 })
-        })
-
-        it('passes a custom agent', async () => {
-            const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            const agent = {
-                http: new http.Agent({ keepAlive: true }),
-                https: new https.Agent({ keepAlive: true })
-            }
-            const options = await req['_createOptions']({
-                protocol: 'https',
-                hostname: 'localhost',
-                port: 4445,
-                path: '/',
-                logLevel: 'warn',
-                agent
-            }, 'foobar12345')
-
-            expect((options.agent! as Agents).http).toBe(agent.http)
-            expect((options.agent! as Agents).https).toBe(agent.https)
+            expect([...requestOptions.headers.keys()])
+                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'foo', 'user-agent'])
+            expect(requestOptions.signal?.aborted).toBeFalsy()
         })
 
         it('ignors path when command is a hub command', async () => {
@@ -157,161 +137,84 @@ describe('webdriver request', () => {
             expect((options.url as URL).href).toBe('https://localhost:4445/grid/api/hub')
         })
 
-        it('should add auth if user and key is given', async () => {
+        it('should add authorization header if user and key is given', async () => {
             const req = new WebDriverRequest('POST', webdriverPath, { some: 'body' })
-            const options = await req['_createOptions']({
+            const user = 'foo'
+            const key = 'bar'
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
-                user: 'foo',
-                key: 'bar',
+                user,
+                key,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(options.username).toEqual('foo')
-            expect(options.password).toEqual('bar')
-            expect(options.json).toEqual({ some: 'body' })
+            expect(requestOptions.headers.get('Authorization')).toEqual('Basic ' + btoa(user + ':' + key))
+            expect(requestOptions.body).toEqual({ some: 'body' })
         })
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', async () => {
             const req = new WebDriverRequest('DELETE', webdriverPath, {})
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Boolean(options.json)).toEqual(false)
+            expect(Boolean(requestOptions.body)).toEqual(false)
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', async () => {
             const req = new WebDriverRequest('GET', `${webdriverPath}/title`, {})
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Boolean(options.json)).toEqual(false)
+            expect(Boolean(requestOptions.body)).toEqual(false)
         })
 
         it('should attach an empty object body when POST is used', async () => {
             const req = new WebDriverRequest('POST', '/status', {})
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(options.json).toEqual({})
+            expect(requestOptions.body).toEqual({})
         })
 
         it('should add the Content-Length header when a request object has a body', async () => {
             const req = new WebDriverRequest('POST', webdriverPath, { foo: 'bar' })
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'Content-Length'])
-            expect((options.headers as Record<string, string>)['Content-Length']).toBe('13')
+            expect([...requestOptions.headers.keys()])
+                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'user-agent'])
+            expect(requestOptions.headers.get('Content-Length')).toBe('13')
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
             const req = new WebDriverRequest('POST', webdriverPath, { foo: 'bar' })
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions, path: '/',
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            const headers = options.headers as Record<string, string>
-            expect(Object.keys(headers)).toContain('Content-Length')
-            expect(headers.foo).toContain('bar')
-            expect(headers['Content-Length']).toBe('13')
+            expect(requestOptions.headers.get('foo')).toContain('bar')
+            expect(requestOptions.headers.get('Content-Length')).toBe('13')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
             const req = new WebDriverRequest('POST', webdriverPath)
-            const options = await req['_createOptions']({
+            const { requestOptions } = await req['_createOptions']({
                 ...defaultOptions,
                 path: '/',
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            const headers = options.headers as Record<string, string>
-            expect(Object.keys(headers)).not.toContain('Content-Length')
-            expect(headers.foo).toContain('bar')
-        })
-
-        describe('rejectUnauthorized', () => {
-            const defaults = {
-                ...defaultOptions,
-                path: '/',
-                headers: { foo: 'bar' },
-                logLevel: 'warn' as Options.WebDriverLogTypes
-            }
-
-            beforeEach(function() {
-                delete process.env.STRICT_SSL
-                delete process.env.strict_ssl
-            })
-
-            it('should contain key "rejectUnauthorized" with value "false" when "strictSSL" argument is given with false', async () => {
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions']({ ...defaults, strictSSL: false })
-
-                expect(options.https?.rejectUnauthorized).toEqual(false)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', async () => {
-                process.env['STRICT_SSL'] = 'false'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(false)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "false" when environment variable "strict_ssl" is defined with value "false"', async () => {
-                process.env['strict_ssl'] = 'false'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(false)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when "strictSSL" argument is given with true', async () => {
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions']({ ...defaults, strictSSL: true })
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', async () => {
-                process.env['STRICT_SSL'] = 'true'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with value "true"', async () => {
-                process.env['strict_ssl'] = 'true'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" / "strict_ssl" is not defined', async () => {
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with any other value than "false"', async () => {
-                process.env['STRICT_SSL'] = 'foo'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
-
-            it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with any other value than "false"', async () => {
-                process.env['strict_ssl'] = 'foo'
-                const req = new WebDriverRequest('POST', webdriverPath, {})
-                const options = await req['_createOptions'](defaults)
-                expect(options.https?.rejectUnauthorized).toEqual(true)
-            })
+            expect([...requestOptions.headers.keys()]).not.toContain('content-length')
+            expect(requestOptions.headers.get('foo')).toContain('bar')
         })
     })
 
@@ -321,11 +224,9 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
-            const opts = Object.assign(
-                req.defaultOptions,
-                { url: { pathname: '/session/foobar-123/element' } }
-            )
-            const res = await req['_request'](opts)
+            const url = new URL('/session/foobar-123/element', baseUrl)
+            const opts = {}
+            const res = await req['_request'](url, opts)
 
             expect(res).toEqual(expectedResponse)
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
@@ -342,12 +243,12 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', 'session/:sessionId/element', {})
             req.emit = vi.fn()
 
-            const opts = Object.assign(req.defaultOptions, {
-                url: { pathname: '/session/foobar-123/element/some-sub-sub-elem-231/click' },
-                body: { foo: 'bar' }
+            const url = new URL('/session/foobar-123/element/some-sub-sub-elem-231/click', baseUrl)
+            const opts = Object.assign({
+                body: JSON.stringify({ foo: 'bar' })
             })
 
-            const error = await req['_request'](opts).catch(err => err)
+            const error = await req['_request'](url, opts).catch(err => err)
             expect(error.message).toBe('element is not attached to the page document')
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
@@ -360,8 +261,9 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
-            const opts = Object.assign(req.defaultOptions, { url: { pathname: '/empty' } })
-            await expect(req['_request'](opts)).rejects.toEqual(new Error('Response has empty body'))
+            const url = new URL('/empty', baseUrl)
+            const opts = {}
+            await expect(req['_request'](url, opts)).rejects.toEqual(new Error('Response has empty body'))
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -373,8 +275,9 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
-            const opts = Object.assign(req.defaultOptions, { url: { pathname: '/failing' } })
-            await expect(req['_request'](opts, undefined, 2)).rejects.toEqual(new Error('unknown error'))
+            const url = new URL('/failing', baseUrl)
+            const opts = {}
+            await expect(req['_request'](url, opts, undefined, 2)).rejects.toEqual(new Error('unknown error'))
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(6)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -390,8 +293,9 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
-            const opts = Object.assign(req.defaultOptions, { url: { pathname: '/failing' }, json: { foo: 'bar' } })
-            expect(await req['_request'](opts, undefined, 3)).toEqual({ value: 'caught' })
+            const url = new URL('/failing', baseUrl)
+            const opts = Object.assign({ body: { foo: 'bar' } })
+            expect(await req['_request'](url, opts, undefined, 3)).toEqual({ value: 'caught' })
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(8)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -468,8 +372,9 @@ describe('webdriver request', () => {
                     // ignore error
                     .catch((e) => e)
 
+                const url = new URL('/timeout', `${reqOpts.protocol}://${reqOpts.hostname}:${reqOpts.port}`)
                 expect(spy).toBeCalledTimes(1)
-                expect(spy).toBeCalledWith(expect.any(Error), expect.objectContaining({ method: 'GET' }))
+                expect(spy).toBeCalledWith(expect.any(Error), expect.objectContaining({ method: 'GET' }), url)
                 expect(vi.mocked(req.emit).mock.calls).toHaveLength(3)
                 expect(req.emit).toHaveBeenNthCalledWith(1, 'request', expect.anything())
                 expect(req.emit).toHaveBeenNthCalledWith(2, 'response', { error: timeoutErr })
@@ -542,9 +447,9 @@ describe('webdriver request', () => {
 
     afterEach(() => {
         // @ts-ignore
-        got.retryCnt = 0
+        vi.mocked(fetch).retryCnt = 0
 
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
         vi.mocked(warn).mockClear()
         vi.mocked(error).mockClear()
     })
