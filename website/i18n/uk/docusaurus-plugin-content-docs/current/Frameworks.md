@@ -271,7 +271,7 @@ cucumberOpts: {
 
 Type: `boolean`<br /> Default: `false`
 
-#### names
+#### name
 Виконувати лише сценарії з іменами, які відповідають виразу (повторюване).
 
 Type: `RegExp[]`<br /> Default: `[]`
