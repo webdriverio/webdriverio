@@ -118,9 +118,9 @@ export const SUPPORTED_PACKAGES = {
     ],
     service: [
         // internal or community driver services
+        { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
-        { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
@@ -586,6 +586,17 @@ export const QUESTIONNAIRE = [{
     choices: SUPPORTED_PACKAGES.plugin,
     default: []
 }, {
+    type: 'confirm',
+    name: 'includeVisualTesting',
+    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * visual testing mostly makes sense for e2e and component tests
+         */
+        return ['e2e', 'component'].includes(getTestingPurpose(answers))
+    }
+}, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
@@ -630,6 +641,9 @@ export const QUESTIONNAIRE = [{
         if (isNuxtProject) {
             defaultServices.push('nuxt')
         }
+        if (answers.includeVisualTesting) {
+            defaultServices.push('visual')
+        }
         return selectDefaultService(defaultServices)
     }
 }, {
@@ -650,17 +664,6 @@ export const QUESTIONNAIRE = [{
     message: 'In which directory should the mochawesome json reports get stored?',
     default: './',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('mochawesome')
-}, {
-    type: 'confirm',
-    name: 'includeVisualTesting',
-    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
-    default: false,
-    when: /* istanbul ignore next */ (answers: Questionnair) => {
-        /**
-         * visual testing mostly makes sense for e2e and component tests
-         */
-        return ['e2e', 'component'].includes(getTestingPurpose(answers))
-    }
 }, {
     type: 'confirm',
     name: 'npmInstall',
