@@ -867,7 +867,8 @@ test('npmInstall', async () => {
         framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
-        npmInstall: true
+        npmInstall: true,
+        includeVisualTesting: true
     } as any
     await npmInstall(parsedAnswers, 'next')
     expect(installPackages).toBeCalledTimes(1)
