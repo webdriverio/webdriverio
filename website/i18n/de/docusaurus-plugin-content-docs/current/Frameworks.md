@@ -271,7 +271,7 @@ Brechen Sie den Test-Lauf beim ersten Fehler ab.
 
 Type: `boolean`<br /> Default: `false`
 
-#### names
+#### name
 Führen Sie nur die Szenarien aus, deren Name dem Ausdruck entspricht (wiederholbar).
 
 Type: `RegExp[]`<br /> Default: `[]`
