@@ -51,7 +51,6 @@ updates:
     - dependency-name: "tempy"
     - dependency-name: "rimraf"
     - dependency-name: "inquirer"
-    - dependency-name: "url-join"
     - dependency-name: "camelcase"
     - dependency-name: "pretty-ms"
     - dependency-name: "dateformat"
