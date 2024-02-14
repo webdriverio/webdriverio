@@ -651,21 +651,16 @@ export const QUESTIONNAIRE = [{
     default: './',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('mochawesome')
 }, {
-    type: 'input',
-    name: 'baseUrl',
-    message: 'What is the base url?',
-    default: 'http://localhost',
-    // no base url for:
-    when: /* istanbul ignore next */ (answers: Questionnair) => (
-        // unit and component testing in the browser
-        !isBrowserRunner(answers) &&
-        // mobile testing with Appium
-        answers.e2eEnvironment !== 'mobile' &&
-        // nor for VS Code, Electron or MacOS testing
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
-        // nor for Nuxt projects
-        !isNuxtProject
-    )
+    type: 'confirm',
+    name: 'includeVisualTesting',
+    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * visual testing mostly makes sense for e2e and component tests
+         */
+        return ['e2e', 'component'].includes(getTestingPurpose(answers))
+    }
 }, {
     type: 'confirm',
     name: 'npmInstall',
