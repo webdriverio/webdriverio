@@ -6,7 +6,6 @@ import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
 
-import got from 'got'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 
@@ -544,13 +543,14 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
         return
     }
 
-    const { headers } = await got(url, {
+    const response = await fetch(url, {
+        method: 'get',
         headers: {
             Authorization: `Bearer ${token}`,
         }
     })
 
-    const { location } = headers
+    const location = response.headers.get('location')
 
     const files = (await readdir(path.normalize(cucumberMessageDir))).filter((file) => path.extname(file) === '.ndjson')
 
@@ -565,7 +565,8 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
         )
     ).join('')
 
-    await got.put(location as string, {
+    await fetch(location as string, {
+        method: 'put',
         headers: {
             'Content-Type': 'application/json'
         },

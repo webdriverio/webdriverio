@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { expect, test, beforeEach, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('puppeteer-core')
 /**
  * Given that Puppeteer is not a direct dependency of this package, we can't mock
@@ -28,7 +26,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const cdpSession = new puppeteer.CDPSessionMock()
 
 beforeEach(() => {
-    got.mockClear()
+    vi.mocked(fetch).mockClear()
     cdpSession.send.mockClear()
 })
 
@@ -61,7 +59,8 @@ test('should use WebDriver extension if run on Sauce', async () => {
     })
 
     await browser.throttleNetwork('Regular3G')
-    expect(got.mock.calls[1][0].href)
+    // @ts-expect-error mock implementation
+    expect(vi.mocked(fetch).mock.calls[1][0].href)
         .toContain('/sauce/ondemand/throttle/network')
 })
 

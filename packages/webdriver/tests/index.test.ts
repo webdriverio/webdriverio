@@ -1,5 +1,4 @@
 import path from 'node:path'
-import got from 'got'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mock feature
 import logger, { logMock } from '@wdio/logger'
@@ -18,7 +17,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('fs')
 vi.mock('wait-port')
 vi.mock('ws')
-vi.mock('got')
+vi.mock('fetch')
 
 vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
@@ -85,15 +84,15 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
 
-            expect(got).toHaveBeenCalledWith(
+            expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ pathname: '/session' }),
-                expect.objectContaining({ json: {
+                expect.objectContaining({ body: JSON.stringify({
                     capabilities: {
                         alwaysMatch: { browserName: 'firefox' },
                         firstMatch: [{}]
                     },
                     desiredCapabilities: { browserName: 'firefox' }
-                } })
+                }) })
             )
         })
 
@@ -106,15 +105,15 @@ describe('WebDriver', () => {
                 }
             })
 
-            expect(got).toHaveBeenCalledWith(
+            expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ pathname: '/session' }),
-                expect.objectContaining({ json: {
+                expect.objectContaining({ body: JSON.stringify({
                     capabilities: {
                         alwaysMatch: { browserName: 'firefox' },
                         firstMatch: [{}]
                     },
                     desiredCapabilities: { browserName: 'firefox' }
-                } })
+                }) })
             )
 
             expect(vi.mocked(sessionEnvironmentDetector).mock.calls)
@@ -150,9 +149,7 @@ describe('WebDriver', () => {
         })
 
         it('attaches bidi handler if socket url is given', async () => {
-            vi.mocked(got).mockResolvedValue({
-                body: { value: { webSocketUrl: 'ws://foo/bar' } }
-            })
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
@@ -165,7 +162,7 @@ describe('WebDriver', () => {
         it('should allow to attach to existing session', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
             await client.getUrl()
-            expect(got).toHaveBeenCalledWith(
+            expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
                 expect.anything()
             )
@@ -175,7 +172,7 @@ describe('WebDriver', () => {
         it('should allow to attach to existing session2', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
             await client.getUrl()
-            expect(got).toHaveBeenCalledWith(
+            expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
                 expect.anything()
             )
@@ -244,7 +241,7 @@ describe('WebDriver', () => {
         it('should apply default connection details', () => {
             const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.hostname).toBe('localhost')
             expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
@@ -276,7 +273,7 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             await WebDriver.reloadSession(session)
-            expect(got).toHaveBeenCalledTimes(2)
+            expect(fetch).toHaveBeenCalledTimes(2)
         })
     })
 
@@ -286,7 +283,7 @@ describe('WebDriver', () => {
 
     afterEach(() => {
         vi.mocked(logger.setLevel).mockClear()
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
         vi.mocked(sessionEnvironmentDetector).mockClear()
     })
 })

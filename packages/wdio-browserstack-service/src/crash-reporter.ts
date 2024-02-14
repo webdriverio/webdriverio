@@ -1,5 +1,4 @@
 import type { Capabilities, Options } from '@wdio/types'
-import got from 'got'
 
 import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
@@ -73,15 +72,24 @@ export default class CrashReporter {
             config: this.userConfigForReporting
         }
         const url = `${DATA_ENDPOINT}/api/v1/analytics`
-        got.post(url, {
-            ...DEFAULT_REQUEST_CONFIG,
-            ...this.credentialsForCrashReportUpload,
-            json: data
-        }).text().then(response => {
-            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
-        }).catch((error) => {
-            BStackLogger.error(`[Crash_Report_Upload] Failed due to ${error}`)
+
+        const encodedAuth = Buffer.from(`${this.credentialsForCrashReportUpload.username}:${this.credentialsForCrashReportUpload.password}`, 'utf8').toString('base64')
+        const headers: any = {
+            ...DEFAULT_REQUEST_CONFIG.headers,
+            Authorization: `Basic ${encodedAuth}`,
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers
         })
+
+        if (response.ok) {
+            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(await response.json())}`)
+        } else {
+            BStackLogger.error(`[Crash_Report_Upload] Failed due to ${response.body}`)
+        }
     }
 
     static recursivelyRedactKeysFromObject(obj: Dict | Array<Dict>, keys: string[]) {

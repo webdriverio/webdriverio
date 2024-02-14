@@ -1,4 +1,3 @@
-import got from 'got'
 import logger from '@wdio/logger'
 import type { Services, Options, Frameworks } from '@wdio/types'
 
@@ -157,13 +156,22 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
         const json = this.getBody(failures, calledOnReload, browserName)
         this._failures = 0
-        const response = await got.put(this.getRestUrl(sessionId), {
-            json,
-            responseType: 'json',
-            username: this._cbtUsername,
-            password: this._cbtAuthkey
+        let headers: Record<string, string> = {
+            'Content-Type': 'application/json; charset=utf-8',
+        }
+        if (this._cbtUsername && this._cbtAuthkey) {
+            const encodedAuth = Buffer.from(`${this._cbtUsername}:${this._cbtAuthkey}`, 'utf8').toString('base64')
+            headers = {
+                ...headers,
+                Authorization: `Basic ${encodedAuth}`,
+            }
+        }
+        const response = await fetch(this.getRestUrl(sessionId), {
+            method: 'PUT',
+            body: JSON.stringify(json),
+            headers
         })
-        return response.body
+        return await response.json()
     }
 
     /**

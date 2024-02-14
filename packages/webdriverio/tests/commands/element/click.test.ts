@@ -1,11 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('click test', () => {
@@ -19,8 +17,8 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         await elem.click()
-
-        expect(got.mock.calls[2][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/click')
     })
 
@@ -34,17 +32,17 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         await elem.click({ button: 'left' })
-
-        expect(got.mock.calls[2][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions[0]).toMatchSnapshot()
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0]).toMatchSnapshot()
 
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
         await elem.click({ button: 0 })
-
-        expect(got.mock.calls[0][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[0][1].json.actions[0]).toMatchSnapshot()
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as any).actions[0]).toMatchSnapshot()
     })
 
     it('should allow to right click on an element', async () => {
@@ -56,19 +54,21 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
         await elem.click({ button: 'right' })
-
-        expect(got.mock.calls[2][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions[0])
-            .toMatchSnapshot()
+        expect(
+            JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0]
+        ).toMatchSnapshot()
 
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
         await elem.click({ button: 2 })
-
-        expect(got.mock.calls[0][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[0][1].json.actions[0])
-            .toMatchSnapshot()
+        expect(
+            JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as any).actions[0]
+        ).toMatchSnapshot()
     })
 
     it('should allow to middle click on an element', async () => {
@@ -80,18 +80,18 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
         await elem.click({ button: 'middle' })
-
-        expect(got.mock.calls[2][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[2][1].json.actions[0])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0])
             .toMatchSnapshot()
 
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
         await elem.click({ button: 1 })
-
-        expect(got.mock.calls[0][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[0][1].json.actions[0])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as any).actions[0])
             .toMatchSnapshot()
     })
 
@@ -104,10 +104,10 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
         await elem.click({ y: 15 })
-
-        expect(got.mock.calls[3][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[3][1].json.actions).toMatchSnapshot()
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
     })
 
     it('should allow to right click on an element with an offset and passing a button type', async () => {
@@ -119,18 +119,18 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
         await elem.click({ button: 2, x: 20, y: 15 })
-
-        expect(got.mock.calls[3][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[3][1].json.actions[0].actions[0].type)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[0].type)
             .toBe('pointerMove')
-        expect(got.mock.calls[3][1].json.actions[0].actions[0].x)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[0].x)
             .toBe(20)
-        expect(got.mock.calls[3][1].json.actions[0].actions[0].y)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[0].y)
             .toBe(15)
-        expect(got.mock.calls[3][1].json.actions[0].actions[1])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[1])
             .toMatchSnapshot()
-        expect(got.mock.calls[3][1].json.actions[0].actions[2])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[2])
             .toStrictEqual({ type: 'pointerUp', button: 2 })
     })
 
@@ -182,19 +182,20 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
         await elem.click({ button: 'right' })
 
-        expect(got.mock.calls.length)
+        expect(vi.mocked(fetch).mock.calls.length)
             .toBe(4)
-        expect(got.mock.calls[3][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(got.mock.calls[3][1].method)
+        expect(vi.mocked(fetch).mock.calls[3][1]?.method)
             .toBe('DELETE')
 
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
         await elem.click({ button: 'right', skipRelease: true })
-        expect(got.mock.calls.length).toBe(1) // only action call
+        expect(vi.mocked(fetch).mock.calls.length).toBe(1) // only action call
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

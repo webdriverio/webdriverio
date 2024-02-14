@@ -2,13 +2,12 @@ import type { SpyInstance } from 'vitest'
 import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
 
 vi.mock('fs')
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
@@ -47,8 +46,9 @@ describe('saveScreenshot', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('GET')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('GET')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/screenshot')
         expect(screenshot.toString()).toBe('some screenshot')
 
