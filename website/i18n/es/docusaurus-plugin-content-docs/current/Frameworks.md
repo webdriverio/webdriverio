@@ -271,7 +271,7 @@ Abordar la ejecución en el primer fallo.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### names
+#### name
 Ejecutar sólo los escenarios con el nombre que coincide con la expresión (repetible).
 
 Tipo: `String`<br /> Predeterminado: `localhost`
