@@ -343,10 +343,19 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }) => {
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }, world?: { [key: string]: any; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
         const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
+
+        if (isCucumber) {
+            const tagsList: string[] = []
+            world?.pickle?.tags.map((tag: { [key: string]: any; }) => tagsList.push(tag.name))
+            const excluded = excludeTags?.some((exclude) => tagsList.includes(exclude))
+            const included = includeTags?.length === 0 || includeTags?.some((include) => tagsList.includes(include))
+
+            return !excluded && included
+        }
 
         const fullTestName = suiteTitle + ' ' + testTitle
         const excluded = excludeTags?.some((exclude) => fullTestName.includes(exclude))
