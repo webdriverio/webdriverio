@@ -33,7 +33,6 @@
     "docs:generate": "run-s clean:website generate:bidi && node --loader ts-node/esm ./scripts/docs-generation/generateDocs.ts",
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node --loader ts-node/esm ./scripts/updateDocs.ts",
-    "sendExpenseMail": "node --loader ts-node/esm ./scripts/expense.ts",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
     "test:depcheck": "node --loader ts-node/esm ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
@@ -87,7 +86,6 @@
     "@types/lodash.zip": "^4.2.9",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^20.11.5",
-    "@types/react": "^18.2.48",
     "@types/shelljs": "^0.8.15",
     "@types/split2": "^4.2.3",
     "@types/unzipper": "^0.10.9",
@@ -121,11 +119,8 @@
     "lerna-changelog": "^2.2.0",
     "mime-types": "^2.1.35",
     "npm-run-all": "^4.1.5",
-    "react": "^18.2.0",
-    "recast": "^0.23.4",
     "recursive-readdir": "^2.2.3",
     "request": "^2.88.2",
-    "resend": "^3.1.0",
     "rimraf": "^5.0.5",
     "shelljs": "^0.8.5",
     "shx": "^0.3.4",
@@ -133,7 +128,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "unzipper": "^0.10.14",
-    "url-join": "^5.0.0",
     "vitest": "^1.2.1"
   }
 }
