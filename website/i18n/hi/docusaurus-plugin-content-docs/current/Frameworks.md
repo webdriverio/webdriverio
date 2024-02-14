@@ -271,7 +271,7 @@ cucumberOpts: {
 
 Type: `boolean`<br /> Default: `false`
 
-#### names
+#### name
 केवल उन परिदृश्यों को निष्पादित करें जिनके नाम अभिव्यक्ति (दोहराने योग्य) से मेल खाते हैं।
 
 Type: `RegExp[]`<br /> Default: `[]`
