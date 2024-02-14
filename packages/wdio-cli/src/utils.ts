@@ -633,7 +633,10 @@ export function specifyVersionIfNeeded(packagesToInstall: string[], version: str
     const { value } = version.matchAll(VERSION_REGEXP).next()
     const [major, minor, patch, tagName, build] = (value || []).slice(1, -1) // drop commit bit
     return packagesToInstall.map((p) => {
-        if (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) {
+        if (
+            (p.startsWith('@wdio') && p !== '@wdio/visual-service') ||
+            ['devtools', 'webdriver', 'webdriverio'].includes(p)
+        ) {
             const tag = major && npmTag === 'latest'
                 ? `^${major}.${minor}.${patch}-${tagName}.${build}`
                 : npmTag
@@ -745,6 +748,13 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
      */
     if (presetPackage.short === 'solid') {
         parsedAnswers.packagesToInstall.push('solid-js')
+    }
+
+    /**
+     * add visual service if user selected support for it
+     */
+    if (parsedAnswers.includeVisualTesting) {
+        parsedAnswers.packagesToInstall.push('@wdio/visual-service')
     }
 
     /**

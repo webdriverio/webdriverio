@@ -3,9 +3,9 @@
 exports[`getAnswers 1`] = `
 {
   "backend": "On my local machine",
-  "baseUrl": "http://localhost",
   "framework": "@wdio/mocha-framework$--$mocha",
   "generateTestFiles": true,
+  "includeVisualTesting": false,
   "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
   "npmInstall": true,
   "plugins": [],
@@ -108,6 +108,7 @@ exports[`npmInstall 1`] = `
       "bar$--$foo",
       "@testing-library/vue",
       "@testing-library/jest-dom",
+      "@wdio/visual-service",
       "@types/jasmine",
     ],
     true,

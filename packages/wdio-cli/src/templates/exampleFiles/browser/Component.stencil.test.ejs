@@ -38,6 +38,8 @@ describe('Stencil component testing', () => {
         await button.click()
         flushAll()
 
-        await expect(button).toHaveText('count is 44')
+        await expect(button).toHaveText('count is 44')<%-
+        answers.includeVisualTesting ? `
+        await expect(button).toMatchElementSnapshot('counterButton')` : '' %>
     })
 })
