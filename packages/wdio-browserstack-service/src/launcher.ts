@@ -449,7 +449,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         const form = new FormData()
         if (app.app) {
-            form.append('file', new FileStream(fs.createReadStream(app.app)))
+            const fileName = path.basename(app.app)
+            form.append('file', new FileStream(fs.createReadStream(app.app)), fileName)
         }
         if (app.customId) {
             form.append('custom_id', app.customId)
