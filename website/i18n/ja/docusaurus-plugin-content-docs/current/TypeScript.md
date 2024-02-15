@@ -22,11 +22,11 @@ You can provide custom `ts-node` options through the environment (by default it 
 TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
 ```
 
-The minimum TypeScript version is `v4.0.5`.
+TypeScriptの最小バージョンは`v4.0.5`です。
 
 ## Framework Setup
 
-And your `tsconfig.json` needs the following:
+そして、`tsconfig.json` には以下が必要です:
 
 ```json title="tsconfig.json"
 {
@@ -36,7 +36,7 @@ And your `tsconfig.json` needs the following:
 }
 ```
 
-Please avoid importing `webdriverio` or `@wdio/sync` explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
+`webdriverio` または `@wdio/sync` を明示的にインポートしないでください。 `WebdriverIO`と`WebDriver`型は、`tsconfig.json`の`types`に追加されると、どこからでもアクセスできるようになります。 追加のWebdriverIOサービスやプラグイン、`devtools`自動化パッケージを使用する場合は、`types`リストに追加してください。
 
 ## Framework Types
 
