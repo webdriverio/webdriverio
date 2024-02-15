@@ -30,7 +30,7 @@ Our monthly budget is allocated across four key areas:
 
 Our financial strategy gives top priority to project development, dedicating 60% of our resources to it. This funding aims to draw contributions from a wide range of people, increasing our base of dedicated contributors. By dividing the funds, allocating 35% to individuals not directly involved with the project and 65% to our project contributors and the Technical Steering Committee (TSC) members, we seek to foster a strong sense of community and shared ownership. This approach is vital for ensuring the long-term prosperity and stability of our project.
 
-As part of this strategy, we have developed an automated expense process using a [GitHub Action](https://github.com/webdriverio/expense-action) to help run this program. You can read more about how this process works on my [personal blog](https://bromann.dev/).
+As part of this strategy, we have developed an automated expense process using a [GitHub Action](https://github.com/webdriverio/expense-action) to help run this program. You can read more about how this process works on my [personal blog](https://bromann.dev/post/automated-contributor-expense-process/).
 
 ### Supporting Community Engagement and Events
 
