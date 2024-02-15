@@ -864,12 +864,15 @@ class _InsightsHandler {
     }
 
     private getIntegrationsObject () {
+        const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
+        const sessionId = (this._browser as WebdriverIO.Browser).sessionId
+
         return {
-            capabilities: this._platformMeta?.caps,
-            session_id: this._platformMeta?.sessionId,
-            browser: this._platformMeta?.browserName,
-            browser_version: this._platformMeta?.browserVersion,
-            platform: this._platformMeta?.platformName,
+            capabilities: caps,
+            session_id: sessionId,
+            browser: caps.browserName,
+            browser_version: caps?.browserVersion,
+            platform: caps?.platformName,
             product: this._platformMeta?.product,
             platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
         }
