@@ -10,7 +10,7 @@ const $button = await $('button')
 await expect($button).toBeDisplayed()
 ```
 
-or
+または
 
 ```js
 const selectOptions = await $$('form select>option')
@@ -23,13 +23,13 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 
 ## Chaiからの移行
 
-[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to WebdriverIO v6 then by default you will have access to all the assertions from `expect-webdriverio` out of the box. This means that globally wherever you use `expect` you would call an `expect-webdriverio` assertion. That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
+[Chai](https://www.chaijs.com/)と[expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme)は共存可能であり、若干の調整でexpect-webdriverioへのスムーズな移行が実現できます。 WebdriverIO v6 にアップグレードした場合は、デフォルトで `expect-webdriverio` のすべてのアサーションにアクセスできます。 つまり、グローバルに `expect` を使用する場合は、 `expect-webdriverio` アサーションを呼び出すことになります。 That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
 
 This guide will show examples of how to migrate from Chai if it has been overridden locally and how to migrate from Chai if it has been overridden globally.
 
-### Local
+### ローカル
 
-Assume Chai was imported explicitly in a file, e.g.:
+Chaiをファイルで明示的にインポートしたと仮定する：
 
 ```js
 // myfile.js - original code
@@ -43,7 +43,7 @@ describe('Homepage', () => {
 })
 ```
 
-To migrate this code remove the Chai import and use the new expect-webdriverio assertion method `toHaveUrl` instead:
+このコードを移行するには、Chaiインポートを削除し、代わりに新しいexpect-webdriverioアサーションメソッド`toHaveUrl`を使用します：
 
 ```js
 // myfile.js - migrated code
@@ -55,7 +55,7 @@ describe('Homepage', () => {
 });
 ```
 
-If you wanted to use both Chai and expect-webdriverio in the same file you would keep the Chai import and `expect` would default to the expect-webdriverio assertion, e.g.:
+同じファイルでChaiとexpect-webdriverioの両方を使いたい場合は、Chaiインポートを維持し、`expect`はexpect-webdriverioアサーションをデフォルトにします：
 
 ```js
 // myfile.js
@@ -76,9 +76,9 @@ describe('Other element', () => {
 })
 ```
 
-### Global
+### グローバル
 
-Assume `expect` was globally overridden to use Chai. In order to use expect-webdriverio assertions we need to globally set a variable in the "before" hook, e.g.:
+`expect`がチャイを使うようにグローバルにオーバーライドされたと仮定します。 In order to use expect-webdriverio assertions we need to globally set a variable in the "before" hook, e.g.:
 
 ```js
 // wdio.conf.js
