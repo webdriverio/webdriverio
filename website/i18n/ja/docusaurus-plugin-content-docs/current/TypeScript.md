@@ -140,7 +140,7 @@ Using tsconfig
 }
 ```
 
-For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
+詳細については、(ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types]をご覧ください。
 
 ## Tips and Hints
 
