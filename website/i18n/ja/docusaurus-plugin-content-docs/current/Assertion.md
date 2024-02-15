@@ -1,9 +1,9 @@
 ---
 id: assertion
-title: Assertion
+title: アサーション
 ---
 
-The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
+[WDIOテストランナー](https://webdriver.io/docs/clioptions)には、ブラウザーのさまざまな側面や (Web) アプリケーション内の要素に対して強力なアサーションを作成できるアサーション ライブラリが組み込まれています。 これは、e2e テスト用に最適化された追加のマッチャーで[Jests マッチャー](https://jestjs.io/docs/en/using-matchers)の機能を拡張します。例:
 
 ```js
 const $button = await $('button')
@@ -19,9 +19,9 @@ const selectOptions = await $$('form select>option')
 await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 
-For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
+完全なリストについては、[APIドキュメントを参照](/docs/api/expect-webdriverio)してください。
 
-## Migrating from Chai
+## Chaiからの移行
 
 [Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to WebdriverIO v6 then by default you will have access to all the assertions from `expect-webdriverio` out of the box. This means that globally wherever you use `expect` you would call an `expect-webdriverio` assertion. That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
 
