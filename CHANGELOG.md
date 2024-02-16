@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.32.1 (2024-02-16)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12249](https://github.com/webdriverio/webdriverio/pull/12249) (@wdio/wdio-browserstack-service) fix: add filename in app upload formData ([@innovater21](https://github.com/innovater21))
+
+#### Committers: 1
+- Abhishek Jha ([@innovater21](https://github.com/innovater21))
+
+
 ## v8.32.0 (2024-02-14)
 
 #### :boom: Breaking Change
