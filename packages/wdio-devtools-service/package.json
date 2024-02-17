@@ -44,7 +44,7 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "20.3.0",
+    "puppeteer-core": "22.0.0",
     "webdriverio": "8.32.1"
   },
   "publishConfig": {
