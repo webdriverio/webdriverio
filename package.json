@@ -33,7 +33,7 @@
     "docs:generate": "run-s clean:website generate:bidi && node --loader ts-node/esm ./scripts/docs-generation/generateDocs.ts",
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node --loader ts-node/esm ./scripts/updateDocs.ts",
-    "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
+    "test": "tap",
     "test:depcheck": "node --loader ts-node/esm ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
@@ -65,12 +65,20 @@
     "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
     "version": "npm run changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
-    "postinstall:husky": "husky install"
+    "postinstall:husky": "husky install",
+    "lint": "eslint \"**/*.js\"",
+    "postlint": "template-oss-check",
+    "template-oss-apply": "template-oss-apply --force",
+    "lintfix": "npm run lint -- --fix",
+    "snap": "tap",
+    "posttest": "npm run lint",
+    "test-all": "npm run test -ws -iwr --if-present",
+    "lint-all": "npm run lint -ws -iwr --if-present"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudfront": "^3.513.0",
-    "@aws-sdk/client-s3": "^3.513.0",
-    "@aws-sdk/lib-storage": "^3.513.0",
+    "@aws-sdk/client-cloudfront": "^3.515.0",
+    "@aws-sdk/client-s3": "^3.515.0",
+    "@aws-sdk/lib-storage": "^3.515.0",
     "@octokit/rest": "^20.0.2",
     "@preact/preset-vite": "^2.8.1",
     "@react-email/components": "^0.0.14",
@@ -85,7 +93,7 @@
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.11.17",
+    "@types/node": "^20.11.19",
     "@types/shelljs": "^0.8.15",
     "@types/split2": "^4.2.3",
     "@types/unzipper": "^0.10.9",
@@ -95,7 +103,7 @@
     "@typescript-eslint/utils": "^7.0.1",
     "@vitejs/plugin-react": "^4.2.1",
     "@vitejs/plugin-vue": "^5.0.4",
-    "@vitest/coverage-v8": "^1.2.2",
+    "@vitest/coverage-v8": "^1.3.0",
     "camelcase": "^8.0.0",
     "cddl": "^0.8.5",
     "cddl2ts": "^0.2.2",
@@ -113,7 +121,7 @@
     "eta": "^3.2.0",
     "glob": "^10.3.10",
     "husky": "^9.0.11",
-    "inquirer": "^9.2.12",
+    "inquirer": "^9.2.14",
     "jsdom": "^24.0.0",
     "lerna": "^8.1.2",
     "lerna-changelog": "^2.2.0",
@@ -128,6 +136,31 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "unzipper": "^0.10.14",
-    "vitest": "^1.2.2"
+    "vitest": "^1.3.0"
+  },
+  "author": "GitHub Inc.",
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webdriverio/webdriverio.git"
+  },
+  "engines": {
+    "node": "^14.17.0 || ^16.13.0 || >=18.0.0"
+  },
+  "templateOSS": {
+    "//@npmcli/template-oss": "This file is partially managed by @npmcli/template-oss. Edits may be overwritten.",
+    "version": "4.18.0"
+  },
+  "tap": {
+    "test-ignore": "^(packages)/",
+    "nyc-arg": [
+      "--exclude",
+      "packages/**",
+      "--exclude",
+      "tap-snapshots/**"
+    ]
   }
 }
