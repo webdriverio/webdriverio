@@ -33,6 +33,7 @@ updates:
     - dependency-name: "@puppeteer/browsers"
     - dependency-name: "inquirer"
     - dependency-name: "read-pkg-up"
+    - dependency-name: "formdata-node"
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"
