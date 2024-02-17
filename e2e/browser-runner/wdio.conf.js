@@ -18,7 +18,6 @@ if (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac))
 }
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const browserName = isMac ? 'safari' : 'chrome'
 export const config = {
     /**
      * specify test files
@@ -31,7 +30,11 @@ export const config = {
     /**
      * capabilities
      */
-    capabilities: [{ browserName }],
+    capabilities: [
+        isMac
+            ? { browserName: 'safari' }
+            : { browserName: 'chrome', browserVersion: '122.0.6261.39' }
+    ],
 
     /**
      * test configurations

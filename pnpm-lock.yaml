@@ -252,6 +252,24 @@ importers:
       '@vue/test-utils':
         specifier: ^2.4.3
         version: 2.4.4(vue@3.4.19)
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-browser-runner
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../packages/wdio-cli
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../packages/wdio-globals
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-local-runner
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-mocha-framework
+      '@wdio/spec-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-spec-reporter
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.23.9)
