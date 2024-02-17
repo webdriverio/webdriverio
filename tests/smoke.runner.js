@@ -743,7 +743,7 @@ const runSpecsWithFlagNoArg = async () => {
 
 const cliExcludeParamValidationAllExcludedByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationAllExcludedByKeyword',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
         {
             exclude: ['general']
@@ -757,7 +757,7 @@ const cliExcludeParamValidationAllExcludedByKeyword = async () => {
 
 const cliExcludeParamValidationSomeExcludedByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationSomeExcludedByKeyword',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
         {
             exclude: ['general2']
@@ -771,7 +771,7 @@ const cliExcludeParamValidationSomeExcludedByKeyword = async () => {
 
 const cliExcludeParamValidationSomeExcludedByPath = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationSomeExcludedByPath',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
         {
             exclude: ['./general.test.js']
@@ -785,7 +785,7 @@ const cliExcludeParamValidationSomeExcludedByPath = async () => {
 
 const cliExcludeParamValidationExcludeNonExistentByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationExcludeNonExistentByKeyword',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
         {
             exclude: ['newgeneral']
@@ -799,7 +799,7 @@ const cliExcludeParamValidationExcludeNonExistentByKeyword = async () => {
 
 const cliExcludeParamValidationExcludeFromConfigByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationExcludeFromConfigByKeyword',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.with-exclude-prop.conf.js')
     )
 
@@ -810,7 +810,7 @@ const cliExcludeParamValidationExcludeFromConfigByKeyword = async () => {
 
 const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeParamValidationAllExcluded',
+        'cliExcludeParamValidationExcludeMultipleSpecsByPath',
         path.resolve(__dirname, 'tests-cli-exclude-arg/wdio.conf.js'),
         {
             exclude: [
