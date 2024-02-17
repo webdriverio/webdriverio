@@ -17,6 +17,7 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
 const log = logger('webdriver')
+const CHROMEDRIVER_BASE_URL = 'https://storage.googleapis.com/chrome-for-testing-public'
 const EXCLUDED_PARAMS = ['version', 'help']
 
 /**
@@ -212,6 +213,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
+        baseUrl: CHROMEDRIVER_BASE_URL,
         unpack: true,
         cacheDir,
         platform,
@@ -282,6 +284,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
         const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
+            baseUrl: CHROMEDRIVER_BASE_URL,
             cacheDir,
             buildId,
             platform,
