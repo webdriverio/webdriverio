@@ -212,6 +212,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
+        baseUrl: 'https://storage.googleapis.com/chrome-for-testing-public', // TODO: remove this once https://github.com/puppeteer/puppeteer/pull/11923 is backported
         unpack: true,
         cacheDir,
         platform,
@@ -282,6 +283,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
         const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
+            baseUrl: 'https://storage.googleapis.com/chrome-for-testing-public', // TODO: remove this once https://github.com/puppeteer/puppeteer/pull/11923 is backported
             cacheDir,
             buildId,
             platform,
