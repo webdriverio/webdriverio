@@ -6,6 +6,13 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@wdio/utils', async (origMod) => {
+    const orig: any = await origMod()
+    return {
+        ...orig,
+        userImport: vi.fn().mockResolvedValue({})
+    }
+})
 
 const clientMock: any = {
     send: vi.fn(),

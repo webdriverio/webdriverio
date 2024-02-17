@@ -213,12 +213,6 @@ exports[`getPrototype 1`] = `
 }
 `;
 
-exports[`patchDebug > foobar 1`] = `
-[
-  "[◀   '{"id":20,"result":{"result":{"type":"string","value":"complete"}},"sessionId":"B5BB76CBB624830A41E4159E01ABED39"}'◀",
-]
-`;
-
 exports[`transformExecuteResult > multiple results 1`] = `
 [
   "foobar",

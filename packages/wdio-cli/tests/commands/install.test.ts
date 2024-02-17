@@ -22,6 +22,13 @@ vi.mock('../../src/install', () => ({
     installPackages: vi.fn(),
     getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
+vi.mock('../../src/utils', async (origMod) => {
+    const orig: any = await origMod()
+    return {
+        ...orig,
+        detectPackageManager: vi.fn().mockReturnValue('npm'),
+    }
+})
 
 const findInConfigMock = vi.spyOn(utils, 'findInConfig')
 

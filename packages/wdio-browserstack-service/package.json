@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.1.0",
+    "@types/yauzl": "^2.10.3",
     "@wdio/globals": "8.32.1"
   },
   "publishConfig": {

@@ -966,7 +966,7 @@ test('setup Babel', async () => {
     await setupBabel(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
     expect(parsedAnswers.packagesToInstall).toEqual(
-        ['@babel/register', '@babel/preset-env'])
+        ['@babel/register', '@babel/core', '@babel/preset-env'])
 })
 
 test('createWDIOConfig', async () => {

@@ -1,5 +1,5 @@
 import { basename, join, resolve } from 'node:path'
-import { trainCase } from 'change-case'
+import { kebabCase } from 'change-case'
 
 import type { ArgValue, KeyValueArgs } from './types.js'
 
@@ -32,7 +32,7 @@ export function formatCliArgs(args: KeyValueArgs): string[] {
             continue
         }
 
-        cliArgs.push(`--${trainCase(key)}`)
+        cliArgs.push(`--${kebabCase(key)}`)
         // Only non-boolean and non-null values are added as option values
         if (typeof value !== 'boolean') {
             cliArgs.push(sanitizeCliOptionValue(value))
