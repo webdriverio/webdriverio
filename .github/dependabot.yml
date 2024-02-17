@@ -32,6 +32,8 @@ updates:
     - dependency-name: "pretty-ms"
     - dependency-name: "@puppeteer/browsers"
     - dependency-name: "inquirer"
+    # fails to update and requires investigations
+    - dependency-name: "vite"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
