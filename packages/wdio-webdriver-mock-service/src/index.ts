@@ -230,3 +230,10 @@ export default class WebdriverMockService implements Services.ServiceInstance {
  * export for 3rd party usage
  */
 export { WebDriverMock }
+
+export const launcher = class WebdriverMockLauncher {
+    onPrepare(config: WebdriverIO.Config) {
+        config.hostname = 'localhost'
+        config.port = 4444
+    }
+}
