@@ -30,12 +30,7 @@ function mapCapabilities (
                 const isMultiremote = Boolean(multiremoteCaps[Object.keys(cap)[0]].capabilities)
 
                 if (isMultiremote) {
-                    return Object.values(multiremoteCaps).map((c) => {
-                        if (c.automationProtocol === 'devtools') {
-                            return
-                        }
-                        return c.capabilities
-                    }) as WebdriverIO.Capabilities[]
+                    return Object.values(multiremoteCaps).map((c) => c.capabilities) as WebdriverIO.Capabilities[]
                 } else if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
@@ -43,9 +38,6 @@ function mapCapabilities (
             }).flat()
             : Object.values(caps as Capabilities.MultiRemoteCapabilities).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
-                if (mrOpts.automationProtocol === 'devtools') {
-                    return
-                }
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
@@ -64,9 +56,7 @@ function mapCapabilities (
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
-        !getDriverOptions(cap).binary &&
-        // - user is not defining "devtools" as automation protocol
-        options.automationProtocol !== 'devtools'
+        !getDriverOptions(cap).binary
     )) as WebdriverIO.Capabilities[]
 
     /**

@@ -18,7 +18,7 @@ export default class ProtocolStub {
             customCommands: [], // internally used to transfer custom commands to the actual protocol instance
             overwrittenCommands: [], // internally used to transfer overwritten commands to the actual protocol instance
             commandList: [],
-            ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
+            ...capabilitiesEnvironmentDetector(capabilities)
         }
 
         browser.addCommand = (...args: any) => browser.customCommands.push(args)

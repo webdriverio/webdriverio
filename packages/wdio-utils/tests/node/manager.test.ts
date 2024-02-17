@@ -91,9 +91,7 @@ describe('setupDriver', () => {
     })
 
     test('no setup with testrunner capabilities when automation protocol is set to devtools', async () => {
-        await setupDriver({
-            automationProtocol: 'devtools'
-        } as any, [{
+        await setupDriver({} as any, [{
             browserName: 'chrome',
             browserVersion: '1'
         }, {
@@ -212,7 +210,6 @@ describe('setupDriver', () => {
                 }
             },
             browserB: {
-                automationProtocol: 'devtools',
                 capabilities: {
                     browserName: 'edge',
                     browserVersion: '3'
@@ -323,7 +320,6 @@ describe('setupDriver', () => {
                 }
             },
             browserB: {
-                automationProtocol: 'devtools',
                 capabilities: {
                     browserName: 'chrome',
                     browserVersion: '2'

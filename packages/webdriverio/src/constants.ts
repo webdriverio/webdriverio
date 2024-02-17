@@ -7,7 +7,6 @@ import type { Options, Capabilities } from '@wdio/types'
 
 export enum SupportedAutomationProtocols {
     webdriver = 'webdriver',
-    devtools = 'devtools',
     stub = './protocol-stub.js'
 }
 

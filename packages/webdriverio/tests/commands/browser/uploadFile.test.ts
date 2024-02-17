@@ -12,7 +12,6 @@ vi.mock('node:fs', () => ({
 }))
 vi.mock('fetch')
 vi.mock('archiver')
-vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('uploadFile', () => {
