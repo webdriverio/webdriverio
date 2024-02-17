@@ -10,53 +10,29 @@ title: Настройка прокси
 
 ## Прокси между драйвером и тестами
 
-Если у вашей компании есть корпоративный прокси-сервер (например, на `http://my.corp.proxy.com:9090`) для всех исходящих запросов, выполните следующие шаги, чтобы установить и настроить [global-agent](https://github.com/gajus/global-agent).
+If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [undici](https://github.com/nodejs/undici).
 
-### Установка global-agent
+### Install undici
 
 ```bash npm2yarn
-npm install global-agent --save-dev
+npm install undici --save-dev
 ```
 
-### Добавьте global-agent в bootstrap в файл вашей конфигурации
+### Add undici setGlobalDispatcher to your config file
 
 Добавьте следующую инструкцию в начало вашего конфигурационного файла.
 
 ```js title="wdio.conf.js"
-import { bootstrap } from 'global-agent';
-bootstrap();
+import { setGlobalDispatcher, ProxyAgent } from 'undici';
+
+const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
+setGlobalDispatcher(dispatcher);
 
 export const config = {
     // ...
 }
 ```
-
-### Установить переменные среды для global-agent
-
-Прежде чем начать тест, убедитесь, что вы экспортировали переменную в терминал, например:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-wdio wdio.conf.js
-```
-
-Вы можете исключить URL-адреса из прокси-сервера, экспортировав переменную, например:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_NO_PROXY='.foo.com'
-wdio wdio.conf.js
-```
-
-При необходимости вы можете указать `GLOBAL_AGENT_HTTPS_PROXY` для маршрутизации HTTPS-трафика через прокси-сервер, отличный от HTTP-трафика.
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-wdio wdio.conf.js
-```
-
-`GLOBAL_AGENT_HTTP_PROXY` используется как для запросов HTTP, так и для HTTPS, если `GLOBAL_AGENT_HTTPS_PROXY` не установлен.
+Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/api/ProxyAgent.md).
 
 Если вы используете [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), запустите его через:
 
