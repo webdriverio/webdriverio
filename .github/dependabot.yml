@@ -32,6 +32,7 @@ updates:
     - dependency-name: "pretty-ms"
     - dependency-name: "@puppeteer/browsers"
     - dependency-name: "inquirer"
+    - dependency-name: "read-pkg-up"
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"
