@@ -1,5 +1,5 @@
 import { basename, join, resolve } from 'node:path'
-import { paramCase } from 'param-case'
+import { paramCase } from 'change-case'
 
 import type { ArgValue, KeyValueArgs } from './types.js'
 
