@@ -10,53 +10,28 @@ updates:
   ignore:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
-    # doesn't support glob anymore in v4 (Windows)
-    - dependency-name: "rimraf"
-    # these packages don't support Node.js v16 anymore
-    - dependency-name: "got"
-    - dependency-name: "ky"
 - package-ecosystem: npm
   directory: "/"
-  target-branch: v7
+  target-branch: v8
   schedule:
     interval: weekly
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
-    # packages we don't update for v7 anymore
-    - dependency-name: "@types/jasmine"
-    - dependency-name: "ky"
-    - dependency-name: "glob"
-    - dependency-name: "jasmine"
-    - dependency-name: "minimatch"
-    - dependency-name: "puppeteer-core"
-    - dependency-name: "serialize-error"
-    - dependency-name: "expect-webdriverio"
-    - dependency-name: "allure-js-commons"
-    - dependency-name: "@types/node"
-    - dependency-name: "@cucumber/cucumber"
-    - dependency-name: "@typescript-eslint/eslint-plugin"
-    - dependency-name: "lerna"
-      update-types: ["version-update:semver-major"]
-    # moved to ESM only
-    - dependency-name: "del"
-    - dependency-name: "got"
-    - dependency-name: "long"
-    - dependency-name: "tempy"
-    - dependency-name: "rimraf"
-    - dependency-name: "inquirer"
-    - dependency-name: "camelcase"
-    - dependency-name: "pretty-ms"
-    - dependency-name: "dateformat"
-    - dependency-name: "strip-ansi"
-    - dependency-name: "supports-color"
-    - dependency-name: "chrome-launcher"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
-    # Chalk v5 is ESM only
-    - dependency-name: "chalk"
-      update-types: ["version-update:semver-major"]
+    # doesn't support glob anymore in v4 (Windows)
+    - dependency-name: "rimraf"
+    # these packages don't support Node.js v16 anymore
+    - dependency-name: "got"
+    - dependency-name: "ky"
+    - dependency-name: "@octokit/rest"
+    - dependency-name: "@cucumber/cucumber"
+    - dependency-name: "jsdom"
+    - dependency-name: "pretty-ms"
+    - dependency-name: "@puppeteer/browsers"
+    - dependency-name: "inquirer"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
