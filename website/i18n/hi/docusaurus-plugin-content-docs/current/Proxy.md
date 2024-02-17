@@ -10,53 +10,29 @@ title: प्रॉक्सी सेटअप
 
 ## ब्राउज़र और इंटरनेट के बीच प्रॉक्सी
 
-यदि आपकी कंपनी के पास सभी आउटगोइंग अनुरोधों के लिए कॉर्पोरेट प्रॉक्सी (उदाहरण के लिए `http://my.corp.proxy.com:9090`पर) है, तो [global-agent](https://github.com/gajus/global-agent)को स्थापित और कॉन्फ़िगर करने के लिए नीचे दिए गए चरणों का पालन करें।
+If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [undici](https://github.com/nodejs/undici).
 
-### वैश्विक-एजेंट स्थापित करें
+### Install undici
 
 ```bash npm2yarn
-npm install global-agent --save-dev
+npm install undici --save-dev
 ```
 
-### अपनी कॉन्फ़िगरेशन फ़ाइल में ग्लोबल-एजेंट बूटस्ट्रैप जोड़ें
+### Add undici setGlobalDispatcher to your config file
 
 अपनी कॉन्फ़िगरेशन फ़ाइल के शीर्ष पर निम्न आवश्यक कथन जोड़ें।
 
 ```js title="wdio.conf.js"
-'ग्लोबल-एजेंट' से { bootstrap } आयात करें;
-बूटस्ट्रैप ();
+import { setGlobalDispatcher, ProxyAgent } from 'undici';
 
-एक्सपोर्ट कॉन्स्ट कॉन्फ़िगरेशन = {
+const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
+setGlobalDispatcher(dispatcher);
+
+export const config = {
     // ...
 }
 ```
-
-### वैश्विक-एजेंट पर्यावरण चर सेट करें
-
-परीक्षण शुरू करने से पहले, सुनिश्चित करें कि आपने चर को टर्मिनल में निर्यात कर दिया है, जैसे:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-wdio wdio.conf.js
-```
-
-आप चर को निर्यात करके URL को प्रॉक्सी से बाहर कर सकते हैं, जैसे:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_NO_PROXY='.foo.com'
-wdio wdio.conf.js
-```
-
-यदि आवश्यक हो, तो आप HTTP ट्रैफ़िक की तुलना में किसी भिन्न प्रॉक्सी के माध्यम से HTTPS ट्रैफ़िक को रूट करने के लिए `GLOBAL_AGENT_HTTPS_PROXY` निर्दिष्ट कर सकते हैं।
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-wdio wdio.conf.js
-```
-
-`GLOBAL_AGENT_HTTP_PROXY` का उपयोग HTTP और HTTPS दोनों अनुरोधों के लिए किया जाता है यदि `GLOBAL_AGENT_HTTPS_PROXY` सेट नहीं है।
+Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/api/ProxyAgent.md).
 
 यदि आप [सॉस कनेक्ट प्रॉक्सी](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)का उपयोग करते हैं, तो इसे इसके माध्यम से प्रारंभ करें:
 
