@@ -34,6 +34,7 @@ updates:
     - dependency-name: "inquirer"
     # fails to update and requires investigations
     - dependency-name: "vite"
+    - dependency-name: "puppeteer-core"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
