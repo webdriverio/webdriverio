@@ -44,7 +44,6 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
          * check also if setWindowRect is provided
          */
         (
-            // @ts-expect-error outdated jsonwp cap
             capabilities.platformVersion ||
             capabilities['appium:platformVersion'] ||
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
