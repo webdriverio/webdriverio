@@ -5,7 +5,7 @@ import { getElementRect } from '../../utils/index.js'
 export type Size = Pick<RectReturn, 'width' | 'height'>;
 
 export function getSize (this: WebdriverIO.Element): Promise<Size>;
-export function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<number>;
+export function getSize (this: WebdriverIO.Element, prop?: keyof RectReturn): Promise<number>;
 
 /**
  *
