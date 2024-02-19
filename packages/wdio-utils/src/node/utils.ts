@@ -18,6 +18,8 @@ import type { Options } from '@wdio/types'
 
 const log = logger('webdriver')
 const CHROMEDRIVER_BASE_URL = 'https://storage.googleapis.com/chrome-for-testing-public'
+const FIREFOX_BASE_URL = 'https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central'
+
 const EXCLUDED_PARAMS = ['version', 'help']
 
 /**
@@ -213,7 +215,10 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
-        baseUrl: CHROMEDRIVER_BASE_URL,
+        baseUrl: {
+            [Browser.CHROME]: CHROMEDRIVER_BASE_URL,
+            [Browser.FIREFOX]: FIREFOX_BASE_URL,
+        }[browserName] ?? '',
         unpack: true,
         cacheDir,
         platform,
