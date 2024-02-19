@@ -132,21 +132,21 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
     Finally, set up the project via:
 
     ```sh
-    $ pnp install
-    $ pnp run setup
+    $ pnpm install
+    $ pnpm run setup
     ```
 
     The second command does two things:
 
-    * Cleans (possible) existing build artifacts via ```pnp run clean```
+    * Cleans (possible) existing build artifacts via ```pnpm run clean```
 
         If you have compiled the code this command will remove them as well as all dependencies of the subpackages.
 
-    * Bootstraps sub-projects via ```pnp run bootstrap```
+    * Bootstraps sub-projects via ```pnpm run bootstrap```
 
         Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
-    * Builds all subpackages via ```pnp run build```
+    * Builds all subpackages via ```pnpm run build```
 
         As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
 
