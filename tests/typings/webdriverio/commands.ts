@@ -3,7 +3,7 @@ import { $ } from '@wdio/globals'
 import type { RectReturn } from '@wdio/protocols'
 
 ;(async () => {
-    const el = await $('foo')
+    const el= $('foo')
 
     // types validations for getSize command
     expectType<Pick<RectReturn, 'width' | 'height'>> (await el.getSize())

@@ -6,7 +6,7 @@ export type Size = Pick<RectReturn, 'width' | 'height'>;
 
 export function getSize (this: WebdriverIO.Element): Promise<Size>;
 export function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<number>;
-
+export function getSize (this: WebdriverIO.Element, prop?: keyof RectReturn): Promise<Size & number>;
 /**
  *
  * Get the width and height for an DOM-element.
@@ -37,7 +37,7 @@ export function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Pro
 export async function getSize (
     this: WebdriverIO.Element,
     prop?: keyof RectReturn
-): Promise<any> {
+): Promise<Size | number> {
     const rect = this.isW3C
         ? await getElementRect(this)
         : await this.getElementSize(this.elementId) as RectReturn
