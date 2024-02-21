@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,6 @@
     "@wdio/reporter": "8.31.1",
     "@wdio/types": "8.31.1",
     "dateformat": "4.5.1",
-    "got": "^12.6.1",
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {

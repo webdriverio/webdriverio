@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { test, expect, vi, afterEach } from 'vitest'
-// @ts-expect-error mock is a webdriver dependency
-import got from 'got'
 import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -35,16 +33,16 @@ test('should run command on all instances', async () => {
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
 
-    expect((vi.mocked(got).mock.calls[0][0] as any).pathname).toBe('/session')
-    expect((vi.mocked(got).mock.calls[0][1] as any).method).toBe('POST')
-    expect((vi.mocked(got).mock.calls[1][0] as any).pathname).toBe('/session')
-    expect((vi.mocked(got).mock.calls[1][1] as any).method).toBe('POST')
-    expect((vi.mocked(got).mock.calls[2][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[0][0] as any).pathname).toBe('/session')
+    expect((vi.mocked(fetch).mock.calls[0][1] as any).method).toBe('POST')
+    expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname).toBe('/session')
+    expect((vi.mocked(fetch).mock.calls[1][1] as any).method).toBe('POST')
+    expect((vi.mocked(fetch).mock.calls[2][0] as any).pathname)
         .toBe('/session/foobar-123/execute/sync')
-    expect((vi.mocked(got).mock.calls[2][1] as any).method).toBe('POST')
-    expect((vi.mocked(got).mock.calls[3][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[2][1] as any).method).toBe('POST')
+    expect((vi.mocked(fetch).mock.calls[3][0] as any).pathname)
         .toBe('/session/foobar-123/execute/sync')
-    expect((vi.mocked(got).mock.calls[3][1] as any).method).toBe('POST')
+    expect((vi.mocked(fetch).mock.calls[3][1] as any).method).toBe('POST')
 })
 
 test('should properly create stub instance', async () => {
@@ -73,13 +71,13 @@ test('should allow to call on elements', async () => {
     const result = await elem.getSize()
     expect(result).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 
-    expect((vi.mocked(got).mock.calls[2][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[2][0] as any).pathname)
         .toEqual('/session/foobar-123/element')
-    expect((vi.mocked(got).mock.calls[3][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[3][0] as any).pathname)
         .toEqual('/session/foobar-123/element')
-    expect((vi.mocked(got).mock.calls[4][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[4][0] as any).pathname)
         .toEqual('/session/foobar-123/element/some-elem-123/rect')
-    expect((vi.mocked(got).mock.calls[5][0] as any).pathname)
+    expect((vi.mocked(fetch).mock.calls[5][0] as any).pathname)
         .toEqual('/session/foobar-123/element/some-elem-123/rect')
 })
 
@@ -139,5 +137,5 @@ test('should be able to overwrite command to and element in multiremote', async 
 })
 
 afterEach(() => {
-    vi.mocked(got).mockClear()
+    vi.mocked(fetch).mockClear()
 })

@@ -3,7 +3,6 @@
 import path from 'node:path'
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import got from 'got'
 import logger from '@wdio/logger'
 
 import AccessibilityHandler from '../src/accessibility-handler.js'
@@ -17,7 +16,7 @@ let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 let caps: Capabilities.RemoteCapability
 let accessibilityOpts: { [key: string]: any; }
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
@@ -27,16 +26,10 @@ bstackLoggerSpy.mockImplementation(() => {})
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
-    vi.mocked(got).mockClear()
-    vi.mocked(got.put).mockClear()
-    vi.mocked(got).mockResolvedValue({
-        body: {
-            automation_session: {
-                browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-            }
-        }
-    })
-    vi.mocked(got.put).mockResolvedValue({})
+    vi.mocked(fetch).mockClear()
+    vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({ automation_session: {
+        browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
+    } })))
 
     browser = {
         sessionId: 'session123',

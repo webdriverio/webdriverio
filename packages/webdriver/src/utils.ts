@@ -4,14 +4,14 @@ import { deepmergeCustom } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Protocol } from '@wdio/protocols'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
 
-import RequestFactory from './request/factory.js'
+import Request from './request/request.js'
 import command from './command.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
@@ -74,7 +74,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = await RequestFactory.getInstance(
+    const sessionRequest = new Request(
         'POST',
         '/session',
         {
@@ -181,8 +181,8 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? deepmerge(JsonWProtocol, WebDriverProtocol)
-            : isW3C ? WebDriverProtocol : JsonWProtocol,
+            ? deepmerge(AppiumProtocol, WebDriverProtocol)
+            : WebDriverProtocol,
         /**
          * enable Bidi protocol for W3C sessions
          */
@@ -374,8 +374,8 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * return timeout error with information about the executing command on which the test hangs
  */
-export const getTimeoutError = (error: Error, requestOptions: Options.RequestLibOptions): Error => {
-    const cmdName = getExecCmdName(requestOptions)
+export function getTimeoutError(error: Error, requestOptions: RequestInit, url: URL): Error {
+    const cmdName = getExecCmdName(url)
     const cmdArgs = getExecCmdArgs(requestOptions)
 
     const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
@@ -385,15 +385,15 @@ export const getTimeoutError = (error: Error, requestOptions: Options.RequestLib
     return Object.assign(timeoutErr, error)
 }
 
-function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
-    const { href } = requestOptions.url as URL
+function getExecCmdName(url: URL): string {
+    const { href } = url
     const res = href.match(REG_EXPS.commandName) || []
 
     return res[1] || href
 }
 
-function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
-    const { json: cmdJson } = requestOptions
+function getExecCmdArgs(requestOptions: RequestInit): string {
+    const { body: cmdJson }: any = requestOptions
 
     if (typeof cmdJson !== 'object') {
         return ''

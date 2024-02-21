@@ -20,6 +20,6 @@ describe('React Component Testing', () => {
     it('supports snapshot tests', async () => {
         const { container } = render(<App />)
         await expect(container).toMatchSnapshot()
-        await expect(container).toMatchInlineSnapshot(`"<div><button>Current theme: light</button></div>"`)
+        await expect(container).toMatchInlineSnapshot('"<div><button>Current theme: light</button></div>"')
     })
 })

@@ -1,11 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
-// @ts-expect-error
-import got from 'got'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
@@ -18,12 +16,12 @@ describe('isEnabled test', () => {
         })
 
         await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
-        expect((vi.mocked(got).mock.calls[1][0] as any).pathname)
+        expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect((vi.mocked(got).mock.calls[1][1] as any).json.script)
-            .toBe('return ((a, b, c) => a + b + c).apply(null, arguments)')
-        expect((vi.mocked(got).mock.calls[1][1] as any).json.args)
-            .toEqual([1, 2, 3])
+        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toMatchObject(JSON.stringify({
+            script: 'return ((a, b, c) => a + b + c).apply(null, arguments)',
+            args: [1, 2, 3]
+        }))
     })
 
     it('should return correct value', async () => {

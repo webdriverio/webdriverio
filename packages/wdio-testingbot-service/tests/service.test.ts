@@ -1,5 +1,4 @@
 import path from 'node:path'
-import got from 'got'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Capabilities, Frameworks } from '@wdio/types'
 
@@ -10,8 +9,7 @@ const featureObject = {
     name: 'Create a feature'
 } as any
 
-vi.mock('got')
-vi.mocked(got.put).mockResolvedValue({ body: '{}' })
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('wdio-testingbot-service', () => {
@@ -39,7 +37,7 @@ describe('wdio-testingbot-service', () => {
 
     afterEach(() => {
         execute.mockReset()
-        vi.mocked(got.put).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('before', () => {
@@ -342,7 +340,7 @@ describe('wdio-testingbot-service', () => {
         await tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
-        expect(got.put).toHaveBeenCalled()
+        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
     })
 
     it('onReload with multi-remote: updatedJob called with passed params', async () => {
@@ -359,7 +357,7 @@ describe('wdio-testingbot-service', () => {
         await tbService.onReload('oldSessionId', 'sessionChromeA')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true, 'chromeA')
-        expect(got.put).toHaveBeenCalled()
+        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
     })
 
     it('getRestUrl', () => {
@@ -424,22 +422,24 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('updateJob success', async () => {
-        const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
+        const user = 'foobar'
+        const key = '123'
+        const service = new TestingBotService({}, {}, { user: user, key: key })
         service['_browser'] = browser
         service['_suiteTitle'] = 'my test'
 
         await service.updateJob('12345', 23, true)
 
         expect(service['_failures']).toBe(0)
-        expect(got.put).toHaveBeenCalled()
-        expect((vi.mocked(got.put).mock.calls[0][1 as any] as any).username).toBe('foobar')
-        expect((vi.mocked(got.put).mock.calls[0][1 as any] as any).password).toBe('123')
+        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
+        const encodedAuth = Buffer.from(`${user}:${key}`, 'utf8').toString('base64')
+        expect(vi.mocked(fetch).mock.calls[0][1]?.headers?.Authorization).toEqual(`Basic ${encodedAuth}`)
     })
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
         response.statusCode = 500
-        vi.mocked(got.put).mockRejectedValue(response)
+        vi.mocked(fetch).mockRejectedValue(response)
 
         const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
         service['_browser'] = browser
@@ -447,7 +447,7 @@ describe('wdio-testingbot-service', () => {
         const err: any = await service.updateJob('12345', 23, true).catch((err) => err)
         expect(err.message).toBe('Failure')
 
-        expect(got.put).toHaveBeenCalled()
+        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
         expect(service['_failures']).toBe(0)
     })
 

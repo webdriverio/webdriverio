@@ -1,4 +1,3 @@
-import got from 'got'
 import { FormData } from 'formdata-node'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -449,21 +448,29 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         const form = new FormData()
         if (app.app) {
-            form.append('file', new FileStream(fs.createReadStream(app.app)))
+            const fileName = path.basename(app.app)
+            form.append('file', new FileStream(fs.createReadStream(app.app)), fileName)
         }
         if (app.customId) {
             form.append('custom_id', app.customId)
         }
 
-        const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
+        const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
+        const headers: any = {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Basic ${encodedAuth}`,
+        }
+
+        const res = await fetch('https://api-cloud.browserstack.com/app-automate/upload', {
+            method: 'POST',
             body: form,
-            username : this._config.user,
-            password : this._config.key
-        }).json().catch((err) => {
-            throw new SevereServiceError(`app upload failed ${(err as Error).message}`)
+            headers
         })
 
-        return res as AppUploadResponse
+        if (!res.ok) {
+            throw new SevereServiceError(`app upload failed ${res.body}`)
+        }
+        return await res.json() as AppUploadResponse
     }
 
     /**
@@ -606,7 +613,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         } else if (capType === 'local'){
                             capability['browserstack.local'] = true
                         } else if (capType === 'app') {
-                        // @ts-expect-error BrowserStack still supports outdated JSOMWP
                             capability.app = value
                         } else if (capType === 'buildIdentifier') {
                             if (value) {

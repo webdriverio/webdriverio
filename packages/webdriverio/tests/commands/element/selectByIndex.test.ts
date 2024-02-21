@@ -2,12 +2,10 @@ import path from 'node:path'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByIndex test', () => {
@@ -26,17 +24,19 @@ describe('selectByIndex test', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should select by index', async () => {
         await elem.selectByIndex(1)
-
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/elements')
-        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456',

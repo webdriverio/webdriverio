@@ -36,7 +36,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "dependencies": {
     "@types/node": "^20.1.0",
@@ -48,5 +48,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
   }
 }

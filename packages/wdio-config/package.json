@@ -20,7 +20,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "minimatch": "^9.0.0",
-    "tsconfig-paths": "^4.1.0"
+    "minimatch": "^9.0.0"
   }
 }

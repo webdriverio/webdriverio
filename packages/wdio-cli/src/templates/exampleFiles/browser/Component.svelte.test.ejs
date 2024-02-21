@@ -51,6 +51,8 @@ describe('Svelte Component Testing', () => {
         await component.click()
         await component.click()
 
-        await expect(component).toHaveText('count is 2')
+        await expect(component).toHaveText('count is 2')<%-
+        answers.includeVisualTesting ? `
+        await expect(component).toMatchElementSnapshot('counterButton')` : '' %>
     })
 })

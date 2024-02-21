@@ -12,6 +12,8 @@ describe('My Login application', () => {
 
         await expect($('#flash')).toBeExisting()
         await expect($('#flash')).toHaveTextContaining(
-            'You logged into a secure area!')
+            'You logged into a secure area!')<%-
+        answers.includeVisualTesting ? `
+        await expect($('#flash')).toMatchElementSnapshot('flashAlert')` : '' %>
     })
 })

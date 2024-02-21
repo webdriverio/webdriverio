@@ -5,8 +5,22 @@ import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('puppeteer-core')
+/**
+ * Given that Puppeteer is not a direct dependency of this package, we can't mock
+ * it and dynamically import it. Instead, we mock the "userImport" helper and make
+ * it resolve to the mocked Puppeteer.
+ */
+vi.mock('@wdio/utils', async (origMod) => {
+    const orig = await origMod() as any
+    // resolve the mocked puppeteer-core
+    const puppeteer = await import('puppeteer-core')
+    return {
+        ...orig,
+        userImport: vi.fn().mockResolvedValue(puppeteer.default)
+    }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const puppeteerConnect = vi.mocked(puppeteer.connect)

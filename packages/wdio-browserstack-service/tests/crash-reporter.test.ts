@@ -1,10 +1,9 @@
-import got from 'got'
 import { DATA_ENDPOINT } from '../build/constants.js'
 import CrashReporter from '../src/crash-reporter.js'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'
 
-vi.mock('got')
+vi.mock('fetch')
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
@@ -32,48 +31,35 @@ describe('CrashReporter', () => {
         })
 
         describe('valid credentials', () => {
-            const mockedGot = vi.mocked(got)
-
             beforeEach(() => {
                 process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify({ 'username': 'user', 'password': 'password' })
                 process.env.userConfigForReporting = JSON.stringify({})
             })
 
             it('should not raise any exception', () => {
-                mockedGot.post = vi.fn().mockReturnValue({
-                    text: () => new Promise((resolve) => {
-                        resolve('success')
-                    })
-                })
+                vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success' })))
+
                 expect(() => CrashReporter.uploadCrashReport('some exception', 'some stack')).not.toThrow()
-                expect(mockedGot.post).toBeCalledTimes(1)
+                expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('POST')
 
             })
 
             it('should send empty config if fetching config fails', () => {
-                mockedGot.post = vi.fn().mockReturnValue({
-                    text: () => new Promise((resolve) => {
-                        resolve('success')
-                    })
-                })
+                vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success' })))
+
                 const url = `${DATA_ENDPOINT}/api/v1/analytics`
                 expect(() => CrashReporter.uploadCrashReport('some exception', 'some stack')).not.toThrow()
-                expect(mockedGot.post).toBeCalledTimes(1)
-                expect(mockedGot.post).toBeCalledWith(url, expect.objectContaining({
-                    json: expect.objectContaining({
-                        config: {}
-                    })
+                expect(fetch).toHaveBeenCalledWith(url, expect.objectContaining({
+                    method: 'POST',
+                    body: expect.stringContaining('"config":{}}')
                 }))
             })
 
             it('should not raise error if request fails', () => {
-                mockedGot.post = vi.fn().mockReturnValue({
-                    text: () => new Promise((resolve, reject) => {
-                        reject('failed')
-                    })
-                })
+                vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'failed' })))
+
                 expect(() => CrashReporter.uploadCrashReport('some exception', 'some stack')).not.toThrow()
-                expect(mockedGot.post).toBeCalledTimes(1)
+                expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('POST')
             })
         })
     })

@@ -1,12 +1,12 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "8.31.1",
+  "version": "8.32.1",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -39,21 +39,22 @@
     "@wdio/logger": "8.28.0",
     "@wdio/types": "8.31.1",
     "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1260275",
+    "devtools-protocol": "^0.0.1260888",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
     "puppeteer-core": "20.3.0",
-    "webdriverio": "8.31.1"
+    "webdriverio": "8.32.1"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
     "@types/babel__core": "^7.1.19",
+    "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.0",
-    "@types/istanbul-reports": "^3.0.1",
-    "@wdio/globals": "8.31.1"
+    "@types/istanbul-reports": "^3.0.4",
+    "@wdio/globals": "8.32.1"
   }
 }

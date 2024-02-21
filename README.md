@@ -170,7 +170,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥈 Silver Sponsor
 
 <p align="center">
-    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" width="300" alt="Lambdatest" /></a>
+    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 ### 🥉 Bronze Sponsor

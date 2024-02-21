@@ -1,12 +1,17 @@
 import path from 'node:path'
 import { expect, describe, afterEach, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@wdio/utils', async (origMod) => {
+    const orig: any = await origMod()
+    return {
+        ...orig,
+        userImport: vi.fn().mockResolvedValue({})
+    }
+})
 
 describe('reloadSession test', () => {
     const scenarios = [{
@@ -36,7 +41,7 @@ describe('reloadSession test', () => {
 
     scenarios.forEach(scenario => {
         it(scenario.name, async () => {
-            const oldSessionId = got.getSessionId()
+            const oldSessionId = vi.mocked(fetch).getSessionId()
             const hook = vi.fn()
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -48,15 +53,15 @@ describe('reloadSession test', () => {
                 onReload: [hook]
             })
 
-            got.setSessionId(scenario.sessionIdMock)
-            got.setMockResponse(scenario.requestMock)
+            vi.mocked(fetch).setSessionId(scenario.sessionIdMock)
+            vi.mocked(fetch).setMockResponse(scenario.requestMock)
             await browser.reloadSession()
 
-            expect(got.mock.calls[1][1].method).toBe('DELETE')
-            expect(got.mock.calls[1][0].pathname)
+            expect(vi.mocked(fetch).mock.calls[1][1].method).toBe('DELETE')
+            expect(vi.mocked(fetch).mock.calls[1][0].pathname)
                 .toBe(`/session/${oldSessionId}`)
-            expect(got.mock.calls[2][1].method).toBe('POST')
-            expect(got.mock.calls[2][0].pathname)
+            expect(vi.mocked(fetch).mock.calls[2][1].method).toBe('POST')
+            expect(vi.mocked(fetch).mock.calls[2][0].pathname)
                 .toBe('/session')
             expect(hook).toBeCalledWith(oldSessionId, scenario.newSessionId)
         })
@@ -84,14 +89,14 @@ describe('reloadSession test', () => {
         // @ts-expect-error
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
-        got.setSessionId(scenario.sessionIdMock)
-        got.setMockResponse(scenario.requestMock)
+        vi.mocked(fetch).setSessionId(scenario.sessionIdMock)
+        vi.mocked(fetch).setMockResponse(scenario.requestMock)
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in got.mock.calls as it will not complete
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname).toBe('/session')
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in vi.mocked(fetch).mock.calls as it will not complete
+        expect(vi.mocked(fetch).mock.calls[1][1].method).toBe('POST')
+        expect(vi.mocked(fetch).mock.calls[1][0].pathname).toBe('/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
@@ -117,14 +122,14 @@ describe('reloadSession test', () => {
         // @ts-expect-error
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
-        got.setSessionId(scenario.sessionIdMock)
-        got.setMockResponse(scenario.requestMock)
+        vi.mocked(fetch).setSessionId(scenario.sessionIdMock)
+        vi.mocked(fetch).setMockResponse(scenario.requestMock)
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in got.mock.calls as it will not complete
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname).toBe('/session')
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in vi.mocked(fetch).mock.calls as it will not complete
+        expect(vi.mocked(fetch).mock.calls[1][1].method).toBe('POST')
+        expect(vi.mocked(fetch).mock.calls[1][0].pathname).toBe('/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
@@ -165,8 +170,8 @@ describe('reloadSession test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
-        got.resetSessionId()
-        got.setMockResponse()
+        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).resetSessionId()
+        vi.mocked(fetch).setMockResponse()
     })
 })

@@ -2,32 +2,22 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { createRequire } from 'node:module'
 import { WebDriverProtocol } from '@wdio/protocols'
-import type { URL } from 'node:url'
+import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { URLFactory } from './factory.js'
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
-const require = createRequire(import.meta.url)
-const pkg = require('../../package.json')
+let pkg = { version: '' }
+if ('process' in globalThis && globalThis.process.versions?.node) {
+    const require = createRequire(import.meta.url)
+    pkg = require('../../package.json')
+}
 
-type Agents = Options.Agents
-type RequestLibOptions = Options.RequestLibOptions
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
-
-const RETRY_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'HEAD',
-    'DELETE',
-    'OPTIONS',
-    'TRACE'
-] as Options.Method[]
 
 export class RequestLibError extends Error {
     statusCode?: number
@@ -55,7 +45,7 @@ export interface WebDriverResponse {
 export const COMMANDS_WITHOUT_RETRY = [
     findCommandPathByName('performActions'),
 ]
-const MAX_RETRY_TIMEOUT = 100 // 100ms
+
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -71,12 +61,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultAgents?: Agents
-    defaultOptions: RequestLibOptions = {
-        followRedirect: true,
-        responseType: 'json',
-        throwHttpErrors: false
-    }
 
     constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
         super()
@@ -88,59 +72,41 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
-        let fullRequestOptions: RequestLibOptions = Object.assign(
+        const { url, requestOptions } = await this._createOptions(options, sessionId)
+        let fullRequestOptions: RequestInit = Object.assign(
             { method: this.method },
-            this.defaultOptions,
-            await this._createOptions(options, sessionId)
+            requestOptions
         )
         if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
 
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
+        return this._request(url, fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
-        const agent = isBrowser ? undefined : (options.agent || this.defaultAgents)
-        const searchParams = isBrowser ?
-            undefined :
-            (typeof options.queryParams === 'object' ? options.queryParams : {})
-        const requestOptions: RequestLibOptions = {
-            https: {},
-            agent,
-            headers: {
-                ...DEFAULT_HEADERS,
-                ...(typeof options.headers === 'object' ? options.headers : {})
-            },
-            searchParams,
-            retry: {
-                limit: options.connectionRetryCount as number,
-                /**
-                 * this enables request retries for all commands except for the
-                 * ones defined in `COMMANDS_WITHOUT_RETRY` since they have their
-                 * own retry mechanism. Including a request based retry mechanism
-                 * here also ensures we retry if e.g. a connection to the server
-                 * can't be established at all.
-                 */
-                ...(COMMANDS_WITHOUT_RETRY.includes(this.endpoint)
-                    ? {}
-                    : {
-                        methods: RETRY_METHODS,
-                        calculateDelay: ({ computedValue }) => Math.min(MAX_RETRY_TIMEOUT, computedValue / 10)
-                    }
-                ),
-            },
-            timeout: { response: options.connectionRetryTimeout as number }
+    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+        const controller = new AbortController()
+        setTimeout(() => controller.abort(), options.connectionRetryTimeout|| 120000)
+
+        const requestOptions: RequestInit = {
+            signal: controller.signal
         }
+
+        const requestHeaders: HeadersInit = new Headers({
+            ...DEFAULT_HEADERS,
+            ...(typeof options.headers === 'object' ? options.headers : {})
+        })
+
+        const searchParams = isBrowser ? undefined : (typeof options.queryParams === 'object' ? options.queryParams : undefined)
 
         /**
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.json = this.body
-            requestOptions.headers!['Content-Length'] = `${contentLength}`
+            requestOptions.body = this.body as any
+            requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
         /**
@@ -156,34 +122,25 @@ export default abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = await URLFactory.getInstance(
-            `${options.protocol}://` +
-            `${options.hostname}:${options.port}` +
-            (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
-        )
+        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)}`)
+
+        if (searchParams) {
+            url.search = new URLSearchParams(searchParams).toString()
+        }
 
         /**
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.username = options.user
-            requestOptions.password = options.key
+            requestHeaders.set('Authorization', 'Basic ' + btoa(options.user + ':' + options.key))
         }
 
-        /**
-         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
-         * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
-         */
-        requestOptions.https!.rejectUnauthorized = !(
-            options.strictSSL === false ||
-            process.env.STRICT_SSL === 'false' ||
-            process.env.strict_ssl === 'false'
-        )
+        requestOptions.headers = requestHeaders
 
-        return requestOptions
+        return { url, requestOptions }
     }
 
-    protected async _libRequest(url: URL, options: RequestLibOptions): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
+    protected async _libRequest(url: URL, options: RequestInit): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
         throw new Error('This function must be implemented')
     }
 
@@ -192,18 +149,19 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     private async _request (
-        fullRequestOptions: RequestLibOptions,
-        transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse,
+        url: URL,
+        fullRequestOptions: RequestInit,
+        transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
     ): Promise<WebDriverResponse> {
-        log.info(`[${fullRequestOptions.method}] ${(fullRequestOptions.url as URL).href}`)
+        log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
-        if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
+        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as any))
         }
 
-        const { url, ...requestLibOptions } = fullRequestOptions
+        const { ...requestLibOptions } = fullRequestOptions
         const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: RequestLibError) => err)
@@ -231,7 +189,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(msg)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
+            return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
 
         /**
@@ -242,7 +200,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
              * handle timeouts
              */
             if ((response as RequestLibError).code === 'ETIMEDOUT') {
-                const error = getTimeoutError(response, fullRequestOptions)
+                const error = getTimeoutError(response, fullRequestOptions, url)
 
                 return retry(error, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
@@ -258,7 +216,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body, fullRequestOptions.json)
+        const error = getErrorFromResponseBody(response.body, fullRequestOptions.body)
 
         /**
          * retry connection refused errors

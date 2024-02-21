@@ -1,7 +1,7 @@
 import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 
 describe('emulate', () => {
     it('should fail if bidi is not supported', async () => {

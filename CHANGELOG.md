@@ -21,6 +21,50 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.32.1 (2024-02-16)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12249](https://github.com/webdriverio/webdriverio/pull/12249) (@wdio/wdio-browserstack-service) fix: add filename in app upload formData ([@innovater21](https://github.com/innovater21))
+
+#### Committers: 1
+- Abhishek Jha ([@innovater21](https://github.com/innovater21))
+
+
+## v8.32.0 (2024-02-14)
+
+#### :boom: Breaking Change
+* `wdio-protocols`
+  * [#12209](https://github.com/webdriverio/webdriverio/pull/12209) feat: remove appium commands ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12210](https://github.com/webdriverio/webdriverio/pull/12210) fix: WDIO Cucumber Test Tags ([@sauravdas1997](https://github.com/sauravdas1997))
+  * [#12204](https://github.com/webdriverio/webdriverio/pull/12204) Added null check on fetching capabilities ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#12247](https://github.com/webdriverio/webdriverio/pull/12247) (@wdio/cli): replace base url question with visual testing support question in configurator wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#12207](https://github.com/webdriverio/webdriverio/pull/12207) update Frameworks.md and remove 's' from cucumber option 'names' to '… ([@rajivnw](https://github.com/rajivnw))
+  * [#12228](https://github.com/webdriverio/webdriverio/pull/12228) chore: update default baseline for visual tests ([@wswebcreation](https://github.com/wswebcreation))
+* `webdriverio`
+  * [#12226](https://github.com/webdriverio/webdriverio/pull/12226) [Docs] moveTo docs updated ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+
+#### :house: Internal
+* [#12232](https://github.com/webdriverio/webdriverio/pull/12232) (internal): replace expense workflow with custom action ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Muhammad Hammad Faisal ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@rajivnw](https://github.com/rajivnw)
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.31.1 (2024-02-09)
 
 #### :bug: Bug Fix

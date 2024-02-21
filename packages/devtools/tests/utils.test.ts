@@ -1,8 +1,6 @@
 import { describe, it, expect, afterEach, vi, test } from 'vitest'
 
 import type path from 'node:path'
-// @ts-ignore no types needed
-import debug from 'debug'
 import which from 'which'
 import { launch } from 'chrome-launcher'
 import { canAccess } from '@wdio/utils/node'
@@ -10,7 +8,7 @@ import { canAccess } from '@wdio/utils/node'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    uniq, findByWhich, patchDebug, sleep, launchChromeUsingWhich
+    uniq, findByWhich, sleep, launchChromeUsingWhich
 } from '../src/utils.js'
 
 vi.mock('which')
@@ -31,10 +29,6 @@ vi.mock('pptrDebug', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', 'pptrDebug'))
 })
-
-const PUPPETEER_LOG = `  puppeteer:protocol:RECV ◀ [
-    puppeteer:protocol:RECV ◀   '{"id":20,"result":{"result":{"type":"string","value":"complete"}},"sessionId":"B5BB76CBB624830A41E4159E01ABED39"}'
-    puppeteer:protocol:RECV ◀ ]`
 
 /**
  * some WebDriver commands are either not part of a recommended standard
@@ -398,19 +392,6 @@ test('findByWhich', () => {
     })
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
-})
-
-test('patchDebug', async () => {
-    /**
-     * fails in Windows
-     */
-    if (process.platform === 'win32') {
-        return
-    }
-    const logMock = { debug: vi.fn() }
-    await patchDebug(logMock as any)
-    debug.log(PUPPETEER_LOG)
-    expect(logMock.debug.mock.calls[0]).toMatchSnapshot('foobar')
 })
 
 test('sleep', async () => {

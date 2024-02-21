@@ -1,18 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
-export interface SessionResponse {
-    // eslint-disable-next-line camelcase
-    automation_session: {
-        // eslint-disable-next-line camelcase
-        browser_url: string
-    }
-}
-
-export interface TurboScaleSessionResponse {
-    url: string
-}
-
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
 
 export type AppConfig = {
@@ -248,12 +236,6 @@ export interface StdLog {
     http_response?: any,
     test_run_uuid?: string,
     hook_run_uuid?: string
-}
-
-export interface LaunchResponse {
-    jwt: string,
-    build_hashed_id: string,
-    allow_screenshots?: boolean
 }
 
 export interface UserConfigforReporting {

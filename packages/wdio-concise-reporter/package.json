@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
     "@wdio/reporter": "8.31.1",
     "@wdio/types": "8.31.1",
     "chalk": "^5.0.1",
-    "pretty-ms": "^7.0.1"
+    "pretty-ms": "^9.0.0"
   },
   "publishConfig": {
     "access": "public"

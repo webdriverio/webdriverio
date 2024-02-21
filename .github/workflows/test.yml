@@ -7,6 +7,7 @@ on:
     branches:
       - main
       - v7
+      - v8
       - '!l10n_main'
   pull_request:
     branches-ignore:
@@ -20,26 +21,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x, 18.18.x, 20.x]
+        node-version: [18.x, 20.x, 21.x]
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install
       - name: Bootstrap Packages
-        run: npm run setup
+        run: pnpm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependency Check
-        run: npm run test:depcheck
+        run: pnpm run test:depcheck
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: pnpm run test
       - name: Interop Tests
-        run: npm run test:e2e:cjs
+        run: pnpm run test:e2e:cjs
       - name: E2E Launch Tests
-        run: npm run test:e2e:webdriver
+        run: pnpm run test:e2e:webdriver
       # - name: 🐛 Debug Build
       #   uses: stateful/vscode-server-action@v1
       #   if: failure()
@@ -57,17 +60,19 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.18.x
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install
       - name: Bootstrap Packages
-        run: npm run setup
+        run: pnpm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
-        run: npm run test
+        run: pnpm run test
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v3
         with:
@@ -95,13 +100,15 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.18.x
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install
       - name: Bootstrap Packages
-        run: npm run setup
+        run: pnpm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: E2E Protocol Tests
@@ -111,17 +118,17 @@ jobs:
           max_attempts: 3
           command: npm run test:e2e
       - name: Safari Component Tests
-        run: npm run test:component
+        run: pnpm run test:component
       - name: E2E Launch Tests
-        run: npm run test:e2e:webdriver
+        run: pnpm run test:e2e:webdriver
       - name: E2E Connection Test
-        run: npm run test:e2e:cloud
+        run: pnpm run test:e2e:cloud
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        run: npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        run: pnpm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}

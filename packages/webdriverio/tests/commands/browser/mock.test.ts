@@ -1,12 +1,18 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@wdio/utils', async (origMod) => {
+    const orig: any = await origMod()
+    return {
+        ...orig,
+        userImport: vi.fn().mockResolvedValue({})
+    }
+})
 
 const clientMock: any = {
     send: vi.fn(),
@@ -65,14 +71,14 @@ describe('mock', () => {
         browser.puppeteer = puppeteerMock
 
         // @ts-expect-error mock feature
-        vi.mocked(got).setMockResponse('window-handle-2')
+        vi.mocked(fetch).setMockResponse('window-handle-2')
         expect(clientMock.send).toBeCalledTimes(0)
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(1)
         expect(clientMock.send).toBeCalledWith('Fetch.enable', expect.any(Object))
         expect(clientMock.on).toBeCalledWith('Fetch.requestPaused', expect.any(Function))
         // @ts-expect-error mock feature
-        vi.mocked(got).setMockResponse('window-handle-3')
+        vi.mocked(fetch).setMockResponse('window-handle-3')
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(2)
 

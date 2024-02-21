@@ -23,9 +23,6 @@ export async function moveTo (
     this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {},
 ) {
-    if (!this.isW3C) {
-        return this.moveToElement(this.elementId, xOffset, yOffset)
-    }
     /**
      * W3C way of handle the mouse move actions
      */

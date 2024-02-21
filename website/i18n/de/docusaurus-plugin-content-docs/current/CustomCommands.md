@@ -194,10 +194,9 @@ Wenn Sie externe Bibliotheken verwenden (z. B. um Datenbankaufrufe durchzuführe
 Bei der Rückgabe des Promises stellt WebdriverIO sicher, dass es nicht mit dem nächsten Befehl fortfährt, bis das Promise aufgelöst ist. Wenn das Promise abgelehnt wird, gibt der Befehl einen Fehler aus.
 
 ```js
-import got from 'got'
-
 browser.addCommand('makeRequest', async (url) => {
-    return got(url).json()
+    const response = await fetch(url)
+    return await response.json()
 })
 ```
 

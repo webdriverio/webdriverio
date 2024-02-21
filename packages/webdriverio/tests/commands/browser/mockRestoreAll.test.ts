@@ -4,7 +4,7 @@ import { remote } from '../../../src/index.js'
 // @ts-expect-error mock feature
 import { getMockCalls } from '../../../src/commands/browser/mock.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0

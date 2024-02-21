@@ -867,7 +867,8 @@ test('npmInstall', async () => {
         framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
-        npmInstall: true
+        npmInstall: true,
+        includeVisualTesting: true
     } as any
     await npmInstall(parsedAnswers, 'next')
     expect(installPackages).toBeCalledTimes(1)
@@ -965,7 +966,7 @@ test('setup Babel', async () => {
     await setupBabel(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
     expect(parsedAnswers.packagesToInstall).toEqual(
-        ['@babel/register', '@babel/preset-env'])
+        ['@babel/register', '@babel/core', '@babel/preset-env'])
 })
 
 test('createWDIOConfig', async () => {

@@ -9,7 +9,7 @@ import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 } from '@wdio/protocols'
@@ -21,7 +21,7 @@ const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const commands = deepmerge(
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 )
@@ -41,7 +41,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'decamelize', 'got',
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
     'lodash.isequal', '@wdio/repl'
 ]
