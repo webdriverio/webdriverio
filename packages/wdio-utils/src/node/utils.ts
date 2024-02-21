@@ -222,7 +222,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     /**
-     * For Chromium browser we need to set the baseUrl to the Chrome storage.
+     * For Chrome browser we need to set the baseUrl to the Chrome storage.
      * Google has changed the baseUrl and changes were only applied to a major
      * version released which v8 can't adopt due to support of Node.js v16.
      */
