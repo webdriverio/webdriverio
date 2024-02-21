@@ -226,7 +226,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
      * Google has changed the baseUrl and changes were only applied to a major
      * version released which v8 can't adopt due to support of Node.js v16.
      */
-    if (isChromeOrChromium) {
+    if (browserName === Browser.CHROME) {
         installOptions.baseUrl = CHROMEDRIVER_BASE_URL
     }
 
