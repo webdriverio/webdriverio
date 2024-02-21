@@ -213,7 +213,6 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
-        baseUrl: CHROMEDRIVER_BASE_URL,
         unpack: true,
         cacheDir,
         platform,
@@ -221,6 +220,16 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         browser: browserName,
         downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(`${browserName} (${buildId})`, downloadedBytes, totalBytes)
     }
+
+    /**
+     * For Chrome browser we need to set the baseUrl to the Chrome storage.
+     * Google has changed the baseUrl and changes were only applied to a major
+     * version released which v8 can't adopt due to support of Node.js v16.
+     */
+    if (browserName === Browser.CHROME) {
+        installOptions.baseUrl = CHROMEDRIVER_BASE_URL
+    }
+
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
         throw new Error(`Couldn't find a matching ${browserName} browser for tag "${buildId}" on platform "${platform}"`)
