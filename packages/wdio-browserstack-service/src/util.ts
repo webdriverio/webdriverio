@@ -25,12 +25,12 @@ import PerformanceTester from './performance-tester.js'
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
-import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
 import BrowserstackLauncherService from './launcher.js'
+import UsageStats from "./testOps/usageStats.js";
 
 const pGitconfig = promisify(gitconfig)
 const __filename = fileURLToPath(import.meta.url)
@@ -239,6 +239,8 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 }
 
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+    const launchBuildUsage = UsageStats.getInstance().launchBuildUsage;
+    launchBuildUsage.triggered()
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -284,6 +286,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) {
+            launchBuildUsage.success()
             process.env.BS_TESTOPS_JWT = response.jwt
         }
         if (response.build_hashed_id) {
@@ -293,6 +296,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
         }
     } catch (error) {
+        launchBuildUsage.failed(error)
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
@@ -551,10 +555,18 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 })
 
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
+    const stopBuildUsage = UsageStats.getInstance().stopBuildUsage;
+    stopBuildUsage.triggered()
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
+        stopBuildUsage.failed("Build is not completed yet")
+        return {
+            status: 'error',
+            message: "Build is not completed yet"
+        }
     }
+
     if (!process.env.BS_TESTOPS_JWT) {
+        stopBuildUsage.failed("Token/buildID is undefined, build creation might have failed")
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
@@ -576,11 +588,13 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             json: data
         }).json()
         BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+        stopBuildUsage.success()
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
+        stopBuildUsage.failed(error)
         BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
@@ -925,47 +939,6 @@ export function getLogTag(eventType: string): string {
     return 'undefined'
 }
 
-export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
-    let logTag: string = 'BATCH_UPLOAD'
-    if (!Array.isArray(eventData)) {
-        logTag = getLogTag(eventData.event_type)
-    }
-
-    if (eventUrl === DATA_SCREENSHOT_ENDPOINT) {
-        logTag = 'screenshot_upload'
-    }
-
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
-    }
-
-    if (!process.env.BS_TESTOPS_JWT) {
-        BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
-        return {
-            status: 'error',
-            message: 'Token/buildID is undefined, build creation might have failed'
-        }
-    }
-
-    try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
-        RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
-            headers: {
-                ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
-            },
-            json: eventData
-        }).json()
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    } catch (error) {
-        BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    }
-}
-
 // get hierarchy for a particular test (called by reporter for skipped tests)
 export function getHierarchy(fullTitle?: string) {
     if (!fullTitle) {
@@ -1101,6 +1074,10 @@ export function isTrue(value?: any) {
     return (value + '').toLowerCase() === 'true'
 }
 
+export function isFalse(value?: any) {
+    return (value + '').toLowerCase() === 'false'
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
@@ -1141,16 +1118,6 @@ export function getFailureObject(error: string|Error) {
         failure: [{ backtrace: [backtrace] }],
         failure_reason: removeAnsiColors(message.toString()),
         failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
-    }
-}
-
-export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
-    if (!requestQueueHandler) {
-        requestQueueHandler = RequestQueueHandler.getInstance()
-    }
-    const req = requestQueueHandler.add(data)
-    if (req.proceed && req.data) {
-        await uploadEventData(req.data, req.url)
     }
 }
 
@@ -1229,4 +1196,3 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     }
     return undefined
 })
-

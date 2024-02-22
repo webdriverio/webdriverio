@@ -60,3 +60,10 @@ export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
 ]
 
 export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']
+
+export const LOG_KIND_USAGE_MAP = {
+    "TEST_LOG": "log",
+    "TEST_SCREENSHOT": "screenshot",
+    "TEST_STEP": "step",
+    "HTTP": "http"
+}

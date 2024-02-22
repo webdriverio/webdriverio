@@ -20,6 +20,7 @@ import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
+import Listener from "./testOps/listener.js";
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -279,9 +280,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
-        await this._insightsHandler?.uploadPending()
-        await this._insightsHandler?.teardown()
-
+        await Listener.getInstance().onWorkerEnd();
         await this._percyHandler?.teardown()
 
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {

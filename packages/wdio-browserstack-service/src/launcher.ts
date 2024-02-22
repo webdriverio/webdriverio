@@ -40,6 +40,8 @@ import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
+import FunnelTestEvent from "./instrumentation/funnelInstrumentation.js";
+import BrowserStackConfig from "./config.js";
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -56,6 +58,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _percy?: Percy
     private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     public static _testOpsBuildStopped?: boolean
+    private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -67,6 +70,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         setupExitHandlers()
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
+
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
@@ -142,6 +147,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
+        this.browserStackConfig.buildIdentifier = this._buildIdentifier
+        this.browserStackConfig.buildName = this._buildName
+
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
@@ -150,7 +158,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._options.accessibility = this._accessibilityAutomation
 
         // by default observability will be true unless specified as false
-        this._options.testObservability = this._options.testObservability === false ? false : true
+        this._options.testObservability = this._options.testObservability !== false
 
         if (this._options.testObservability
             &&
@@ -159,6 +167,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
+
+        FunnelTestEvent.sendStart(this.browserStackConfig)
 
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
@@ -366,6 +376,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
         }
 
+        await FunnelTestEvent.sendFinish(this.browserStackConfig)
         BStackLogger.clearLogger()
 
         if (this._options.percy) {
@@ -381,6 +392,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.forcedStop) {
             return process.kill(this.browserstackLocal.pid as number)
         }
+
 
         let timer: NodeJS.Timeout
         return Promise.race([

@@ -240,14 +240,22 @@ export interface UploadType {
     logs?: any[]
 }
 
-export interface StdLog {
-    timestamp: string,
-    kind: string
-    level?: string,
-    message?: string,
-    http_response?: any,
-    test_run_uuid?: string,
+export interface LogData {
+    timestamp: string
+    kind: 'TEST_LOG'|'TEST_STEP'|'HTTP'|'TEST_SCREENSHOT'
+    test_run_uuid?: string
     hook_run_uuid?: string
+    message?: string
+    level?: string
+    http_response?: any
+}
+
+export interface StdLog extends LogData {
+    kind: 'TEST_LOG'
+}
+
+export interface ScreenshotLog extends LogData {
+    kind: "TEST_SCREENSHOT"
 }
 
 export interface LaunchResponse {
