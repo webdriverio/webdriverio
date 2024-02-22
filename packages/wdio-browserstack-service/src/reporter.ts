@@ -19,7 +19,7 @@ import {
 } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
-import Listener from "./testOps/listener.js";
+import Listener from './testOps/listener.js'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}

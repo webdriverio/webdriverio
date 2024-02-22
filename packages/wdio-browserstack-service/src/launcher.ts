@@ -40,8 +40,8 @@ import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
-import FunnelTestEvent from "./instrumentation/funnelInstrumentation.js";
-import BrowserStackConfig from "./config.js";
+import FunnelTestEvent from './instrumentation/funnelInstrumentation.js'
+import BrowserStackConfig from './config.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -392,7 +392,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.forcedStop) {
             return process.kill(this.browserstackLocal.pid as number)
         }
-
 
         let timer: NodeJS.Timeout
         return Promise.race([

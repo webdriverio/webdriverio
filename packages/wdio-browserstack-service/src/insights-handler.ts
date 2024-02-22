@@ -31,7 +31,7 @@ import type {
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
-import Listener from "./testOps/listener.js";
+import Listener from './testOps/listener.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -48,7 +48,7 @@ class _InsightsHandler {
         steps: []
     }
     private _userCaps?: Capabilities.RemoteCapability = {}
-    private listener = Listener.getInstance();
+    private listener = Listener.getInstance()
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -367,7 +367,7 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
-        this.listener.testStarted(this.getRunData(test, 'TestRunStarted'));
+        this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
@@ -379,7 +379,7 @@ class _InsightsHandler {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
         }
-        BStackLogger.debug("calling testFinished")
+        BStackLogger.debug('calling testFinished')
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 

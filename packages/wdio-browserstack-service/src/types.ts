@@ -255,7 +255,7 @@ export interface StdLog extends LogData {
 }
 
 export interface ScreenshotLog extends LogData {
-    kind: "TEST_SCREENSHOT"
+    kind: 'TEST_SCREENSHOT'
 }
 
 export interface LaunchResponse {

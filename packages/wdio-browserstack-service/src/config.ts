@@ -1,12 +1,12 @@
-import {AppConfig, BrowserstackConfig} from "./types.js";
-import type {Options } from '@wdio/types'
+import type { AppConfig, BrowserstackConfig } from './types.js'
+import type { Options } from '@wdio/types'
 
 class BrowserStackConfig {
     static getInstance(options?: BrowserstackConfig & Options.Testrunner, config?: Options.Testrunner): BrowserStackConfig {
         if (!this._instance && options && config) {
-            this._instance = new BrowserStackConfig(options, config);
+            this._instance = new BrowserStackConfig(options, config)
         }
-        return this._instance;
+        return this._instance
     }
 
     public userName?: string
@@ -14,11 +14,11 @@ class BrowserStackConfig {
     public framework?: string
     public buildName?: string
     public buildIdentifier?: string
-    public testObservability: boolean;
-    public percy: boolean;
-    public accessibility: boolean;
+    public testObservability: boolean
+    public percy: boolean
+    public accessibility: boolean
     public app?: string|AppConfig
-    private static _instance: BrowserStackConfig;
+    private static _instance: BrowserStackConfig
     public appAutomate: boolean
     public automate: boolean
 

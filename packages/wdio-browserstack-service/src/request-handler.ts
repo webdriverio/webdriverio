@@ -14,7 +14,7 @@ export default class RequestQueueHandler {
 
     // making it private to use singleton pattern
     private constructor(callback: Function) {
-        this.callback = callback;
+        this.callback = callback
         this.startEventBatchPolling()
     }
 
@@ -66,7 +66,7 @@ export default class RequestQueueHandler {
 
     add (event: UploadType) {
         if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-            throw new Error("Observability build start not completed yet.")
+            throw new Error('Observability build start not completed yet.')
         }
 
         this.queue.push(event)
@@ -78,13 +78,13 @@ export default class RequestQueueHandler {
     }
 
     async shutdown () {
-        BStackLogger.debug("shutdown started")
+        BStackLogger.debug('shutdown started')
         this.removeEventBatchPolling('Shutting down')
         while (this.queue.length > 0) {
             const data = this.queue.splice(0, DATA_BATCH_SIZE)
             await this.callCallback(data, 'SHUTDOWN_QUEUE')
         }
-        BStackLogger.debug("shutdown ended")
+        BStackLogger.debug('shutdown ended')
     }
 
     startEventBatchPolling () {
@@ -103,14 +103,14 @@ export default class RequestQueueHandler {
     async sendBatch() {
         const data = this.queue.splice(0, DATA_BATCH_SIZE)
         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
-        this.pendingUploads += 1;
+        this.pendingUploads += 1
         await this.callCallback(data, 'INTERVAL_QUEUE')
-        this.pendingUploads -= 1;
+        this.pendingUploads -= 1
     }
 
     callCallback = async (data: UploadType[], kind: string) => {
-        BStackLogger.debug("calling callback with kind " + kind)
-        this.callback && await this.callback(data);
+        BStackLogger.debug('calling callback with kind ' + kind)
+        this.callback && await this.callback(data)
     }
 
     resetEventBatchPolling () {

@@ -1,50 +1,50 @@
-import * as os from 'os';
-import * as util from 'util';
-import UsageStats from "../testOps/usageStats.js";
-import {BStackLogger} from "../bstackLogger.js";
-import BrowserStackConfig from "../config.js";
+import * as os from 'node:os'
+import * as util from 'node:util'
+import UsageStats from '../testOps/usageStats.js'
+import { BStackLogger } from '../bstackLogger.js'
+import type BrowserStackConfig from '../config.js'
 import got from 'got'
-import {BSTACK_SERVICE_VERSION} from "../constants.js";
+import { BSTACK_SERVICE_VERSION } from '../constants.js'
 
 class FunnelTestEvent {
     static async fireFunnelTestEvent(event_type: string, config: BrowserStackConfig) {
         try {
             if (!config.userName || !config.accessKey) {
-                BStackLogger.debug("username/accesskey not passed")
+                BStackLogger.debug('username/accesskey not passed')
                 return
             }
 
-            const data = this.buildEventData(event_type, config);
+            const data = this.buildEventData(event_type, config)
             await this.fireRequest(config, data)
-            BStackLogger.debug("Funnel event success")
+            BStackLogger.debug('Funnel event success')
         } catch (error)  {
-            BStackLogger.debug("exception in sending funnel data " + error)
+            BStackLogger.debug('exception in sending funnel data ' + error)
             // BStackLogger.debug("exception in sending funnel data " + error.stack)
         }
     }
 
     static async sendStart(config: BrowserStackConfig) {
-        await this.fireFunnelTestEvent("SDKTestAttempted", config)
+        await this.fireFunnelTestEvent('SDKTestAttempted', config)
     }
 
     static async sendFinish(config: BrowserStackConfig) {
-        await this.fireFunnelTestEvent("SDKTestSuccessful", config)
+        await this.fireFunnelTestEvent('SDKTestSuccessful', config)
     }
 
     private static getProductList(config: BrowserStackConfig) {
-        const products: string[] = []; // TODO: add automate and app-automate
+        const products: string[] = [] // TODO: add automate and app-automate
         if (config.testObservability) {
-            products.push('observability');
+            products.push('observability')
         }
 
         if (config.accessibility) {
-            products.push('accessibility');
+            products.push('accessibility')
         }
 
         if (config.percy) {
-            products.push('percy');
+            products.push('percy')
         }
-        return products;
+        return products
     }
 
     private static getProductMap(config: BrowserStackConfig): any {
@@ -54,7 +54,7 @@ class FunnelTestEvent {
             'percy': config.percy,
             'automate': config.automate,
             'app_automate': config.appAutomate
-        };
+        }
     }
 
     private static buildEventData(event_type: string, config: BrowserStackConfig): any {
@@ -83,34 +83,34 @@ class FunnelTestEvent {
                 productMap: this.getProductMap(config),
                 product: this.getProductList(config),
             }
-        };
+        }
     }
 
     private static getProductUsage() {
         return {
-            testObservability: UsageStats.getInstance().getFormattedData({})
+            testObservability: UsageStats.getInstance().getFormattedData()
         }
     }
 
     private static getLanguageFramework(framework?: string) {
-        return "WebdriverIO_" + framework
+        return 'WebdriverIO_' + framework
     }
 
     private static async fireRequest(config: BrowserStackConfig, data: object): Promise<void> {
-        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, {depth: 6}))
-        await got.post("https://api.browserstack.com/sdk/v1/event", {
+        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
+        await got.post('https://api.browserstack.com/sdk/v1/event', {
             headers: {
                 'content-type': 'application/json'
             },
             username: config.userName,
             password: config.accessKey,
             json: data
-        });
+        })
     }
 
     private static getReferrer(framework?: string) {
-        const fullName = framework ? "WebdriverIO-" + framework : "WebdriverIO"
-        return `${fullName}/${BSTACK_SERVICE_VERSION}`;
+        const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
+        return `${fullName}/${BSTACK_SERVICE_VERSION}`
     }
 }
 

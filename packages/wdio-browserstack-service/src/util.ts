@@ -24,13 +24,13 @@ import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
+import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
 import BrowserstackLauncherService from './launcher.js'
-import UsageStats from "./testOps/usageStats.js";
+import UsageStats from './testOps/usageStats.js'
 
 const pGitconfig = promisify(gitconfig)
 const __filename = fileURLToPath(import.meta.url)
@@ -239,7 +239,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 }
 
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-    const launchBuildUsage = UsageStats.getInstance().launchBuildUsage;
+    const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
     const data = {
         format: 'json',
@@ -555,18 +555,18 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 })
 
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
-    const stopBuildUsage = UsageStats.getInstance().stopBuildUsage;
+    const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        stopBuildUsage.failed("Build is not completed yet")
+        stopBuildUsage.failed('Build is not completed yet')
         return {
             status: 'error',
-            message: "Build is not completed yet"
+            message: 'Build is not completed yet'
         }
     }
 
     if (!process.env.BS_TESTOPS_JWT) {
-        stopBuildUsage.failed("Token/buildID is undefined, build creation might have failed")
+        stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
