@@ -23,6 +23,9 @@ This allows you to:
 -   automatically __create a baseline__ when no baseline is there
 -   __block out custom regions__ and even __automatically exclude__ a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
+- __hide text__ during website comparison to:
+  - __improve stability__ and prevent font rendering flakiness
+  - only focus on the __layout__ of a website
 -   use __different comparison methods__ and a set of __additional matchers__ for better readable tests
 -   verify how your website will __support tabbing with your keyboard)__, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
@@ -63,23 +66,6 @@ export const config = {
             formatImageName: '{tag}-{logName}-{width}x{height}',
             screenshotPath: path.join(process.cwd(), 'tmp'),
             savePerInstance: true,
-            autoSaveBaseline: true,
-            blockOutStatusBar: true,
-            blockOutToolBar: true,
-            // NOTE: When you are testing a hybrid app please use this setting
-            isHybridApp: true,
-            // Options for the tabbing image
-            tabbableOptions: {
-                circle: {
-                    size: 18,
-                    fontSize: 18,
-                    // ...
-                },
-                line: {
-                    color: "#ff221a", // hex-code or for example words like `red|black|green`
-                    width: 3,
-                },
-            },
             // ... more options
         }]
     ]
@@ -87,7 +73,9 @@ export const config = {
 }
 ```
 
-More service options can be found [here](/docs/visual-testing/service-options). Once set up in your WebdriverIO configuration, you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
+More service options can be found [here](/docs/visual-testing/service-options).
+
+Once set up in your WebdriverIO configuration, you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
 
 ### WebdriverIO MultiRemote
 
@@ -147,7 +135,9 @@ const browser = await remote({
     }
 })
 
-visualService.before(browser.capabilities)
+// "Start" the service to add the custom commands to the `browser`
+visualService.remoteSetup(browser)
+
 await browser.url('https://webdriver.io/')
 
 // or use this for ONLY saving a screenshot
