@@ -23,17 +23,17 @@ import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
     namespace WebdriverIO {
-        interface ChromedriverOptions extends ChromedriverParameters {}
-        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> {}
-        interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> {}
-        interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> {}
+        interface ChromedriverOptions extends ChromedriverParameters { }
+        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> { }
+        interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> { }
+        interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> { }
     }
 }
 
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
-export async function startWebDriver (options: Options.WebDriver) {
+export async function startWebDriver(options: Options.WebDriver) {
     /**
      * in case we are running unit tests, just return
      */
@@ -72,9 +72,12 @@ export async function startWebDriver (options: Options.WebDriver) {
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
 
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
-            ? { executablePath: chromedriverOptions.binary }
-            : await setupChromedriver(cacheDir, browserVersion)
+        const { executablePath: chromedriverExcecuteablePath } =
+            process.env.CHROMEDRIVER_FILEPATH
+                ? { executablePath: process.env.CHROMEDRIVER_FILEPATH }
+                : chromedriverOptions.binary
+                    ? { executablePath: chromedriverOptions.binary }
+                    : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },
