@@ -1,4 +1,4 @@
-import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL, DATA_BATCH_ENDPOINT, BATCH_EVENT_TYPES, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
+import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL } from './constants.js'
 import type { UploadType } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 

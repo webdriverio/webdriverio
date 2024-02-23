@@ -30,8 +30,8 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility || false
         this.app = options.app
-        this.appAutomate = options.app != undefined //  TODO: Need to check capabilities to check if any of it is app automate
-        this.automate = options.app == undefined // TODO: Check logic
+        this.appAutomate = options.app !== undefined //  TODO: Need to check capabilities to check if any of it is app automate
+        this.automate = options.app === undefined // TODO: Check logic
         this.buildIdentifier = options.buildIdentifier
     }
 

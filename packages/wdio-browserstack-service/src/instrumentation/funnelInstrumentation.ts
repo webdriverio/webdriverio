@@ -7,14 +7,14 @@ import got from 'got'
 import { BSTACK_SERVICE_VERSION } from '../constants.js'
 
 class FunnelTestEvent {
-    static async fireFunnelTestEvent(event_type: string, config: BrowserStackConfig) {
+    static async fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
         try {
             if (!config.userName || !config.accessKey) {
                 BStackLogger.debug('username/accesskey not passed')
                 return
             }
 
-            const data = this.buildEventData(event_type, config)
+            const data = this.buildEventData(eventType, config)
             await this.fireRequest(config, data)
             BStackLogger.debug('Funnel event success')
         } catch (error)  {
@@ -57,11 +57,11 @@ class FunnelTestEvent {
         }
     }
 
-    private static buildEventData(event_type: string, config: BrowserStackConfig): any {
+    private static buildEventData(eventType: string, config: BrowserStackConfig): any {
         return {
             userName: config.userName,
             accessKey: config.accessKey,
-            event_type: event_type,
+            event_type: eventType,
             detectedFramework: 'WebdriverIO-' + config.framework,
             event_properties: {
                 // Framework Details

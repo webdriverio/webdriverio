@@ -19,13 +19,11 @@ import {
     isScreenshotCommand,
     o11yClassErrorHandler,
     removeAnsiColors,
-    sleep,
 } from './util.js'
 import type {
     TestData,
     TestMeta,
     PlatformMeta,
-    UploadType,
     CurrentRunInfo,
     StdLog
 } from './types.js'

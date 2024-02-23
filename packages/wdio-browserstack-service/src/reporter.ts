@@ -8,7 +8,7 @@ import * as url from 'node:url'
 import { v4 as uuidv4 } from 'uuid'
 import type { CurrentRunInfo, StdLog } from './types.js'
 
-import type { BrowserstackConfig, TestData, TestMeta, UploadType } from './types.js'
+import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
 import {
     getCloudProvider,
     o11yClassErrorHandler,

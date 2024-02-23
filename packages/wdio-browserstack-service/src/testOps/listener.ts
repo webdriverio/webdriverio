@@ -147,7 +147,7 @@ class Listener {
                 this.logEvents.mark(status, LOG_KIND_USAGE_MAP[kind] || kind)
             }
         } catch (e) {
-            // LogReportingAPI.observabilityDebug("Exception in marking logs status " + ObservabilityUtilityMethods.getStackTraceAsString(e) + "\n", true, false);
+            BStackLogger.debug('Exception in marking logs status ' + e)
             throw e
         }
     }
