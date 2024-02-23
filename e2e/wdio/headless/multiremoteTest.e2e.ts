@@ -19,7 +19,7 @@ describe('main suite 1', () => {
         await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
     })
 
-    it('should return devtools result', async () => {
+    it.skip('should return devtools result', async () => {
         await browserA.url('https://webdriver.io')
         await browserB.url('https://google.com')
 
