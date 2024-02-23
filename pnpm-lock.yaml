@@ -369,8 +369,6 @@ importers:
         specifier: 8.32.1
         version: link:../wdio-globals
 
-  packages/devtools/build/cjs: {}
-
   packages/devtools/src/cjs: {}
 
   packages/eslint-plugin-wdio:
@@ -708,8 +706,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -810,8 +806,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -948,8 +942,6 @@ importers:
       '@wdio/types':
         specifier: 8.31.1
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1172,8 +1164,6 @@ importers:
         specifier: 8.32.1
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1386,8 +1376,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1480,8 +1468,6 @@ importers:
       puppeteer-core:
         specifier: ^20.9.0
         version: 20.9.0(typescript@5.3.3)
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -10566,6 +10552,7 @@ packages:
   /clone@1.0.4:
     resolution: {integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==}
     engines: {node: '>=0.8'}
+    requiresBuild: true
 
   /clsx@2.1.0:
     resolution: {integrity: sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==}
@@ -11532,6 +11519,7 @@ packages:
 
   /defaults@1.0.4:
     resolution: {integrity: sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A==}
+    requiresBuild: true
     dependencies:
       clone: 1.0.4
 
@@ -12910,7 +12898,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       cross-spawn: 7.0.3
-      get-stream: 6.0.0
+      get-stream: 6.0.1
       human-signals: 2.1.0
       is-stream: 2.0.0
       merge-stream: 2.0.0
@@ -12971,7 +12959,7 @@ packages:
     optionalDependencies:
       '@wdio/globals': 8.32.1(typescript@5.3.3)
       '@wdio/logger': 8.28.0
-      webdriverio: 8.32.1(typescript@5.3.3)
+      webdriverio: 8.32.3(typescript@5.3.3)
     transitivePeerDependencies:
       - bufferutil
       - devtools
@@ -19429,6 +19417,7 @@ packages:
 
   /queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
+    requiresBuild: true
 
   /queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
@@ -20886,6 +20875,7 @@ packages:
   /socks@2.7.3:
     resolution: {integrity: sha512-vfuYK48HXCTFD03G/1/zkIls3Ebr2YNa4qU9gHDZdblHLiqhJrJGkY3+0Nx0JpN9qBhJbVObc1CNciT1bIZJxw==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
+    deprecated: please use 2.7.4 or 2.8.1 to fix package-lock issue
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
