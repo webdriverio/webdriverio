@@ -3,7 +3,7 @@ import FeatureUsage from './featureUsage.js'
 import { BStackLogger } from '../bstackLogger.js'
 import path from 'node:path'
 import fs from 'node:fs'
-import BrowserStackConfig from '../config.js'
+import TestOpsConfig from './testOpsConfig.js'
 
 class UsageStats {
     public static instance: UsageStats
@@ -45,14 +45,16 @@ class UsageStats {
     }
 
     public getFormattedData() {
-        const usage :any = {}
         this.addDataFromWorkers()
-        // usage['buildHashedId'] = UsageStats.config.getBuildHashedId();
-        usage.enabled = BrowserStackConfig.getInstance().testObservability
-        usage.manuallySet = this._manuallySet
+        const testOpsConfig = TestOpsConfig.getInstance()
+        const usage :any = {
+            enabled: testOpsConfig.enabled,
+            manuallySet: testOpsConfig.manuallySet,
+            buildHashedId: testOpsConfig.buildHashedId
+        }
+
         try {
             usage.events = this.getEventsData()
-
         } catch (e) {
             BStackLogger.debug('exception in getFormattedData: ' + e)
 

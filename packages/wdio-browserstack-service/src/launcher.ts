@@ -33,7 +33,6 @@ import {
     getBrowserStackKey,
     uploadLogs,
     ObjectsAreEqual,
-    setupExitHandlers
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -42,6 +41,7 @@ import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
 import FunnelTestEvent from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
+import { setupExitHandlers } from './exitHandler.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -57,7 +57,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
-    public static _testOpsBuildStopped?: boolean
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
@@ -356,7 +355,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
                 console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
-            BrowserstackLauncherService._testOpsBuildStopped = true
+            this.browserStackConfig.testObservability.buildStopped = true
 
             if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')
