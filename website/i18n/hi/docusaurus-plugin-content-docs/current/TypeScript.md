@@ -89,7 +89,7 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 
 ## सेवाएं:
 
-यदि आप ऐसी सेवाओं का उपयोग करते हैं जो ब्राउज़र क्षेत्र में कमांड जोड़ती हैं तो आपको इन्हें अपने `tsconfig.json`में भी शामिल करना होगा। उदाहरण के लिए यदि आप `@wdio/devtools-service` का उपयोग करते हैं तो सुनिश्चित करें कि आप इसे `types` में भी जोड़ते हैं, जैसे:
+यदि आप ऐसी सेवाओं का उपयोग करते हैं जो ब्राउज़र क्षेत्र में कमांड जोड़ती हैं तो आपको इन्हें अपने `tsconfig.json`में भी शामिल करना होगा। उदाहरण के लिए यदि आप `@wdio/lighthouse-service` का उपयोग करते हैं तो सुनिश्चित करें कि आप इसे `types` में भी जोड़ते हैं, जैसे:
 
 ```json title="tsconfig.json"
 {
@@ -98,7 +98,7 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
             "node",
             "@wdio/globals/types",
             "@wdio/mocha-framework",
-            "@wdio/devtools-service"
+            "@wdio/lighthouse-service"
         ]
     }
 }

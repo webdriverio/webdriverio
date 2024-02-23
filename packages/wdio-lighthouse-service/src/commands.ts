@@ -26,7 +26,7 @@ import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
 import CoverageGatherer from './gatherer/coverage.js'
 
-const log = logger('@wdio/devtools-service:CommandHandler')
+const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 function isCDPSessionOnMessageObject(

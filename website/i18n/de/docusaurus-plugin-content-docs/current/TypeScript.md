@@ -89,7 +89,7 @@ Wenn Sie sich beispielsweise für die Verwendung des Mocha-Frameworks entscheide
 
 ## Services
 
-Wenn Sie Dienste verwenden, die dem Browserbereich Befehle hinzufügen, müssen Sie diese auch in Ihre `tsconfig.json` aufnehmen. Wenn Sie beispielsweise `@wdio/devtools-service` verwenden, stellen Sie sicher, dass Sie es auch zu den `types` hinzugefügt haben, z.B.:
+Wenn Sie Dienste verwenden, die dem Browserbereich Befehle hinzufügen, müssen Sie diese auch in Ihre `tsconfig.json` aufnehmen. Wenn Sie beispielsweise `@wdio/lighthouse-service` verwenden, stellen Sie sicher, dass Sie es auch zu den `types` hinzugefügt haben, z.B.:
 
 ```json title="tsconfig.json"
 {
@@ -98,7 +98,7 @@ Wenn Sie Dienste verwenden, die dem Browserbereich Befehle hinzufügen, müssen 
             "node",
             "@wdio/globals/types",
             "@wdio/mocha-framework",
-            "@wdio/devtools-service"
+            "@wdio/lighthouse-service"
         ]
     }
 }

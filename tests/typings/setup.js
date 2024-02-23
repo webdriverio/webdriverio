@@ -28,7 +28,7 @@ const packages = {
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
     '@wdio/crossbrowsertesting-service': 'packages/wdio-crossbrowsertesting-service',
     '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',
-    '@wdio/devtools-service': 'packages/wdio-devtools-service',
+    '@wdio/lighthouse-service': 'packages/wdio-lighthouse-service',
     '@wdio/firefox-profile-service': 'packages/wdio-firefox-profile-service',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',

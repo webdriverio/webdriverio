@@ -3,7 +3,7 @@
   "version": "8.32.1",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
   "license": "MIT",
   "engines": {
     "node": ">=18"
@@ -11,15 +11,20 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git",
-    "directory": "packages/wdio-devtools-service"
+    "directory": "packages/wdio-lighthouse-service"
   },
   "keywords": [
     "webdriver",
     "wdio",
     "wdio-service",
-    "devtools",
+    "lighthouse",
     "chrome",
     "selenium",
+    "performance",
+    "audit",
+    "testing",
+    "pwa",
+    "progressive web app",
     "test"
   ],
   "bugs": {

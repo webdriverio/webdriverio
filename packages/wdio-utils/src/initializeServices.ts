@@ -61,7 +61,7 @@ async function initializeServices (services: ServiceWithOptions[]): Promise<Inti
          * services as NPM packages
          *
          * ```
-         * services: ['@wdio/devtools-service']
+         * services: ['@wdio/lighthouse-service']
          * ```
          */
         log.debug(`initialize service "${serviceName}" as NPM package`)
