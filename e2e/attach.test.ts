@@ -26,5 +26,5 @@ test('allow to attach to an existing session', async () => {
 
     const error = await browser.status().catch((err) => err)
     expect(error.message).not.toBe('ChromeDriver ready for new sessions.')
-    expect(error.message).toEqual(expect.stringContaining('ECONNREFUSED'))
+    expect(error.message).toEqual(expect.stringContaining('fetch failed'))
 })
