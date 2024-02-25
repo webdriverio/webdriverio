@@ -2,10 +2,9 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import type { CDPSession } from 'puppeteer-core'
-import type { Protocol } from 'devtools-protocol'
 
 import Interception from './index.js'
-import type { Matches, MockOverwrite, MockResponseParams } from './types.js'
+import type { Matches, MockOverwrite, MockResponseParams, ErrorReason } from './types.js'
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
 import { CDP_SESSIONS, SESSION_MOCKS } from '../../commands/browser/mock.js'
@@ -271,7 +270,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean = true) {
+    abort (errorReason: ErrorReason, sticky: boolean = true) {
         this.ensureNotRestored()
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
@@ -283,7 +282,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request once with an error code
      * @param {string} errorReason  error code of the response
      */
-    abortOnce (errorReason: Protocol.Network.ErrorReason) {
+    abortOnce (errorReason: ErrorReason) {
         this.abort(errorReason, false)
     }
 

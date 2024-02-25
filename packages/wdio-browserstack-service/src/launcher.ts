@@ -613,7 +613,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         } else if (capType === 'local'){
                             capability['browserstack.local'] = true
                         } else if (capType === 'app') {
-                        // @ts-expect-error BrowserStack still supports outdated JSOMWP
                             capability.app = value
                         } else if (capType === 'buildIdentifier') {
                             if (value) {

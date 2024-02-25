@@ -1,5 +1,4 @@
 import type { EventEmitter } from 'node:events'
-import type { Protocol } from 'devtools-protocol'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
@@ -8,7 +7,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
-import type { Matches } from './utils/interception/types.js'
+import type { Matches, ErrorReason } from './utils/interception/types.js'
 
 export * from './utils/interception/types.js'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -485,7 +484,7 @@ interface OverwriteEvent {
 
 interface FailEvent {
     requestId: number
-    errorReason: Protocol.Network.ErrorReason
+    errorReason: ErrorReason
 }
 
 interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on'> {
