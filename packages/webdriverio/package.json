@@ -65,7 +65,7 @@
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.zip": "^4.2.6",
-    "puppeteer-core": "^20.9.0"
+    "puppeteer-core": "^22.3.0"
   },
   "dependencies": {
     "@types/node": "^20.1.0",
@@ -93,7 +93,7 @@
   },
   "peerDependencies": {
     "devtools": "^8.14.0",
-    "puppeteer-core": "^20.9.0"
+    "puppeteer-core": "^22.3.0"
   },
   "peerDependenciesMeta": {
     "devtools": {
