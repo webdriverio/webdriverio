@@ -830,8 +830,8 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       devtools-protocol:
-        specifier: ^0.0.1260888
-        version: 0.0.1260888
+        specifier: ^0.0.1263784
+        version: 0.0.1263784
       istanbul-lib-coverage:
         specifier: ^3.2.0
         version: 3.2.2
@@ -12085,10 +12085,16 @@ packages:
 
   /devtools-protocol@0.0.1260888:
     resolution: {integrity: sha512-9rTIZ4ZjWwalCPiaY+kPiALLfOKgAz5CTi/Zb1L+qSZ8PH3zVo1T8JcgXIIqg1iM3pZ6hF+n9xO5r2jZ/SF+jg==}
+    requiresBuild: true
     dev: false
+    optional: true
 
   /devtools-protocol@0.0.1262051:
     resolution: {integrity: sha512-YJe4CT5SA8on3Spa+UDtNhEqtuV6Epwz3OZ4HQVLhlRccpZ9/PAYk0/cy/oKxFKRrZPBUPyxympQci4yWNWZ9g==}
+
+  /devtools-protocol@0.0.1263784:
+    resolution: {integrity: sha512-k0SCZMwj587w4F8QYbP5iIbSonL6sd3q8aVJch036r9Tv2t9b5/Oq7AiJ/FJvRuORm/pJNXZtrdNNWlpRnl56A==}
+    dev: false
 
   /devtools@8.32.3(typescript@5.3.3):
     resolution: {integrity: sha512-Sgjb0jnzOBDQT+/K1JuFtfORQECSIQ31vldsoY6ojLqqlNJZYIjJMV0PiSGtd3FzQctQ6qgItDkzUqz35Kupjg==}
