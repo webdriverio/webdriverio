@@ -738,11 +738,29 @@ describe('afterHook', () => {
 })
 
 describe('getIntegrationsObject', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
+    let insightsHandler: InsightsHandler
+    beforeAll(() => {
+        insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+        insightsHandler['_platformMeta'] = {
+            caps: {},
+            sessionId: '',
+            browserName: '',
+            browserVersion: '',
+            platformName: '',
+            product: ''
+        }
+    })
 
     it('return hash', () => {
-        expect(insightsHandler.getIntegrationsObject()).toBeInstanceOf(Object)
+        expect(insightsHandler['getIntegrationsObject']()).toBeInstanceOf(Object)
+    })
+
+    it('should fetch latest details', () => {
+        insightsHandler['_browser'].sessionId = 'session-new'
+        insightsHandler['_browser'].capabilities.os = 'Windows'
+        const integrationsObject = insightsHandler['getIntegrationsObject']()
+        expect(integrationsObject.session_id).toEqual('session-new')
+        expect(integrationsObject.capabilities.os).toEqual('Windows')
     })
 })
 
