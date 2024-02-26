@@ -624,6 +624,18 @@ describe('getIntegrationsObject', () => {
         expect(integrationsObject.platform_version).toEqual('some version')
     })
 
+    it('should fetch latest details', () => {
+        const existingSessionId = browser.sessionId
+        const existingOs = browser.capabilities.os
+        browser.sessionId = 'session-new'
+        browser.capabilities.os = 'Windows'
+        const integrationsObject = insightsHandler['getIntegrationsObject']()
+        expect(integrationsObject.session_id).toEqual('session-new')
+        expect(integrationsObject.capabilities.os).toEqual('Windows')
+        browser.sessionId = existingSessionId
+        browser.capabilities.os = existingOs
+    })
+
     afterAll(() => {
         getPlatformVersionSpy.mockReset()
     })
