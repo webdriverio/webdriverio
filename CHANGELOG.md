@@ -21,6 +21,32 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.32.3 (2024-02-21)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#12327](https://github.com/webdriverio/webdriverio/pull/12327) fix(@wdio/utils): only apply baseUrl to Chromium based browser ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#12307](https://github.com/webdriverio/webdriverio/pull/12307) [V8] Updated props to optional for getText and getLocation commands ([@jemishgopani](https://github.com/jemishgopani))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jemish Gopani ([@jemishgopani](https://github.com/jemishgopani))
+
+
+## v8.32.2 (2024-02-19)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-types`, `wdio-utils`
+  * [#12306](https://github.com/webdriverio/webdriverio/pull/12306) Updating capabilities for Lamdatest & Browserstack ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-utils`
+  * [#12305](https://github.com/webdriverio/webdriverio/pull/12305) Workaround for chromedriver domain name change ([@paymand](https://github.com/paymand))
+
+#### Committers: 2
+- Payman Delshad ([@paymand](https://github.com/paymand))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+
+
 ## v8.32.1 (2024-02-16)
 
 #### :bug: Bug Fix
