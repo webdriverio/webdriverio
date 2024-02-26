@@ -31,7 +31,7 @@ importers:
         version: 0.0.14(react@18.2.0)
       '@serenity-js/core':
         specifier: ^3.17.0
-        version: 3.18.0
+        version: 3.18.1
       '@stencil/core':
         specifier: ^4.12.2
         version: 4.12.3
@@ -7095,8 +7095,8 @@ packages:
       selderee: 0.11.0
     dev: true
 
-  /@serenity-js/core@3.18.0:
-    resolution: {integrity: sha512-PHYP/Is1vjGnLPCh8VX8i6mSsW9TAPRDoua4nhgiqrbqVaslKVJTxQSttGHcEesIPSXwPXuS2VuJkaIO1YLekQ==}
+  /@serenity-js/core@3.18.1:
+    resolution: {integrity: sha512-2aU+Oyl7md6Ggt8FR9a4exHVEIPXVbD50yKiZmVgdhcT4K2wNf3FtadIQ80VRAKgdmvhXd98MUAWE/2ML998bw==}
     engines: {node: ^16.13 || ^18.12 || ^20}
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
