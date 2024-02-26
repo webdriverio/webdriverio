@@ -90,6 +90,33 @@ It achieves this by automatically retrying the assertion until it passes or time
 await expect(button).toBeDisplayed()
 ```
 
+## Lazy loading and promise chaining
+
+WebdriverIO has some tricks up it's sleeve when it comes to writing clean code.
+
+Lazy load your elements:
+```js
+// 👎
+const div = await $('div')
+const button = await $('>>>button') // shadow dom
+
+await div.button.click()
+// or
+await (await (await $('div')).$('>>>button')).click()
+```
+
+```js
+// 👍
+const div = $('div')
+const button = $('>>>button') // shadow dom
+
+await div.button.click()
+// or
+await $('div').$('>>>button').click()
+```
+
+This allows you to pass the element as a ChainablePromiseElement instead of an Element and also allows for easier use with page objects.
+
 ## Don't overuse commands and assertions
 
 When using expect.toBeDisplayed you implicitly also wait for the element to exist. There isn't a need to use the waitForXXX commands when you already have an assertion doing the same thing.
@@ -181,6 +208,82 @@ The following will work.
 const characters = 'this is some example text that should be put in order'
 for (const character of characters) {
     await browser.keys(character)
+}
+```
+
+## Keep it simple
+
+Sometimes we see our users map data like text or values. This often isn't needed and is often a code smell, check the examples below why this is the case.
+
+```js
+// 👎 too complex, synchronous assertion, use the built-in assertions to prevent flaky tests
+const headerText = ['Products', 'Prices']
+const texts = await $$('th').map(e => e.getText());
+expect(texts).toBe(headerText)
+
+// 👎 too complex
+const headerText = ['Products', 'Prices']
+const columns = await $$('th');
+await expect(columns).toBeElementsArrayOfSize(2);
+for (let i = 0; i < columns.length; i++) {
+    await expect(columns[i]).toHaveText(headerText[i]);
+}
+
+// 👎 finds elements by their text but does not take into account the position of the elements
+await expect($('th=Products')).toExist();
+await expect($('th=Prices')).toExist();
+```
+
+```js
+// 👍 use unique identifiers (often used for custom elements)
+await expect($('[data-testid="Products"')).toHaveText('Products');
+// 👍 accessibility names (often used for native html elements)
+await expect($('aria/Product Prices')).toHaveText('Prices');
+```
+
+Another thing we sometimes see is that simple things have an overcomplicated solution.
+
+```js
+// 👎
+class BadExample {
+    public async selectOptionByValue(value: string) {
+        await $('select').click();
+        await $$('option')
+            .map(async function (element) {
+                const hasValue = (await element.getValue()) === value;
+                if (hasValue) {
+                    await $(element).click();
+                }
+                return hasValue;
+            });
+    }
+
+    public async selectOptionByText(text: string) {
+        await $('select').click();
+        await $$('option')
+            .map(async function (element) {
+                const hasText = (await element.getText()) === text;
+                if (hasText) {
+                    await $(element).click();
+                }
+                return hasText;
+            });
+    }
+}
+```
+
+```js
+// 👍
+class BetterExample {
+    public async selectOptionByValue(value: string) {
+        await $('select').click();
+        await $(`option[value=${value}]`).click();
+    }
+
+    public async selectOptionByText(text: string) {
+        await $('select').click();
+        await $(`option=${text}]`).click();
+    }
 }
 ```
 
