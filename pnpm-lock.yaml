@@ -369,8 +369,6 @@ importers:
         specifier: 8.32.1
         version: link:../wdio-globals
 
-  packages/devtools/build/cjs: {}
-
   packages/devtools/src/cjs: {}
 
   packages/eslint-plugin-wdio:
@@ -708,8 +706,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -810,8 +806,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -948,8 +942,6 @@ importers:
       '@wdio/types':
         specifier: 8.31.1
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1172,8 +1164,6 @@ importers:
         specifier: 8.32.1
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1386,8 +1376,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1477,8 +1465,6 @@ importers:
       puppeteer-core:
         specifier: ^20.9.0
         version: 20.9.0(typescript@5.3.3)
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -16028,7 +16014,7 @@ packages:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
     dependencies:
-      mlly: 1.6.0
+      mlly: 1.6.1
       pkg-types: 1.0.3
     dev: true
 
@@ -17322,6 +17308,15 @@ packages:
       pathe: 1.1.2
       pkg-types: 1.0.3
       ufo: 1.4.0
+    dev: false
+
+  /mlly@1.6.1:
+    resolution: {integrity: sha512-vLgaHvaeunuOXHSmEbZ9izxPx3USsk8KCQ8iC+aTlp5sKRSoZvwhHh5L9VbKSaVC6sJDqbyohIS76E2VmHIPAA==}
+    dependencies:
+      acorn: 8.11.3
+      pathe: 1.1.2
+      pkg-types: 1.0.3
+      ufo: 1.4.0
 
   /mocha@10.3.0:
     resolution: {integrity: sha512-uF2XJs+7xSLsrmIvn37i/wnc91nw7XjOQB8ccyx5aEgdnohr7n+rEiZP23WkCYHjilR6+EboEnbq/ZQDz4LSbg==}
@@ -18595,7 +18590,7 @@ packages:
     resolution: {integrity: sha512-nN7pYi0AQqJnoLPC9eHFQ8AcyaixBUOwvqc5TDnIKCMEE6I0y8P7OKA7fPexsXGCGxQDl/cmrLAp26LhcwxZ4A==}
     dependencies:
       jsonc-parser: 3.2.1
-      mlly: 1.6.0
+      mlly: 1.6.1
       pathe: 1.1.2
 
   /pkg-up@3.1.0:
