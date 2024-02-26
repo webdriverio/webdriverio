@@ -853,7 +853,7 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(1)
         })
 
-        it('should include specs from suite 3 times with mulit-run', async () => {
+        it('should include specs from suite 3 times with multi-run', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['functional'], multiRun: 3 })
 
@@ -861,11 +861,12 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(3)
         })
 
-        it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
+        it('should allow multi-run to run all tests', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ multiRun: 3 })
 
-            expect(() => configParser.getSpecs()).toThrow('The --multi-run flag requires that either the --spec or --suite flag is also set')
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(9)
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {
