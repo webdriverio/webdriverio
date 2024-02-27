@@ -1,5 +1,5 @@
 import url from 'node:url'
-import path from 'node:path'
+import path, { resolve } from 'node:path'
 
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
@@ -861,12 +861,27 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(3)
         })
 
-        it('should allow multi-run to run all tests', async () => {
+        it('should repeat specs in specific order to fail early', async () => {
+            const spec1 = resolve(__dirname, '../utils.test.ts')
+            const spec2 = resolve(__dirname, 'configparser.test.ts')
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ spec: [spec1, spec2], multiRun: 3 })
+
+            const specs = configParser.getSpecs()
+            // when using --multi-run we run the specs in the following order
+            // const order = [
+            //     spec1, spec2,
+            //     spec1, spec2,
+            //     spec1, spec2,
+            // ]
+            expect(specs).toEqual(Array.from({ length: 3 }, () => [spec1, spec2]).flat())
+        })
+
+        it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ multiRun: 3 })
 
-            const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(9)
+            expect(() => configParser.getSpecs()).toThrow('The --multi-run flag requires that either the --spec or --suite flag is also set')
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {

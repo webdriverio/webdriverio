@@ -317,8 +317,12 @@ export default class ConfigParser {
         specs = [...new Set(specs)]
 
         // If the --multi-run flag is set, duplicate the specs array N times
-        if (multiRun) {
-            specs = specs.flatMap(i => Array.from({ length: multiRun }).fill(i)) as Spec[]
+        // Ensure that when --repeat is used that either --spec or --suite is also used
+        const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
+        if (multiRun && hasSubsetOfSpecsDefined) {
+            specs = Array.from({ length: multiRun }, () => specs).flat()
+        } else if (multiRun && !hasSubsetOfSpecsDefined) {
+            throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
         }
 
         return this.shard(
