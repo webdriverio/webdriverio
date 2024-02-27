@@ -98,19 +98,16 @@ Lazy load your elements:
 ```js
 // 👎
 const div = await $('div')
-const button = await $('>>>button') // shadow dom
-
-await div.button.click()
+const button = await div.$('>>>button')
+await button.click()
 // or
 await (await (await $('div')).$('>>>button')).click()
 ```
 
 ```js
 // 👍
-const div = $('div')
-const button = $('>>>button') // shadow dom
-
-await div.button.click()
+const button = $('div').$('>>>button')
+await button.click()
 // or
 await $('div').$('>>>button').click()
 ```
