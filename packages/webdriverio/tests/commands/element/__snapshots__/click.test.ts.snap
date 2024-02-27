@@ -25,7 +25,7 @@ exports[`click test > should allow to left click on an element by passing a butt
     {
       "altitudeAngle": 0,
       "azimuthAngle": 0,
-      "button": 0,
+      "button": "left",
       "height": 0,
       "pressure": 0,
       "tangentialPressure": 0,
@@ -36,11 +36,11 @@ exports[`click test > should allow to left click on an element by passing a butt
       "width": 0,
     },
     {
-      "button": 0,
+      "button": "left",
       "type": "pointerUp",
     },
   ],
-  "id": "action1",
+  "id": "action2",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -88,7 +88,7 @@ exports[`click test > should allow to left click on an element by passing a butt
       "type": "pointerUp",
     },
   ],
-  "id": "action2",
+  "id": "action3",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -137,7 +137,7 @@ exports[`click test > should allow to left click on an element with an offset wi
         "type": "pointerUp",
       },
     ],
-    "id": "action7",
+    "id": "action8",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -171,7 +171,7 @@ exports[`click test > should allow to middle click on an element 1`] = `
     {
       "altitudeAngle": 0,
       "azimuthAngle": 0,
-      "button": 1,
+      "button": "middle",
       "height": 0,
       "pressure": 0,
       "tangentialPressure": 0,
@@ -182,11 +182,11 @@ exports[`click test > should allow to middle click on an element 1`] = `
       "width": 0,
     },
     {
-      "button": 1,
+      "button": "middle",
       "type": "pointerUp",
     },
   ],
-  "id": "action5",
+  "id": "action6",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -234,7 +234,7 @@ exports[`click test > should allow to middle click on an element 2`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action6",
+  "id": "action7",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -267,7 +267,7 @@ exports[`click test > should allow to right click on an element 1`] = `
     {
       "altitudeAngle": 0,
       "azimuthAngle": 0,
-      "button": 2,
+      "button": "right",
       "height": 0,
       "pressure": 0,
       "tangentialPressure": 0,
@@ -278,11 +278,11 @@ exports[`click test > should allow to right click on an element 1`] = `
       "width": 0,
     },
     {
-      "button": 2,
+      "button": "right",
       "type": "pointerUp",
     },
   ],
-  "id": "action3",
+  "id": "action4",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -330,7 +330,7 @@ exports[`click test > should allow to right click on an element 2`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action4",
+  "id": "action5",
   "parameters": {
     "pointerType": "mouse",
   },

@@ -1,6 +1,6 @@
 import { getBrowserObject } from '../../utils/index.js'
+import { buttonValue } from '../../utils/actions/index.js'
 import type { ClickOptions } from '../../types.js'
-import type { Button } from '../../utils/actions/index.js'
 
 /**
  *
@@ -83,52 +83,42 @@ import type { Button } from '../../utils/actions/index.js'
  */
 export async function click(
     this: WebdriverIO.Element,
-    options?: ClickOptions
+    options: Partial<ClickOptions> = {}
 ) {
-    if (typeof options === 'undefined') {
-        return this.elementClick(this.elementId)
+    const defaultOptions: ClickOptions = {
+        button: 0,
+        x: 0,
+        y: 0,
+        skipRelease: false,
     }
 
     if (typeof options !== 'object' || Array.isArray(options)) {
         throw new TypeError('Options must be an object')
     }
 
-    let button = (options.button || 0) as Button
-    const {
-        x: xOffset = 0,
-        y: yOffset = 0,
-        skipRelease = false
-    } = options || {}
+    const { button, x, y, skipRelease }: ClickOptions = { ...defaultOptions, ...options }
 
     if (
-        typeof xOffset !== 'number'
-        || typeof yOffset !== 'number'
-        || !Number.isInteger(xOffset)
-        || !Number.isInteger(yOffset)) {
-        throw new TypeError('Coordinates must be integers')
+        typeof x !== 'number'
+        || typeof y !== 'number'
+        || !Number.isInteger(x)
+        || !Number.isInteger(y)
+    ) {
+        throw TypeError('Coordinates must be integers')
     }
 
-    if (options.button === 'left') {
-        button = 0
-    }
-    if (options.button === 'middle') {
-        button = 1
-    }
-    if (options.button === 'right') {
-        button = 2
-    }
-    if (![0, 1, 2].includes(button as number)) {
-        throw new Error('Button type not supported.')
+    if (!buttonValue.includes(button)) {
+        throw Error('Button type not supported.')
     }
 
     const browser = getBrowserObject(this)
-    if (xOffset || yOffset) {
+    if (x || y) {
         const { width, height } = await browser.getElementRect(this.elementId)
-        if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
+            throw new Error(`{ x: ${x} } would cause an out of bounds error as it goes outside of element`)
         }
-        if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
-            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+        if ((y && y < (-Math.floor(height / 2))) || (y && y > Math.floor(height / 2))) {
+            throw new Error(`{ y: ${y} } would cause an out of bounds error as it goes outside of element`)
         }
     }
     const clickNested = async () => {
@@ -137,8 +127,8 @@ export async function click(
         })
             .move({
                 origin: this,
-                x: xOffset,
-                y: yOffset
+                x: x,
+                y: y
             })
             .down({ button })
             .up({ button })
@@ -147,13 +137,12 @@ export async function click(
     try {
         await clickNested()
     } catch {
-    /**
-    * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
-    * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
-    * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
-    */
+        /**
+        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+        */
         await this.scrollIntoView({ block: 'center', inline: 'center' })
         await clickNested()
     }
-    return
 }

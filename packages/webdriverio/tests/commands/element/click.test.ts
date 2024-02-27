@@ -19,7 +19,7 @@ describe('click test', () => {
         await elem.click()
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/click')
+            .toBe('/session/foobar-123/actions')
     })
 
     it('should allow to left click on an element by passing a button type', async () => {

@@ -4,6 +4,9 @@ import type { BaseActionParams, KeyActionType } from './base.js'
 import BaseAction from './base.js'
 import type { ChainablePromiseElement } from '../../types.js'
 
+const buttonNumbers = [0, 1, 2] as const
+const buttonNames = ['left', 'middle', 'right'] as const
+export const buttonValue = [...buttonNumbers, ...buttonNames] as const
 export type ButtonNames = 'left' | 'middle' | 'right'
 export type Button = 0 | 1 | 2
 export type Origin = 'pointer' | 'viewport'
@@ -17,11 +20,11 @@ interface PointerActionUpParams {
      * The button to press (e.g. 0 for left, 1 for middle or 2 for right)
      * @default 0
      */
-    button: Button
+    button: Button | ButtonNames
 }
 const UP_PARAM_DEFAULTS = {
-    button: BUTTON_DEFAULT as Button
-}
+    button: BUTTON_DEFAULT
+} as PointerActionUpParams
 
 const PARAM_DEFAULTS = {
     ...UP_PARAM_DEFAULTS,
