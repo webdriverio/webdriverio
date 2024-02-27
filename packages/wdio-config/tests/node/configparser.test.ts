@@ -862,12 +862,17 @@ describe('ConfigParser', () => {
         })
 
         it('should repeat specs in specific order to fail early', async () => {
-            const spec = [resolve(__dirname, '../utils.test.ts'), resolve(__dirname, 'configparser.test.ts')]
+            const spec1 = resolve(__dirname, '../utils.test.ts')
+            const spec2 = resolve(__dirname, 'configparser.test.ts')
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec, repeat: 3 })
+            await configParser.initialize({ spec: [spec1, spec2], repeat: 3 })
 
             const specs = configParser.getSpecs()
-            expect(specs).toEqual(Array.from({ length: 3 }, () => spec).flat())
+            expect(specs).toEqual([
+                spec1, spec2,
+                spec1, spec2,
+                spec1, spec2,
+            ])
         })
 
         it('should throw an error if repeat is set but no spec or suite is specified', async () => {
