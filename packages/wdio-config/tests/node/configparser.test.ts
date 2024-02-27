@@ -1,5 +1,5 @@
 import url from 'node:url'
-import path from 'node:path'
+import path, { resolve } from 'node:path'
 
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
@@ -832,9 +832,9 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
-        it('should include spec 3 times with mulit-run', async () => {
+        it('should repeat spec 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec: [INDEX_PATH], multiRun: 3 })
+            await configParser.initialize({ spec: [INDEX_PATH], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
@@ -853,20 +853,28 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(1)
         })
 
-        it('should include specs from suite 3 times with multi-run', async () => {
+        it('should repeat specs from suite 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ suite: ['functional'], multiRun: 3 })
+            await configParser.initialize({ suite: ['functional'], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
         })
 
-        it('should allow multi-run to run all tests', async () => {
+        it('should repeat specs in specific order to fail early', async () => {
+            const spec = [resolve(__dirname, '../utils.test.ts'), resolve(__dirname, 'configparser.test.ts')]
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ multiRun: 3 })
+            await configParser.initialize({ spec, repeat: 3 })
 
             const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(9)
+            expect(specs).toEqual(Array.from({ length: 3 }, () => spec).flat())
+        })
+
+        it('should throw an error if repeat is set but no spec or suite is specified', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ repeat: 3 })
+
+            expect(() => configParser.getSpecs()).toThrow('The --repeat flag requires that either the --spec or --suite flag is also set')
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {
