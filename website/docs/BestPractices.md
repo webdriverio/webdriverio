@@ -92,7 +92,11 @@ await expect(button).toBeDisplayed()
 
 ## Lazy loading and promise chaining
 
-WebdriverIO has some tricks up it's sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises.
+WebdriverIO has some tricks up it's sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises and reduces the amount of `await`. This also allows you to pass the element as a ChainablePromiseElement instead of an Element and for easier use with page objects.
+
+So when do you have to use `await`?
+- whenever you perform an action using the `browser` global object such as `execute()`, `getUrl()`, etc
+- whenever you perform an action using the `element` global object, such as `click()`, `waitForDisplayed()`, etc
 
 ```js
 // 👎
@@ -110,8 +114,6 @@ await button.click()
 // or
 await $('div').$('>>>button').click()
 ```
-
-This allows you to pass the element as a ChainablePromiseElement instead of an Element and also allows for easier use with page objects.
 
 ## Don't overuse commands and assertions
 
