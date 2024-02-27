@@ -23,7 +23,7 @@ export function testFailed() {
     const error =
         {
             message: 'AssertionError [ERR_ASSERTION]: foo == bar',
-            stack: 'AssertionError [ERR_ASSERTION]: foo == bar',
+            stack: 'stack trace of AssertionError [ERR_ASSERTION]',
             type: 'AssertionError [ERR_ASSERTION]',
             name: 'Error',
             expected: 'foo',
@@ -37,11 +37,11 @@ export function testFailedWithMultipleErrors() {
     [
         {
             message: 'ReferenceError: All is Dust',
-            stack: 'ReferenceError: All is Dust'
+            stack: 'stack trace of ReferenceError'
         },
         {
             message: 'InternalError: Abandon Hope',
-            stack: 'InternalError: Abandon Hope'
+            stack: 'stack trace of InternalError'
         }
     ]
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })

@@ -318,7 +318,9 @@ describe('Failed tests', () => {
 
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
         expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
-        expect(lines[5].trim()).toBe('InternalError: Abandon Hope')
+        expect(lines[4].trim()).toBe('stack trace of ReferenceError')
+        expect(lines[7].trim()).toBe('InternalError: Abandon Hope')
+        expect(lines[9].trim()).toBe('stack trace of InternalError')
     })
 
     it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {

@@ -31,17 +31,22 @@ describe('CompoundError', () => {
         expect(lines).toContain('    Error: I am so sad')
     })
 
-    it('should include stack traces from the errors', () => {
+    it('should include error messages and stack traces from the errors', () => {
         const compoundErr = new CompoundError(e1, e2)
-        const lines = compoundErr.message.split('\n').map(x => x.substr(4))
+        const lines = compoundErr.message.split('\n').map(x => x.substring(4))
 
         // This is a little dense, but essentially, CompoundError's messages look like
         //
         // IntroMessage
-        // EndOfStackMessage
+        // FirstErrorMessage
+        // EndOfErrorMessage
+        // FirstStackTrace
+        // EndOfStackTrace
         // Separator
-        // SecondStack
-        // EndOfStackMessage
+        // SecondErrorMessage
+        // EndOfErrorMessage
+        // SecondStackTrace
+        // EndOfStackTrace
 
         // So we split both the final CompoundError message
         // and the traces that compose it on line separators and then test to make sure that
@@ -49,14 +54,22 @@ describe('CompoundError', () => {
         // We do this rather than hard-coding strings, so we can use actual error stacks (which might be slightly)
         // different depending on how we run the tests.
 
-        const e1split = e1.stack?.split('\n')
-        const e2split = e2.stack?.split('\n')
-        const startOfFirstStack = 2
-        const endOfFirstStack = (e1split?.length || 0) + startOfFirstStack
-        const startOfSecondStack = endOfFirstStack + startOfFirstStack
-        const endOfSecondStack = startOfSecondStack + (e2split?.length || 0)
-        expect(lines.slice(startOfFirstStack, endOfFirstStack)).toEqual(e1split)
-        expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(e2split)
+        const e1message = e1.message
+        const e1stackSplit = e1.stack?.split('\n')
+        const e2message = e2.message
+        const e2stackSplit = e2.stack?.split('\n')
+        const startOfFirstMessage = 2
+        const endOfFirstMessage = startOfFirstMessage + 1
+        const startOfFirstStack = endOfFirstMessage + 1
+        const endOfFirstStack = (e1stackSplit?.length || 0) + startOfFirstStack
+        const startOfSecondMessage = endOfFirstStack + 2
+        const endOfSecondMessage = startOfSecondMessage + 1
+        const startOfSecondStack = endOfSecondMessage + 1
+        const endOfSecondStack = startOfSecondStack + (e2stackSplit?.length || 0)
+        expect(lines.slice(startOfFirstMessage, endOfFirstMessage)).toEqual([e1message])
+        expect(lines.slice(startOfFirstStack, endOfFirstStack)).toEqual(e1stackSplit)
+        expect(lines.slice(startOfSecondMessage, endOfSecondMessage)).toEqual([e2message])
+        expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(e2stackSplit)
     })
 
     it('should include delimiters to indicate where stack traces end', () => {
@@ -80,9 +93,9 @@ describe('CompoundError', () => {
         const lines = error.message.split('\n')
 
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
-        expect(lines[2]).toBe('   goodbye')
+        expect(lines[2]).toBe('    goodbye')
         expect(lines[3]).toBe('--- End of error message ---')
-        expect(lines[5]).toBe('   hello')
+        expect(lines[5]).toBe('    hello')
         expect(lines[6]).toBe('--- End of error message ---')
     })
 })
