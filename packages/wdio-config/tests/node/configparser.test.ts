@@ -868,13 +868,11 @@ describe('ConfigParser', () => {
             await configParser.initialize({ spec: [spec1, spec2], multiRun: 3 })
 
             const specs = configParser.getSpecs()
-            // when using --multi-run we run the specs in the following order
-            // const order = [
-            //     spec1, spec2,
-            //     spec1, spec2,
-            //     spec1, spec2,
-            // ]
-            expect(specs).toEqual(Array.from({ length: 3 }, () => [spec1, spec2]).flat())
+            expect(specs).toEqual([
+                spec1, spec2,
+                spec1, spec2,
+                spec1, spec2,
+            ])
         })
 
         it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
