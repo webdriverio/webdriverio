@@ -115,10 +115,10 @@ export async function click(
     if (x || y) {
         const { width, height } = await browser.getElementRect(this.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
-            throw new Error(`{ x: ${x} } would cause an out of bounds error as it goes outside of element`)
+            throw Error(`{ x: ${x} } would cause an out of bounds error as it goes outside of element`)
         }
         if ((y && y < (-Math.floor(height / 2))) || (y && y > Math.floor(height / 2))) {
-            throw new Error(`{ y: ${y} } would cause an out of bounds error as it goes outside of element`)
+            throw Error(`{ y: ${y} } would cause an out of bounds error as it goes outside of element`)
         }
     }
     const clickNested = async () => {
