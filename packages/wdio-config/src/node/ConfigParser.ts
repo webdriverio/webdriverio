@@ -317,6 +317,7 @@ export default class ConfigParser {
         specs = [...new Set(specs)]
 
         // If the --repeat flag is set, duplicate the specs array N times
+        // Ensure that when --repeat is used that either --spec or --suite is also used
         const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
         if (repeat && hasSubsetOfSpecsDefined) {
             specs = Array.from({ length: repeat }, () => specs).flat()
