@@ -49,7 +49,7 @@ export default async function elementClick (
             /**
              * no modals popped up, so clean up the listener
              */
-            page.removeListener('dialog', dialogHandler)
+            page.off('dialog', dialogHandler)
             resolve(null)
         }).catch(reject)
     })
