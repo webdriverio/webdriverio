@@ -125,11 +125,7 @@ export async function click(
         await browser.action('pointer', {
             parameters: { pointerType: 'mouse' }
         })
-            .move({
-                origin: this,
-                x: x,
-                y: y
-            })
+            .move({ origin: this, x, y })
             .down({ button })
             .up({ button })
             .perform(skipRelease)
