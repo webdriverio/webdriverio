@@ -61,6 +61,11 @@ export interface Device {
     };
 }
 
+export interface DeviceOptions {
+    osVersion: string,
+    inLandscape: boolean
+}
+
 export interface Audit {
     audit: (opts: any, context: any) => Promise<any>,
     defaultOptions: Record<string, any>
