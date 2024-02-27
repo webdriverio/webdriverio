@@ -851,12 +851,13 @@ class _InsightsHandler {
     }
 
     private getIntegrationsObject () {
+        const browserCaps = (this._browser.capabilities as Capabilities.Capabilities)
         return {
-            capabilities: this._platformMeta?.caps,
-            session_id: this._platformMeta?.sessionId,
-            browser: this._platformMeta?.browserName,
-            browser_version: this._platformMeta?.browserVersion,
-            platform: this._platformMeta?.platformName,
+            capabilities: browserCaps,
+            session_id: this._browser?.sessionId as string,
+            browser: browserCaps?.browserName,
+            browser_version: browserCaps?.browserVersion,
+            platform: browserCaps?.platformName,
             product: this._platformMeta?.product
         }
     }
