@@ -92,9 +92,8 @@ await expect(button).toBeDisplayed()
 
 ## Lazy loading and promise chaining
 
-WebdriverIO has some tricks up it's sleeve when it comes to writing clean code.
+WebdriverIO has some tricks up it's sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises.
 
-Lazy load your elements:
 ```js
 // 👎
 const div = await $('div')
