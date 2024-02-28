@@ -3,7 +3,7 @@ id: mocksandspies
 title: மாக்ஸ் மற்றும் ஸ்பைகளைக் கோருங்கள்
 ---
 
-WebdriverIO ஆனது நெட்ஒர்க் ரெஸ்பான்சுகளை மாற்றியமைப்பதற்கான ஆதரவுடன் வருகிறது, இது உங்கள் பின்தளம் அல்லது மாக் சேவையகத்தை அமைக்காமல் உங்கள் முன்பக்கம் பயன்பாட்டைச் சோதிப்பதில் கவனம் செலுத்த அனுமதிக்கிறது. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
 
 :::info
 
