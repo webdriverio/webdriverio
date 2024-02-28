@@ -3,7 +3,7 @@ id: mocksandspies
 title: Solicitar Mocks y Espías
 ---
 
-WebdriverIO viene con soporte incorporado para modificar las respuestas de la red que le permite concentrarse en probar su aplicación frontend sin tener que configurar su backend o un servidor simulado. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
 
 :::info
 
