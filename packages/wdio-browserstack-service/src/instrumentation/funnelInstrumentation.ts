@@ -9,6 +9,8 @@ import path from 'node:path'
 import fs from 'node:fs'
 
 class FunnelTestEvent {
+    static workersDataDirPath = path.join(process.cwd(), 'logs', 'worker_data')
+
     static async fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
         try {
             if (!config.userName || !config.accessKey) {
@@ -93,7 +95,9 @@ class FunnelTestEvent {
         }
 
         if (eventType === 'SDKTestSuccessful') {
-            eventProperties.productUsage = this.getProductUsage()
+            const workerData = this.getDataFromWorkers()
+            eventProperties.productUsage = this.getProductUsage(workerData)
+            eventProperties.error = this.getTestErrors(workerData)
         }
 
         return {
@@ -106,10 +110,21 @@ class FunnelTestEvent {
 
     }
 
-    private static getProductUsage() {
+    private static getProductUsage(workersData: any[]) {
         return {
-            testObservability: UsageStats.getInstance().getFormattedData()
+            testObservability: UsageStats.getInstance().getFormattedData(workersData)
         }
+    }
+
+    private static getTestErrors(workersData: any[]) {
+        return []
+        const errors = []
+        workersData.map(workerData => {
+            errors.push({
+                ...workerData.cbtInfo,
+                "tests": workerData.testErrors
+            })
+        })
     }
 
     private static getLanguageFramework(framework?: string) {
@@ -133,6 +148,27 @@ class FunnelTestEvent {
         const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
         return `${fullName}/${BSTACK_SERVICE_VERSION}`
     }
+
+    public static getDataFromWorkers() {
+        const workersData: any[] = []
+        if (!fs.existsSync(this.workersDataDirPath)) {
+            return workersData
+        }
+
+        const files = fs.readdirSync(this.workersDataDirPath)
+        files.forEach((file) => {
+            BStackLogger.debug('reading file ' + file)
+            const filePath = path.join(this.workersDataDirPath, file)
+            const fileContent = fs.readFileSync(filePath, 'utf8')
+            const workerData = JSON.parse(fileContent)
+            workersData.push(workerData)
+        })
+
+        // Remove worker data after all reading
+        fs.rmSync(this.workersDataDirPath, { recursive: true, force: true })
+        return workersData
+    }
+
 }
 
 export default FunnelTestEvent

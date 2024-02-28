@@ -1,8 +1,6 @@
 import FeatureStats from './featureStats.js'
 import FeatureUsage from './featureUsage.js'
 import { BStackLogger } from '../bstackLogger.js'
-import path from 'node:path'
-import fs from 'node:fs'
 import TestOpsConfig from './testOpsConfig.js'
 
 class UsageStats {
@@ -44,8 +42,8 @@ class UsageStats {
         this.logStats.add(usageStats.logStats)
     }
 
-    public getFormattedData() {
-        this.addDataFromWorkers()
+    public getFormattedData(workersData: any[]) {
+        this.addDataFromWorkers(workersData)
         const testOpsConfig = TestOpsConfig.getInstance()
         const usage :any = {
             enabled: testOpsConfig.enabled,
@@ -57,31 +55,16 @@ class UsageStats {
             usage.events = this.getEventsData()
         } catch (e) {
             BStackLogger.debug('exception in getFormattedData: ' + e)
-
             throw e
         }
         return usage
     }
 
-    public addDataFromWorkers() {
-        const logFolderPath = path.join(process.cwd(), 'logs', 'worker_data')
-        if (!fs.existsSync(logFolderPath)) {
-            return []
-        }
-
-        const files = fs.readdirSync(logFolderPath)
-        files.forEach((file) => {
-            BStackLogger.debug('reading file ' + file)
-            const filePath = path.join(logFolderPath, file)
-            const fileContent = fs.readFileSync(filePath, 'utf8')
-            const workerData = JSON.parse(fileContent)
-            const usageStatsForWorker = UsageStats.fromJSON(workerData)
+    public addDataFromWorkers(workersData: any[]) {
+        workersData.map(workerData => {
+            const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
             this.add(usageStatsForWorker)
         })
-
-        // Remove worker data
-        fs.rmSync(logFolderPath, { recursive: true, force: true })
-
     }
 
     public getEventsData() {
