@@ -9,7 +9,7 @@ import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -35,7 +35,6 @@ export default class Runner extends EventEmitter {
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RemoteCapability
-    private _snapshotService?: Services.ServiceInstance & { results: any }
 
     /**
      * run test suite
@@ -73,11 +72,12 @@ export default class Runner extends EventEmitter {
         /**
          * add built-in services
          */
-        this._snapshotService = SnapshotService.initiate({
+        const snapshotService = SnapshotService.initiate({
             updateState: this._config.updateSnapshots,
             resolveSnapshotPath: this._config.resolveSnapshotPath
         })
-        this._configParser.addService(this._snapshotService)
+        // ToDo(Christian): resolve type incompatibility between v8 and v9
+        this._configParser.addService(snapshotService as any)
 
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
@@ -210,7 +210,7 @@ export default class Runner extends EventEmitter {
         process.send!(<SnapshotResultMessage>{
             origin: 'worker',
             name: 'snapshot',
-            content: this._snapshotService.results
+            content: snapshotService.results
         })
 
         return this._shutdown(failures, retries)

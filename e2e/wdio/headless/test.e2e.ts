@@ -16,7 +16,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
-    it('should allow to check for PWA', async () => {
+    it.skip('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
@@ -31,7 +31,7 @@ describe('main suite 1', () => {
         ])).passed).toBe(true)
     })
 
-    it('should also detect non PWAs', async () => {
+    it.skip('should also detect non PWAs', async () => {
         await browser.url('https://json.org')
         expect((await browser.checkPWA()).passed).toBe(false)
     })

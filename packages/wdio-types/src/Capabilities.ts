@@ -180,7 +180,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
 
     'goog:chromeOptions'?: ChromeOptions
     'moz:firefoxOptions'?: FirefoxOptions
-    // This capability is a boolean when send as part of the capabilities to Geckodrivr
+    // This capability is a boolean when send as part of the capabilities to Geckodriver
     // and is being returns as string (e.g. "<host>:<port>") when session capabilities
     // are returned from the driver
     // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
@@ -419,7 +419,7 @@ export interface SelenoidOptions {
 
 // Aerokube Moon specific
 export type MoonMobileDeviceOrientation =
-    'portait' | 'vertical' | 'landscape' | 'horizontal'
+    'portrait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
     mobileDevice?: {
@@ -1108,6 +1108,9 @@ export interface LambdaTestCapabilities {
     username?: string
     accessKey?: string
     platformName?: string
+    deviceName?: string
+    platformVersion?: string
+    app?: string
     browserName?: string
     browserVersion?: string
     /**
@@ -1115,6 +1118,7 @@ export interface LambdaTestCapabilities {
      */
     resolution?: string
     selenium_version?: string
+    driver_version?: string
     headless?: boolean
     seCdp?: boolean
     /**
@@ -1130,7 +1134,7 @@ export interface LambdaTestCapabilities {
      * These tags can be used to filter the builds on the Automate dashboard.
      */
     buildTags?: Array<string>
-    smartUiProject?: string
+    'smartUI.project'?: string
     /**
      * Use this capability to add names to the tests.
      */
@@ -1140,6 +1144,7 @@ export interface LambdaTestCapabilities {
      * These tags can be used to filter the tests on the Automate dashboard.
      */
     tags?: Array<string>
+    devicelog?: boolean
     visual?: boolean
     video?: boolean
     /**
@@ -1148,11 +1153,28 @@ export interface LambdaTestCapabilities {
      * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
      */
     tunnel?: boolean
+    tunnelName?: string
     /**
      * Capture browser console logs at various steps in the test.
      */
-    console?: 'warn' | 'error' | 'warn' | 'info' | 'true'
+    console?: 'warn' | 'error' | 'warn' | 'info' | 'true' | 'false'
     network?: boolean
+    timezone?: string
+    geoLocation?: string
+    location?: {
+        lat: string
+        long: string
+    }
+    language?: string
+    locale?: string
+    idleTimeout?: number
+    queueTimeout?: number
+    autoGrantPermissions?: boolean
+    autoAcceptAlerts?: boolean
+    otherApps?: Array<string>
+    isRealMobile?: boolean
+    networkThrottling?: string,
+    deviceOrientation?: 'portrait' | 'landscape'
 }
 
 export interface BrowserStackCapabilities {
@@ -1241,7 +1263,7 @@ export interface BrowserStackCapabilities {
      */
     'browserstack.maskCommands'?: string[]
     /**
-     * BrowerStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
+     * BrowserStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
      * is left idle for more than `idleTimeout` seconds. This happens as BrowserStack by
      * default waits for the timeout duration for additional steps or commands
      * to run. If no command is received during that time, the session is stopped,
@@ -1360,6 +1382,14 @@ export interface BrowserStackCapabilities {
     'browserstack.localIdentifier'?: string
     'browserstack.accessibility'?: boolean
     'browserstack.accessibilityOptions'?: { [key: string]: any }
+
+    appStoreConfiguration?: { username: string, password: string }
+    gpsLocation?: string
+    disableAnimations?: boolean
+    midSessionInstallApps?: Array<string>
+    uploadMedia?: Array<string>
+    enablePasscode?: boolean
+    deviceLogs?: boolean
 }
 
 export interface SauceLabsVisualCapabilities {

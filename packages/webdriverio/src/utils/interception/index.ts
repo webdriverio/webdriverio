@@ -4,9 +4,7 @@ import { minimatch } from 'minimatch'
 import Timer from '../Timer.js'
 
 import type { WaitForOptions } from '../../types.js'
-import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types.js'
-
-import type { Protocol } from 'devtools-protocol'
+import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches, ErrorReason } from './types.js'
 
 export default abstract class Interception extends EventEmitter {
     abstract calls: Matches[] | Promise<Matches[]>
@@ -14,14 +12,14 @@ export default abstract class Interception extends EventEmitter {
     abstract restore (): Promise<void>
     abstract respond (overwrite: MockOverwrite, params: MockResponseParams): void
     abstract respondOnce (overwrite: MockOverwrite, params: MockResponseParams): void
-    abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
-    abstract abortOnce (errorReason: Protocol.Network.ErrorReason): void
+    abstract abort (errorReason: ErrorReason, sticky: boolean): void
+    abstract abortOnce (errorReason: ErrorReason): void
 
     respondOverwrites: {
         overwrite?: MockOverwrite
         params?: MockResponseParams
         sticky?: boolean
-        errorReason?: Protocol.Network.ErrorReason
+        errorReason?: ErrorReason
     }[] = []
     matches: Matches[] = []
 

@@ -9,10 +9,10 @@ import logger from '@wdio/logger'
 import type { CommandEndpoint } from '@wdio/protocols'
 
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
-import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/common/Dialog.js'
+import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/api/Dialog.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
-import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
-import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 
 import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'
@@ -300,7 +300,7 @@ export default class DevToolsDriver {
             : false
 
         try {
-            const executionContext = await page.mainFrame().executionContext()
+            const executionContext = await page.mainFrame()
             await executionContext.evaluate('1')
 
             /**
