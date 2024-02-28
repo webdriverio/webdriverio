@@ -3,7 +3,7 @@ id: mocksandspies
 title: மாக்ஸ் மற்றும் ஸ்பைகளைக் கோருங்கள்
 ---
 
-WebdriverIO ஆனது நெட்ஒர்க் ரெஸ்பான்சுகளை மாற்றியமைப்பதற்கான ஆதரவுடன் வருகிறது, இது உங்கள் பின்தளம் அல்லது மாக் சேவையகத்தை அமைக்காமல் உங்கள் முன்பக்கம் பயன்பாட்டைச் சோதிப்பதில் கவனம் செலுத்த அனுமதிக்கிறது. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
 
 :::info
 
@@ -38,9 +38,7 @@ const strictMock = await browser.mock('**', {
 நீங்கள் JSON பதிலை எதிர்பார்க்கும் API கோரிக்கைகளை மாக் செய்ய, நீங்கள் செய்ய வேண்டியதெல்லாம், நீங்கள் ரிட்டர்ன் செய்ய விரும்பும் ஒரு தன்னிச்சையான ஆப்ஜெக்டுடன் மாக் ஆப்ஜெக்டை`respond` அழைக்க வேண்டும், எ.கா.:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
