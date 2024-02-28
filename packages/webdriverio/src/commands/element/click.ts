@@ -70,6 +70,10 @@ import type { Button } from '../../utils/actions/index.js'
         const myButton = await $('#myButton')
         await myButton.click({ button: 2, x: 30, y: 40, skipRelease:true }) // skips sending releaseActions
     })
+    it('should click on the out side of element', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 2, x: 30, y: 40, enableOutsideClick:true }) // enable out side click of element
+    })
  * </example>
  *
  * @alias element.click
@@ -79,7 +83,8 @@ import type { Button } from '../../utils/actions/index.js'
  * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
- * @param {number=}           options.skipRelease         Boolean (optional)
+ * @param {boolean=}           options.skipRelease         Boolean (optional)
+ * @param {boolean=}           options.enableOutsideClick         Boolean (optional)
  */
 export async function click(
     this: WebdriverIO.Element,
@@ -97,7 +102,8 @@ export async function click(
     const {
         x: xOffset = 0,
         y: yOffset = 0,
-        skipRelease = false
+        skipRelease = false,
+        enableOutsideClick = false
     } = options || {}
 
     if (
@@ -124,11 +130,11 @@ export async function click(
     const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)
-        if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+        if (((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) && !enableOutsideClick) {
+            throw new Error('xOffset would cause a out of bounds error as it goes outside of element. You can use { enableOutsideClick: true } option to enable element outside click')
         }
-        if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
-            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+        if (((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) && !enableOutsideClick) {
+            throw new Error('yOffset would cause a out of bounds error as it goes outside of element. You can use { enableOutsideClick: true } option to enable element outside click')
         }
     }
     const clickNested = async () => {

@@ -423,7 +423,8 @@ export type ReactSelectorOptions = {
 
 export type MoveToOptions = {
     xOffset?: number,
-    yOffset?: number
+    yOffset?: number,
+    enableOutsideMove?: boolean
 }
 
 export type DragAndDropOptions = {
@@ -439,7 +440,8 @@ export type ClickOptions = {
     button?: number | string,
     x?: number,
     y?: number,
-    skipRelease?:boolean
+    skipRelease?:boolean,
+    enableOutsideClick?:boolean,
 }
 
 export type WaitForOptions = {
