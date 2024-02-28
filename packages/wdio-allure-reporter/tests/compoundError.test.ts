@@ -80,9 +80,9 @@ describe('CompoundError', () => {
         const lines = error.message.split('\n')
 
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
-        expect(lines[2]).toBe('   goodbye')
+        expect(lines[2]).toBe('    goodbye')
         expect(lines[3]).toBe('--- End of error message ---')
-        expect(lines[5]).toBe('   hello')
+        expect(lines[5]).toBe('    hello')
         expect(lines[6]).toBe('--- End of error message ---')
     })
 })
