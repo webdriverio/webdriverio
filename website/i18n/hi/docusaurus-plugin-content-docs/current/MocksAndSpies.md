@@ -3,7 +3,7 @@ id: mocksandspies
 title: नकली और जासूसों का अनुरोध करें
 ---
 
-WebdriverIO नेटवर्क प्रतिक्रियाओं को संशोधित करने के लिए अंतर्निहित समर्थन के साथ आता है जो आपको अपने बैकएंड या नकली सर्वर को सेटअप किए बिना अपने फ्रंटएंड एप्लिकेशन के परीक्षण पर ध्यान केंद्रित करने की अनुमति देता है। आप अपने परीक्षण में REST API अनुरोधों जैसे वेब संसाधनों के लिए कस्टम प्रतिक्रियाएँ परिभाषित कर सकते हैं और उन्हें गतिशील रूप से संशोधित कर सकते हैं।
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. आप अपने परीक्षण में REST API अनुरोधों जैसे वेब संसाधनों के लिए कस्टम प्रतिक्रियाएँ परिभाषित कर सकते हैं और उन्हें गतिशील रूप से संशोधित कर सकते हैं।
 
 :::info
 
@@ -38,9 +38,7 @@ const strictMock = await browser.mock('**', {
 एपीआई अनुरोधों को मॉक करने के लिए जहां आप JSON प्रतिक्रिया की अपेक्षा करते हैं, आपको बस इतना करना है कि मॉक ऑब्जेक्ट पर `respond` को कॉल करना है, जिसे आप वापस करना चाहते हैं, उदाहरण के लिए:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
