@@ -1,7 +1,9 @@
+import logger from '@wdio/logger'
+
 import { getBrowserObject } from '../../utils/index.js'
 import type { ClickOptions } from '../../types.js'
 import type { Button } from '../../utils/actions/index.js'
-import logger from '@wdio/logger'
+
 const log = logger('webdriver')
 /**
  *
@@ -126,10 +128,10 @@ export async function click(
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)
         if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
-            log.info('xOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('xOffset would cause a out of bounds error as it goes outside of element')
         }
         if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
-            log.info('yOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('yOffset would cause a out of bounds error as it goes outside of element')
         }
     }
     const clickNested = async () => {
