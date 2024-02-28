@@ -20,7 +20,6 @@ class Listener {
     private readonly usageStats: UsageStats = UsageStats.getInstance()
     private readonly testStartedStats: FeatureStats = this.usageStats.testStartedStats
     private readonly testFinishedStats: FeatureStats = this.usageStats.testFinishedStats
-    private testErrors: any = [];
     private readonly hookStartedStats: FeatureStats = this.usageStats.hookStartedStats
     private readonly hookFinishedStats: FeatureStats = this.usageStats.hookFinishedStats
     private readonly cbtSessionStats: FeatureStats = this.usageStats.cbtSessionStats
@@ -93,7 +92,6 @@ class Listener {
     public testFinished(testData: TestData): void {
         try {
             this.testFinishedStats.triggered(testData.result)
-            this.collectTestError(testData)
             this.sendBatchEvents(this.getEventForHook('TestRunFinished', testData))
         } catch (e) {
             this.testFinishedStats.failed(testData.result)
@@ -129,21 +127,9 @@ class Listener {
         this.sendBatchEvents(data)
     }
 
-    private collectTestError(testData: TestData) {
-        if (testData.result != "failed") {
-            return
-        }
-
-        this.testErrors.push({
-            name: testData.name,
-            error: testData.failure_reason,
-        })
-    }
-
     private saveWorkerData() {
         const data = {
             usageStats: this.usageStats.getDataToSave(),
-            testErrors: this.testErrors
         }
 
         // TODO: Remove after debugging

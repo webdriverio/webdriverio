@@ -97,7 +97,6 @@ class FunnelTestEvent {
         if (eventType === 'SDKTestSuccessful') {
             const workerData = this.getDataFromWorkers()
             eventProperties.productUsage = this.getProductUsage(workerData)
-            eventProperties.error = this.getTestErrors(workerData)
         }
 
         return {
@@ -114,17 +113,6 @@ class FunnelTestEvent {
         return {
             testObservability: UsageStats.getInstance().getFormattedData(workersData)
         }
-    }
-
-    private static getTestErrors(workersData: any[]) {
-        return []
-        const errors = []
-        workersData.map(workerData => {
-            errors.push({
-                ...workerData.cbtInfo,
-                "tests": workerData.testErrors
-            })
-        })
     }
 
     private static getLanguageFramework(framework?: string) {
