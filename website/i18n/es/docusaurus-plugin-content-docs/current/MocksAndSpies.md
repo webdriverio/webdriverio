@@ -3,7 +3,7 @@ id: mocksandspies
 title: Solicitar Mocks y Espías
 ---
 
-WebdriverIO viene con soporte incorporado para modificar las respuestas de la red que le permite concentrarse en probar su aplicación frontend sin tener que configurar su backend o un servidor simulado. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. Puede definir respuestas personalizadas para recursos web como solicitudes de API REST en su prueba y modificarlas dinámicamente.
 
 :::info
 
@@ -38,9 +38,7 @@ Una vez que haya definido una simulación, puede definir respuestas personalizad
 Para simular las solicitudes de API donde se espera una respuesta JSON todo lo que se necesita hacer es llamar a `responder` en el objeto simulado con un objeto arbitrario que se desea devolver, ej.:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
