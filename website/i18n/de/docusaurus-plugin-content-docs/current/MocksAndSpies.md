@@ -3,7 +3,7 @@ id: mocksandspies
 title: Request Mocks und Spione
 ---
 
-WebdriverIO verfügt über eine eingebaute Unterstützung zum Ändern von Netzwerkantworten, sodass Sie sich auf das Testen Ihrer Frontend-Anwendung konzentrieren können, ohne Ihr Backend oder einen Mock-Server einrichten zu müssen. Sie können benutzerdefinierte Antworten für Webressourcen wie REST-API-Requests in Ihrem Test definieren und dynamisch ändern.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. Sie können benutzerdefinierte Antworten für Webressourcen wie REST-API-Requests in Ihrem Test definieren und dynamisch ändern.
 
 :::info
 
