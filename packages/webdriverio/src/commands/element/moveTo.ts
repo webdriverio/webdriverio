@@ -1,5 +1,7 @@
 import { getBrowserObject } from '../../utils/index.js'
 import type { MoveToOptions } from '../../types.js'
+import logger from '@wdio/logger'
+const log = logger('webdriver')
 
 /**
  *
@@ -11,13 +13,13 @@ import type { MoveToOptions } from '../../types.js'
  * @param {MoveToOptions=} options          moveTo command options
  * @param {Number=}        options.xOffset  X offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
  * @param {Number=}        options.yOffset  Y offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
- * @param {Boolean=}        options.enableOutsideMove (Boolean optional)
+ *
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
 export async function moveTo (
     this: WebdriverIO.Element,
-    { xOffset, yOffset, enableOutsideMove = false }: MoveToOptions = {},
+    { xOffset, yOffset }: MoveToOptions = {},
 ) {
     /**
      * W3C way of handle the mouse move actions
@@ -25,11 +27,11 @@ export async function moveTo (
     const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)
-        if (((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) && !enableOutsideMove) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element. You can use { enableOutsideMove: true } option to enable element outside move')
+        if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
+            log.info('xOffset would cause a out of bounds error as it goes outside of element')
         }
-        if (((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) && !enableOutsideMove) {
-            throw new Error('yOffset would cause a out of bounds error as it goes outside of element. You can use { enableOutsideMove: true } option to enable element outside move')
+        if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
+            log.info('yOffset would cause a out of bounds error as it goes outside of element')
         }
     }
     const moveToNested = async () => {
