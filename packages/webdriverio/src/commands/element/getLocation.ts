@@ -5,6 +5,7 @@ export type Location = Pick<RectReturn, 'x' | 'y'>;
 
 export function getLocation (this: WebdriverIO.Element): Promise<Location>
 export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
+export function getLocation (this: WebdriverIO.Element, prop?: keyof Location): Promise<Location & number>
 
 /**
  *

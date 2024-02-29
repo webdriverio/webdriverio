@@ -188,7 +188,8 @@ The service allows you to emulate a specific device type. If set, the browser vi
 
 ```js
 await browser.emulateDevice('iPhone X')
-// or `browser.emulateDevice('iPhone X', true)` if you want to be in landscape mode
+// or `browser.emulateDevice('iPhone X', { inLandscape: true })` if you want to be in landscape mode
+// or `browser.emulateDevice('iPhone X', { osVersion: "15.0" })` if you want to use emulated device with custom OS version
 ```
 
 Available predefined device profiles are: `Blackberry PlayBook`, `BlackBerry Z30`, `Galaxy Note 3`, `Galaxy Note II`, `Galaxy S III`, `Galaxy S5`, `iPad`, `iPad Mini`, `iPad Pro`, `iPhone 4`, `iPhone 5`, `iPhone 6`, `iPhone 6 Plus`, `iPhone 7`, `iPhone 7 Plus`, `iPhone 8`, `iPhone 8 Plus`, `iPhone SE`, `iPhone X`, `JioPhone 2`,
