@@ -158,13 +158,13 @@ export const config = {
 
 ## Ejecutar una prueba específica varias veces
 
-Se trata de ayudar a evitar que se introduzcan pruebas falsas en una base de código. Añadiendo la opción de cli `--multi-run` ejecutará la(s) prueba(s) especificada(s) o suite(s) x número de veces. Al usar esta bandera cli la bandera `--spec` o `--suite` también debe ser especificada.
+Se trata de ayudar a evitar que se introduzcan pruebas falsas en una base de código. By adding the `--repeat` cli option it will run the specified specs or suites N times. Al usar esta bandera cli la bandera `--spec` o `--suite` también debe ser especificada.
 
-When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Este error podría provenir de una serie de asuntos como problemas de red, carga del servidor, tamaño de la base de datos, etc. Utilizando la bandera `--multi-run` en su proceso de CD/CD puede ayudar a capturar estas pruebas defectuosas antes de que se fusionen en una base de código principal.
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Este error podría provenir de una serie de asuntos como problemas de red, carga del servidor, tamaño de la base de datos, etc. Using the `--repeat` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--multi-run` so it runs the new test x number of times. Si la prueba falla cualquiera de esas veces, la prueba no se fusionará y tendrá que ser examinada por qué falló.
+One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--repeat` so it runs the new test x number of times. Si la prueba falla cualquiera de esas veces, la prueba no se fusionará y tendrá que ser examinada por qué falló.
 
 ```sh
 # This will run the example.e2e.js spec 5 times
-npx wdio run ./wdio.conf.js --spec example.e2e.js --multi-run 5
+npx wdio run ./wdio.conf.js --spec example.e2e.js --repeat 5
 ```
