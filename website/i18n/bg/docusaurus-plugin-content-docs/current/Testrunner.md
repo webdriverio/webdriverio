@@ -112,7 +112,7 @@ Options:
 --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
 --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
                         run the specs                                   [string]
---reporters, -r       reporters to print out the results on stdout     [array]
+--reporters, -r       reporters to print out the results on stdout      [array]
 --suite               overwrites the specs attribute and runs the defined
                         suite                                            [array]
 --spec                run only a certain spec file - overrides specs piped
