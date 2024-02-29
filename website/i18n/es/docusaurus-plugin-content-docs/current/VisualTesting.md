@@ -6,16 +6,16 @@ title: Visual Testing
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## What can it do?
+## ¿Qué puede hacer?
 
-WebdriverIO provides image comparisons on screens, elements or a full-page for
+WebdriverIO proporciona comparaciones de imágenes en pantallas, elementos o una página completa para
 
-- 🖥️ Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
-- 📱 Mobile / Tablet browsers (Chrome on Android emulators / Safari on iOS Simulators / Simulators / real devices) via Appium
-- 📱 Native Apps (Android emulators / iOS Simulators / real devices) via Appium (🌟 **NEW** 🌟)
-- 📳 Hybrid apps via Appium
+- 🖥️ Navegadores de escritorio (Chrome / Firefox / Safari / Microsoft Edge)
+- 📱 Navegadores móviles / Tablet (Chrome en emuladores Android / Safari en simuladores de iOS / simuladores / dispositivos reales) a través de Appium
+- 📱 Apps nativas (emuladores Android / simuladores iOS / dispositivos reales) a través de Appium (🌟 __NEW__🌟)
+- 📳 Aplicaciones hibridas vía Appium
 
-through the [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) which is a lightweight WebdriverIO service.
+a través del [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) que es un servicio ligero de WebdriverIO.
 
 This allows you to:
 
