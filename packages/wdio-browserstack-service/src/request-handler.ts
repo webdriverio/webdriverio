@@ -34,7 +34,7 @@ export default class RequestQueueHandler {
         const shouldProceed = this.shouldProceed()
         if (shouldProceed) {
             this.sendBatch().catch((e) => {
-                BStackLogger.debug("Exception in sending batch: " + e)
+                BStackLogger.debug('Exception in sending batch: ' + e)
             })
         }
     }

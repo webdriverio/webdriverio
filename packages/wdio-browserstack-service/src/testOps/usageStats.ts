@@ -2,7 +2,7 @@ import FeatureStats from './featureStats.js'
 import FeatureUsage from './featureUsage.js'
 import { BStackLogger } from '../bstackLogger.js'
 import TestOpsConfig from './testOpsConfig.js'
-import {TOUsageStats} from "../types.js";
+import type { TOUsageStats } from '../types.js'
 
 class UsageStats {
     public static instance: UsageStats
@@ -71,11 +71,11 @@ class UsageStats {
                     const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
                     this.add(usageStatsForWorker)
                 } catch (e) {
-                    BStackLogger.debug("Exception in adding workerData: " + e)
+                    BStackLogger.debug('Exception in adding workerData: ' + e)
                 }
             })
         } catch (e) {
-            BStackLogger.debug("Exception in adding data from workers: " + e)
+            BStackLogger.debug('Exception in adding data from workers: ' + e)
         }
     }
 

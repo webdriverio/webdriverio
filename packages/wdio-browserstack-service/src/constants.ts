@@ -68,4 +68,4 @@ export const LOG_KIND_USAGE_MAP = {
     'HTTP': 'http'
 }
 
-export const FUNNEL_INSTRUMENTATION_URL = "https://api.browserstack.com/sdk/v1/event"
+export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'

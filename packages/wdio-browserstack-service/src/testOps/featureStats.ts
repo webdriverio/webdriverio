@@ -1,6 +1,6 @@
 import { BStackLogger } from '../bstackLogger.js'
-import {FeatureStatsOverview} from "../types.js";
-import {isObjectEmpty} from "../util.js";
+import type { FeatureStatsOverview } from '../types.js'
+import { isObjectEmpty } from '../util.js'
 
 interface FeatureStatsMap {
     [groupId: string]: FeatureStats;

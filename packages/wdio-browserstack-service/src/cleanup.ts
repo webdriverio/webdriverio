@@ -29,7 +29,7 @@ export default class BStackCleanup {
                 BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
             }
         } catch (e: unknown) {
-            BStackLogger.error("Error in stopping Observability build: " + e)
+            BStackLogger.error('Error in stopping Observability build: ' + e)
         }
     }
 
@@ -47,7 +47,7 @@ export default class BStackCleanup {
             await FunnelTestEvent.fireRequest(data)
             BStackLogger.debug('Funnel data sent successfully from cleanup')
         } catch (e: unknown) {
-            BStackLogger.error("Error in sending funnel data: " + e)
+            BStackLogger.error('Error in sending funnel data: ' + e)
         } finally {
             this.removeFunnelDataFile(filePath)
         }
@@ -57,7 +57,7 @@ export default class BStackCleanup {
         if (!filePath) {
             return
         }
-        fs.rmSync(filePath, {force: true})
+        fs.rmSync(filePath, { force: true })
     }
 }
 

@@ -4,10 +4,10 @@ import path from 'node:path'
 import fs from 'node:fs'
 import got from 'got'
 import UsageStats from '../testOps/usageStats.js'
-import {BStackLogger} from '../bstackLogger.js'
+import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import {BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL} from '../constants.js'
-import DataStore from "../data-store.js";
+import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import DataStore from '../data-store.js'
 
 class FunnelTestEvent {
     static workersDataDirPath = path.join(process.cwd(), 'logs', 'worker_data')
@@ -47,7 +47,7 @@ class FunnelTestEvent {
 
     // Called from two different process
     public static async fireRequest(data: any): Promise<void> {
-        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, {depth: 6}))
+        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
         await got.post(FUNNEL_INSTRUMENTATION_URL, {
             headers: {
                 'content-type': 'application/json'

@@ -2,7 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import * as util from 'node:util'
 
-import {BStackLogger} from "./bstackLogger.js"
+import { BStackLogger } from './bstackLogger.js'
 
 class DataStore {
     static workersDataDirPath = path.join(process.cwd(), 'logs', 'worker_data')
@@ -31,7 +31,7 @@ class DataStore {
 
     public static saveWorkerData(data: Record<string, object>) {
         // TODO: Remove after debugging
-        BStackLogger.debug(`data from worker is ${util.inspect(data, {depth: 6})}`)
+        BStackLogger.debug(`data from worker is ${util.inspect(data, { depth: 6 })}`)
 
         const filePath = path.join(this.workersDataDirPath, 'worker-data-' + process.pid + '.json')
 
@@ -46,7 +46,7 @@ class DataStore {
 
     private static createWorkersDataDir() {
         if (!fs.existsSync(this.workersDataDirPath)) {
-            fs.mkdirSync(this.workersDataDirPath, {recursive: true})
+            fs.mkdirSync(this.workersDataDirPath, { recursive: true })
         }
         return true
     }

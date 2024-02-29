@@ -1,6 +1,7 @@
 import type { AppConfig, BrowserstackConfig } from './types.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from './testOps/testOpsConfig.js'
+import { isUndefined } from './util.js'
 
 class BrowserStackConfig {
     static getInstance(options?: BrowserstackConfig & Options.Testrunner, config?: Options.Testrunner): BrowserStackConfig {
@@ -28,12 +29,12 @@ class BrowserStackConfig {
         this.framework = config.framework
         this.userName = config.user
         this.accessKey = config.key
-        this.testObservability = new TestOpsConfig(options.testObservability !== false, options.testObservability != null)
+        this.testObservability = new TestOpsConfig(options.testObservability !== false, !isUndefined(options.testObservability))
         this.percy = options.percy || false
         this.accessibility = options.accessibility || false
         this.app = options.app
-        this.appAutomate = options.app != undefined
-        this.automate = options.app == undefined
+        this.appAutomate = isUndefined(options.app)
+        this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
     }
 

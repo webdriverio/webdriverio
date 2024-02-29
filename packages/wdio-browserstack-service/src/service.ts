@@ -21,8 +21,8 @@ import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
-import DataStore from "./data-store.js";
-import UsageStats from "./testOps/usageStats.js";
+import DataStore from './data-store.js'
+import UsageStats from './testOps/usageStats.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -535,7 +535,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 usageStats: UsageStats.getInstance().getDataToSave(),
             })
         } catch (e) {
-            BStackLogger.debug("Exception in saving worker data: " + e)
+            BStackLogger.debug('Exception in saving worker data: ' + e)
         }
     }
 }

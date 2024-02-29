@@ -1,17 +1,16 @@
 import UsageStats from './usageStats.js'
 import type FeatureStats from './featureStats.js'
 import RequestQueueHandler from '../request-handler.js'
-import type {CBTData, LogData, ScreenshotLog, TestData, UploadType} from '../types.js'
-import {batchAndPostEvents, sleep} from '../util.js'
+import type { CBTData, LogData, ScreenshotLog, TestData, UploadType } from '../types.js'
+import { batchAndPostEvents, sleep } from '../util.js'
 import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
     DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
     LOG_KIND_USAGE_MAP
 } from '../constants.js'
-import {sendScreenshots} from './requestUtils.js'
-import {BStackLogger} from '../bstackLogger.js'
-
+import { sendScreenshots } from './requestUtils.js'
+import { BStackLogger } from '../bstackLogger.js'
 
 class Listener {
     private static instance: Listener
@@ -39,7 +38,7 @@ class Listener {
             await this.uploadPending()
             await this.teardown()
         } catch (e) {
-            BStackLogger.debug("Exception in onWorkerEnd: " + e)
+            BStackLogger.debug('Exception in onWorkerEnd: ' + e)
         }
     }
 
@@ -127,13 +126,12 @@ class Listener {
     public cbtSessionCreated(data: CBTData): void {
         try {
             this.cbtSessionStats.triggered()
-            this.sendBatchEvents({event_type: 'CBTSessionCreated', test_run: data})
+            this.sendBatchEvents({ event_type: 'CBTSessionCreated', test_run: data })
         } catch (e) {
             this.cbtSessionStats.failed()
             throw e
         }
     }
-
 
     private markLogs(status: string, data: LogData[]): void {
         try {
