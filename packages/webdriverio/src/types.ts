@@ -18,45 +18,10 @@ type $ElementCommands = typeof ElementCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
-    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ThenArg<ReturnType<$ElementCommands[K]>>>
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => Awaited<ThenArg<ReturnType<$ElementCommands[K]>>>
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => Awaited<ThenArg<ReturnType<$ElementCommands[K]>>>
 }
-
-type AsyncElementProto = {
-    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
-} & ChainablePrototype
-
-interface ChainablePromiseBaseElement {
-    /**
-     * WebDriver element reference
-     */
-    elementId: Promise<string>
-    /**
-     * parent of the element if fetched via `$(parent).$(child)`
-     */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
-    /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a functin if element was found via e.g. `$(() => document.body)`
-     */
-    selector: Promise<Selector>
-    /**
-     * Error message in case element fetch was not successful
-     */
-    error?: Promise<Error>
-    /**
-     * index of the element if fetched with `$$`
-     */
-    index?: Promise<number>
-}
-export interface ChainablePromiseElement<T> extends
-    ChainablePromiseBaseElement,
-    AsyncElementProto,
-    Promise<T>,
-    Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
 
 interface AsyncIterators<T> {
     /**
@@ -77,30 +42,6 @@ interface AsyncIterators<T> {
     filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
-}
-
-export interface ChainablePromiseArray<T> extends Promise<T>, AsyncIterators<T> {
-    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
-
-    /**
-     * Amount of element fetched.
-     */
-    length: Promise<number>
-    /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
-     */
-    selector: Promise<Selector>
-    /**
-     * parent of the element if fetched via `$(parent).$(child)`
-     */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
-    /**
-     * allow to access a specific index of the element set
-     */
-    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype

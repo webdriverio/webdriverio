@@ -1,6 +1,5 @@
 import type { BaseActionParams } from './base.js'
 import BaseAction from './base.js'
-import type { ChainablePromiseElement } from '../../types.js'
 
 export interface ScrollParams {
     /**
@@ -22,7 +21,7 @@ export interface ScrollParams {
     /**
      * element origin
      */
-    origin?: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element>
+    origin?: Awaited<WebdriverIO.Element>
     /**
      * duration ratio be the ratio of time delta and duration
      */
