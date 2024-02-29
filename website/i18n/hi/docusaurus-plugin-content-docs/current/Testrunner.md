@@ -112,14 +112,14 @@ wdio run ./wdio.conf.js --watch
 --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
 --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
                         run the specs                                   [string]
---reporters, -r       reporters to print out the results on stdout     [array]
+--reporters, -r       reporters to print out the results on stdout      [array]
 --suite               overwrites the specs attribute and runs the defined
                         suite                                            [array]
 --spec                run only a certain spec file - overrides specs piped
                         from stdin                                       [array]
 --exclude             exclude spec file(s) from a run - overrides specs piped
                         from stdin                                       [array]
---multi-run           Run one or more specs x amount of times            [number]
+--repeat              Repeat specific specs and/or suites N times        [number]
 --mochaOpts           Mocha options
 --jasmineOpts         Jasmine options
 --cucumberOpts        Cucumber options
