@@ -84,7 +84,7 @@ const log = logger('webdriver')
  * @param {number=}           options.y      Number (optional)
  * @param {boolean=}           options.skipRelease         Boolean (optional)
  */
-export async function click(
+export function click(
     this: WebdriverIO.Element,
     options?: Partial<ClickOptions>
 ) {
