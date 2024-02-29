@@ -156,7 +156,6 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             .perform(skipRelease)
     }
     try {
-        // this is the alternative click behaviour when we pass in an options object
         return clickNested()
     } catch {
         await workaround(element)
