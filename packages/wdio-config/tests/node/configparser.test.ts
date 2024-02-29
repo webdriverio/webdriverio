@@ -853,12 +853,26 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(1)
         })
 
-        it('should include specs from suite 3 times with mulit-run', async () => {
+        it('should include specs from suite 3 times with multi-run', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['functional'], multiRun: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
+        })
+
+        it('should repeat specs in specific order to fail early', async () => {
+            const spec1 = path.resolve(__dirname, '../utils.test.ts')
+            const spec2 = path.resolve(__dirname, 'configparser.test.ts')
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ spec: [spec1, spec2], multiRun: 3 })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toEqual([
+                spec1, spec2,
+                spec1, spec2,
+                spec1, spec2,
+            ])
         })
 
         it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
