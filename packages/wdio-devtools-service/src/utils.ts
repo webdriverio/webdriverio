@@ -1,5 +1,5 @@
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
-import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
+import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
 import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 
 import ChromeProtocol from './lighthouse/cri.js'

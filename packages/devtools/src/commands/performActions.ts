@@ -1,6 +1,6 @@
 import type { KeyInput } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
 import { _keyDefinitions } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/esm/puppeteer/common/Input.js'
+import type { Keyboard, Mouse } from 'puppeteer-core/lib/esm/puppeteer/api/Input.js'
 
 import getElementRect from './getElementRect.js'
 import getWindowRect from './getWindowRect.js'

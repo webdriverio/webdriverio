@@ -38,9 +38,7 @@ Sobald Sie einen Mock definiert haben, können Sie benutzerdefinierte Responses 
 Um API-Anfragen zu simulieren, bei denen Sie eine JSON-Antwort erwarten, müssen Sie lediglich `respond` für das Mock-Objekt mit einem beliebigen Objekt aufrufen, das Sie zurückgeben möchten, z.B.:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 

@@ -20,7 +20,7 @@ export default async function getElementProperty (
         throw getStaleElementError(elementId)
     }
 
-    const jsHandle = await elementHandle.getProperty(name)
+    const jsHandle = await elementHandle.getProperty(name as any)
     if (!jsHandle) {
         return null
     }

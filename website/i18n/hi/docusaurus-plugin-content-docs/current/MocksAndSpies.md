@@ -38,9 +38,7 @@ const strictMock = await browser.mock('**', {
 एपीआई अनुरोधों को मॉक करने के लिए जहां आप JSON प्रतिक्रिया की अपेक्षा करते हैं, आपको बस इतना करना है कि मॉक ऑब्जेक्ट पर `respond` को कॉल करना है, जिसे आप वापस करना चाहते हैं, उदाहरण के लिए:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 

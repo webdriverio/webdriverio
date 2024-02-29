@@ -19,7 +19,7 @@ import { clean, getResults, mapBy } from './helpers/wdio-allure-helper'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
-    testFailed, testPending, testStart, testFailedWithMultipleErrors,
+    testFailed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithMultipleErrorsAndStacksNotContainingMessages,
     hookStart, hookFailed,
     testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart
 } from './__fixtures__/testState.js'
@@ -319,6 +319,38 @@ describe('Failed tests', () => {
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
         expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
         expect(lines[5].trim()).toBe('InternalError: Abandon Hope')
+    })
+
+    it('should detect failed test case with multiple errors whose stacks do not contain error messages', () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
+
+        runnerEvent.config.framework = 'jasmine'
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestFail(testFailedWithMultipleErrorsAndStacksNotContainingMessages())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.FAILED)
+
+        const { message } = results[0].statusDetails
+        const lines = message.split('\n')
+
+        expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
+        expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
+        expect(lines[4].trim()).toBe('stack trace of ReferenceError')
+        expect(lines[7].trim()).toBe('InternalError: Abandon Hope')
+        expect(lines[9].trim()).toBe('stack trace of InternalError')
     })
 
     it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {
