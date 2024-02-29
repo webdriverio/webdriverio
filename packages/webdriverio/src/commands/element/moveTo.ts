@@ -1,9 +1,9 @@
-import { getBrowserObject } from '../../utils/index.js'
+import logger from '@wdio/logger'
 
-type MoveToOptions = {
-    xOffset?: number,
-    yOffset?: number,
-}
+import { getBrowserObject } from '../../utils/index.js'
+import type { MoveToOptions } from '../../types.js'
+
+const log = logger('webdriver')
 
 /**
  *
@@ -33,10 +33,10 @@ export async function moveTo (
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)
         if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('xOffset would cause a out of bounds error as it goes outside of element')
         }
         if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
-            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('yOffset would cause a out of bounds error as it goes outside of element')
         }
     }
     const moveToNested = async () => {
