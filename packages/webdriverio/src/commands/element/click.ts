@@ -83,17 +83,42 @@ import type { ClickOptions } from '../../types.js'
  */
 export async function click(
     this: WebdriverIO.Element,
-    options: Partial<ClickOptions> = {}
+    options?: Partial<ClickOptions>
 ) {
+    if (typeof options !== 'undefined') {
+        if (typeof options !== 'object' || Array.isArray(options)) {
+            throw new TypeError('Options must be an object')
+        }
+        return actionClick(this, options)
+    }
+
+    return elementClick(this)
+}
+
+/**
+* Workaround function, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+* Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+* and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+*/
+async function workaround(element: WebdriverIO.Element) {
+    await element.scrollIntoView({ block: 'center', inline: 'center' })
+}
+
+async function elementClick(element: WebdriverIO.Element) {
+    try {
+        return element.elementClick(element.elementId)
+    } catch {
+        await workaround(element)
+        return element.elementClick(element.elementId)
+    }
+}
+
+async function actionClick(element: WebdriverIO.Element, options: Partial<ClickOptions>) {
     const defaultOptions: ClickOptions = {
         button: 0,
         x: 0,
         y: 0,
         skipRelease: false,
-    }
-
-    if (typeof options !== 'object' || Array.isArray(options)) {
-        throw new TypeError('Options must be an object')
     }
 
     const { button, x, y, skipRelease }: ClickOptions = { ...defaultOptions, ...options }
@@ -111,9 +136,9 @@ export async function click(
         throw Error('Button type not supported.')
     }
 
-    const browser = getBrowserObject(this)
+    const browser = getBrowserObject(element)
     if (x || y) {
-        const { width, height } = await browser.getElementRect(this.elementId)
+        const { width, height } = await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
             throw Error(`{ x: ${x} } would cause an out of bounds error as it goes outside of element`)
         }
@@ -125,20 +150,16 @@ export async function click(
         await browser.action('pointer', {
             parameters: { pointerType: 'mouse' }
         })
-            .move({ origin: this, x, y })
+            .move({ origin: element, x, y })
             .down({ button })
             .up({ button })
             .perform(skipRelease)
     }
     try {
-        await clickNested()
+        // this is the alternative click behaviour when we pass in an options object
+        return clickNested()
     } catch {
-        /**
-        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
-        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
-        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
-        */
-        await this.scrollIntoView({ block: 'center', inline: 'center' })
-        await clickNested()
+        await workaround(element)
+        return clickNested()
     }
 }
