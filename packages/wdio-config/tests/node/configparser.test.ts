@@ -1,5 +1,5 @@
 import url from 'node:url'
-import path, { resolve } from 'node:path'
+import path from 'node:path'
 
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
@@ -862,8 +862,8 @@ describe('ConfigParser', () => {
         })
 
         it('should repeat specs in specific order to fail early', async () => {
-            const spec1 = resolve(__dirname, '../utils.test.ts')
-            const spec2 = resolve(__dirname, 'configparser.test.ts')
+            const spec1 = path.resolve(__dirname, '../utils.test.ts')
+            const spec2 = path.resolve(__dirname, 'configparser.test.ts')
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ spec: [spec1, spec2], repeat: 3 })
 
