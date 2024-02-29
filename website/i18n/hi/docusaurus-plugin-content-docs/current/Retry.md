@@ -158,13 +158,13 @@ export const config = {
 
 ## एक विशिष्ट परीक्षण कई बार चलाएं
 
-यह परतदार परीक्षणों को कोडबेस में पेश होने से रोकने में मदद करने के लिए है। `--multi-run` cli विकल्प जोड़कर यह निर्दिष्ट परीक्षण(ओं) या सुइट(रों) को x संख्या में चलाएगा। इस cli फ़्लैग का उपयोग करते समय `--spec` या `--suite` फ़्लैग को भी निर्दिष्ट किया जाना चाहिए।
+यह परतदार परीक्षणों को कोडबेस में पेश होने से रोकने में मदद करने के लिए है। By adding the `--repeat` cli option it will run the specified specs or suites N times. इस cli फ़्लैग का उपयोग करते समय `--spec` या `--suite` फ़्लैग को भी निर्दिष्ट किया जाना चाहिए।
 
-When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. यह चंचलता कई चीजों से आ सकती है जैसे नेटवर्क समस्याएँ, सर्वर लोड, डेटाबेस आकार, आदि। आपकी सीडी/सीडी प्रक्रिया में `--multi-run` फ़्लैग का उपयोग करने से इन परतदार परीक्षणों को पकड़ने में मदद मिल सकती है, इससे पहले कि वे एक मुख्य कोडबेस में विलय हो जाएँ।
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. यह चंचलता कई चीजों से आ सकती है जैसे नेटवर्क समस्याएँ, सर्वर लोड, डेटाबेस आकार, आदि। Using the `--repeat` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--multi-run` so it runs the new test x number of times. यदि परीक्षण उनमें से किसी भी समय विफल रहता है तो परीक्षण विलय नहीं होगा और यह देखने की आवश्यकता होगी कि यह विफल क्यों हुआ।
+One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--repeat` so it runs the new test x number of times. यदि परीक्षण उनमें से किसी भी समय विफल रहता है तो परीक्षण विलय नहीं होगा और यह देखने की आवश्यकता होगी कि यह विफल क्यों हुआ।
 
 ```sh
 # This will run the example.e2e.js spec 5 times
-npx wdio run ./wdio.conf.js --spec example.e2e.js --multi-run 5
+npx wdio run ./wdio.conf.js --spec example.e2e.js --repeat 5
 ```
