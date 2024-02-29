@@ -832,9 +832,9 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
-        it('should include spec 3 times with mulit-run', async () => {
+        it('should repeat spec 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec: [INDEX_PATH], multiRun: 3 })
+            await configParser.initialize({ spec: [INDEX_PATH], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
@@ -853,19 +853,33 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(1)
         })
 
-        it('should include specs from suite 3 times with mulit-run', async () => {
+        it('should repeat specs from suite 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ suite: ['functional'], multiRun: 3 })
+            await configParser.initialize({ suite: ['functional'], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
         })
 
-        it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
+        it('should repeat specs in specific order to fail early', async () => {
+            const spec1 = path.resolve(__dirname, '../utils.test.ts')
+            const spec2 = path.resolve(__dirname, 'configparser.test.ts')
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ multiRun: 3 })
+            await configParser.initialize({ spec: [spec1, spec2], repeat: 3 })
 
-            expect(() => configParser.getSpecs()).toThrow('The --multi-run flag requires that either the --spec or --suite flag is also set')
+            const specs = configParser.getSpecs()
+            expect(specs).toEqual([
+                spec1, spec2,
+                spec1, spec2,
+                spec1, spec2,
+            ])
+        })
+
+        it('should throw an error if repeat is set but no spec or suite is specified', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ repeat: 3 })
+
+            expect(() => configParser.getSpecs()).toThrow('The --repeat flag requires that either the --spec or --suite flag is also set')
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {
