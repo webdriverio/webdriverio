@@ -1,19 +1,17 @@
 import UsageStats from './usageStats.js'
 import type FeatureStats from './featureStats.js'
 import RequestQueueHandler from '../request-handler.js'
-import type { LogData, ScreenshotLog, TestData, UploadType } from '../types.js'
-import { batchAndPostEvents, sleep } from '../util.js'
+import type {CBTData, LogData, ScreenshotLog, TestData, UploadType} from '../types.js'
+import {batchAndPostEvents, sleep} from '../util.js'
 import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
     DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
     LOG_KIND_USAGE_MAP
 } from '../constants.js'
-import { sendScreenshots } from './requestUtils.js'
-import { BStackLogger } from '../bstackLogger.js'
-import * as util from 'node:util'
-import fs from 'node:fs'
-import path from 'node:path'
+import {sendScreenshots} from './requestUtils.js'
+import {BStackLogger} from '../bstackLogger.js'
+
 
 class Listener {
     private static instance: Listener
@@ -37,14 +35,16 @@ class Listener {
     }
 
     public async onWorkerEnd() {
-        await this.uploadPending()
-        await this.teardown()
-        this.saveWorkerData()
+        try {
+            await this.uploadPending()
+            await this.teardown()
+        } catch (e) {
+            BStackLogger.debug("Exception in onWorkerEnd: " + e)
+        }
     }
 
     async uploadPending(waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS, waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS): Promise<unknown> {
-        // @ts-ignore
-        if (this.requestBatcher?.pendingUploads <= 0 || waitTimeout <= 0) { // TODO: remove ts-ignore
+        if ((this.requestBatcher && this.requestBatcher.pendingUploads <= 0) || waitTimeout <= 0) {
             return
         }
 
@@ -100,18 +100,20 @@ class Listener {
     }
 
     public logCreated(logs: LogData[]): void {
-        this.markLogs('triggered', logs)
-        this.sendBatchEvents({
-            event_type: 'LogCreated', logs: logs
-        })
+        try {
+            this.markLogs('triggered', logs)
+            this.sendBatchEvents({
+                event_type: 'LogCreated', logs: logs
+            })
+        } catch (e) {
+            this.markLogs('failed', logs)
+            throw e
+        }
     }
 
     public async onScreenshot(jsonArray: ScreenshotLog[]) {
         try {
             this.markLogs('triggered', jsonArray)
-            // await uploadEventData([{
-            //     event_type: 'LogCreated', logs: jsonArray
-            // }], DATA_SCREENSHOT_ENDPOINT)
             await sendScreenshots([{
                 event_type: 'LogCreated', logs: jsonArray
             }])
@@ -122,27 +124,16 @@ class Listener {
         }
     }
 
-    public cbtSessionCreated(data: any): void { // TODO: jsonArray any type
-        this.cbtSessionStats.triggered()
-        this.sendBatchEvents(data)
+    public cbtSessionCreated(data: CBTData): void {
+        try {
+            this.cbtSessionStats.triggered()
+            this.sendBatchEvents({event_type: 'CBTSessionCreated', test_run: data})
+        } catch (e) {
+            this.cbtSessionStats.failed()
+            throw e
+        }
     }
 
-    private saveWorkerData() {
-        const data = {
-            usageStats: this.usageStats.getDataToSave(),
-        }
-
-        // TODO: Remove after debugging
-        BStackLogger.debug(`data from worker is ${util.inspect(data, { depth: 6 })}`)
-
-        const logFolderPath = path.join(process.cwd(), 'logs', 'worker_data')
-        const filePath = path.join(logFolderPath, 'worker-data-' + process.pid + '.json')
-
-        if (!fs.existsSync(logFolderPath)) {
-            fs.mkdirSync(logFolderPath, { recursive: true })
-        }
-        fs.writeFileSync(filePath, JSON.stringify(data))
-    }
 
     private markLogs(status: string, data: LogData[]): void {
         try {
@@ -159,7 +150,7 @@ class Listener {
     private getResult(jsonObject: UploadType, kind: string): string | undefined {
         const runStr = kind === 'test' ? 'test_run' : 'hook_run'
         const runData = jsonObject[runStr]
-        return runData?.result
+        return (runData as TestData)?.result
     }
 
     private sendBatchEvents(jsonObject: UploadType): void {

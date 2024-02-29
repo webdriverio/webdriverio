@@ -11,15 +11,13 @@ const log = logger('@wdio/browserstack-service')
 
 export class BStackLogger {
     public static logFilePath = path.join(process.cwd(), LOGS_FILE)
-    private static logFolderPath = path.join(process.cwd(), 'logs')
+    public static logFolderPath = path.join(process.cwd(), 'logs')
     private static logFileStream: fs.WriteStream | null
 
     static logToFile(logMessage: string, logLevel: string) {
         try {
             if (!this.logFileStream) {
-                if (!fs.existsSync(this.logFolderPath)){
-                    fs.mkdirSync(this.logFolderPath)
-                }
+                this.ensureLogsFolder()
                 this.logFileStream = fs.createWriteStream(this.logFilePath, { flags: 'a' })
             }
             if (this.logFileStream && this.logFileStream.writable) {
@@ -73,6 +71,12 @@ export class BStackLogger {
     public static clearLogFile() {
         if (fs.existsSync(this.logFilePath)) {
             fs.truncateSync(this.logFilePath)
+        }
+    }
+
+    public static ensureLogsFolder() {
+        if (!fs.existsSync(this.logFolderPath)){
+            fs.mkdirSync(this.logFolderPath)
         }
     }
 }

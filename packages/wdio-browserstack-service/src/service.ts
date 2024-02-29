@@ -21,6 +21,8 @@ import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
+import DataStore from "./data-store.js";
+import UsageStats from "./testOps/usageStats.js";
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -282,6 +284,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
+        this.saveWorkerData()
 
         if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
@@ -524,5 +527,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return (await this._browser.execute<T, []>(script))
+    }
+
+    private saveWorkerData() {
+        try {
+            DataStore.saveWorkerData({
+                usageStats: UsageStats.getInstance().getDataToSave(),
+            })
+        } catch (e) {
+            BStackLogger.debug("Exception in saving worker data: " + e)
+        }
     }
 }

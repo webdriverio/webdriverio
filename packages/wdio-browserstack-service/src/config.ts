@@ -28,12 +28,12 @@ class BrowserStackConfig {
         this.framework = config.framework
         this.userName = config.user
         this.accessKey = config.key
-        this.testObservability = new TestOpsConfig(options.testObservability !== false, (options.testObservability !== undefined || options.testObservability !== null))
+        this.testObservability = new TestOpsConfig(options.testObservability !== false, options.testObservability != null)
         this.percy = options.percy || false
         this.accessibility = options.accessibility || false
         this.app = options.app
-        this.appAutomate = options.app !== undefined //  TODO: Need to check capabilities to check if any of it is app automate
-        this.automate = options.app === undefined // TODO: Check logic
+        this.appAutomate = options.app != undefined
+        this.automate = options.app == undefined
         this.buildIdentifier = options.buildIdentifier
     }
 

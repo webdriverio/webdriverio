@@ -1,7 +1,15 @@
 import { BStackLogger } from '../bstackLogger.js'
+import {FeatureStatsOverview} from "../types.js";
+import {isObjectEmpty} from "../util.js";
 
 interface FeatureStatsMap {
     [groupId: string]: FeatureStats;
+}
+
+interface JSONConversionSettings {
+    omitGroups?: boolean
+    onlyGroups?: boolean
+    nestedGroups?: boolean
 }
 
 class FeatureStats {
@@ -43,8 +51,6 @@ class FeatureStats {
     }
 
     public failed(groupId?: string): void {
-        BStackLogger.debug('')
-
         this.failedCount += 1
         if (groupId) {
             this.createGroup(groupId).failed()
@@ -78,7 +84,7 @@ class FeatureStats {
         return this.groups[groupId] || new FeatureStats()
     }
 
-    public getOverview(): { triggeredCount: number, sentCount: number, failedCount: number } {
+    public getOverview(): FeatureStatsOverview {
         return { triggeredCount: this.triggeredCount, sentCount: this.sentCount, failedCount: this.failedCount }
     }
 
@@ -99,16 +105,17 @@ class FeatureStats {
     // omitGroups: true/false -> Include groups or not
     // onlyGroups: true/false -> data includes only groups
     // nestedGroups: true/false -> groups will be nested in groups if true
-    public toJSON(config: any = {}) { // # TODO: remove any
-        const overviewData: any = !config.onlyGroups ? { // TODO
+    public toJSON(config: JSONConversionSettings = {}) { // # TODO: remove any
+        const overviewData: FeatureStatsOverview|Record<string, never> = !config.onlyGroups ? { // TODO
             triggeredCount: this.triggeredCount,
             sentCount: this.sentCount,
             failedCount: this.failedCount
         } : {}
-        const groupsData: any = {}
+
+        const groupsData: Record<string, FeatureStatsOverview> = {}
         if (!config.omitGroups) {
             Object.entries(this.groups).forEach(([groupId, group]) => {
-                groupsData[groupId] = group.toJSON()
+                groupsData[groupId] = (group.toJSON() as FeatureStatsOverview) // Currently Nested groups are only overviews
             })
         }
         const group = config.nestedGroups ? { groups: groupsData } : groupsData
@@ -123,7 +130,7 @@ class FeatureStats {
     public static fromJSON(json: any): FeatureStats {
         const stats = new FeatureStats()
 
-        if (!json) {
+        if (!json || isObjectEmpty(json)) {
             return stats
         }
         stats.triggeredCount = json.triggeredCount

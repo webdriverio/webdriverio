@@ -11,10 +11,10 @@ class TestOpsConfig {
     }
 
     constructor(
-        public enabled?: boolean,
+        public enabled: boolean = true,
         public manuallySet: boolean = false,
     ){
-
+        TestOpsConfig._instance = this
     }
 }
 

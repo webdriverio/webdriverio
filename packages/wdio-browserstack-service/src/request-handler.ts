@@ -4,7 +4,6 @@ import { BStackLogger } from './bstackLogger.js'
 
 export default class RequestQueueHandler {
     private queue: UploadType[] = []
-    private started = false
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
     public pendingUploads = 0
     private readonly callback: Function|undefined
@@ -25,45 +24,6 @@ export default class RequestQueueHandler {
         return RequestQueueHandler.instance
     }
 
-    // add (event: UploadType) {
-    //     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-    //         return {
-    //             proceed: false
-    //         }
-    //     }
-    //
-    //     // if (!BATCH_EVENT_TYPES.includes(event.event_type)) {
-    //     //     return {
-    //     //         proceed: true
-    //     //     }
-    //     // }
-    //
-    //     // if (event.logs && event.logs[0] && event.logs[0].kind === 'TEST_SCREENSHOT') {
-    //     //     return {
-    //     //         proceed: true,
-    //     //         data: [event],
-    //     //         url: DATA_SCREENSHOT_ENDPOINT
-    //     //     }
-    //     // }
-    //
-    //     this.queue.push(event)
-    //     BStackLogger.debug(`Added data to request queue. Queue length = ${this.queue.length}`)
-    //
-    //     let data
-    //     const shouldProceed = this.shouldProceed()
-    //     if (shouldProceed) {
-    //         data = this.queue.splice(0, DATA_BATCH_SIZE)
-    //         this.resetEventBatchPolling()
-    //         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
-    //     }
-    //
-    //     return {
-    //         proceed: shouldProceed,
-    //         data: data,
-    //         url: DATA_BATCH_ENDPOINT
-    //     }
-    // }
-
     add (event: UploadType) {
         if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
             throw new Error('Observability build start not completed yet.')
@@ -73,7 +33,9 @@ export default class RequestQueueHandler {
         BStackLogger.debug(`Added data to request queue. Queue length = ${this.queue.length}`)
         const shouldProceed = this.shouldProceed()
         if (shouldProceed) {
-            return this.sendBatch() // TODO: need to await or not?
+            this.sendBatch().catch((e) => {
+                BStackLogger.debug("Exception in sending batch: " + e)
+            })
         }
     }
 
@@ -88,15 +50,6 @@ export default class RequestQueueHandler {
     }
 
     startEventBatchPolling () {
-        // this.pollEventBatchInterval = setInterval(async () => {
-        //     if (this.queue.length > 0) {
-        //         const data = this.queue.splice(0, DATA_BATCH_SIZE)
-        //         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
-        //         this.pendingUploads += 1;
-        //         await this.callCallback(data, 'INTERVAL_QUEUE')
-        //         this.pendingUploads -= 1;
-        //     }
-        // }, DATA_BATCH_INTERVAL)
         this.pollEventBatchInterval = setInterval(this.sendBatch.bind(this), DATA_BATCH_INTERVAL)
     }
 
@@ -122,7 +75,6 @@ export default class RequestQueueHandler {
         if (this.pollEventBatchInterval) {
             BStackLogger.debug(`${tag} request queue`)
             clearInterval(this.pollEventBatchInterval)
-            this.started = false
         }
     }
 

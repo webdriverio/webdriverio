@@ -57,14 +57,6 @@ class FeatureUsage {
             error: this.error
         }
     }
-
-    public static fromJSON(data: any) {
-        const usage = new FeatureUsage()
-        usage.setTriggered(data.getTriggered())
-        usage.setStatus(data.getStatus())
-        usage.setError(data.getError())
-        return data
-    }
 }
 
 export default FeatureUsage

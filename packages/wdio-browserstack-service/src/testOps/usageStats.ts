@@ -2,6 +2,7 @@ import FeatureStats from './featureStats.js'
 import FeatureUsage from './featureUsage.js'
 import { BStackLogger } from '../bstackLogger.js'
 import TestOpsConfig from './testOpsConfig.js'
+import {TOUsageStats} from "../types.js";
 
 class UsageStats {
     public static instance: UsageStats
@@ -13,7 +14,6 @@ class UsageStats {
     public logStats: FeatureStats
     public launchBuildUsage: FeatureUsage
     public stopBuildUsage: FeatureUsage
-    private _manuallySet: boolean = false
 
     public static getInstance(): UsageStats {
         if (!UsageStats.instance) {
@@ -45,29 +45,41 @@ class UsageStats {
     public getFormattedData(workersData: any[]) {
         this.addDataFromWorkers(workersData)
         const testOpsConfig = TestOpsConfig.getInstance()
-        const usage :any = {
+        const usage: TOUsageStats = {
             enabled: testOpsConfig.enabled,
             manuallySet: testOpsConfig.manuallySet,
             buildHashedId: testOpsConfig.buildHashedId
+        }
+
+        if (!usage.enabled) {
+            return usage
         }
 
         try {
             usage.events = this.getEventsData()
         } catch (e) {
             BStackLogger.debug('exception in getFormattedData: ' + e)
-            throw e
+
         }
         return usage
     }
 
     public addDataFromWorkers(workersData: any[]) {
-        workersData.map(workerData => {
-            const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
-            this.add(usageStatsForWorker)
-        })
+        try {
+            workersData.map(workerData => {
+                try {
+                    const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
+                    this.add(usageStatsForWorker)
+                } catch (e) {
+                    BStackLogger.debug("Exception in adding workerData: " + e)
+                }
+            })
+        } catch (e) {
+            BStackLogger.debug("Exception in adding data from workers: " + e)
+        }
     }
 
-    public getEventsData() {
+    public getEventsData(){
         return {
             buildEvents: {
                 started: this.launchBuildUsage.toJSON(),
@@ -88,25 +100,19 @@ class UsageStats {
         }
     }
 
-    public getDataToSave() {
+    public getDataToSave(){
         return {
             testEvents: {
                 started: this.testStartedStats.toJSON(),
                 finished: this.testFinishedStats.toJSON({ nestedGroups: true }),
-                // groups: this.testFinishedStats.toJSON({onlyGroups: true})
             },
             hookEvents: {
                 started: this.hookStartedStats.toJSON(),
                 finished: this.hookFinishedStats.toJSON({ nestedGroups: true }),
-                // groups: this.hookFinishedStats.toJSON({onlyGroups: true})
             },
             logEvents: this.logStats.toJSON({ nestedGroups: true }),
             cbtSessionEvents: this.cbtSessionStats.toJSON()
         }
-    }
-
-    public manuallySet(): void {
-        this._manuallySet = true
     }
 
     public static fromJSON(data: any) {

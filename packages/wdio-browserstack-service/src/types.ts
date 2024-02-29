@@ -236,7 +236,7 @@ export interface UserConfig {
 export interface UploadType {
     event_type: string,
     hook_run?: TestData,
-    test_run?: TestData,
+    test_run?: TestData|CBTData,
     logs?: any[]
 }
 
@@ -310,3 +310,26 @@ interface Failure {
     backtrace: string[]
 }
 
+export interface FeatureStatsOverview {
+    triggeredCount: number
+    sentCount: number
+    failedCount: number
+}
+
+export interface FeaturesUsageData {
+    isTriggered?: boolean
+    status?: string
+    error?: string
+}
+
+export interface CBTData {
+    uuid: string
+    integrations: IntegrationObject
+}
+
+export interface TOUsageStats {
+    enabled: boolean
+    manuallySet: boolean
+    buildHashedId?: string
+    events?: any
+}

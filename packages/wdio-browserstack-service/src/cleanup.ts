@@ -22,23 +22,42 @@ export default class BStackCleanup {
             return
         }
         BStackLogger.debug('Executing observability cleanup')
-        await stopBuildUpstream()
-        if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-            BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+
+        try {
+            await stopBuildUpstream()
+            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
+                BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+        } catch (e: unknown) {
+            BStackLogger.error("Error in stopping Observability build: " + e)
         }
     }
 
     static async sendFunnelData() {
-        const index = process.argv.indexOf('--funnelData')
-        const filePath = process.argv[index + 1]
+        let filePath
+        try {
+            const index = process.argv.indexOf('--funnelData')
+            filePath = process.argv[index + 1]
+            if (!filePath) {
+                BStackLogger.error('Invalid file path for funnel data')
+                return
+            }
+
+            const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+            await FunnelTestEvent.fireRequest(data)
+            BStackLogger.debug('Funnel data sent successfully from cleanup')
+        } catch (e: unknown) {
+            BStackLogger.error("Error in sending funnel data: " + e)
+        } finally {
+            this.removeFunnelDataFile(filePath)
+        }
+    }
+
+    static removeFunnelDataFile(filePath?: string) {
         if (!filePath) {
-            BStackLogger.error('Invalid file path for funnel data')
             return
         }
-
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-        await FunnelTestEvent.fireRequest(data)
-        BStackLogger.debug('funnel data from cleanup success')
+        fs.rmSync(filePath, {force: true})
     }
 }
 

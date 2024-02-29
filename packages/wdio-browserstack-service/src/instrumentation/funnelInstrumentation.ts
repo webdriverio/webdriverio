@@ -1,12 +1,13 @@
 import * as os from 'node:os'
 import * as util from 'node:util'
-import UsageStats from '../testOps/usageStats.js'
-import { BStackLogger } from '../bstackLogger.js'
-import type BrowserStackConfig from '../config.js'
-import got from 'got'
-import { BSTACK_SERVICE_VERSION } from '../constants.js'
 import path from 'node:path'
 import fs from 'node:fs'
+import got from 'got'
+import UsageStats from '../testOps/usageStats.js'
+import {BStackLogger} from '../bstackLogger.js'
+import type BrowserStackConfig from '../config.js'
+import {BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL} from '../constants.js'
+import DataStore from "../data-store.js";
 
 class FunnelTestEvent {
     static workersDataDirPath = path.join(process.cwd(), 'logs', 'worker_data')
@@ -22,9 +23,8 @@ class FunnelTestEvent {
             await this.fireRequest(data)
             BStackLogger.debug('Funnel event success')
             config.sentFunnelData()
-        } catch (error)  {
-            BStackLogger.debug('exception in sending funnel data ' + error)
-            // BStackLogger.debug("exception in sending funnel data " + error.stack)
+        } catch (error) {
+            BStackLogger.debug('Exception in sending funnel data: ' + error)
         }
     }
 
@@ -36,19 +36,27 @@ class FunnelTestEvent {
         await this.fireFunnelTestEvent('SDKTestSuccessful', config)
     }
 
-    static saveFunnelData(eventType:string, config:BrowserStackConfig): string {
+    static saveFunnelData(eventType: string, config: BrowserStackConfig): string {
         const data = this.buildEventData(eventType, config)
-        const logFolderPath = path.join(process.cwd(), 'logs')
-        const filePath = path.join(logFolderPath, 'funnelData.json')
-        if (!fs.existsSync(logFolderPath)) {
-            fs.mkdirSync(logFolderPath, { recursive: true })
-        }
+
+        BStackLogger.ensureLogsFolder()
+        const filePath = path.join(BStackLogger.logFolderPath, 'funnelData.json')
         fs.writeFileSync(filePath, JSON.stringify(data))
         return filePath
     }
 
+    // Called from two different process
+    public static async fireRequest(data: any): Promise<void> {
+        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, {depth: 6}))
+        await got.post(FUNNEL_INSTRUMENTATION_URL, {
+            headers: {
+                'content-type': 'application/json'
+            }, username: data.userName, password: data.accessKey, json: data
+        })
+    }
+
     private static getProductList(config: BrowserStackConfig) {
-        const products: string[] = [] // TODO: add automate and app-automate
+        const products: string[] = []
         if (config.testObservability.enabled) {
             products.push('observability')
         }
@@ -59,6 +67,14 @@ class FunnelTestEvent {
 
         if (config.percy) {
             products.push('percy')
+        }
+
+        if (config.automate) {
+            products.push('automate')
+        }
+
+        if (config.appAutomate) {
+            products.push('app-automate')
         }
         return products
     }
@@ -95,7 +111,7 @@ class FunnelTestEvent {
         }
 
         if (eventType === 'SDKTestSuccessful') {
-            const workerData = this.getDataFromWorkers()
+            const workerData = DataStore.getDataFromWorkers()
             eventProperties.productUsage = this.getProductUsage(workerData)
         }
 
@@ -119,44 +135,10 @@ class FunnelTestEvent {
         return 'WebdriverIO_' + framework
     }
 
-    // Called from two different process
-    public static async fireRequest(data: any): Promise<void> {
-        BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
-        await got.post('https://api.browserstack.com/sdk/v1/event', {
-            headers: {
-                'content-type': 'application/json'
-            },
-            username: data.userName,
-            password: data.accessKey,
-            json: data
-        })
-    }
-
     private static getReferrer(framework?: string) {
         const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
         return `${fullName}/${BSTACK_SERVICE_VERSION}`
     }
-
-    public static getDataFromWorkers() {
-        const workersData: any[] = []
-        if (!fs.existsSync(this.workersDataDirPath)) {
-            return workersData
-        }
-
-        const files = fs.readdirSync(this.workersDataDirPath)
-        files.forEach((file) => {
-            BStackLogger.debug('reading file ' + file)
-            const filePath = path.join(this.workersDataDirPath, file)
-            const fileContent = fs.readFileSync(filePath, 'utf8')
-            const workerData = JSON.parse(fileContent)
-            workersData.push(workerData)
-        })
-
-        // Remove worker data after all reading
-        fs.rmSync(this.workersDataDirPath, { recursive: true, force: true })
-        return workersData
-    }
-
 }
 
 export default FunnelTestEvent
