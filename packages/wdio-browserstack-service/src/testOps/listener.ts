@@ -154,15 +154,13 @@ class Listener {
     private sendBatchEvents(jsonObject: UploadType): void {
         if (!this.requestBatcher) {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
-                BStackLogger.debug('callback: called with events ' + data.map(event => event.event_type))
+                BStackLogger.debug('callback: called with events ' + data.length)
                 try {
                     await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'BATCH_DATA', data)
-                    BStackLogger.debug('callback: marking events success ' + data.map(event => event.event_type))
-
+                    BStackLogger.debug('callback: marking events success ' + data.length)
                     this.eventsSuccess(data)
                 } catch (e) {
-                    BStackLogger.debug('callback: marking events failed ' + data.map(event => event.event_type))
-
+                    BStackLogger.debug('callback: marking events failed ' + data.length)
                     this.eventsFailed(data)
                 }
             })
