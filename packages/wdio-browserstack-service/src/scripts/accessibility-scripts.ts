@@ -24,7 +24,7 @@ class AccessibilityScripts {
         return AccessibilityScripts.instance
     }
 
-    private readFromExistingFile() {
+    public readFromExistingFile() {
         try {
             if (fs.existsSync(this.commandsPath)) {
                 const data = fs.readFileSync(this.commandsPath, 'utf8')

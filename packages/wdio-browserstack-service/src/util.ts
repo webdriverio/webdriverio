@@ -435,9 +435,13 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         }
         BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
 
-        if (response.data) {
-            AccessibilityScripts.update(response.data)
-            AccessibilityScripts.store()
+        try {
+            if (response.data) {
+                AccessibilityScripts.update(response.data)
+                AccessibilityScripts.store()
+            }
+        } catch {
+            /* Do nothing */
         }
 
         return response.data.scannerVersion

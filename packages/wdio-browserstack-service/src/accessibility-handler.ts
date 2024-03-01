@@ -110,51 +110,55 @@ class _AccessibilityHandler {
         }
 
         if (this._accessibility) {
-            if (Array.isArray(accessibilityScripts.commandsToWrap)) {
-                const that = this
-                accessibilityScripts.commandsToWrap.forEach(async function (command) {
-                    if (command.name && command.class) {
-                        await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
-                            if (
-                                that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
-                                  (
-                                      !command.name.includes('execute') ||
-                                      !AccessibilityHandler.isBrowserstackScript(args.length ? args[0] : null)
-                                  )
-                            ) {
-                                BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-                                await performA11yScan(that._browser, true, true, command.name)
-                            }
-                            return origFunction(...args)
-                        }, command.class === 'Element')
-                    }
-                })
+            try {
+                if ('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap)) {
+                    const that = this
+                    accessibilityScripts.commandsToWrap.forEach(async function (command) {
+                        if (command.name && command.class) {
+                            await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
+                                if (
+                                    that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
+                                      (
+                                          !command.name.includes('execute') ||
+                                          !AccessibilityHandler.isBrowserstackScript(args.length ? args[0] : null)
+                                      )
+                                ) {
+                                    BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
+                                    await performA11yScan(that._browser, true, true, command.name)
+                                }
+                                return origFunction(...args)
+                            }, command.class === 'Element')
+                        }
+                    })
+                }
+            } catch {
+                /* Do nothing */
             }
         }
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
-        if (
-            this._framework !== 'mocha' ||
-            !this.shouldRunTestHooks(this._browser, this._accessibility)
-        ) {
-            return
-        }
-
-        const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
-        const testIdentifier = this.getIdentifier(test)
-        const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
-
-        if (this._sessionId) {
-            /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
-            AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanTest
-        }
-
-        if (!isPageOpened) {
-            return
-        }
-
         try {
+            if (
+                this._framework !== 'mocha' ||
+                !this.shouldRunTestHooks(this._browser, this._accessibility)
+            ) {
+                return
+            }
+
+            const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
+            const testIdentifier = this.getIdentifier(test)
+            const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
+
+            if (this._sessionId) {
+                /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
+                AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanTest
+            }
+
+            if (!isPageOpened) {
+                return
+            }
+
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
             if (shouldScanTest) {
@@ -212,27 +216,27 @@ class _AccessibilityHandler {
       * Cucumber Only
     */
     async beforeScenario (world: ITestCaseHookParameter) {
-        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
-            return
-        }
-
-        const pickleData = world.pickle
-        const gherkinDocument = world.gherkinDocument
-        const featureData = gherkinDocument.feature
-        const uniqueId = getUniqueIdentifierForCucumber(world)
-        const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
-        const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
-
-        if (this._sessionId) {
-            /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
-            AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
-        }
-
-        if (!isPageOpened) {
-            return
-        }
-
         try {
+            if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+                return
+            }
+
+            const pickleData = world.pickle
+            const gherkinDocument = world.gherkinDocument
+            const featureData = gherkinDocument.feature
+            const uniqueId = getUniqueIdentifierForCucumber(world)
+            const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
+            const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
+
+            if (this._sessionId) {
+                /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
+                AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
+            }
+
+            if (!isPageOpened) {
+                return
+            }
+
             this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
 
             if (shouldScanScenario) {
