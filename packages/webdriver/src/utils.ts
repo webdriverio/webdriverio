@@ -262,8 +262,7 @@ export class CustomRequestError extends Error {
          */
         if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
             errorMessage = (
-                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
-                'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
             )
         }
 
