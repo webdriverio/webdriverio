@@ -146,7 +146,7 @@ class _AccessibilityHandler {
         const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
 
         if (this._sessionId) {
-            /* For case with multiple tests under onw browser, before hook of 2nd test should change this map value */
+            /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
             AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanTest
         }
 
@@ -224,7 +224,7 @@ class _AccessibilityHandler {
         const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 
         if (this._sessionId) {
-            /* For case with multiple tests under onw browser, before hook of 2nd test should change this map value */
+            /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
             AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
         }
 

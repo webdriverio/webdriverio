@@ -471,7 +471,7 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     }
 })
 
-export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<unknown> => {
+export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
         return // since we are running only on Automate as of now
@@ -485,7 +485,7 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
     try {
         const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
         BStackLogger.debug(util.format(results as string))
-        return results
+        return ( results as { [key: string]: any; } | undefined )
     } catch (err : any) {
         BStackLogger.error('Accessibility Scan could not be performed : ' + err)
         return
