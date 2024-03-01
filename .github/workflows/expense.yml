@@ -10,7 +10,6 @@ on:
         description: "The expense amount you like to grant for the contribution in $"
         required: true
         type: choice
-        default: "patch"
         options:
           - 15
           - 25
