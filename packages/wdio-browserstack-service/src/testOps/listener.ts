@@ -137,7 +137,11 @@ class Listener {
         }
     }
 
-    private markLogs(status: string, data: LogData[]): void {
+    private markLogs(status: string, data?: LogData[]): void {
+        if (!data) {
+            BStackLogger.debug('No log data')
+            return
+        }
         try {
             for (const _log of data) {
                 const kind = _log.kind
@@ -189,8 +193,7 @@ class Listener {
             } else if (eventType === 'CBTSessionCreated') {
                 this.cbtSessionStats.failed()
             } else if (eventType === 'LogCreated') {
-                // @ts-ignore
-                this.markLogs('failed', event.logs) // TODO: remove ts-ignore
+                this.markLogs('failed', event.logs)
             }
         }
     }
@@ -209,8 +212,7 @@ class Listener {
             } else if (eventType === 'CBTSessionCreated') {
                 this.cbtSessionStats.success()
             } else if (eventType === 'LogCreated') {
-                // @ts-ignore
-                this.markLogs('success', event.logs) // TODO: remove ts-ignore
+                this.markLogs('success', event.logs)
             }
         }
     }

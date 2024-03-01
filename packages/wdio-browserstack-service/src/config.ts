@@ -33,7 +33,7 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility || false
         this.app = options.app
-        this.appAutomate = isUndefined(options.app)
+        this.appAutomate = !isUndefined(options.app)
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
     }

@@ -237,7 +237,7 @@ export interface UploadType {
     event_type: string,
     hook_run?: TestData,
     test_run?: TestData|CBTData,
-    logs?: any[]
+    logs?: LogData[]
 }
 
 export interface LogData {

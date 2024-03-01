@@ -1,6 +1,5 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import * as util from 'node:util'
 
 import { BStackLogger } from './bstackLogger.js'
 
@@ -30,9 +29,6 @@ class DataStore {
     }
 
     public static saveWorkerData(data: Record<string, any>) {
-        // TODO: Remove after debugging
-        BStackLogger.debug(`data from worker is ${util.inspect(data, { depth: 6 })}`)
-
         const filePath = path.join(this.workersDataDirPath, 'worker-data-' + process.pid + '.json')
 
         this.createWorkersDataDir()

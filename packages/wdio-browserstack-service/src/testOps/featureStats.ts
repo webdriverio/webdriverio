@@ -105,8 +105,8 @@ class FeatureStats {
     // omitGroups: true/false -> Include groups or not
     // onlyGroups: true/false -> data includes only groups
     // nestedGroups: true/false -> groups will be nested in groups if true
-    public toJSON(config: JSONConversionSettings = {}) { // # TODO: remove any
-        const overviewData: FeatureStatsOverview|Record<string, never> = !config.onlyGroups ? { // TODO
+    public toJSON(config: JSONConversionSettings = {}) {
+        const overviewData: FeatureStatsOverview|Record<string, never> = !config.onlyGroups ? {
             triggeredCount: this.triggeredCount,
             sentCount: this.sentCount,
             failedCount: this.failedCount
@@ -126,7 +126,6 @@ class FeatureStats {
         }
     }
 
-    // Don't use this function yet
     public static fromJSON(json: any): FeatureStats {
         const stats = new FeatureStats()
 
