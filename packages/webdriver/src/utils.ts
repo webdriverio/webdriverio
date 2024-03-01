@@ -248,9 +248,19 @@ export class CustomRequestError extends Error {
         let errorMessage = errorObj.message || errorObj.class || 'unknown error'
 
         /**
-         * improve error message for Chrome and Safari on invalid selectors
+         * Improve Chromedriver's error message for an invalid selector
+         *
+         * Chrome:
+         *  error: 'invalid argument'
+         *  invalid 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
+         * Firefox:
+         *  error: 'invalid selector'
+         *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
+         * Safari:
+         *  error: 'timeout'
+         *  message: ''
          */
-        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
+        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
             errorMessage = (
                 `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
                 'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
