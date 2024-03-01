@@ -27,10 +27,10 @@ import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 import CrashReporter from './crash-reporter.js'
-import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
 import BrowserstackLauncherService from './launcher.js'
+import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
 const pGitconfig = promisify(gitconfig)
 const __filename = fileURLToPath(import.meta.url)
@@ -343,19 +343,10 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }, world?: { [key: string]: any; }, isCucumber?: boolean ) => {
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
         const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
-
-        if (isCucumber) {
-            const tagsList: string[] = []
-            world?.pickle?.tags.map((tag: { [key: string]: any; }) => tagsList.push(tag.name))
-            const excluded = excludeTags?.some((exclude) => tagsList.includes(exclude))
-            const included = includeTags?.length === 0 || includeTags?.some((include) => tagsList.includes(include))
-
-            return !excluded && included
-        }
 
         const fullTestName = suiteTitle + ' ' + testTitle
         const excluded = excludeTags?.some((exclude) => fullTestName.includes(exclude))
@@ -396,7 +387,10 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         'source': {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
-            sdkVersion: bsConfig.bstackServiceVersion
+            sdkVersion: bsConfig.bstackServiceVersion,
+            language: 'ECMAScript',
+            testFramework: 'webdriverIO',
+            testFrameworkVersion: bsConfig.bstackServiceVersion
         },
         'settings': bsConfig.accessibilityOptions || {},
         'versionControl': await getGitMetaData(),
@@ -419,7 +413,7 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
 
     try {
         const response: any = await nodeRequest(
-            'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
+            'POST', 'v2/test_runs', requestOptions, ACCESSIBILITY_API_URL
         )
 
         BStackLogger.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
@@ -430,8 +424,12 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         if (response.data.id) {
             process.env.BS_A11Y_TEST_RUN_ID = response.data.id
         }
-
         BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
+
+        if (response.data) {
+            AccessibilityScripts.update(response.data)
+            AccessibilityScripts.store()
+        }
 
         return response.data.scannerVersion
     } catch (error : any) {
@@ -464,6 +462,27 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     }
 })
 
+export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<unknown> => {
+    if (!isBrowserStackSession) {
+        BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
+        return // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
+        return
+    }
+
+    try {
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
+        BStackLogger.debug(util.format(results as string))
+        return results
+    } catch (err : any) {
+        BStackLogger.error('Accessibility Scan could not be performed : ' + err)
+        return
+    }
+}
+
 export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
@@ -476,7 +495,9 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     try {
-        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults)
+        BStackLogger.debug('Performing scan before getting results')
+        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        const results: Array<{ [key: string]: any; }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
         return results
     } catch {
         BStackLogger.error('No accessibility results were found.')
@@ -495,7 +516,9 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 
     try {
-        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary)
+        BStackLogger.debug('Performing scan before getting results summary')
+        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        const summaryResults: { [key: string]: any; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
         return summaryResults
     } catch {
         BStackLogger.error('No accessibility summary was found.')
@@ -1229,4 +1252,3 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     }
     return undefined
 })
-
