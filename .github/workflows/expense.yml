@@ -47,7 +47,7 @@ jobs:
           organisation: webdriverio
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-  release:
+  expense:
     permissions:
       contents: write
       id-token: write
