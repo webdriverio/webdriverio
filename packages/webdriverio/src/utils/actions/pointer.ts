@@ -45,12 +45,6 @@ const MOVE_PARAM_DEFAULTS = {
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
 
-function mapParams<R, A>(mapFunction: (params: A) => R) {
-    return (params: A) => {
-        return mapFunction(params)
-    }
-}
-
 function mapButton(params: PointerActionParams | ButtonNames | Button) {
     const buttons = {
         left: 0,
@@ -114,7 +108,7 @@ export default class PointerAction extends BaseAction {
     up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
         this.sequence.push({
             type: 'pointerUp',
-            ...mapParams(mapButton)(params)
+            ...mapButton(params)
         })
         return this
     }
@@ -129,7 +123,7 @@ export default class PointerAction extends BaseAction {
         this.sequence.push({
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
-            ...mapParams(mapButton)(params)
+            ...mapButton(params)
         })
         return this
     }
