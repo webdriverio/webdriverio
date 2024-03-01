@@ -45,8 +45,8 @@ const MOVE_PARAM_DEFAULTS = {
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
 
-function mapParams(mapFunction: typeof mapButton) {
-    return (params: PointerActionParams | ButtonNames | Button) => {
+function mapParams<R, A>(mapFunction: (params: A) => R) {
+    return (params: A) => {
         return mapFunction(params)
     }
 }
