@@ -5,7 +5,6 @@ import { BStackLogger } from './bstackLogger.js'
 export default class RequestQueueHandler {
     private queue: UploadType[] = []
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
-    public pendingUploads = 0
     private readonly callback: Function|undefined
     public static tearDownInvoked = false
 
@@ -56,9 +55,7 @@ export default class RequestQueueHandler {
     async sendBatch() {
         const data = this.queue.splice(0, DATA_BATCH_SIZE)
         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
-        this.pendingUploads += 1
         await this.callCallback(data, 'INTERVAL_QUEUE')
-        this.pendingUploads -= 1
     }
 
     callCallback = async (data: UploadType[], kind: string) => {

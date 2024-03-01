@@ -29,7 +29,7 @@ class DataStore {
         return workersData
     }
 
-    public static saveWorkerData(data: Record<string, object>) {
+    public static saveWorkerData(data: Record<string, any>) {
         // TODO: Remove after debugging
         BStackLogger.debug(`data from worker is ${util.inspect(data, { depth: 6 })}`)
 
@@ -39,12 +39,12 @@ class DataStore {
         fs.writeFileSync(filePath, JSON.stringify(data))
     }
 
-    private static removeWorkersDataDir(): boolean {
+    public static removeWorkersDataDir(): boolean {
         fs.rmSync(this.workersDataDirPath, { recursive: true, force: true })
         return true
     }
 
-    private static createWorkersDataDir() {
+    public static createWorkersDataDir() {
         if (!fs.existsSync(this.workersDataDirPath)) {
             fs.mkdirSync(this.workersDataDirPath, { recursive: true })
         }

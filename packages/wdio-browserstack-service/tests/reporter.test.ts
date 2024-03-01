@@ -280,6 +280,7 @@ describe('test-reporter', () => {
             reporter['_observability'] = true
             reporter.onRunnerStart(runnerConfig as any)
             testEndStats = { ...testStats }
+            const uploadEventDataSpy = vi.spyOn(reporter['listener'], 'testFinished')
             uploadEventDataSpy.mockClear()
         })
 
@@ -335,7 +336,7 @@ describe('test-reporter', () => {
         beforeEach(() => {
             reporter = new TestReporter({})
             reporter['_observability'] = true
-            sendDataSpy = vi.spyOn(utils, 'pushDataToQueue').mockImplementation(() => { return [] as any })
+            sendDataSpy = vi.spyOn(reporter['listener'], 'logCreated').mockImplementation(() => { return [] as any })
             testLogObj = { ...logObj }
         })
 

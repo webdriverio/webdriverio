@@ -10,8 +10,6 @@ import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants
 import DataStore from '../data-store.js'
 
 class FunnelTestEvent {
-    static workersDataDirPath = path.join(process.cwd(), 'logs', 'worker_data')
-
     static async fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
         try {
             if (!config.userName || !config.accessKey) {

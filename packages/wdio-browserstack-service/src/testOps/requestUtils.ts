@@ -1,8 +1,8 @@
 import type { UploadType } from '../types.js'
 import { DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from '../constants.js'
 import { BStackLogger } from '../bstackLogger.js'
-import RequestQueueHandler from '../request-handler.js'
 import { DEFAULT_REQUEST_CONFIG, getLogTag } from '../util.js'
+import got from 'got'
 
 export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
     let logTag: string = 'BATCH_UPLOAD'
@@ -28,20 +28,17 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
 
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await fetch(url, {
-            method: 'POST',
+        const data = await got.post(url, {
+            agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
             },
-            body: JSON.stringify(eventData)
-        })
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(await data.json())}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
+            json: eventData
+        }).json()
+        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
     } catch (error) {
         BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
     }
 }
 

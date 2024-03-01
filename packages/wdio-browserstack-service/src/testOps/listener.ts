@@ -22,6 +22,7 @@ class Listener {
     private readonly cbtSessionStats: FeatureStats = this.usageStats.cbtSessionStats
     private readonly logEvents: FeatureStats = this.usageStats.logStats
     private requestBatcher?: RequestQueueHandler
+    private pendingUploads = 0
 
     private constructor() {
     }
@@ -43,7 +44,7 @@ class Listener {
     }
 
     async uploadPending(waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS, waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS): Promise<unknown> {
-        if ((this.requestBatcher && this.requestBatcher.pendingUploads <= 0) || waitTimeout <= 0) {
+        if ((this.pendingUploads <= 0) || waitTimeout <= 0) {
             return
         }
 
@@ -113,6 +114,7 @@ class Listener {
     public async onScreenshot(jsonArray: ScreenshotLog[]) {
         try {
             this.markLogs('triggered', jsonArray)
+            this.pendingUploads += 1
             await sendScreenshots([{
                 event_type: 'LogCreated', logs: jsonArray
             }])
@@ -120,6 +122,8 @@ class Listener {
         } catch (e) {
             this.markLogs('failed', jsonArray)
             throw e
+        } finally {
+            this.pendingUploads -= 1
         }
     }
 
@@ -156,12 +160,15 @@ class Listener {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
                 BStackLogger.debug('callback: called with events ' + data.length)
                 try {
+                    this.pendingUploads += 1
                     await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'BATCH_DATA', data)
                     BStackLogger.debug('callback: marking events success ' + data.length)
                     this.eventsSuccess(data)
                 } catch (e) {
                     BStackLogger.debug('callback: marking events failed ' + data.length)
                     this.eventsFailed(data)
+                } finally {
+                    this.pendingUploads -= 1
                 }
             })
         }
