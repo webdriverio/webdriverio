@@ -62,7 +62,7 @@
     "watch:docs": "pnpm docs:generate && cd website && npm i && npm start",
     "version": "pnpm changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
-    "postinstall:husky": "husky install"
+    "postinstall:husky": "husky"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudfront": "^3.515.0",
