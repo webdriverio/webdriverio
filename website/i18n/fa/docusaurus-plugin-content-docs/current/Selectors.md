@@ -436,7 +436,7 @@ await $('.row .entry:nth-child(2)').$('button*=Add').click()
 
 فرمت های فایل پشتیبانی شده `jpg، png، gif، bmp، svg`
 
-مرجع کامل را می توان در [اینجا](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md) یافت
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +445,7 @@ await elem.click()
 
 **نکته**: نحوه عملکرد Appium با این انتخابگر به این صورت است که به صورت داخلی یک اسکرین شات (برنامه) می گیرد و از انتخابگر تصویر ارائه شده برای بررسی اینکه آیا عنصر را می توان در آن اسکرین شات (برنامه) پیدا کرد، استفاده می کند.
 
-به این واقعیت توجه داشته باشید که Appium ممکن است اندازه اسکرین شات (برنامه) گرفته شده را تغییر دهد تا با اندازه CSS صفحه (برنامه) شما مطابقت داشته باشد (این اتفاق در آیفون ها و همچنین در دستگاه های مک با صفحه نمایش رتینا رخ می دهد زیرا DPR آنها بزرگتر 1) است. این موضوع منجر به عدم مطابقت می شود زیرا انتخابگر تصویر ارائه شده ممکن است از اسکرین شات اصلی گرفته شده باشد. می‌توانید با به‌روزرسانی تنظیمات سرور Appium این مشکل را برطرف کنید، [Appium Docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) برای تنظیمات و [این نظر](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) را برای توضیح مفصل تر ببینید.
+به این واقعیت توجه داشته باشید که Appium ممکن است اندازه اسکرین شات (برنامه) گرفته شده را تغییر دهد تا با اندازه CSS صفحه (برنامه) شما مطابقت داشته باشد (این اتفاق در آیفون ها و همچنین در دستگاه های مک با صفحه نمایش رتینا رخ می دهد زیرا DPR آنها بزرگتر 1) است. این موضوع منجر به عدم مطابقت می شود زیرا انتخابگر تصویر ارائه شده ممکن است از اسکرین شات اصلی گرفته شده باشد. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## انتخابگرهای React
 
