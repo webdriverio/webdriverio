@@ -7,8 +7,8 @@ import logger from '@wdio/logger'
 
 import type { Protocol } from 'devtools-protocol'
 import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
-import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/common/HTTPRequest.js'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/api/HTTPRequest.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage.js'

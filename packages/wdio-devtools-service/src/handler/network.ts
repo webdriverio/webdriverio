@@ -1,4 +1,4 @@
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Protocol } from 'devtools-protocol'
 
 import { IGNORED_URLS } from '../constants.js'

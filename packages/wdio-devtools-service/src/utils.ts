@@ -1,4 +1,4 @@
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
 import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 
@@ -68,12 +68,12 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
     if (!cUrl.pathname.startsWith('/devtools/browser')) {
         await cdpConnection._connectToSocket({
             webSocketDebuggerUrl: connection.url(),
-            id: target._targetId
+            id: (await target.asPage()).mainFrame()._id
         })
         const { sessionId } = await cdpConnection.sendCommand(
             'Target.attachToTarget',
             undefined,
-            { targetId: target._targetId, flatten: true }
+            { targetId: (await target.asPage()).mainFrame()._id, flatten: true }
         )
         cdpConnection.setSessionId(sessionId)
         return new Driver(cdpConnection)
