@@ -1103,9 +1103,8 @@ export interface SauceLabsCapabilities {
      */
     appiumVersion?: string
     /**
-     * Controls Sauce Labs default resigning (iOS) or instrumentation (Android) 
+     * Controls Sauce Labs default resigning (iOS) or instrumentation (Android)
      * of mobile apps installed on our devices.
-     * 
      * @default true
      */
     resigningEnabled?: boolean;
