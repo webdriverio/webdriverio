@@ -47,7 +47,7 @@ function mapCapabilities (
         /**
          * only set up driver if
          */
-        // - capabilities are defined and not empty because automationProtocol is set to `devtools`
+        // - capabilities are defined and not empty
         cap &&
         // - browserName is defined so we know it is a browser session
         cap.browserName &&

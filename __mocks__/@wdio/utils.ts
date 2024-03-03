@@ -10,8 +10,7 @@ import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
     isW3C as isW3cOrig,
     sessionEnvironmentDetector as sessionEnvDetector,
-    capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
-    devtoolsEnvironmentDetector as devtoolsEnvDetector
+    capabilitiesEnvironmentDetector as capabilitiesEnvDetector
 } from '../../packages/wdio-utils/src/envDetector.js'
 import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_DEFINITION_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
@@ -106,7 +105,6 @@ export const sessionEnvironmentDetector = vi.fn().mockImplementation(
     // @ts-ignore
     (...args) => sessionEnvDetector(...args))
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
-export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = vi.fn().mockImplementation((data) => data)
 export const sleep = vi.fn().mockImplementation(sleepOrig)
 export const UNICODE_CHARACTERS = UNICODE_CHARACTERS_ORIG

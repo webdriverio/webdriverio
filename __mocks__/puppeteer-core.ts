@@ -43,6 +43,7 @@ const cdpSession = new CDPSessionMock()
 
 class TargetMock {
     page = vi.fn().mockImplementation(() => page)
+    asPage = vi.fn().mockImplementation(async () => page)
     createCDPSession = vi.fn().mockImplementation(() => cdpSession)
 }
 const target = new TargetMock()

@@ -33,11 +33,11 @@ export async function keys (
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools)
+        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS)
     } else if (Array.isArray(value)) {
         const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
         for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
+            keySequence = keySequence.concat(checkUnicode(charSet))
         }
     } else {
         throw new Error('"keys" command requires a string or array of strings as parameter')

@@ -86,7 +86,7 @@ export interface WebDriver extends Connection {
      *
      * @example
      * ```js
-     * // WebDriver/DevTools session
+     * // WebDriver session
      * const browser = remote({
      *   capabilities: {
      *     browserName: 'chrome',

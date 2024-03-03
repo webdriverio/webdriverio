@@ -1,3 +1,4 @@
+import type * as Automation from './Automation.js'
 import type * as Capabilities from './Capabilities.js'
 import type * as Clients from './Clients.js'
 import type * as Options from './Options.js'
@@ -11,7 +12,7 @@ import type * as Workers from './Workers.js'
  */
 export { MESSAGE_TYPES } from './Workers.js'
 
-export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
+export type { Automation, Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
@@ -46,7 +47,6 @@ declare global {
         interface ReporterOption extends Reporters.Options {}
         interface Config extends Options.Testrunner {}
         interface HookFunctionExtension {}
-        interface WDIODevtoolsOptions {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
         interface ChromedriverOptions extends DriverOptions {}

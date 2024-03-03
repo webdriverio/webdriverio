@@ -225,7 +225,6 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
 /**
  * returns information about the environment before the session is created
  * @param  {Object}  capabilities           caps provided by user
- * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
 export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
@@ -261,25 +260,5 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(cap),
         isBidi: isBidi(capabilities)
-    }
-}
-
-/**
- * returns information about the environment when `devtools` protocol is used
- * @param  {Object}  capabilities           caps of session response
- * @return {Object}                         object with environment flags
- */
-export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabilities) {
-    return {
-        isDevTools: true,
-        isW3C: true,
-        isMobile: false,
-        isIOS: false,
-        isAndroid: false,
-        isFirefox: false,
-        isChrome: browserName === 'chrome',
-        isSauce: false,
-        isSeleniumStandalone: false,
-        isBidi: false
     }
 }
