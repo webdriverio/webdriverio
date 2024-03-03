@@ -1102,6 +1102,13 @@ export interface SauceLabsCapabilities {
      * a particular Appium feature or patch.
      */
     appiumVersion?: string
+    /**
+     * Controls Sauce Labs default resigning (iOS) or instrumentation (Android) 
+     * of mobile apps installed on our devices. By default, this property is always true
+     * 
+     * @default true
+     */
+    resigningEnabled?: boolean;
 }
 
 export interface LambdaTestCapabilities {
