@@ -436,7 +436,7 @@ await $('.row .entry:nth-child(2)').$('button*=Add').click()
 
 Підтримувані формати файлів `jpg,png,gif,bmp,svg`
 
-Повну довідку можна знайти [тут](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +445,7 @@ await elem.click()
 
 **Примітка**: Спосіб, у який Appium працює з цим селектором, полягає в тому, що він створює знімок екрана (застосунку) і використовує надане зображення, щоб перевірити, чи можна знайти елемент на знімку екрана (застосунку).
 
-Майте на увазі, що Appium може змінити розмір зробленого знімка екрана (застосунку), щоб він відповідав CSS-розміру вашого екрана (застосунку) (це обов'язково станеться на iPhone, а також на комп’ютерах Mac із дисплеєм Retina, оскільки DPR більший ніж 1). Це призведе до того, що збіг не буде знайдено, оскільки наданий селектор зображення міг бути взятий з оригінального знімка екрана. Ви можете виправити це, оновивши налаштування сервера Appium, перегляньте [документацію Appium](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) для налаштувань і [цей коментар](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) з докладним поясненням.
+Майте на увазі, що Appium може змінити розмір зробленого знімка екрана (застосунку), щоб він відповідав CSS-розміру вашого екрана (застосунку) (це обов'язково станеться на iPhone, а також на комп’ютерах Mac із дисплеєм Retina, оскільки DPR більший ніж 1). Це призведе до того, що збіг не буде знайдено, оскільки наданий селектор зображення міг бути взятий з оригінального знімка екрана. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## Селектори React
 
