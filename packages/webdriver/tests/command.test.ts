@@ -70,7 +70,6 @@ class FakeClient extends EventEmitter {
     isIOS = false
     isSauce = false
     isFirefox = false
-    isDevTools = false
     isBidi = false
     isSeleniumStandalone = false
     sessionId = '123'

@@ -3,7 +3,6 @@ import { describe, expect, test, vi } from 'vitest'
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('fetch')
-vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const remoteConfig = {
@@ -146,8 +145,8 @@ describe('overwriteCommand', () => {
             expect(await browser.browserB.pause(10)).toBe(undefined)
 
             const results = await browser.pause(10)
-            expect(results[1]).toBeGreaterThanOrEqual(10)
-            expect(results[0]).toBe(undefined)
+            expect(results[0]).toBeGreaterThanOrEqual(10)
+            expect(results[1]).toBe(undefined)
         })
 
         test('should be able to overwrite element command in multiremote mode', async () => {

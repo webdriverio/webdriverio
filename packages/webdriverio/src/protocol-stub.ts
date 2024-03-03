@@ -18,7 +18,7 @@ export default class ProtocolStub {
             customCommands: [], // internally used to transfer custom commands to the actual protocol instance
             overwrittenCommands: [], // internally used to transfer overwritten commands to the actual protocol instance
             commandList: [],
-            ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
+            ...capabilitiesEnvironmentDetector(capabilities)
         }
 
         browser.addCommand = (...args: any) => browser.customCommands.push(args)
@@ -27,11 +27,10 @@ export default class ProtocolStub {
     }
 
     /**
-     * added just in case user wants to somehow reload webdriver or devtools session
-     * before it was started.
+     * added just in case user wants to somehow reload webdriver before it was started.
      */
     static reloadSession () {
-        throw new Error('Protocol Stub: Make sure to start webdriver or devtools session before reloading it.')
+        throw new Error('Protocol Stub: Make sure to start the session before reloading it.')
     }
 
     static attachToSession (options: never, modifier?: Function) {

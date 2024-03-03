@@ -3,7 +3,7 @@ import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
+export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
@@ -86,7 +86,7 @@ export interface WebDriver extends Connection {
      *
      * @example
      * ```js
-     * // WebDriver/DevTools session
+     * // WebDriver session
      * const browser = remote({
      *   capabilities: {
      *     browserName: 'chrome',
