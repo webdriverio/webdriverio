@@ -436,7 +436,7 @@ Utilizando la estrategia de localización de  `-image`, es posible enviar un App
 
 Formatos de archivo compatibles `jpg,png,gif,bmp,svg`
 
-Se puede encontrar una referencia completa [aquí](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +445,7 @@ await elem.click()
 
 **Nota**: La forma en que funciona Appium con este selector es que internamente hará una captura de pantalla (app)y usará el selector de imagen proporcionado para verificar si el elemento puede encontrarse en esa captura de pantalla (app).
 
-Tenga en cuenta el hecho de que Appium podría cambiar el tamaño de la captura de pantalla tomada (aplicación) para que coincida con el tamaño CSS de su pantalla (aplicación) (esto sucederá en iPhones pero también en máquinas Mac con una pantalla Retina porque el DPR es más grande que 1). Esto resultará en no encontrar coincidencias porque el selector de imagen proporcionado podría haber sido tomado de la captura de pantalla original. Puede solucionar esto actualizando la configuración del servidor Appium, consulte los [documentos de Appium](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) para conocer la configuración y [este comentario](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) para obtener una explicación detallada.
+Tenga en cuenta el hecho de que Appium podría cambiar el tamaño de la captura de pantalla tomada (aplicación) para que coincida con el tamaño CSS de su pantalla (aplicación) (esto sucederá en iPhones pero también en máquinas Mac con una pantalla Retina porque el DPR es más grande que 1). Esto resultará en no encontrar coincidencias porque el selector de imagen proporcionado podría haber sido tomado de la captura de pantalla original. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## Selectores de Cadena
 
