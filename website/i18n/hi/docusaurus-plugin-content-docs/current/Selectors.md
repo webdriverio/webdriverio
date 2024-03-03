@@ -436,7 +436,7 @@ await $('.row .entry:nth-child(2)').$('button*=Add').click()
 
 समर्थित फ़ाइल स्वरूप `jpg, png, gif, bmp, svg`
 
-पूरा संदर्भ [यहां](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)पाया जा सकता है
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +445,7 @@ await elem.click()
 
 **नोट**: जिस तरह से ऐपियम इस चयनकर्ता के साथ काम करता है वह आंतरिक रूप से एक (ऐप) स्क्रीनशॉट बनाएगा और यह सत्यापित करने के लिए कि क्या तत्व उस (ऐप) स्क्रीनशॉट में पाया जा सकता है, प्रदान की गई छवि चयनकर्ता का उपयोग करेगा।
 
-इस तथ्य से अवगत रहें कि एपियम आपके (एप) स्क्रीन के सीएसएस-आकार से मिलान करने के लिए लिए गए (एप) स्क्रीनशॉट का आकार बदल सकता है (यह आईफोन पर होगा लेकिन रेटिना डिस्प्ले वाली मैक मशीनों पर भी होगा क्योंकि डीपीआर बड़ा है 1 से अधिक)। इसके परिणामस्वरूप मिलान नहीं मिलेगा क्योंकि प्रदान किया गया छवि चयनकर्ता मूल स्क्रीनशॉट से लिया गया हो सकता है। आप ऐपियम सर्वर सेटिंग्स को अपडेट करके इसे ठीक कर सकते हैं, सेटिंग्स के लिए [ऐपियम डॉक्स](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) और विस्तृत विवरण पर [यह टिप्पणी](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) देखें।
+इस तथ्य से अवगत रहें कि एपियम आपके (एप) स्क्रीन के सीएसएस-आकार से मिलान करने के लिए लिए गए (एप) स्क्रीनशॉट का आकार बदल सकता है (यह आईफोन पर होगा लेकिन रेटिना डिस्प्ले वाली मैक मशीनों पर भी होगा क्योंकि डीपीआर बड़ा है 1 से अधिक)। इसके परिणामस्वरूप मिलान नहीं मिलेगा क्योंकि प्रदान किया गया छवि चयनकर्ता मूल स्क्रीनशॉट से लिया गया हो सकता है। You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## प्रतिक्रिया चयनकर्ता
 
