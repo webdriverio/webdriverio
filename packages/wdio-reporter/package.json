@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "8.32.2",
+  "version": "8.32.4",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
@@ -43,7 +43,7 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.32.2",
+    "@wdio/types": "8.32.4",
     "diff": "^5.0.0",
     "object-inspect": "^1.12.0"
   },

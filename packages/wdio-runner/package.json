@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "8.32.3",
+  "version": "8.32.4",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
@@ -30,16 +30,16 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/config": "8.32.3",
-    "@wdio/globals": "8.32.3",
+    "@wdio/config": "8.32.4",
+    "@wdio/globals": "8.32.4",
     "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.32.2",
-    "@wdio/utils": "8.32.3",
+    "@wdio/types": "8.32.4",
+    "@wdio/utils": "8.32.4",
     "deepmerge-ts": "^5.0.0",
     "expect-webdriverio": "^4.11.2",
     "gaze": "^1.1.2",
-    "webdriver": "8.32.3",
-    "webdriverio": "8.32.3"
+    "webdriver": "8.32.4",
+    "webdriverio": "8.32.4"
   },
   "publishConfig": {
     "access": "public"
