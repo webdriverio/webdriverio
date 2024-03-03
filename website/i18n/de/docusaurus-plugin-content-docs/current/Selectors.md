@@ -438,7 +438,7 @@ Mit der  `-image-` Selektor ist es möglich, Appium eine Bilddatei zu senden, di
 
 Unterstützte Dateiformate `jpg,png,gif,bmp,svg`
 
-Eine vollständige Referenz finden Sie [hier](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -447,7 +447,7 @@ await elem.click()
 
 **Hinweis**: Die Art und Weise, wie Appium mit diesem Selektor arbeitet, ist, dass es intern einen (App-)Screenshot erstellt und den bereitgestellten Bildselektor verwendet, um zu überprüfen, ob das Element in diesem (App-)Screenshot gefunden werden kann.
 
-Beachten Sie, dass Appium die Größe des aufgenommenen (App-) möglicherweise an die CSS-Größe Ihres (App-)Bildschirms anpasst (dies geschieht auf iPhones, aber auch auf Mac-Computern mit einem Retina-Display, da der DPR größer ist als 1). Dies führt dazu dass keine Übereinstimmung gefunden wird, da die bereitgestellte Bildauswahl möglicherweise aus dem ursprünglichen Screenshot stammt. Sie können dies beheben, indem Sie die Appium Server-Einstellungen aktualisieren, siehe die [Appium-Dokumentation](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) für die Einstellungen und [diesen Kommentar](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) für eine detaillierte Erklärung.
+Beachten Sie, dass Appium die Größe des aufgenommenen (App-) möglicherweise an die CSS-Größe Ihres (App-)Bildschirms anpasst (dies geschieht auf iPhones, aber auch auf Mac-Computern mit einem Retina-Display, da der DPR größer ist als 1). Dies führt dazu dass keine Übereinstimmung gefunden wird, da die bereitgestellte Bildauswahl möglicherweise aus dem ursprünglichen Screenshot stammt. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## React Selektoren
 
