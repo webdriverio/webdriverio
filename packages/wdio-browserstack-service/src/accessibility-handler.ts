@@ -110,7 +110,7 @@ class _AccessibilityHandler {
         }
 
         if (!this._accessibility) {
-            return;
+            return
         }
         try {
             if ('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap)) {
