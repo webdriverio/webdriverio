@@ -24,7 +24,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.31.1"
+    "@wdio/reporter": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

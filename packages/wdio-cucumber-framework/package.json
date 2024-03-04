@@ -42,9 +42,9 @@
     "@cucumber/gherkin": "28.0.0",
     "@cucumber/messages": "24.0.1",
     "@types/node": "^20.1.0",
-    "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.31.1",
-    "@wdio/utils": "8.31.1",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "glob": "^10.2.2",
     "is-glob": "^4.0.0"
   },

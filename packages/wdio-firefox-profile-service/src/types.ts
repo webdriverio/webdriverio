@@ -96,10 +96,4 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      * ```
      */
     proxy?: ProxySettings
-    /**
-     * Please set this flag to `true` if you use Firefox v55 or lower.
-     *
-     * @default false
-     */
-    legacy?: boolean
 }

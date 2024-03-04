@@ -29,7 +29,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance')[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO<WebdriverIO.MultiRemoteCapabilities>, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance')[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }

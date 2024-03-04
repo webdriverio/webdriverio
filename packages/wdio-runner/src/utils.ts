@@ -10,9 +10,8 @@ import type { Options, Capabilities } from '@wdio/types'
 
 const log = logger('@wdio/runner')
 
-export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
+export interface ConfigWithSessionId extends Options.Testrunner<Capabilities.RemoteCapabilities> {
     sessionId?: string,
-    capabilities: Capabilities.RemoteCapability
 }
 
 /**
@@ -81,7 +80,8 @@ export async function initializeInstance (
             port: caps.port || config.port,
             path: caps.path || config.path
         }
-        const params = { ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>
+        // ToDo(Christian): fix typing and remove `any`
+        const params = { ...config, ...connectionProps, capabilities } as any
         return attach({ ...params, options: params })
     }
 

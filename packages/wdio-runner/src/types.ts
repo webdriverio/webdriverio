@@ -6,7 +6,7 @@ export type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
 export type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
 export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
 
-interface Args extends Partial<Options.Testrunner> {
+interface Args extends Partial<Options.Testrunner<Capabilities.StandaloneOrMultiremoteCapabilities>> {
     ignoredWorkerServices?: string[]
     watch?: boolean
 }
@@ -15,7 +15,7 @@ export type RunParams = {
     cid: string
     args: Args
     specs: string[]
-    caps: Capabilities.RemoteCapability
+    caps: Capabilities.StandaloneOrMultiremoteCapabilities
     configFile: string
     retries: number
 }
@@ -32,8 +32,7 @@ export interface TestFramework {
     hasTests (): boolean
 }
 
-type SingleCapability = { capabilities: Capabilities.RemoteCapability }
-export interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, SingleCapability {}
+export interface SingleConfigOption extends Options.Testrunner<Capabilities.RemoteCapabilities> {}
 export type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
 
 export interface SessionStartedMessage {

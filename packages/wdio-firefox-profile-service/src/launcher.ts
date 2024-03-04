@@ -94,13 +94,8 @@ export default class FirefoxProfileLauncher {
     }
 
     _setProfile(capability: WebdriverIO.Capabilities, zippedProfile: string) {
-        if (this._options.legacy) {
-            // for older firefox and geckodriver versions
-            capability.firefox_profile = zippedProfile
-        } else {
-            // for firefox >= 56.0 and geckodriver >= 0.19.0
-            capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
-            capability['moz:firefoxOptions'].profile = zippedProfile
-        }
+        // for firefox >= 56.0 and geckodriver >= 0.19.0
+        capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
+        capability['moz:firefoxOptions'].profile = zippedProfile
     }
 }

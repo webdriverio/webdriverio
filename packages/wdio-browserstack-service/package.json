@@ -33,9 +33,9 @@
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
-    "@wdio/logger": "8.28.0",
-    "@wdio/reporter": "8.31.1",
-    "@wdio/types": "8.31.1",
+    "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "browserstack-local": "^1.5.1",
     "chalk": "^5.3.0",
     "csv-writer": "^1.6.0",
@@ -43,7 +43,7 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "uuid": "^9.0.0",
-    "webdriverio": "8.32.1",
+    "webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",
     "yauzl": "^3.0.0"
   },
@@ -53,7 +53,7 @@
   "devDependencies": {
     "@types/node": "^20.1.0",
     "@types/yauzl": "^2.10.3",
-    "@wdio/globals": "8.32.1"
+    "@wdio/globals": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

@@ -6,7 +6,7 @@ export enum SupportedAutomationProtocols {
     stub = './protocol-stub.js'
 }
 
-export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO> = {
+export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>> = {
     /**
      * allows to specify automation protocol
      */

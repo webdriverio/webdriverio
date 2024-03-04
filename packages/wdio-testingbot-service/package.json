@@ -30,14 +30,9 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.31.1",
-    "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "8.32.1"
-  },
-  "devDependencies": {
-    "@types/node": "^20.1.0",
-    "@wdio/globals": "8.32.1"
+    "@wdio/globals": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "testingbot-tunnel-launcher": "^1.1.7"
   },
   "publishConfig": {
     "access": "public"

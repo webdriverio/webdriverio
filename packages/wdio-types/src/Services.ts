@@ -1,4 +1,4 @@
-import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
+import type { RemoteCapability, RemoteCapabilities } from './Capabilities.js'
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
 import type { Worker } from './Workers.js'
@@ -41,7 +41,7 @@ export interface ServicePlugin extends ServiceClass {
 export interface ServiceInstance extends HookFunctions {
     options?: Record<string, any>,
     capabilities?: RemoteCapability,
-    config?: TestrunnerOptions
+    config?: TestrunnerOptions,
 }
 
 interface AssertionHookParams {
@@ -144,7 +144,7 @@ export interface HookFunctions {
      */
     onWorkerStart?(
         cid: string,
-        caps: DesiredCapabilities,
+        caps: WebdriverIO.Capabilities,
         specs: string[],
         args: TestrunnerOptions,
         execArgv: string[]
@@ -191,7 +191,7 @@ export interface HookFunctions {
     ): unknown | Promise<unknown>
 
     /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
+     * Gets executed just before initializing the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param config        wdio configuration object
      * @param capabilities  list of capabilities details

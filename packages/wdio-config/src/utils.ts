@@ -2,9 +2,6 @@ import decamelize from 'decamelize'
 
 import type { Options } from '@wdio/types'
 
-export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
-    (typeof object === 'object' && Object.keys(object).length > 0)
-
 /**
  * remove line numbers from file path, ex:
  * `/foo:9` or `c:\bar:14:5`

@@ -10,7 +10,7 @@ import type DevtoolsInterception from './utils/interception/devtools.js'
 import type { Matches, ErrorReason } from './utils/interception/types.js'
 
 export * from './utils/interception/types.js'
-export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
+export type RemoteOptions = Options.WebdriverIO<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities> & Omit<Options.Testrunner<never>, 'capabilities' | 'rootDir'>
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -198,7 +198,7 @@ export interface CustomInstanceCommands<T> {
     ): void
 }
 
-interface InstanceBase extends EventEmitter, SessionFlags {
+interface InstanceBase<Cap> extends EventEmitter, SessionFlags {
     /**
      * Session id for the current running session
      */
@@ -207,7 +207,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      * Applied capabilities used in the current session. Note: these can differ from the actual
      * requested capabilities if the remote end couldn't provide an exact match.
      */
-    capabilities: Capabilities.RemoteCapability
+    capabilities: Cap
     /**
      * Requested capabilities defined in the config object.
      */
@@ -216,7 +216,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      * Applied WebdriverIO options (options that aren't officially part of WebdriverIO are stripped
      * out of this object).
      */
-    options: Options.WebdriverIO | Options.Testrunner
+    options: Options.WebdriverIO<Cap> | Options.Testrunner<Cap>
     /**
      * Puppeteer instance
      */
@@ -237,7 +237,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 /**
  * a browser base that has everything besides commands which are defined for sync and async seperately
  */
-export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser> {
+export interface BrowserBase extends InstanceBase<WebdriverIO.Capabilities>, CustomInstanceCommands<Browser> {
     isMultiremote: false
 }
 /**
@@ -248,7 +248,7 @@ export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHand
 /**
  * export a browser interface that can be used for typing plugins
  */
-export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<Element> {
+export interface ElementBase extends InstanceBase<WebdriverIO.Capabilities>, ElementReference, CustomInstanceCommands<Element> {
     isMultiremote: false
     /**
      * WebDriver element reference
@@ -262,7 +262,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
      * - a string if `findElement` was used and a reference was found
-     * - or a functin if element was found via e.g. `$(() => document.body)`
+     * - or a function if element was found via e.g. `$(() => document.body)`
      */
     selector: Selector
     /**
@@ -291,7 +291,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
  */
 export interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
 
-interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
+interface MultiRemoteBase extends Omit<InstanceBase<WebdriverIO.MultiRemoteCapabilities>, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
      * multiremote browser instance names
      */
@@ -327,10 +327,6 @@ interface MultiRemoteElementBase {
 }
 
 interface MultiRemoteBrowserType extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
-/**
- * @deprecated use `WebdriverIO.MultiRemoteBrowser` instead
- */
-export interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
 interface MultiRemoteElementType extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
 
 /**
@@ -499,7 +495,7 @@ type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}
 
 export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
-    options: Options.WebdriverIO
+    options: Options.WebdriverIO<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>
     capabilities: WebDriverAttachOptions['capabilities'],
     requestedCapabilities?: WebDriverAttachOptions['capabilities'],
 }
