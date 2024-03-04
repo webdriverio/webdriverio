@@ -109,7 +109,7 @@ async function workaround(element: WebdriverIO.Element) {
 
 async function elementClick(element: WebdriverIO.Element) {
     try {
-        return element.elementClick(element.elementId)
+        return await element.elementClick(element.elementId)
     } catch (error) {
         let err = error as Error
         if (typeof error === 'string') {
@@ -168,7 +168,7 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             .perform(skipRelease)
     }
     try {
-        return clickNested()
+        return await clickNested()
     } catch {
         await workaround(element)
         return clickNested()
