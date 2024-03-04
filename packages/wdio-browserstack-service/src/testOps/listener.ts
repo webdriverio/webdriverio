@@ -24,6 +24,7 @@ class Listener {
     private requestBatcher?: RequestQueueHandler
     private pendingUploads = 0
 
+    // Making the constructor private to use singleton pattern
     private constructor() {
     }
 

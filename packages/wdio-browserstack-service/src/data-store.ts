@@ -30,8 +30,12 @@ export function getDataFromWorkers(){
 export function saveWorkerData(data: Record<string, any>) {
     const filePath = path.join(workersDataDirPath, 'worker-data-' + process.pid + '.json')
 
-    createWorkersDataDir()
-    fs.writeFileSync(filePath, JSON.stringify(data))
+    try {
+        createWorkersDataDir()
+        fs.writeFileSync(filePath, JSON.stringify(data))
+    } catch (e) {
+        BStackLogger.debug('Exception in saving worker data: ' + e)
+    }
 }
 
 function removeWorkersDataDir(): boolean {

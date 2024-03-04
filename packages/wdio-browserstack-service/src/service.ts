@@ -530,12 +530,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     private saveWorkerData() {
-        try {
-            saveWorkerData({
-                usageStats: UsageStats.getInstance().getDataToSave(),
-            })
-        } catch (e) {
-            BStackLogger.debug('Exception in saving worker data: ' + e)
-        }
+        saveWorkerData({
+            usageStats: UsageStats.getInstance().getDataToSave()
+        })
     }
 }
