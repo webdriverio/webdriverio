@@ -31,10 +31,10 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/logger": "8.28.0",
-    "@wdio/repl": "8.24.12",
-    "@wdio/runner": "8.32.1",
-    "@wdio/types": "8.31.1",
+    "@wdio/logger": "workspace:*",
+    "@wdio/repl": "workspace:*",
+    "@wdio/runner": "workspace:*",
+    "@wdio/types": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"

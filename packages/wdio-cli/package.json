@@ -47,12 +47,12 @@
   "dependencies": {
     "@types/node": "^20.1.1",
     "@vitest/snapshot": "^1.2.1",
-    "@wdio/config": "8.31.1",
-    "@wdio/globals": "8.32.1",
-    "@wdio/logger": "8.28.0",
-    "@wdio/protocols": "8.32.0",
-    "@wdio/types": "8.31.1",
-    "@wdio/utils": "8.31.1",
+    "@wdio/config": "workspace:*",
+    "@wdio/globals": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/protocols": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "chalk": "^5.2.0",
     "chokidar": "^3.5.3",
@@ -67,7 +67,7 @@
     "lodash.union": "^4.6.0",
     "read-pkg-up": "^10.0.0",
     "recursive-readdir": "^2.2.3",
-    "webdriverio": "8.32.1",
+    "webdriverio": "workspace:*",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

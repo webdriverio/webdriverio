@@ -328,10 +328,10 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       allure-js-commons:
         specifier: ^2.5.0
@@ -352,16 +352,16 @@ importers:
   packages/wdio-appium-service:
     dependencies:
       '@wdio/config':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-config
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       change-case:
         specifier: ^5.4.3
@@ -373,7 +373,7 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
 
   packages/wdio-browser-runner:
@@ -388,28 +388,28 @@ importers:
         specifier: ^1.0.1
         version: 1.3.1
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
       '@wdio/local-runner':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-local-runner
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/mocha-framework':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-mocha-framework
       '@wdio/protocols':
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/runner':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-runner
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
         specifier: ^5.0.0
@@ -463,10 +463,10 @@ importers:
         specifier: ^1.3.0
         version: 1.4.1(vite@4.5.2)
       webdriver:
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../webdriver
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
       '@types/istanbul-lib-coverage':
@@ -497,13 +497,13 @@ importers:
         specifier: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
         version: 8.32.3(typescript@5.3.3)
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       browserstack-local:
         specifier: ^1.5.1
@@ -527,7 +527,7 @@ importers:
         specifier: ^9.0.0
         version: 9.0.1
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
       winston-transport:
         specifier: ^4.5.0
@@ -543,7 +543,7 @@ importers:
         specifier: ^2.10.3
         version: 2.10.3
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
 
   packages/wdio-cli:
@@ -555,22 +555,22 @@ importers:
         specifier: ^1.2.1
         version: 1.3.1
       '@wdio/config':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-config
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/protocols':
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       async-exit-hook:
         specifier: ^2.0.1
@@ -615,7 +615,7 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
       yargs:
         specifier: ^17.7.2
@@ -653,10 +653,10 @@ importers:
   packages/wdio-concise-reporter:
     dependencies:
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       chalk:
         specifier: ^5.0.1
@@ -668,13 +668,13 @@ importers:
   packages/wdio-config:
     dependencies:
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       decamelize:
         specifier: ^6.0.0
@@ -696,10 +696,10 @@ importers:
   packages/wdio-crossbrowsertesting-service:
     dependencies:
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       cbt_tunnels:
         specifier: ^1.2.2
@@ -712,7 +712,7 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
 
   packages/wdio-cucumber-framework:
@@ -730,13 +730,13 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       glob:
         specifier: ^10.2.2
@@ -765,10 +765,10 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       babel-plugin-istanbul:
         specifier: ^6.1.1
@@ -792,7 +792,7 @@ importers:
         specifier: 22.3.0
         version: 22.3.0
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
       '@types/babel__core':
@@ -814,10 +814,10 @@ importers:
   packages/wdio-dot-reporter:
     dependencies:
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       chalk:
         specifier: ^5.0.1
@@ -833,7 +833,7 @@ importers:
   packages/wdio-firefox-profile-service:
     dependencies:
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       firefox-profile:
         specifier: ^4.5.0
@@ -845,7 +845,7 @@ importers:
         specifier: ^4.11.2
         version: 4.11.9(typescript@5.3.3)
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
 
   packages/wdio-globals/cjs: {}
@@ -856,16 +856,16 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       expect-webdriverio:
         specifier: ^4.11.2
@@ -881,10 +881,10 @@ importers:
   packages/wdio-json-reporter:
     dependencies:
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
 
   packages/wdio-json-reporter/build/cjs: {}
@@ -916,16 +916,16 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/repl':
-        specifier: 8.24.12
+        specifier: workspace:*
         version: link:../wdio-repl
       '@wdio/runner':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-runner
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       async-exit-hook:
         specifier: ^2.0.1
@@ -968,13 +968,13 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       mocha:
         specifier: ^10.0.0
@@ -994,10 +994,10 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       diff:
         specifier: ^5.0.0
@@ -1030,19 +1030,19 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/config':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-config
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
         specifier: ^5.0.0
@@ -1053,23 +1053,20 @@ importers:
       gaze:
         specifier: ^1.1.2
         version: 1.1.3
-      webdriver:
-        specifier: 8.32.0
-        version: link:../webdriver
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
 
   packages/wdio-sauce-service:
     dependencies:
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       ip:
         specifier: ^2.0.1
@@ -1078,14 +1075,14 @@ importers:
         specifier: 7.5.0
         version: 7.5.0
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
       '@types/ip':
         specifier: ^1.1.0
         version: 1.1.3
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
 
   packages/wdio-shared-store-service:
@@ -1094,20 +1091,20 @@ importers:
         specifier: ^1.0.0-next.0
         version: 1.0.0-next.0
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       polka:
         specifier: ^0.5.2
         version: 0.5.2
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
 
   packages/wdio-shared-store-service/build/cjs: {}
@@ -1123,7 +1120,7 @@ importers:
   packages/wdio-smoke-test-reporter:
     dependencies:
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
 
   packages/wdio-smoke-test-service:
@@ -1137,10 +1134,10 @@ importers:
   packages/wdio-spec-reporter:
     dependencies:
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       chalk:
         specifier: ^5.1.2
@@ -1155,10 +1152,10 @@ importers:
   packages/wdio-static-server-service:
     dependencies:
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       express:
         specifier: ^4.14.0
@@ -1177,13 +1174,13 @@ importers:
   packages/wdio-sumologic-reporter:
     dependencies:
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/reporter':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-reporter
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       dateformat:
         specifier: 4.5.1
@@ -1201,25 +1198,15 @@ importers:
 
   packages/wdio-testingbot-service:
     dependencies:
-      '@wdio/logger':
-        specifier: 8.28.0
-        version: link:../wdio-logger
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       testingbot-tunnel-launcher:
         specifier: ^1.1.7
         version: 1.1.12
-      webdriverio:
-        specifier: 8.32.1
-        version: link:../webdriverio
-    devDependencies:
-      '@types/node':
-        specifier: ^20.1.0
-        version: 20.11.20
-      '@wdio/globals':
-        specifier: 8.32.1
-        version: link:../wdio-globals
 
   packages/wdio-types:
     dependencies:
@@ -1233,10 +1220,10 @@ importers:
         specifier: ^2.0.1
         version: 2.1.0
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       decamelize:
         specifier: ^6.0.0
@@ -1275,10 +1262,10 @@ importers:
         specifier: ^9.0.0
         version: 9.0.8
       '@wdio/protocols':
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       nock:
         specifier: 14.0.0-beta.1
@@ -1287,11 +1274,11 @@ importers:
         specifier: ^9.0.0
         version: 9.0.1
       webdriverio:
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
       '@wdio/globals':
-        specifier: 8.32.1
+        specifier: workspace:*
         version: link:../wdio-globals
 
   packages/webdriver:
@@ -1303,19 +1290,19 @@ importers:
         specifier: ^8.5.3
         version: 8.5.10
       '@wdio/config':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-config
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/protocols':
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
         specifier: ^5.1.0
@@ -1334,22 +1321,22 @@ importers:
         specifier: ^20.1.0
         version: 20.11.20
       '@wdio/config':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-config
       '@wdio/logger':
-        specifier: 8.28.0
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/protocols':
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/repl':
-        specifier: 8.24.12
+        specifier: workspace:*
         version: link:../wdio-repl
       '@wdio/types':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: 8.31.1
+        specifier: workspace:*
         version: link:../wdio-utils
       archiver:
         specifier: ^6.0.0
@@ -1394,7 +1381,7 @@ importers:
         specifier: ^11.0.1
         version: 11.0.3
       webdriver:
-        specifier: 8.32.0
+        specifier: workspace:*
         version: link:../webdriver
     devDependencies:
       '@types/archiver':

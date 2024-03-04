@@ -54,9 +54,7 @@ export interface WorkerMessage {
     params: Record<string, string>
 }
 
-export interface Worker
-    extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
-        EventEmitter {
+export interface Worker extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>, EventEmitter {
     capabilities: RemoteCapability
     config: TestrunnerOptions,
     caps: RemoteCapability

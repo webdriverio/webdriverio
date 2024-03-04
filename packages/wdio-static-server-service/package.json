@@ -34,8 +34,8 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.31.1",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
     "express": "^4.14.0",
     "morgan": "^1.7.0"
   },

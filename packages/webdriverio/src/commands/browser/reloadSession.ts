@@ -63,7 +63,7 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
     const ProtocolDriver = (await import(this.options.automationProtocol!)).default
     await ProtocolDriver.reloadSession(this, newCapabilities)
 
-    const options = this.options as Options.Testrunner
+    const options = this.options as Options.Testrunner<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>
     if (Array.isArray(options.onReload) && options.onReload.length) {
         await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
     }

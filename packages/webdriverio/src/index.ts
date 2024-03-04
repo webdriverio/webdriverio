@@ -19,6 +19,8 @@ export * from './types.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 
+type StandaloneMultiremoteOptions = Options.WebdriverIO<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>
+
 /**
  * A method to create a new session with WebdriverIO.
  *
@@ -30,16 +32,16 @@ export const SevereServiceError = SevereServiceErrorImport
  * @param params Options to create the session with
  * @param remoteModifier Modifier function to change the monad object
  * @return browser object with sessionId
- * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
+ * @see {@link https://webdriver.io/docs/typescript Typescript setup}
  */
 export const remote = async function(
     params: RemoteOptions,
-    remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
+    remoteModifier?: (client: WebDriverTypes.Client, options: StandaloneMultiremoteOptions) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
     const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof RemoteOptions)[]
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, keysToKeep)
-    const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
+    const modifier = (client: WebDriverTypes.Client, options: StandaloneMultiremoteOptions) => {
         /**
          * overwrite instance options with default values of the protocol
          * package (without undefined properties)
@@ -61,7 +63,7 @@ export const remote = async function(
     /**
      * we need to overwrite the original addCommand and overwriteCommand
      */
-    if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
+    if ((params as Options.Testrunner<unknown>).framework && !isStub(params.automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
         instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
             origAddCommand(name, fn, attachToElement)
@@ -88,7 +90,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         requestedCapabilities: attachOptions.requestedCapabilities
     }
     const prototype = getPrototype('browser')
-    const { Driver } = await getProtocolDriver(params as Options.WebdriverIO)
+    const { Driver } = await getProtocolDriver(params as RemoteOptions)
 
     const driver = Driver.attachToSession(
         params,
@@ -118,7 +120,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * @return All remote instances, the first result represents the capability defined first in the capability object,
  * the second result the second capability and so on.
  *
- * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
+ * @see {@link https://webdriver.io/docs/multiremote WebdriverIO Multiremote Docs}.
  */
 export const multiremote = async function (
     params: Capabilities.MultiRemoteCapabilities,

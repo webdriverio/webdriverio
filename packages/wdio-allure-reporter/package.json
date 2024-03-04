@@ -38,16 +38,16 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/reporter": "8.31.1",
-    "@wdio/types": "8.31.1",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "allure-js-commons": "^2.5.0",
     "csv-stringify": "^6.0.4",
     "strip-ansi": "^7.1.0"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "devDependencies": {
     "rimraf": "^5.0.5"

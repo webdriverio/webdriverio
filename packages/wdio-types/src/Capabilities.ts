@@ -39,55 +39,53 @@ export interface ProxyObject {
     noProxy?: string[]
 }
 
-declare global {
-    namespace WebdriverIO {
-        interface Capabilities extends VendorExtensions, ConnectionOptions {
-            /**
-             * Identifies the user agent.
-             */
-            browserName?: string
-            /**
-             * Identifies the version of the user agent.
-             */
-            browserVersion?: string
-            /**
-             * Identifies the operating system of the endpoint node.
-             */
-            platformName?: string
-            /**
-             * Indicates whether untrusted and self-signed TLS certificates are implicitly trusted on navigation for the duration of the session.
-             */
-            acceptInsecureCerts?: boolean
-            /**
-             * Defines the current session’s page load strategy.
-             */
-            pageLoadStrategy?: PageLoadingStrategy
-            /**
-             * Defines the current session’s proxy configuration.
-             */
-            proxy?: ProxyObject
-            /**
-             * Indicates whether the remote end supports all of the resizing and repositioning commands.
-             */
-            setWindowRect?: boolean
-            /**
-             * Describes the timeouts imposed on certain session operations.
-             */
-            timeouts?: Timeouts
-            /**
-             * Defines the current session’s strict file interactability.
-             */
-            strictFileInteractability?: boolean
-            /**
-             * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
-             */
-            unhandledPromptBehavior?: string
-            /**
-             * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
-             */
-            webSocketUrl?: boolean
-        }
-    }
+export type StandaloneOrMultiremoteCapabilities = WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities
+
+export interface Capabilities extends VendorExtensions, ConnectionOptions {
+    /**
+     * Identifies the user agent.
+     */
+    browserName?: string
+    /**
+     * Identifies the version of the user agent.
+     */
+    browserVersion?: string
+    /**
+     * Identifies the operating system of the endpoint node.
+     */
+    platformName?: string
+    /**
+     * Indicates whether untrusted and self-signed TLS certificates are implicitly trusted on navigation for the duration of the session.
+     */
+    acceptInsecureCerts?: boolean
+    /**
+     * Defines the current session’s page load strategy.
+     */
+    pageLoadStrategy?: PageLoadingStrategy
+    /**
+     * Defines the current session’s proxy configuration.
+     */
+    proxy?: ProxyObject
+    /**
+     * Indicates whether the remote end supports all of the resizing and repositioning commands.
+     */
+    setWindowRect?: boolean
+    /**
+     * Describes the timeouts imposed on certain session operations.
+     */
+    timeouts?: Timeouts
+    /**
+     * Defines the current session’s strict file interactability.
+     */
+    strictFileInteractability?: boolean
+    /**
+     * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
+     */
+    unhandledPromptBehavior?: string
+    /**
+     * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
+     */
+    webSocketUrl?: boolean
 }
 
 export interface W3CCapabilities {
@@ -98,7 +96,7 @@ export interface W3CCapabilities {
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[]
 
 export interface MultiRemoteCapabilities {
-    [instanceName: string]: WebDriverIOOptions
+    [instanceName: string]: WebDriverIOOptions<WebdriverIO.Capabilities>
 }
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities
@@ -185,8 +183,6 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // are returned from the driver
     // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
     'moz:debuggerAddress'?: string | number
-    // eslint-disable-next-line
-    firefox_profile?: string
     'ms:edgeOptions'?: MicrosoftEdgeOptions
     'ms:edgeChromium'?: MicrosoftEdgeOptions
 
@@ -213,21 +209,29 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
 export interface WebdriverIOCapabilities {
     /**
      * process id of driver attached to given session
+     * @internal
      */
     'wdio:driverPID'?: number
+    /**
+     * Options passed to Chromedriver
+     */
     'wdio:chromedriverOptions'?: WebdriverIO.ChromedriverOptions
+    /**
+     * Options passed to Safaridriver
+     */
     'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
+    /**
+     * Options passed to Geckodriver
+     */
     'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
+    /**
+     * Options passed to Edgedriver
+     */
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
     /**
     * Maximum number of total parallel running workers (per capability)
     */
     'wdio:maxInstances'?: number
-    /**
-     * Maximum number of total parallel running workers (per capability)
-     * @deprecated please use `wdio:maxInstances` instead
-     */
-    maxInstances?: number
 
     /**
     * Define specs for test execution. You can either specify a glob
@@ -235,23 +239,11 @@ export interface WebdriverIOCapabilities {
     * paths into an array to run them within a single worker process.
     */
     'wdio:specs'?: string[]
-    /**
-     * Define specs for test execution. You can either specify a glob
-     * pattern to match multiple files at once or wrap a glob or set of
-     * paths into an array to run them within a single worker process.
-     * @deprecated please use `wdio:specs` instead
-     */
-    specs?: string[]
 
     /**
      * Exclude specs from test execution.
      */
     'wdio:exclude'?: string[]
-    /**
-     * Exclude specs from test execution.
-     * @deprecated please use `wdio:exclude` instead
-     */
-    exclude?: string[]
 }
 
 export interface ChromeOptions {

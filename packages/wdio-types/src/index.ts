@@ -40,12 +40,15 @@ interface DriverOptions {
 
 declare global {
     namespace WebdriverIO {
+        interface Capabilities extends Capabilities.Capabilities {}
+        interface MultiRemoteCapabilities extends Capabilities.MultiRemoteCapabilities {}
+
         interface MochaOpts { [key: string]: any }
         interface JasmineOpts { [key: string]: any }
         interface CucumberOpts { [key: string]: any }
         interface ServiceOption extends Services.ServiceOption {}
         interface ReporterOption extends Reporters.Options {}
-        interface Config extends Options.Testrunner {}
+        interface Config<Capabilities = Capabilities.StandaloneOrMultiremoteCapabilities> extends Options.Testrunner<Capabilities> {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}

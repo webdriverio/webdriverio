@@ -1,4 +1,4 @@
-import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
+import type { MultiRemoteCapabilities, StandaloneOrMultiremoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
@@ -112,7 +112,7 @@ export interface WebDriver extends Connection {
      * })
      * ```
      */
-    capabilities: W3CCapabilities | DesiredCapabilities
+    capabilities: WebdriverIO.Capabilities
     /**
      * Level of logging verbosity.
      *
@@ -181,14 +181,9 @@ export interface WebDriver extends Connection {
     cacheDir?: string
 }
 
-export interface MultiRemoteBrowserOptions {
-    sessionId?: string
-    capabilities: DesiredCapabilities
-}
-
 export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'us-east-4' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
-export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
+export interface WebdriverIO<Capabilities = StandaloneOrMultiremoteCapabilities> extends Omit<WebDriver, 'capabilities'>, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -229,7 +224,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
      * })
      * ```
      */
-    capabilities: RemoteCapability
+    capabilities: Capabilities
     /**
      * Define the protocol you want to use for your browser automation.
      * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
@@ -264,7 +259,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
     waitforInterval?: number
 }
 
-export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, WebdriverIO.HookFunctionExtension {
+export interface Testrunner<Capabilities = StandaloneOrMultiremoteCapabilities> extends Hooks, Omit<WebdriverIO<Capabilities>, 'capabilities'>, WebdriverIO.HookFunctionExtension {
     /**
      * Defines a set of capabilities you want to run in your testrunner session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -309,7 +304,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * })
      * ```
      */
-    capabilities: RemoteCapabilities
+    capabilities: Capabilities
     /**
      * Type of runner
      * - local: every spec file group is spawned in its own local process
@@ -372,11 +367,12 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     updateSnapshots?: 'all' | 'new' | 'none'
     /**
      * Overrides default snapshot path. For example, to store snapshots next to test files.
-     * @default __snapshots__ stores snapshot files in __snapshots__ directory next to the test file.
+     * By default it stores snapshot files in a `__snapshots__` directory next to the test file.
+     * @default __snapshots__
      */
     resolveSnapshotPath?: (testPath: string, snapExtension: string) => string
     /**
-     * The number of retry attempts for an entire specfile when it fails as a whole.
+     * The number of retry attempts for an entire spec file when it fails as a whole.
      */
     specFileRetries?: number
     /**
@@ -455,7 +451,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
-     * autocompile options
+     * auto compile options
      */
     autoCompileOpts?: AutoCompileConfig
 }
@@ -553,9 +549,7 @@ export interface TSNodeOptions {
     noExperimentalReplAwait?: boolean
 }
 
-export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
-    capabilities: MultiRemoteCapabilities
-}
+export interface MultiRemote extends Testrunner<MultiRemoteCapabilities> {}
 
 export type Definition<T> = {
     [k in keyof T]: {
@@ -570,9 +564,9 @@ export type Definition<T> = {
 export interface RunnerStart {
     cid: string
     specs: string[]
-    config: Testrunner
+    config: Testrunner<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>
     isMultiremote: boolean
-    instanceOptions: Record<string, WebdriverIO>
+    instanceOptions: Record<string, WebdriverIO<StandaloneOrMultiremoteCapabilities>>
     sessionId: string
     capabilities: WebdriverIO.Capabilities
     retry?: number

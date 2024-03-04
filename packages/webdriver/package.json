@@ -38,11 +38,11 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",
-    "@wdio/config": "8.31.1",
-    "@wdio/logger": "8.28.0",
-    "@wdio/protocols": "8.32.0",
-    "@wdio/types": "8.31.1",
-    "@wdio/utils": "8.31.1",
+    "@wdio/config": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/protocols": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^5.1.0",
     "ws": "^8.8.0"
   }

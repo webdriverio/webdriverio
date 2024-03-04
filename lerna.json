@@ -3,6 +3,7 @@
   "packages": [
     "packages/*"
   ],
+  "npmClient": "pnpm",
   "version": "8.32.1",
   "command": {
     "bootstrap": {
