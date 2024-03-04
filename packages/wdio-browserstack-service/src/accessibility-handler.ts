@@ -109,31 +109,32 @@ class _AccessibilityHandler {
             return await performA11yScan((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
-        if (this._accessibility) {
-            try {
-                if ('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap)) {
-                    const that = this
-                    accessibilityScripts.commandsToWrap.forEach(async function (command) {
-                        if (command.name && command.class) {
-                            await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
-                                if (
-                                    that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
-                                      (
-                                          !command.name.includes('execute') ||
-                                          !AccessibilityHandler.isBrowserstackScript(args.length ? args[0] : null)
-                                      )
-                                ) {
-                                    BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-                                    await performA11yScan(that._browser, true, true, command.name)
-                                }
-                                return origFunction(...args)
-                            }, command.class === 'Element')
-                        }
-                    })
-                }
-            } catch {
-                /* Do nothing */
+        if (!this._accessibility) {
+            return;
+        }
+        try {
+            if ('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap)) {
+                const that = this
+                accessibilityScripts.commandsToWrap.forEach(async function (command) {
+                    if (command.name && command.class) {
+                        await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
+                            if (
+                                that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
+                                    (
+                                        !command.name.includes('execute') ||
+                                        !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
+                                    )
+                            ) {
+                                BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
+                                await performA11yScan(that._browser, true, true, command.name)
+                            }
+                            return origFunction(...args)
+                        }, command.class === 'Element')
+                    }
+                })
             }
+        } catch {
+            /* Do nothing */
         }
     }
 
@@ -216,15 +217,15 @@ class _AccessibilityHandler {
       * Cucumber Only
     */
     async beforeScenario (world: ITestCaseHookParameter) {
-        try {
-            if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
-                return
-            }
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            return
+        }
 
-            const pickleData = world.pickle
-            const gherkinDocument = world.gherkinDocument
-            const featureData = gherkinDocument.feature
-            const uniqueId = getUniqueIdentifierForCucumber(world)
+        const pickleData = world.pickle
+        const gherkinDocument = world.gherkinDocument
+        const featureData = gherkinDocument.feature
+        const uniqueId = getUniqueIdentifierForCucumber(world)
+        try {
             const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
             const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 
@@ -333,18 +334,15 @@ class _AccessibilityHandler {
         return pageOpen
     }
 
-    private static isBrowserstackScript(script: string | null): Boolean {
-        if (!script) {
+    private static shouldPatchExecuteScript(script: string | null): Boolean {
+        if (!script || typeof script !== 'string') {
             return true
         }
-        try {
-            return (
-                script.toLowerCase().indexOf('browserstack_executor') !== -1 ||
-                script.toLowerCase().indexOf('browserstack_accessibility_automation_script') !== -1
-            )
-        } catch (err: any) {
-            return true
-        }
+
+        return (
+            script.toLowerCase().indexOf('browserstack_executor') !== -1 ||
+            script.toLowerCase().indexOf('browserstack_accessibility_automation_script') !== -1
+        )
     }
 }
 
