@@ -217,15 +217,15 @@ class _AccessibilityHandler {
       * Cucumber Only
     */
     async beforeScenario (world: ITestCaseHookParameter) {
-        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
-            return
-        }
-
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
         try {
+            if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+                return
+            }
+
             const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
             const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 
