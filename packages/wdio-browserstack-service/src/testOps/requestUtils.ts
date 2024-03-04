@@ -15,15 +15,12 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     }
 
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
+        throw new Error('Build start not completed yet')
     }
 
     if (!process.env.BS_TESTOPS_JWT) {
         BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
-        return {
-            status: 'error',
-            message: 'Token/buildID is undefined, build creation might have failed'
-        }
+        throw new Error('Token/buildID is undefined, build creation might have failed')
     }
 
     try {
@@ -39,6 +36,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
         BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
     } catch (error) {
         BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
+        throw new Error('Request failed with exception: ' + error)
     }
 }
 

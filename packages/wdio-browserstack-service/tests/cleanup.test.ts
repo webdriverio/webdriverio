@@ -2,8 +2,9 @@ import * as utils from '../src/util.js'
 import BStackCleanup from '../src/cleanup.js'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
-import FunnelTestEvent from '../src/instrumentation/funnelInstrumentation.js'
+import * as FunnelTestEvent from '../src/instrumentation/funnelInstrumentation.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 
@@ -53,9 +54,9 @@ describe('BStackCleanup', () => {
     describe('sendFunnelData', () => {
         it('handles invalid file path', async () => {
             process.argv.push('--funnelData')
-            vi.spyOn(FunnelTestEvent, 'fireRequest').mockResolvedValueOnce()
+            vi.spyOn(FunnelTestEvent, 'fireFunnelRequest').mockResolvedValueOnce()
             await BStackCleanup.sendFunnelData()
-            expect(FunnelTestEvent.fireRequest).not.toHaveBeenCalled()
+            expect(FunnelTestEvent.fireFunnelRequest).not.toHaveBeenCalled()
         })
 
         it('sends funnel data and removes file', async () => {
@@ -63,9 +64,9 @@ describe('BStackCleanup', () => {
             const funnelData = { key: 'value' }
             vi.spyOn(fs, 'readFileSync').mockReturnValueOnce(JSON.stringify(funnelData))
             vi.spyOn(fs, 'rmSync')
-            vi.spyOn(FunnelTestEvent, 'fireRequest').mockResolvedValueOnce()
+            vi.spyOn(FunnelTestEvent, 'fireFunnelRequest').mockResolvedValueOnce()
             await BStackCleanup.sendFunnelData()
-            expect(FunnelTestEvent.fireRequest).toHaveBeenCalledWith(funnelData)
+            expect(FunnelTestEvent.fireFunnelRequest).toHaveBeenCalledWith(funnelData)
             expect(fs.rmSync).toHaveBeenCalledWith('test-file-path', { force: true })
         })
     })

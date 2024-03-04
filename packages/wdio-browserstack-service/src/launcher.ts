@@ -39,7 +39,7 @@ import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
-import FunnelTestEvent from './instrumentation/funnelInstrumentation.js'
+import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 
@@ -167,7 +167,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
 
-        FunnelTestEvent.sendStart(this.browserStackConfig)
+        sendStart(this.browserStackConfig)
 
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
@@ -375,7 +375,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
         }
 
-        await FunnelTestEvent.sendFinish(this.browserStackConfig)
+        await sendFinish(this.browserStackConfig)
         BStackLogger.clearLogger()
 
         if (this._options.percy) {

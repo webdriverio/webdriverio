@@ -1,9 +1,10 @@
-import FunnelTestEvent from '../../src/instrumentation/funnelInstrumentation.js'
+import * as FunnelTestEvent from '../../src/instrumentation/funnelInstrumentation.js'
+import { sendFinish, sendStart } from '../../src/instrumentation/funnelInstrumentation.js'
 import { BStackLogger } from '../../src/bstackLogger.js'
 import fs from 'node:fs'
 import got from 'got'
-import UsageStats from '../../src/testOps/usageStats.js'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { FUNNEL_INSTRUMENTATION_URL } from '../../src/constants.js'
 
 vi.mock('got', () => ({
     default: {
@@ -11,8 +12,45 @@ vi.mock('got', () => ({
     }
 }))
 
-// const mockedGot = vi.mocked(got)
-describe('FunnelTestEvent', () => {
+const config = {
+    userName: 'your-username',
+    accessKey: 'your-access-key',
+    testObservability: { enabled: true },
+    framework: 'framework',
+    buildName: 'build-name',
+    buildIdentifier: 'your-build-identifier',
+    accessibility: true,
+    percy: true,
+    automate: true,
+    appAutomate: false,
+}
+
+const expectedEventData = {
+    userName: config.userName,
+    accessKey: config.accessKey,
+    event_type: 'SDKTestAttempted',
+    detectedFramework: 'WebdriverIO-framework',
+    event_properties: {
+        language_framework: 'WebdriverIO_framework',
+        referrer: expect.stringContaining('WebdriverIO-'),
+        language: 'WebdriverIO',
+        languageVersion: process.version,
+        buildName: config.buildName,
+        buildIdentifier: config.buildIdentifier,
+        os: expect.any(String),
+        hostname: expect.any(String),
+        productMap: {
+            'observability': true,
+            'accessibility': true,
+            'percy': true,
+            'automate': true,
+            'app_automate': false
+        },
+        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+    }
+}
+
+describe('funnelInstrumentation', () => {
     let originalCwd
 
     beforeEach(() => {
@@ -24,160 +62,79 @@ describe('FunnelTestEvent', () => {
         process.cwd = originalCwd
         vi.restoreAllMocks()
         vi.resetAllMocks()
+        vi.clearAllMocks()
     })
 
-    it('fireFunnelTestEvent does nothing if userName or accessKey is missing in config', async () => {
-        const config = { userName: '', accessKey: '' }
-        await FunnelTestEvent.fireFunnelTestEvent('SDKTestAttempted', config)
+    describe('sendStart', () => {
+        it('does nothing if userName or accessKey is missing in config', async () => {
+            const config = { userName: '', accessKey: '' }
+            await FunnelTestEvent.sendStart('SDKTestAttempted', config)
 
-        expect(got.post).not.toHaveBeenCalled()
+            expect(got.post).not.toHaveBeenCalled()
+        })
+
+        it('sendStart calls sends request with correct data', async () => {
+            await sendStart(config as any)
+
+            expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
+                headers: expect.any(Object),
+                username: config.userName,
+                password: config.accessKey,
+                json: expectedEventData }))
+        })
     })
 
-    it('sendStart calls fireFunnelTestEvent with correct eventType', async () => {
-        const config = { userName: 'username', accessKey: 'accesskey' }
-        FunnelTestEvent.fireFunnelTestEvent = vi.fn()
+    describe('sendFinish', () => {
+        it('sendFinish calls sends request with correct data', async () => {
+            const finishConfig = {
+                ...config,
+                'accessibility': false,
+                'percy': false,
+            }
 
-        await FunnelTestEvent.sendStart(config)
+            const finishExpectedEventData = {
+                ...expectedEventData,
+                event_type: 'SDKTestSuccessful',
+                event_properties: {
+                    ...expectedEventData.event_properties,
+                    productMap: {
+                        'observability': true,
+                        'accessibility': false,
+                        'percy': false,
+                        'automate': true,
+                        'app_automate': false
+                    },
+                    product: expect.arrayContaining(['observability', 'automate']),
+                    productUsage: expect.objectContaining({
+                        testObservability: expect.any(Object)
+                    })
+                },
+            }
 
-        expect(FunnelTestEvent.fireFunnelTestEvent).toHaveBeenCalledWith('SDKTestAttempted', config)
-    })
-
-    it('sendFinish calls fireFunnelTestEvent with correct eventType', async () => {
-        const config = { userName: 'username', accessKey: 'accesskey' }
-        FunnelTestEvent.fireFunnelTestEvent = vi.fn()
-
-        await FunnelTestEvent.sendFinish(config)
-
-        expect(FunnelTestEvent.fireFunnelTestEvent).toHaveBeenCalledWith('SDKTestSuccessful', config)
+            await sendFinish(finishConfig as any)
+            expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
+                headers: expect.any(Object),
+                username: finishConfig.userName,
+                password: finishConfig.accessKey,
+                json: finishExpectedEventData }))
+        })
     })
 
     it('saveFunnelData writes data to file and returns file path', () => {
-        const config = { userName: 'username', accessKey: 'accesskey' }
-        const eventData = { event: 'data' }
-        // FunnelTestEvent.buildEventData = vi.fn(() => eventData);
-        vi.spyOn(FunnelTestEvent, 'buildEventData').mockReturnValueOnce(eventData)
         BStackLogger.ensureLogsFolder = vi.fn()
         vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {})
-
-        FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config)
-
-        expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), JSON.stringify(eventData))
+        const filePath = FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String))
     })
 
-    it('fireRequest sends request with correct data', async () => {
-        const data = { key: 'value' }
-        await FunnelTestEvent.fireRequest(data)
-        expect(got.post).toHaveBeenCalled()
-    })
-
-    it('getProductList returns list of products based on config', () => {
-        const config = {
-            testObservability: { enabled: true },
-            accessibility: true,
-            percy: false,
-            automate: true,
-            appAutomate: false
-        }
-
-        const productList = FunnelTestEvent.getProductList(config)
-
-        expect(productList).toEqual(['observability', 'accessibility', 'automate'])
-    })
-
-    it('getProductMap returns map of products based on config', () => {
-        const config = {
-            testObservability: { enabled: true },
-            accessibility: true,
-            percy: false,
-            automate: true,
-            appAutomate: false
-        }
-
-        const productMap = FunnelTestEvent.getProductMap(config)
-
-        expect(productMap).toEqual({
-            'observability': true,
-            'accessibility': true,
-            'percy': false,
-            'automate': true,
-            'app_automate': false
-        })
-    })
-
-    it('getProductUsage returns formatted product usage based on workersData', () => {
-        const workersData = [
-            { id: 1, name: 'worker1' },
-            { id: 2, name: 'worker2' }
-        ]
-        UsageStats.getInstance().getFormattedData = vi.fn(() => 'formattedData')
-
-        const productUsage = FunnelTestEvent.getProductUsage(workersData)
-
-        expect(productUsage).toEqual({
-            testObservability: 'formattedData'
-        })
-    })
-
-    it('getLanguageFramework returns formatted language framework', () => {
-        const framework = 'WebdriverIO'
-
-        const languageFramework = FunnelTestEvent.getLanguageFramework(framework)
-
-        expect(languageFramework).toBe('WebdriverIO_WebdriverIO')
-    })
-
-    it('getReferrer returns formatted referrer', () => {
-        const framework = 'WebdriverIO'
-
-        const referrer = FunnelTestEvent.getReferrer(framework)
-
-        expect(referrer).toContain('WebdriverIO-'+framework)
-    })
-
-    it('buildEventData returns correct event data based on eventType and config', () => {
-        const eventType = 'SDKTestSuccessful'
-        const config = {
-            userName: 'username',
-            accessKey: 'accesskey',
-            framework: 'mocha',
-            buildName: 'test-build',
-            buildIdentifier: 12345,
-            testObservability: { enabled: true },
-            accessibility: true,
-            percy: false,
-            automate: true,
-            appAutomate: false
-        }
-        const expectedEventData = {
-            userName: 'username',
-            accessKey: 'accesskey',
-            event_type: 'SDKTestSuccessful',
-            detectedFramework: 'WebdriverIO-mocha',
-            event_properties: {
-                language_framework: 'WebdriverIO_mocha',
-                referrer: expect.stringContaining('WebdriverIO-'),
-                language: 'WebdriverIO',
-                languageVersion: process.version,
-                buildName: 'test-build',
-                buildIdentifier: '12345',
-                os: expect.any(String),
-                hostname: expect.any(String),
-                productMap: {
-                    'observability': true,
-                    'accessibility': true,
-                    'percy': false,
-                    'automate': true,
-                    'app_automate': false
-                },
-                product: ['observability', 'accessibility', 'automate'],
-                productUsage: expect.anything()
-            }
-        }
-
-        console.log(FunnelTestEvent)
-
-        const eventData = FunnelTestEvent.buildEventData(eventType, config)
-
-        expect(eventData).toEqual(expectedEventData)
+    it('fireFunnelRequest sends request with correct data', async () => {
+        const data = { key: 'value', userName: 'some_name', accessKey: 'some_key' }
+        await FunnelTestEvent.fireFunnelRequest(data)
+        expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
+            headers: expect.any(Object),
+            username: data.userName,
+            password: data.accessKey,
+            json: data
+        }))
     })
 })

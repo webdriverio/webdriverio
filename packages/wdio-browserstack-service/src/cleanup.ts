@@ -1,7 +1,7 @@
 import { stopBuildUpstream } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
-import FunnelTestEvent from './instrumentation/funnelInstrumentation.js'
+import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
 
 export default class BStackCleanup {
     static async startCleanup() {
@@ -44,7 +44,7 @@ export default class BStackCleanup {
             }
 
             const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-            await FunnelTestEvent.fireRequest(data)
+            await fireFunnelRequest(data)
             BStackLogger.debug('Funnel data sent successfully from cleanup')
         } catch (e: unknown) {
             BStackLogger.error('Error in sending funnel data: ' + e)

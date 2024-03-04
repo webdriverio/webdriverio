@@ -21,7 +21,7 @@ import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
-import DataStore from './data-store.js'
+import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
@@ -531,7 +531,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     private saveWorkerData() {
         try {
-            DataStore.saveWorkerData({
+            saveWorkerData({
                 usageStats: UsageStats.getInstance().getDataToSave(),
             })
         } catch (e) {

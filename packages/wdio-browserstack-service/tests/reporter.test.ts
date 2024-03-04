@@ -4,7 +4,6 @@ import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } 
 import type { StdLog } from '../src/index.js'
 
 import TestReporter from '../src/reporter.js'
-import RequestQueueHandler from '../src/request-handler.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 
@@ -132,11 +131,9 @@ describe('test-reporter', () => {
 
     describe('onTestSkip', () => {
         const reporter = new TestReporter({})
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData').mockImplementation(() => Promise.resolve())
+        const uploadEventDataSpy = vi.spyOn(reporter['listener'], 'testFinished').mockImplementation(() => {})
         const getCloudProviderSpy = vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
-        let getPlatformVersionSpy
+        let getPlatformVersionSpy: any
 
         beforeAll(() => {
             getPlatformVersionSpy = vi.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
@@ -203,11 +200,8 @@ describe('test-reporter', () => {
 
     describe('onTestStart', function () {
         let reporter: TestReporter
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData')
-        uploadEventDataSpy.mockImplementation()
+        let uploadEventDataSpy: any
         vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testStartStats = { ...testStats }
         let getPlatformVersionSpy
 
@@ -224,7 +218,7 @@ describe('test-reporter', () => {
             reporter['_observability'] = true
             reporter.onRunnerStart(runnerConfig as any)
             testStartStats = { ...testStats }
-            uploadEventDataSpy.mockClear()
+            uploadEventDataSpy = vi.spyOn(reporter['listener'], 'testStarted').mockImplementation(() => {})
         })
 
         afterEach(() => {
@@ -258,12 +252,8 @@ describe('test-reporter', () => {
     })
 
     describe('onTestEnd', function () {
-        let reporter: TestReporter
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData')
-        uploadEventDataSpy.mockImplementation()
+        let reporter: TestReporter, uploadEventDataSpy: any
         vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        vi.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testEndStats = { ...testStats }
         let getPlatformVersionSpy
 
@@ -280,8 +270,7 @@ describe('test-reporter', () => {
             reporter['_observability'] = true
             reporter.onRunnerStart(runnerConfig as any)
             testEndStats = { ...testStats }
-            const uploadEventDataSpy = vi.spyOn(reporter['listener'], 'testFinished')
-            uploadEventDataSpy.mockClear()
+            uploadEventDataSpy = vi.spyOn(reporter['listener'], 'testFinished')
         })
 
         afterEach(() => {
@@ -296,7 +285,7 @@ describe('test-reporter', () => {
 
             it ("uploadEventData shouldn't get called", async () => {
                 await reporter.onTestEnd(testEndStats as any)
-                expect(utils.uploadEventData).toBeCalledTimes(0)
+                expect(uploadEventDataSpy).toBeCalledTimes(0)
             })
         })
 
@@ -310,20 +299,20 @@ describe('test-reporter', () => {
             it('uploadEventData called for passed tests', async () => {
                 testEndStats.state = 'passed'
                 await reporter.onTestEnd(testEndStats as any)
-                expect(utils.uploadEventData).toBeCalledTimes(1)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
             })
 
             it('uploadEventData called for failed tests', async () => {
                 testEndStats.state = 'failed'
                 await reporter.onTestEnd(testEndStats as any)
-                expect(utils.uploadEventData).toBeCalledTimes(1)
+                expect(uploadEventDataSpy).toBeCalledTimes(1)
             })
         })
     })
 
     describe('appendTestItemLog', function () {
         let reporter: TestReporter
-        let sendDataSpy
+        let sendDataSpy: any
         const logObj: StdLog = {
             timestamp: new Date().toISOString(),
             level: 'INFO',

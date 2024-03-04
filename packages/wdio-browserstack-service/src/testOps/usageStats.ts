@@ -65,18 +65,14 @@ class UsageStats {
     }
 
     public addDataFromWorkers(workersData: any[]) {
-        try {
-            workersData.map(workerData => {
-                try {
-                    const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
-                    this.add(usageStatsForWorker)
-                } catch (e) {
-                    BStackLogger.debug('Exception in adding workerData: ' + e)
-                }
-            })
-        } catch (e) {
-            BStackLogger.debug('Exception in adding data from workers: ' + e)
-        }
+        workersData.map(workerData => {
+            try {
+                const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
+                this.add(usageStatsForWorker)
+            } catch (e) {
+                BStackLogger.debug('Exception in adding workerData: ' + e)
+            }
+        })
     }
 
     public getEventsData(){

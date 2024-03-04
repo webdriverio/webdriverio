@@ -12,7 +12,7 @@ describe('uploadEventData', () => {
             json: () => Promise.resolve({ }),
         } as any)
 
-        await uploadEventData( { event_type: 'testRunStarted' } )
+        expect(async () => uploadEventData( { event_type: 'testRunStarted' } )).not.toThrowError()
         expect(got.post).toBeCalledTimes(1)
     })
 
@@ -23,7 +23,7 @@ describe('uploadEventData', () => {
             json: () => Promise.reject({ }),
         } as any)
 
-        await uploadEventData( { event_type: 'testRunStarted' } )
+        await expect(uploadEventData( { event_type: 'testRunStarted' } )).rejects.toThrow()
         expect(got.post).toBeCalledTimes(1)
     })
 
@@ -34,7 +34,7 @@ describe('uploadEventData', () => {
             json: () => Promise.resolve({ }),
         } as any)
 
-        await uploadEventData( { event_type: 'testRunStarted' } )
+        await expect(uploadEventData( { event_type: 'testRunStarted' } )).rejects.toThrow()
         expect(got.post).toBeCalledTimes(0)
     })
 })
