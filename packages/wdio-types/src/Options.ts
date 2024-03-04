@@ -1,4 +1,4 @@
-import type { MultiRemoteCapabilities, StandaloneOrMultiremoteCapabilities } from './Capabilities.js'
+import type { MultiRemoteCapabilities, RemoteCapabilities, StandaloneOrMultiremoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
@@ -259,7 +259,7 @@ export interface WebdriverIO<Capabilities = StandaloneOrMultiremoteCapabilities>
     waitforInterval?: number
 }
 
-export interface Testrunner<Capabilities = StandaloneOrMultiremoteCapabilities> extends Hooks, Omit<WebdriverIO<Capabilities>, 'capabilities'>, WebdriverIO.HookFunctionExtension {
+export interface Testrunner<Capabilities = RemoteCapabilities> extends Hooks, Omit<WebdriverIO<Capabilities>, 'capabilities'>, WebdriverIO.HookFunctionExtension {
     /**
      * Defines a set of capabilities you want to run in your testrunner session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -564,7 +564,7 @@ export type Definition<T> = {
 export interface RunnerStart {
     cid: string
     specs: string[]
-    config: Testrunner<WebdriverIO.Capabilities | WebdriverIO.MultiRemoteCapabilities>
+    config: Testrunner
     isMultiremote: boolean
     instanceOptions: Record<string, WebdriverIO<StandaloneOrMultiremoteCapabilities>>
     sessionId: string

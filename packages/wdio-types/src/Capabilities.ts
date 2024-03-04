@@ -93,7 +93,10 @@ export interface W3CCapabilities {
     firstMatch: WebdriverIO.Capabilities[]
 }
 
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[]
+/**
+ * Capabilities provided by the user
+ */
+export type RemoteCapabilities = (WebdriverIO.Capabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[]
 
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions<WebdriverIO.Capabilities>

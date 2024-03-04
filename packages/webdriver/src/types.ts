@@ -63,6 +63,6 @@ export interface Client extends Omit<BaseClient, keyof BidiEventHandler>, Protoc
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string
-    capabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities?: Capabilities.Capabilities
     isW3C?: boolean
 }

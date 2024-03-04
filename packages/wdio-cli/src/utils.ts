@@ -324,7 +324,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         let requiredCaps = config.getCapabilities()
         requiredCaps = (
             // multi capabilities
-            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            (requiredCaps as WebdriverIO.Capabilities[])[parseInt(arg.capabilities, 10)] ||
             // multiremote
             (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
         )

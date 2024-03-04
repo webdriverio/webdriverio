@@ -48,7 +48,7 @@ declare global {
         interface CucumberOpts { [key: string]: any }
         interface ServiceOption extends Services.ServiceOption {}
         interface ReporterOption extends Reporters.Options {}
-        interface Config<Capabilities = Capabilities.StandaloneOrMultiremoteCapabilities> extends Options.Testrunner<Capabilities> {}
+        interface Config<Capabilities = Capabilities.RemoteCapabilities> extends Options.Testrunner<Capabilities> {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}

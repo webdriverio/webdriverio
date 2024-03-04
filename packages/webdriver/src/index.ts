@@ -123,9 +123,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = 'alwaysMatch' in options.capabilities!
-            ? options.capabilities.alwaysMatch?.webSocketUrl
-            : options.capabilities!.webSocketUrl
+        const webSocketUrl = options.capabilities?.webSocketUrl
         if (webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string, options.strictSSL))

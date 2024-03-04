@@ -7,7 +7,7 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
 import { makeRelativeToCWD, loadAutoCompilers } from './utils.js'
-import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
+import { removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
 import type { PathService, ModuleImportService } from '../types.js'
@@ -25,7 +25,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     spec?: string[]
     suite?: string[]
     repeat?: number
-    capabilities?: Capabilities.RemoteCapabilities
+    capabilities?: Capabilities.StandaloneOrMultiremoteCapabilities
     rootDir: string
 }
 
@@ -39,8 +39,8 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
-    private _config: TestrunnerOptionsWithParameters
-    private _capabilities: Capabilities.RemoteCapabilities = []
+    private _config: Omit<TestrunnerOptionsWithParameters, 'capabilities'>
+    private _capabilities: Capabilities.StandaloneOrMultiremoteCapabilities[] = []
 
     constructor(
         configFilePath: string,
@@ -135,7 +135,7 @@ export default class ConfigParser {
             /**
              * merge capabilities
              */
-            const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
+            const defaultTo: any = Array.isArray(this._capabilities) ? [] : {}
             this._capabilities = deepmerge(this._capabilities, fileConfig.capabilities || defaultTo)
             delete fileConfig.capabilities
 
@@ -191,11 +191,6 @@ export default class ConfigParser {
         if (object.suite && object.suite.length > 0) {
             this._config.suite = this._config.suite?.filter((suite, idx, suites) => suites.indexOf(suite) === idx)
         }
-
-        /**
-         * overwrite capabilities
-         */
-        this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities
 
         /**
          * save original specs if Cucumber's feature line number is provided

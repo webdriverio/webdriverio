@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { isCloudCapability, removeLineNumbers, validObjectOrArray, objectToEnv } from '../src/utils.js'
+import { isCloudCapability, removeLineNumbers, objectToEnv } from '../src/utils.js'
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {
@@ -20,28 +20,6 @@ describe('utils', () => {
 
         it('should do nothing if there is no line number in path (nix)', () => {
             expect(removeLineNumbers('/test/f.feature')).toBe('/test/f.feature')
-        })
-    })
-
-    describe('validObjectOrArray', () => {
-        describe('objects', () => {
-            it('returns true if not empty', () => {
-                expect(validObjectOrArray({ foo: 'bar' })).toBeTruthy()
-            })
-
-            it('returns false if empty', () => {
-                expect(validObjectOrArray({})).toBeFalsy()
-            })
-        })
-
-        describe('arrays', () => {
-            it('returns true if not empty', () => {
-                expect(validObjectOrArray(['foo', 'bar'])).toBeTruthy()
-            })
-
-            it('returns false if empty', () => {
-                expect(validObjectOrArray([])).toBeFalsy()
-            })
         })
     })
 

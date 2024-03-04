@@ -25,7 +25,7 @@ export default class RunnerStats extends RunnableStats {
         this.cid = runner.cid
         this.capabilities = runner.capabilities
         this.sanitizedCapabilities = sanitizeCaps(runner.capabilities)
-        this.config = runner.config
+        this.config = runner.config as Options.Testrunner
         this.specs = runner.specs
         this.sessionId = runner.sessionId
         this.isMultiremote = runner.isMultiremote
