@@ -646,8 +646,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -749,8 +747,6 @@ importers:
         specifier: ^4.0.1
         version: 4.0.4
 
-  packages/wdio-cucumber-framework/build/cjs: {}
-
   packages/wdio-cucumber-framework/src/cjs: {}
 
   packages/wdio-devtools-service:
@@ -774,8 +770,8 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       devtools-protocol:
-        specifier: ^0.0.1263784
-        version: 0.0.1263784
+        specifier: ^0.0.1266816
+        version: 0.0.1266816
       istanbul-lib-coverage:
         specifier: ^3.2.0
         version: 3.2.2
@@ -886,8 +882,6 @@ importers:
       '@wdio/types':
         specifier: 8.31.1
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1110,8 +1104,6 @@ importers:
         specifier: 8.32.1
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1324,8 +1316,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1412,8 +1402,6 @@ importers:
       puppeteer-core:
         specifier: ^22.3.0
         version: 22.3.0
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -11606,8 +11594,8 @@ packages:
   /devtools-protocol@0.0.1262051:
     resolution: {integrity: sha512-YJe4CT5SA8on3Spa+UDtNhEqtuV6Epwz3OZ4HQVLhlRccpZ9/PAYk0/cy/oKxFKRrZPBUPyxympQci4yWNWZ9g==}
 
-  /devtools-protocol@0.0.1263784:
-    resolution: {integrity: sha512-k0SCZMwj587w4F8QYbP5iIbSonL6sd3q8aVJch036r9Tv2t9b5/Oq7AiJ/FJvRuORm/pJNXZtrdNNWlpRnl56A==}
+  /devtools-protocol@0.0.1266816:
+    resolution: {integrity: sha512-w/r9HVKDBpAyXyEJmwb7BZvltS5qZ+YmFVNuOnuf8YykXAJ6tXCNO/7wDvrl00TWGwEEKZVlC5pvyCPz1Gw1hg==}
     dev: false
 
   /didyoumean@1.2.2:
