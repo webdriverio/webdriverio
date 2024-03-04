@@ -68,8 +68,6 @@
     "@aws-sdk/lib-storage": "^3.515.0",
     "@octokit/rest": "^20.0.2",
     "@preact/preset-vite": "^2.8.1",
-    "@react-email/components": "^0.0.14",
-    "@react-email/tailwind": "^0.0.14",
     "@serenity-js/core": "^3.17.0",
     "@stencil/core": "^4.12.2",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
