@@ -31,8 +31,8 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.31.1",
-    "@wdio/types": "8.31.1",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "json-stringify-safe": "^5.0.1",
     "junit-report-builder": "^3.0.0"
   },
