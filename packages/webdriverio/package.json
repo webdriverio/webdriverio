@@ -74,7 +74,7 @@
     "@wdio/repl": "8.24.12",
     "@wdio/types": "8.31.1",
     "@wdio/utils": "8.31.1",
-    "archiver": "^6.0.0",
+    "archiver": "^7.0.0",
     "aria-query": "^5.0.0",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
