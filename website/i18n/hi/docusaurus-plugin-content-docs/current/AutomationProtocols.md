@@ -3,17 +3,19 @@ id: automationProtocols
 title: स्वचालन प्रोटोकॉल
 ---
 
-WebdriverIO के साथ, आप अपने E2E परीक्षणों को स्थानीय रूप से या क्लाउड में चलाते समय कई स्वचालन तकनीकों के बीच चयन कर सकते हैं। डिफ़ॉल्ट रूप से WebdriverIO हमेशा ऐसे ब्राउज़र ड्राइवर की जाँच करेगा जो `localhost:4444`पर WebDriver प्रोटोकॉल के अनुरूप हो। यदि उसे ऐसा ड्राइवर नहीं मिलता है तो वह हुड के नीचे पपेटियर का उपयोग करके Chrome DevTools का उपयोग करने के लिए जाता है।
+WebdriverIO के साथ, आप अपने E2E परीक्षणों को स्थानीय रूप से या क्लाउड में चलाते समय कई स्वचालन तकनीकों के बीच चयन कर सकते हैं। By default, WebdriverIO will attempt to start a local automation session using the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol.
 
-लगभग सभी आधुनिक ब्राउज़र जो [WebDriver](https://w3c.github.io/webdriver/) का समर्थन करते हैं, [DevTools](https://chromedevtools.github.io/devtools-protocol/) नामक एक अन्य मूल इंटरफ़ेस का भी समर्थन करते हैं जिसका उपयोग स्वचालन उद्देश्यों के लिए किया जा सकता है।
+## WebDriver Bidi Protocol
 
-आपके उपयोग के मामले और पर्यावरण के आधार पर दोनों के फायदे और नुकसान हैं।
+The [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) is an automation protocol to automate browsers using bi-directional communication. It's the successor of the [WebDriver](https://w3c.github.io/webdriver/) protocol and enables a lot more introspection capabilities for various testing use cases.
+
+This protocol is currently under development and new primitives might be added in the future. All browser vendors have committed to implementing this web standard and a lot of [primitives](https://wpt.fyi/results/webdriver/tests/bidi?label=experimental&label=master&aligned) have already been landed in browsers.
 
 ## वेबड्राइवर प्रोटोकॉल
 
 > [वेबड्राइवर](https://w3c.github.io/webdriver/) एक रिमोट कंट्रोल इंटरफ़ेस है जो उपयोगकर्ता एजेंटों के इंट्रोस्पेक्सन और नियंत्रण को सक्षम बनाता है। यह वेब ब्राउज़र के व्यवहार को दूर से निर्देश देने के लिए आउट-ऑफ़-प्रोसेस प्रोग्राम के लिए एक प्लेटफ़ॉर्म- और भाषा-तटस्थ वायर प्रोटोकॉल प्रदान करता है।
 
-वेबड्राइवर प्रोटोकॉल को उपयोगकर्ता के दृष्टिकोण से एक ब्राउज़र को स्वचालित करने के लिए डिज़ाइन किया गया था, जिसका अर्थ है कि एक उपयोगकर्ता जो कुछ भी करने में सक्षम है, आप ब्राउज़र के साथ कर सकते हैं। यह कमांड का एक सेट प्रदान करता है जो किसी एप्लिकेशन के साथ सामान्य इंटरैक्शन को दूर करता है (उदाहरण के लिए, किसी तत्व की स्थिति को नेविगेट करना, क्लिक करना या पढ़ना)। चूंकि यह एक वेब मानक है, यह सभी प्रमुख ब्राउज़र विक्रेताओं में अच्छी तरह से समर्थित है, और इसका उपयोग [एपियम](http://appium.io)का उपयोग करके मोबाइल स्वचालन के लिए अंतर्निहित प्रोटोकॉल के रूप में भी किया जा रहा है।
+वेबड्राइवर प्रोटोकॉल को उपयोगकर्ता के दृष्टिकोण से एक ब्राउज़र को स्वचालित करने के लिए डिज़ाइन किया गया था, जिसका अर्थ है कि एक उपयोगकर्ता जो कुछ भी करने में सक्षम है, आप ब्राउज़र के साथ कर सकते हैं। यह कमांड का एक सेट प्रदान करता है जो किसी एप्लिकेशन के साथ सामान्य इंटरैक्शन को दूर करता है (उदाहरण के लिए, किसी तत्व की स्थिति को नेविगेट करना, क्लिक करना या पढ़ना)। Since it is a web standard, it is well supported across all major browser vendors and also is being used as an underlying protocol for mobile automation using [Appium](http://appium.io).
 
 इस ऑटोमेशन प्रोटोकॉल का उपयोग करने के लिए, आपको एक प्रॉक्सी सर्वर की आवश्यकता होती है जो सभी आदेशों का अनुवाद करता है और उन्हें लक्षित वातावरण (यानी ब्राउज़र या मोबाइल ऐप) में निष्पादित करता है।
 
