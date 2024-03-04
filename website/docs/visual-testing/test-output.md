@@ -3,6 +3,96 @@ id: test-output
 title: Test Output
 ---
 
+:::info
+
+[This WebdriverIO](http://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
+
+:::
+
+## `enableLayoutTesting`
+
+This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
+
+```js
+// wdio.conf.(js|ts)
+export const config = {
+    // ...
+    // =====
+    // Setup
+    // =====
+    services: [
+        [
+            'image-comparison',
+            {
+                enableLayoutTesting: true
+            }
+        ]
+    ]
+    // ...
+}
+```
+
+The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.
+
+### Image Output
+
+<Tabs
+    defaultValue="saveelement"
+    values={[
+        {label: 'saveElement | checkElement', value: 'saveelement'},
+        {label: 'saveScreen | checkScreen', value: 'savescreen'},
+        {label: 'saveFullPageScreen | checkFullPageScreen', value: 'savefullpagescreen'},
+        {label: 'saveTabbablePage | checkTabbablePage', value: 'saveTabbablePage'},
+    ]}
+>
+<TabItem value="saveelement">
+
+```js
+await browser.saveElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
+// Or
+await browser.checkElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
+```
+
+![saveElement Desktop](/img/visual/layout-element-local-chrome-latest-1366x768.png)
+
+</TabItem>
+
+<TabItem value="savescreen">
+
+```js
+await browser.saveScreen("example-page-tag")
+```
+
+![saveScreen Desktop](/img/visual/layout-viewportScreenshot-chrome-latest-1366x768.png)
+
+</TabItem>
+
+<TabItem value="savefullpagescreen">
+
+```js
+await browser.saveFullPageScreen("full-page-tag")
+// Or
+await browser.checkFullPageScreen("full-page-tag", {enableLayoutTesting: true})
+```
+
+![saveFullPageScreens Desktop](/img/visual/layout-fullPage-chrome-latest-1366x768.png)
+
+</TabItem>
+
+<TabItem value="saveTabbablePage">
+
+```js
+await browser.saveTabbablePage("tabbable-page-tag")
+// Or
+await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true})
+```
+
+![saveFullPageScreens Desktop](/img/visual/layout-tabbable-chrome-latest-1366x768.png)
+
+</TabItem>
+</Tabs>
+
+
 ## save(Screen/Element/FullPageScreen)
 
 ### Console Output
@@ -37,7 +127,7 @@ console.log(saveResults)
 <TabItem value="saveelement">
 
 ```js
-await browser.saveElement("#element-id", "example-element-tag")
+await browser.saveElement(".hero__title-logo", "example-element-tag")
 ```
 
 <Tabs
@@ -168,7 +258,7 @@ The images below will only show differences as a result of running the check com
 <TabItem value="checkelement">
 
 ```js
-await browser.checkElement("#element-id", "example-element-tag")
+await browser.checkElement("#__docusaurus_skipToContent_fallback > header > div > div.buttons_pzbO > a:nth-child(1)", "example-element-tag")
 ```
 
 :::info

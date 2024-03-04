@@ -3,7 +3,7 @@ id: method-options
 title: Method Options
 ---
 
-Methods options are the options that can be set per method. If the option has the same key as an option that has been set during the instantiation of the plugin, this method option will override the plugin option value.
+Methods options are the options that can be set per [method](./methods). If the option has the same key as an option that has been set during the instantiation of the plugin, this method option will override the plugin option value.
 
 ## Save Options
 
@@ -12,17 +12,35 @@ Methods options are the options that can be set per method. If the option has th
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
--   **Used with:** All methods
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web, Hybrid App (Webview)
 
 En/Disable all CSS animations and the input caret in the application. If set to true all animations will be disabled before taking a screenshot
 and reset when done
+
+### `enableLayoutTesting`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web
+
+This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to __each__ element.
+
+For the output see [Test Output](./test-output#enablelayouttesting)
+
+:::info
+By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is __no__ option to tailor this.
+:::
 
 ### `hideScrollBars`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `true`
--   **Used with:** All methods
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web, Hybrid App (Webview)
 
 Hide scrollbar(s) in the application. If set to true all scrollbar(s) will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
 
@@ -30,7 +48,8 @@ Hide scrollbar(s) in the application. If set to true all scrollbar(s) will be di
 
 -   **Type:** `array`
 -   **Mandatory:** no
--   **Used with:** All methods
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 This method can hide 1 or multiple elements by adding the property `visibility: hidden` to them by providing an array of elements.
 
@@ -38,7 +57,8 @@ This method can hide 1 or multiple elements by adding the property `visibility: 
 
 -   **Type:** `array`
 -   **Mandatory:** no
--   **Used with:** All methods
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 This method can _remove_ 1 or multiple elements by adding the property `display: none` to them by providing an array of elements.
 
@@ -47,7 +67,8 @@ This method can _remove_ 1 or multiple elements by adding the property `display:
 -   **Type:** `object`
 -   **Mandatory:** no
 -   **Default:** `{ top: 0, right: 0, bottom: 0, left: 0}`
--   **Used with:** Only for `saveElement` or `checkElement`
+-   **Used with:** Only for [`saveElement`](./methods#saveelement) or [`checkElement`](./methods#checkelement)
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 An object that needs to hold a `top`, `right`, `bottom` and `left` amount of pixels that need to make the element cutout bigger.
 
@@ -56,7 +77,8 @@ An object that needs to hold a `top`, `right`, `bottom` and `left` amount of pix
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** `1500`
--   **Used with:** Only for `saveFullPageScreen` or `saveTabbablePage`
+-   **Used with:** Only for [`saveFullPageScreen`](./methods#savefullpagescreen) or [`saveTabbablePage`](./methods#savetabbablepage)
+-   **Supported:** Web
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
@@ -64,10 +86,21 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 
 -   **Type:** `array`
 -   **Mandatory:** no
--   **Used with:** Only for `saveFullPageScreen` or `saveTabbablePage`
+-   **Used with:** Only for [`saveFullPageScreen`](./methods#savefullpagescreen) or [`saveTabbablePage`](./methods#savetabbablepage)
+-   **Supported:** Web
 
 This method will hide one or multiple elements by adding the property `visibility: hidden` to them by providing an array of elements.
 This will be handy when a page for example holds sticky elements that will scroll with the page if the page is scrolled but will give an annoying effect when a full-page screenshot is made
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Used with:** All [methods](./methods)
+-   **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Compare (Check) Options
 
@@ -76,7 +109,11 @@ Compare options are options that influence the way the comparison, by [ResembleJ
 :::info NOTE
 
 -   All options from the [Save Options](#save-options) can be used for the Compare methods
--   All compare options can be used during service instantiation or for every single `checkElement`,`checkScreen` and `checkFullPageScreen`. If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value.
+-   All compare options can be used during service instantiation __or__ for every single check method. If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value.
+- All options can be used for:
+    - Web
+    - Hybrid App
+    - Native App
 
 :::
 
@@ -85,7 +122,6 @@ Compare options are options that influence the way the comparison, by [ResembleJ
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Compare images and discard alpha.
 
@@ -94,7 +130,7 @@ Compare images and discard alpha.
 -   **Type:** `boolean`
 -   **Default:** `true`
 -   **Mandatory:** no
--   **Remark:** _Can only be used for `checkScreen()`. It will override the plugin setting. This is **iPad only**_
+-   **Remark:** _Can only be used for `checkScreen()`. This is **iPad only**_
 
 Automatically block out the sidebar for iPads in landscape mode during comparisons. This prevents failures on the tab/private/bookmark native component.
 
@@ -103,7 +139,7 @@ Automatically block out the sidebar for iPads in landscape mode during compariso
 -   **Type:** `boolean`
 -   **Default:** `true`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
+-   **Remark:** _This is **Mobile only**_
 
 Automatically block out the status and address bar during comparisons. This prevents failures on time, wifi or battery status.
 
@@ -112,7 +148,7 @@ Automatically block out the status and address bar during comparisons. This prev
 -   **Type:** `boolean`
 -   **Default:** `true`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
+-   **Remark:** _This is **Mobile only**_
 
 Automatically block out the toolbar.
 
@@ -121,7 +157,6 @@ Automatically block out the toolbar.
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Compare images and discard anti-aliasing.
 
@@ -130,7 +165,6 @@ Compare images and discard anti-aliasing.
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Even though the images are in color, the comparison will compare 2 black/white images
 
@@ -139,7 +173,6 @@ Even though the images are in color, the comparison will compare 2 black/white i
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, minBrightness=16, maxBrightness=240`
 
@@ -148,7 +181,6 @@ Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, mi
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Compare images and compare with `red = 0, green = 0, blue = 0, alpha = 0, minBrightness=0, maxBrightness=255`
 
@@ -157,7 +189,6 @@ Compare images and compare with `red = 0, green = 0, blue = 0, alpha = 0, minBri
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Compare images and it will ignore all pixels that have some transparency in one of the images
 
@@ -166,7 +197,6 @@ Compare images and it will ignore all pixels that have some transparency in one 
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 If true the return percentage will be like `0.12345678`, default is `0.12`
 
@@ -175,7 +205,6 @@ If true the return percentage will be like `0.12345678`, default is `0.12`
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 This will return all compare data, not only the mismatch percentage
 
@@ -184,7 +213,6 @@ This will return all compare data, not only the mismatch percentage
 -   **Type:** `number`
 -   **Default:** `0`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Allowable value of `misMatchPercentage` that prevents saving images with differences
 
@@ -193,7 +221,6 @@ Allowable value of `misMatchPercentage` that prevents saving images with differe
 -   **Type:** `number`
 -   **Default:** `0`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Comparing large images can lead to performance issues.
 When providing a number for the number of pixels here (higher than 0), the comparison algorithm skips pixels when the image width or height is larger than `largeImageThreshold` pixels.
@@ -203,13 +230,16 @@ When providing a number for the number of pixels here (higher than 0), the compa
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
--   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Scales 2 images to the same size before execution of comparison. Highly recommended to enable `ignoreAntialiasing` and `ignoreAlpha`
 
 ## Folder options
 
-The baseline folder and screenshot folders(actual, diff) are options that can be set during the instantiation of the plugin or method. To set the folder options on a particular method, pass in folder options to the methods option object.
+The baseline folder and screenshot folders(actual, diff) are options that can be set during the instantiation of the plugin or method. To set the folder options on a particular method, pass in folder options to the methods option object. This can be used for:
+
+- Web
+- Hybrid App
+- Native App
 
 ```ts
 import path from 'node:path'

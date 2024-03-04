@@ -105,7 +105,7 @@ export const cmdArgs = {
         type: 'array'
     },
     'multi-run': {
-        desc: 'Run individual spec files x amount of times',
+        desc: 'Repeat specific specs and/or suites N times',
         type: 'number'
     },
     mochaOpts: {

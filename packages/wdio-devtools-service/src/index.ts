@@ -7,7 +7,7 @@ import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
 import type {
     DevtoolsConfig, EnablePerformanceAuditsOptions,
-    DeviceDescription, PWAAudits
+    DeviceDescription, PWAAudits, DeviceOptions
 } from './types.js'
 
 export default class DevToolsService implements Services.ServiceInstance {
@@ -89,12 +89,12 @@ export default class DevToolsService implements Services.ServiceInstance {
     /**
      * set device emulation
      */
-    async _emulateDevice (device: string | DeviceDescription, inLandscape?: boolean) {
+    async _emulateDevice (device: string | DeviceDescription, deviceOptions?: DeviceOptions) {
         if (this._command.length === 1) {
-            return await this._command[0].emulateDevice(device, inLandscape)
+            return await this._command[0].emulateDevice(device, deviceOptions)
         }
 
-        return Promise.all(this._command.map(async c => await c.emulateDevice(device, inLandscape)))
+        return Promise.all(this._command.map(async c => await c.emulateDevice(device, deviceOptions)))
     }
 
     async _setThrottlingProfile(

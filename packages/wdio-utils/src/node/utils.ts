@@ -17,6 +17,7 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
 const log = logger('webdriver')
+const CHROMEDRIVER_BASE_URL = 'https://storage.googleapis.com/chrome-for-testing-public'
 const EXCLUDED_PARAMS = ['version', 'help']
 
 /**
@@ -219,6 +220,16 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         browser: browserName,
         downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback(`${browserName} (${buildId})`, downloadedBytes, totalBytes)
     }
+
+    /**
+     * For Chrome browser we need to set the baseUrl to the Chrome storage.
+     * Google has changed the baseUrl and changes were only applied to a major
+     * version released which v8 can't adopt due to support of Node.js v16.
+     */
+    if (browserName === Browser.CHROME) {
+        installOptions.baseUrl = CHROMEDRIVER_BASE_URL
+    }
+
     const isCombinationAvailable = await canDownload(installOptions)
     if (!isCombinationAvailable) {
         throw new Error(`Couldn't find a matching ${browserName} browser for tag "${buildId}" on platform "${platform}"`)
@@ -282,6 +293,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
         const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
+            baseUrl: CHROMEDRIVER_BASE_URL,
             cacheDir,
             buildId,
             platform,

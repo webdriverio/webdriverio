@@ -30,5 +30,5 @@ export function codeFrameFix () {
                 }
             )
         }
-    }
+    } as any
 }

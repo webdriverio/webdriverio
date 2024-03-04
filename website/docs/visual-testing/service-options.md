@@ -6,8 +6,6 @@ title: Service Options
 Service options are the options that can be set when the service is instantiated and will be used for each method call.
 
 ```js
-import path from 'node:path'
-
 // wdio.conf.(js|ts)
 export const config = {
     // ...
@@ -33,6 +31,7 @@ export const config = {
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** `6`
+-   **Supported:** Web
 
 The padding needs to be added to the address bar on iOS and Android to do a proper cutout of the viewport.
 
@@ -41,6 +40,7 @@ The padding needs to be added to the address bar on iOS and Android to do a prop
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
 
 This option allows you to disable the automatic scrolling of the element into the view when an element screenshot is created.
 
@@ -49,6 +49,7 @@ This option allows you to disable the automatic scrolling of the element into th
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 Add bezel corners and notch/dynamic island to the screenshot for iOS devices.
 
@@ -93,6 +94,7 @@ This can only be done when the device name **CAN** automatically be determined a
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 If no baseline image is found during the comparison the image is automatically copied to the baseline folder.
 
@@ -101,6 +103,7 @@ If no baseline image is found during the comparison the image is automatically c
 -   **Type:** `any`
 -   **Mandatory:** No
 -   **Default:** `.path/to/testfile/__snapshots__/`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 The directory will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that accepts an option object can also be used to set the `baselineFolder` value:
 
@@ -118,6 +121,7 @@ The directory will hold all the baseline images that are used during the compari
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 Delete runtime folder (`actual` & `diff) on initialization
 
@@ -130,15 +134,32 @@ This will only work when the [`screenshotPath`](#screenshotpath) is set through 
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview)
 
 En/Disable all CSS animations and the input caret and the input caret in the application. If set to true all animations will be disabled before taking a screenshot
 and reset when done
+
+### `enableLayoutTesting`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported:** Web
+
+This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to __each__ element.
+
+For the output see [Test Output](./test-output#enablelayouttesting)
+
+:::info
+By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is __no__ option to tailor this.
+:::
 
 ### `formatImageName`
 
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** `{tag}-{browserName}-{width}x{height}-dpr-{dpr}`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 The name of the saved images can be customized by passing the parameter `formatImageName` with a format string like:
 
@@ -166,6 +187,7 @@ If they can't be determined the defaults will be used.
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** `1500`
+-   **Supported:** Web
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
@@ -174,6 +196,7 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
 
 Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
 
@@ -182,6 +205,7 @@ Hide scrollbars in the application. If set to true all scrollbars will be disabl
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
+-   **Supported:** Hybrid App
 
 Tell the module if the used app is a Hybrid app, this will not calculate the address bar height because it is not there.
 
@@ -190,6 +214,7 @@ Tell the module if the used app is a Hybrid app, this will not calculate the add
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** `info`
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 Adds extra logs, options are `debug | info | warn | silent`
 
@@ -200,6 +225,7 @@ Errors are always logged to the console.
 -   **Type:** `boolean`
 -   **Default:** `false`
 -   **Mandatory:** no
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 Save the images per instance in a separate folder so for example all Chrome screenshots will be saved in a Chrome folder like `desktop_chrome`.
 
@@ -208,6 +234,7 @@ Save the images per instance in a separate folder so for example all Chrome scre
 -   **Type:** `any`
 -   **Default:** `.tmp/`
 -   **Mandatory:** no
+-   **Supported:** Web, Hybrid App (Webview), Native App
 
 The directory that will hold all the actual/different screenshots. If not set, the default value will be used. A function that
 accepts an option object can also be used to set the screenshotPath value:
@@ -228,8 +255,9 @@ getFolder = type = (options) => {
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** `6` for Android and `15` for iOS (`6` by default and `9` will be added automatically for the possible home bar on iPhones with a notch or iPads that have a home bar)
+-   **Supported:** Web
 
-The padding that needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
+The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
 
 ## Tabbable Options
 
@@ -246,6 +274,7 @@ The way tabbable elements are selected is based on the module [tabbable](https:/
 -   **Type:** `object`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The options that can be changed for the lines and dots if you use the `{save|check}Tabbable`-methods. The options are explained below.
 
@@ -254,6 +283,7 @@ The options that can be changed for the lines and dots if you use the `{save|che
 -   **Type:** `object`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The options to change the circle.
 
@@ -262,6 +292,7 @@ The options to change the circle.
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The background color of the circle.
 
@@ -270,6 +301,7 @@ The background color of the circle.
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The border color of the circle.
 
@@ -278,6 +310,7 @@ The border color of the circle.
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The border width of the circle.
 
@@ -286,6 +319,7 @@ The border width of the circle.
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The color of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
 
@@ -294,6 +328,7 @@ The color of the font of the text in the circle. This will only be shown if [`sh
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The family of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
 
@@ -304,6 +339,7 @@ Make sure to set fonts that are supported by the browsers.
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The size of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
 
@@ -312,6 +348,7 @@ The size of the font of the text in the circle. This will only be shown if [`sho
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The size of the circle.
 
@@ -320,6 +357,7 @@ The size of the circle.
 -   **Type:** `showNumber`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 Show the tab sequence number in the circle.
 
@@ -328,6 +366,7 @@ Show the tab sequence number in the circle.
 -   **Type:** `object`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The options to change the line.
 
@@ -336,6 +375,7 @@ The options to change the line.
 -   **Type:** `string`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The color of the line.
 
@@ -344,8 +384,18 @@ The color of the line.
 -   **Type:** `number`
 -   **Mandatory:** No
 -   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Supported:** Web
 
 The width of the line.
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Compare options
 

@@ -158,7 +158,7 @@ export const config = {
 
 ## Run a specific test multiple times
 
-This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified test(s) or suite(s) x number of times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
+This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified specs or suites N times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
 
 When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
 

@@ -12,6 +12,7 @@ import { CLICK_TRANSITION, DEFAULT_THROTTLE_STATE, DEFAULT_TRACING_CATEGORIES, N
 import { sumByKey } from './utils.js'
 import type {
     Device,
+    DeviceOptions,
     DeviceDescription, DevtoolsConfig,
     EnablePerformanceAuditsOptions,
     FormFactor,
@@ -215,19 +216,24 @@ export default class CommandHandler {
     /**
      * set device emulation
      */
-    async emulateDevice (device: string | DeviceDescription, inLandscape?: boolean) {
+    async emulateDevice (device: string | DeviceDescription, deviceOptions?: DeviceOptions) {
         if (!this._page) {
             throw new Error('No page has been captured yet')
         }
 
         if (typeof device === 'string') {
-            const deviceName = device + (inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
+            const deviceName = device + (deviceOptions?.inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
             const deviceCapabilities = KnownDevices[deviceName]
             if (!deviceCapabilities) {
                 const deviceNames = Object.values(KnownDevices)
                     .map((device: Device) => device.name)
                     .filter((device: string) => !device.endsWith('landscape'))
                 throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
+            } else {
+                const osVersion = deviceOptions?.osVersion?.replaceAll('.', '_')
+                deviceCapabilities.userAgent = deviceCapabilities.userAgent.replace(/(?:Android|iPhone OS)\s?([\d._]+)?/, (match, group1) => {
+                    return osVersion ? match.replace(group1 || '', osVersion) : match
+                })
             }
 
             return this._page.emulate(deviceCapabilities)
