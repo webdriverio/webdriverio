@@ -117,23 +117,13 @@ class _AccessibilityHandler {
         }
 
         const that = this
-        accessibilityScripts.commandsToWrap.forEach(async function (command) {
-            if (command.name && command.class) {
-                await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
-                    if (
-                        that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
-                            (
-                                !command.name.includes('execute') ||
-                                !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
-                            )
-                    ) {
-                        BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-                        await performA11yScan(that._browser, true, true, command.name)
-                    }
-                    return origFunction(...args)
-                }, command.class === 'Element')
-            }
-        })
+
+        accessibilityScripts.commandsToWrap
+            .filter((command) => command.name && command.class)
+            .forEach(function (command) {
+                const browser = that._browser as WebdriverIO.Browser
+                browser.overwriteCommand(command.name, async (origFunction: Function, ...args: any[]) => { return that.commandWrapper(that, command, origFunction, ...args) }, command.class === 'Element')
+            })
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
@@ -292,6 +282,20 @@ class _AccessibilityHandler {
     /*
      * private methods
      */
+
+    private async commandWrapper (that: this, command: any, origFunction: Function, ...args: any[]) {
+        if (
+            that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
+                (
+                    !command.name.includes('execute') ||
+                    !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
+                )
+        ) {
+            BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
+            await performA11yScan(that._browser, true, true, command.name)
+        }
+        return origFunction(...args)
+    }
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
         BStackLogger.debug('Performing scan before saving results')
