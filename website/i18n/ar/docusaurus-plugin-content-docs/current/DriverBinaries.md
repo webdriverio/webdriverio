@@ -15,7 +15,7 @@ If you are looking to set up mobile and other UI platforms, have a look into our
 
 ## Chromedriver
 
-To automate Chrome you can download Chromedriver directly on the [project website](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver) or through the NPM package:
+To automate Chrome you can download Chromedriver directly on the [project website](http://chromedriver.chromium.org/downloads) or through the NPM package:
 
 ```bash npm2yarn
 npm install -g chromedriver
