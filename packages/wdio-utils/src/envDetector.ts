@@ -225,13 +225,18 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
 /**
  * returns information about the environment before the session is created
  * @param  {Object}  capabilities           caps provided by user
- * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities, automationProtocol: string) {
-    return automationProtocol === 'devtools'
-        ? devtoolsEnvironmentDetector(capabilities)
-        : webdriverEnvironmentDetector(capabilities)
+export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
+    return {
+        isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(capabilities),
+        isBidi: isBidi(capabilities)
+    }
 }
 
 /**
@@ -254,44 +259,6 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isAndroid: isAndroid(cap),
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(cap),
-        isBidi: isBidi(capabilities)
-    }
-}
-
-/**
- * returns information about the environment when `devtools` protocol is used
- * @param  {Object}  capabilities           caps of session response
- * @return {Object}                         object with environment flags
- */
-export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabilities) {
-    return {
-        isDevTools: true,
-        isW3C: true,
-        isMobile: false,
-        isIOS: false,
-        isAndroid: false,
-        isFirefox: false,
-        isChrome: browserName === 'chrome',
-        isSauce: false,
-        isSeleniumStandalone: false,
-        isBidi: false
-    }
-}
-
-/**
- * returns information about the environment before the session is created
- * `isW3C`, `isSeleniumStandalone` cannot be detected
- * @param  {Object}  capabilities           caps provided by user
- * @return {Object}                         object with environment flags
- */
-export function webdriverEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
-    return {
-        isChrome: isChrome(capabilities),
-        isFirefox: isFirefox(capabilities),
-        isMobile: isMobile(capabilities),
-        isIOS: isIOS(capabilities),
-        isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities),
         isBidi: isBidi(capabilities)
     }
 }

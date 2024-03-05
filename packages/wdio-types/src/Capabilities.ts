@@ -151,7 +151,7 @@ export interface DesiredCapabilities extends WebdriverIO.Capabilities, SauceLabs
     excludeDriverLogs?: string[]
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -1102,6 +1102,12 @@ export interface SauceLabsCapabilities {
      * a particular Appium feature or patch.
      */
     appiumVersion?: string
+    /**
+     * Controls Sauce Labs default resigning (iOS) or instrumentation (Android)
+     * of mobile apps installed on our devices.
+     * @default true
+     */
+    resigningEnabled?: boolean;
 }
 
 export interface LambdaTestCapabilities {

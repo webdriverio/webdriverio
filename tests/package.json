@@ -4,7 +4,6 @@
   "type": "module",
   "dependencies": {
     "webdriver": "workspace:*",
-    "devtools": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/config": "workspace:*",

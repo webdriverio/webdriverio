@@ -169,6 +169,7 @@ export default class DevToolsService implements Services.ServiceInstance {
                     (t) => t.url().includes(url)) :
                 await puppeteer.waitForTarget(
                     /* istanbul ignore next */
+                    // @ts-expect-error
                     (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
 
             /* istanbul ignore next */

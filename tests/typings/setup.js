@@ -12,11 +12,10 @@ const tsDir = tsVersion ? path.join(__dirname, '@typescript', `ts${tsVersion}`) 
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber'
+    'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber'
 ]
 
 const packages = {
-    'devtools': 'packages/devtools',
     'webdriver': 'packages/webdriver',
     'webdriverio': 'packages/webdriverio',
     '@wdio/globals': 'packages/wdio-globals',

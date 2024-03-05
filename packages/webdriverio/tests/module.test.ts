@@ -39,29 +39,6 @@ vi.mock('webdriver', () => {
     }
 })
 
-vi.mock('devtools', () => {
-    const client = { sessionId: 'foobar-123', isDevTools: true }
-    const newSessionMock = vi.fn()
-    newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
-    newSessionMock.mockImplementation((params, cb) => {
-        const result = cb(client, params)
-        // @ts-ignore mock feature
-        if (params.test_multiremote) {
-            result.options = { logLevel: 'error' }
-        }
-        return result
-    })
-    const attachToSessionMock = vi.fn().mockReturnValue(client)
-    return {
-        SUPPORTED_BROWSER: ['chrome'],
-        DEFAULTS: {},
-        default: class DevtoolsMock {
-            static newSession = newSessionMock
-            static attachToSession = attachToSessionMock
-        }
-    }
-})
-
 vi.mock('@wdio/config', () => {
     const validateConfigMock = {
         validateConfig: vi.fn((_, args) => args),

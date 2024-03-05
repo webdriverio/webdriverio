@@ -24,7 +24,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     coverage?: boolean
     spec?: string[]
     suite?: string[]
-    multiRun?: number
+    repeat?: number
     capabilities?: Capabilities.RemoteCapabilities
     rootDir: string
 }
@@ -271,8 +271,8 @@ export default class ConfigParser {
      * attributes from CLI, config and capabilities
      */
     getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
-        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length >= 1
-        const multiRun = this._config.multiRun
+        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length > 0
+        const repeat = this._config.repeat
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
@@ -316,13 +316,13 @@ export default class ConfigParser {
         // Remove any duplicate tests from the final specs array
         specs = [...new Set(specs)]
 
-        // If the --multi-run flag is set, duplicate the specs array
-        // Ensure that when --multi-run is set that either --spec or --suite is also set
+        // If the --repeat flag is set, duplicate the specs array N times
+        // Ensure that when --repeat is used that either --spec or --suite is also used
         const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
-        if (multiRun && hasSubsetOfSpecsDefined) {
-            specs = specs.flatMap(i => Array.from({ length: multiRun }).fill(i)) as Spec[]
-        } else if (multiRun && !hasSubsetOfSpecsDefined) {
-            throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
+        if (repeat && hasSubsetOfSpecsDefined) {
+            specs = Array.from({ length: repeat }, () => specs).flat()
+        } else if (repeat && !hasSubsetOfSpecsDefined) {
+            throw new Error('The --repeat flag requires that either the --spec or --suite flag is also set')
         }
 
         return this.shard(

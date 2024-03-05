@@ -1,9 +1,9 @@
 import logger from '@wdio/logger'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
-import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/common/Tracing.js'
+import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/cdp/Tracing.js'
 
 import type { RequestPayload } from './handler/network.js'
 import NetworkHandler from './handler/network.js'
