@@ -45,7 +45,7 @@ Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/i
 
 ## Chromium
 
-Chromium நெறிமுறையானது WebDriver நெறிமுறையின் மேல் ஒரு சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary)மூலம் தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
+The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary) or [Edgedriver](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver).
 
 ## Firefox
 
