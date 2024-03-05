@@ -45,7 +45,7 @@ According to Appium [documentation](https://appium.github.io/appium.io/docs/en/a
 
 ## Chromium
 
-क्रोमियम प्रोटोकॉल वेबड्राइवर प्रोटोकॉल के शीर्ष पर आदेशों का एक सुपर सेट प्रदान करता है जो केवल [क्रोमड्राइवर](https://chromedriver.chromium.org/chromedriver-canary)के माध्यम से स्वचालित सत्र चलाते समय समर्थित होता है।
+The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary) or [Edgedriver](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver).
 
 ## Firefox
 
