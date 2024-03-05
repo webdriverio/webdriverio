@@ -7,7 +7,7 @@ import UsageStats from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
-import { getDataFromWorkers } from '../data-store.js'
+import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -19,13 +19,17 @@ async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig
         const data = buildEventData(eventType, config)
         await fireFunnelRequest(data)
         BStackLogger.debug('Funnel event success')
-        config.sentFunnelData()
+        if (eventType === 'SDKTestSuccessful') {
+            config.sentFunnelData()
+        }
     } catch (error) {
         BStackLogger.debug('Exception in sending funnel data: ' + error)
     }
 }
 
 export async function sendStart(config: BrowserStackConfig) {
+    // Remove Workers folder if exists
+    removeWorkersDataDir()
     await fireFunnelTestEvent('SDKTestAttempted', config)
 }
 

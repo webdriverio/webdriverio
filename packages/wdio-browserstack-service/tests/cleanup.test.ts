@@ -27,48 +27,52 @@ describe('BStackCleanup', () => {
         vi.restoreAllMocks()
     })
 
-    it('startCleanup executes observability cleanup if --observability is present in argv', async () => {
-        vi.spyOn(utils, 'stopBuildUpstream')
-        process.argv.push('--observability')
-        process.env[TESTOPS_JWT_ENV] = 'some jwt'
+    describe('startCleanup', () => {
+        it('executes observability cleanup if --observability is present in argv', async () => {
+            vi.spyOn(utils, 'stopBuildUpstream')
+            process.argv.push('--observability')
+            process.env[TESTOPS_JWT_ENV] = 'some jwt'
 
-        await BStackCleanup.startCleanup()
+            await BStackCleanup.startCleanup()
 
-        expect(utils.stopBuildUpstream).toHaveBeenCalledTimes(1)
+            expect(utils.stopBuildUpstream).toHaveBeenCalledTimes(1)
+        })
+
+        it('gets data and removes funnel data file', async () => {
+            const filePath = 'some_file.json'
+            process.argv.push('--funnelData', filePath)
+            vi.spyOn(fs, 'readFileSync').mockReturnValue('{"data": 123}')
+            vi.spyOn(fs, 'rmSync')
+            vi.spyOn(FunnelTestEvent, 'fireFunnelRequest').mockResolvedValueOnce()
+
+            await BStackCleanup.startCleanup()
+            expect(fs.readFileSync).toHaveBeenNthCalledWith(1, filePath, 'utf8')
+            expect(fs.rmSync).toHaveBeenNthCalledWith(1, filePath, expect.any(Object))
+            expect(FunnelTestEvent.fireFunnelRequest).toHaveBeenCalled()
+        })
     })
 
     describe('executeObservabilityCleanup', () => {
         const stopBuildUpstreamSpy = vi.spyOn(utils, 'stopBuildUpstream')
 
         it('does not invoke stop call for observability when jwt is not set', async () => {
-            await BStackCleanup.executeObservabilityCleanup()
+            await BStackCleanup.executeObservabilityCleanup({})
             expect(stopBuildUpstreamSpy).toBeCalledTimes(0)
         })
 
         it('invoke stop call for observability when jwt is set', async () => {
             process.env[TESTOPS_JWT_ENV] = 'jwtToken'
-            await BStackCleanup.executeObservabilityCleanup()
+            await BStackCleanup.executeObservabilityCleanup({})
             expect(stopBuildUpstreamSpy).toBeCalledTimes(1)
         })
     })
 
     describe('sendFunnelData', () => {
-        it('handles invalid file path', async () => {
-            process.argv.push('--funnelData')
-            vi.spyOn(FunnelTestEvent, 'fireFunnelRequest').mockResolvedValueOnce()
-            await BStackCleanup.sendFunnelData()
-            expect(FunnelTestEvent.fireFunnelRequest).not.toHaveBeenCalled()
-        })
-
         it('sends funnel data and removes file', async () => {
-            process.argv.push('--funnelData', 'test-file-path')
             const funnelData = { key: 'value' }
-            vi.spyOn(fs, 'readFileSync').mockReturnValueOnce(JSON.stringify(funnelData))
-            vi.spyOn(fs, 'rmSync')
             vi.spyOn(FunnelTestEvent, 'fireFunnelRequest').mockResolvedValueOnce()
-            await BStackCleanup.sendFunnelData()
+            await BStackCleanup.sendFunnelData(funnelData)
             expect(FunnelTestEvent.fireFunnelRequest).toHaveBeenCalledWith(funnelData)
-            expect(fs.rmSync).toHaveBeenCalledWith('test-file-path', { force: true })
         })
     })
 

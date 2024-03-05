@@ -38,7 +38,7 @@ export function saveWorkerData(data: Record<string, any>) {
     }
 }
 
-function removeWorkersDataDir(): boolean {
+export function removeWorkersDataDir(): boolean {
     fs.rmSync(workersDataDirPath, { recursive: true, force: true })
     return true
 }

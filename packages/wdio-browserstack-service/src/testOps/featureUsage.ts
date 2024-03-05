@@ -1,3 +1,5 @@
+import { getErrorString } from '../util.js'
+
 class FeatureUsage {
     private isTriggered?: boolean
     private status?: string
@@ -31,11 +33,7 @@ class FeatureUsage {
 
     public failed(e: unknown): void {
         this.status = 'failed'
-        if (typeof e === 'string') {
-            this.error = e // works, `e` narrowed to string
-        } else if (e instanceof Error) {
-            this.error = e.message // works, `e` narrowed to Error
-        }
+        this.error = getErrorString(e)
     }
 
     public success(): void {
