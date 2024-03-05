@@ -112,30 +112,28 @@ class _AccessibilityHandler {
         if (!this._accessibility) {
             return
         }
-        try {
-            if ('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap)) {
-                const that = this
-                accessibilityScripts.commandsToWrap.forEach(async function (command) {
-                    if (command.name && command.class) {
-                        await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
-                            if (
-                                that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
-                                    (
-                                        !command.name.includes('execute') ||
-                                        !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
-                                    )
-                            ) {
-                                BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-                                await performA11yScan(that._browser, true, true, command.name)
-                            }
-                            return origFunction(...args)
-                        }, command.class === 'Element')
-                    }
-                })
-            }
-        } catch {
-            /* Do nothing */
+        if (!('overwriteCommand' in this._browser && Array.isArray(accessibilityScripts.commandsToWrap))) {
+            return
         }
+
+        const that = this
+        accessibilityScripts.commandsToWrap.forEach(async function (command) {
+            if (command.name && command.class) {
+                await (that._browser as WebdriverIO.Browser).overwriteCommand(command.name, async function (origFunction: Function, ...args: any[]) {
+                    if (
+                        that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
+                            (
+                                !command.name.includes('execute') ||
+                                !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
+                            )
+                    ) {
+                        BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
+                        await performA11yScan(that._browser, true, true, command.name)
+                    }
+                    return origFunction(...args)
+                }, command.class === 'Element')
+            }
+        })
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
@@ -221,11 +219,11 @@ class _AccessibilityHandler {
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
-        try {
-            if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
-                return
-            }
+        if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            return
+        }
 
+        try {
             const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
             const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
 

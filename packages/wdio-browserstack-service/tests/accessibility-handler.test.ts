@@ -252,7 +252,8 @@ describe('beforeScenario', () => {
     it('should throw error in before scenario if exception occurs', async () => {
         const logErrorMock = vi.spyOn(log, 'error')
         vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { throw new Error() })
+        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
+        accessibilityHandler['checkIfPageOpened'] = vi.fn().mockImplementation(() => { throw new Error() })
         await accessibilityHandler.beforeScenario({
             pickle: {
                 name: 'pickle-name',

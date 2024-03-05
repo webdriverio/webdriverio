@@ -14,7 +14,8 @@ class AccessibilityScripts {
     public browserstackFolderPath = path.join(os.homedir(), '.browserstack')
     public commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
 
-    constructor() {}
+    // don't allow to create instances from it other than through `checkAndGetInstance`
+    private constructor() {}
 
     public static checkAndGetInstance() {
         if (!AccessibilityScripts.instance) {
