@@ -25,7 +25,7 @@ class BrowserStackConfig {
     public automate: boolean
     public funnelDataSent: boolean = false
 
-    constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
+    private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
         this.userName = config.user
         this.accessKey = config.key
