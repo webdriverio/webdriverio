@@ -5,7 +5,7 @@ import { BStackLogger } from './bstackLogger.js'
 export default class RequestQueueHandler {
     private queue: UploadType[] = []
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
-    private readonly callback: Function|undefined
+    private readonly callback?: Function
     public static tearDownInvoked = false
 
     static instance: RequestQueueHandler
