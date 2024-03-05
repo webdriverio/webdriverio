@@ -12,7 +12,6 @@ export default class RequestQueueHandler {
     private queue: UploadType[] = []
     private readonly callback: Function|undefined
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
-    public pendingUploads = 0
     public static tearDownInvoked = false
 
     static instance: RequestQueueHandler
@@ -54,17 +53,14 @@ export default class RequestQueueHandler {
     }
 
     startEventBatchPolling () {
-        this.pollEventBatchInterval = setInterval(async () => {
-            if (this.queue.length > 0) {
-                const data = this.queue.splice(0, DATA_BATCH_SIZE)
-                BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
-                await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'INTERVAL_QUEUE', data)
-            }
-        }, DATA_BATCH_INTERVAL)
+        this.pollEventBatchInterval = setInterval(this.sendBatch.bind(this), DATA_BATCH_INTERVAL)
     }
 
     async sendBatch() {
         const data = this.queue.splice(0, DATA_BATCH_SIZE)
+        if (data.length === 0) {
+            return
+        }
         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
         await this.callCallback(data, 'INTERVAL_QUEUE')
     }
