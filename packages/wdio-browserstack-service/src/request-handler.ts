@@ -1,4 +1,4 @@
-import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL } from './constants.js'
+import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL, TESTOPS_BUILD_COMPLETED_ENV } from './constants.js'
 import type { UploadType } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 
@@ -24,7 +24,7 @@ export default class RequestQueueHandler {
     }
 
     add (event: UploadType) {
-        if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
+        if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
             throw new Error('Observability build start not completed yet.')
         }
 

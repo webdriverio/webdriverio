@@ -1,7 +1,7 @@
 import type { Capabilities, Options } from '@wdio/types'
 import got from 'got'
 
-import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT } from './constants.js'
+import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, TESTOPS_BUILD_ID_ENV } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -61,7 +61,7 @@ export default class CrashReporter {
         }
 
         const data = {
-            hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
+            hashed_id: process.env[TESTOPS_BUILD_ID_ENV],
             observability_version: {
                 frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
                 sdkVersion: BSTACK_SERVICE_VERSION

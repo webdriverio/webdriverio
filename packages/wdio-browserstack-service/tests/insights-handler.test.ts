@@ -10,6 +10,7 @@ import InsightsHandler from '../src/insights-handler.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import Listener from '../src/testOps/listener.js'
+import { TESTOPS_SCREENSHOT_ENV } from '../src/constants.js'
 
 const log = logger('test')
 let insightsHandler: InsightsHandler
@@ -668,11 +669,11 @@ describe('browserCommand', () => {
     })
 
     it('client:afterCommand - screenshot', () => {
-        process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = 'true'
+        process.env[TESTOPS_SCREENSHOT_ENV] = 'true'
         commandSpy.mockImplementation(() => { return true })
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } } as any, {} as any)
         expect(uploadEventDataSpy).toBeCalled()
-        delete process.env.BS_TESTOPS_ALLOW_SCREENSHOTS
+        delete process.env[TESTOPS_SCREENSHOT_ENV]
     })
 
     it('return if test not in _tests', () => {

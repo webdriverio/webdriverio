@@ -17,7 +17,12 @@ import PerformanceTester from './performance-tester.js'
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
-import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, VALID_APP_EXTENSION } from './constants.js'
+import {
+    BSTACK_SERVICE_VERSION,
+    NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
+    TESTOPS_BUILD_ID_ENV, TESTOPS_SCREENSHOT_ENV,
+    VALID_APP_EXTENSION
+} from './constants.js'
 import {
     launchTestSession,
     createAccessibilityTestRun,
@@ -149,7 +154,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.buildIdentifier = this._buildIdentifier
         this.browserStackConfig.buildName = this._buildName
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
@@ -162,9 +167,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability
             &&
             // update files to run if it's a rerun
-            process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
+            process.env[RERUN_ENV] && process.env[RERUN_TESTS_ENV]
         ) {
-            this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+            this._config.specs = process.env[RERUN_TESTS_ENV].split(',')
         }
 
         sendStart(this.browserStackConfig)
@@ -352,12 +357,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability) {
             BStackLogger.debug('Sending stop launch event')
             await stopBuildUpstream()
-            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            if (process.env[TESTOPS_BUILD_ID_ENV]) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_SCREENSHOT_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             this.browserStackConfig.testObservability.buildStopped = true
 
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')
                 PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 
@@ -769,8 +774,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _getClientBuildUuid() {
-        if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-            return process.env.BS_TESTOPS_BUILD_HASHED_ID
+        if (process.env[TESTOPS_BUILD_ID_ENV]) {
+            return process.env[TESTOPS_BUILD_ID_ENV]
         }
         const uuid = uuidv4()
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')

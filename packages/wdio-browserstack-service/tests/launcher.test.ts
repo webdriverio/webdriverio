@@ -13,6 +13,7 @@ import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import { RERUN_ENV, RERUN_TESTS_ENV, TESTOPS_BUILD_ID_ENV } from '../src/constants.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -735,16 +736,16 @@ describe('constructor', () => {
     })
 
     it('update spec list if it is a rerun', async () => {
-        process.env.BROWSERSTACK_RERUN = 'true'
-        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
+        process.env[RERUN_ENV] = 'true'
+        process.env[RERUN_TESTS_ENV] = 'demo1.test.js,demo2.test.js'
 
         const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
 
-        delete process.env.BROWSERSTACK_RERUN
-        delete process.env.BROWSERSTACK_RERUN_TESTS
+        delete process.env[RERUN_ENV]
+        delete process.env[RERUN_TESTS_ENV]
     })
 
     describe('#non-bstack session', () => {
@@ -1278,9 +1279,9 @@ describe('_uploadServiceLogs', () => {
     }]
 
     it('get observability build id', async() => {
-        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+        delete process.env[TESTOPS_BUILD_ID_ENV]
     })
 
     const service = new BrowserstackLauncher(options as any, caps, config)
@@ -1303,9 +1304,9 @@ describe('_getClientBuildUuid', () => {
     const service = new BrowserstackLauncher(options as any, caps, config)
 
     it('get observability build id', async() => {
-        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+        delete process.env[TESTOPS_BUILD_ID_ENV]
     })
 
     it('get randomly generated id if both the conditions fail', async() => {

@@ -30,6 +30,7 @@ import type {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
+import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -518,7 +519,7 @@ class _InsightsHandler {
         // log screenshot
         const body = 'body' in args ? args.body : undefined
         const result = 'result' in args ? args.result : undefined
-        if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && result?.value) {
+        if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
             await this.listener.onScreenshot([{
                 test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),

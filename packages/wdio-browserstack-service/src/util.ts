@@ -22,7 +22,20 @@ import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
+import {
+    ACCESSIBILITY_API_URL,
+    BROWSER_DESCRIPTION,
+    DATA_ENDPOINT,
+    UPLOAD_LOGS_ADDRESS,
+    UPLOAD_LOGS_ENDPOINT,
+    consoleHolder,
+    TESTOPS_SCREENSHOT_ENV,
+    TESTOPS_BUILD_ID_ENV,
+    PERF_MEASUREMENT_ENV,
+    RERUN_ENV,
+    TESTOPS_BUILD_COMPLETED_ENV,
+    TESTOPS_JWT_ENV
+} from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -132,7 +145,7 @@ export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -217,7 +230,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -253,7 +266,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         },
         ci_info: getCiInfo(),
         build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
-        failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
+        failed_tests_rerun: process.env[RERUN_ENV] || false,
         version_control: await getGitMetaData(),
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
@@ -280,17 +293,17 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             json: data
         }).json()
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (response.jwt) {
             launchBuildUsage.success()
-            process.env.BS_TESTOPS_JWT = response.jwt
+            process.env[TESTOPS_JWT_ENV] = response.jwt
         }
         if (response.build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+            process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
         }
         if (response.allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+            process.env[TESTOPS_SCREENSHOT_ENV] = response.allow_screenshots.toString()
         }
     } catch (error) {
         launchBuildUsage.failed(error)
@@ -554,7 +567,7 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
         stopBuildUsage.failed('Build is not completed yet')
         return {
             status: 'error',
@@ -562,7 +575,8 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         }
     }
 
-    if (!process.env.BS_TESTOPS_JWT) {
+    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    if (!jwtToken) {
         stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
@@ -575,12 +589,12 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[TESTOPS_BUILD_ID_ENV]}/stop`
         const response = await got.put(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${jwtToken}`
             },
             json: data
         }).json()
@@ -976,8 +990,13 @@ export function shouldAddServiceVersion(config: Options.Testrunner, testObservab
 }
 
 export async function batchAndPostEvents (eventUrl: string, kind: string, data: UploadType[]) {
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED || !process.env.BS_TESTOPS_JWT) {
-        return
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
+        throw new Error('Build not completed yet')
+    }
+
+    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    if (!jwtToken) {
+        throw new Error('Missing authentication Token')
     }
 
     try {
@@ -986,13 +1005,14 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${jwtToken}`
             },
             json: data
         }).json()
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
         BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        throw new Error('Exception in request ' + error)
     }
 }
 

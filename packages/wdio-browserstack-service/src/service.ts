@@ -15,7 +15,7 @@ import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScale
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS } from './constants.js'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -59,7 +59,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -286,7 +286,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._percyHandler?.teardown()
         this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
