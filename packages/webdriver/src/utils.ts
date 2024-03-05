@@ -172,7 +172,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocol = deepmerge(
         /**
@@ -192,9 +192,9 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          */
         isMobile ? deepmerge(MJsonWProtocol, AppiumProtocol) : {},
         /**
-         * only apply special Chrome commands if session is using Chrome
+         * only apply special Chromium commands if session is using Chrome or Edge
          */
-        isChrome ? ChromiumProtocol : {},
+        isChromium ? ChromiumProtocol : {},
         /**
          * only apply special Firefox commands if session is using Firefox
          */
@@ -276,17 +276,17 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
         isFirefox: { value: isFirefox },
-        isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone },
-        isBidi: { value: isBidi }
+        isBidi: { value: isBidi },
+        isChromium: { value: isChromium },
     }
 }
 
