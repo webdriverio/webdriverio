@@ -54,6 +54,9 @@ vi.mock('fs', () => ({
         createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
         createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
         stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        writeFileSync: vi.fn()
     }
 }))
 
