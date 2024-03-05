@@ -139,7 +139,7 @@ export default function isElementClickable (elem: HTMLElement, options: { within
 
         const { x, y } = elem.getBoundingClientRect()
         if (x !== originalX || y !== originalY) {
-            window.scroll(scrollX, scrollY)
+            elem.scroll(scrollX, scrollY)
         }
     }
     return isFullyDisplayedInViewport(elem) && isEnabled(elem as HTMLFormElement)
