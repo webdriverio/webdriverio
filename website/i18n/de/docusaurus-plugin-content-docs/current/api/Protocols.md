@@ -45,7 +45,7 @@ Laut Appium [Dokumentation](https://appium.github.io/appium.io/docs/en/about-app
 
 ## Chromium
 
-Das Chromium-Protokoll bietet zusätzlich zum WebDriver-Protokoll eine Reihe von Befehlen, die nur unterstützt werden, wenn eine automatisierte Sitzung über [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary)ausgeführt wird.
+The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary) or [Edgedriver](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver).
 
 ## Firefox
 
