@@ -252,7 +252,7 @@ export class CustomRequestError extends Error {
          *
          * Chrome:
          *  error: 'invalid argument'
-         *  invalid 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
+         * message: 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
          * Firefox:
          *  error: 'invalid selector'
          *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
