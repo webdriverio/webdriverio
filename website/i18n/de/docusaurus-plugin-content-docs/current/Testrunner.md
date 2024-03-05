@@ -119,7 +119,7 @@ Optionen:
                         from stdin                                       [array]
 --exclude             exclude spec file(s) from a run - overrides specs piped
                         from stdin                                       [array]
---multi-run           Run one or more specs x amount of times            [number]
+--repeat              Run one or more specs x amount of times            [number]
 --mochaOpts           Mocha options
 --jasmineOpts         Jasmine options
 --cucumberOpts        Cucumber options

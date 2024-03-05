@@ -60,7 +60,13 @@ describe('getLighthouseDriver', () => {
         const session = {
             connection: vi.fn().mockReturnValue({ url: urlMock })
         }
-        const target = { _targetId: 'foobar321' }
+        const target = {
+            asPage: vi.fn().mockReturnValue({
+                mainFrame: vi.fn().mockReturnValue({
+                    _id: 'foobar321'
+                })
+            })
+        }
         const driver = await getLighthouseDriver(session as any, target as any)
         // @ts-expect-error
         driver._connection.sendCommand('foobar')

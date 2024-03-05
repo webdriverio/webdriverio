@@ -20,7 +20,6 @@ export interface SessionFlags {
     isIOS: boolean
     isSauce: boolean
     isSeleniumStandalone: boolean
-    isDevTools: boolean
     isBidi: boolean
 }
 

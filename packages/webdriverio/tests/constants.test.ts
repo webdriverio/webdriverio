@@ -11,6 +11,5 @@ describe('WDIO_DEFAULTS', () => {
         expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('foobar')).toThrow()
 
         WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')
-        WDIO_DEFAULTS.automationProtocol!.validate!('devtools')
     })
 })

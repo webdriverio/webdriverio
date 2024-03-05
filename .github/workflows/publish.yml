@@ -31,7 +31,7 @@ jobs:
           team: technical-steering-committee
           organisation: webdriverio
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
   release:
     permissions:
       contents: write

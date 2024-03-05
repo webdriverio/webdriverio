@@ -12,7 +12,9 @@ test('allow to attach to an existing session', async () => {
     const browser = await remote({
         capabilities: {
             browserName: 'chrome',
-            'wdio:devtoolsOptions': { headless: true, dumpio: true }
+            'goog:chromeOptions': {
+                args: ['headless', 'disable-gpu']
+            }
         }
     })
 
@@ -24,6 +26,9 @@ test('allow to attach to an existing session', async () => {
 
     await otherBrowser.deleteSession()
 
+    /**
+     * verify that browser session is deleted
+     */
     const error = await browser.status().catch((err) => err)
     expect(error.message).not.toBe('ChromeDriver ready for new sessions.')
     expect(error.message).toEqual(expect.stringContaining('fetch failed'))

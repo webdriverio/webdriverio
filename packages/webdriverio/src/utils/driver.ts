@@ -1,48 +1,42 @@
-import WebDriver from 'webdriver'
-import logger from '@wdio/logger'
+import type { Automation } from '@wdio/types'
 
 import ProtocolStub from '../protocol-stub.js'
 import detectBackend from './detectBackend.js'
 import { SupportedAutomationProtocols } from '../constants.js'
 import type { RemoteOptions } from '../types.js'
 
-const log = logger('webdriverio')
+interface ProtocolDriver {
+    Driver: Automation.Driver<RemoteOptions>
+    options: RemoteOptions
+}
 
-export async function getProtocolDriver (options: RemoteOptions) {
+let webdriverImport: Automation.Driver<RemoteOptions> | undefined
+
+/**
+ * get protocol driver
+ * @param  {RemoteOptions} options  remote options
+ * @return {Automation.Driver}      automation driver
+ */
+export async function getProtocolDriver (options: RemoteOptions): Promise<ProtocolDriver> {
+    /**
+     * We still want to be able to inject a stub driver to avoid loading the actual
+     * driver package in two places:
+     *
+     * - when initiating the Mocha or Jasmine framework and allow to us to evaluate
+     *   whether tests are being executed in the worker before starting a session
+     * - when running component tests where we don't need a driver at all
+     */
     if (options.automationProtocol === SupportedAutomationProtocols.stub) {
         return { Driver: ProtocolStub, options }
     }
 
     /**
-     * return `devtools` if explicitly set
+     * update connection parameters if we are running in a cloud
      */
-    if (options.automationProtocol === SupportedAutomationProtocols.devtools || options.automationProtocol?.startsWith('/@fs/')) {
-        try {
-            const DevTools = await import(options.automationProtocol)
-            log.info('Starting session using Chrome DevTools as automation protocol and Puppeteer as driver')
-            return { Driver: DevTools.default, options }
-        } catch (err: unknown) {
-            throw new Error(
-                `Failed to import "${options.automationProtocol}" as automation protocol driver!\n` +
-                (options.automationProtocol === SupportedAutomationProtocols.devtools
-                    ? 'Make sure to have it installed as dependency (`npm i devtools`)!\n'
-                    : ''
-                ) +
-                `Error: ${(err as Error).message}`
-            )
-        }
+    if (typeof options.user === 'string' && typeof options.key === 'string') {
+        Object.assign(options, detectBackend(options))
     }
 
-    if (options.automationProtocol === SupportedAutomationProtocols.webdriver) {
-        /**
-         * update connection parameters if we are running in a cloud
-         */
-        if (typeof options.user === 'string' && typeof options.key === 'string') {
-            Object.assign(options, detectBackend(options))
-        }
-
-        return { Driver: WebDriver, options }
-    }
-
-    throw new Error(`Undefined or unsupported automation protocol "${options.automationProtocol}"`)
+    const Driver = webdriverImport || (await import(options.automationProtocol || 'webdriver')).default
+    return { Driver, options }
 }
