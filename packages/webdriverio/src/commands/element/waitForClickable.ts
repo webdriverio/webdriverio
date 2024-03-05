@@ -12,9 +12,13 @@ import type { WaitForOptions } from '../../types.js'
  *
  * <example>
     :waitForClickable.js
-    it('should detect when element is clickable', async () => {
+    it('should detect when element is clickable anywhere on the page', async () => {
         const elem = await $('#elem')
         await elem.waitForClickable({ timeout: 3000 });
+    });
+    it('should detect when element is clickable inside the viewport only', async () => {
+        const elem = await $('#elem')
+        await elem.waitForClickable({ withinViewport: true });
     });
     it('should detect when element is no longer clickable', async () => {
         const elem = await $('#elem')

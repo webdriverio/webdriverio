@@ -29,13 +29,15 @@ interface IsClickableParams {
  *
  * <example>
     :isClickable.js
-    it('should detect if an element is clickable', async () => {
+    it('should detect if an element is clickable anywhere on the page', async () => {
         const el = await $('#el')
         let clickable = await el.isClickable();
         console.log(clickable); // outputs: true or false
-
-        // wait for element to be clickable
-        await browser.waitUntil(() => el.isClickable())
+    });
+    it('should detect if an element is clickable in the viewport only', async () => {
+        const el = await $('#el')
+        let clickable = await el.isClickable({ withinViewport: true });
+        console.log(clickable); // outputs: true or false
     });
  * </example>
  *
