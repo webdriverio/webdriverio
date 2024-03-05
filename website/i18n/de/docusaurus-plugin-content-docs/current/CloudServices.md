@@ -3,7 +3,7 @@ id: cloudservices
 title: Verwenden von Cloud-Diensten
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest or Perfecto with WebdriverIO is pretty simple. Alles, was Sie tun müssen, ist `user` und `key` in Ihren Optionen zu setzen.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. Alles, was Sie tun müssen, ist `user` und `key` in Ihren Optionen zu setzen.
 
 Optional können Sie Ihren Test auch parametrisieren, indem Sie Cloud-spezifische Funktionen wie `build` Namen festlegen. Wenn Sie Cloud-Dienste nur in einer CI/CD Umgebung ausführen möchten, können Sie die Umgebungsvariable `CI` verwenden, um zu überprüfen, ob Sie sich in so einer Umgbeung befinden, und die Konfiguration entsprechend ändern.
 

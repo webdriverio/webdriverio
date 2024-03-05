@@ -3,7 +3,7 @@ id: cloudservices
 title: Servicios en la Nube
 ---
 
-Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
+Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
 
 Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 
@@ -119,9 +119,9 @@ Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/testing
 
 ### Pruebas locales
 
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://testingbot.com/support/other/tunnel). CrossBrowserTesting proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
+Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://testingbot.com/support/other/tunnel). Testing Bot proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
 
-Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayuda a ejecutar CrossBrowserTesting y viene con características adicionales que integran mejor sus pruebas en el servicio Testing Bot.
+Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayuda a ejecutar Testing Bot y viene con características adicionales que integran mejor sus pruebas en el servicio Testing Bot.
 
 ## Prueba de Lambda
 
