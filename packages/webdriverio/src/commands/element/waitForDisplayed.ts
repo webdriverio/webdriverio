@@ -15,9 +15,9 @@ import type { WaitForOptions } from '../../types.js'
  * @param {WaitForOptions=}  options                waitForDisplayed options (optional)
  * @param {Number=}          options.timeout        time in ms (default: 500)
  * @param {Boolean=}         options.reverse        if true it waits for the opposite (default: false)
+ * @param {Boolean=}         options.withinViewport set to `true` to wait until element is displayed within viewport (default: `false`)
  * @param {String=}          options.timeoutMsg     if exists it overrides the default error message
  * @param {Number=}          options.interval       interval between checks (default: `waitforInterval`)
- * @param {Boolean=}         options.withinViewport set to `true` to wait until element is displayed within viewport (default: `false`)
  * @return {Boolean} true    if element is displayed (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isDisplayed
  * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitForDisplayed/index.html#L3-L8

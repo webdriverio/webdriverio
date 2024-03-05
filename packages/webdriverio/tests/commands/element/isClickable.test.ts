@@ -21,7 +21,7 @@ describe('isClickable test', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it('should allow to check if element is displayed', async () => {
+    it('should allow to check if element is clickable', async () => {
         await elem.isClickable()
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
@@ -36,6 +36,18 @@ describe('isClickable test', () => {
         const elem = await browser.$('#nonexisting')
         expect(await elem.isClickable()).toBe(false)
         expect(fetch).toBeCalledTimes(2)
+    })
+
+    it('should allow to check if element is clickable within viewport', async () => {
+        await elem.isClickable({ withinViewport: true })
+        expect(fetch).toBeCalledTimes(2)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as any).args[0]).toEqual({
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            ELEMENT: 'some-elem-123'
+        })
     })
 
     it('should throw if in mobile native context', async () => {

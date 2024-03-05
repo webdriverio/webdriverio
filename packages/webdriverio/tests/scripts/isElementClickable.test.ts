@@ -68,12 +68,11 @@ describe('isElementClickable script', () => {
         let attempts = 0
         global.document = { elementFromPoint: () => {
             attempts += 1
-            return { parentNode: attempts > 4 ? elemMock : {} }
+            return { parentNode: attempts > 3 ? elemMock : {} }
         } } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
         expect(elemMock.scrollIntoView).toBeCalledWith(false)
-        expect(elemMock.scrollIntoView).toBeCalledWith(true)
     })
 
     it('should be clickable if in viewport and elementFromPoint if element is Document Fragment [Edge]', () => {
@@ -98,12 +97,11 @@ describe('isElementClickable script', () => {
         let attempts = 0
         global.document = { elementFromPoint: () => {
             attempts += 1
-            return { parentNode: attempts > 4 ? elemMock : {} }
+            return { parentNode: attempts > 3 ? elemMock : {} }
         } } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
         expect(elemMock.scrollIntoView).toBeCalledWith(false)
-        expect(elemMock.scrollIntoView).toBeCalledWith(true)
     })
 
     it('should be clickable if in viewport and elementFromPoint of the rect matches', () => {
@@ -199,7 +197,6 @@ describe('isElementClickable script', () => {
         global.document = { elementFromPoint: () => null } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
-        expect(elemMock.scrollIntoView).toBeCalledWith({ block: 'nearest', inline: 'nearest' })
         expect(elemMock.scrollIntoView).toBeCalledWith({ block: 'center', inline: 'center' })
     })
 

@@ -138,7 +138,7 @@ describe('waitForClickable', () => {
         } as any as WebdriverIO.Element
 
         try {
-            await elem.waitForClickable({ timeout: duration, timeoutMsg: 'Element foo never clickable' })
+            await elem.waitForClickable({ timeout: duration, withinViewport: true, timeoutMsg: 'Element foo never clickable' })
         } catch (err: any) {
             expect(err.message).toBe('Element foo never clickable')
         }

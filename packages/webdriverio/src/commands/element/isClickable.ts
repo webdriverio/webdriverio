@@ -3,6 +3,10 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '../../utils/index.js'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
 
+interface IsClickableParams {
+    withinViewport?: boolean
+}
+
 /**
  *
  * Return true if the selected DOM-element:
@@ -36,12 +40,16 @@ import isElementClickableScript from '../../scripts/isElementClickable.js'
  * </example>
  *
  * @alias element.isClickable
+ * @param {Boolean} [isWithinViewport=false] set to true to check if element is within viewport
  * @return {Boolean}            true if element is clickable
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
  * @type state
  *
  */
-export async function isClickable (this: WebdriverIO.Element) {
+export async function isClickable (
+    this: WebdriverIO.Element,
+    commandParams: IsClickableParams = { withinViewport: false }
+) {
     if (!await this.isDisplayed()) {
         return false
     }
@@ -58,5 +66,5 @@ export async function isClickable (this: WebdriverIO.Element) {
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    } as any as HTMLElement, commandParams)
 }
