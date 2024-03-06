@@ -1414,24 +1414,24 @@ describe('ObjectsAreEqual', function () {
 
 describe('getPlatformVersion', () => {
     it('should return undefined if no capabilities are provided', () => {
-        expect(utils.getPlatformVersion(null)).toBeUndefined();
-    });
+        expect(utils.getPlatformVersion(null)).toBeUndefined()
+    })
 
     it('should return platform version from bstack:options if available', () => {
         const caps: Capabilities.Capabilities = {
             'bstack:options': {
                 osVersion: '10.0'
             },
-        };
+        }
 
-        expect(utils.getPlatformVersion(caps)).toBe('10.0');
+        expect(utils.getPlatformVersion(caps)).toBe('10.0')
     });
 
     it('should return undefined if no platform version is found', () => {
         const caps: Capabilities.Capabilities = {
             browserName: 'chrome',
-        };
+        }
 
-        expect(utils.getPlatformVersion(caps)).toBeUndefined();
-    });
-});
+        expect(utils.getPlatformVersion(caps)).toBeUndefined()
+    })
+})
