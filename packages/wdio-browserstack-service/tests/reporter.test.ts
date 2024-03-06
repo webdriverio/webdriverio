@@ -134,6 +134,16 @@ describe('test-reporter', () => {
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
 
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
+
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
             getCloudProviderSpy.mockClear()
@@ -223,6 +233,15 @@ describe('test-reporter', () => {
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testStartStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})
@@ -269,6 +288,15 @@ describe('test-reporter', () => {
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testEndStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})

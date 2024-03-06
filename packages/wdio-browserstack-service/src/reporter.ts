@@ -15,7 +15,8 @@ import {
     o11yClassErrorHandler,
     removeAnsiColors,
     getHookType,
-    pushDataToQueue
+    pushDataToQueue,
+    getPlatformVersion
 } from './util'
 import RequestQueueHandler from './request-handler'
 
@@ -34,9 +35,11 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
     private _currentTest: CurrentRunInfo = {}
+    private _userCaps?: Capabilities.RemoteCapability = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
+        this._userCaps = this.getUserCaps(runnerStats)
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
@@ -50,6 +53,10 @@ class _TestReporter extends WDIOReporter {
         }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
+    }
+
+    private getUserCaps(runnerStats: RunnerStats) {
+        return runnerStats.instanceOptions[runnerStats.sessionId].capabilities
     }
 
     public async appendTestItemLog(stdLog: StdLog) {
@@ -239,6 +246,7 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
+                platform_version: getPlatformVersion(this._userCaps as Capabilities.Capabilities)
             }
         }
 

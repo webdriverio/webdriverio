@@ -739,7 +739,9 @@ describe('afterHook', () => {
 
 describe('getIntegrationsObject', () => {
     let insightsHandler: InsightsHandler
+    let getPlatformVersionSpy
     beforeAll(() => {
+        getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return "some version" })
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
         insightsHandler['_platformMeta'] = {
             caps: {},
@@ -752,7 +754,9 @@ describe('getIntegrationsObject', () => {
     })
 
     it('return hash', () => {
-        expect(insightsHandler['getIntegrationsObject']()).toBeInstanceOf(Object)
+        const integrationsObject = insightsHandler['getIntegrationsObject']()
+        expect(integrationsObject).toBeInstanceOf(Object)
+        expect(integrationsObject.platform_version).toEqual('some version')
     })
 
     it('should fetch latest details', () => {
@@ -761,6 +765,10 @@ describe('getIntegrationsObject', () => {
         const integrationsObject = insightsHandler['getIntegrationsObject']()
         expect(integrationsObject.session_id).toEqual('session-new')
         expect(integrationsObject.capabilities.os).toEqual('Windows')
+    })
+
+    afterAll(() => {
+        getPlatformVersionSpy.mockClear()
     })
 })
 

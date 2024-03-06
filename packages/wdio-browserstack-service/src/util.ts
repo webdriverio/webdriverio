@@ -1133,3 +1133,17 @@ export const ObjectsAreEqual = (object1: any, object2: any) => {
     }
     return true
 }
+
+export function getPlatformVersion(caps: Capabilities.Capabilities) {
+  const bstackOptions = (caps)?.['bstack:options']
+  const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version', 'appium:platformVersion']
+
+  for (const key of keys) {
+      if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+          return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
+      } else if (caps[key as keyof Capabilities.Capabilities]) {
+          return String(caps[key as keyof Capabilities.Capabilities])
+      }
+  }
+  return undefined
+}
