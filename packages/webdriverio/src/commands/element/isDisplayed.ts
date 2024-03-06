@@ -2,7 +2,7 @@ import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
-interface IsDisplayedParams {
+interface IsDisplayedOptions {
     withinViewport?: boolean
 }
 
@@ -83,7 +83,8 @@ interface IsDisplayedParams {
  * </example>
  *
  * @alias element.isDisplayed
- * @param {Boolean} [isWithinViewport=false] set to true to check if element is within viewport
+ * @param {IsDisplayedOptions=}  options waitForEnabled options (optional)
+ * @param {Boolean=} options.withinViewport set to true to check if element is within viewport
  * @return {Boolean} true if element is displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
@@ -91,7 +92,7 @@ interface IsDisplayedParams {
  */
 export async function isDisplayed (
     this: WebdriverIO.Element,
-    commandParams: IsDisplayedParams = { withinViewport: false }
+    commandParams: IsDisplayedOptions = { withinViewport: false }
 ) {
     const browser = getBrowserObject(this)
 

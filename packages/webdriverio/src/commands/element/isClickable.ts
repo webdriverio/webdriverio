@@ -3,21 +3,21 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '../../utils/index.js'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
 
-interface IsClickableParams {
+interface IsClickableOptions {
     withinViewport?: boolean
 }
 
 /**
  *
- * Return true if the selected DOM-element:
+ * An element is considered to be clickable when the following conditions are met:
  *
- * - exists
- * - is visible
- * - is within viewport (if not try scroll to it)
- * - its center is not overlapped with another element
+ * - the element exist and is displayed
  * - is not disabled
- *
- * otherwise return false.
+ * - the element is within the viewport
+ * - the element's center is not overlapped with another element
+
+ * If withinViewport is falsy, the command attempts to scroll the element to the center of the viewport and performs the above checks, after which it attempts to scroll back to it's original coordinates
+ * If withinViewport is true, the command does not attempt to scroll the element to the center of the viewport and instead directly runs the above checks
  *
  * :::info
  *
@@ -42,15 +42,16 @@ interface IsClickableParams {
  * </example>
  *
  * @alias element.isClickable
- * @param {Boolean} [isWithinViewport=false] set to true to check if element is within viewport
- * @return {Boolean}            true if element is clickable
+ * @param {IsClickableOptions=}  options waitForEnabled options (optional)
+ * @param {Boolean=} options.withinViewport set to true to check if element is clickable within scrolling it into the viewport
+ * @return {Boolean} true if element is clickable
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
  * @type state
  *
  */
 export async function isClickable (
     this: WebdriverIO.Element,
-    commandParams: IsClickableParams = { withinViewport: false }
+    options: IsClickableOptions = { withinViewport: false }
 ) {
     if (!await this.isDisplayed()) {
         return false
@@ -68,5 +69,5 @@ export async function isClickable (
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement, commandParams)
+    } as any as HTMLElement, options)
 }
