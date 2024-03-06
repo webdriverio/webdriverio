@@ -132,15 +132,18 @@ export default function isElementClickable (elem: HTMLElement, options: { within
     // it is not fully displayed in the viewport or is overlapped by another element
     // to check if it still overlapped/not in the viewport
     // afterwards we scroll back to the original position
-    if (!options.withinViewport && !isFullyDisplayedInViewport(elem)) {
+    let _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
+    if (!options.withinViewport && !_isFullyDisplayedInViewport) {
         const { x: originalX, y: originalY } = elem.getBoundingClientRect()
 
         elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'center', inline: 'center' } : false)
+
+        _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
 
         const { x, y } = elem.getBoundingClientRect()
         if (x !== originalX || y !== originalY) {
             elem.scroll(scrollX, scrollY)
         }
     }
-    return isFullyDisplayedInViewport(elem) && isEnabled(elem as HTMLFormElement)
+    return _isFullyDisplayedInViewport && isEnabled(elem as HTMLFormElement)
 }
