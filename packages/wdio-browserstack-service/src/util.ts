@@ -6,8 +6,6 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
-import { spawn } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -24,17 +22,28 @@ import PerformanceTester from './performance-tester.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
-import RequestQueueHandler from './request-handler.js'
+import {
+    ACCESSIBILITY_API_URL,
+    BROWSER_DESCRIPTION,
+    DATA_ENDPOINT,
+    UPLOAD_LOGS_ADDRESS,
+    UPLOAD_LOGS_ENDPOINT,
+    consoleHolder,
+    TESTOPS_SCREENSHOT_ENV,
+    TESTOPS_BUILD_ID_ENV,
+    PERF_MEASUREMENT_ENV,
+    RERUN_ENV,
+    TESTOPS_BUILD_COMPLETED_ENV,
+    TESTOPS_JWT_ENV
+} from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
-import BrowserstackLauncherService from './launcher.js'
+import UsageStats from './testOps/usageStats.js'
+import TestOpsConfig from './testOps/testOpsConfig.js'
 
 const pGitconfig = promisify(gitconfig)
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -136,7 +145,7 @@ export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -221,7 +230,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -239,6 +248,8 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 }
 
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+    const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
+    launchBuildUsage.triggered()
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -255,7 +266,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         },
         ci_info: getCiInfo(),
         build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
-        failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
+        failed_tests_rerun: process.env[RERUN_ENV] || false,
         version_control: await getGitMetaData(),
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
@@ -282,17 +293,20 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             json: data
         }).json()
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (response.jwt) {
-            process.env.BS_TESTOPS_JWT = response.jwt
+            launchBuildUsage.success()
+            process.env[TESTOPS_JWT_ENV] = response.jwt
         }
         if (response.build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+            process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
+            TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
         }
         if (response.allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+            process.env[TESTOPS_SCREENSHOT_ENV] = response.allow_screenshots.toString()
         }
     } catch (error) {
+        launchBuildUsage.failed(error)
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
@@ -551,10 +565,19 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 })
 
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
+    const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
+    stopBuildUsage.triggered()
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
+        stopBuildUsage.failed('Build is not completed yet')
+        return {
+            status: 'error',
+            message: 'Build is not completed yet'
+        }
     }
-    if (!process.env.BS_TESTOPS_JWT) {
+
+    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    if (!jwtToken) {
+        stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
@@ -566,21 +589,23 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[TESTOPS_BUILD_ID_ENV]}/stop`
         const response = await got.put(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${jwtToken}`
             },
             json: data
         }).json()
         BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+        stopBuildUsage.success()
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
+        stopBuildUsage.failed(error)
         BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
@@ -925,47 +950,6 @@ export function getLogTag(eventType: string): string {
     return 'undefined'
 }
 
-export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
-    let logTag: string = 'BATCH_UPLOAD'
-    if (!Array.isArray(eventData)) {
-        logTag = getLogTag(eventData.event_type)
-    }
-
-    if (eventUrl === DATA_SCREENSHOT_ENDPOINT) {
-        logTag = 'screenshot_upload'
-    }
-
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
-    }
-
-    if (!process.env.BS_TESTOPS_JWT) {
-        BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
-        return {
-            status: 'error',
-            message: 'Token/buildID is undefined, build creation might have failed'
-        }
-    }
-
-    try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
-        RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
-            headers: {
-                ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
-            },
-            json: eventData
-        }).json()
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    } catch (error) {
-        BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    }
-}
-
 // get hierarchy for a particular test (called by reporter for skipped tests)
 export function getHierarchy(fullTitle?: string) {
     if (!fullTitle) {
@@ -1006,8 +990,13 @@ export function shouldAddServiceVersion(config: Options.Testrunner, testObservab
 }
 
 export async function batchAndPostEvents (eventUrl: string, kind: string, data: UploadType[]) {
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED || !process.env.BS_TESTOPS_JWT) {
-        return
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
+        throw new Error('Build not completed yet')
+    }
+
+    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    if (!jwtToken) {
+        throw new Error('Missing authentication Token')
     }
 
     try {
@@ -1016,13 +1005,14 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${jwtToken}`
             },
             json: data
         }).json()
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
         BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        throw new Error('Exception in request ' + error)
     }
 }
 
@@ -1101,6 +1091,10 @@ export function isTrue(value?: any) {
     return (value + '').toLowerCase() === 'true'
 }
 
+export function isFalse(value?: any) {
+    return (value + '').toLowerCase() === 'false'
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
@@ -1141,16 +1135,6 @@ export function getFailureObject(error: string|Error) {
         failure: [{ backtrace: [backtrace] }],
         failure_reason: removeAnsiColors(message.toString()),
         failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
-    }
-}
-
-export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
-    if (!requestQueueHandler) {
-        requestQueueHandler = RequestQueueHandler.getInstance()
-    }
-    const req = requestQueueHandler.add(data)
-    if (req.proceed && req.data) {
-        await uploadEventData(req.data, req.url)
     }
 }
 
@@ -1203,16 +1187,6 @@ export const ObjectsAreEqual = (object1: any, object2: any) => {
     return true
 }
 
-export function setupExitHandlers() {
-    process.on('exit', (code) => {
-        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
-            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
-            childProcess.unref()
-            process.exit(code)
-        }
-    })
-}
-
 export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities) {
     if (!caps) {
         return undefined
@@ -1229,4 +1203,23 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     }
     return undefined
 })
+
+export const isObjectEmpty = (objectName: unknown) => {
+    return (
+        objectName &&
+        Object.keys(objectName).length === 0 &&
+        objectName.constructor === Object
+    )
+}
+
+export const getErrorString = (err: unknown) => {
+    if (!err) {
+        return undefined
+    }
+    if (typeof err === 'string') {
+        return  err // works, `e` narrowed to string
+    } else if (err instanceof Error) {
+        return err.message // works, `e` narrowed to Error
+    }
+}
 

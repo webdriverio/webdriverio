@@ -21,7 +21,6 @@ import {
     stopBuildUpstream,
     launchTestSession,
     getGitMetaData,
-    uploadEventData,
     getLogTag,
     getHookType,
     isScreenshotCommand,
@@ -41,6 +40,7 @@ import {
     uploadLogs
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../src/constants.js'
 
 const log = logger('test')
 
@@ -647,19 +647,19 @@ describe('stopBuildUpstream', () => {
     const mockedGot = vi.mocked(got)
 
     it('return error if completed but jwt token not present', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
 
         const result: any = await stopBuildUpstream()
 
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 
     it('return success if completed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = vi.fn().mockReturnValue({
             json: () => Promise.resolve({}),
@@ -671,8 +671,8 @@ describe('stopBuildUpstream', () => {
     })
 
     it('return error if failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = vi.fn().mockReturnValue({
             json: () => Promise.reject({}),
@@ -700,43 +700,6 @@ describe('launchTestSession', () => {
         const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {})
         expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(undefined)
-    })
-})
-
-describe('uploadEventData', () => {
-    const mockedGot = vi.mocked(got)
-
-    it('got.post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = vi.fn().mockReturnValue({
-            json: () => Promise.reject({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
-        mockedGot.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(0)
     })
 })
 

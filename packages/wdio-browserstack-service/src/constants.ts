@@ -60,3 +60,35 @@ export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
 ]
 
 export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']
+
+export const LOG_KIND_USAGE_MAP = {
+    'TEST_LOG': 'log',
+    'TEST_SCREENSHOT': 'screenshot',
+    'TEST_STEP': 'step',
+    'HTTP': 'http'
+}
+
+export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
+
+// Env variables - Define all the env variable constants over here
+
+// To store the JWT token returned the session launch
+export const TESTOPS_JWT_ENV = 'BS_TESTOPS_JWT'
+
+// To store the setting of whether to send screenshots or not
+export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'
+
+// To store build hashed id
+export const TESTOPS_BUILD_ID_ENV = 'BS_TESTOPS_BUILD_HASHED_ID'
+
+// Whether to collect performance instrumentation or not
+export const PERF_MEASUREMENT_ENV = 'BROWSERSTACK_O11Y_PERF_MEASUREMENT'
+
+// Whether the current run is rerun or not
+export const RERUN_TESTS_ENV = 'BROWSERSTACK_RERUN_TESTS'
+
+// The tests that needs to be rerun
+export const RERUN_ENV = 'BROWSERSTACK_RERUN'
+
+// To store whether the build launch has completed or not
+export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
