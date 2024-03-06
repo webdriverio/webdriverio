@@ -16,7 +16,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -289,18 +289,18 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             headers,
             body: JSON.stringify(data)
         })
-        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(await response.json())}`)
+        const jsonResponse: LaunchResponse = await response.json()
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        const jsonResponse = await response.json()
         if (jsonResponse.jwt) {
+            process.env.BS_TESTOPS_JWT = jsonResponse.jwt
             launchBuildUsage.success()
-            process.env.BS_TESTOPS_JWT = (await response.json()).jwt
         }
         if (jsonResponse.build_hashed_id) {
             process.env.BS_TESTOPS_BUILD_HASHED_ID = jsonResponse.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = jsonResponse.build_hashed_id
         }
-        if ((await response.json()).allow_screenshots) {
+        if (jsonResponse.allow_screenshots) {
             process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = jsonResponse.allow_screenshots.toString()
         }
     } catch (error: any) {
@@ -600,7 +600,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             },
             body: JSON.stringify(data)
         })
-        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(await response.json())}`)
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${await response.text()}`)
         stopBuildUsage.success()
         return {
             status: 'success',
@@ -1153,8 +1153,9 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 
     const requestOptions = {
         body: formData,
-        username: user,
-        password: key
+        headers: {
+            'Authorization': getBasicAuthHeader(user, key)
+        }
     }
 
     const response = await nodeRequest(
@@ -1201,6 +1202,11 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     }
     return undefined
 })
+
+export const getBasicAuthHeader = (username: string, password: string) => {
+    const encodedAuth = Buffer.from(`${username}:${password}`, 'utf8').toString('base64')
+    return `Basic ${encodedAuth}`
+}
 
 export const isObjectEmpty = (objectName: unknown) => {
     return (
