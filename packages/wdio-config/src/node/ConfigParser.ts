@@ -82,9 +82,11 @@ export default class ConfigParser {
         }
 
         /**
-         * remove services from here because services are initlialised already from constructor
+         * remove services from here because services are initialized already from constructor
          */
-        object.services = []
+        if (Object.keys(object || {}).includes('services')) {
+            object.services = this._config.services && this._config.services.length > 0 ? [] : object.services
+        }
 
         this.merge({ ...object })
 
