@@ -3,7 +3,7 @@ id: cloudservices
 title: Verwenden von Cloud-Diensten
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest or Perfecto with WebdriverIO is pretty simple. Alles, was Sie tun müssen, ist `user` und `key` in Ihren Optionen zu setzen.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. Alles, was Sie tun müssen, ist `user` und `key` in Ihren Optionen zu setzen.
 
 Optional können Sie Ihren Test auch parametrisieren, indem Sie Cloud-spezifische Funktionen wie `build` Namen festlegen. Wenn Sie Cloud-Dienste nur in einer CI/CD Umgebung ausführen möchten, können Sie die Umgebungsvariable `CI` verwenden, um zu überprüfen, ob Sie sich in so einer Umgbeung befinden, und die Konfiguration entsprechend ändern.
 
@@ -116,18 +116,6 @@ Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Int
 Testingbots Tunnel-Support-Seite enthält die Informationen, die erforderlich sind, um dies zum Laufen zu bringen.
 
 Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, CrossBrowserTesting zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den CrossBrowserTesting-Dienst integrieren.
-
-## CrossBrowserTesting
-
-Die einzige Anforderung besteht darin, die `Benutzer`und `Schlüssel` in Ihrer Konfiguration (entweder exportiert von `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf Ihren [CrossBrowserTesting](https://crossbrowsertesting.com/) Benutzernamen und Authkey zu setzen .
-
-Sie können auch beliebige optionale [Capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) als Schlüssel/Wert in den Fähigkeiten für jeden Browser übergeben.
-
-### Lokale Tests
-
-Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, CrossBrowserTesting zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den CrossBrowserTesting-Dienst integrieren.
-
-Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, LambdaTest zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den LambdaTest-Dienst integrieren.
 
 ## LambdaTest
 
