@@ -3,7 +3,7 @@ import path from 'node:path'
 import BrowserStackConfig from './config'
 import { saveFunnelData } from './instrumentation/funnelInstrumentation'
 import { TESTOPS_JWT_ENV } from './constants'
-import {BStackLogger} from "./bstackLogger";
+import { BStackLogger } from './bstackLogger'
 
 export function setupExitHandlers() {
     process.on('exit', (code) => {

@@ -85,7 +85,7 @@ export default class BStackCleanup {
         if (!filePath) {
             return null
         }
-        BStackLogger.debug("Getting saved funnel data from file " + filePath)
+        BStackLogger.debug('Getting saved funnel data from file ' + filePath)
         const content = fs.readFileSync(filePath, 'utf8')
 
         const data = JSON.parse(content)
