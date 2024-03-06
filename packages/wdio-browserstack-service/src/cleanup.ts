@@ -33,15 +33,14 @@ export default class BStackCleanup {
             return
         }
         BStackLogger.debug('Executing observability cleanup')
-
         try {
             const result = await stopBuildUpstream()
-            const status = (result && result.status) || 'failed'
-            const message = (result && result.message)
-            this.updateO11yStopData(funnelData, status, status === 'failed' ? message : undefined)
             if (process.env[TESTOPS_BUILD_ID_ENV]) {
                 BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
+            const status = (result && result.status) || 'failed'
+            const message = (result && result.message)
+            this.updateO11yStopData(funnelData, status, status === 'failed' ? message : undefined)
         } catch (e: unknown) {
             BStackLogger.error('Error in stopping Observability build: ' + e)
             this.updateO11yStopData(funnelData, 'failed', e)

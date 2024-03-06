@@ -172,8 +172,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._config.specs = process.env[RERUN_TESTS_ENV].split(',')
         }
 
-        sendStart(this.browserStackConfig)
-
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
@@ -195,6 +193,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+        // // Send Funnel start request
+        await sendStart(this.browserStackConfig)
+
         /**
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given

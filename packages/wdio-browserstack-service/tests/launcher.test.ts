@@ -65,26 +65,26 @@ describe('onPrepare', () => {
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     vi.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
-    it('should not try to upload app is app is undefined', () => {
+    it('should not try to upload app is app is undefined', async () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(log.info).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
-    it('should not call local if browserstackLocal is undefined', () => {
+    it('should not call local if browserstackLocal is undefined', async () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
-    it('should not call local if browserstackLocal is false', () => {
+    it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
             testObservability: false
@@ -93,7 +93,7 @@ describe('onPrepare', () => {
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()

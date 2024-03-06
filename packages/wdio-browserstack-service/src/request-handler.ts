@@ -54,6 +54,9 @@ export default class RequestQueueHandler {
 
     async sendBatch() {
         const data = this.queue.splice(0, DATA_BATCH_SIZE)
+        if (data.length === 0) {
+            return
+        }
         BStackLogger.debug(`Sending data from request queue. Data length = ${data.length}, Queue length after removal = ${this.queue.length}`)
         await this.callCallback(data, 'INTERVAL_QUEUE')
     }
