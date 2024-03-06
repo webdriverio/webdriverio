@@ -1425,7 +1425,7 @@ describe('getPlatformVersion', () => {
         }
 
         expect(utils.getPlatformVersion(caps)).toBe('10.0')
-    });
+    })
 
     it('should return undefined if no platform version is found', () => {
         const caps: Capabilities.Capabilities = {
