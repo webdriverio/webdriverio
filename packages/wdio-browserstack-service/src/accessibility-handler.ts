@@ -18,7 +18,6 @@ import {
     validateCapsWithA11y,
     isTrue,
 } from './util'
-import { testForceStop, testStartEvent, testStop } from './scripts/test-event-scripts'
 import { BrowserAsync } from './@types/bstack-service-types'
 
 import accessibilityScripts from './scripts/accessibility-scripts'
@@ -120,17 +119,12 @@ class _AccessibilityHandler {
             return
         }
 
-        // console.log()
-        accessibilityScripts.commandsToWrap.filter((command) => command.name && command.class).forEach(el => {
-            console.log(el + "el");
-        })
-
         accessibilityScripts.commandsToWrap
             .filter((command) => (command.name && command.class && command.name !== 'waitForStable'))
             .forEach((command) => {
                 try {
                     this._browser?.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
-                } catch(er) {
+                } catch (er) {
                     log.debug(`Unable to overwrite command ${util.format(command)} ${util.format(er)}`)
                 }
             })
