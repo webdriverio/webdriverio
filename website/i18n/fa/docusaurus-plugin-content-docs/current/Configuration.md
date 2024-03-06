@@ -41,13 +41,13 @@ Type: `Object`<br /> Default: `null`
 
 ### user
 
-نام کاربری سرویس ابری شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
+نام کاربری سرویس ابری شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `null`
 
 ### key
 
-کلید دسترسی به سرویس ابری یا کلید مخفی شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
+کلید دسترسی به سرویس ابری یا کلید مخفی شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `null`
 
