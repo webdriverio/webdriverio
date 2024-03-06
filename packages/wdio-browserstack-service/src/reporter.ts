@@ -39,7 +39,7 @@ class _TestReporter extends WDIOReporter {
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
-        this._userCaps = this.getUserCaps(runnerStats)
+        this._userCaps = this.getUserCaps(runnerStats) as Capabilities.RemoteCapability | undefined
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
@@ -56,7 +56,7 @@ class _TestReporter extends WDIOReporter {
     }
 
     private getUserCaps(runnerStats: RunnerStats) {
-        return runnerStats.instanceOptions[runnerStats.sessionId].capabilities
+        return runnerStats.instanceOptions[runnerStats.sessionId]?.capabilities
     }
 
     public async appendTestItemLog(stdLog: StdLog) {
