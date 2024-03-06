@@ -4,7 +4,7 @@ import got from 'got'
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 
-import { DATA_ENDPOINT } from './constants'
+import { DATA_ENDPOINT, TESTOPS_BUILD_ID_ENV } from './constants'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util'
 
@@ -62,7 +62,7 @@ export default class CrashReporter {
         }
 
         const data = {
-            hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
+            hashed_id: process.env[TESTOPS_BUILD_ID_ENV],
             observability_version: {
                 frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
                 sdkVersion: bstackServiceVersion

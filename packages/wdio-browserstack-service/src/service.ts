@@ -3,7 +3,7 @@ import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import CrashReporter from './crash-reporter'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
-import { DEFAULT_OPTIONS } from './constants'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants'
 
 import got from 'got'
 import type { OptionsOfJSONResponseBody } from 'got'
@@ -21,6 +21,9 @@ import TestReporter from './reporter'
 import PerformanceTester from './performance-tester'
 import AccessibilityHandler from './accessibility-handler'
 import PercyHandler from './Percy/Percy-Handler'
+import Listener from './testOps/listener'
+import { saveWorkerData } from './data-store'
+import UsageStats from './testOps/usageStats'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -58,7 +61,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -270,12 +273,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
-        await this._insightsHandler?.uploadPending()
-        await this._insightsHandler?.teardown()
-
+        await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
+        this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
@@ -518,5 +520,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return (await this._browser.execute<T, []>(script))
+    }
+
+    private saveWorkerData() {
+        saveWorkerData({
+            usageStats: UsageStats.getInstance().getDataToSave()
+        })
     }
 }
