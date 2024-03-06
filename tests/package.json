@@ -22,7 +22,6 @@
     "@wdio/sumologic-reporter": "workspace:*",
     "@wdio/appium-service": "workspace:*",
     "@wdio/browserstack-service": "workspace:*",
-    "@wdio/crossbrowsertesting-service": "workspace:*",
     "@wdio/devtools-service": "workspace:*",
     "@wdio/firefox-profile-service": "workspace:*",
     "@wdio/sauce-service": "workspace:*",

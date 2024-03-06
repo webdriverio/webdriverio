@@ -59,8 +59,7 @@ export interface Connection {
     }
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
-     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
-     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or
      * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
      * automatically set connection options for you. If you don't use a cloud provider this
      * can be used to authenticate any other WebDriver backend.
@@ -69,10 +68,9 @@ export interface Connection {
     /**
      * Your cloud service access key or secret key (only works for
      * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
-     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
-     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
-     * automatically set connection options for you. If you don't use a cloud provider this
-     * can be used to authenticate any other WebDriver backend.
+     * [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts).
+     * If set, WebdriverIO will automatically set connection options for you. If you don't use
+     * a cloud provider this can be used to authenticate any other WebDriver backend.
      */
     key?: string
 }
