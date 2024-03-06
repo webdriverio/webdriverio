@@ -19,7 +19,6 @@ describe('RequestQueueHandler', () => {
         startEventBatchPollingSpy = vi.spyOn(requestQueueHandler, 'startEventBatchPolling').mockImplementation(() => {})
         resetEventBatchPollingSpy = vi.spyOn(requestQueueHandler, 'resetEventBatchPolling').mockImplementation(() => {})
     })
-    //
     afterEach(() => {
         startEventBatchPollingSpy.mockClear()
         resetEventBatchPollingSpy.mockClear()
