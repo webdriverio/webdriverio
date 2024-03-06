@@ -116,13 +116,11 @@ class _AccessibilityHandler {
             return
         }
 
-        const that = this
-
         accessibilityScripts.commandsToWrap
             .filter((command) => command.name && command.class)
-            .forEach(function (command) {
-                const browser = that._browser as WebdriverIO.Browser
-                browser.overwriteCommand(command.name, async (origFunction: Function, ...args: any[]) => { return that.commandWrapper(that, command, origFunction, ...args) }, command.class === 'Element')
+            .forEach((command) => {
+                const browser = this._browser as WebdriverIO.Browser
+                browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
             })
     }
 
@@ -283,16 +281,16 @@ class _AccessibilityHandler {
      * private methods
      */
 
-    private async commandWrapper (that: this, command: any, origFunction: Function, ...args: any[]) {
+    private async commandWrapper (command: any, origFunction: Function, ...args: any[]) {
         if (
-            that._sessionId && AccessibilityHandler._a11yScanSessionMap[that._sessionId] &&
+            this._sessionId && AccessibilityHandler._a11yScanSessionMap[this._sessionId] &&
                 (
                     !command.name.includes('execute') ||
                     !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
                 )
         ) {
             BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-            await performA11yScan(that._browser, true, true, command.name)
+            await performA11yScan(this._browser, true, true, command.name)
         }
         return origFunction(...args)
     }
