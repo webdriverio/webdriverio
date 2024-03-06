@@ -84,5 +84,77 @@ describe('BStackCleanup', () => {
             expect(fs.rmSync).not.toHaveBeenCalled()
         })
     })
+
+    describe('updateO11yStopData', () => {
+        it('should update O11y stop data when funnelData contains O11y data', () => {
+            // Arrange
+            const funnelData = {
+                event_properties: {
+                    productUsage: {
+                        testObservability: {
+                            events: {
+                                buildEvents: {
+                                    finished: {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            const status = 'success'
+
+            // Act
+            BStackCleanup.updateO11yStopData(funnelData, status)
+
+            // Assert
+            expect(funnelData.event_properties.productUsage.testObservability.events.buildEvents.finished).toEqual({
+                status,
+                error: undefined,
+                stoppedFrom: 'exitHook'
+            })
+        })
+
+        it('should do nothing if funnelData does not contain O11y data', () => {
+            // Arrange
+            const funnelData = null
+            const status = 'success'
+
+            // Act
+            BStackCleanup.updateO11yStopData(funnelData, status)
+
+            // Assert
+            expect(funnelData).toBeNull()
+        })
+
+        it('should update O11y stop data with error if error is provided', () => {
+            // Arrange
+            const funnelData = {
+                event_properties: {
+                    productUsage: {
+                        testObservability: {
+                            events: {
+                                buildEvents: {
+                                    finished: {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            const status = 'failed'
+            const error = new Error('Test error')
+
+            // Act
+            BStackCleanup.updateO11yStopData(funnelData, status, error)
+
+            // Assert
+            expect(funnelData.event_properties.productUsage.testObservability.events.buildEvents.finished).toEqual({
+                status,
+                error: 'Test error',
+                stoppedFrom: 'exitHook'
+            })
+        })
+    })
+
 })
 
