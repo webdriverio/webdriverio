@@ -172,7 +172,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocol = deepmerge(
         /**
@@ -192,9 +192,9 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          */
         isMobile ? deepmerge(MJsonWProtocol, AppiumProtocol) : {},
         /**
-         * only apply special Chrome commands if session is using Chrome
+         * only apply special Chromium commands if session is using Chrome or Edge
          */
-        isChrome ? ChromiumProtocol : {},
+        isChromium ? ChromiumProtocol : {},
         /**
          * only apply special Firefox commands if session is using Firefox
          */
@@ -248,12 +248,21 @@ export class CustomRequestError extends Error {
         let errorMessage = errorObj.message || errorObj.class || 'unknown error'
 
         /**
-         * improve error message for Chrome and Safari on invalid selectors
+         * Improve Chromedriver's error message for an invalid selector
+         *
+         * Chrome:
+         *  error: 'invalid argument'
+         * message: 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
+         * Firefox:
+         *  error: 'invalid selector'
+         *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
+         * Safari:
+         *  error: 'timeout'
+         *  message: ''
          */
-        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
+        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
             errorMessage = (
-                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
-                'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
             )
         }
 
@@ -276,17 +285,17 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone, isBidi }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
         isFirefox: { value: isFirefox },
-        isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone },
-        isBidi: { value: isBidi }
+        isBidi: { value: isBidi },
+        isChromium: { value: isChromium },
     }
 }
 
