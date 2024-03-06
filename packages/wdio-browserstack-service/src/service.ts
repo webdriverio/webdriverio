@@ -139,6 +139,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     await this._insightsHandler.before()
                 }
 
+                if (this._browser && isBrowserstackSession(this._browser)) {
+                    try {
+                        this._accessibilityHandler = new AccessibilityHandler(
+                            this._browser,
+                            this._caps,
+                            this._isAppAutomate(),
+                            this._config.framework,
+                            this._accessibility,
+                            this._options.accessibilityOptions
+                        )
+                        await this._accessibilityHandler.before(this._browser.sessionId as string)
+                    } catch (err) {
+                        log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                    }
+                }
+
                 /**
                  * register command event
                  */
@@ -175,22 +191,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 if (this._observability) {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
                 }
-            }
-        }
-
-        if (this._browser && isBrowserstackSession(this._browser)) {
-            try {
-                this._accessibilityHandler = new AccessibilityHandler(
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework,
-                    this._accessibility,
-                    this._options.accessibilityOptions
-                )
-                await this._accessibilityHandler.before()
-            } catch (err) {
-                log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
             }
         }
 
