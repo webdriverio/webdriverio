@@ -34,7 +34,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
             method: 'POST',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${process.env[TESTOPS_JWT_ENV]}`
             },
             body: JSON.stringify(eventData)
         })

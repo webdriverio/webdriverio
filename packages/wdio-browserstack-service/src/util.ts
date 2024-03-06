@@ -25,7 +25,12 @@ import {
     UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
-    TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV
+    TESTOPS_BUILD_COMPLETED_ENV,
+    TESTOPS_JWT_ENV,
+    TESTOPS_SCREENSHOT_ENV,
+    TESTOPS_BUILD_ID_ENV,
+    PERF_MEASUREMENT_ENV,
+    RERUN_ENV
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
@@ -132,7 +137,7 @@ export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -223,7 +228,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -259,7 +264,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         },
         ci_info: getCiInfo(),
         build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
-        failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
+        failed_tests_rerun: process.env[RERUN_ENV] || false,
         version_control: await getGitMetaData(),
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
@@ -291,17 +296,17 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         })
         const jsonResponse: LaunchResponse = await response.json()
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
-            process.env.BS_TESTOPS_JWT = jsonResponse.jwt
+            process.env[TESTOPS_JWT_ENV] = jsonResponse.jwt
             launchBuildUsage.success()
         }
         if (jsonResponse.build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = jsonResponse.build_hashed_id
+            process.env[TESTOPS_BUILD_ID_ENV] = jsonResponse.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = jsonResponse.build_hashed_id
         }
         if (jsonResponse.allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = jsonResponse.allow_screenshots.toString()
+            process.env[TESTOPS_SCREENSHOT_ENV] = jsonResponse.allow_screenshots.toString()
         }
     } catch (error: any) {
         launchBuildUsage.failed(error)
@@ -570,7 +575,7 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
         stopBuildUsage.failed('Build is not completed yet')
         return {
             status: 'error',
@@ -578,7 +583,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         }
     }
 
-    if (!process.env.BS_TESTOPS_JWT) {
+    if (!process.env[TESTOPS_JWT_ENV]) {
         stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
@@ -591,12 +596,12 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[TESTOPS_BUILD_ID_ENV]}/stop`
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${process.env[TESTOPS_JWT_ENV]}`
             },
             body: JSON.stringify(data)
         })

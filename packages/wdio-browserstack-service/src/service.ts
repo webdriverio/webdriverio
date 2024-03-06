@@ -284,7 +284,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._percyHandler?.teardown()
         this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',

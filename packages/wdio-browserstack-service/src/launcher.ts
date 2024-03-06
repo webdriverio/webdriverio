@@ -18,7 +18,7 @@ import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
 import {
     BSTACK_SERVICE_VERSION,
-    NOT_ALLOWED_KEYS_IN_CAPS,
+    NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
     TESTOPS_BUILD_ID_ENV,
     VALID_APP_EXTENSION
 } from './constants.js'
@@ -36,7 +36,7 @@ import {
     getBrowserStackUser,
     getBrowserStackKey,
     uploadLogs,
-    ObjectsAreEqual,
+    ObjectsAreEqual, getBasicAuthHeader,
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -152,7 +152,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.buildIdentifier = this._buildIdentifier
         this.browserStackConfig.buildName = this._buildName
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
@@ -165,13 +165,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability
             &&
             // update files to run if it's a rerun
-            process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
+            process.env[RERUN_ENV] && process.env[RERUN_TESTS_ENV]
         ) {
-            this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+            this._config.specs = process.env[RERUN_TESTS_ENV].split(',')
         }
-
-        sendStart(this.browserStackConfig)
-
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
@@ -193,6 +190,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+        // Send Funnel start request
+        await sendStart(this.browserStackConfig)
         /**
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
@@ -355,12 +354,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability) {
             BStackLogger.debug('Sending stop launch event')
             await stopBuildUpstream()
-            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            if (process.env[TESTOPS_BUILD_ID_ENV]) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             this.browserStackConfig.testObservability.buildStopped = true
 
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')
                 PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 
@@ -469,10 +468,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             form.append('custom_id', app.customId)
         }
 
-        const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
         const headers: any = {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Basic ${encodedAuth}`,
+            Authorization: getBasicAuthHeader(this._config.user as string, this._config.key as string),
         }
 
         const res = await fetch('https://api-cloud.browserstack.com/app-automate/upload', {

@@ -20,7 +20,6 @@ import {
     stopBuildUpstream,
     launchTestSession,
     getGitMetaData,
-    uploadEventData,
     getLogTag,
     getHookType,
     isScreenshotCommand,
@@ -40,6 +39,7 @@ import {
     uploadLogs
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../src/constants.js'
 
 const log = logger('test')
 
@@ -652,19 +652,19 @@ describe('getScenarioExamples', () => {
 
 describe('stopBuildUpstream', () => {
     it('return error if completed but jwt token not present', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
 
         const result: any = await stopBuildUpstream()
 
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 
     it('return success if completed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({})))
 
@@ -674,8 +674,8 @@ describe('stopBuildUpstream', () => {
     })
 
     it('return error if failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({})))
 
@@ -699,38 +699,6 @@ describe('launchTestSession', () => {
         const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {})
         assertMethodCalls(vi.mocked(fetch), 'POST', 1)
         expect(result).toEqual(undefined)
-    })
-})
-
-describe('uploadEventData', () => {
-    beforeEach(() => {
-        vi.mocked(fetch).mockClear()
-    })
-
-    it('fetch post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ })))
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 1)
-    })
-
-    it('fetch post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({ })))
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 1)
-    })
-
-    it('fetch post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 0)
     })
 })
 
