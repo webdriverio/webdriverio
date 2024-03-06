@@ -18,7 +18,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
@@ -283,16 +283,17 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             headers,
             body: JSON.stringify(data)
         })
-        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(await response.json())}`)
+        const jsonResponse: LaunchResponse = await response.json()
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        if ((await response.json()).jwt) {
-            process.env.BS_TESTOPS_JWT = (await response.json()).jwt
+        if (jsonResponse.jwt) {
+            process.env.BS_TESTOPS_JWT = jsonResponse.jwt
         }
-        if ((await response.json()).build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = (await response.json()).build_hashed_id
+        if (jsonResponse.build_hashed_id) {
+            process.env.BS_TESTOPS_BUILD_HASHED_ID = jsonResponse.build_hashed_id
         }
-        if ((await response.json()).allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = (await response.json()).allow_screenshots.toString()
+        if (jsonResponse.allow_screenshots) {
+            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = jsonResponse.allow_screenshots.toString()
         }
     } catch (error: any) {
         if (error && error.response) {
@@ -582,7 +583,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             },
             body: JSON.stringify(data)
         })
-        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(await response.json())}`)
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${await response.text()}`)
         return {
             status: 'success',
             message: ''
@@ -1178,8 +1179,9 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 
     const requestOptions = {
         body: formData,
-        username: user,
-        password: key
+        headers: {
+            'Authorization': getBasicAuthHeader(user, key)
+        }
     }
 
     const response = await nodeRequest(
@@ -1237,3 +1239,7 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     return undefined
 })
 
+export const getBasicAuthHeader = (username: string, password: string) => {
+    const encodedAuth = Buffer.from(`${username}:${password}`, 'utf8').toString('base64')
+    return `Basic ${encodedAuth}`
+}

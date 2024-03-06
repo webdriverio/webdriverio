@@ -238,6 +238,12 @@ export interface StdLog {
     hook_run_uuid?: string
 }
 
+export interface LaunchResponse {
+    jwt: string,
+    build_hashed_id: string,
+    allow_screenshots?: boolean
+}
+
 export interface UserConfigforReporting {
   framework?: string,
   services?: any[],
