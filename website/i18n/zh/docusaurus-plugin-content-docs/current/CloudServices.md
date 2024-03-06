@@ -3,7 +3,7 @@ id: cloudservices
 title: 云服务
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest or Perfecto with WebdriverIO is pretty simple. 您需要在您的配置中设置您服务的 `user` 和 `key`。
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. 您需要在您的配置中设置您服务的 `user` 和 `key`。
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
