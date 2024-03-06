@@ -65,7 +65,7 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
-        this.merge(_initialConfig, false)
+        this.merge(_initialConfig, false, true)
     }
 
     /**
@@ -79,13 +79,6 @@ export default class ConfigParser {
         if (!this.#isInitialised) {
             await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)
             await this.addConfigFile(this.#configFilePath)
-        }
-
-        /**
-         * remove services from here because services are initialized already from constructor
-         */
-        if (Object.keys(object || {}).includes('services')) {
-            object.services = this._config.services && this._config.services.length > 0 ? [] : object.services
         }
 
         this.merge({ ...object })
@@ -171,8 +164,10 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
+     * @param addServicesToConfig this flag determines whether services should be added to the config object or not
      */
-    private merge(object: MergeConfig = {}, addPathToSpecs = true) {
+    private merge(object: MergeConfig = {}, addPathToSpecs = true, addServicesToConfig = false) {
+        const services = this._config?.services
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -190,6 +185,10 @@ export default class ConfigParser {
             this._config.exclude = object['wdio:exclude'] as string[]
         } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
+        }
+
+        if (!addServicesToConfig) {
+            this._config.services = services
         }
 
         /**
