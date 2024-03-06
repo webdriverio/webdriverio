@@ -3,7 +3,7 @@ id: cloudservices
 title: क्लाउड सेवाओं का उपयोग करना
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest or Perfecto with WebdriverIO is pretty simple. आपको केवल अपनी सेवा के `user` और `key` को अपने विकल्पों में सेट करना है।
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. आपको केवल अपनी सेवा के `user` और `key` को अपने विकल्पों में सेट करना है।
 
 वैकल्पिक रूप से, आप `build`जैसी क्लाउड-विशिष्ट क्षमताओं को सेट करके अपने परीक्षण को पैरामीट्रिज भी कर सकते हैं। यदि आप केवल ट्रैविस में क्लाउड सेवाएं चलाना चाहते हैं, तो आप ट्रैविस में हैं या नहीं यह जांचने के लिए `CI` पर्यावरण चर का उपयोग कर सकते हैं और तदनुसार कॉन्फ़िगरेशन को संशोधित कर सकते हैं।
 
@@ -116,18 +116,6 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 उनके टनल सपोर्ट पेज में इसे शुरू करने और चलाने के लिए आवश्यक जानकारी है।
 
 यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) को डाउनलोड और कॉन्फ़िगर करें। यह BrowserStack को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को BrowserStack सेवा में बेहतर ढंग से एकीकृत करता है।
-
-## CrossBrowserTesting
-
-एकमात्र आवश्यकता आपके कॉन्फ़िगरेशन में `user`और `key` सेट करना है (या तो `wdio.conf.js` द्वारा निर्यात किया जाता है या `webdriverio में पास किया जाता है).remote(...)`) आपके [CrossBrowserTesting](https://crossbrowsertesting.com/) यूज़रनेम और ऑथकी पर।
-
-आप किसी भी वैकल्पिक [समर्थित क्षमता](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं।
-
-### लोकल टेस्टिंग
-
-यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)का उपयोग करने की आवश्यकता है। TestingBot एक जावा-आधारित टनल प्रदान करता है जिससे आप उन वेबसाइटों का परीक्षण कर सकते हैं जो इंटरनेट से सुलभ नहीं हैं।
-
-यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) को डाउनलोड और कॉन्फ़िगर करें। यह BrowserStack को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को BrowserStack सेवा में बेहतर ढंग से एकीकृत करता है।
 
 ## लैम्ब्डा टेस्ट
 

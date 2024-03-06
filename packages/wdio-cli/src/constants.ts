@@ -125,7 +125,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
-        { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },

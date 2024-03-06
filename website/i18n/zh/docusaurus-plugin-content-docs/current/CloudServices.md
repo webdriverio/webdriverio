@@ -3,7 +3,7 @@ id: cloudservices
 title: 云服务
 ---
 
-您可以轻松搭配 WebdriverIO 与其他按需服务使用 (如 Sauce Labs、Browserstack、TestingBot、CrossBrowserTesting、LambdaTest 或 Perfecto)。 您需要在您的配置中设置您服务的 `user` 和 `key`。
+您可以轻松搭配 WebdriverIO 与其他按需服务使用 (如 Sauce Labs、Browserstack、TestingBot、LambdaTest 或 Perfecto)。 您需要在您的配置中设置您服务的 `user` 和 `key`。
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -116,18 +116,6 @@ If you want to run tests against a server that is not accessible to the Internet
 Their tunnel support page contains the information necessary to get this up and running.
 
 If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
-
-## CrossBrowserTesting
-
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [CrossBrowserTesting](https://crossbrowsertesting.com/) username and authkey.
-
-You can also pass in any optional [supported capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) as a key/value in the capabilities for any browser.
-
-### Local Testing
-
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
-
-If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
 
 ## LambdaTest
 
