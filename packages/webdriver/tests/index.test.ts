@@ -184,7 +184,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
             await client.getUrl()
 
-            expect(client.isChrome).toBeFalsy()
+            expect(client.isChromium).toBeFalsy()
             expect(client.isMobile).toBeFalsy()
             expect(client.isSauce).toBeFalsy()
             expect(client.rotateDevice).toBeFalsy()
@@ -194,13 +194,13 @@ describe('WebDriver', () => {
 
         it('should allow to attach to existing session - mobile', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
-                isChrome: true,
+                isChromium: true,
                 isMobile: true
             }) as any as TestClient
 
             await client.getUrl()
 
-            expect(client.isChrome).toBe(true)
+            expect(client.isChromium).toBe(true)
             expect(client.isMobile).toBe(true)
             expect(client.rotateDevice).toBeTruthy()
             expect(client.takeElementScreenshot).toBeTruthy()
@@ -213,14 +213,14 @@ describe('WebDriver', () => {
                 isMobile: false,
                 isIOS: false,
                 isAndroid: false,
-                isChrome: false,
+                isChromium: false,
                 isSauce: false
             })
             expect(client.isW3C).toBe(false)
             expect(client.isMobile).toBe(false)
             expect(client.isIOS).toBe(false)
             expect(client.isAndroid).toBe(false)
-            expect(client.isChrome).toBe(false)
+            expect(client.isChromium).toBe(false)
             expect(client.isSauce).toBe(false)
 
             const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
@@ -228,14 +228,14 @@ describe('WebDriver', () => {
                 isMobile: true,
                 isIOS: true,
                 isAndroid: true,
-                isChrome: true,
+                isChromium: true,
                 isSauce: true
             })
             expect(anotherClient.isW3C).toBe(true)
             expect(anotherClient.isMobile).toBe(true)
             expect(anotherClient.isIOS).toBe(true)
             expect(anotherClient.isAndroid).toBe(true)
-            expect(anotherClient.isChrome).toBe(true)
+            expect(anotherClient.isChromium).toBe(true)
             expect(anotherClient.isSauce).toBe(true)
         })
 
