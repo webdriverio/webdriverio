@@ -34,7 +34,6 @@ import {
     removeAnsiColors,
     shouldAddServiceVersion,
     stopBuildUpstream,
-    uploadEventData,
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
@@ -43,6 +42,7 @@ import {
     frameworkSupportsHook,
     getFailureObject
 } from '../src/util'
+import { TESTOPS_JWT_ENV, TESTOPS_BUILD_COMPLETED_ENV } from '../src/constants'
 
 const log = logger('test')
 
@@ -645,19 +645,19 @@ describe('stopBuildUpstream', () => {
     const mockedGot = jest.mocked(got)
 
     it('return error if completed but jwt token not present', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
 
         const result: any = await stopBuildUpstream()
 
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 
     it('return success if completed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = jest.fn().mockReturnValue({
             json: () => Promise.resolve({}),
@@ -669,8 +669,8 @@ describe('stopBuildUpstream', () => {
     })
 
     it('return error if failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = jest.fn().mockReturnValue({
             json: () => Promise.reject({}),
@@ -701,59 +701,12 @@ describe('launchTestSession', () => {
     })
 })
 
-describe('uploadEventData', () => {
-    const mockedGot = jest.mocked(got)
-
-    it('got.post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.reject({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(0)
-    })
-
-    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(0)
-    })
-})
-
 describe('batchAndPostEvents', () => {
     const mockedGot = jest.mocked(got)
 
     it('got.post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
@@ -763,34 +716,34 @@ describe('batchAndPostEvents', () => {
     })
 
     it('got.post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.reject({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Exception in request/)
         expect(got.post).toBeCalledTimes(1)
     })
 
     it('got.post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Missing authentication/)
         expect(got.post).toBeCalledTimes(0)
     })
 
-    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+    it('throw error if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Build not completed/)
         expect(got.post).toBeCalledTimes(0)
     })
 })

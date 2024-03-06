@@ -5,7 +5,7 @@ import type { StdLog } from '../src/types'
 
 import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
-import RequestQueueHandler from '../src/request-handler'
+import { TESTOPS_SCREENSHOT_ENV } from '../src/constants'
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -89,11 +89,10 @@ describe('before', () => {
     })
 })
 
-describe('sendTestRunEvent', () => {
-    describe('calls uploadEventData', () => {
-        let getUniqueIdentifierSpy: any, uploadEventDataSpy: any
+describe('getRunData', () => {
+    describe('gets test data', () => {
+        let getUniqueIdentifierSpy: any
         const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-        const requestQueueHandler = RequestQueueHandler.getInstance()
         const test = {
             type: 'test',
             title: 'test title',
@@ -108,19 +107,15 @@ describe('sendTestRunEvent', () => {
             getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
             jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
             jest.spyOn(utils, 'getHookType').mockReturnValue('BEFORE_EACH')
-            jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
-            uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
-            uploadEventDataSpy.mockImplementation()
             jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         })
 
         beforeEach(() => {
-            uploadEventDataSpy.mockClear()
             getUniqueIdentifierSpy.mockClear()
         })
 
         it('for passed', async () => {
-            await insightsHandler.sendTestRunEvent(test as any, 'TestRunFinished', {
+            const testData = insightsHandler['getRunData'](test as any, 'TestRunFinished', {
                 error: undefined,
                 result: 'passed',
                 passed: true,
@@ -129,11 +124,14 @@ describe('sendTestRunEvent', () => {
                 exception: undefined,
                 status: 'passed'
             } as any)
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                result: 'passed',
+                retries: { limit: 0, attempts: 0 },
+            }))
         })
 
-        it('for failed', async () => {
-            await insightsHandler.sendTestRunEvent(test as any, 'TestRunFinished', {
+        it('for failed', () => {
+            const testData = insightsHandler['getRunData'](test as any, 'TestRunFinished', {
                 error: { message: 'some error' },
                 result: 'failed',
                 passed: false,
@@ -142,17 +140,32 @@ describe('sendTestRunEvent', () => {
                 exception: 'some error',
                 status: 'failed'
             } as any)
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                result: 'failed',
+                retries: { limit: 0, attempts: 0 },
+                failure_reason: 'some error',
+                failure_type: 'UnhandledError',
+                failure: [{ backtrace: ['some error'] }]
+            }))
         })
 
-        it('for started', async () => {
-            await insightsHandler.sendTestRunEvent(test as any, 'TestRunStarted', {} as any)
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+        it('for started', () => {
+            const testData = insightsHandler['getRunData'](test as any, 'TestRunStarted', {} as any)
+            expect(testData).toMatchObject(expect.objectContaining({
+                type: 'test',
+                name: 'test title',
+                file_name: 'filename',
+                result: 'pending'
+            }))
         })
 
-        it('for hooks', async () => {
-            await insightsHandler.sendTestRunEvent(test as any, 'HookRunStarted', {} as any)
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+        it('for hooks', () => {
+            const testData = insightsHandler['getRunData'](test as any, 'HookRunStarted', {} as any)
+            expect(testData).toMatchObject(expect.objectContaining({
+                name: 'test title',
+                file_name: 'filename',
+                result: 'pending'
+            }))
         })
 
         afterAll(() => {
@@ -161,28 +174,24 @@ describe('sendTestRunEvent', () => {
     })
 })
 
-describe('sendTestRunEventForCucumber', () => {
-    describe('calls uploadEventData', () => {
+describe('getTestRunDataForCucumber', () => {
+    describe('gets test data', () => {
         const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-        const requestQueueHandler = RequestQueueHandler.getInstance()
         const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
-        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         const getScenarioExamplesSpy = jest.spyOn(utils, 'getScenarioExamples')
-        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
         insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
 
         beforeEach(() => {
-            uploadEventDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
             getScenarioExamplesSpy.mockClear()
             getScenarioExamplesSpy.mockReturnValue(undefined)
         })
 
-        it('for passed', async () => {
-            await insightsHandler.sendTestRunEventForCucumber({
+        it('for passed', () => {
+            const testData = insightsHandler['getTestRunDataForCucumber']({
                 pickle: {
                     tags: []
                 },
@@ -192,11 +201,15 @@ describe('sendTestRunEventForCucumber', () => {
                     status: 'passed'
                 }
             } as any, 'TestRunFinished')
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                file_name: 'path',
+                result: 'passed',
+                duration_in_ms: 0.00001
+            }))
         })
 
         it('for failed', async () => {
-            await insightsHandler.sendTestRunEventForCucumber({
+            const testData = insightsHandler['getTestRunDataForCucumber']({
                 pickle: {
                     tags: []
                 },
@@ -207,22 +220,34 @@ describe('sendTestRunEventForCucumber', () => {
                     message: 'failure reason'
                 }
             } as any, 'TestRunFinished')
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                result: 'failed',
+                failure_reason: 'failure reason',
+                failure_type: 'UnhandledError',
+                failure: [{ backtrace: ['failure reason'] }]
+            }))
         })
 
         it('for started', async () => {
-            await insightsHandler.sendTestRunEventForCucumber({
+            const testData = insightsHandler['getTestRunDataForCucumber']({
                 pickle: {
                     tags: []
                 }
             } as any, 'TestRunStarted')
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                result: 'pending',
+                scopes: ['name'],
+                meta: expect.objectContaining({
+                    feature: { name: 'name', path: 'path' },
+                    scenario: { name: 'name' }
+                })
+            }))
         })
 
         it('for passed - examples', async () => {
             getScenarioExamplesSpy.mockReturnValue(['1', '2'])
             insightsHandler['_browser'] = browser
-            await insightsHandler.sendTestRunEventForCucumber({
+            const testData = insightsHandler['getTestRunDataForCucumber']({
                 pickle: {
                     tags: []
                 },
@@ -232,11 +257,14 @@ describe('sendTestRunEventForCucumber', () => {
                     status: 'passed'
                 }
             } as any, 'TestRunStarted')
-            expect(uploadEventDataSpy).toBeCalledTimes(1)
+            expect(testData).toMatchObject(expect.objectContaining({
+                meta: expect.objectContaining({
+                    examples: ['1', '2']
+                })
+            }))
         })
 
         afterEach(() => {
-            uploadEventDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
             getScenarioExamplesSpy.mockClear()
         })
@@ -246,7 +274,7 @@ describe('sendTestRunEventForCucumber', () => {
 describe('beforeScenario', () => {
     const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
+    const sendSpy = jest.spyOn(insightsHandler, 'getTestRunDataForCucumber').mockImplementation()
     insightsHandler['_tests'] = {}
     getUniqueIdentifierForCucumberSpy.mockClear()
     sendSpy.mockClear()
@@ -270,7 +298,7 @@ describe('beforeScenario', () => {
 
 describe('afterScenario', () => {
     const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
+    const sendSpy = jest.spyOn(insightsHandler, 'getTestRunDataForCucumber').mockImplementation()
     insightsHandler['_tests'] = {}
     sendSpy.mockClear()
 
@@ -533,7 +561,7 @@ describe('beforeTest', () => {
     describe('mocha', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
-            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            sendSpy = jest.spyOn(insightsHandler, 'getRunData').mockImplementation(() => { return [] })
             getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
             insightsHandler['_tests'] = {}
@@ -545,7 +573,7 @@ describe('beforeTest', () => {
         it('update test data', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
             expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+            expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
 
         afterEach(() => {
@@ -557,7 +585,7 @@ describe('beforeTest', () => {
     describe('jasmine', () => {
         beforeEach(() => {
             insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'jasmine')
-            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            sendSpy = jest.spyOn(insightsHandler, 'getRunData').mockImplementation(() => { return [] })
 
             insightsHandler['_tests'] = {}
         })
@@ -565,7 +593,7 @@ describe('beforeTest', () => {
         it('should return for jasmine', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', fullName: 'parent test' } as any)
             expect(insightsHandler['_tests']).toEqual({})
-            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
+            expect(insightsHandler['getRunData']).toBeCalledTimes(0)
         })
 
         afterEach(() => {
@@ -579,7 +607,7 @@ describe('afterTest', () => {
 
     beforeAll(() => {
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
-        sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent')
+        sendSpy = jest.spyOn(insightsHandler, 'getRunData')
         sendSpy.mockImplementation(() => { return [] })
         getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
     })
@@ -614,7 +642,7 @@ describe('afterTest', () => {
 describe('beforeHook', () => {
     const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
     let getUniqueIdentifierSpy: any
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent')
+    const sendSpy = jest.spyOn(insightsHandler, 'getRunData')
     sendSpy.mockImplementation(() => { return [] })
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData')
     attachHookDataSpy.mockImplementation(() => { return [] })
@@ -667,7 +695,7 @@ describe('afterHook', () => {
     let insightsHandler: InsightsHandler
     let getUniqueIdentifierSpy: any, getUniqueIdentifierForCucumberSpy: any
     insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent')
+    const sendSpy = jest.spyOn(insightsHandler, 'getRunData')
     sendSpy.mockImplementation(() => { return [] })
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData')
     attachHookDataSpy.mockImplementation(() => { return [] })
@@ -766,54 +794,54 @@ describe('getIntegrationsObject', () => {
 
 describe('browserCommand', () => {
     const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] })
+    const screenshotSpy = jest.spyOn(insightsHandler['listener'], 'onScreenshot').mockImplementation(() => { return [] })
     const getIdentifierSpy = jest.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
     const commandSpy = jest.spyOn(utils, 'isScreenshotCommand')
 
     beforeEach(() => {
         insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
         insightsHandler['_commands'] = { 's_m_e': {} }
-        uploadEventDataSpy.mockClear()
+        screenshotSpy.mockClear()
         getIdentifierSpy.mockClear()
     })
 
     it('client:beforeCommand', () => {
         insightsHandler.browserCommand('client:beforeCommand', {}, {})
-        expect(uploadEventDataSpy).toBeCalledTimes(0)
+        expect(screenshotSpy).toBeCalledTimes(0)
     })
 
     it('client:afterCommand', () => {
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e' }, {})
-        expect(uploadEventDataSpy).toBeCalledTimes(1)
+        expect(screenshotSpy).toBeCalledTimes(0)
     })
 
     it('client:afterCommand - test not defined', () => {
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: {} }, undefined)
-        expect(uploadEventDataSpy).toBeCalledTimes(0)
+        expect(screenshotSpy).toBeCalledTimes(0)
     })
 
     it('client:afterCommand - screenshot', () => {
-        process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = 'true'
+        process.env[TESTOPS_SCREENSHOT_ENV] = 'true'
         commandSpy.mockImplementation(() => { return true })
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
-        expect(uploadEventDataSpy).toBeCalled()
-        delete process.env.BS_TESTOPS_ALLOW_SCREENSHOTS
+        expect(screenshotSpy).toBeCalled()
+        delete process.env[TESTOPS_SCREENSHOT_ENV]
     })
 
     it('return if test not in _tests', () => {
         insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
-        expect(uploadEventDataSpy).toBeCalledTimes(0)
+        expect(screenshotSpy).toBeCalledTimes(0)
     })
 
     it('return if command not in _commands', () => {
         insightsHandler['_commands'] = { 'command not here': {} }
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
-        expect(uploadEventDataSpy).toBeCalledTimes(0)
+        expect(screenshotSpy).toBeCalledTimes(0)
     })
 
     afterEach(() => {
-        uploadEventDataSpy.mockClear()
+        screenshotSpy.mockClear()
         getIdentifierSpy.mockClear()
     })
 })
@@ -910,7 +938,7 @@ describe('appendTestItemLog', function () {
     let testLogObj: StdLog
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
-        sendDataSpy = jest.spyOn(utils, 'pushDataToQueue')
+        sendDataSpy = jest.spyOn(insightsHandler['listener'], 'logCreated')
         sendDataSpy.mockImplementation(() => { return [] as any })
         testLogObj = { ...logObj }
     })
@@ -944,11 +972,11 @@ describe('appendTestItemLog', function () {
 
 describe('processCucumberHook', function () {
     let insightsHandler: InsightsHandler
-    let sendHookRunEventSpy: any, cucumberHookTypeSpy: any, cucumberHookUniqueIdSpy: any
+    let getHookRunDataForCucumberSpy: any, cucumberHookTypeSpy: any, cucumberHookUniqueIdSpy: any
     beforeEach(() => {
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'cucumber')
-        sendHookRunEventSpy = jest.spyOn(insightsHandler, 'sendHookRunEvent')
-        sendHookRunEventSpy.mockImplementation(() => { return [] as any })
+        getHookRunDataForCucumberSpy = jest.spyOn(insightsHandler, 'getHookRunDataForCucumber')
+        getHookRunDataForCucumberSpy.mockImplementation(() => { return [] as any })
         cucumberHookTypeSpy = jest.spyOn(insightsHandler, 'getCucumberHookType')
         cucumberHookTypeSpy.mockImplementation(() => { return 'hii' })
         cucumberHookUniqueIdSpy = jest.spyOn(insightsHandler, 'getCucumberHookUniqueId')
@@ -957,14 +985,14 @@ describe('processCucumberHook', function () {
     it('should not update if no hook type', function () {
         cucumberHookTypeSpy.mockReturnValue(null)
         insightsHandler['processCucumberHook'](undefined, { event: 'before' })
-        expect(sendHookRunEventSpy).toBeCalledTimes(0)
+        expect(getHookRunDataForCucumberSpy).toBeCalledTimes(0)
     })
 
     it ('should send data for before event', function () {
         cucumberHookTypeSpy.mockReturnValue('BEFORE_ALL')
         insightsHandler['_currentTest'].uuid = 'test_uuid'
         insightsHandler['processCucumberHook'](undefined, { event: 'before', hookUUID: 'hook_uuid' })
-        expect(sendHookRunEventSpy).toBeCalledWith(expect.objectContaining({
+        expect(getHookRunDataForCucumberSpy).toBeCalledWith(expect.objectContaining({
             uuid: 'hook_uuid',
             testRunId: 'test_uuid',
             hookType: 'BEFORE_ALL'
@@ -978,6 +1006,6 @@ describe('processCucumberHook', function () {
         const resultObj = { passed: true }
         insightsHandler['_tests']['hook_unique_id'] = hookObj
         insightsHandler['processCucumberHook'](undefined, { event: 'after' }, resultObj as any)
-        expect(sendHookRunEventSpy).toBeCalledWith(hookObj, 'HookRunFinished', resultObj)
+        expect(getHookRunDataForCucumberSpy).toBeCalledWith(hookObj, 'HookRunFinished', resultObj)
     })
 })

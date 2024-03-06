@@ -17,6 +17,7 @@ import fs from 'fs'
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 import { Testrunner } from '@wdio/types/build/Options'
+import { RERUN_TESTS_ENV, RERUN_ENV } from '../src/constants'
 
 const expect = global.expect as unknown as jest.Expect
 
@@ -40,26 +41,26 @@ describe('onPrepare', () => {
     jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     jest.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
-    it('should not try to upload app is app is undefined', () => {
+    it('should not try to upload app is app is undefined', async () => {
         const service = new BrowserstackLauncher({}, caps, config)
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(logInfoSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
-    it('should not call local if browserstackLocal is undefined', () => {
+    it('should not call local if browserstackLocal is undefined', async () => {
         const service = new BrowserstackLauncher({ testObservability: false }, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
-    it('should not call local if browserstackLocal is false', () => {
+    it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
             testObservability: false
@@ -68,7 +69,7 @@ describe('onPrepare', () => {
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
         expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
@@ -708,16 +709,16 @@ describe('constructor', () => {
     })
 
     it('update spec list if it is a rerun', async () => {
-        process.env.BROWSERSTACK_RERUN = 'true'
-        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
+        process.env[RERUN_ENV] = 'true'
+        process.env[RERUN_TESTS_ENV] = 'demo1.test.js,demo2.test.js'
 
         const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options, caps, config)
 
         expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
 
-        delete process.env.BROWSERSTACK_RERUN
-        delete process.env.BROWSERSTACK_RERUN_TESTS
+        delete process.env[RERUN_ENV]
+        delete process.env[RERUN_TESTS_ENV]
     })
 
     describe('#non-bstack session', () => {

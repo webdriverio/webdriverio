@@ -7,17 +7,15 @@ import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
 import logger from '@wdio/logger'
 
-import type { BrowserstackConfig, CurrentRunInfo, StdLog, TestData, TestMeta, UploadType } from './types'
+import type { BrowserstackConfig, CurrentRunInfo, StdLog, TestData, TestMeta } from './types'
 import {
     getCloudProvider,
     getGitMetaData,
-    uploadEventData,
     o11yClassErrorHandler,
     removeAnsiColors,
     getHookType,
-    pushDataToQueue
 } from './util'
-import RequestQueueHandler from './request-handler'
+import Listener from './testOps/listener'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -27,13 +25,13 @@ class _TestReporter extends WDIOReporter {
     private _observability = true
     private _sessionId?: string
     private _suiteName?: string
-    private _requestQueueHandler = RequestQueueHandler.getInstance()
     private _suites: SuiteStats[] = []
     private static _tests: Record<string, TestMeta> = {}
     private _gitConfigPath?: string
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
     private _currentTest: CurrentRunInfo = {}
+    private listener = Listener.getInstance()
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
@@ -59,10 +57,7 @@ class _TestReporter extends WDIOReporter {
             stdLog.test_run_uuid = this._currentTest.uuid
         }
         if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
-            await pushDataToQueue({
-                event_type: 'LogCreated',
-                logs: [stdLog]
-            })
+            this.listener.logCreated([stdLog])
         }
     }
 
@@ -138,7 +133,7 @@ class _TestReporter extends WDIOReporter {
         if (testStats.fullTitle === '<unknown test>') return
 
         testStats.end ||= new Date()
-        await this.sendTestRunEvent(testStats, 'TestRunFinished')
+        this.listener.testFinished(await this.getRunData(testStats, 'TestRunFinished'))
     }
 
     async onTestStart(testStats: TestStats) {
@@ -151,7 +146,7 @@ class _TestReporter extends WDIOReporter {
         _TestReporter._tests[testStats.fullTitle] = {
             uuid: uuid,
         }
-        await this.sendTestRunEvent(testStats, 'TestRunStarted')
+        this.listener.testStarted(await this.getRunData(testStats, 'TestRunStarted'))
     }
 
     async onHookStart(hookStats: HookStats) {
@@ -166,7 +161,7 @@ class _TestReporter extends WDIOReporter {
             uuid: hookId,
             startedAt: (new Date()).toISOString()
         }
-        await this.sendTestRunEvent(hookStats, 'HookRunStarted')
+        this.listener.hookStarted(await this.getRunData(hookStats, 'HookRunStarted'))
     }
 
     async onHookEnd(hookStats: HookStats) {
@@ -187,14 +182,14 @@ class _TestReporter extends WDIOReporter {
         if (!hookStats.state && !hookStats.error) {
             hookStats.state = 'passed'
         }
-        await this.sendTestRunEvent(hookStats, 'HookRunFinished')
+        this.listener.hookFinished(await this.getRunData(hookStats, 'HookRunFinished'))
     }
 
     getHookIdentifier(hookStats: HookStats) {
         return `${hookStats.title} for ${this._suites.at(-1)?.title}`
     }
 
-    async sendTestRunEvent(testStats: TestStats|HookStats, eventType: string) {
+    async getRunData(testStats: TestStats|HookStats, eventType: string) {
         const framework = this._config?.framework
         const scopes = this._suites.map(s => s.title)
         const identifier = testStats.type === 'test' ? (testStats as TestStats).fullTitle : this.getHookIdentifier(testStats as HookStats)
@@ -259,21 +254,11 @@ class _TestReporter extends WDIOReporter {
             eventType = 'TestRunFinished'
         }
 
-        const uploadData: UploadType = {
-            event_type: eventType,
-        }
-
         if (eventType.match(/HookRun/)) {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
-            uploadData.hook_run = testData
-        } else {
-            uploadData.test_run = testData
         }
 
-        const req = this._requestQueueHandler.add(uploadData)
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
+        return testData
     }
 
     async onTestSkip (testStats: TestStats) {
@@ -282,7 +267,7 @@ class _TestReporter extends WDIOReporter {
 
         testStats.start ||= new Date()
         testStats.end ||= new Date()
-        await this.sendTestRunEvent(testStats, 'TestRunSkipped')
+        this.listener.testFinished(await this.getRunData(testStats, 'TestRunSkipped'))
     }
 }
 // https://github.com/microsoft/TypeScript/issues/6543
