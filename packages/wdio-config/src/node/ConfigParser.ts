@@ -65,6 +65,15 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
+        /**
+         * the autoCompileOpts.autoCompile CLI argument has to be converted
+         * from type string to type boolean
+         */
+        if (typeof _initialConfig.autoCompileOpts?.autoCompile === 'string') {
+            const strValue = _initialConfig.autoCompileOpts.autoCompile as unknown as string
+            _initialConfig.autoCompileOpts.autoCompile = !!strValue && strValue !== 'false'
+        }
+
         this.merge(_initialConfig, false)
     }
 
