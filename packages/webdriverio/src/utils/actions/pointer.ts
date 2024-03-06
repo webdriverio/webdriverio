@@ -45,6 +45,24 @@ const MOVE_PARAM_DEFAULTS = {
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
 
+function mapButton(params: PointerActionParams | ButtonNames | Button) {
+    const buttons = {
+        left: 0,
+        middle: 1,
+        right: 2
+    }
+    if (typeof params === 'number') {
+        return { button: params }
+    }
+    if (typeof params === 'string') {
+        return { button: buttons[params] }
+    }
+    if (typeof params === 'object' && typeof params.button === 'string') {
+        return { ...params, button: buttons[params.button] }
+    }
+    return params
+}
+
 export default class PointerAction extends BaseAction {
     constructor (instance: WebdriverIO.Browser, params: BaseActionParams = {}) {
         if (!params.parameters) {
@@ -90,9 +108,7 @@ export default class PointerAction extends BaseAction {
     up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
         this.sequence.push({
             type: 'pointerUp',
-            button: typeof params === 'string'
-                ? params === 'right' ? 2 : (params === 'middle' ? 1 : 0)
-                : params.button
+            ...mapButton(params)
         })
         return this
     }
@@ -107,10 +123,7 @@ export default class PointerAction extends BaseAction {
         this.sequence.push({
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
-            ...(typeof params === 'string'
-                ? { button: params === 'right' ? 2 : (params === 'middle' ? 1 : 0) }
-                : params
-            )
+            ...mapButton(params)
         })
         return this
     }

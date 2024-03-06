@@ -38,9 +38,7 @@ const strictMock = await browser.mock('**', {
 நீங்கள் JSON பதிலை எதிர்பார்க்கும் API கோரிக்கைகளை மாக் செய்ய, நீங்கள் செய்ய வேண்டியதெல்லாம், நீங்கள் ரிட்டர்ன் செய்ய விரும்பும் ஒரு தன்னிச்சையான ஆப்ஜெக்டுடன் மாக் ஆப்ஜெக்டை`respond` அழைக்க வேண்டும், எ.கா.:
 
 ```js
-const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
-    method: 'get'
-})
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -50,7 +48,12 @@ mock.respond([{
     title: 'Injected completed Todo',
     order: null,
     completed: true
-}])
+}], {
+    headers: {
+        'Access-Control-Allow-Origin': '*'
+    },
+    fetchResponse: false
+})
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 

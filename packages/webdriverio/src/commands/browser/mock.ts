@@ -169,6 +169,7 @@ export async function mock (
         })
         client.on(
             'Fetch.requestPaused',
+            // @ts-expect-error fix me
             (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
                 .handleRequestInterception(client, SESSION_MOCKS[handle])
         )

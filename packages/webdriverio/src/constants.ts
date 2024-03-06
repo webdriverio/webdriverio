@@ -1,13 +1,8 @@
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
-import { createRequire } from 'node:module'
-
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 
 export enum SupportedAutomationProtocols {
     webdriver = 'webdriver',
-    devtools = 'devtools',
     stub = './protocol-stub.js'
 }
 
@@ -28,21 +23,6 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO> = {
 
             if (!Object.values(SupportedAutomationProtocols).includes(param.toLowerCase() as SupportedAutomationProtocols)) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supported as automationProtocol, you set "${param}"`)
-            }
-
-            try {
-                const __dirname = dirname(fileURLToPath(import.meta.url))
-                const require = createRequire(import.meta.url)
-                const id = param === SupportedAutomationProtocols.stub
-                    ? resolve(__dirname, '..', 'build', param)
-                    : param
-                require.resolve(id)
-            } catch (err: any) {
-                /* istanbul ignore next */
-                throw new Error(
-                    'Automation protocol package is not installed!\n' +
-                    `Please install it via \`npm install ${param}\``
-                )
             }
         }
     },
