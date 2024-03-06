@@ -55,6 +55,7 @@ export const config: Options.Testrunner = {
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
+    specFileRetries: 2,
 
     mochaOpts: {
         ui: 'bdd',

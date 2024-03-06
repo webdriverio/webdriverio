@@ -95,6 +95,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
     })
 
+    it('isChromium', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChromium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isChromium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChromium).toBe(false)
+    })
+
     it('isFirefox', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isFirefox).toBe(false)
@@ -298,18 +308,9 @@ describe('sessionEnvironmentDetector', () => {
 describe('capabilitiesEnvironmentDetector', () => {
     it('should return env flags without isW3C and isSeleniumStandalone', () => {
         const sessionFlags = sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: { browserName: '' } })
-        const capabilitiesFlags = capabilitiesEnvironmentDetector({}, 'webdriver')
+        const capabilitiesFlags = capabilitiesEnvironmentDetector({})
 
         const expectedFlags = Object.keys(sessionFlags).filter(flagName => !['isW3C', 'isSeleniumStandalone'].includes(flagName))
         expect(Object.keys(capabilitiesFlags)).toEqual(expectedFlags)
-    })
-
-    it('should return devtools env flags if automationProtocol is devtools', () => {
-        const capabilitiesFlags = capabilitiesEnvironmentDetector({}, 'devtools')
-
-        expect((capabilitiesFlags as any).isDevTools).toBe(true)
-        expect((capabilitiesFlags as any).isSeleniumStandalone).toBe(false)
-        expect(capabilitiesFlags.isChrome).toBe(false)
-        expect(capabilitiesFlags.isMobile).toBe(false)
     })
 })

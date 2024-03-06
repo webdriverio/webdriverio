@@ -23,10 +23,6 @@ export default defineConfig({
                 '**/build/**',
                 '**/cjs/*.ts',
                 '**/*.test.ts',
-                // we are using e2e tests for ensuring the functionality works
-                // check out the ./e2e folder
-                'packages/devtools/src/commands',
-                'packages/devtools/src/scripts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
             watermarks: {

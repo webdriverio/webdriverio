@@ -253,10 +253,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   $ pnpm run test:smoke
   ```
 - *e2e Tests*
-  Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These
-  tests spin up headless Chrome, Firefox and Edge browsers to test various implementations like for example the commands implemented in the `devtools` package. Given that the WebDriver functionality
-  is already tested with [WPT](https://github.com/web-platform-tests/wpt), we don't need to do it there.
-  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly), [Google Chrome](https://www.google.com/chrome/) and [Microsoft Edge](https://www.microsoft.com/en-us/edge/download)is required
+  Last but not least, we run actual e2e tests with a real headless browser to ensure we can spin up tests in all support variants and that certain services from end to end.
   You can manually trigger this check by calling:
   ```sh
   $ pnpm run test:e2e

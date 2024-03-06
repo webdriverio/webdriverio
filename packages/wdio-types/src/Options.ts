@@ -3,7 +3,7 @@ import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
+export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
@@ -59,8 +59,7 @@ export interface Connection {
     }
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
-     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
-     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or
      * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
      * automatically set connection options for you. If you don't use a cloud provider this
      * can be used to authenticate any other WebDriver backend.
@@ -69,10 +68,9 @@ export interface Connection {
     /**
      * Your cloud service access key or secret key (only works for
      * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
-     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
-     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
-     * automatically set connection options for you. If you don't use a cloud provider this
-     * can be used to authenticate any other WebDriver backend.
+     * [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts).
+     * If set, WebdriverIO will automatically set connection options for you. If you don't use
+     * a cloud provider this can be used to authenticate any other WebDriver backend.
      */
     key?: string
 }
@@ -86,7 +84,7 @@ export interface WebDriver extends Connection {
      *
      * @example
      * ```js
-     * // WebDriver/DevTools session
+     * // WebDriver session
      * const browser = remote({
      *   capabilities: {
      *     browserName: 'chrome',

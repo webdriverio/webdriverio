@@ -46,6 +46,26 @@ describe('BidiCore', () => {
             const result = await promise
             expect(result).toEqual({ id: 1, result: 'foobar' })
         })
+
+        it('has a proper error stack that contains the line where the command is called', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            handler.connect()
+            const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
+            cb.call(this as  any)
+
+            const promise = handler.send({ method: 'session.new', params: {} })
+            const [, messageCallback] = vi.mocked(handler.socket.on).mock.calls[1]
+            setTimeout(
+                () => messageCallback.call(this as any, Buffer.from(JSON.stringify({ id: 1, error: 'foobar' }))),
+                100
+            )
+
+            const error = await promise.catch((err) => err)
+            const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar'
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:56:'))
+            expect(error.stack).toContain(errorMessage)
+            expect(error.message).toBe(errorMessage)
+        })
     })
 
     describe('sendAsync', () => {

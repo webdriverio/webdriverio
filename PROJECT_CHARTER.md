@@ -14,10 +14,10 @@ With that, the project offers not only the ability of automating user agents usi
 
 - automation of modern web browsers
 - automation of mobile devices (web as well as native applications)
+- automation of desktop applications (e.g. Electron or MacOS applications)
 - testing applications from end-to-end at scale (including parallelisation and reporting)
 - integration into 3rd party services and vendors (e.g. [Sauce Labs](https://saucelabs.com/) or [BrowserStack](https://browserstack.com/))
-- support of functional as well as non functional testing aspects (e.g. visual regression or frontend performance testing)
-- automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
+- support of functional as well as non functional testing aspects (e.g. component testing, visual regression or frontend performance testing)
 - scraping of websites
 - providing technical content and best practices in form of [boilerplates](https://webdriver.io/) and [blog posts](https://webdriver.io/blog/)
 - providing technical help in form of a [community channel](https://discord.webdriver.io)
