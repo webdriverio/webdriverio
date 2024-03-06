@@ -1,3 +1,3 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`utils > CustomRequestError 1`] = `"The selector "!!" used with strategy "css selector" is invalid! For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors"`;
+exports[`utils > CustomRequestError 1`] = `"The selector "!!" used with strategy "css selector" is invalid!"`;
