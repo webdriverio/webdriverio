@@ -57,14 +57,6 @@ export KOBITON_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 npm run test:kobiton
 ```
 
-## crossbrowsertesting.js
-
-```sh
-export CBT_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-export CBT_AUTHKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-npm run test:crossbrowsertesting
-```
-
 ## Commands
 
 All files inside this directory demonstrate how some commands can get used. To run these examples just execute them with node.

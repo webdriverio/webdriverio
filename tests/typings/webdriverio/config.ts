@@ -70,13 +70,6 @@ const config: WebdriverIO.Config = {
                 type: 'foo'
             }
         }],
-        // @ts-expect-error test wrong parameter
-        ['crossbrowsertesting', {
-            cbtTunnel: 'true',
-            cbtTunnelOpts: {
-                foo: 'bar'
-            }
-        }],
         ['firefox-profile', {
             extensions: [],
             profileDirectory: '/foo/bar',
