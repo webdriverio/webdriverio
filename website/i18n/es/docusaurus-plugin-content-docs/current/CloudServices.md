@@ -3,7 +3,7 @@ id: cloudservices
 title: Servicios en la Nube
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest or Perfecto with WebdriverIO is pretty simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
 
 Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 
@@ -116,18 +116,6 @@ Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (com
 Su página de soporte del túnel contiene la información necesaria para ponerla en marcha y funcionar.
 
 Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayudaa a que TestingBot funcione, y viene con funciones adicionales que integran mejor sus pruebas en el servicio TestingBot.
-
-## CrossBrowserTesting
-
-El único requisito es establecer la clave `usuario`y `` en su configuración (ya sea exportada por `wdio. seguida. s` o pasado a `webdriverio.remote(...)`) a su nombre de usuario y autentificación [CrossBrowserTesting](https://crossbrowsertesting.com/)
-
-También puede pasar cualquier [capacidad compatible](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) opcional como clave/valor en las capacidades de cualquier navegador.
-
-### Pruebas locales
-
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
-
-Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) en su `wdio.conf.js`. Ayuda a ejecutar CrossBrowserTesting y viene con características adicionales que integran mejor sus pruebas en el servicio CrossBrowserTesting.
 
 ## Prueba de Lambda
 
