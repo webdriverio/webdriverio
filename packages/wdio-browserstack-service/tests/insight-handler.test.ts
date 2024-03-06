@@ -741,7 +741,7 @@ describe('getIntegrationsObject', () => {
     let insightsHandler: InsightsHandler
     let getPlatformVersionSpy
     beforeAll(() => {
-        getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return "some version" })
+        getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
         insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
         insightsHandler['_platformMeta'] = {
             caps: {},
