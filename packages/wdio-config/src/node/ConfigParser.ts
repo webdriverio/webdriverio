@@ -187,6 +187,9 @@ export default class ConfigParser {
             this._config.exclude = object.exclude as string[]
         }
 
+        /**
+         * add this check to avoid duplication of the "services" in the config
+         */
         if (!addServicesToConfig) {
             this._config.services = services
         }
