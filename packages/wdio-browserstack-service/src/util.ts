@@ -1209,3 +1209,14 @@ export const isObjectEmpty = (objectName: unknown) => {
         objectName.constructor === Object
     )
 }
+
+export const getErrorString = (err: unknown) => {
+    if (!err) {
+        return undefined
+    }
+    if (typeof err === 'string') {
+        return  err // works, `e` narrowed to string
+    } else if (err instanceof Error) {
+        return err.message // works, `e` narrowed to Error
+    }
+}

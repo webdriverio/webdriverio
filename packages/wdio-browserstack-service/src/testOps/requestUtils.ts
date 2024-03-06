@@ -7,7 +7,7 @@ import {
 } from '../constants.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { DEFAULT_REQUEST_CONFIG, getLogTag } from '../util.js'
-import got from 'got'
+import fetchWrap from '../fetchWrapper.js'
 
 export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
     let logTag: string = 'BATCH_UPLOAD'
@@ -30,18 +30,18 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
 
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        const data = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const data = await fetchWrap(url, {
+            method: 'POST',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env[TESTOPS_JWT_ENV]}`
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
             },
-            json: eventData
-        }).json()
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
+            body: JSON.stringify(eventData)
+        })
+        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(await data.json())}`)
     } catch (error) {
         BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
-        throw new Error('Request failed with exception: ' + error)
+        throw error
     }
 }
 

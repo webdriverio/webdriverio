@@ -1,11 +1,9 @@
 import {
     DATA_BATCH_SIZE,
     DATA_BATCH_INTERVAL,
-    DATA_BATCH_ENDPOINT,
     TESTOPS_BUILD_COMPLETED_ENV
 } from './constants.js'
 import type { UploadType } from './types.js'
-import { batchAndPostEvents } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 
 export default class RequestQueueHandler {
@@ -45,11 +43,13 @@ export default class RequestQueueHandler {
     }
 
     async shutdown () {
+        BStackLogger.debug('shutdown started')
         this.removeEventBatchPolling('Shutting down')
         while (this.queue.length > 0) {
             const data = this.queue.splice(0, DATA_BATCH_SIZE)
-            await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'SHUTDOWN_QUEUE', data)
+            await this.callCallback(data, 'SHUTDOWN_QUEUE')
         }
+        BStackLogger.debug('shutdown ended')
     }
 
     startEventBatchPolling () {

@@ -2,12 +2,12 @@ import os from 'node:os'
 import util from 'node:util'
 import path from 'node:path'
 import fs from 'node:fs'
-import got from 'got'
 import UsageStats from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers } from '../data-store.js'
+import fetchWrap from '../fetchWrapper.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -45,11 +45,17 @@ export function saveFunnelData(eventType: string, config: BrowserStackConfig): s
 // Called from two different process
 export async function fireFunnelRequest(data: any): Promise<void> {
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
-    await got.post(FUNNEL_INSTRUMENTATION_URL, {
+
+    const encodedAuth = Buffer.from(`${data.userName}:${data.accessKey}`, 'utf8').toString('base64')
+    const response = await fetchWrap(FUNNEL_INSTRUMENTATION_URL, {
+        method: 'POST',
         headers: {
-            'content-type': 'application/json'
-        }, username: data.userName, password: data.accessKey, json: data
+            'content-type': 'application/json',
+            Authorization: `Basic ${encodedAuth}`,
+        },
+        body: JSON.stringify(data)
     })
+    BStackLogger.debug('Funnel Event Response: ' + JSON.stringify(await response.text()))
 }
 
 function getProductList(config: BrowserStackConfig) {
