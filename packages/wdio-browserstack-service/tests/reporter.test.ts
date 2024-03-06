@@ -2,7 +2,6 @@ import logger from '@wdio/logger'
 import { StdLog } from '../src'
 
 import TestReporter from '../src/reporter'
-import RequestQueueHandler from '../src/request-handler'
 import * as utils from '../src/util'
 
 const log = logger('test')
@@ -129,10 +128,8 @@ describe('test-reporter', () => {
 
     describe('onTestSkip', () => {
         const reporter = new TestReporter({})
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
+        const uploadEventDataSpy = jest.spyOn(reporter['listener'], 'testFinished').mockImplementation()
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
 
         let getPlatformVersionSpy
 
@@ -226,12 +223,8 @@ describe('test-reporter', () => {
     })
 
     describe('onTestStart', function () {
-        let reporter: TestReporter
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
-        uploadEventDataSpy.mockImplementation()
+        let reporter: TestReporter, uploadEventDataSpy: jest.SpyInstance
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testStartStats = { ...testStats }
         let getPlatformVersionSpy
 
@@ -245,6 +238,7 @@ describe('test-reporter', () => {
 
         beforeEach(() => {
             reporter = new TestReporter({})
+            uploadEventDataSpy = jest.spyOn(reporter['listener'], 'testStarted').mockImplementation()
             reporter['_observability'] = true
             reporter.onRunnerStart(runnerConfig as any)
             testStartStats = { ...testStats }
@@ -281,12 +275,8 @@ describe('test-reporter', () => {
     })
 
     describe('onTestEnd', function () {
-        let reporter: TestReporter
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
-        uploadEventDataSpy.mockImplementation()
+        let reporter: TestReporter, uploadEventDataSpy: jest.SpyInstance
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let testEndStats = { ...testStats }
         let getPlatformVersionSpy
 
@@ -300,6 +290,7 @@ describe('test-reporter', () => {
 
         beforeEach(() => {
             reporter = new TestReporter({})
+            uploadEventDataSpy = jest.spyOn(reporter['listener'], 'testFinished').mockImplementation()
             reporter['_observability'] = true
             reporter.onRunnerStart(runnerConfig as any)
             testEndStats = { ...testStats }
@@ -344,17 +335,14 @@ describe('test-reporter', () => {
     })
 
     describe('onHookEnd', function () {
-        let reporter: TestReporter
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        let uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData')
-        uploadEventDataSpy.mockImplementation()
+        let reporter: TestReporter, uploadEventDataSpy: jest.SpyInstance
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         let hookEndStats = { ...hookStats }
 
         beforeEach(() => {
             reporter = new TestReporter({})
             reporter['_observability'] = true
+            uploadEventDataSpy = jest.spyOn(reporter['listener'], 'hookFinished').mockImplementation()
             reporter.onRunnerStart(runnerConfig as any)
             hookEndStats = { ...hookStats }
         })
@@ -393,7 +381,7 @@ describe('test-reporter', () => {
 
             it('uploadEventData called for failed tests', async () => {
                 hookEndStats.state = 'failed'
-                await reporter.onTestEnd(hookEndStats as any)
+                await reporter.onHookEnd(hookEndStats as any)
                 expect(uploadEventDataSpy).toBeCalledTimes(1)
             })
 
@@ -413,7 +401,7 @@ describe('test-reporter', () => {
         let testLogObj: StdLog
         beforeEach(() => {
             reporter = new TestReporter({})
-            sendDataSpy = jest.spyOn(utils, 'pushDataToQueue')
+            sendDataSpy = jest.spyOn(reporter['listener'], 'logCreated')
             sendDataSpy.mockImplementation(() => { return [] as any })
             testLogObj = { ...logObj }
         })
