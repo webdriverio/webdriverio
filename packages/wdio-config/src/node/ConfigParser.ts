@@ -81,6 +81,11 @@ export default class ConfigParser {
             await this.addConfigFile(this.#configFilePath)
         }
 
+        /**
+         * remove services from here because services are initlialised already from constructor
+         */
+        object.services = []
+
         this.merge({ ...object })
 
         /**

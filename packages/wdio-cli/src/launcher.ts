@@ -59,7 +59,7 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        this.configParser = new ConfigParser(this._configFilePath)
+        this.configParser = new ConfigParser(this._configFilePath, this._args)
     }
 
     /**
