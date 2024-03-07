@@ -21,6 +21,26 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.33.0 (2024-03-07)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#12392](https://github.com/webdriverio/webdriverio/pull/12392) [browserstack-service] Add Funnel Data instrumentation [v8] ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#12393](https://github.com/webdriverio/webdriverio/pull/12393) (webdriver): fix custom request error message override ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#12435](https://github.com/webdriverio/webdriverio/pull/12435) (webdriver): improve error stack for failing bidi commands ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `webdriver`, `webdriverio`
+  * [#12432](https://github.com/webdriverio/webdriverio/pull/12432) (feat): enable chromium protocol for edge ([@lacell75](https://github.com/lacell75))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v8.32.4 (2024-03-03)
 
 #### :bug: Bug Fix
