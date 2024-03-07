@@ -39,7 +39,6 @@ import {
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
-import BrowserstackLauncherService from './launcher.js'
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
@@ -1236,7 +1235,6 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     }
     return undefined
 })
-
 
 export const isObjectEmpty = (objectName: unknown) => {
     return (
