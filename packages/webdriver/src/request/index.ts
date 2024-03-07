@@ -294,13 +294,21 @@ export default abstract class WebDriverRequest extends EventEmitter {
         }
 
         /**
-         *  stop retrying as this will never be successful.
-         *  we will handle this at the elementErrorHandler
+         * stop retrying as this will never be successful.
+         * we will handle this at the elementErrorHandler
          */
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            throw error
+        }
+
+        /**
+         * Move out of bounds errors can be excluded from the request retry mechanism as
+         * it likely does not changes anything and the error is handled within the command.
+         */
+        if (error.name === 'move target out of bounds') {
             throw error
         }
 

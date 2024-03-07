@@ -15,11 +15,14 @@ import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScale
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS } from './constants.js'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
+import Listener from './testOps/listener.js'
+import { saveWorkerData } from './data-store.js'
+import UsageStats from './testOps/usageStats.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -56,7 +59,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -279,12 +282,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
-        await this._insightsHandler?.uploadPending()
-        await this._insightsHandler?.teardown()
-
+        await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
+        this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
@@ -525,5 +527,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return (await this._browser.execute<T, []>(script))
+    }
+
+    private saveWorkerData() {
+        saveWorkerData({
+            usageStats: UsageStats.getInstance().getDataToSave()
+        })
     }
 }

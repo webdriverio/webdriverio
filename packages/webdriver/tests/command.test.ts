@@ -64,7 +64,7 @@ vi.mock('../src/request/node', () => {
 
 class FakeClient extends EventEmitter {
     isW3C = false
-    isChrome = false
+    isChromium = false
     isAndroid = false
     isMobile = false
     isIOS = false
