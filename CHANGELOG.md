@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.36.0 (2024-03-07)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#12443](https://github.com/webdriverio/webdriverio/pull/12443) [browserstack-service] Add Funnel Data instrumentation [v7] ([@sriteja777](https://github.com/sriteja777))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12369](https://github.com/webdriverio/webdriverio/pull/12369) Browserstack observability reload session fix [v7] ([@sriteja777](https://github.com/sriteja777))
+  * [#12330](https://github.com/webdriverio/webdriverio/pull/12330) fix: added filename in file upload ([@innovater21](https://github.com/innovater21))
+
+#### Committers: 2
+- Abhishek Jha ([@innovater21](https://github.com/innovater21))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.35.0 (2024-02-13)
 
 #### :rocket: New Feature
