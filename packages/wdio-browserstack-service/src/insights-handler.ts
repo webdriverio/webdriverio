@@ -17,23 +17,20 @@ import {
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
     isScreenshotCommand,
-    o11yClassErrorHandler, pushDataToQueue,
+    o11yClassErrorHandler,
     removeAnsiColors,
-    sleep,
-    uploadEventData
 } from './util.js'
 import type {
     TestData,
     TestMeta,
     PlatformMeta,
-    UploadType,
     CurrentRunInfo,
     StdLog
 } from './types.js'
-import RequestQueueHandler from './request-handler.js'
-import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
+import Listener from './testOps/listener.js'
+import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -42,7 +39,6 @@ class _InsightsHandler {
     private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
-    private _requestQueueHandler = RequestQueueHandler.getInstance()
     private _currentTest: CurrentRunInfo = {}
     private _currentHook: CurrentRunInfo = {}
     private _cucumberData: CucumberStore = {
@@ -51,9 +47,9 @@ class _InsightsHandler {
         steps: []
     }
     private _userCaps?: Capabilities.RemoteCapability = {}
+    private listener = Listener.getInstance()
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
-        this._requestQueueHandler.start()
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
@@ -179,7 +175,7 @@ class _InsightsHandler {
                 }
             }),
         }
-        await this.sendTestRunEventForCucumber(null, 'TestRunSkipped', testMetaData)
+        this.listener.testFinished(this.getTestRunDataForCucumber(null, 'TestRunSkipped', testMetaData))
     }
 
     async processCucumberHook(test: CucumberHook|undefined, params: CucumberHookParams, result?: Frameworks.TestResult) {
@@ -203,11 +199,11 @@ class _InsightsHandler {
             }
 
             this._tests[hookId] = hookMetaData
-            await this.sendHookRunEvent(hookMetaData, 'HookRunStarted')
+            this.listener.hookStarted(this.getHookRunDataForCucumber(hookMetaData, 'HookRunStarted'))
         } else {
             this._tests[hookId].finishedAt = (new Date()).toISOString()
             this.setCurrentHook({ uuid: this._tests[hookId].uuid, finished: true })
-            await this.sendHookRunEvent(this._tests[hookId], 'HookRunFinished', result)
+            this.listener.hookFinished(this.getHookRunDataForCucumber(this._tests[hookId], 'HookRunFinished', result))
 
             if (hookType === 'BEFORE_ALL' && result && !result.passed) {
                 const { feature, uri } = this._cucumberData
@@ -250,7 +246,7 @@ class _InsightsHandler {
         }
         this.setCurrentHook({ uuid: hookUUID })
         this.attachHookData(context, hookUUID)
-        await this.sendTestRunEvent(test, 'HookRunStarted')
+        this.listener.hookStarted(this.getRunData(test, 'HookRunStarted'))
     }
 
     async afterHook (test: Frameworks.Test|CucumberHook|undefined, result: Frameworks.TestResult) {
@@ -273,7 +269,7 @@ class _InsightsHandler {
         }
 
         this.setCurrentHook({ uuid: this._tests[fullTitle].uuid, finished: true })
-        await this.sendTestRunEvent(test, 'HookRunFinished', result)
+        this.listener.hookFinished(this.getRunData(test, 'HookRunFinished', result))
 
         const hookType = getHookType(test.title)
         /*
@@ -292,7 +288,7 @@ class _InsightsHandler {
                         startedAt: (new Date()).toISOString(),
                         finishedAt: (new Date()).toISOString()
                     }
-                    await this.sendTestRunEvent(skippedTest, 'TestRunSkipped')
+                    this.listener.testFinished(this.getRunData(skippedTest, 'TestRunSkipped'))
                 }
             }
 
@@ -312,7 +308,7 @@ class _InsightsHandler {
         }
     }
 
-    public async sendHookRunEvent(hookData: TestMeta, eventType: string, result?: Frameworks.TestResult) {
+    public getHookRunDataForCucumber(hookData: TestMeta, eventType: string, result?: Frameworks.TestResult) {
         const { uri, feature } = this._cucumberData
 
         const testData: TestData = {
@@ -354,14 +350,7 @@ class _InsightsHandler {
             }
         }
 
-        const uploadData: UploadType = {
-            event_type: eventType,
-            hook_run: testData
-        }
-        const req = this._requestQueueHandler.add(uploadData)
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
+        return testData
     }
 
     async beforeTest (test: Frameworks.Test) {
@@ -377,7 +366,7 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
-        await this.sendTestRunEvent(test, 'TestRunStarted')
+        this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
@@ -389,7 +378,7 @@ class _InsightsHandler {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
         }
-        await this.sendTestRunEvent(test, 'TestRunFinished', result)
+        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
     /**
@@ -434,12 +423,12 @@ class _InsightsHandler {
         }
 
         this._tests[uniqueId] = testMetaData
-        await this.sendTestRunEventForCucumber(world, 'TestRunStarted')
+        this.listener.testStarted(this.getTestRunDataForCucumber(world, 'TestRunStarted'))
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
         this._cucumberData.scenario = undefined
-        await this.sendTestRunEventForCucumber(world, 'TestRunFinished')
+        this.listener.testFinished(this.getTestRunDataForCucumber(world, 'TestRunFinished'))
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
@@ -490,23 +479,6 @@ class _InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    async uploadPending (
-        waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
-        waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS
-    ): Promise<unknown> {
-        if (this._requestQueueHandler.pendingUploads <= 0 || waitTimeout <= 0) {
-            return
-        }
-
-        await sleep(waitInterval)
-        return this.uploadPending(waitTimeout - waitInterval)
-    }
-
-    async teardown () {
-        RequestQueueHandler.tearDownInvoked = true
-        await this._requestQueueHandler.shutdown()
-    }
-
     /**
      * misc methods
      */
@@ -519,20 +491,10 @@ class _InsightsHandler {
                 stdLog.test_run_uuid = this._currentTest.uuid
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
-                await pushDataToQueue({
-                    event_type: 'LogCreated',
-                    logs: [stdLog]
-                })
+                this.listener.logCreated([stdLog])
             }
         } catch (error) {
             BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
-        }
-    }
-
-    async sendData(data: UploadType) {
-        const req = this._requestQueueHandler.add(data)
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
         }
     }
 
@@ -556,16 +518,13 @@ class _InsightsHandler {
         // log screenshot
         const body = 'body' in args ? args.body : undefined
         const result = 'result' in args ? args.result : undefined
-        if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && result?.value) {
-            await uploadEventData([{
-                event_type: 'LogCreated',
-                logs: [{
-                    test_run_uuid: testMeta.uuid,
-                    timestamp: new Date().toISOString(),
-                    message: result.value,
-                    kind: 'TEST_SCREENSHOT'
-                }]
-            }], DATA_SCREENSHOT_ENDPOINT)
+        if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
+            await this.listener.onScreenshot([{
+                test_run_uuid: testMeta.uuid,
+                timestamp: new Date().toISOString(),
+                message: result.value,
+                kind: 'TEST_SCREENSHOT'
+            }])
         }
 
         const requestData = this._commands[dataKey]
@@ -574,24 +533,18 @@ class _InsightsHandler {
         }
 
         // log http request
-        const req = this._requestQueueHandler.add({
-            event_type: 'LogCreated',
-            logs: [{
-                test_run_uuid: testMeta.uuid,
-                timestamp: new Date().toISOString(),
-                kind: 'HTTP',
-                http_response: {
-                    path: requestData.endpoint,
-                    method: requestData.method,
-                    body,
-                    response: result
-                }
-            }]
-        })
-
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
+        this.listener.logCreated([{
+            test_run_uuid: testMeta.uuid,
+            timestamp: new Date().toISOString(),
+            kind: 'HTTP',
+            http_response: {
+                path: requestData.endpoint,
+                method: requestData.method,
+                body,
+                response: result
+            }
+        }]
+        )
     }
 
     /*
@@ -655,7 +608,7 @@ class _InsightsHandler {
         return value.reverse()
     }
 
-    private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    private getRunData (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
 
@@ -714,23 +667,14 @@ class _InsightsHandler {
             eventType = 'TestRunFinished'
         }
 
-        const uploadData: UploadType = {
-            event_type: eventType,
-        }
-
         /* istanbul ignore if */
         if (eventType.match(/HookRun/)) {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
             testData.test_run_id = this.getTestRunId(test.ctx)
-            uploadData.hook_run = testData
-        } else {
-            uploadData.test_run = testData
         }
 
-        const req = this._requestQueueHandler.add(uploadData)
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
+        return testData
+
     }
 
     private getTestRunId(context: any): string|undefined {
@@ -769,7 +713,7 @@ class _InsightsHandler {
         return
     }
 
-    private async sendTestRunEventForCucumber (worldObj: ITestCaseHookParameter|null, eventType: string, testMetaData: TestMeta|null = null) {
+    private getTestRunDataForCucumber (worldObj: ITestCaseHookParameter|null, eventType: string, testMetaData: TestMeta|null = null) {
         const world: ITestCaseHookParameter = worldObj as ITestCaseHookParameter
         const dataHub = testMetaData ? testMetaData : (this._tests[getUniqueIdentifierForCucumber((world as ITestCaseHookParameter))] || {})
         const { feature, scenario, steps, uuid, startedAt, finishedAt } = dataHub
@@ -849,18 +793,9 @@ class _InsightsHandler {
 
         if (eventType === 'TestRunSkipped') {
             testData.result = 'skipped'
-            eventType = 'TestRunFinished'
         }
 
-        const uploadData: UploadType = {
-            event_type: eventType,
-            test_run: testData
-        }
-
-        const req = this._requestQueueHandler.add(uploadData)
-        if (req.proceed && req.data) {
-            await uploadEventData(req.data, req.url)
-        }
+        return testData
     }
 
     private getIntegrationsObject () {

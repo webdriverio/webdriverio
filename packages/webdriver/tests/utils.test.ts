@@ -167,7 +167,7 @@ describe('utils', () => {
         expect(error.stack).toMatch('unknown error')
 
         error = new CustomRequestError(
-            { value: { error: 'invalid selector' } },
+            { value: { message: 'invalid locator' } },
             { using: 'css selector', value: '!!' }
         )
         expect(error.message).toMatchSnapshot()

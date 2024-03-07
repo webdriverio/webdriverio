@@ -16,7 +16,12 @@ import PerformanceTester from './performance-tester.js'
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
-import { BSTACK_SERVICE_VERSION, NOT_ALLOWED_KEYS_IN_CAPS, VALID_APP_EXTENSION } from './constants.js'
+import {
+    BSTACK_SERVICE_VERSION,
+    NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
+    TESTOPS_BUILD_ID_ENV,
+    VALID_APP_EXTENSION
+} from './constants.js'
 import {
     launchTestSession,
     createAccessibilityTestRun,
@@ -31,14 +36,16 @@ import {
     getBrowserStackUser,
     getBrowserStackKey,
     uploadLogs,
-    ObjectsAreEqual,
-    setupExitHandlers
+    ObjectsAreEqual, getBasicAuthHeader,
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
+import BrowserStackConfig from './config.js'
+import { setupExitHandlers } from './exitHandler.js'
+import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -54,7 +61,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
-    public static _testOpsBuildStopped?: boolean
+    private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -66,6 +73,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         setupExitHandlers()
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
@@ -141,7 +149,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        this.browserStackConfig.buildIdentifier = this._buildIdentifier
+        this.browserStackConfig.buildName = this._buildName
+
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             PerformanceTester.startMonitoring('performance-report-launcher.csv')
         }
 
@@ -149,16 +160,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._options.accessibility = this._accessibilityAutomation
 
         // by default observability will be true unless specified as false
-        this._options.testObservability = this._options.testObservability === false ? false : true
+        this._options.testObservability = this._options.testObservability !== false
 
         if (this._options.testObservability
             &&
             // update files to run if it's a rerun
-            process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
+            process.env[RERUN_ENV] && process.env[RERUN_TESTS_ENV]
         ) {
-            this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+            this._config.specs = process.env[RERUN_TESTS_ENV].split(',')
         }
-
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: any) {
@@ -180,6 +190,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+        // Send Funnel start request
+        await sendStart(this.browserStackConfig)
         /**
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
@@ -342,12 +354,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability) {
             BStackLogger.debug('Sending stop launch event')
             await stopBuildUpstream()
-            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            if (process.env[TESTOPS_BUILD_ID_ENV]) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
-            BrowserstackLauncherService._testOpsBuildStopped = true
+            this.browserStackConfig.testObservability.buildStopped = true
 
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 await PerformanceTester.stopAndGenerate('performance-launcher.html')
                 PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 
@@ -372,6 +384,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         PercyLogger.clearLogger()
+        await sendFinish(this.browserStackConfig)
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
@@ -455,10 +468,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             form.append('custom_id', app.customId)
         }
 
-        const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
         const headers: any = {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Basic ${encodedAuth}`,
+            Authorization: getBasicAuthHeader(this._config.user as string, this._config.key as string),
         }
 
         const res = await fetch('https://api-cloud.browserstack.com/app-automate/upload', {
@@ -765,8 +777,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _getClientBuildUuid() {
-        if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
-            return process.env.BS_TESTOPS_BUILD_HASHED_ID
+        if (process.env[TESTOPS_BUILD_ID_ENV]) {
+            return process.env[TESTOPS_BUILD_ID_ENV]
         }
         const uuid = uuidv4()
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')
