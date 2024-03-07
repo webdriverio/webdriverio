@@ -54,19 +54,24 @@ jobs:
         with:
           version: 8
 
-      - name: NPM Setup
+      - name: 🔐 NPM Authentification
         run: |
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
-      - name: Install Dependencies
+
+      - name: 🧩 Install Dependencies
         run: pnpm install
-      - name: Release
-        run: |
-          pnpm run setup
-          pnpm run generate:typings
-          npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
-          pnpm run pushReleaseTag
-        env:
-          NODE_ENV: production
-          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏗️ Build
+        run: pnpm build
+
+      # - name: Release
+      #   run: |
+      #     pnpm run setup
+      #     pnpm run generate:typings
+      #     npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+      #     pnpm run pushReleaseTag
+      #   env:
+      #     NODE_ENV: production
+      #     GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
