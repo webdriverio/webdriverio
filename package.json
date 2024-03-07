@@ -66,6 +66,7 @@
     "@aws-sdk/client-cloudfront": "^3.515.0",
     "@aws-sdk/client-s3": "^3.515.0",
     "@aws-sdk/lib-storage": "^3.515.0",
+    "@changesets/cli": "^2.27.1",
     "@octokit/rest": "^20.0.2",
     "@preact/preset-vite": "^2.8.1",
     "@serenity-js/core": "^3.17.0",

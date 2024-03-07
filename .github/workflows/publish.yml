@@ -1,17 +1,10 @@
 name: Manual NPM Publish
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 on:
   workflow_dispatch:
     inputs:
-      releaseType:
-        description: "Release Type"
-        required: true
-        type: choice
-        default: "patch"
-        options:
-          - patch
-          - minor
-          - major
       distTag:
         description: 'NPM tag (e.g. use "next --canary" to release a test version, add "--force-publish" to release all packages)'
         required: true
@@ -39,24 +32,33 @@ jobs:
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           fetch-depth: 0
-      - uses: pnpm/action-setup@v3
-      - uses: actions/setup-node@v4
+
+      - name: 🌲 Setup Git
+        run: |
+          git config --global user.email "bot@webdriver.io"
+          git config --global user.name "WebdriverIO Release Bot"
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          cache: pnpm
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
       - name: NPM Setup
         run: |
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
-      - name: Git Setup
-        run: |
-          git config --global user.email "bot@webdriver.io"
-          git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: pnpm install
       - name: Release
