@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElement } from '../../utils/index.js'
-import { getElement } from '../../utils/getElementObject.js'
+import { findDeepElement, getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -77,6 +77,25 @@ export async function $ (
         if (typeof elementRef[ELEMENT_KEY] === 'string') {
             return getElement.call(this, undefined, elementRef)
         }
+    }
+
+    /**
+     * do a deep lookup if we are using Bidi and have a string selector
+     */
+    if (this.isBidi && typeof selector === 'string') {
+        const results = await findDeepElement.call(this, selector)
+        const [browserFind, ...shadowRootFinds] = results
+
+        if (browserFind) {
+            return browser.$(browserFind)
+        }
+
+        const shadowFind = shadowRootFinds.filter(Boolean)[0]
+        if (!shadowFind) {
+            return getElement.call(this, selector as string, new Error('no element found'))
+        }
+
+        return getElement.call(this, selector as string, shadowFind)
     }
 
     const res = await findElement.call(this, selector)

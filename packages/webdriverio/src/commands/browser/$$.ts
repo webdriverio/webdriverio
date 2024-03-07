@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
-import { getElements } from '../../utils/getElementObject.js'
+import { getElements, findDeepElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -48,6 +48,21 @@ export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
 ) {
+    /**
+     * do a deep lookup if we are using Bidi and have a string selector
+     */
+    if (this.isBidi && typeof selector === 'string') {
+        const results = (await findDeepElement.call(this, selector))
+            .filter(Boolean) as ElementReference[]
+
+        if (results.length === 0) {
+            return enhanceElementsArray([], this, selector as Selector) as WebdriverIO.ElementArray
+        }
+
+        const elements = await getElements.call(this, selector as Selector, results)
+        return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+    }
+
     let res: (ElementReference | Error)[] = Array.isArray(selector)
         ? selector as ElementReference[]
         : await findElements.call(this, selector)
