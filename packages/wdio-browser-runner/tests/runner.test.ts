@@ -23,7 +23,7 @@ vi.mock('../src/vite/server.js', () => ({
         start = vi.fn()
         close = vi.fn()
         onBrowserEvent = vi.fn()
-        config = { server: { port: 1234 } }
+        config = { server: { port: 1234, host: '0.0.0.0' } }
         on = vi.fn()
     }
 }))
@@ -88,7 +88,7 @@ describe('BrowserRunner', () => {
         const worker = await runner.run({ caps: { browserName: 'chrome' }, command: 'run', args: {} } as any)
         expect(worker).toBeDefined()
         expect(LocalRunner.prototype.run).toBeCalledWith({
-            args: { baseUrl: 'http://localhost:1234' },
+            args: { baseUrl: 'http://0.0.0.0:1234' },
             caps: { browserName: 'chrome' },
             command: 'run'
         })
