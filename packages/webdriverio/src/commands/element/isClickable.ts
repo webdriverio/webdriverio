@@ -14,10 +14,8 @@ interface IsClickableOptions {
  * - the element exist and is displayed
  * - is not disabled
  * - the element is within the viewport
+ * - the element can be scrolled into the viewport (only when withinViewport is falsy)
  * - the element's center is not overlapped with another element
-
- * If withinViewport is falsy, the command attempts to scroll the element to the center of the viewport and performs the above checks, after which it attempts to scroll back to it's original coordinates
- * If withinViewport is true, the command does not attempt to scroll the element to the center of the viewport and instead directly runs the above checks
  *
  * :::info
  *
@@ -43,7 +41,7 @@ interface IsClickableOptions {
  *
  * @alias element.isClickable
  * @param {IsClickableOptions=}  options waitForEnabled options (optional)
- * @param {Boolean=} options.withinViewport set to true to check if element is clickable within scrolling it into the viewport
+ * @param {Boolean=} options.withinViewport set this option to true if you want the command to return false when the element is outside of the viewport
  * @return {Boolean} true if element is clickable
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
  * @type state

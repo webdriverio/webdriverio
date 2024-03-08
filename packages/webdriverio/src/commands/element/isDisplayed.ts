@@ -84,7 +84,7 @@ interface IsDisplayedOptions {
  *
  * @alias element.isDisplayed
  * @param {IsDisplayedOptions=}  options waitForEnabled options (optional)
- * @param {Boolean=} options.withinViewport set to true to check if element is within viewport
+ * @param {Boolean=} options.withinViewport set this option to true if you want the command to return false when the element is outside of the viewport
  * @return {Boolean} true if element is displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
