@@ -15,8 +15,8 @@ interface IsClickableOptions {
  * - the element is displayed
  * - the element is not disabled
  * - the element is within the viewport
- * - the element can be scrolled into the viewport (only when withinViewport is falsy)
  * - the element's center is not overlapped with another element
+ * - the element can be scrolled into the viewport (only when withinViewport is falsy)
  *
  * :::info
  *
