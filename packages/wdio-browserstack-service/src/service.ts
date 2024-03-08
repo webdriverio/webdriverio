@@ -138,7 +138,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
             try {
                 if (this._observability) {
                     patchConsoleLogs()
-                    this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
+                    this._insightsHandler = new InsightsHandler(
+                        this._browser,
+                        this._browser.capabilities as Capabilities.Capabilities,
+                        this._isAppAutomate(),
+                        this._browser.sessionId as string,
+                        this._config.framework,
+                        this._caps
+                    )
                     await this._insightsHandler.before()
                 }
 

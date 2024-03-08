@@ -131,6 +131,16 @@ describe('test-reporter', () => {
         const uploadEventDataSpy = jest.spyOn(reporter['listener'], 'testFinished').mockImplementation()
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
 
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
+
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
             getCloudProviderSpy.mockClear()
@@ -216,6 +226,15 @@ describe('test-reporter', () => {
         let reporter: TestReporter, uploadEventDataSpy: jest.SpyInstance
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         let testStartStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})
@@ -259,6 +278,15 @@ describe('test-reporter', () => {
         let reporter: TestReporter, uploadEventDataSpy: jest.SpyInstance
         jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         let testEndStats = { ...testStats }
+        let getPlatformVersionSpy
+
+        beforeAll(() => {
+            getPlatformVersionSpy = jest.spyOn(utils, 'getPlatformVersion').mockImplementation(() => { return 'some version' })
+        })
+
+        afterAll(() => {
+            getPlatformVersionSpy.mockClear()
+        })
 
         beforeEach(() => {
             reporter = new TestReporter({})

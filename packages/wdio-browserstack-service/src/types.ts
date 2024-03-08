@@ -285,6 +285,7 @@ interface IntegrationObject {
     browser_version?: string
     platform?: string
     product?: string
+    platform_version?: string
 }
 
 interface TestCodeBody {

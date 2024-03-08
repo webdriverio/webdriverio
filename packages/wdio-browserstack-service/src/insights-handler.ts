@@ -14,6 +14,7 @@ import {
     getCloudProvider,
     getGitMetaData,
     getHookType,
+    getPlatformVersion,
     getScenarioExamples,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
@@ -43,9 +44,10 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
+    private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
 
-    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
+    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         this._platformMeta = {
             browserName: browserCaps?.browserName,
             browserVersion: browserCaps?.browserVersion,
@@ -54,6 +56,8 @@ class _InsightsHandler {
             sessionId: sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+
+        this._userCaps = _userCaps
 
         this.registerListeners()
     }
@@ -779,7 +783,8 @@ class _InsightsHandler {
             browser: browserCaps?.browserName,
             browser_version: browserCaps?.browserVersion,
             platform: browserCaps?.platformName,
-            product: this._platformMeta?.product
+            product: this._platformMeta?.product,
+            platform_version: getPlatformVersion(this._userCaps as Capabilities.Capabilities)
         }
     }
 

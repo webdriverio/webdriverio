@@ -2,6 +2,7 @@ import gitRepoInfo from 'git-repo-info'
 import got from 'got'
 import path from 'path'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 import * as utils from '../src/util'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
@@ -1361,5 +1362,29 @@ describe('ObjectsAreEqual', function () {
 
     it('should return false for unequal values', function () {
         expect(utils.ObjectsAreEqual({ 'a': true }, { 'b': false })).toEqual(false)
+    })
+})
+
+describe('getPlatformVersion', () => {
+    it('should return undefined if no capabilities are provided', () => {
+        expect(utils.getPlatformVersion(null)).toBeUndefined()
+    })
+
+    it('should return platform version from bstack:options if available', () => {
+        const caps: Capabilities.Capabilities = {
+            'bstack:options': {
+                osVersion: '10.0'
+            },
+        }
+
+        expect(utils.getPlatformVersion(caps)).toBe('10.0')
+    })
+
+    it('should return undefined if no platform version is found', () => {
+        const caps: Capabilities.Capabilities = {
+            browserName: 'chrome',
+        }
+
+        expect(utils.getPlatformVersion(caps)).toBeUndefined()
     })
 })
