@@ -15,7 +15,7 @@ import type { WaitForOptions } from '../../types.js'
  * @param {WaitForOptions=}  options                waitForDisplayed options (optional)
  * @param {Number=}          options.timeout        time in ms (default: 500)
  * @param {Boolean=}         options.reverse        if true it waits for the opposite (default: false)
- * @param {Boolean=}         options.withinViewport set to `true` to wait until element is displayed within viewport (default: `false`)
+ * @param {Boolean=}         options.withinViewport set this option to true if you want the command to return false when the element is outside of the viewport
  * @param {String=}          options.timeoutMsg     if exists it overrides the default error message
  * @param {Number=}          options.interval       interval between checks (default: `waitforInterval`)
  * @return {Boolean} true    if element is displayed (or doesn't if flag is set)
