@@ -11,8 +11,9 @@ interface IsClickableOptions {
  *
  * An element is considered to be clickable when the following conditions are met:
  *
- * - the element exist and is displayed
- * - is not disabled
+ * - the element exists
+ * - the element is displayed
+ * - the element is not disabled
  * - the element is within the viewport
  * - the element can be scrolled into the viewport (only when withinViewport is falsy)
  * - the element's center is not overlapped with another element
