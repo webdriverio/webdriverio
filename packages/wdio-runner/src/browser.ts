@@ -5,6 +5,7 @@ import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
+import { ELEMENT_KEY } from 'webdriver'
 import { type Capabilities, type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
@@ -311,9 +312,38 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 throw new Error(`browser.${payload.commandName} is not a function`)
             }
 
-            const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
-            const resultMsg = this.#commandResponse({ id: payload.id, result })
+            /**
+             * user either the browser instance or an element based on whether or not
+             * a scope property was passed in
+             */
+            const scope = payload.scope
+                ? await browser.$({ [ELEMENT_KEY]: payload.scope })
+                : browser
 
+            let result = await (scope[payload.commandName as keyof typeof scope] as Function)(...payload.args)
+
+            /**
+             * if result is an element, transform it into an element reference
+             */
+            if (result?.constructor?.name === 'Element') {
+                result = result.elementId
+                    ? { [ELEMENT_KEY]: result.elementId }
+                    : result.error
+                        ? { message: result.error.message, stack: result.error.stack, name: result.error.name }
+                        : undefined
+            /**
+             * if result is an array of elements, transform it into an array of element references
+             */
+            } else if (result?.foundWith) {
+                /**
+                 * need await here since ElementArray functions return a promise
+                 */
+                result = (await result.map((res: any) => ({
+                    [ELEMENT_KEY]: res.elementId
+                }))).filter(Boolean)
+            }
+
+            const resultMsg = this.#commandResponse({ id: payload.id, result })
             log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
         } catch (error: any) {

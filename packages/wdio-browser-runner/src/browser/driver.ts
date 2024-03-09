@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
@@ -29,10 +30,6 @@ export default class ProxyDriver {
         commandWrapper: any
     ) {
         const cid = getCID()
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
         /**
          * log all console events once connected
          */
@@ -53,7 +50,7 @@ export default class ProxyDriver {
         const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
             prev[commandName] = {
-                value: this.#getMockedCommand(cid, commandName)
+                value: this.#getMockedCommand(commandName)
             }
             return prev
         }, {} as Record<string, { value: Function }>)
@@ -82,11 +79,27 @@ export default class ProxyDriver {
         prototype.emit = { writable: true, value: () => {} }
         prototype.on = { writable: true, value: () => {} }
 
+        /**
+         * register helper function to pass command execution into Node.js context
+         */
+        globalThis.wdio = {
+            execute: <CommandName>(commandName: CommandName, ...args: any[]) => {
+                return this.#getMockedCommand(commandName as string)(...args) as any
+            },
+            executeWithScope: <CommandName>(commandName: CommandName, scope: string, ...args: any[]) => {
+                return this.#getMockedCommand(commandName as string, scope)(...args) as any
+            }
+        }
+
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(window.__wdioEnv__.sessionId, commandWrapper)
     }
 
-    static #getMockedCommand (cid: string, commandName: string) {
+    /**
+     * @param commandName name of command to execute
+     * @param scope element id when command needs to be executed from an element scope
+     */
+    static #getMockedCommand (commandName: string, scope?: string) {
         const isDebugCommand = commandName === 'debug'
         return async (...args: unknown[]) => {
             if (!import.meta.hot) {
@@ -107,11 +120,13 @@ export default class ProxyDriver {
                 mochaFramework.setAttribute('style', 'display: none')
             }
 
+            const cid = getCID()
             import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
                 commandName,
                 cid,
                 id,
-                args
+                args,
+                scope
             }))
             return new Promise((resolve, reject) => {
                 let commandTimeout
@@ -174,7 +189,7 @@ export default class ProxyDriver {
             return
         }
         for (const commandName of value.customCommands) {
-            browser.addCommand(commandName, this.#getMockedCommand(cid, commandName))
+            browser.addCommand(commandName, this.#getMockedCommand(commandName))
         }
     }
 

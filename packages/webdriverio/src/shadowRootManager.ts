@@ -19,6 +19,10 @@ export class ShadowRootManager {
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, Set<string>>()
     #currentContext?: string
+    /**
+     * a map of Shadow DOM ids and their corresponding elements
+     */
+    #shadowRootElements = new Map<string, string>()
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -62,10 +66,8 @@ export class ShadowRootManager {
          */
         if (
             !args ||
-            args.length !== 3 ||
             args[0].type !== 'string' || args[0].value !== '[WDIO]' ||
-            args[1].type !== 'string' || args[1].value !== 'newShadowRoot' ||
-            args[2].type !== 'node'
+            args[1].type !== 'string' // command name, "newShadowRoot" or "removeShadowRoot"
         ) {
             return
         }
@@ -78,7 +80,22 @@ export class ShadowRootManager {
         }
 
         const shadowRootForContext = this.#shadowRoots.get(log.source.context)
-        shadowRootForContext?.add(args[2].sharedId as string)
+        if (!shadowRootForContext) {
+            return
+        }
+
+        const eventType = args[1].value
+        if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
+            shadowRootForContext.add(args[2].sharedId as string)
+            this.#shadowRootElements.set(args[2].sharedId as string, args[3].sharedId as string)
+            return
+        }
+
+        if (eventType === 'removeShadowRoot' && args[2].type === 'node') {
+            return args[2].sharedId && this.deleteShadowRoot(args[2].sharedId, log.source.context)
+        }
+
+        throw new Error(`Invalid parameters for "${eventType}" event: ${args.join(', ')}`)
     }
 
     /**
@@ -93,5 +110,24 @@ export class ShadowRootManager {
         }
         const shadowRoots = this.#shadowRoots.get(c)
         return shadowRoots ? [...shadowRoots] : []
+    }
+
+    deleteShadowRoot (id: string, context?: string) {
+        const c = context || this.#currentContext
+        if (!c) {
+            return
+        }
+        const shadowRoots = this.#shadowRoots.get(c)
+        shadowRoots?.delete(id)
+        this.#shadowRootElements.delete(id)
+    }
+
+    /**
+     * Get the custom element based on the shadow root id
+     * @param id element reference of a Shadow DOM element
+     * @returns the element that caries the Shadow DOM
+     */
+    getElementWithShadowDOM (id: string) {
+        return this.#shadowRootElements.get(id)
     }
 }

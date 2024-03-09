@@ -5,8 +5,6 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
 import { elementErrorHandler } from '../middlewares.js'
-import { findStrategy } from '../utils/findStrategy.js'
-import { getShadowRootManager } from '../shadowRootManager.js'
 import * as browserCommands from '../commands/browser.js'
 import type { Selector, AddCommandFn } from '../types.js'
 
@@ -131,6 +129,10 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
+    if (elemResponse.length === 0) {
+        return []
+    }
+
     const elements = [elemResponse].flat(1).map((res: ElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
@@ -182,38 +184,4 @@ export const getElements = function getElements(
     })
 
     return elements
-}
-
-function elementPromiseHandler (el: ElementReference) {
-    if ('error' in el) {
-        return
-    }
-    return el as ElementReference
-}
-
-/**
- * Parallel look up of a selector within multiple shadow roots
- * @param this WebdriverIO Browser or Element instance
- * @param selector selector to look up
- * @param isMulti set to true if you call from `$$` command
- * @returns a list of element references or undefined if not found
- */
-export async function findDeepElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector,
-    isMulti = false
-): Promise<(ElementReference | undefined)[]> {
-    const browser = getBrowserObject(this)
-    const shadowRootManager = getShadowRootManager(browser)
-    const shadowRoots = shadowRootManager.getShadowRootsForContext()
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-    const documentQuery = isMulti
-        ? browser.findElements(using, value)
-        : browser.findElement(using, value).then(elementPromiseHandler)
-    return (await Promise.all([
-        documentQuery,
-        ...[...shadowRoots].map((id) => (
-            browser.findElementFromShadowRoot(id, using, value).then(elementPromiseHandler)
-        ))
-    ])).flat()
 }

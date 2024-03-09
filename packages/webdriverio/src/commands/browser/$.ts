@@ -1,8 +1,9 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElement } from '../../utils/index.js'
-import { findDeepElement, getElement } from '../../utils/getElementObject.js'
+import { findElement, findDeepElement } from '../../utils/index.js'
+import { getElement } from '../../utils/getElementObject.js'
+import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -69,6 +70,31 @@ export async function $ (
     selector: Selector
 ): Promise<WebdriverIO.Element> {
     /**
+     * do a deep lookup if
+     * - we are using Bidi
+     * - have a string selector
+     * - that is not a deep selector
+     */
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+        /**
+         * run this in Node.js land if we are using browser runner
+         */
+        if (globalThis.wdio) {
+            /**
+             * `res` is an element reference as we strip down the element
+             * result to its element id
+             */
+            const res: ElementReference = 'elementId' in this
+                ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
+                : await globalThis.wdio.execute('$' as const, selector)
+            return getElement.call(this, selector as string, res)
+        }
+
+        const res = await findDeepElement.call(this, selector)
+        return getElement.call(this, selector as string, res)
+    }
+
+    /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
@@ -77,25 +103,6 @@ export async function $ (
         if (typeof elementRef[ELEMENT_KEY] === 'string') {
             return getElement.call(this, undefined, elementRef)
         }
-    }
-
-    /**
-     * do a deep lookup if we are using Bidi and have a string selector
-     */
-    if (this.isBidi && typeof selector === 'string') {
-        const results = await findDeepElement.call(this, selector)
-        const [browserFind, ...shadowRootFinds] = results
-
-        if (browserFind) {
-            return browser.$(browserFind)
-        }
-
-        const shadowFind = shadowRootFinds.filter(Boolean)[0]
-        if (!shadowFind) {
-            return getElement.call(this, selector as string, new Error('no element found'))
-        }
-
-        return getElement.call(this, selector as string, shadowFind)
     }
 
     const res = await findElement.call(this, selector)

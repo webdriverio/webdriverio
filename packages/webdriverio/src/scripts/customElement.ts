@@ -1,5 +1,6 @@
 interface EnhancedHTMLElement extends HTMLElement {
     connectedCallback?(): void;
+    disconnectedCallback?(): void;
 }
 
 interface CustomElementConstructor {
@@ -12,7 +13,11 @@ export default function customElementWrapper () {
         class WdioWrapperElement extends Constructor implements HTMLElement {
             connectedCallback() {
                 super.connectedCallback && super.connectedCallback()
-                console.debug('[WDIO]', 'newShadowRoot', this.shadowRoot)
+                console.debug('[WDIO]', 'newShadowRoot', this.shadowRoot, this)
+            }
+            disconnectedCallback() {
+                super.disconnectedCallback && super.disconnectedCallback()
+                console.debug('[WDIO]', 'removeShadowRoot', this.shadowRoot)
             }
         }
         return origFn(name, WdioWrapperElement, options)

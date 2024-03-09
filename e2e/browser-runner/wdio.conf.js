@@ -33,7 +33,7 @@ export const config = {
     capabilities: [
         isMac
             ? { browserName: 'safari' }
-            : { browserName: 'chrome', browserVersion: '122.0.6261.39' }
+            : { browserName: 'chrome', browserVersion: '122.0.6261.39', webSocketUrl: true }
     ],
 
     /**

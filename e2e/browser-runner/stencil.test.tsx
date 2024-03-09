@@ -96,4 +96,55 @@ describe('Stencil Component Testing', () => {
         page.unmount()
         await expect(page.root).not.toBeExisting()
     })
+
+    it('can auto peirce shadow dom', async () => {
+        render({
+            components: [AppProfile, NestedComponent],
+            template: () => (
+                <div>
+                    {/* @ts-ignore: types don't exist as we don't compile the components with Stencil */}
+                    <nested-component id="first transparent component"></nested-component>
+                    <div className="nested">
+                        {/* @ts-ignore: types don't exist as we don't compile the components with Stencil */}
+                        <nested-component id="transparent component in a nested context"></nested-component>
+                    </div>
+                    <div className="nested second">
+                        {/* @ts-ignore: types don't exist as we don't compile the components with Stencil */}
+                        <nested-component id="transparent component in a second nested context"></nested-component>
+                        {/* @ts-ignore: types don't exist as we don't compile the components with Stencil */}
+                        <app-profile match={{ params: { name: 'stencil' } }}></app-profile>
+                    </div>
+                </div>
+            )
+        })
+
+        await expect($('i')).toHaveText('I am a first transparent component!')
+        await expect($('.nested i')).not.toBeExisting()
+
+        /**
+         * is able to find element within multiple nested levels of shadow dom
+         * .second > app-profile#shadow-root > nested-component#shadow-root > i
+         */
+        await expect($('.second').$('app-profile').$('i'))
+            .toHaveText('I am a nested component!')
+        /**
+         * finds first <i/> in the first nested component element
+         */
+        await expect($('.nested').$('i'))
+            .toHaveText('I am a transparent component in a nested context!')
+
+        expect(await $$('i').map((el) => el.getText())).toEqual([
+            'I am a first transparent component!',
+            'I am a transparent component in a nested context!',
+            'I am a transparent component in a second nested context!',
+            'I am a nested component!'
+        ])
+        expect(await $('.nested').$$('i').map((el) => el.getText())).toEqual([
+            'I am a transparent component in a nested context!',
+        ])
+        expect(await $('.second').$$('i').map((el) => el.getText())).toEqual([
+            'I am a transparent component in a second nested context!',
+            'I am a nested component!'
+        ])
+    })
 })

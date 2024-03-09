@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { URL } from 'node:url'
@@ -13,9 +14,11 @@ import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
+import isDescendent from '../scripts/isDescendant.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
+import { getShadowRootManager, type ShadowRootManager } from '../shadowRootManager.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
@@ -124,7 +127,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
 
     if (parsedValue.value?.indexOf('rgb') === 0) {
         /**
-         * remove whitespaces in rgb values
+         * remove whitespace in rgb values
          */
         parsedValue.value = parsedValue.value.replace(/\s/g, '')
 
@@ -231,7 +234,197 @@ export function isStaleElementError (err: Error) {
 }
 
 /**
+ * handle promise result (resolved or rejected promises)
+ * @param handle browsing context
+ * @param shadowRootManager instance of ShadowRootManager
+ * @param shadowRootId shadow root id that was inspected
+ * @returns a function to handle the result of a shadow root inspection
+ */
+function elementPromiseHandler <T extends object>(handle: string, shadowRootManager: ShadowRootManager, shadowRootId?: string) {
+    return (el: T | Error) => {
+        const errorString = 'error' in el && typeof el.error === 'string'
+            ? el.error
+            : 'message' in el && typeof el.message === 'string'
+                ? el.message
+                : undefined
+
+        if (errorString) {
+            /**
+             * clear up shadow root if it's not attached to the DOM anymore
+             */
+            if (shadowRootId && errorString.includes('detached shadow root')) {
+                shadowRootManager.deleteShadowRoot(shadowRootId, handle)
+            }
+            return
+        }
+        return el as T
+    }
+}
+
+/**
+ * determine if element is within the scope of another element
+ * @param node an element somewhere located within the shadow DOM tree
+ * @param host the host element (can be a shadow root or the document)
+ * @param handle the browsing context
+ * @returns true if the node is within the scope of the host
+ */
+async function isWithinElementScope (
+    node: ElementReference,
+    host: WebdriverIO.Element,
+    handle?: string
+): Promise<boolean> {
+    const browser = getBrowserObject(host)
+    const shadowRootManager = getShadowRootManager(browser)
+    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
+
+    const [documentFound, ...shadowFinds] = await Promise.all([
+        browser.execute(
+            isDescendent,
+            host as any as HTMLElement,
+            node as any as HTMLElement
+        ).then((wasFound) => wasFound ? host : undefined),
+        ...shadowRoots.map((shadowRootId) => (
+            browser.execute(
+                isDescendent,
+                { [ELEMENT_KEY]: shadowRootId } as any as HTMLElement,
+                node as any as HTMLElement
+            ).then((wasFound) => wasFound ? shadowRootId : undefined)
+        ))
+    ])
+
+    if (documentFound) {
+        return true
+    }
+
+    const allShadowFinds = shadowFinds.filter(Boolean) as string[]
+    if (allShadowFinds.length > 1) {
+        throw new Error('isWithinElementScope: too many results')
+    }
+
+    const shadowRootId = allShadowFinds[0]
+    if (!shadowRootId) {
+        return false
+    }
+
+    const newNode = shadowRootManager.getElementWithShadowDOM(shadowRootId)
+    if (!newNode) {
+        return false
+    }
+
+    return isWithinElementScope(
+        {
+            [ELEMENT_KEY]: newNode
+        },
+        host,
+        handle,
+    )
+}
+
+/**
+ * Parallel look up of a selector within multiple shadow roots
+ * @param this WebdriverIO Browser or Element instance
+ * @param selector selector to look up
+ * @param isMulti set to true if you call from `$$` command
+ * @returns a list of shadow root ids with their corresponding matches or undefined if not found
+ */
+export async function findDeepElement(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    selector: Selector
+): Promise<ElementReference | Error> {
+    const browser = getBrowserObject(this)
+    const shadowRootManager = getShadowRootManager(browser)
+    const handle = await browser.getWindowHandle()
+
+    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const deepElementResult = await Promise.all([
+        browser.findElement(using, value).then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined)),
+        ...shadowRoots.map(
+            (shadowRootNodeId) => browser.findElementFromShadowRoot(shadowRootNodeId, using, value)
+                .then(
+                    elementPromiseHandler<ElementReference>(handle, shadowRootManager, shadowRootNodeId),
+                    elementPromiseHandler<ElementReference>(handle, shadowRootManager, shadowRootNodeId)
+                )
+                .then(async (res) => {
+                    if (!res) {
+                        return
+                    }
+
+                    /**
+                     * if an element was found with given selector within a shadow root
+                     * and
+                     * if we are calling the command from an element scope
+                     * then
+                     * we need to check if the found element is nested within the scope
+                     */
+                    if ('elementId' in this) {
+                        return (await isWithinElementScope(res, this as WebdriverIO.Element, handle))
+                            ? res
+                            : undefined
+                    }
+
+                    return res
+                })
+        )
+    ])
+
+    const allElementsFiltered = deepElementResult.flat().filter(Boolean) as ElementReference[]
+    if (allElementsFiltered.length === 0) {
+        return new Error(`Couldn't find element with selector "${selector}"`)
+    }
+
+    return allElementsFiltered[0] as ElementReference
+}
+
+/**
+ * Parallel look up of a selector within multiple shadow roots
+ * @param this WebdriverIO Browser or Element instance
+ * @param selector selector to look up
+ * @param isMulti set to true if you call from `$$` command
+ * @returns a list of shadow root ids with their corresponding matches or undefined if not found
+ */
+export async function findDeepElements(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    selector: Selector
+): Promise<ElementReference[]> {
+    const browser = getBrowserObject(this)
+    const shadowRootManager = getShadowRootManager(browser)
+    const handle = await browser.getWindowHandle()
+
+    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const deepElementsResult = await Promise.all([
+        browser.findElements(using, value),
+        ...shadowRoots.map(
+            (shadowRootNodeId) => browser.findElementsFromShadowRoot(shadowRootNodeId, using, value)
+                .then(
+                    elementPromiseHandler<ElementReference[]>(handle, shadowRootManager, shadowRootNodeId),
+                    elementPromiseHandler<ElementReference[]>(handle, shadowRootManager, shadowRootNodeId)
+                ).then(async (res) => {
+                    if (!res) {
+                        return
+                    }
+
+                    if ('elementId' in this) {
+                        const allElementsWithinScope = await Promise.all(res.map(
+                            (el) => isWithinElementScope(el, this as WebdriverIO.Element, handle)
+                                .then((isWithinScope) => isWithinScope ? el : undefined)
+                        ))
+
+                        return allElementsWithinScope.filter(Boolean) as ElementReference[]
+                    }
+
+                    return res
+                })
+        )
+    ])
+
+    return deepElementsResult.flat().filter(Boolean) as ElementReference[]
+}
+
+/**
  * logic to find an element
+ * Note: the order of if statements matters
  */
 export async function findElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
