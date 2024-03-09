@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.33.1 (2024-03-09)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12454](https://github.com/webdriverio/webdriverio/pull/12454) Fix CBT for hooks and Skipped tests for hook failures ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#12439](https://github.com/webdriverio/webdriverio/pull/12439) enable edge for devTools env detector ([@lacell75](https://github.com/lacell75))
+
+#### Committers: 2
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v8.33.0 (2024-03-07)
 
 #### :rocket: New Feature
