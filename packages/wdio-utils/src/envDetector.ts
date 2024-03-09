@@ -292,7 +292,7 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
  * @param  {Object}  capabilities           caps of session response
  * @return {Object}                         object with environment flags
  */
-export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabilities) {
+export function devtoolsEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
     return {
         isDevTools: true,
         isW3C: true,
@@ -300,11 +300,11 @@ export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabil
         isIOS: false,
         isAndroid: false,
         isFirefox: false,
-        isChrome: browserName === 'chrome',
+        isChrome: capabilities.browserName === 'chrome',
         isSauce: false,
         isSeleniumStandalone: false,
         isBidi: false,
-        isChromium: browserName === 'chrome'
+        isChromium: capabilities.browserName === 'chrome' || isChromium(capabilities)
     }
 }
 
