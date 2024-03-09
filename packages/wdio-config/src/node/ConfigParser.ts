@@ -246,7 +246,14 @@ export default class ConfigParser {
     private mergeReportersAndServices(object: MergeConfig) {
         const services: Services.ServiceEntry[] = object?.services ? object.services : []
         const reporters: Reporters.ReporterEntry[] = object?.reporters ? object.reporters : []
-        this._config = deepmerge(this._config, { services: services, reporters: reporters }) as TestrunnerOptionsWithParameters
+
+        if (services.length > 0) {
+            this._config = deepmerge(this._config, { services: services }) as TestrunnerOptionsWithParameters
+        }
+
+        if (reporters.length > 0) {
+            this._config = deepmerge(this._config, { reporters: reporters }) as TestrunnerOptionsWithParameters
+        }
     }
 
     /**
