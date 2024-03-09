@@ -133,6 +133,12 @@ describe('Stencil Component Testing', () => {
         await expect($('.nested').$('i'))
             .toHaveText('I am a transparent component in a nested context!')
 
+        /**
+         * can combine different selector strategies
+         */
+        await expect($('.nested').$('=I am a link')).toBePresent()
+        await expect($('.nested').$('*=a link')).toBePresent()
+
         expect(await $$('i').map((el) => el.getText())).toEqual([
             'I am a first transparent component!',
             'I am a transparent component in a nested context!',

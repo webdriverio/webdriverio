@@ -18,7 +18,7 @@ import isDescendent from '../scripts/isDescendant.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import { getShadowRootManager, type ShadowRootManager } from '../shadowRootManager.js'
+import { getShadowRootManager, type ShadowRootManager } from '../shadowRoot.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
 
@@ -240,7 +240,7 @@ export function isStaleElementError (err: Error) {
  * @param shadowRootId shadow root id that was inspected
  * @returns a function to handle the result of a shadow root inspection
  */
-function elementPromiseHandler <T extends object>(handle: string, shadowRootManager: ShadowRootManager, shadowRootId?: string) {
+export function elementPromiseHandler <T extends object>(handle: string, shadowRootManager: ShadowRootManager, shadowRootId?: string) {
     return (el: T | Error) => {
         const errorString = 'error' in el && typeof el.error === 'string'
             ? el.error
@@ -268,7 +268,7 @@ function elementPromiseHandler <T extends object>(handle: string, shadowRootMana
  * @param handle the browsing context
  * @returns true if the node is within the scope of the host
  */
-async function isWithinElementScope (
+export async function isWithinElementScope (
     node: ElementReference,
     host: WebdriverIO.Element,
     handle?: string
@@ -311,6 +311,10 @@ async function isWithinElementScope (
         return false
     }
 
+    /**
+     * recursively run the same function again, this time, instead of looking for the
+     * node, we look for the found custom component outside the shadow root.
+     */
     return isWithinElementScope(
         {
             [ELEMENT_KEY]: newNode
@@ -337,8 +341,17 @@ export async function findDeepElement(
 
     const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    /**
+     * look up selector within document and all shadow roots
+     */
     const deepElementResult = await Promise.all([
+        /**
+         * standard lookup in document
+         */
         browser.findElement(using, value).then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined)),
+        /**
+         * lookup in shadow roots
+         */
         ...shadowRoots.map(
             (shadowRootNodeId) => browser.findElementFromShadowRoot(shadowRootNodeId, using, value)
                 .then(
@@ -393,8 +406,17 @@ export async function findDeepElements(
 
     const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    /**
+     * look up selector within document and all shadow roots
+     */
     const deepElementsResult = await Promise.all([
+        /**
+         * standard lookup in document
+         */
         browser.findElements(using, value),
+        /**
+         * lookup in shadow roots
+         */
         ...shadowRoots.map(
             (shadowRootNodeId) => browser.findElementsFromShadowRoot(shadowRootNodeId, using, value)
                 .then(
@@ -419,6 +441,10 @@ export async function findDeepElements(
         )
     ])
 
+    /**
+     * lastly, we filter all elements that are not defined, e.g. not found
+     * or not within the scope of the host element
+     */
     return deepElementsResult.flat().filter(Boolean) as ElementReference[]
 }
 

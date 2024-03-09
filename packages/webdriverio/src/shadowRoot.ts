@@ -14,6 +14,11 @@ export function getShadowRootManager(browser: WebdriverIO.Browser) {
     return newContext
 }
 
+/**
+ * This class is responsible for managing shadow roots and their elements.
+ * It allows to do deep element lookups and pierce into shadow DOMs across
+ * all components of a page.
+ */
 export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
@@ -26,6 +31,14 @@ export class ShadowRootManager {
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
+
+        /**
+         * don't run setup when running unit tests
+         */
+        if (process.env.VITEST_WORKER_ID) {
+            this.#initialize = Promise.resolve(true)
+            return
+        }
 
         /**
          * listen on required bidi events
@@ -70,12 +83,13 @@ export class ShadowRootManager {
             args[1].type !== 'string' // command name, "newShadowRoot" or "removeShadowRoot"
         ) {
             return
+
         }
 
         /**
          * filter for log entry that was created in the right context
          */
-        if (!log.source.context || !this.#shadowRoots.has(log.source.context)) {
+        if (!log.source.context) {
             return
         }
 

@@ -12,7 +12,7 @@ import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
-import { getShadowRootManager } from './shadowRootManager.js'
+import { getShadowRootManager } from './shadowRoot.js'
 import type { AttachOptions, RemoteOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
