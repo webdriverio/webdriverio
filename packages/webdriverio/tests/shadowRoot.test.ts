@@ -24,8 +24,11 @@ describe('ShadowRootManager', () => {
     })
 
     it('registers correct event listeners', async () => {
+        const wid = process.env.VITEST_WORKER_ID
+        delete process.env.VITEST_WORKER_ID
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
+        process.env.VITEST_WORKER_ID = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(2)
