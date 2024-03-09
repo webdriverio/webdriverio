@@ -98,7 +98,7 @@ export default class BrowserRunner extends LocalRunner {
 
         try {
             await server.start()
-            runArgs.args.baseUrl = `http://localhost:${server.config.server?.port}`
+            runArgs.args.baseUrl = `http://${server.config.server?.host}:${server.config.server?.port}`
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }
