@@ -171,10 +171,8 @@ export default class ConfigParser {
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         const customDeepMerge = deepmergeCustom({
             mergeArrays: (values, utils, meta) => {
-                if (meta?.key === 'services') {
-                    return this._config.services
-                } else if (meta?.key === 'reporters') {
-                    return this._config.reporters
+                if (meta && ['services', 'reporters'].includes(meta.key as string)) {
+                    return this._config[meta.key as keyof WebdriverIO.Config]
                 }
                 return utils.actions.defaultMerge
             }
