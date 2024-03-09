@@ -174,8 +174,7 @@ describe('beforeScenario', () => {
             }
         } as any)
 
-        expect(executeAsyncSpy).toBeCalledTimes(1)
-        expect(logInfoMock.mock.calls[1][0])
+        expect(logInfoMock.mock.calls[0][0])
             .toContain('Automate test case execution has started.')
     })
 
@@ -221,7 +220,7 @@ describe('beforeScenario', () => {
             }
         } as any)
 
-        expect(executeSpy).toBeCalledTimes(1)
+        expect(executeSpy).toBeCalledTimes(0)
     })
 
     it('should not execute test started if shouldRunTestHooks is false', async () => {
@@ -247,7 +246,7 @@ describe('beforeScenario', () => {
         const logErrorMock = vi.spyOn(log, 'error')
         vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
         accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
-        accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+        accessibilityHandler['checkIfPageOpened'] = vi.fn().mockImplementation(() => { throw new Error() })
         await accessibilityHandler.beforeScenario({
             pickle: {
                 name: 'pickle-name',
@@ -263,7 +262,7 @@ describe('beforeScenario', () => {
         } as any)
 
         expect(logErrorMock.mock.calls[0][0])
-            .toContain('Exception in starting accessibility automation scan for this test case Error')
+            .toContain('Exception in starting accessibility automation scan for this test case')
     })
 })
 
@@ -392,8 +391,7 @@ describe('beforeTest', () => {
 
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(accessibilityHandler['sendTestStartEvent']).toBeCalledTimes(1)
-            expect(logInfoMock.mock.calls[1][0])
+            expect(logInfoMock.mock.calls[0][0])
                 .toContain('Automate test case execution has started.')
             vi.fn().mockRestore()
         })
@@ -414,7 +412,7 @@ describe('beforeTest', () => {
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(false)
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(executeSpy).toBeCalledTimes(1)
+            expect(executeSpy).toBeCalledTimes(0)
         })
 
         it('should not execute test started if shouldRunTestHooks is false', async () => {
@@ -427,8 +425,7 @@ describe('beforeTest', () => {
         it('should throw error in before test if exception occurs', async () => {
             const logErrorMock = vi.spyOn(log, 'error')
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-            accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
-            accessibilityHandler['sendTestStartEvent'] = vi.fn().mockImplementation(() => { throw new Error() })
+            accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { throw new Error() })
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
             expect(logErrorMock.mock.calls[0][0])

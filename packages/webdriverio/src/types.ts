@@ -8,6 +8,7 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
 import type { Matches, ErrorReason } from './utils/interception/types.js'
+import type { Button, ButtonNames } from './utils/actions/pointer.js'
 
 export * from './utils/interception/types.js'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -435,10 +436,10 @@ export type NewWindowOptions = {
 }
 
 export type ClickOptions = {
-    button?: number | string,
-    x?: number,
-    y?: number,
-    skipRelease?:boolean
+    button: Button | ButtonNames,
+    x: number,
+    y: number,
+    skipRelease:boolean
 }
 
 export type WaitForOptions = {
