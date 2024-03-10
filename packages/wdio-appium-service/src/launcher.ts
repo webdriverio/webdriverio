@@ -77,12 +77,14 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             for (const [, capability] of Object.entries(this._capabilities)) {
                 const cap = (capability.capabilities as Capabilities.W3CCapabilities) || capability
                 const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
-                !isCloudCapability(c) && isAppiumCapability(c) && Object.assign(
-                    capability,
-                    DEFAULT_CONNECTION,
-                    { path: this._args.basePath, port },
-                    { ...capability }
-                )
+                if (!isCloudCapability(c) && isAppiumCapability(c)) {
+                    Object.assign(
+                        capability,
+                        DEFAULT_CONNECTION,
+                        { path: this._args.basePath, port },
+                        { ...capability }
+                    )
+                }
             }
             return
         }
