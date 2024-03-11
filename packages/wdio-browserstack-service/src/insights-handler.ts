@@ -246,7 +246,7 @@ class _InsightsHandler {
         }
         this.setCurrentHook({ uuid: hookUUID })
         this.attachHookData(context, hookUUID)
-        this.listener.hookStarted(this.getRunData(test, 'HookStarted'))
+        this.listener.hookStarted(this.getRunData(test, 'HookRunStarted'))
     }
 
     async afterHook (test: Frameworks.Test|CucumberHook|undefined, result: Frameworks.TestResult) {
@@ -288,7 +288,7 @@ class _InsightsHandler {
                         startedAt: (new Date()).toISOString(),
                         finishedAt: (new Date()).toISOString()
                     }
-                    this.listener.hookFinished(this.getRunData(skippedTest, 'TestRunSkipped'))
+                    this.listener.testFinished(this.getRunData(skippedTest, 'TestRunSkipped'))
                 }
             }
 
