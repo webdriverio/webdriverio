@@ -138,9 +138,14 @@ export default class AllureReporter extends WDIOReporter {
         while (this._state.currentAllureTestOrStep) {
             const currentTest = this._state.pop() as AllureTest | AllureStep
             const isAnyStepFailed = currentTest.wrappedItem.steps.some((step) => step.status === AllureStatus.FAILED)
+            const isAnyStepBroken = currentTest.wrappedItem.steps.some((step) => step.status === AllureStatus.BROKEN)
 
             currentTest.stage = Stage.FINISHED
-            currentTest.status = isAnyStepFailed ? AllureStatus.FAILED : AllureStatus.PASSED
+            currentTest.status = isAnyStepFailed
+                ? AllureStatus.FAILED
+                : isAnyStepBroken
+                    ? AllureStatus.BROKEN
+                    : AllureStatus.PASSED
 
             if (currentTest instanceof AllureTest) {
                 setAllureIds(currentTest, this._state.currentSuite)
