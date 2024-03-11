@@ -54,6 +54,9 @@ vi.mock('fs', () => ({
         createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
         createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
         stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        writeFileSync: vi.fn()
     }
 }))
 
@@ -1047,7 +1050,7 @@ describe('createAccessibilityTestRun', () => {
             json: () => Promise.resolve({ data: { accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' } }),
         } as any)
 
-        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
+        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, { bstackServiceVersion: '1.2.3' })
         expect(got).toBeCalledTimes(1)
         expect(result).toEqual('0.0.6.0')
     })
@@ -1061,7 +1064,7 @@ describe('createAccessibilityTestRun', () => {
         const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
         expect(got).toBeCalledTimes(1)
         expect(result).toEqual(null)
-        expect(logInfoMock.mock.calls[3][0]).contains('xception while creating test run for BrowserStack Accessibility Automation')
+        expect(logInfoMock.mock.calls[3][0]).contains('Exception while creating test run for BrowserStack Accessibility Automation')
     })
 
     afterEach(() => {
@@ -1127,7 +1130,7 @@ describe('getA11yResults', () => {
         getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: vi.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1145,7 +1148,7 @@ describe('getA11yResults', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
@@ -1173,7 +1176,7 @@ describe('getA11yResultsSummary', () => {
         getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: vi.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1191,7 +1194,7 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
