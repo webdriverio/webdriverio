@@ -757,8 +757,8 @@ importers:
         specifier: 8.6.0
         version: 8.6.0
       puppeteer-core:
-        specifier: 22.3.0
-        version: 22.3.0
+        specifier: 22.4.1
+        version: 22.4.1
       webdriverio:
         specifier: 8.32.1
         version: link:../webdriverio
@@ -10160,6 +10160,17 @@ packages:
       devtools-protocol: 0.0.1249869
       mitt: 3.0.1
       urlpattern-polyfill: 10.0.0
+    dev: true
+
+  /chromium-bidi@0.5.12(devtools-protocol@0.0.1249869):
+    resolution: {integrity: sha512-sZMgEBWKbupD0Q7lyFu8AWkrE+rs5ycE12jFkGwIgD/VS8lDPtelPlXM7LYaq4zrkZ/O2L3f4afHUHL0ICdKog==}
+    peerDependencies:
+      devtools-protocol: '*'
+    dependencies:
+      devtools-protocol: 0.0.1249869
+      mitt: 3.0.1
+      urlpattern-polyfill: 10.0.0
+    dev: false
 
   /chromium-bidi@0.5.9(devtools-protocol@0.0.1249869):
     resolution: {integrity: sha512-wOTX3m2zuHX0zRX4h7Ol1DAGz0cqHzo2IrAPvOqBxdd4ZR32vxg4FKNjmBihi1oP9b1QGSBBG5VNUUXUCsxDfg==}
@@ -18645,6 +18656,24 @@ packages:
       - encoding
       - supports-color
       - utf-8-validate
+    dev: true
+
+  /puppeteer-core@22.4.1:
+    resolution: {integrity: sha512-l9nf8NcirYOHdID12CIMWyy7dqcJCVtgVS+YAiJuUJHg8+9yjgPiG2PcNhojIEEpCkvw3FxvnyITVfKVmkWpjA==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@puppeteer/browsers': 2.1.0
+      chromium-bidi: 0.5.12(devtools-protocol@0.0.1249869)
+      cross-fetch: 4.0.0
+      debug: 4.3.4(supports-color@8.1.1)
+      devtools-protocol: 0.0.1249869
+      ws: 8.16.0
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+    dev: false
 
   /qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
