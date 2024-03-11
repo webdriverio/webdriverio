@@ -140,17 +140,19 @@ class _AccessibilityHandler {
 
         const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
         const testIdentifier = this.getIdentifier(test)
-        const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
 
         if (this._sessionId) {
             /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
             AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanTest
         }
 
-        if (!isPageOpened) {
-            return
-        }
         try {
+            const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
+
+            if (!isPageOpened) {
+                return
+            }
+
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
             if (shouldScanTest) {
@@ -211,24 +213,24 @@ class _AccessibilityHandler {
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
-        const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
-        const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
-
-        if (this._sessionId) {
-            /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
-            AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
-        }
 
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
         }
 
-        if (!isPageOpened) {
-            return
-        }
-
         try {
+            const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions)
+            const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
             this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
+
+            if (this._sessionId) {
+                /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
+                AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
+            }
+
+            if (!isPageOpened) {
+                return
+            }
 
             if (shouldScanScenario) {
                 log.info('Automate test case execution has started.')

@@ -1276,7 +1276,7 @@ describe('getA11yResults', () => {
         getInstance: jest.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: jest.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: jest.fn(),
         on: jest.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1294,7 +1294,7 @@ describe('getA11yResults', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         jest.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
@@ -1322,7 +1322,7 @@ describe('getA11yResultsSummary', () => {
         getInstance: jest.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: jest.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: jest.fn(),
         on: jest.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1340,7 +1340,7 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         jest.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
