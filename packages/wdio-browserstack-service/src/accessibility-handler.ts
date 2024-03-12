@@ -120,7 +120,7 @@ class _AccessibilityHandler {
         }
 
         accessibilityScripts.commandsToWrap
-            .filter((command) => (command.name && command.class && command.name !== 'waitForStable'))
+            .filter((command) => (command.name && command.class))
             .forEach((command) => {
                 try {
                     this._browser?.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
