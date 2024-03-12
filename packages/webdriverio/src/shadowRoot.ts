@@ -33,9 +33,9 @@ export class ShadowRootManager {
         this.#browser = browser
 
         /**
-         * don't run setup when running unit tests
+         * don't run setup when Bidi is not supported or running unit tests
          */
-        if (process.env.VITEST_WORKER_ID) {
+        if (!browser.isBidi || process.env.VITEST_WORKER_ID) {
             this.#initialize = Promise.resolve(true)
             return
         }
