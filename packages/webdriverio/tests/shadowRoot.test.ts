@@ -26,13 +26,22 @@ describe('ShadowRootManager', () => {
     it('registers correct event listeners', async () => {
         const wid = process.env.VITEST_WORKER_ID
         delete process.env.VITEST_WORKER_ID
-        const browser = { ...defaultBrowser } as any
+        const browser = { ...defaultBrowser, isBidi: true } as any
         const manager = getShadowRootManager(browser)
         process.env.VITEST_WORKER_ID = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(2)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+    })
+
+    it('should not register event listeners if not in bidi mode', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        expect(await manager.initialize()).toBe(true)
+        expect(browser.sessionSubscribe).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
     it('should reset shadow roots on context load', () => {
