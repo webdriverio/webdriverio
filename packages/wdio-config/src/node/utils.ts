@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import { access } from 'node:fs/promises'
 
 import { resolve } from 'import-meta-resolve'
 
@@ -27,6 +28,8 @@ export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCom
             throw new Error('test fail')
         }
         await resolve('ts-node', import.meta.url)
+        const loaderPath = await resolve('ts-node/esm/transpile-only.mjs', import.meta.url)
+        await access(new URL(loaderPath))
         process.env.WDIO_LOAD_TS_NODE = '1'
         objectToEnv(autoCompileConfig.tsNodeOpts)
         return true

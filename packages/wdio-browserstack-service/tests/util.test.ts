@@ -20,7 +20,6 @@ import {
     stopBuildUpstream,
     launchTestSession,
     getGitMetaData,
-    uploadEventData,
     getLogTag,
     getHookType,
     isScreenshotCommand,
@@ -40,6 +39,7 @@ import {
     uploadLogs
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../src/constants.js'
 
 const log = logger('test')
 
@@ -53,6 +53,9 @@ vi.mock('fs', () => ({
         createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
         createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
         stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        writeFileSync: vi.fn(),
     }
 }))
 
@@ -652,19 +655,19 @@ describe('getScenarioExamples', () => {
 
 describe('stopBuildUpstream', () => {
     it('return error if completed but jwt token not present', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
 
         const result: any = await stopBuildUpstream()
 
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 
     it('return success if completed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({})))
 
@@ -674,8 +677,8 @@ describe('stopBuildUpstream', () => {
     })
 
     it('return error if failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({})))
 
@@ -699,38 +702,6 @@ describe('launchTestSession', () => {
         const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {})
         assertMethodCalls(vi.mocked(fetch), 'POST', 1)
         expect(result).toEqual(undefined)
-    })
-})
-
-describe('uploadEventData', () => {
-    beforeEach(() => {
-        vi.mocked(fetch).mockClear()
-    })
-
-    it('fetch post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ })))
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 1)
-    })
-
-    it('fetch post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({ })))
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 1)
-    })
-
-    it('fetch post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        assertMethodCalls(vi.mocked(fetch), 'POST', 0)
     })
 })
 
@@ -1086,7 +1057,7 @@ describe('createAccessibilityTestRun', () => {
         vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' })))
 
-        const result = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
+        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, { bstackServiceVersion: '1.2.3' })
         expect(fetch).toBeCalledTimes(1)
         expect(result).toEqual(null)
         expect(logInfoMock.mock.calls[0][0]).contains('Exception while creating test run for BrowserStack Accessibility Automation')
@@ -1151,7 +1122,7 @@ describe('getA11yResults', () => {
         getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: vi.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1169,7 +1140,7 @@ describe('getA11yResults', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
@@ -1197,7 +1168,7 @@ describe('getA11yResultsSummary', () => {
         getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: vi.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1215,7 +1186,7 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 

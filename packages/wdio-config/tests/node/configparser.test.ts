@@ -313,13 +313,14 @@ describe('ConfigParser', () => {
 
             it('should just continue without initiation when autoCompile:false', async () => {
                 process.env.THROW_BABEL_REGISTER = '1'
+                const babelRegister = vi.fn()
                 const configParserBuilder = ConfigParserBuilder
                     .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
                         autoCompileOpts: {
                             autoCompile: false
                         }
                     })
-                    .withBabelModule()
+                    .withBabelModule(babelRegister)
                     .withFiles([
                         ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
                     ])
@@ -327,6 +328,27 @@ describe('ConfigParser', () => {
                 const configParser = configParserBuilder.build()
                 await configParser.initialize()
                 expect(requireMock).not.toHaveBeenCalled()
+                expect(babelRegister).not.toHaveBeenCalled()
+            })
+
+            it('should just continue without initiation with --autoCompileOpts.autoCompile=false', async () => {
+                process.env.THROW_BABEL_REGISTER = '1'
+                const babelRegister = vi.fn()
+                const configParserBuilder = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
+                        autoCompileOpts: {
+                            autoCompile: 'false'
+                        }
+                    })
+                    .withBabelModule(babelRegister)
+                    .withFiles([
+                        ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
+                    ])
+                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
+                const configParser = configParserBuilder.build()
+                await configParser.initialize()
+                expect(requireMock).not.toHaveBeenCalled()
+                expect(babelRegister).not.toHaveBeenCalled()
             })
 
             it('should just continue without initiation if @babel/register does not exist', async () => {
