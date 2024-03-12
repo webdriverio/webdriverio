@@ -19,6 +19,11 @@ if ('process' in globalThis && globalThis.process.versions?.node) {
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
+const ERRORS_TO_EXCLUDE_FROM_RETRY = [
+    'detached shadow root',
+    'move target out of bounds'
+]
+
 export class RequestLibError extends Error {
     statusCode?: number
     body?: any
@@ -263,10 +268,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         }
 
         /**
-         * Move out of bounds errors can be excluded from the request retry mechanism as
+         * some errors can be excluded from the request retry mechanism as
          * it likely does not changes anything and the error is handled within the command.
          */
-        if (error.name === 'move target out of bounds') {
+        if (ERRORS_TO_EXCLUDE_FROM_RETRY.includes(error.name)) {
             throw error
         }
 

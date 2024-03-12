@@ -1,6 +1,6 @@
 export function getCID() {
     const urlParamString = new URLSearchParams(window.location.search)
-    return (
+    const cid = (
         // initial request contains cid as query parameter
         urlParamString.get('cid') ||
         // if not provided check for document cookie, set by `@wdio/runner` package
@@ -10,6 +10,12 @@ export function getCID() {
             .split('=')
             .pop()
     )
+
+    if (!cid) {
+        throw new Error('"cid" query parameter is missing')
+    }
+
+    return cid
 }
 
 export const showPopupWarning = <T>(name: string, value: T, defaultValue?: T) => (...params: any[]) => {
@@ -29,6 +35,12 @@ export const showPopupWarning = <T>(name: string, value: T, defaultValue?: T) =>
 export function sanitizeConsoleArgs (args: unknown[]) {
     return args.map((arg: any) => {
         try {
+            if (arg && typeof arg.selector === 'string' && arg.error) {
+                return `WebdriverIO.Element<"${arg.selector}">`
+            }
+            if (arg && typeof arg.selector === 'string' && typeof arg.length === 'number') {
+                return `WebdriverIO.Element<${arg.length}x "${arg.selector}">`
+            }
             if (arg && typeof arg.selector === 'string') {
                 return `WebdriverIO.Element<"${arg.selector}">`
             }
