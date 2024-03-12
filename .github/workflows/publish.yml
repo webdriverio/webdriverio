@@ -12,6 +12,7 @@ on:
           - patch
           - minor
           - major
+          - premajor
       distTag:
         description: 'NPM tag (e.g. use "next --canary" to release a test version, add "--force-publish" to release all packages)'
         required: true
