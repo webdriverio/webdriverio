@@ -1,3 +1,5 @@
 {
-  "type": "commonjs"
+  "name": "@wdio/globals-cjs",
+  "type": "commonjs",
+  "private": true
 }

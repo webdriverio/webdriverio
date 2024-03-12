@@ -1,3 +1,5 @@
 {
-  "type": "commonjs"
+  "name": "webdriver-cjs",
+  "type": "commonjs",
+  "private": true
 }

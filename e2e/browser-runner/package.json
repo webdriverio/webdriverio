@@ -1,3 +1,5 @@
 {
-    "type": "module"
+  "name": "e2e-browser-runner",
+  "type": "module",
+  "private": true
 }
