@@ -4,6 +4,7 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { browser } from '@wdio/globals'
+import safeStringify from 'safe-stringify'
 
 import { getCID, sanitizeConsoleArgs } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -200,7 +201,7 @@ export default class ProxyDriver {
                 import.meta.hot?.send(WDIO_EVENT_NAME, this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
-                    args: sanitizeConsoleArgs(args),
+                    args: JSON.parse(safeStringify(sanitizeConsoleArgs(args))),
                     cid
                 }))
                 origCommand(...args)

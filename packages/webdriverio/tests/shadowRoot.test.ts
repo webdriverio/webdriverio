@@ -26,7 +26,7 @@ describe('ShadowRootManager', () => {
     it('registers correct event listeners', async () => {
         const wid = process.env.VITEST_WORKER_ID
         delete process.env.VITEST_WORKER_ID
-        const browser = { ...defaultBrowser, isBidi: true } as any
+        const browser = { ...defaultBrowser, isBidi: true, options: { automationProtocol: 'webdriver' } } as any
         const manager = getShadowRootManager(browser)
         process.env.VITEST_WORKER_ID = wid
         expect(await manager.initialize()).toBe(true)
@@ -37,6 +37,15 @@ describe('ShadowRootManager', () => {
 
     it('should not register event listeners if not in bidi mode', async () => {
         const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        expect(await manager.initialize()).toBe(true)
+        expect(browser.sessionSubscribe).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
+    })
+
+    it('should not register event listeners if not using webdriver as automation protocol', async () => {
+        const browser = { ...defaultBrowser, isBidi: true, automationProtocol: './protocol-stub.js' } as any
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
