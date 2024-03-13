@@ -195,7 +195,7 @@ Type: `String`<br /> Default: `null`
 
 _टेस्ट_के लिए टाइमआउट बढ़ाने के लिए, कृपया फ्रेमवर्क डॉक्स देखें।
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
