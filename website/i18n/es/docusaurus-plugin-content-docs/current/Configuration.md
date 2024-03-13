@@ -195,7 +195,7 @@ Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cu
 
 Para aumentar el tiempo de espera de una _prueba_, por favor vea la documentación del framework.
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
