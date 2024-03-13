@@ -195,7 +195,7 @@ Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstabe
 
 Informationen zum Erhöhen des Timeouts für einen _Test_finden Sie in der Framework-Dokumentation.
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
