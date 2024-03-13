@@ -195,7 +195,7 @@ Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the opti
 
 To increase the timeout for a _test_, please see the framework docs.
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
