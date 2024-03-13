@@ -156,6 +156,7 @@ describe('Stencil Component Testing', () => {
             'I am a nested component!'
         ])
 
+        await expect($('nested-component')).toMatchSnapshot()
         await expect($('.nested')).toMatchSnapshot()
         await expect($('.second')).toMatchSnapshot()
     })

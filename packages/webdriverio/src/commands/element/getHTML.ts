@@ -22,7 +22,8 @@ export interface GetHTMLOptions {
 
 /**
  *
- * Get source code of specified DOM element by selector.
+ * Get source code of specified DOM element by selector. By default, it automatically
+ * pierces through all shadow roots of elements contained by the element.
  *
  * <example>
     :index.html
@@ -36,7 +37,7 @@ export interface GetHTMLOptions {
         // outputs:
         // "<div id="test"><span>Lorem ipsum dolor amet</span></div>"
 
-        var innerHTML = await $('#test').getHTML(false);
+        var innerHTML = await $('#test').getHTML({ includeSelectorTag: false });
         console.log(innerHTML);
         // outputs:
         // "<span>Lorem ipsum dolor amet</span>"
@@ -44,8 +45,9 @@ export interface GetHTMLOptions {
  * </example>
  *
  * @alias element.getHTML
- * @param {}
- * @param {Boolean=} includeSelectorTag if true it includes the selector element tag (default: true)
+ * @param {GetHTMLOptions} options                    command options
+ * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: true)
+ * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM
  * @return {String}  the HTML of the specified element
  * @uses action/selectorExecute
  * @type property
