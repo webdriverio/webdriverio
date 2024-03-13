@@ -195,7 +195,7 @@ Type: `String`<br /> Default: `null`
 
 برای افزایش زمان برای _یک تست_، لطفاً به اسناد فریمورک مراجعه کنید.
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
