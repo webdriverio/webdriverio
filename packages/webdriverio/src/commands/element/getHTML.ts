@@ -101,7 +101,10 @@ export async function getHTML(
          * ensure command in Node.js world
          */
         if (globalThis.wdio) {
-            return globalThis.wdio.executeWithScope('getHTML' as const, this.elementId, includeSelectorTag)
+            return globalThis.wdio.executeWithScope(
+                'getHTML' as const, this.elementId,
+                { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify }
+            )
         }
 
         const { load } = await import('cheerio')
