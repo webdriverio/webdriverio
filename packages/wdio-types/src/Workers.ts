@@ -173,6 +173,7 @@ export interface CommandRequestEvent extends MessageWithPendingPromiseId {
     cid: string
     commandName: string
     args: unknown[]
+    scope?: string
 }
 
 export interface CommandResponseEvent extends MessageWithPendingPromiseId {

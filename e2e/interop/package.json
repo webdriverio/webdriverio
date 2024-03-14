@@ -1,3 +1,5 @@
 {
-  "type": "commonjs"
+  "name": "e2e-interop-tests-cjs",
+  "type": "commonjs",
+  "private": true
 }

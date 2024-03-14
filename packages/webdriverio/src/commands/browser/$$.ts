@@ -2,6 +2,8 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
+import { findDeepElements } from '../../utils/index.js'
+import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -47,7 +49,32 @@ import type { Selector } from '../../types.js'
 export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
-) {
+): Promise<WebdriverIO.ElementArray> {
+    /**
+     * do a deep lookup if
+     * - we are using Bidi
+     * - have a string selector
+     * - that is not a deep selector
+     */
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+        /**
+         * run this in Node.js land if we are using browser runner
+         */
+        if (globalThis.wdio?.execute) {
+            const command = '$$' as const
+            const res = 'elementId' in this
+                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as any as ElementReference[]
+                : await globalThis.wdio.execute(command, selector) as any as ElementReference[]
+            const elements = await getElements.call(this, selector as Selector, res)
+            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+        }
+
+        const res = await findDeepElements.call(this, selector)
+        const elements = await getElements.call(this, selector as Selector, res)
+        const a = enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+        return a
+    }
+
     let res: (ElementReference | Error)[] = Array.isArray(selector)
         ? selector as ElementReference[]
         : await findElements.call(this, selector)

@@ -95,6 +95,7 @@
     "cddl2ts": "^0.2.2",
     "chalk": "^5.3.0",
     "cheerio": "^1.0.0-rc.12",
+    "cli-highlight": "^2.1.11",
     "copyfiles": "^2.4.1",
     "depcheck": "^1.4.7",
     "dox": "^1.0.0",

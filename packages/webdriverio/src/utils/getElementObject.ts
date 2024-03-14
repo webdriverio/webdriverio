@@ -129,6 +129,10 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
+    if (elemResponse.length === 0) {
+        return []
+    }
+
     const elements = [elemResponse].flat(1).map((res: ElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it

@@ -12,6 +12,7 @@ on:
           - patch
           - minor
           - major
+          - premajor
       distTag:
         description: 'NPM tag (e.g. use "next --canary" to release a test version, add "--force-publish" to release all packages)'
         required: true
@@ -63,7 +64,7 @@ jobs:
         run: |
           pnpm run setup
           pnpm run generate:typings
-          npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+          pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag
         env:
           NODE_ENV: production

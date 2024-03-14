@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler, isWithinElementScope } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -52,6 +52,91 @@ describe('findElement', () => {
             expect.any(String)
         )
     })
+})
+
+describe('elementPromiseHandler', () => {
+    it('should handle error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager)
+        expect(handler(new Error('foobar'))).toBe(undefined)
+        expect(handler({ error: 'foobar' })).toBe(undefined)
+        expect(handler({ message: 'foobar' })).toBe(undefined)
+    })
+
+    it('should handle element', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager)
+        const elem = { foo: 'bar' }
+        expect(handler(elem)).toEqual(elem)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle element with shadow root', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const elem = { foo: 'bar' }
+        expect(handler(elem)).toEqual(elem)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle stale element error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const error = new Error('stale element reference: element is not attached to the page document')
+        expect(handler(error)).toBe(undefined)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle detached shadow root error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const error = new Error('detached shadow root')
+        expect(handler(error)).toBe(undefined)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledWith('shadow-root-id', 'foobar')
+    })
+})
+
+describe('isWithinElementScope', () => {
+    const browser: any = {
+        execute: vi.fn().mockResolvedValue(true),
+        sessionSubscribe: vi.fn().mockResolvedValue(true),
+        scriptAddPreloadScript: vi.fn(),
+        on: vi.fn(),
+    }
+
+    it('should check if element is within scope', async () => {
+        const elem: any = { [ELEMENT_KEY]: 'element-0' }
+        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
+        expect(await isWithinElementScope(elem, host)).toBe(true)
+        expect(browser.execute).toBeCalledWith(
+            expect.any(Function),
+            host,
+            elem
+        )
+    })
+
+    it('should check if element is within shadow dom scope', async () => {
+        const elem: any = { [ELEMENT_KEY]: 'element-0' }
+        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
+        const handle = 'foobar'
+        expect(await isWithinElementScope(elem, host, handle)).toBe(true)
+        expect(browser.execute).toBeCalledWith(
+            expect.any(Function),
+            host,
+            elem
+        )
+    })
+
 })
 
 it('isStaleElementError', () => {

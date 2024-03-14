@@ -1,3 +1,5 @@
 {
-    "type": "commonjs"
+  "name": "@wdio/shared-store-service-cjs",
+  "type": "commonjs",
+  "private": true
 }

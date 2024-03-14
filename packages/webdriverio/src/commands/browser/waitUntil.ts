@@ -10,9 +10,9 @@ import type { WaitUntilOptions } from '../../types.js'
  * @alias browser.waitUntil
  * @param {Function}          condition  condition to wait on until returning a truthy value
  * @param {WaitUntilOptions=} options    command options
- * @param {Number=}           options.timeout     timeout in ms (default: 5000)
+ * @param {Number=}           options.timeout     time in ms (default set based on [`waitforTimeout`](/docs/configuration#waitfortimeout) config value)
  * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out
- * @param {Number=}           options.interval    interval between condition checks (default: 500)
+ * @param {Number=}           options.interval    interval between condition checks (default set based on [`waitforInterval`](/docs/configuration#waitforinterval) config value)
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitUntil/index.html#L3-L8
