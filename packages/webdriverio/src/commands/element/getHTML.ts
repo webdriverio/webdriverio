@@ -18,6 +18,10 @@ export interface GetHTMLOptions {
      * @default true
      */
     pierceShadowRoot?: boolean
+    /**
+     * if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
+     */
+    removeCommentNodes?: boolean
 }
 
 /**
@@ -57,7 +61,8 @@ export async function getHTML(
     this: WebdriverIO.Element,
     {
         includeSelectorTag = true,
-        pierceShadowRoot = true
+        pierceShadowRoot = true,
+        removeCommentNodes = true
     }: GetHTMLOptions = {}
 ) {
     const browser = getBrowserObject(this)
@@ -69,11 +74,7 @@ export async function getHTML(
         } as any as HTMLElement, includeSelectorTag)
     }
 
-    if (pierceShadowRoot) {
-        if (!this.isBidi) {
-            throw new Error('Piercing shadow roots when calling `getHTML()` is only supported when using WebDriver Bidi')
-        }
-
+    if (pierceShadowRoot && this.isBidi) {
         /**
          * ensure command in Node.js world
          */
@@ -122,10 +123,18 @@ export async function getHTML(
         $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
         $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
 
-        return $('body').html()
+        let returnHTML = $('body').html()
+        if (removeCommentNodes && returnHTML) {
+            returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+        }
+        return returnHTML
     }
 
-    return basicGetHTML(this.elementId, includeSelectorTag)
+    let returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
+    if (removeCommentNodes && returnHTML) {
+        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+    }
+    return returnHTML
 }
 
 /**
