@@ -59,6 +59,8 @@ export interface GetHTMLOptions {
  * @param {GetHTMLOptions} options                    command options
  * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: true)
  * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM
+ * @param {Boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
+ * @param {Boolean=}       options.prettify           if true, the html output will be prettified
  * @return {String}  the HTML of the specified element
  * @uses action/selectorExecute
  * @type property
@@ -80,12 +82,13 @@ export async function getHTML(
         throw new Error('The `getHTML` options parameter must be an object')
     }
 
-    const {
-        includeSelectorTag = true,
-        pierceShadowRoot = true,
-        removeCommentNodes = true,
-        prettify = true
-    } = options
+    const { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify } = Object.assign({
+        includeSelectorTag: true,
+        pierceShadowRoot: true,
+        removeCommentNodes: true,
+        prettify: true
+    }, options)
+
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
         return browser.execute(getHTMLScript, {
             [ELEMENT_KEY]: elementId, // w3c compatible
@@ -124,36 +127,22 @@ export async function getHTML(
             elemsWithShadowRootAndId
         )
 
+        const $ = load(html)
+
         /**
          * in case the given element has no elements containing a shadow root
          * we can return the HTML right away
          */
         if (shadowElementIdsFound.length === 0) {
-            return html
+            return sanitizeHTML($, { removeCommentNodes, prettify })
         }
 
-        const $ = load(html)
         await pierceIntoShadowDOM.call(browser, $, elemsWithShadowRootAndId, shadowElementIdsFound)
-
-        /**
-         * delete data-wdio-shadow-id attribute as it contains random ids that
-         * can cause failures when taking a snapshot of a Shadow DOM element
-         */
-        $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
-        $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
-
-        let returnHTML = $('body').html() as string
-        if (removeCommentNodes && returnHTML) {
-            returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
-        }
-        return prettify ? prettifyFn(returnHTML) : returnHTML
+        return sanitizeHTML($, { removeCommentNodes, prettify })
     }
 
-    let returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
-    if (removeCommentNodes && returnHTML) {
-        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
-    }
-    return returnHTML
+    const returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
+    return sanitizeHTML(returnHTML, { removeCommentNodes, prettify })
 }
 
 /**
@@ -205,4 +194,28 @@ async function pierceIntoShadowDOM (
     }
 
     return pierceIntoShadowDOM.call(this, $, elemsWithShadowRootAndId, elementsToLookup)
+}
+
+/**
+ * cleans up HTML based on command options
+ * @param $       Cheerio object with our virtual DOM
+ * @param options command options
+ * @returns a string with the cleaned up HTML
+ */
+function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
+    /**
+     * delete data-wdio-shadow-id attribute as it contains random ids that
+     * can cause failures when taking a snapshot of a Shadow DOM element
+     */
+    const isCheerioObject = $ && typeof $ !== 'string'
+    if (isCheerioObject) {
+        $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
+        $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
+    }
+
+    let returnHTML = isCheerioObject ? $('body').html() as string : $
+    if (options.removeCommentNodes) {
+        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+    }
+    return options.prettify ? prettifyFn(returnHTML) : returnHTML
 }

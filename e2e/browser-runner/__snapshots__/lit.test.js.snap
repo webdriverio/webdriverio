@@ -4,7 +4,7 @@ exports[`Lit Component testing > should support snapshot testing 1`] = `
 "<simple-greeting name="WebdriverIO">
   <shadow-root>
     <div>
-      <p>Hello Sir, WebdriverIO! Does this work?</p>
+      <p>Hello Sir, WebdriverIO! How are you today?</p>
       <button>Good</button>
       <hr />
       <em></em>

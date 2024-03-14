@@ -89,8 +89,35 @@ describe('Lit Component testing', () => {
         )
 
         const elem = $('simple-greeting')
-        await expect(elem).toMatchSnapshot()
-        await expect(elem).toMatchInlineSnapshot(`"<simple-greeting name="WebdriverIO" data-wdio-shadow-id="f.9F2C775DA5DB72E134B97FDD40090A63.d.4873A186E45373AB1606DC07D4CB59BC.e.18"></simple-greeting>"`)
+
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() !== 'safari') {
+            await expect(elem).toMatchSnapshot()
+            await expect(elem).toMatchInlineSnapshot(`
+              "<simple-greeting name="WebdriverIO">
+                <shadow-root>
+                  <div>
+                    <p>Hello Sir, WebdriverIO! How are you today?</p>
+                    <button>Good</button>
+                    <hr />
+                    <em></em>
+                    <sub-elem>
+                      <shadow-root>
+                        <div>
+                          <p class="selectMe">I am within another shadow root element</p>
+                          <p class="selectMeToo">I am within another shadow root element as well</p>
+                        </div>
+                      </shadow-root>
+                    </sub-elem>
+                  </div>
+                </shadow-root>
+              </simple-greeting>"
+            `)
+        }
+
         await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
         await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
           {

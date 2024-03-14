@@ -23,10 +23,6 @@ export default function getHTMLShadow (
     }
 
     for (const elem of elemsWithShadowRoot) {
-        if (elem.hasAttribute('data-wdio-shadow-id')) {
-            continue
-        }
-
         /**
          * attach `data-wdio-shadow-id` attribute to the element so we can later
          * identify it and pierce into its shadow root
