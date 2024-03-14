@@ -14,7 +14,7 @@ export interface GetHTMLOptions {
     includeSelectorTag?: boolean
     /**
      * if true it includes content of the shadow roots of all web
-     * components in the DOM (default: true)
+     * components in the DOM (default: true if WebDriver Bidi is enabled)
      * @default true
      */
     pierceShadowRoot?: boolean
