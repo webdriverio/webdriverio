@@ -63,7 +63,13 @@ export async function getHTML(
 ) {
     const browser = getBrowserObject(this)
 
-    if (typeof options !== 'object') {
+    /**
+     * `getHTML` options used to be a string that was the `includeSelectorTag` option
+     * and we need to ensure backwards compatibility
+     */
+    if (typeof options !== 'object' && typeof options === 'string') {
+        options = { includeSelectorTag: options }
+    } else if (typeof options !== 'object') {
         throw new Error('The `getHTML` options parameter must be an object')
     }
 
