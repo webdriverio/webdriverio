@@ -1344,6 +1344,9 @@ importers:
       grapheme-splitter:
         specifier: ^1.0.2
         version: 1.0.4
+      htmlfy:
+        specifier: ^0.1.0
+        version: 0.1.0
       import-meta-resolve:
         specifier: ^4.0.0
         version: 4.0.0
@@ -13525,6 +13528,10 @@ packages:
       pretty-error: 4.0.0
       tapable: 2.2.1
       webpack: 5.90.3
+
+  /htmlfy@0.1.0:
+    resolution: {integrity: sha512-lACWDZJ+RAT+7ieWd3/6O2KScZkMRAkwW83EmkCn/kpudHZ+w01Q6eE9sYgjUorMqi5BdvP24X/2bmp1Aw3JNQ==}
+    dev: false
 
   /htmlparser2@6.1.0:
     resolution: {integrity: sha512-gyyPk6rgonLFEDGoeRgQNaEUvdJ4ktTmmUh/h2t7s+M8oPpIPxgNACWa+6ESR57kXstwqPiCut0V8NRpcwgU7A==}

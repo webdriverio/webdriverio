@@ -1,6 +1,25 @@
 // Snapshot v1
 
-exports[`Lit Component testing > should support snapshot testing 1`] = `"<simple-greeting name="WebdriverIO"></simple-greeting>"`;
+exports[`Lit Component testing > should support snapshot testing 1`] = `
+"<simple-greeting name="WebdriverIO">
+  <shadow-root>
+    <div>
+      <p>Hello Sir, WebdriverIO! Does this work?</p>
+      <button>Good</button>
+      <hr />
+      <em></em>
+      <sub-elem>
+        <shadow-root>
+          <div>
+            <p class="selectMe">I am within another shadow root element</p>
+            <p class="selectMeToo">I am within another shadow root element as well</p>
+          </div>
+        </shadow-root>
+      </sub-elem>
+    </div>
+  </shadow-root>
+</simple-greeting>"
+`;
 
 exports[`Lit Component testing > should support snapshot testing 3`] = `
 {

@@ -1,5 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { CheerioAPI } from 'cheerio'
+import { prettify as prettifyFn } from 'htmlfy'
 
 import { getBrowserObject } from '../../utils/index.js'
 import { getShadowRootManager } from '../../shadowRoot.js'
@@ -8,20 +9,26 @@ import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 
 export interface GetHTMLOptions {
     /**
-     * if true it includes the selector element tag (default: true)
+     * if true, it includes the selector element tag (default: true)
      * @default true
      */
     includeSelectorTag?: boolean
     /**
-     * if true it includes content of the shadow roots of all web
+     * if true, it includes content of the shadow roots of all web
      * components in the DOM (default: true if WebDriver Bidi is enabled)
      * @default true
      */
     pierceShadowRoot?: boolean
     /**
-     * if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
+     * if true, it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
+     * @default true
      */
     removeCommentNodes?: boolean
+    /**
+     * if true, the html output will be prettified
+     * @default true
+     */
+    prettify?: boolean
 }
 
 /**
@@ -76,7 +83,8 @@ export async function getHTML(
     const {
         includeSelectorTag = true,
         pierceShadowRoot = true,
-        removeCommentNodes = true
+        removeCommentNodes = true,
+        prettify = true
     } = options
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
         return browser.execute(getHTMLScript, {
@@ -134,11 +142,11 @@ export async function getHTML(
         $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
         $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
 
-        let returnHTML = $('body').html()
+        let returnHTML = $('body').html() as string
         if (removeCommentNodes && returnHTML) {
             returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
         }
-        return returnHTML
+        return prettify ? prettifyFn(returnHTML) : returnHTML
     }
 
     let returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
