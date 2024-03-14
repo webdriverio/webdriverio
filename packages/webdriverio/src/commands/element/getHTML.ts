@@ -59,14 +59,19 @@ export interface GetHTMLOptions {
  */
 export async function getHTML(
     this: WebdriverIO.Element,
-    {
-        includeSelectorTag = true,
-        pierceShadowRoot = true,
-        removeCommentNodes = true
-    }: GetHTMLOptions = {}
+    options: GetHTMLOptions = {}
 ) {
     const browser = getBrowserObject(this)
 
+    if (typeof options !== 'object') {
+        throw new Error('The `getHTML` options parameter must be an object')
+    }
+
+    const {
+        includeSelectorTag = true,
+        pierceShadowRoot = true,
+        removeCommentNodes = true
+    } = options
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
         return browser.execute(getHTMLScript, {
             [ELEMENT_KEY]: elementId, // w3c compatible
