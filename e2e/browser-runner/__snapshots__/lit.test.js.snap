@@ -1,6 +1,6 @@
 // Snapshot v1
 
-exports[`Lit Component testing > should support snapshot testing 1`] = `
+exports[`snapshot testing > of elements 1`] = `
 "<simple-greeting name="WebdriverIO">
   <shadow-root>
     <div>
@@ -21,7 +21,7 @@ exports[`Lit Component testing > should support snapshot testing 1`] = `
 </simple-greeting>"
 `;
 
-exports[`Lit Component testing > should support snapshot testing 3`] = `
+exports[`snapshot testing > of objects 1`] = `
 {
   "parsed": {
     "alpha": 0,
@@ -34,7 +34,7 @@ exports[`Lit Component testing > should support snapshot testing 3`] = `
 }
 `;
 
-exports[`Lit Component testing > should support snapshot testing 5`] = `
+exports[`snapshot testing > of objects 3`] = `
 {
   "foo": "bar",
 }

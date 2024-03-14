@@ -82,19 +82,24 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    it('should support snapshot testing', async () => {
-        render(
-            html`<simple-greeting name="WebdriverIO" />`,
-            document.body
-        )
+    describe('snapshot testing', () => {
+        beforeEach(() => {
+            render(
+                html`<simple-greeting name="WebdriverIO" />`,
+                document.body
+            )
+        })
 
-        const elem = $('simple-greeting')
+        it('of elements', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
 
-        /**
-         * only run snapshot tests in non-Safari browsers as shadow dom piercing
-         * is not yet supported in Safari
-         */
-        if (browser.capabilities.browserName?.toLowerCase() !== 'safari') {
+            const elem = $('simple-greeting')
             await expect(elem).toMatchSnapshot()
             await expect(elem).toMatchInlineSnapshot(`
               "<simple-greeting name="WebdriverIO">
@@ -116,27 +121,30 @@ describe('Lit Component testing', () => {
                 </shadow-root>
               </simple-greeting>"
             `)
-        }
+        })
 
-        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
-        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
-          {
-            "parsed": {
-              "alpha": 0,
-              "hex": "#000000",
-              "rgba": "rgba(0,0,0,0)",
-              "type": "color",
-            },
-            "property": "background-color",
-            "value": "rgba(0,0,0,0)",
-          }
-        `)
-        await expect({ foo: 'bar' }).toMatchSnapshot()
-        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
-          {
-            "foo": "bar",
-          }
-        `)
+        it('of objects', async () => {
+            const elem = $('simple-greeting')
+            await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
+            await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+              {
+                "parsed": {
+                  "alpha": 0,
+                  "hex": "#000000",
+                  "rgba": "rgba(0,0,0,0)",
+                  "type": "color",
+                },
+                "property": "background-color",
+                "value": "rgba(0,0,0,0)",
+              }
+            `)
+            await expect({ foo: 'bar' }).toMatchSnapshot()
+            await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+              {
+                "foo": "bar",
+              }
+            `)
+        })
     })
 
     it('should allow to auto mock dependencies', () => {
