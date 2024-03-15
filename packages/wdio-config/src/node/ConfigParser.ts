@@ -91,7 +91,7 @@ export default class ConfigParser {
         }
 
         this.merge({ ...object })
-        log.info(this._config)
+
         /**
          * enable/disable coverage reporting
          */
