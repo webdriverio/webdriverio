@@ -82,34 +82,69 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    it('should support snapshot testing', async () => {
-        render(
-            html`<simple-greeting name="WebdriverIO" />`,
-            document.body
-        )
+    describe('snapshot testing', () => {
+        beforeEach(() => {
+            render(
+                html`<simple-greeting name="WebdriverIO" />`,
+                document.body
+            )
+        })
 
-        const elem = $('simple-greeting')
-        await expect(elem).toMatchSnapshot()
-        await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
-        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
-        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
-          {
-            "parsed": {
-              "alpha": 0,
-              "hex": "#000000",
-              "rgba": "rgba(0,0,0,0)",
-              "type": "color",
-            },
-            "property": "background-color",
-            "value": "rgba(0,0,0,0)",
-          }
-        `)
-        await expect({ foo: 'bar' }).toMatchSnapshot()
-        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
-          {
-            "foo": "bar",
-          }
-        `)
+        it('of elements', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
+            const elem = $('simple-greeting')
+            await expect(elem).toMatchSnapshot()
+            await expect(elem).toMatchInlineSnapshot(`
+              "<simple-greeting name="WebdriverIO">
+                <shadow-root>
+                  <div>
+                    <p>Hello Sir, WebdriverIO! Does this work?</p>
+                    <button>Good</button>
+                    <hr />
+                    <em></em>
+                    <sub-elem>
+                      <shadow-root>
+                        <div>
+                          <p class="selectMe">I am within another shadow root element</p>
+                          <p class="selectMeToo">I am within another shadow root element as well</p>
+                        </div>
+                      </shadow-root>
+                    </sub-elem>
+                  </div>
+                </shadow-root>
+              </simple-greeting>"
+            `)
+        })
+
+        it('of objects', async () => {
+            const elem = $('simple-greeting')
+            await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
+            await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+              {
+                "parsed": {
+                  "alpha": 0,
+                  "hex": "#000000",
+                  "rgba": "rgba(0,0,0,0)",
+                  "type": "color",
+                },
+                "property": "background-color",
+                "value": "rgba(0,0,0,0)",
+              }
+            `)
+            await expect({ foo: 'bar' }).toMatchSnapshot()
+            await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+              {
+                "foo": "bar",
+              }
+            `)
+        })
     })
 
     it('should allow to auto mock dependencies', () => {
@@ -195,6 +230,8 @@ describe('Lit Component testing', () => {
     })
 
     describe('Selector Tests', () => {
+        const getHTMLOptions = { includeSelectorTag: false, prettify: false }
+
         it('fetches element by content correctly', async () => {
             render(
                 html`<div><div><div>Find me</div></div></div>`,
@@ -217,10 +254,10 @@ describe('Lit Component testing', () => {
                 html`<div class="foo" id="#bar"><div><span>Find me</span></div></div>`,
                 document.body
             )
-            expect(await $('div.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('div#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div#bar*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('#bar*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
         })
 
         const outerClassLists = ['foo', 'bar foo', 'foo bar baz', 'bar foo baz', 'bar baz foo']
@@ -232,7 +269,7 @@ describe('Lit Component testing', () => {
                         html`<div class="${outerClassList}"><div class="${innerClassList}"></div><div><div>Find me</div></div></div>`,
                         document.body
                     )
-                    expect(await $('.foo*=Find').getHTML(false)).toBe(`<div class="${innerClassList}"></div><div><div>Find me</div></div>`)
+                    expect(await $('.foo*=Find').getHTML(getHTMLOptions)).toBe(`<div class="${innerClassList}"></div><div><div>Find me</div></div>`)
                 })
             }
         }
@@ -254,10 +291,10 @@ describe('Lit Component testing', () => {
                 <div class="foo" id="#bar"><div><div class="foo" id="#bar"><div><span>Find me</span></div></div></div></div>`,
                 document.body
             )
-            expect(await $('div.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('.foo*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('div#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('#bar*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div#bar*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('#bar*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
         })
 
         it('fetches inner element by content correctly with nested attribute selector', async () => {
@@ -277,10 +314,10 @@ describe('Lit Component testing', () => {
                 <div data-testid="foobar"><div><div data-testid="foobar"><div><span>Find me</span></div></div></div></div>`,
                 document.body
             )
-            expect(await $('[data-testid="foobar"]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('[data-testid]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('div[data-testid="foobar"]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
-            expect(await $('div[data-testid]*=me').getHTML(false)).toBe('<div><span>Find me</span></div>')
+            expect(await $('[data-testid="foobar"]*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('[data-testid]*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div[data-testid="foobar"]*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
+            expect(await $('div[data-testid]*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
         })
 
         it('fetches the parent element by content correctly', async () => {
