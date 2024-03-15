@@ -21,6 +21,28 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.34.0 (2024-03-15)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#12496](https://github.com/webdriverio/webdriverio/pull/12496) [allure-report] handle case for broken status of tests with retry ([@a-skindzer](https://github.com/a-skindzer))
+* `wdio-appium-service`
+  * [#12455](https://github.com/webdriverio/webdriverio/pull/12455) Fix appium service caps for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+* `wdio-config`
+  * [#12437](https://github.com/webdriverio/webdriverio/pull/12437) [backport] (wdio-config): check existence of ts-node/esm/transpile-only.mjs & fix a type issue ([@johnp](https://github.com/johnp))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12391](https://github.com/webdriverio/webdriverio/pull/12391) Browserstack Accessibility stability ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 5
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Andrei Skindzer ([@a-skindzer](https://github.com/a-skindzer))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Johannes Pfrang ([@johnp](https://github.com/johnp))
+
+
 ## v8.33.1 (2024-03-09)
 
 #### :bug: Bug Fix
