@@ -18,7 +18,7 @@ import type { Selector } from '../../types.js'
  * to walk down the DOM tree, e.g.:
  *
  * ```js
- * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src')
  * ```
  *
  * It is also possible to use async iterators to loop over the result of the query, e.g.:

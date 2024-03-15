@@ -5,13 +5,14 @@ import isElementClickableScript from '../../scripts/isElementClickable.js'
 
 /**
  *
- * Return true if the selected DOM-element:
+ * An element is considered to be clickable when the following conditions are met:
  *
- * - exists
- * - is visible
- * - is within viewport (if not try scroll to it)
- * - its center is not overlapped with another element
- * - is not disabled
+ * - the element exists
+ * - the element is displayed
+ * - the element is not disabled
+ * - the element is within the viewport
+ * - the element can be scrolled into the viewport
+ * - the element's center is not overlapped with another element
  *
  * otherwise return false.
  *
