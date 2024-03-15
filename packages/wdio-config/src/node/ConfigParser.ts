@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
-import type { Capabilities, Options, Services, Reporters } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
@@ -91,8 +91,7 @@ export default class ConfigParser {
         }
 
         this.merge({ ...object })
-        this.mergeReportersAndServices({ ...object })
-
+        log.info(this._config)
         /**
          * enable/disable coverage reporting
          */
@@ -181,7 +180,10 @@ export default class ConfigParser {
         const customDeepMerge = deepmergeCustom({
             mergeArrays: (values, utils, meta) => {
                 if (meta && ['services', 'reporters'].includes(meta.key as string)) {
-                    return this._config[meta.key as keyof WebdriverIO.Config]
+                    const mergedArr = deepmerge(this._config[meta.key as keyof WebdriverIO.Config], object[meta.key as keyof WebdriverIO.Config]) as []
+                    return mergedArr.filter((item, index, merged) => {
+                        return merged.indexOf(item) === index
+                    })
                 }
                 return utils.actions.defaultMerge
             }
@@ -242,24 +244,6 @@ export default class ConfigParser {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         } else if (exclude.length > 0) {
             this._config.exclude = exclude
-        }
-    }
-
-    /**
-     * merge only reporters and services to the config object
-     * @param object desired object to merge into the config object
-     * @private
-     */
-    private mergeReportersAndServices(object: MergeConfig) {
-        const services: Services.ServiceEntry[] = object?.services ? object.services : []
-        const reporters: Reporters.ReporterEntry[] = object?.reporters ? object.reporters : []
-
-        if (services.length > 0) {
-            this._config = deepmerge(this._config, { services: services }) as TestrunnerOptionsWithParameters
-        }
-
-        if (reporters.length > 0) {
-            this._config = deepmerge(this._config, { reporters: reporters }) as TestrunnerOptionsWithParameters
         }
     }
 
