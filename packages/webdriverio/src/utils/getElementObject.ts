@@ -133,7 +133,7 @@ export const getElements = function getElements(
         /**
          * if we already deal with an element, just return it
          */
-        if ((res as WebdriverIO.Element).selector) {
+        if ((res as WebdriverIO.Element).selector && '$$' in res) {
             return res as WebdriverIO.Element
         }
 
