@@ -348,7 +348,11 @@ export async function findDeepElement(
         /**
          * standard lookup in document
          */
-        browser.findElement(using, value).then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined)),
+        ELEMENT_KEY in this
+            ? this.findElementFromElement((this as ElementReference)[ELEMENT_KEY], using, value)
+                .then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined))
+            : this.findElement(using, value)
+                .then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined)),
         /**
          * lookup in shadow roots
          */
@@ -413,7 +417,9 @@ export async function findDeepElements(
         /**
          * standard lookup in document
          */
-        browser.findElements(using, value),
+        ELEMENT_KEY in this
+            ? this.findElementsFromElement((this as ElementReference)[ELEMENT_KEY], using, value)
+            : this.findElements(using, value),
         /**
          * lookup in shadow roots
          */

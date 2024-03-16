@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
-import { getElements } from '../../utils/getElementObject.js'
+import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
@@ -71,8 +71,7 @@ export async function $$ (
 
         const res = await findDeepElements.call(this, selector)
         const elements = await getElements.call(this, selector as Selector, res)
-        const a = enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
-        return a
+        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
     }
 
     let res: (ElementReference | Error)[] = Array.isArray(selector)
@@ -91,5 +90,23 @@ export async function $$ (
     }
 
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+}
+
+function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
+    /**
+     * Define scope of element. In most cases it is `this` but if we pass through
+     * an element object from the browser runner we have to look into the parent
+     * provided by the selector object. Since these objects are passed through
+     * as raw objects without any prototype we have to check if the `$` or `$$`
+     * is defined on the object itself and if not, create a new element object.
+     */
+    let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
+    if (typeof parent.$ === 'undefined') {
+        parent = 'selector' in parent
+            ? getElement.call(this, parent.selector, parent)
+            : this
+    }
+
+    return parent
 }

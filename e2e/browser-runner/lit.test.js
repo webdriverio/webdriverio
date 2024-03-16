@@ -377,6 +377,44 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
+        it('should support nested element calls', async () => {
+            render(
+                html`<section>
+                    <div class="first">
+                        <ul>
+                            <li>First</li>
+                            <li>Second</li>
+                            <li>Third</li>
+                        </ul>
+                    </div>
+                    <div class="second">
+                        <ul>
+                            <li>2nd First</li>
+                            <li>2nd Second</li>
+                            <li>2nd Third</li>
+                            <li>2nd Fourth</li>
+                            <li>2nd Fifth</li>
+                        </ul>
+                    </div>
+                </section>`,
+                document.body
+            )
+            const first = $('.first').$$('li')
+            await expect(first).toBeElementsArrayOfSize(3)
+            await expect(first[0]).toHaveText('First')
+            await expect(first[1]).toHaveText('Second')
+            await expect(first[2]).toHaveText('Third')
+            const second = $('.second').$$('li')
+            await expect(second).toBeElementsArrayOfSize(5)
+            await expect(second[0]).toHaveText('2nd First')
+            await expect(second[1]).toHaveText('2nd Second')
+            await expect(second[2]).toHaveText('2nd Third')
+            await expect(second[3]).toHaveText('2nd Fourth')
+            await expect(second[4]).toHaveText('2nd Fifth')
+            const nestedElement = $('.second').$('li')
+            await expect(nestedElement).toHaveText('2nd First')
+        })
+
         describe('a11y selectors', () => {
             it('aria label is received from element content', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
