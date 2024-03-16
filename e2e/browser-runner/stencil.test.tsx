@@ -155,6 +155,8 @@ describe('Stencil Component Testing', () => {
             'I am a transparent component in a second nested context!',
             'I am a nested component!'
         ])
+        await expect($('nested-component').$$('i')).toBeElementsArrayOfSize(4)
+        await expect($('nested-component').$$('i')).not.toBeElementsArrayOfSize(42)
 
         await expect($('nested-component')).toMatchSnapshot()
         await expect($('.nested')).toMatchSnapshot()
