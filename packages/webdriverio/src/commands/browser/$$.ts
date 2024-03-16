@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
-import { getElements } from '../../utils/getElementObject.js'
+import { getElements, getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -63,6 +63,20 @@ export async function $$ (
         }
     }
 
+    /**
+     * Define scope of element. In most cases it is `this` but if we pass through
+     * an element object from the browser runner we have to look into the parent
+     * provided by the selector object. Since these objects are passed through
+     * as raw objects without any prototype we have to check if the `$` or `$$`
+     * is defined on the object itself and if not, create a new element object.
+     */
+    let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
+    if (typeof parent.$ === 'undefined') {
+        parent = 'selector' in parent
+            ? getElement.call(this, parent.selector, parent)
+            : this
+    }
+
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+    return enhanceElementsArray(elements, parent, selector as Selector) as WebdriverIO.ElementArray
 }
