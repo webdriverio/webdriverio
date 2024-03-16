@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.34.1 (2024-03-16)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `webdriverio`
+  * [#12497](https://github.com/webdriverio/webdriverio/pull/12497) (webdriverio): fix scope management for nested calls in browser runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.34.0 (2024-03-15)
 
 #### :bug: Bug Fix
