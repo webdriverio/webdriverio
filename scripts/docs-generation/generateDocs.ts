@@ -9,6 +9,7 @@ import { generateWdioDocs } from './wdioDocs.js'
 import { generateReportersAndServicesDocs } from './packagesDocs.js'
 import { generate3rdPartyDocs } from './3rdPartyDocs.js'
 import { generateElectronDocs } from './electronDocs.js'
+import { generateEventDocs } from './eventDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
 
@@ -40,6 +41,8 @@ try {
     print('Generate Reporter & Services Docs')
     generateReportersAndServicesDocs(sidebars)
     await generate3rdPartyDocs(sidebars)
+    print('Generate Event Docs')
+    await generateEventDocs()
     print('Copy over Electron Service Resources')
     await generateElectronDocs()
     print('Copy over Contributing Guidelines')
