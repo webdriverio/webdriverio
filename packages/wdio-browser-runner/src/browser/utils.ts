@@ -34,12 +34,15 @@ export const showPopupWarning = <T>(name: string, value: T, defaultValue?: T) =>
 
 export function sanitizeConsoleArgs (args: unknown[]) {
     return args.map((arg: any) => {
+        if (arg === undefined) {
+            return 'undefined'
+        }
         try {
             if (arg && typeof arg.selector === 'string' && arg.error) {
                 return `WebdriverIO.Element<"${arg.selector}">`
             }
             if (arg && typeof arg.selector === 'string' && typeof arg.length === 'number') {
-                return `WebdriverIO.Element<${arg.length}x "${arg.selector}">`
+                return `WebdriverIO.ElementArray<${arg.length}x "${arg.selector}">`
             }
             if (arg && typeof arg.selector === 'string') {
                 return `WebdriverIO.Element<"${arg.selector}">`
