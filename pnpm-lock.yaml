@@ -8407,7 +8407,7 @@ packages:
     hasBin: true
     dependencies:
       '@types/node': 20.11.26
-      '@vitest/snapshot': 1.3.1
+      '@vitest/snapshot': 1.4.0
       '@wdio/config': 8.33.1
       '@wdio/globals': 8.33.1(typescript@5.4.2)
       '@wdio/logger': 8.28.0
@@ -12275,7 +12275,7 @@ packages:
     resolution: {integrity: sha512-nHVLoC4W8wuVAyfpitJ07iDMLjeQ2OeYVjrKEb7dMeG4fqlegzN1SGYnnsKay+KWrte9KzuW1pZ7h5Nmbm/hAQ==}
     engines: {node: '>=16 || >=18 || >=20'}
     dependencies:
-      '@vitest/snapshot': 1.3.1
+      '@vitest/snapshot': 1.4.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
