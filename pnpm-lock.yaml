@@ -643,8 +643,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -723,8 +721,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -861,8 +857,6 @@ importers:
       '@wdio/types':
         specifier: 9.0.0-alpha.0
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1085,8 +1079,6 @@ importers:
         specifier: 9.0.0-alpha.0
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1299,8 +1291,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1345,8 +1335,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.4
       htmlfy:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       import-meta-resolve:
         specifier: ^4.0.0
         version: 4.0.0
@@ -1393,8 +1383,6 @@ importers:
       puppeteer-core:
         specifier: ^22.3.0
         version: 22.4.1
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -7919,7 +7907,7 @@ packages:
     resolution: {integrity: sha512-jGjmu/ZqS7FjSH6owMcD5qpq19+1RS9DeVRqfl1FeBMxTDQAGwlMWOcs52NDoXaNKyG3d1cYQFMs9rCrb88o9Q==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.2.65
+      '@types/react': 18.2.66
 
   /@types/react@18.2.65:
     resolution: {integrity: sha512-98TsY0aW4jqx/3RqsUXwMDZSWR1Z4CUlJNue8ueS2/wcxZOsz4xmW1X8ieaWVRHcmmQM3R8xVA4XWB3dJnWwDQ==}
@@ -13645,8 +13633,8 @@ packages:
       tapable: 2.2.1
       webpack: 5.90.3
 
-  /htmlfy@0.1.0:
-    resolution: {integrity: sha512-lACWDZJ+RAT+7ieWd3/6O2KScZkMRAkwW83EmkCn/kpudHZ+w01Q6eE9sYgjUorMqi5BdvP24X/2bmp1Aw3JNQ==}
+  /htmlfy@0.2.0:
+    resolution: {integrity: sha512-wS81qrubJd3uPHeqNWuKD66i/MRP/HkhD0zVp2rs+gbSHxTyZVwAGwSM+zTuf+3/APM3uWSs6/rLE1EfX4PxBw==}
     dev: false
 
   /htmlparser2@6.1.0:
