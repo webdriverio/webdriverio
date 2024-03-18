@@ -57,9 +57,12 @@ body:
       label: Do you need financial support?
       description: Please check this box if you like to request funding for the event.
       options:
-      - label: I need funding for food & drinks
-      - label: I need funding for renting a venue
-      - label: I need funding in general (please specify in the description field above)
+        - label: I need funding for food & drinks
+          required: false
+        - label: I need funding for renting a venue
+          required: false
+        - label: I need funding in general (please specify in the description field above)
+          required: false
 
   - type: checkboxes
     id: code-of-conduct
