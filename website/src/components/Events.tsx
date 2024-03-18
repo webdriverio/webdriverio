@@ -7,6 +7,33 @@ function filterEvent (past = false) {
     }
 }
 
+const profileStylesNoPhoto: React.CSSProperties = {
+    width: '30px',
+    transform: 'translateY(10px)',
+    marginRight: '5px'
+}
+
+const profileStyles: React.CSSProperties = {
+    ...profileStylesNoPhoto,
+    borderRadius: '50%',
+    border: '1px solid #EA5907',
+}
+
+const profileLinkStyles: React.CSSProperties = {
+    backgroundColor: 'transparent',
+    borderBottom: 'none',
+    paddingRight: '15px',
+}
+
+export function Host ({ name, photo, social }) {
+    return (
+        <a href={social} style={profileLinkStyles}>
+            <img src={photo || 'https://events.webdriver.io/webdriverio.png'} style={photo ? profileStyles : profileStylesNoPhoto} />
+            {name}
+        </a>
+    )
+}
+
 export function EventList() {
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(true)
@@ -52,8 +79,11 @@ export function EventList() {
                             <h3><a href={`/community/events/${event.id}`}>{event.title}</a></h3>
                             <p>
                                 📅 <b>Date:</b> {date.toDateString()} <br/>
-                                ⏰ <b>Time:</b> {date.toLocaleTimeString()} <br/>
-                                📍 <b>Location:</b> {event.location} (<a href={`https://www.google.com/maps/search/${encodeURIComponent(event.location)}`}>Google Maps</a>)
+                                ⏰ <b>Time:</b> {date.toLocaleTimeString()} <span style={{ fontSize: '.6em' }}>{new Date().toTimeString().slice(9)}</span><br/>
+                                📍 <b>Location:</b> {event.location} (<a href={`https://www.google.com/maps/search/${encodeURIComponent(event.location)}`}>Google Maps</a>)<br/>
+                                🎤 <b>Hosts:</b> {JSON.parse(event.hosts).map((host) => (
+                                    <Host key={host.id} name={host.name} social={host.social} photo={host.photo}></Host>
+                                ))}
                             </p>
                         </div>
                     </div>
@@ -89,6 +119,7 @@ export function EventSignup ({ id, date }) {
         color: 'white',
         border: 'none',
         fontWeight: 'bold',
+        cursor: 'pointer'
     }
     const now = new Date()
     if (now > new Date(date)) {
@@ -101,14 +132,20 @@ export function EventSignup ({ id, date }) {
             <p>
                 We would love to see you at the event. Please make sure to rsvp to secure your spot.
             </p>
-            <form action={`https://events.webdriver.io/api/signup/${id}`} method="POST">
+            <form action="https://events.webdriver.io/api/signup" method="POST" target="_blank">
+                <input type="hidden" name="event" value={id}></input>
                 <input type="text" name="name" placeholder="Your name" required style={inputStyles}></input>
                 <br />
-                <input type="email" name="email" placeholder="Your email" required style={inputStyles}></input>
+                <input type="email" name="email" placeholder="Your email*" required style={inputStyles}></input>
                 <br />
                 <button type="submit" style={buttonStyles}>Sign up</button>
             </form>
-            <br />
+            <p style={{ fontSize: '.6em', width: '500px', padding: '10px 0' }}>
+                * We will store your email only for the purpose of communicating with you
+                in case we need to send information on the event, e.g. eventual cancellations
+                or instruction on how to enter the venue. All data will be removed after the
+                event.
+            </p>
         </>
     )
 }

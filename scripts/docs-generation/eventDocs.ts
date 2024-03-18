@@ -12,7 +12,7 @@ export async function generateEventDocs () {
     await fs.mkdir(eventsDir, { recursive: true })
 
     const res = await fetch('https://events.webdriver.io/api/events')
-    const events = await res.json()
+    const events = (await res.json()).filter((event: any) => getEventDate(event) > new Date())
 
     const sidebarPath = path.join(__dirname, '..', '..', 'website', 'events.json')
     const sidebarContent = events
@@ -28,6 +28,7 @@ export async function generateEventDocs () {
     return Promise.all(events.map(async (event: any) => {
         console.log(`Generate Event Docs for ${event.id}`)
         const date = getEventDate(event)
+        const hosts = JSON.parse(event.hosts).map((host: any) => `<Host name="${host.name}" social="${host.social}" photo="${host.photo}"></Host>`).join('')
         const content = `---
 id: ${event.id}
 title: ${event.title}
@@ -36,9 +37,10 @@ custom_edit_url: https://github.com/webdriverio/events/edit/main/events/${event.
 
 ![${event.title}](https://events.webdriver.io/${event.image})
 
-📅 **Date:** ${date.toDateString()} <br/>
-⏰ **Time:** ${date.toLocaleTimeString()} <br/>
-📍 **Location:** ${event.location} ([Google Maps](https://www.google.com/maps/search/${encodeURIComponent(event.location)}))
+📅 **Date:** ${date.toDateString()}<br/>
+⏰ **Time:** ${date.toLocaleTimeString()}<br/>
+📍 **Location:** ${event.location} ([Google Maps](https://www.google.com/maps/search/${encodeURIComponent(event.location)}))<br/>
+🎤 **Hosts:** ${hosts}
 
 ${event.description}
 
