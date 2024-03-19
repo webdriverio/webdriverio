@@ -7,6 +7,8 @@ function filterEvent (past = false) {
     }
 }
 
+const EVENTS_URL = 'https://events.webdriver.io/api/events'
+
 const profileStylesNoPhoto: React.CSSProperties = {
     width: '30px',
     transform: 'translateY(10px)',
@@ -34,6 +36,52 @@ export function Host ({ name, photo, social }) {
     )
 }
 
+function getEventDate (event: any) {
+    return new Date(event.date.replace('00:00:00', event.time, { timeZone: 'UTC' }))
+}
+
+export function EventDetails ({ event: eventInput }: any) {
+    /**
+     * re-fetch event data to get the latest sign-ups
+     */
+    const [event, setEvent] = useState(eventInput)
+    useEffect(() => {
+        /**
+         * except the event has no signup, we don't need to re-fetch the data
+         */
+        if (!eventInput.signup) {
+            return
+        }
+
+        fetch(EVENTS_URL).then(async (res) => {
+            const events = await res.json()
+            setEvent(events.find((e) => e.id === eventInput.id))
+        }).catch((err) => {
+            console.log(err)
+        })
+    }, [])
+
+    /**
+     * only show attendee list if event has a signup
+     */
+    const attendeeList = event.signup
+        ? <>👥 <b>Attendees:</b> {event.signups} ({event.maxattendees - event.signups} spots left)<br/></>
+        : <></>
+
+    const dateMerged = getEventDate(event)
+    return (
+        <>
+            📅 <b>Date:</b> {dateMerged.toDateString()}<br/>
+            ⏰ <b>Time:</b> {dateMerged.toLocaleTimeString()} <span style={{ fontSize: '.6em' }}>{new Date().toTimeString().slice(9)}</span><br/>
+            📍 <b>Location:</b> {event.location} (<a href={`https://www.google.com/maps/search/${encodeURIComponent(event.location)}`}>Google Maps</a>)<br/>
+            {attendeeList}
+            🎤 <b>Hosts:</b> {JSON.parse(event.hosts).map((host, i) => (
+                <Host key={i} name={host.name} social={host.social} photo={host.photo}></Host>
+            ))}
+        </>
+    )
+}
+
 export function EventList() {
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(true)
@@ -42,9 +90,8 @@ export function EventList() {
         if (events.length > 0) {
             return
         }
-        fetch('https://events.webdriver.io/api/events').then(async (res) => {
+        fetch(EVENTS_URL).then(async (res) => {
             const events = await res.json()
-            console.log(events)
             setEvents(events)
         }).catch((err) => {
             console.log(err)
@@ -63,37 +110,31 @@ export function EventList() {
         <div>
             <h2>Upcoming Events</h2>
             {events.length === 0 && <p><i>No upcoming events</i></p>}
-            {upcomingEvents.map((event) => {
-                const date = new Date(event.date.replace('00:00:00', event.time, { timeZone: 'UTC' }))
-                return (
-                    <div key={event.id} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 20,
-                        marginBottom: 20
-                    }}>
-                        <a href={`/community/events/${event.id}`}>
-                            <img width={300} src={`https://events.webdriver.io${event.image}`}></img>
-                        </a>
-                        <div>
-                            <h3><a href={`/community/events/${event.id}`}>{event.title}</a></h3>
-                            <p>
-                                📅 <b>Date:</b> {date.toDateString()} <br/>
-                                ⏰ <b>Time:</b> {date.toLocaleTimeString()} <span style={{ fontSize: '.6em' }}>{new Date().toTimeString().slice(9)}</span><br/>
-                                📍 <b>Location:</b> {event.location} (<a href={`https://www.google.com/maps/search/${encodeURIComponent(event.location)}`}>Google Maps</a>)<br/>
-                                🎤 <b>Hosts:</b> {JSON.parse(event.hosts).map((host) => (
-                                    <Host key={host.id} name={host.name} social={host.social} photo={host.photo}></Host>
-                                ))}
-                            </p>
-                        </div>
+            {upcomingEvents.map((event) => (
+                <div key={event.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    marginBottom: 20
+                }}>
+                    <a href={`/community/events/${event.id}`} style={{ minWidth: '300px' }}>
+                        <img width={300} src={`https://events.webdriver.io${event.image}`}></img>
+                    </a>
+                    <div>
+                        <h3>
+                            <a href={`/community/events/${event.id}`}>{event.title}</a>
+                        </h3>
+                        <p>
+                            <EventDetails event={{ ...event }}></EventDetails>
+                        </p>
                     </div>
-                )
-            })}
+                </div>
+            ))}
 
             <h2>Past Events</h2>
             {pastEvents.length === 0 && <p><i>No past events!</i></p>}
             {pastEvents.map((event) => {
-                const date = new Date(event.date.replace('00:00:00', event.time, { timeZone: 'UTC' }))
+                const date = getEventDate(event)
                 return (
                     <a key={event.id} href={`/community/events/${event.id}`} style={{ display: 'block' }}>
                         {event.title} - {date.toDateString()}
