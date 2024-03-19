@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react'
 
 function filterEvent (past = false) {
     return (event) => {
-        const date = new Date(event.date.replace('00:00:00', event.time, { timeZone: 'UTC' }))
+        const date = new Date(event.time)
         return past ? date < new Date() : date > new Date()
     }
 }
 
 const EVENTS_URL = 'https://events.webdriver.io/api/events'
+const DEFAULT_PHOTO = 'https://events.webdriver.io/webdriverio.png'
 
 const profileStylesNoPhoto: React.CSSProperties = {
     width: '30px',
@@ -30,14 +31,10 @@ const profileLinkStyles: React.CSSProperties = {
 export function Host ({ name, photo, social }) {
     return (
         <a href={social} style={profileLinkStyles}>
-            <img src={photo || 'https://events.webdriver.io/webdriverio.png'} style={photo ? profileStyles : profileStylesNoPhoto} />
+            <img src={photo || DEFAULT_PHOTO} style={photo ? profileStyles : profileStylesNoPhoto} />
             {name}
         </a>
     )
-}
-
-function getEventDate (event: any) {
-    return new Date(event.date.replace('00:00:00', event.time, { timeZone: 'UTC' }))
 }
 
 export function EventDetails ({ event: eventInput }: any) {
@@ -68,11 +65,11 @@ export function EventDetails ({ event: eventInput }: any) {
         ? <>👥 <b>Attendees:</b> {event.signups} ({event.maxattendees - event.signups} spots left)<br/></>
         : <></>
 
-    const dateMerged = getEventDate(event)
+    const dateMerged = new Date(event.time)
     return (
         <>
             📅 <b>Date:</b> {dateMerged.toDateString()}<br/>
-            ⏰ <b>Time:</b> {dateMerged.toLocaleTimeString()} <span style={{ fontSize: '.6em' }}>{new Date().toTimeString().slice(9)}</span><br/>
+            ⏰ <b>Time:</b> {dateMerged.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} <span style={{ fontSize: '.6em' }}>{new Date().toTimeString().slice(9)}</span><br/>
             📍 <b>Location:</b> {event.location} (<a href={`https://www.google.com/maps/search/${encodeURIComponent(event.location)}`}>Google Maps</a>)<br/>
             {attendeeList}
             🎤 <b>Hosts:</b> {JSON.parse(event.hosts).map((host, i) => (
@@ -113,7 +110,7 @@ export function EventList() {
             {upcomingEvents.map((event) => (
                 <div key={event.id} style={{
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'start',
                     gap: 20,
                     marginBottom: 20
                 }}>
@@ -134,7 +131,7 @@ export function EventList() {
             <h2>Past Events</h2>
             {pastEvents.length === 0 && <p><i>No past events!</i></p>}
             {pastEvents.map((event) => {
-                const date = getEventDate(event)
+                const date = new Date(event.time)
                 return (
                     <a key={event.id} href={`/community/events/${event.id}`} style={{ display: 'block' }}>
                         {event.title} - {date.toDateString()}
