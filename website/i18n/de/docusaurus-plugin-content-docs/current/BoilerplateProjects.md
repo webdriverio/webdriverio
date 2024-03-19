@@ -70,6 +70,9 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Gitlab pipelines for Gitlab repository
     - Github actions for Github repository
     - Docker compose for setting up the docker hub
+    - Accessibility testing using AXE
+    - Visual testing using Applitools
+    - Log mechansim
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
