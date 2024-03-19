@@ -177,6 +177,10 @@ export default class ConfigParser {
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
+
+        /**
+         * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
+         */
         const customDeepMerge = deepmergeCustom({
             mergeArrays: (values, utils, meta) => {
                 if (meta && ['services', 'reporters', 'capabilities'].includes(meta.key as string)) {
