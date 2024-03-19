@@ -173,7 +173,7 @@ export function EventSignup ({ id, date }) {
             <p>
                 We would love to see you at the event. Please make sure to rsvp to secure your spot.
             </p>
-            <form action="https://events.webdriver.io/api/signup" method="POST" target="_blank">
+            <form action="https://events.webdriver.io/api/signup" method="POST">
                 <input type="hidden" name="event" value={id}></input>
                 <input type="text" name="name" placeholder="Your name" required style={inputStyles}></input>
                 <br />
