@@ -31,8 +31,7 @@ If you're in the root directory of an existing project, run:
   values={[
     {label: 'NPM', value: 'npm'},
     {label: 'Yarn', value: 'yarn'},
-    {label: 'pnpm', value: 'pnpm'},
-    {label: 'bun', value: 'bun'},
+    {label: 'pnpm', value: 'pnpm'}
   ]
 }>
 <TabItem value="npm">
@@ -74,19 +73,6 @@ pnpm create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
-<TabItem value="bun">
-
-```sh
-bun create wdio@latest .
-```
-
-or if you want to create a new project:
-
-```sh
-bun create wdio@latest ./path/to/new/project
-```
-
-</TabItem>
 </Tabs>
 
 This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
@@ -100,8 +86,7 @@ The wizard will prompt a set questions that guides you through the setup. You ca
   values={[
     {label: 'NPM', value: 'npm'},
     {label: 'Yarn', value: 'yarn'},
-    {label: 'pnpm', value: 'pnpm'},
-    {label: 'bun', value: 'bun'},
+    {label: 'pnpm', value: 'pnpm'}
   ]
 }>
 <TabItem value="npm">
@@ -122,13 +107,6 @@ yarn create wdio . --yes
 
 ```sh
 pnpm create wdio@latest . --yes
-```
-
-</TabItem>
-<TabItem value="pnpm">
-
-```sh
-bun create wdio@latest . --yes
 ```
 
 </TabItem>

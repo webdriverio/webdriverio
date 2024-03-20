@@ -1,0 +1,57 @@
+.profileStylesNoPhoto {
+    width: 30px;
+    transform: translateY(10px);
+    margin-right: 5px;
+}
+
+.profileStyles {
+    /* ...profileStylesNoPhoto; */
+    border-radius: 50%;
+    border: 1px solid #EA5907;
+}
+
+.profileLinkStyles {
+    background-color: transparent!important;
+    border-bottom: none!important;
+    padding-right: 15px!important;
+}
+
+.event {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.eventInput {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 50%;
+    border-radius: 3px;
+}
+.eventButton {
+    padding: 10px;
+    border-radius: 3px;
+    background-color: var(--ifm-color-primary);
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.footnote {
+    font-size: 0.6em;
+    width: 500px;
+    padding: 10px 0;
+}
+
+@media (max-width: 1150px) {
+    .event {
+        display: block;
+        margin-bottom: 50px;
+    }
+
+    .event > a > img {
+        width: 100%;
+    }
+}

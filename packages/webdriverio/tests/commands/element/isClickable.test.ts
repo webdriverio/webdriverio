@@ -23,7 +23,7 @@ describe('isClickable test', () => {
         vi.mocked(got).mockClear()
     })
 
-    it('should allow to check if element is displayed', async () => {
+    it('should allow to check if element is clickable', async () => {
         await elem.isClickable()
         expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
