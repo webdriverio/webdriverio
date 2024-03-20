@@ -2,9 +2,10 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 
 import { resolve } from 'import-meta-resolve'
+import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { enhanceElementsArray, getBrowserObject } from '../../utils/index.js'
+import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types.js'

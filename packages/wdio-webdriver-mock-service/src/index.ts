@@ -66,6 +66,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('multiremoteFetch', this.multiremoteFetch.bind(this))
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
         this._browser.addCommand('parentElementChaining', this.parentNextPreviousElementChaining.bind(this))
+        this._browser.addCommand('refetchElementScenario', this.refetchElementScenario.bind(this))
     }
 
     clickScenario() {
@@ -151,6 +152,22 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.findElements().times(2).reply(200, { value: [] })
         // Always appears thereafter
         this._mock.command.findElements().times(4).reply(200, { value: [elem2Response] })
+    }
+
+    refetchElementScenario() {
+        const elemResponse1 = { [ELEM_PROP]: '1' }
+        const elemResponse2 = { [ELEM_PROP]: '2' }
+        const elemResponse3 = { [ELEM_PROP]: '3' }
+        const elemResponse4 = { [ELEM_PROP]: '4' }
+        this._mock.command.getElementText('1').reply(200, { value: 'some element text 1' })
+        this._mock.command.getElementText('2').reply(200, { value: 'some element text 2' })
+        this._mock.command.getElementText('3').reply(200, { value: 'some element text 3' })
+        this._mock.command.getElementText('4').reply(200, { value: 'some element text 4' })
+        this._mock.command.findElements().times(4).reply(200, { value: [] })
+        this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1] })
+        this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2] })
+        this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2, elemResponse3] })
+        this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2, elemResponse3, elemResponse4] })
     }
 
     asyncIterationScenario () {

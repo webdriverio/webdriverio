@@ -400,4 +400,12 @@ describe('Mocha smoke test', () => {
                 ['some element text', 'some other element text'])
         })
     })
+
+    describe('supports refetching elements', () => {
+        it('should refetch elements', async () => {
+            // @ts-expect-error mock feature
+            await browser.refetchElementScenario()
+            expect(await browser.$$('.foo')[3].getText()).toBe('some element text 4')
+        })
+    })
 })
