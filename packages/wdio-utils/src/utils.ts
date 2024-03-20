@@ -328,3 +328,11 @@ export function isFirefox (browserName?: string) {
 export function isEdge (browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
 }
+
+/**
+ * traverse up the scope chain until browser element was reached
+ */
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.ElementArray): WebdriverIO.Browser {
+    const elemObject = elem as WebdriverIO.Element
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
+}

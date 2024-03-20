@@ -534,4 +534,18 @@ describe('Lit Component testing', () => {
         const wasmModule = await WebAssembly.instantiateStreaming(source)
         expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
     })
+
+    it('should allow to re-fetch elements', async () => {
+        let i = 0
+        const stage = document.createElement('div')
+        stage.id = 'stage'
+        document.body.appendChild(stage)
+
+        setInterval(() => {
+            const span = document.createElement('span')
+            span.textContent = 'Hello, world! ' + ++i
+            stage.appendChild(span)
+        }, 500)
+        await expect($('#stage').$$('span')[4]).toHaveText('Hello, world! 5')
+    })
 })

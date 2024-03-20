@@ -1,6 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 
-import { getBrowserObject, hasElementId } from '../../utils/index.js'
+import { hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 
 /**
