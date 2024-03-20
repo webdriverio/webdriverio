@@ -5,7 +5,7 @@ import { vi, describe, it, expect } from 'vitest'
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
-    userImport
+    userImport, getBrowserObject
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -251,5 +251,19 @@ describe('utils:userImport', () => {
         await expect(userImport('foobar'))
             .rejects
             .toThrow('Couldn\'t import "foobar"! Do you have it installed? If not run "npm install foobar"!')
+    })
+})
+
+describe('getBrowserObject', () => {
+    it('should traverse up', () => {
+        expect(getBrowserObject({
+            parent: {
+                parent: {
+                    parent: {
+                        foo: 'bar'
+                    }
+                }
+            }
+        } as any)).toEqual({ foo: 'bar' })
     })
 })

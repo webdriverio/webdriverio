@@ -1,9 +1,10 @@
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
+import { getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
 import { elementErrorHandler } from '../middlewares.js'
 import * as browserCommands from '../commands/browser.js'
 import type { Selector, AddCommandFn } from '../types.js'
