@@ -159,8 +159,11 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                             target,
                             /**
                              * `this` is an array of WebdriverIO elements
+                             *
+                             * Note(Christian): types for elements are defined in the
+                             * webdriverio package and not accessible here (fixed in v9)
                              */
-                            function (this: WebdriverIO.ElementArray, index: number) {
+                            function (this: any, index: number) {
                                 /**
                                  * if we access an index that is out of bounds we wait for the
                                  * array to get that long, and timeout eventually if it doesn't
