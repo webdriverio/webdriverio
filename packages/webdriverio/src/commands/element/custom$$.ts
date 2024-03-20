@@ -1,7 +1,8 @@
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 
 import { getElements } from '../../utils/getElementObject.js'
-import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
+import { enhanceElementsArray } from '../../utils/index.js'
 import type { CustomStrategyFunction } from '../../types.js'
 
 /**

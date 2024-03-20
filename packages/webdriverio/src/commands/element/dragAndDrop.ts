@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 const ACTION_BUTTON = 0 as const
 

@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import type { Options, Services, Clients } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
@@ -327,4 +328,15 @@ export function isFirefox (browserName?: string) {
 }
 export function isEdge (browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
+}
+
+/**
+ * traverse up the scope chain until browser element was reached
+ */
+// @ts-ignore types are not loaded in time (fixed in v9)
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
+    // @ts-ignore types are not loaded in time (fixed in v9)
+    const elemObject = elem as WebdriverIO.Element
+    // @ts-ignore types are not loaded in time (fixed in v9)
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
