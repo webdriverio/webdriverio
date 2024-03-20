@@ -397,6 +397,159 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
     })
 
+    describe('Retrying flow', () => {
+        beforeEach(() => {
+            outputDir = temporaryDirectory()
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+        })
+
+        afterEach(() => {
+            clean(outputDir)
+            vi.resetAllMocks()
+        })
+
+        it('Both attempts are FAILED', () => {
+            /* start */
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('feature-with-retries'))
+
+            /* attempt #1 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#1'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail())
+            const firstResult: any = { tests: [cucumberHelper.testFail()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* attempt #2 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#2'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail())
+            const secondResult: any = { tests: [cucumberHelper.testFail()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* end */
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(secondResult))
+            reporter.onSuiteEnd(cucumberHelper.featureEndWithRetries([firstResult, secondResult]))
+            reporter.onRunnerEnd(runnerEnd())
+
+            /* assertions */
+            const { results, containers } = getResults(outputDir)
+            expect(results).toHaveLength(2)
+            expect(containers).toHaveLength(1)
+
+            const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
+            const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
+            expect(result1.stage).toBe(Stage.FINISHED)
+            expect(result1.status).toBe(Status.FAILED)
+            expect(result2.stage).toBe(Stage.FINISHED)
+            expect(result2.status).toBe(Status.FAILED)
+        })
+
+        it('Both attempts are BROKEN', () => {
+            /* start */
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('feature-with-retries'))
+
+            /* attempt #1 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#1'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail2())
+            const firstResult: any = { tests: [cucumberHelper.testFail2()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* attempt #2 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#2'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail2())
+            const secondResult: any = { tests: [cucumberHelper.testFail2()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* end */
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(secondResult))
+            reporter.onSuiteEnd(cucumberHelper.featureEndWithRetries([firstResult, secondResult]))
+            reporter.onRunnerEnd(runnerEnd())
+
+            /* assertions */
+            const { results, containers } = getResults(outputDir)
+            expect(results).toHaveLength(2)
+            expect(containers).toHaveLength(1)
+
+            const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
+            const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
+            expect(result1.stage).toBe(Stage.FINISHED)
+            expect(result1.status).toBe(Status.BROKEN)
+            expect(result2.stage).toBe(Stage.FINISHED)
+            expect(result2.status).toBe(Status.BROKEN)
+        })
+
+        it('the first attempt is FAILED, the second one is PASSED', () => {
+            /* start */
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('feature-with-retries'))
+
+            /* attempt #1 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#1'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail())
+            const firstResult: any = { tests: [cucumberHelper.testFail()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* attempt #2 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#2'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestPass()
+            const secondResult: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* end */
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(secondResult))
+            reporter.onSuiteEnd(cucumberHelper.featureEndWithRetries([firstResult, secondResult]))
+            reporter.onRunnerEnd(runnerEnd())
+
+            /* assertions */
+            const { results, containers } = getResults(outputDir)
+            expect(results).toHaveLength(2)
+            expect(containers).toHaveLength(1)
+
+            const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
+            const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
+            expect(result1.stage).toBe(Stage.FINISHED)
+            expect(result1.status).toBe(Status.FAILED)
+            expect(result2.stage).toBe(Stage.FINISHED)
+            expect(result2.status).toBe(Status.PASSED)
+        })
+
+        it('the first attempt is BROKEN, the second one is PASSED', () => {
+            /* start */
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('feature-with-retries'))
+
+            /* attempt #1 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#1'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestFail(cucumberHelper.testFail2())
+            const firstResult: any = { tests: [cucumberHelper.testFail2()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* attempt #2 */
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('scenario-attempt#2'))
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestPass()
+            const secondResult: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+
+            /* end */
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(secondResult))
+            reporter.onSuiteEnd(cucumberHelper.featureEndWithRetries([firstResult, secondResult]))
+            reporter.onRunnerEnd(runnerEnd())
+
+            /* assertions */
+            const { results, containers } = getResults(outputDir)
+            expect(results).toHaveLength(2)
+            expect(containers).toHaveLength(1)
+
+            const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
+            const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
+            expect(result1.stage).toBe(Stage.FINISHED)
+            expect(result1.status).toBe(Status.BROKEN)
+            expect(result2.stage).toBe(Stage.FINISHED)
+            expect(result2.status).toBe(Status.PASSED)
+        })
+
+    })
+
     describe('Skipped test after several steps passed', () => {
         outputDir = temporaryDirectory()
 

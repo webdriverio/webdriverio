@@ -21,10 +21,15 @@ describe('browser utils', () => {
 
     it('sanitizeConsoleArgs', () => {
         expect(sanitizeConsoleArgs([
+            undefined,
             1,
             'foo',
             { foo: 'bar' },
             { selector: '.foobar' },
+            {
+                length: 42,
+                selector: '.foobar'
+            },
             {
                 sessionId: 'foobar',
                 capabilities: { browserName: 'chrome' }
@@ -33,10 +38,12 @@ describe('browser utils', () => {
             Promise.resolve('foobar'),
             () => {}
         ])).toEqual([
+            'undefined',
             1,
             'foo',
             { foo: 'bar' },
             'WebdriverIO.Element<".foobar">',
+            'WebdriverIO.ElementArray<42x ".foobar">',
             'WebdriverIO.Browser<chrome>',
             expect.stringContaining('Error: foobar'),
             '[object Promise]',

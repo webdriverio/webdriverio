@@ -306,19 +306,19 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         try {
             /**
-             * double check if function is registered
-             */
-            if (typeof browser[payload.commandName as keyof typeof browser] !== 'function') {
-                throw new Error(`browser.${payload.commandName} is not a function`)
-            }
-
-            /**
              * user either the browser instance or an element based on whether or not
              * a scope property was passed in
              */
             const scope = payload.scope
                 ? await browser.$({ [ELEMENT_KEY]: payload.scope })
                 : browser
+
+            /**
+             * double check if function is registered
+             */
+            if (typeof scope[payload.commandName as keyof typeof scope] !== 'function') {
+                throw new Error(`${payload.scope ? 'element' : 'browser'}.${payload.commandName} is not a function`)
+            }
 
             let result = await (scope[payload.commandName as keyof typeof scope] as Function)(...payload.args)
 
