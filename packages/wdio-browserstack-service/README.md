@@ -46,11 +46,14 @@ In order to authorize to the BrowserStack service your config needs to contain a
 
 ### testObservability
 
-By default, [`testObservability`](https://observability.browserstack.com/) is also enabled when you use the browserstack-service. You can read more about the advanced reporting and analytics functionalities of [`Test Observability`](https://browserstack.com/docs/test-observability) and also read about [`how it works`](https://browserstack.com/docs/test-observability/references/terms-and-conditions). You can visit the Test Observability dashboard after running your tests and also choose to disable it by setting the key to `false`.
+Test Observability is an advanced test reporting tool that gives insights to improve your automation tests and helps you debug faster. It’s enabled by default by setting the testObservability​ flag as true for all users of browserstack-service. You can disable this by setting the testObservability​ flag to false.
 
-You can use Test Observability even if you do not want to run your tests on the BrowserStack infrastructure. You could be running your tests on CI or on your laptop or even on other cloud service providers like Sauce Labs, Test Observability could still work and give you all the intelligent test reports and advanced analytics.
+Once your tests finish running, you can visit [Test Observability](https://observability.browserstack.com/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation) to debug your builds with additional insights like Unique Error Analysis, Automatic Flaky Test Detection, and more.
 
-You can set your config in the following manner if you do not want to run tests on BrowserStack Automate or App Automate (infrastructure) but still want to use Test Observability (note that `user` and `key` are now defined under the scope of the `browserstack` service):
+You can use Test Observability even if you don’t run your tests on the BrowserStack infrastructure. Even if you run your tests on a CI, a local machine, or even on other cloud service providers, Test Observability can still generate intelligent test reports and advanced analytics on your tests.
+
+If you want to use Test Observability without running your tests on BrowserStack infrastructure, you can set your config as follows:
+
 
 ```js
 // wdio.conf.js
@@ -71,7 +74,7 @@ export const config = {
 };
 ```
 
-[`Read more`](https://www.browserstack.com/docs/test-observability/quick-start/webdriverio#Tests_running_locally_or_elsewhere) in BrowserStack documentation about how to get started with Test Observability.
+You can explore all the features of Test Observability in [this sandbox](https://observability-demo.browserstack.com/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation) or read more about it [here](https://www.browserstack.com/docs/test-observability/overview/what-is-test-observability?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation).
 
 ### browserstackLocal
 Set this to true to enable routing connections from BrowserStack cloud through your computer.
