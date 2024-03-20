@@ -544,7 +544,7 @@ export const enhanceElementsArray = (
      * if all elements have the same selector we actually can assign a selector
      */
     const elems = selector as WebdriverIO.Element[]
-    if (Array.isArray(selector) && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
+    if (Array.isArray(selector) && elems.length && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
         elementArray.selector = elems[0].selector
     }
 
