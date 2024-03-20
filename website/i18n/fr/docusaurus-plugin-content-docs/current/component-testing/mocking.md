@@ -10,7 +10,7 @@ Lors de l'écriture de tests, ce n'est qu'une question de temps avant de devoir 
 Afin de valider si certains gestionnaires de fonctions sont appelés dans le cadre de vos tests de composants, le module `@wdio/browser-runner` exporte des primitives factices que vous pouvez utiliser pour tester si ces fonctions ont été appelées. Vous pouvez importer ces méthodes via :
 
 ```js
-import { fn, spy } from '@wdio/browser-runner'
+import { fn, spyOn } from '@wdio/browser-runner'
 ```
 
 En important `fn` vous pouvez créer une fonction espion (mock) pour suivre son exécution et avec `spyOn` suivre une méthode sur un objet déjà créé.
