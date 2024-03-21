@@ -152,7 +152,8 @@ export default class ProxyDriver {
 
         if (value.error) {
             console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
-            return commandMessage.reject(new Error(value.error.message || 'unknown error'))
+            value.error.message = value.error.message || 'unknown error'
+            return commandMessage.reject(value.error)
         }
         if (commandMessage.commandTimeout) {
             clearTimeout(commandMessage.commandTimeout)

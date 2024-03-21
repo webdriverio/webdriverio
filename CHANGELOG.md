@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.35.0 (2024-03-20)
+
+#### :rocket: New Feature
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#12530](https://github.com/webdriverio/webdriverio/pull/12530) [v8] feat(webdriverio): enable re-fetching of elements when called via $ command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#12531](https://github.com/webdriverio/webdriverio/pull/12531) Update mocking.md ([@LittleDC](https://github.com/LittleDC))
+* `wdio-browserstack-service`
+  * [#12532](https://github.com/webdriverio/webdriverio/pull/12532) BrowserStack-testObservability-docs-webdriverio-v8 ([@JohnJoser3](https://github.com/JohnJoser3))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dai Chen ([@LittleDC](https://github.com/LittleDC))
+- John Jose ([@JohnJoser3](https://github.com/JohnJoser3))
+
+
 ## v8.34.1 (2024-03-16)
 
 #### :bug: Bug Fix

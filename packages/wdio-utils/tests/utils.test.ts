@@ -3,7 +3,8 @@ import { vi, describe, it, expect } from 'vitest'
 
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
-    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
+    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
+    getBrowserObject
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -228,5 +229,19 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
+    })
+})
+
+describe('getBrowserObject', () => {
+    it('should traverse up', () => {
+        expect(getBrowserObject({
+            parent: {
+                parent: {
+                    parent: {
+                        foo: 'bar'
+                    }
+                }
+            }
+        } as any)).toEqual({ foo: 'bar' })
     })
 })

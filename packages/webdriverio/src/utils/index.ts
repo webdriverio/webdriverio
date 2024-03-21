@@ -8,7 +8,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, asyncIterators } from '@wdio/utils'
+import { UNICODE_CHARACTERS, asyncIterators, getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -90,14 +90,6 @@ export const getElementFromResponse = (res?: ElementReference) => {
     }
 
     return null
-}
-
-/**
- * traverse up the scope chain until browser element was reached
- */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
-    const elemObject = elem as WebdriverIO.Element
-    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
 function sanitizeCSS (value?: string) {
@@ -552,7 +544,7 @@ export const enhanceElementsArray = (
      * if all elements have the same selector we actually can assign a selector
      */
     const elems = selector as WebdriverIO.Element[]
-    if (Array.isArray(selector) && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
+    if (Array.isArray(selector) && elems.length && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
         elementArray.selector = elems[0].selector
     }
 
