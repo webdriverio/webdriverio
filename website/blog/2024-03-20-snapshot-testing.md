@@ -164,7 +164,7 @@ Some of the features that make visual testing with WebdriverIO unique are:
   - __improve stability__ and prevent font rendering flakiness
   - only focus on the __layout__ of a website
 - use __different comparison methods__ and a set of __additional matchers__ for better readable tests
-- verify how your website will __support tabbing with your keyboard__, see also [Tabbing through a website](visual-testing#tabbing-through-a-website)
+- verify how your website will __support tabbing with your keyboard__, see also [Tabbing through a website](/docs/visual-testing#tabbing-through-a-website)
 - and much more, see the [service](/docs/visual-testing/service-options) and [method](/docs/visual-testing/method-options) options
 
 Learn everything about WebdriverIO's visual testing capabilities in our [Visual docs](visual-testing) and join our [👁️-visual-testing](https://discord.webdriver.io) channel on Discord.
