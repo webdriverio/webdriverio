@@ -81,12 +81,12 @@ npx wdio run wdio.conf.ts --updateSnapshots
 npx wdio run wdio.conf.ts -s
 ```
 
-This makes maintaining your tests so much easier. The same works for all other types of objects, e.g. CSS Properties, or the text content of an element. They all can be converted into a snapshot to simplify the assertion and keep your tests lean. This can also speed up your tests by merging many single assertions into one:
+This makes maintaining your tests so much easier. The same works for all other types of objects, e.g. CSS Properties, or the text content of an element. They all can be converted into a snapshot to simplify the assertion and keep your tests lean. This can also speed up your tests by merging many single assertions into one, e.g.:
 
 ```ts
 const elem = $('#alertBar')
 await expect(elem).toHaveAttribute('data-alert')
-await expect(elem).toHaveCSSProperty('background-color', 'green')
+await expect(elem).toHaveClassName('success')
 await expect(elem).toHaveText('You logged into a secure area!')
 ```
 
@@ -110,7 +110,7 @@ You can find more information about DOM and object-based snapshots in our [Snaps
 
 While taking snapshots of an element structure and its attributes might be great and powerful, it comes with an important caveat: even though we are testing that the element has a class name called `success`, this doesn't guarantee that the alert is green!
 
-For these reasons, visual testing has become a very popular tool as it includes how elements are rendered, in which color and can ensure that e.g. it is not overlaid by any other element. Taking visual snapshots works very similar, as you can:
+For these reasons, visual testing has become a very popular tool as it includes how elements are rendered, in which color and can ensure that e.g. it is not overlaid by any other element. Taking visual snapshots works very similarly, as you can:
 
 - take a visual snapshot of the whole screen:
   ```ts
@@ -158,7 +158,7 @@ Some of the features that make visual testing with WebdriverIO unique are:
 - verify how your website will __support tabbing with your keyboard__, see also [Tabbing through a website](visual-testing#tabbing-through-a-website)
 - and much more, see the [service](/docs/visual-testing/service-options) and [method](/docs/visual-testing/method-options) options
 
-Learn everything about WebdriverIO visual testing capabilities in our [Visual docs](visual-testing).
+Learn everything about WebdriverIO's visual testing capabilities in our [Visual docs](visual-testing) and join our [👁️-visual-testing](https://discord.webdriver.io) channel on Discord.
 
 ### Special Thanks to [`@wswebcreation`](https://github.com/wswebcreation)
 
