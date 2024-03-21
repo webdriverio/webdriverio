@@ -48,12 +48,13 @@ describe('action command', () => {
     })
 
     it('fails if user triggers more than one character', async () => {
-        expect.assertions(1)
+        let err!: Error
         try {
             await browser.action('key').down('foo').perform()
-        } catch (err) {
-            expect(err.message).toMatch(/more than one/)
+        } catch (error) {
+            err = error as Error
         }
+        expect(err.message).toMatch(/more than one/)
     })
 
     it('should trigger command key when Key.Ctrl is used', async () => {
