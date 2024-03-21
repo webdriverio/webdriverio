@@ -113,3 +113,5 @@ packages/webdriverio/.chrome
 packages/wdio-json-reporter/tests/__fixtures__/merged.json
 examples/wdio/mocha/*.json
 e2e/screenshot.png
+website/community/events
+website/events.json

@@ -1,5 +1,7 @@
 import cssShorthandProps from 'css-shorthand-properties'
-import { getBrowserObject, parseCSS } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
+
+import { parseCSS } from '../../utils/index.js'
 
 type PseudoElement = '::before' | '::after'
 

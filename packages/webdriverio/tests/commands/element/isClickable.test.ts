@@ -21,7 +21,7 @@ describe('isClickable test', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it('should allow to check if element is displayed', async () => {
+    it('should allow to check if element is clickable', async () => {
         await elem.isClickable()
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)

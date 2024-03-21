@@ -48,11 +48,11 @@ describe('action command', () => {
     })
 
     it('fails if user triggers more than one character', async () => {
-        let err
+        let err!: Error
         try {
             await browser.action('key').down('foo').perform()
         } catch (error) {
-            err = error
+            err = error as Error
         }
         expect(err.message).toMatch(/more than one/)
     })

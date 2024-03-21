@@ -3,7 +3,7 @@ import type { CDPSession } from 'puppeteer-core'
 import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
 
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 import type { Mock } from '../../types.js'
 import type { MockFilterOptions } from '../../utils/interception/types.js'
