@@ -167,7 +167,7 @@ Some of the features that make visual testing with WebdriverIO unique are:
 - verify how your website will __support tabbing with your keyboard__, see also [Tabbing through a website](/docs/visual-testing#tabbing-through-a-website)
 - and much more, see the [service](/docs/visual-testing/service-options) and [method](/docs/visual-testing/method-options) options
 
-Learn everything about WebdriverIO's visual testing capabilities in our [Visual docs](visual-testing) and join our [👁️-visual-testing](https://discord.webdriver.io) channel on Discord.
+Learn everything about WebdriverIO's visual testing capabilities in our [Visual docs](/docs/visual-testing) and join our [👁️-visual-testing](https://discord.webdriver.io) channel on Discord.
 
 ### Special Thanks to [`@wswebcreation`](https://github.com/wswebcreation)
 
