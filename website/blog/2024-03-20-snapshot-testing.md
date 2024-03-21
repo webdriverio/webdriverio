@@ -104,6 +104,15 @@ await expect($('#alertBar')).toMatchSnapshot()
  */
 ```
 
+While taking a snapshot of the DOM might be the most prominent use case, you can take snapshots of all types of serializable data structures, e.g.:
+
+```ts
+// the visible content of an element
+await expect($('elem').getText()).toMatchSnapshot()
+// or of an serializable object
+await expect($('elem').getCSSProperty('color')).toMatchSnapshot()
+```
+
 You can find more information about DOM and object-based snapshots in our [Snapshot guide](/docs/snapshot).
 
 ## Visual Snapshots
