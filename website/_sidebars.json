@@ -162,7 +162,9 @@
         },
         "visual-testing/test-output",
         "visual-testing/considerations",
-        "visual-testing/faq"
+        "visual-testing/faq",
+        "visual-testing/integrate-with-percy",
+        "visual-testing/integrate-with-app-percy"
       ],
       "link": {
         "type": "doc",
