@@ -51,9 +51,7 @@ describe('React Component Testing', () => {
 })
 ```
 
-WebdriverIO will automatically grab the DOM structure of the component and store a snapshot file in `/src/__snapshots__` directory next to your test.
-
-component.test.tsx.snap` with the following content:
+WebdriverIO will automatically grab the DOM structure of the component and store a snapshot file called `component.test.tsx.snap` in `/src/__snapshots__` directory next to your test with the following content:
 
 ```
 // Snapshot v1
