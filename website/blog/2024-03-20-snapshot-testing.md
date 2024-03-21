@@ -141,7 +141,7 @@ With the most recent release of the Visual Testing Module with have shipped furt
 
 ### Native App Snapshot Testing
 
-The module now supports `saveElement`, `checkElement`, `saveScreen`, and `checkScreen` methods, along with `toMatchElementSnapshot` and `toMatchScreenSnapshot` matchers for native apps. It automatically detects the testing context (web, webview, or native_app) to streamline your workflow.
+The module now supports the `toMatchElementSnapshot` and `toMatchScreenSnapshot` matchers for Mobile native apps. It automatically detects the testing context (web, webview, or native_app) to streamline your workflow.
 
 ### Key Features of the Visual Service
 
