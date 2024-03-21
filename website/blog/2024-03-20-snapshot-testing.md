@@ -137,7 +137,7 @@ While text-based snapshot testing is built into WebdriverIO, you have to install
 npm i --save-dev @wdio/visual-service
 ```
 
-With the most recent release of the Visual Testing Module with have shipped further improvements for **Native App Snapshot Testing**.
+With the most recent release of the Visual Testing Module with have shipped further improvements for **Mobile Native App Snapshot Testing**.
 
 ### Native App Snapshot Testing
 
