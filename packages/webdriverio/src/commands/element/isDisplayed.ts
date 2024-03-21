@@ -1,4 +1,6 @@
-import { getBrowserObject, hasElementId } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
+
+import { hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 

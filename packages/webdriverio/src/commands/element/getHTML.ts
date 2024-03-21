@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { CheerioAPI } from 'cheerio'
 import { prettify as prettifyFn } from 'htmlfy'
 
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 import { getShadowRootManager } from '../../shadowRoot.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
