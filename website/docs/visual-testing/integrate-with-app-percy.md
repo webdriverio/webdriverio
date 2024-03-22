@@ -1,6 +1,6 @@
 ---
 id: integrate-with-app-percy
-title: Integrate with App Percy
+title: Run visual tests on your mobile apps with App Percy
 ---
 
 ## Introduction
