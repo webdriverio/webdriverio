@@ -19,6 +19,17 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.37.0 (2024-03-22)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12482](https://github.com/webdriverio/webdriverio/pull/12482) BrowserStack Accessibility stability improvements ([@07souravkunda](https://github.com/07souravkunda))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+
+
 ## v7.36.0 (2024-03-07)
 
 #### :rocket: New Feature
