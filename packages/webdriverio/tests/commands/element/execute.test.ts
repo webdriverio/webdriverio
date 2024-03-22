@@ -1,12 +1,13 @@
 import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('isEnabled test', () => {
+describe('execute test', () => {
     it('should execute the script', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -15,12 +16,12 @@ describe('isEnabled test', () => {
             }
         })
 
-        await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
+        await browser.$('#foo').execute((a, b, c) => a + b + c, 1, 2, 3)
         expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname)
-            .toBe('/session/foobar-123/execute/sync')
-        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toMatchObject(JSON.stringify({
+            .toBe('/session/foobar-123/element')
+        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toMatchObject(JSON.stringify({
             script: 'return ((a, b, c) => a + b + c).apply(null, arguments)',
-            args: [1, 2, 3]
+            args: [1, 2, 3, { [ELEMENT_KEY]: 'some-elem-123', ELEMENT: 'some-elem-123' }]
         }))
     })
 
@@ -32,7 +33,7 @@ describe('isEnabled test', () => {
             }
         })
 
-        const result = await browser.execute((value) => value, 'foobar')
+        const result = await browser.$('#foo').execute((value) => value, 'foobar')
         expect(result).toEqual('foobar')
     })
 
@@ -45,8 +46,8 @@ describe('isEnabled test', () => {
         })
 
         // @ts-expect-error
-        await expect(() => browser.execute(null)).rejects.toThrow()
+        await expect(() => browser.$('#foo').execute(null)).rejects.toThrow()
         // @ts-expect-error
-        await expect(() => browser.execute(1234)).rejects.toThrow()
+        await expect(() => browser.$('#foo').execute(1234)).rejects.toThrow()
     })
 })
