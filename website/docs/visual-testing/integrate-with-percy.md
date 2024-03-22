@@ -1,6 +1,6 @@
 ---
 id: integrate-with-percy
-title: Integrate with Percy
+title: Run visual tests on your web apps with Percy
 ---
 
 ## Introduction
