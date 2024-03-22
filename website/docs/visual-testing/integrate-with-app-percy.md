@@ -62,7 +62,7 @@ Make sure to import @percy/appium-app in your code.
 Below is an example test using the percyScreenshot function. Use this function wherever you have to take a screenshot.
 
 ```sh
-const percyScreenshot = require('@percy/appium-app');
+import percyScreenshot from '@percy/appium-app';
 describe('Appium webdriverio test example', function() {
   it('takes a screenshot', async () => {
     await percyScreenshot('Appium JS example');
