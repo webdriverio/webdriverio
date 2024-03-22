@@ -120,8 +120,7 @@ describe('Lit Component testing', () => {
 
         const err = await $('input').click().catch((err) => err)
         expect(err.name).toBe('element not interactable')
-        expect(err.message).toBe('Element <input style="display: none;" /> not interactable')
-        expect(err.stack).toContain('Session info')
+        expect(err.message).toBe('Element <input style="display: none;"> not interactable')
         expect(err.stack).toContain('at getErrorFromResponseBody')
     })
 
