@@ -55,7 +55,7 @@ Import the Percy library to use the method and attributes required to take scree
 The following example uses the percySnapshot() function in the async mode:
 
 ```sh
-const percySnapshot = require('@percy/webdriverio');
+import percySnapshot from '@percy/webdriverio';
 describe('webdriver.io page', () => {
   it('should have the right title', async () => {
     await browser.url('https://webdriver.io');
@@ -68,15 +68,16 @@ describe('webdriver.io page', () => {
 When using WebdriverIO in the [standalone mode](https://webdriver.io/docs/setuptypes.html/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation), provide the browser object as the first argument to the `percySnapshot` function:
 
 ```sh
-const { remote } = require('webdriverio');
-const percySnapshot = require('@percy/webdriverio');
-(async () => {
-  const browser = await remote({
-    logLevel: 'trace',
-    capabilities: {
-      browserName: 'chrome'
-    }
-  });
+import { remote } from 'webdriverio'
+
+import percySnapshot from '@percy/webdriverio';
+
+const browser = await remote({
+  logLevel: 'trace',
+  capabilities: {
+    browserName: 'chrome'
+  }
+});
   await browser.url('https://duckduckgo.com');
   const inputElem = await browser.$('#search_form_input_homepage');
   await inputElem.setValue('WebdriverIO');
