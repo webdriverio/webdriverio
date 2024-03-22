@@ -112,6 +112,18 @@ describe('Lit Component testing', () => {
         `)
     })
 
+    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
+        render(
+            html`<input style="display: none;"></input>`,
+            document.body
+        )
+
+        const err = await $('input').click().catch((err) => err)
+        expect(err.name).toBe('element not interactable')
+        expect(err.message).toBe('Element <input style="display: none;"> not interactable')
+        expect(err.stack).toContain('at getErrorFromResponseBody')
+    })
+
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
