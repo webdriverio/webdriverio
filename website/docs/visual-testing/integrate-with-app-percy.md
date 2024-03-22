@@ -91,7 +91,7 @@ This command starts Percy, create a new Percy build, takes snapshots and uploads
 ```sh
 [percy] Percy has started!
 [percy] Created build #1: https://percy.io/[your-project]
-[percy] Snapshot taken "Appium webdriverIOJS example"
+[percy] Snapshot taken "Appium WebdriverIO Example"
 [percy] Stopping percy...
 [percy] Finalized build #1: https://percy.io/[your-project]
 [percy] Done!
