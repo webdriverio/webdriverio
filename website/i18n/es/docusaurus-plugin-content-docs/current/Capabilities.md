@@ -184,8 +184,8 @@ Ejecutar un navegador remotamente significa ejecutar una instancia del navegador
 
 ```ts
 {
-    browserName: 'chrome',
-    'goog:chromeOptions': {
+    browserName: 'chrome',    // 'chromium'
+    'goog:chromeOptions': {   // 'wdio:chromedriverOptions'
         args: ['headless', 'disable-gpu']
     }
 }
@@ -238,7 +238,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',// 'chromium'
     browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
 }
 ```

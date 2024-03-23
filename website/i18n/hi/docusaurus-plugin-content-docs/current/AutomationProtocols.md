@@ -119,7 +119,7 @@ import { remote } from 'webdriverio'
 const browser = await remote({
     automationProtocol: 'devtools',
     capabilities: {
-        browserName: 'chrome'
+        browserName: 'chrome' // or 'chromium'
     }
 })
 
