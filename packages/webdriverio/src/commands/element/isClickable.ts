@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
 
 /**

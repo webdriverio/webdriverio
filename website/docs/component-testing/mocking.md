@@ -10,7 +10,7 @@ When writing tests it's only a matter of time before you need to create a "fake"
 In order to validate whether certain function handler are called as part of your component tests, the `@wdio/browser-runner` module exports mocking primitives you can use to test, if these functions have been called. You can import these methods via:
 
 ```js
-import { fn, spy } from '@wdio/browser-runner'
+import { fn, spyOn } from '@wdio/browser-runner'
 ```
 
 By importing `fn` you can create a spy function (mock) to track its execution and with `spyOn` track a method on an already created object.

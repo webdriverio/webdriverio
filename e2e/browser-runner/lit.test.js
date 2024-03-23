@@ -147,6 +147,18 @@ describe('Lit Component testing', () => {
         })
     })
 
+    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
+        render(
+            html`<input style="display: none;"></input>`,
+            document.body
+        )
+
+        const err = await $('input').click().catch((err) => err)
+        expect(err.name).toBe('element not interactable')
+        expect(err.message).toBe('Element <input style="display: none;" /> not interactable')
+        expect(err.stack).toContain('at getErrorFromResponseBody')
+    })
+
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
@@ -570,5 +582,19 @@ describe('Lit Component testing', () => {
         const source = fetch('/browser-runner/wasm/add.wasm')
         const wasmModule = await WebAssembly.instantiateStreaming(source)
         expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
+    })
+
+    it('should allow to re-fetch elements', async () => {
+        let i = 0
+        const stage = document.createElement('div')
+        stage.id = 'stage'
+        document.body.appendChild(stage)
+
+        setInterval(() => {
+            const span = document.createElement('span')
+            span.textContent = 'Hello, world! ' + ++i
+            stage.appendChild(span)
+        }, 500)
+        await expect($('#stage').$$('span')[4]).toHaveText('Hello, world! 5')
     })
 })

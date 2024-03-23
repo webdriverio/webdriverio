@@ -6,6 +6,7 @@
 @import url(youtube.css);
 @import url(flowcharts.css);
 @import url(sponsors.css);
+@import url(events.css);
 
 :root {
     --ifm-color-primary: #ea5906;
