@@ -136,6 +136,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     props: any[]
     length: number
 }
+export type ElementArray = ElementArrayExport
 
 type AddCommandFnScoped<
     InstanceType = Browser,
@@ -244,7 +245,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browse
 /**
  * @deprecated use `WebdriverIO.Browser` instead
  */
-export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiEventHandler, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
 
 /**
  * export a browser interface that can be used for typing plugins
