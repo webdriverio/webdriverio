@@ -35,6 +35,7 @@ type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
     command: { method: string, endpoint: string, body: any }
     result: { method: string, endpoint: string, body: any, result: any }
+    'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
 }
 export type BidiEventMap = {
     [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]
