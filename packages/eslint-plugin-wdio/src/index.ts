@@ -20,6 +20,11 @@ const configs = {
                 multiremotebrowser: false,
             },
         },
+        plugins: {
+            wdio: {
+                rules,
+            }
+        },
         rules: {
             'wdio/await-expect': 'error',
             'wdio/no-debug': 'error',
