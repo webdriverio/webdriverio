@@ -136,7 +136,7 @@ importers:
         version: link:packages/eslint-plugin-wdio
       eta:
         specifier: ^3.2.0
-        version: 3.3.0
+        version: 3.4.0
       glob:
         specifier: ^10.3.10
         version: 10.3.10
@@ -12219,8 +12219,8 @@ packages:
     resolution: {integrity: sha512-UVQ72Rqjy/ZKQalzV5dCCJP80GrmPrMxh6NlNf+erV6ObL0ZFkhCstWRawS85z3smdr3d2wXPsZEY7rDPfGd2g==}
     engines: {node: '>=6.0.0'}
 
-  /eta@3.3.0:
-    resolution: {integrity: sha512-heYvquilF7yyu51+ltzMv/loxQZTQ/jIp+wwoeMqm1FRASEpMEMn5GdO7BQ1bHXTmU8yccl+4seD844hCsuk9A==}
+  /eta@3.4.0:
+    resolution: {integrity: sha512-tCsc7WXTjrTx4ZjYLplcqrI3o4mYJ+Z6YspeuGL8tbt/hHoMchwBwtKfwM09svEY86iRapY93vUqQttcNuIO5Q==}
     engines: {node: '>=6.0.0'}
     dev: true
 
