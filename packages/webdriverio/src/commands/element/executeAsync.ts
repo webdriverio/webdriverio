@@ -23,18 +23,17 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  * <example>
     :executeAsync.js
-    it('should wait for the example element to exist, then execute async JavaScript on the page', async () => {
+    it('should wait for the element to exist, then executes async javascript on the page with the element as first argument', async () => {
         await browser.setTimeout({ script: 5000 })
-        const result = await $('example').executeAsync(function(a, b, c, d, elem, done) {
+        const text = await $('div').execute((elem, a, b, c, d) => {
             // browser context - you may not access client or console
             setTimeout(() => {
-                console.log(args) // logs added arguments
-                console.log(elem) // logs the element
-                done(a + b + c + d)
+                done(elem.textContent + a + b + c + d)
             }, 3000);
-        }, 1, 2, 3, 4)
+        }, 1, 2, 3, 4);
         // node.js context - client and console are available
-        console.log(result) // outputs: 10
+        // node.js context - client and console are available
+        console.log(text); // outputs "Hello World1234"
     });
  * </example>
  *
@@ -51,7 +50,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
     this: ChainablePromiseElement,
     script:
         string |
-        ((...args: [...innerArgs: InnerArguments, ChainablePromiseElement, callback: (result?: ReturnValue) => void]) => void),
+        ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     /**
@@ -69,5 +68,5 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeAsyncScript(script, verifyArgsAndStripIfElement([...args, this]))
+    return this.executeAsyncScript(script, verifyArgsAndStripIfElement([this, ...args]))
 }

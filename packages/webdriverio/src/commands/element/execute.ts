@@ -18,14 +18,12 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  * <example>
     :execute.js
-    it('should wait for the example element to exist, then inject javascript on the page', async () => {
-        const result = await $('example').execute((...args, elem) => {
-            console.log(args) // logs added arguments
-            console.log(elem) // logs the element
-            return a + b + c + d
-        }, 1, 2, 3, 4)
+    it('should wait for the element to exist, then executes javascript on the page with the element as first argument', async () => {
+        const text = await $('div').execute((elem, a, b, c, d) => {
+            return elem.textContent + a + b + c + d
+        }, 1, 2, 3, 4);
         // node.js context - client and console are available
-        console.log(result) // outputs: 10
+        console.log(text); // outputs "Hello World1234"
     });
  * </example>
  *
@@ -40,7 +38,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  */
 export async function execute<ReturnValue, InnerArguments extends any[]> (
     this: ChainablePromiseElement,
-    script: string | ((...innerArgs: [...InnerArguments, ChainablePromiseElement]) => ReturnValue),
+    script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
     ...args: InnerArguments): Promise<ReturnValue> {
     /**
      * parameter check
@@ -57,7 +55,5 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeScript(script, verifyArgsAndStripIfElement([...args, this]))
-    // const browser = getBrowserObject(this)
-    // return browser.execute<ReturnValue, [...InnerArguments, WebdriverIO.Element]>(script, ...[...args, this]) as ReturnValue
+    return this.executeScript(script, verifyArgsAndStripIfElement([this, ...args]))
 }

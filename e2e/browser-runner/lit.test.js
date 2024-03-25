@@ -195,6 +195,17 @@ describe('Lit Component testing', () => {
         await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
     })
 
+    it('should call execute method with the element', async function () {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+        const result = await $('simple-greeting').execute((elem, a, b, c) => {
+            return `${elem.outerHTML}, ${a}, ${b}, ${c}`
+        }, 1, 2, 3)
+        await expect(result).toEqual('<simple-greeting name="WebdriverIO"></simple-greeting>, 1, 2, 3')
+    })
+
     it('should be able to chain shadow$ commands', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,
