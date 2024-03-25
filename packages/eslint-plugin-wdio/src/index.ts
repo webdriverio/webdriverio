@@ -29,7 +29,7 @@ const configs = {
             'wdio/await-expect': 'error',
             'wdio/no-debug': 'error',
             'wdio/no-pause': 'error',
-        }
+        } as const
     }
 }
 
