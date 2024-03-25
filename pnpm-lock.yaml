@@ -697,8 +697,8 @@ importers:
         specifier: 28.0.0
         version: 28.0.0
       '@cucumber/messages':
-        specifier: 24.0.1
-        version: 24.0.1
+        specifier: 24.1.0
+        version: 24.1.0
       '@types/node':
         specifier: ^20.1.0
         version: 20.11.26
@@ -3702,7 +3702,7 @@ packages:
       '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@27.0.0)(@cucumber/message-streams@4.0.1)(@cucumber/messages@24.0.1)
       '@cucumber/gherkin-utils': 8.0.5
       '@cucumber/html-formatter': 21.2.0(@cucumber/messages@24.0.1)
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.0.1)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
       '@cucumber/messages': 24.0.1
       '@cucumber/tag-expressions': 6.1.0
       assertion-error-formatter: 3.0.0
@@ -3748,7 +3748,7 @@ packages:
       '@cucumber/messages': '>=17.1.1'
     dependencies:
       '@cucumber/gherkin': 27.0.0
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.0.1)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
       '@cucumber/messages': 24.0.1
       commander: 9.1.0
       source-map-support: 0.5.21
@@ -3780,7 +3780,7 @@ packages:
   /@cucumber/gherkin@28.0.0:
     resolution: {integrity: sha512-Ee6zJQq0OmIUPdW0mSnsCsrWA2PZAELNDPICD2pLfs0Oz7RAPgj80UsD2UCtqyAhw2qAR62aqlktKUlai5zl/A==}
     dependencies:
-      '@cucumber/messages': 24.0.1
+      '@cucumber/messages': 24.1.0
     dev: false
 
   /@cucumber/html-formatter@21.2.0(@cucumber/messages@24.0.1):
@@ -3791,12 +3791,12 @@ packages:
       '@cucumber/messages': 24.0.1
     dev: false
 
-  /@cucumber/message-streams@4.0.1(@cucumber/messages@24.0.1):
+  /@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0):
     resolution: {integrity: sha512-Kxap9uP5jD8tHUZVjTWgzxemi/0uOsbGjd4LBOSxcJoOCRbESFwemUzilJuzNTB8pcTQUh8D5oudUyxfkJOKmA==}
     peerDependencies:
       '@cucumber/messages': '>=17.1.1'
     dependencies:
-      '@cucumber/messages': 24.0.1
+      '@cucumber/messages': 24.1.0
     dev: false
 
   /@cucumber/messages@22.0.0:
@@ -3812,6 +3812,15 @@ packages:
     resolution: {integrity: sha512-dKfNkvgc6stSQIyeHk7p/221iqEZe1BP+e/Js8XKtSmc0sS8khKMvbSBwYVeonn/67/vYKiAyo6Eo0SzXd5Plw==}
     dependencies:
       '@types/uuid': 9.0.7
+      class-transformer: 0.5.1
+      reflect-metadata: 0.2.1
+      uuid: 9.0.1
+    dev: false
+
+  /@cucumber/messages@24.1.0:
+    resolution: {integrity: sha512-hxVHiBurORcobhVk80I9+JkaKaNXkW6YwGOEFIh/2aO+apAN+5XJgUUWjng9NwqaQrW1sCFuawLB1AuzmBaNdQ==}
+    dependencies:
+      '@types/uuid': 9.0.8
       class-transformer: 0.5.1
       reflect-metadata: 0.2.1
       uuid: 9.0.1
