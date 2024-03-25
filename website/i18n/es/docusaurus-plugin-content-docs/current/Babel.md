@@ -30,7 +30,7 @@ module.exports = {
 When using Babel in a monorepo things can get complicated if you do not follow the documentation steps, so make sure you read the [Babel documentation](https://babeljs.io/docs/config-files#monorepos) thoroughly.
 
 To give you some guidance, here's some things to keep in mind:
-- You have to create a (root `babel.config.json`)[https://babeljs.io/docs/config-files#root-babelconfigjson-file]
+- You have to create a [root babel.config.json](https://babeljs.io/docs/config-files#root-babelconfigjson-file).
 - After you have done so and the project is correctly configured according to the documentation, you will have to make Babel look for the config by updating your wdio config files by adding the example found below.
 
 ```js
