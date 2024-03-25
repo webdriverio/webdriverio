@@ -33,6 +33,11 @@ const configs = {
     }
 }
 
+export default {
+    rules,
+    configs,
+}
+
 export {
     rules,
     configs,
