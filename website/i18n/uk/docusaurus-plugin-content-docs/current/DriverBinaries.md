@@ -29,8 +29,8 @@ If you have a browser installation on a location that cannot be auto-detected by
 {
     capabilities: [
         {
-            browserName: 'chrome', // or 'firefox'
-            'goog:chromeOptions': { // or 'moz:firefoxOptions'
+            browserName: 'chrome', // or 'firefox' or 'chromium'
+            'goog:chromeOptions': { // or 'moz:firefoxOptions' or 'wdio:chromedriverOptions'
                 binary: '/path/to/chrome'
             },
         }
