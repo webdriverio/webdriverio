@@ -224,7 +224,7 @@ Running a headless browser means to run a browser instance without window or UI.
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',   // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
@@ -278,7 +278,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome', // or 'chromium'
     browserVersion: '116' // or '116.0.5845.96', 'stable', 'latest', 'dev', 'canary', 'beta'
 }
 ```
@@ -287,7 +287,7 @@ If you like to test a manually downloaded browser, you can provide a binary path
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',  // or 'chromium'
     'goog:chromeOptions': {
         binary: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
     }
@@ -298,7 +298,7 @@ Additionally, if you like to use a manually downloaded driver, you can provide a
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome', // or 'chromium'
     'wdio:chromedriverOptions': {
         binary: '/path/to/chromdriver'
     }
