@@ -10,13 +10,15 @@ const rules = {
 
 const configs = {
     recommended: {
-        globals: {
-            $: false,
-            $$: false,
-            browser: false,
-            driver: false,
-            expect: false,
-            multiremotebrowser: false,
+        languageOptions: {
+            globals: {
+                $: false,
+                $$: false,
+                browser: false,
+                driver: false,
+                expect: false,
+                multiremotebrowser: false,
+            },
         },
         rules: {
             'wdio/await-expect': 'error',
