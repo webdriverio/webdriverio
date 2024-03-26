@@ -2,6 +2,7 @@ import type { ConfigEnv, InlineConfig } from 'vite'
 import type { Workers, Capabilities, Options } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
+import type { CoverageReportOptions } from 'monocart-coverage-reports'
 
 declare global {
     interface Window {
@@ -13,13 +14,19 @@ declare global {
 export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit' | 'solid' | 'stencil'
 type Arrayable<T> = T | Array<T>
 type CoverageReporter = 'clover' | 'cobertura' | 'html-spa' | 'html' | 'json-summary' | 'json' | 'lcov' | 'lcovonly' | 'none' | 'teamcity' | 'text-lcov' | 'text-summary' | 'text'
-export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' | 'checkProd' | 'forceBuildInstrument'> {
+export interface IstanbulCoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' | 'checkProd' | 'forceBuildInstrument'> {
     /**
      * Enables coverage collection.
      *
      * @default false
      */
     enabled: boolean
+    /**
+     * Coverage data provider.
+     *
+     * @default istanbul
+     */
+    provider?: 'istanbul'
     /**
      * Directory to write coverage report to.
      *
@@ -71,6 +78,23 @@ export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' |
      */
     statements?: number
 }
+
+export interface V8CoverageOptions extends CoverageReportOptions {
+    /**
+     * Enables coverage collection.
+     *
+     * @default false
+     */
+    enabled: boolean
+    /**
+     * Coverage data provider.
+     *
+     * @default v8
+     */
+    provider: 'v8'
+}
+
+export type CoverageOptions = IstanbulCoverageOptions | V8CoverageOptions
 
 export interface BrowserRunnerOptions {
     /**

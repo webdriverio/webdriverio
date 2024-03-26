@@ -105,6 +105,25 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             this.#resolveTestStatePromise = resolve
         })
 
+        /** start v8 coverage */
+        if (this.#runnerOptions.coverage?.enabled && this.#runnerOptions.coverage?.provider === 'v8') {
+            const puppeteer = await browser.getPuppeteer()
+            if (puppeteer) {
+                const page = (await puppeteer.pages())[0]
+                if (page) {
+                    await Promise.all([
+                        page.coverage.startJSCoverage({
+                            resetOnNavigation: false,
+                            includeRawScriptCoverage: true
+                        }),
+                        page.coverage.startCSSCoverage({
+                            resetOnNavigation: false
+                        })
+                    ])
+                }
+            }
+        }
+
         /**
          * if a `sessionId` is part of `this._config` it means we are in watch mode and are
          * re-using a previous session. Since Vite has already a hot-reload feature, there
@@ -146,17 +165,48 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * capture coverage if enabled
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
-            const coverageMap = await browser.execute(
-                () => (window.__coverage__ || {}))
-            const workerEvent: Workers.WorkerEvent = {
-                origin: 'worker',
-                name: 'workerEvent',
-                args: {
-                    type: MESSAGE_TYPES.coverageMap,
-                    value: coverageMap
+            if (this.#runnerOptions.coverage?.provider === 'v8') {
+                /** stop and take v8 coverage */
+                const puppeteer = await browser.getPuppeteer()
+                if (puppeteer) {
+                    const page = (await puppeteer.pages())[0]
+                    if (page) {
+                        const [jsCoverage, cssCoverage] = await Promise.all([
+                            page.coverage.stopJSCoverage(),
+                            page.coverage.stopCSSCoverage()
+                        ])
+                        // to raw V8 script coverage
+                        const coverageList = [... jsCoverage.map((it: any) => {
+                            return {
+                                source: it.text,
+                                ... it.rawScriptCoverage
+                            }
+                        }), ... cssCoverage]
+                        const workerEvent: Workers.WorkerEvent = {
+                            origin: 'worker',
+                            name: 'workerEvent',
+                            args: {
+                                type: MESSAGE_TYPES.coverageData,
+                                value: coverageList
+                            }
+                        }
+                        process.send(workerEvent)
+                    }
                 }
+
+            } else {
+                const coverageMap = await browser.execute(
+                    () => (window.__coverage__ || {}))
+                const workerEvent: Workers.WorkerEvent = {
+                    origin: 'worker',
+                    name: 'workerEvent',
+                    args: {
+                        type: MESSAGE_TYPES.coverageMap,
+                        value: coverageMap
+                    }
+                }
+                process.send(workerEvent)
             }
-            process.send(workerEvent)
         }
 
         /**

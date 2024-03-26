@@ -7,6 +7,7 @@ import LocalRunner from '@wdio/local-runner'
 import libCoverage, { type CoverageMap } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
+import { CoverageReport } from 'monocart-coverage-reports'
 
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { Options } from '@wdio/types'
@@ -126,6 +127,36 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     private async _generateCoverageReports () {
+        if (!this.#coverageOptions.enabled) {
+            return true
+        }
+
+        if (this.#coverageOptions.provider === 'v8') {
+            return this._generateV8CoverageReports()
+        }
+
+        return this._generateIstanbulCoverageReports()
+    }
+
+    private async _generateV8CoverageReports () {
+        const coverageList = this.#communicator.coverageList
+        if (coverageList.length === 0) {
+            return true
+        }
+
+        const mcr = new CoverageReport(this.#coverageOptions)
+        mcr.cleanCache()
+        for (const data of coverageList) {
+            await mcr.add(data)
+        }
+        const results = await mcr.generate()
+        if (results) {
+            return true
+        }
+        return false
+    }
+
+    private async _generateIstanbulCoverageReports () {
         const coverageMaps = this.#communicator.coverageMaps
 
         /**
