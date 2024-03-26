@@ -35,7 +35,7 @@ Repl को webdriverIO कॉन्फ़िगरेशन फ़ाइल क
 export const config = {
     // ...
     capabilities:[{
-        browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`
+        browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`, `chromium`
         browserVersion: '27.0', // browser version
         platformName: 'Windows 10' // OS platform
     }]
