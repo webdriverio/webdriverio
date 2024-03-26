@@ -769,7 +769,7 @@ class _InsightsHandler {
             }
             testData.finished_at = (new Date()).toISOString()
             testData.result = result
-            testData.duration_in_ms = world.result.duration.nanos / 1000000 // send duration in ms
+            testData.duration_in_ms = world.result.duration.seconds * 1000 + world.result.duration.nanos / 1000000 // send duration in ms
 
             if (result === 'failed') {
                 testData.failure = [
