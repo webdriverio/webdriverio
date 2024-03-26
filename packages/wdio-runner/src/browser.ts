@@ -110,7 +110,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const puppeteer = await browser.getPuppeteer()
             if (puppeteer) {
                 const page = (await puppeteer.pages())[0]
-                if (page) {
+                if (page && page.coverage) {
                     await Promise.all([
                         page.coverage.startJSCoverage({
                             resetOnNavigation: false,
@@ -170,7 +170,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 const puppeteer = await browser.getPuppeteer()
                 if (puppeteer) {
                     const page = (await puppeteer.pages())[0]
-                    if (page) {
+                    if (page && page.coverage) {
                         const [jsCoverage, cssCoverage] = await Promise.all([
                             page.coverage.stopJSCoverage(),
                             page.coverage.stopCSSCoverage()
