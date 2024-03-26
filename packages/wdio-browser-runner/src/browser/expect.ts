@@ -1,7 +1,6 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import type { ChainablePromiseElement } from 'webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -31,7 +30,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * @returns a matcher result computed in the Node.js environment
  */
 function createMatcher (matcherName: string) {
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | ChainablePromiseArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | Awaited<WebdriverIO.Element> | Awaited<WebdriverIO.ElementArray>, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {

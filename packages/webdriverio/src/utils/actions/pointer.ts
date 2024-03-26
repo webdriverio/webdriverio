@@ -2,7 +2,6 @@
 import type { ElementReference } from '@wdio/protocols'
 import type { BaseActionParams, KeyActionType } from './base.js'
 import BaseAction from './base.js'
-import type { ChainablePromiseElement } from '../../types.js'
 
 const buttonNumbers = [0, 1, 2] as const
 const buttonNames = ['left', 'middle', 'right'] as const
@@ -42,7 +41,7 @@ const MOVE_PARAM_DEFAULTS = {
     x: 0,
     y: 0,
     duration: 100,
-    origin: ORIGIN_DEFAULT as (Origin | ElementReference | ChainablePromiseElement<WebdriverIO.Element> | WebdriverIO.Element)
+    origin: ORIGIN_DEFAULT as (Origin | ElementReference | Awaited<WebdriverIO.Element>)
 }
 
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
