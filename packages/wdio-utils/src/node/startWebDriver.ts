@@ -72,9 +72,12 @@ export async function startWebDriver (options: Options.WebDriver) {
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
 
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
-            ? { executablePath: chromedriverOptions.binary }
-            : await setupChromedriver(cacheDir, browserVersion)
+        const { executablePath: chromedriverExcecuteablePath } =
+            process.env.CHROMEDRIVER_FILEPATH
+                ? { executablePath: process.env.CHROMEDRIVER_FILEPATH }
+                : chromedriverOptions.binary
+                    ? { executablePath: chromedriverOptions.binary }
+                    : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },
