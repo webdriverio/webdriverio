@@ -10,7 +10,7 @@ Integrate your test suite with BrowserStack App Percy and here's an overview of 
 
 ### Step 1: Create new app project on percy dashboard
 
-[Sign in](https://percy.io/signup/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation) to Percy and [create a new app type project](https://www.browserstack.com/docs/app-percy/get-started/create-project/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation). After you’ve created the project, you’ll be shown a PERCY_TOKEN environment variable. Percy will use the PERCY_TOKEN to know which organisation and project to upload the screenshots to. You will need this PERCY_TOKEN in next steps.
+[Sign in](https://percy.io/signup/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation) to Percy and [create a new app type project](https://www.browserstack.com/docs/app-percy/get-started/create-project/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation). After you’ve created the project, you’ll be shown a `PERCY_TOKEN` environment variable. Percy will use the `PERCY_TOKEN` to know which organisation and project to upload the screenshots to. You will need this `PERCY_TOKEN` in next steps.
 
 ### Step 2: Set the project token as an environment variable
 
