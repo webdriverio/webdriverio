@@ -162,9 +162,19 @@
         },
         "visual-testing/test-output",
         "visual-testing/considerations",
-        "visual-testing/faq",
-        "visual-testing/integrate-with-percy",
-        "visual-testing/integrate-with-app-percy"
+        {
+          "type": "category",
+          "label": "Percy",
+          "link": {
+            "type": "doc",
+            "id": "percy-overview"
+          },
+          "items": [
+              "visual-testing/integrate-with-percy",
+              "visual-testing/integrate-with-app-percy"
+          ]
+        },
+        "visual-testing/faq"
       ],
       "link": {
         "type": "doc",
