@@ -3,7 +3,8 @@ WDIO Allure Reporter
 
 > A WebdriverIO reporter plugin to create [Allure Test Reports](https://allurereport.org/docs/webdriverio/).
 
-![Allure Reporter Example](/img/allure.png)
+![Allure Reporter Example](/website/static/img/allure.png)
+
 
 ## Installation
 
