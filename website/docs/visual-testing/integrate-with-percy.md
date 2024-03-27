@@ -10,6 +10,7 @@ Integrate your WebdriverIO automated tests with BrowserStack Percy and here's an
 
 ### Step 1: Create a Percy project
 [Sign in](https://percy.io/signup/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation) to Percy. In Percy, create a project of the type, Web, and then name the project. After the project is created, Percy generates a token. Make a note of it. You have to use it to set your environment variable in the next step.
+
 For details on creating a project, see [Create a Percy project](https://www.browserstack.com/docs/percy/get-started/create-project/?utm_source=webdriverio&utm_medium=partnered&utm_campaign=documentation).
 
 ### Step 2: Set the project token as an environment variable
