@@ -26,6 +26,7 @@ set PERCY_TOKEN="<your token here>"    // Windows CMD
 ### Step 3: Install Percy dependencies
 
 Install the components required to establish the integration environment for your test suite.
+
 To install the dependencies, run the following command:
 
 ```sh
