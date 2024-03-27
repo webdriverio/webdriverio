@@ -83,7 +83,7 @@ Type: `Boolean`<br />
 Default: `false`
 
 ### forcedStop
-Set this to true to kill the BrowserStack Local process on complete, without waiting for the BrowserStack Local stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
+Set this to true to kill the BrowserStack Local process on complete, without waiting for the BrowserStack Local stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaround for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
 
 Type: `Boolean`<br />
 Default: `false`
