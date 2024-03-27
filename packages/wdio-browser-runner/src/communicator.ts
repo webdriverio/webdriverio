@@ -6,6 +6,7 @@ import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
 import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
+import type { V8CoverageEntry } from 'monocart-coverage-reports'
 
 import { SESSIONS } from './constants.js'
 import { WDIO_EVENT_NAME } from './constants.js'
@@ -36,6 +37,7 @@ export class ServerWorkerCommunicator {
     #pendingMessages = new Map<number, WorkerMessage>()
 
     public coverageMaps: CoverageMap[] = []
+    public coverageList: V8CoverageEntry[] = []
 
     constructor (config: Options.Testrunner) {
         this.#config = config
@@ -66,6 +68,11 @@ export class ServerWorkerCommunicator {
             this.coverageMaps.push(
                 await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
             )
+        }
+
+        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.coverageData) {
+            const coverageData = payload.args.value as V8CoverageEntry
+            this.coverageList.push(coverageData)
         }
 
         if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.customCommand) {

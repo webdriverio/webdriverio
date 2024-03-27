@@ -88,6 +88,7 @@ export enum MESSAGE_TYPES {
     expectMatchersRequest,
     expectMatchersResponse,
     coverageMap,
+    coverageData,
     customCommand,
     initiateBrowserStateRequest,
     initiateBrowserStateResponse,
@@ -114,6 +115,7 @@ export type SocketMessageValue = {
     [MESSAGE_TYPES.expectMatchersRequest]: never
     [MESSAGE_TYPES.expectMatchersResponse]: ExpectMatchersResponse
     [MESSAGE_TYPES.coverageMap]: any
+    [MESSAGE_TYPES.coverageData]: any
     [MESSAGE_TYPES.customCommand]: CustomCommandEvent
     [MESSAGE_TYPES.initiateBrowserStateRequest]: BrowserStateRequest
     [MESSAGE_TYPES.initiateBrowserStateResponse]: BrowserState

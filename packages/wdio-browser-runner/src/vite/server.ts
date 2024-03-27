@@ -58,7 +58,7 @@ export class ViteServer extends EventEmitter {
             ]
         })
 
-        if (options.coverage && options.coverage.enabled) {
+        if (options.coverage && options.coverage.enabled && options.coverage.provider !== 'v8') {
             log.info('Capturing test coverage enabled')
             // @ts-expect-error istanbul plugin seems to incorrectly export
             // its type for our setup
