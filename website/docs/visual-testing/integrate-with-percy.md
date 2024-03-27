@@ -62,16 +62,15 @@ const browser = await remote({
     browserName: 'chrome'
   }
 });
-  await browser.url('https://duckduckgo.com');
-  const inputElem = await browser.$('#search_form_input_homepage');
-  await inputElem.setValue('WebdriverIO');
-  const submitBtn = await browser.$('#search_button_homepage');
-  await submitBtn.click();
-  // the browser object is required in standalone mode
-  percySnapshot(browser, 'WebdriverIO at DuckDuckGo');
-  await browser.deleteSession();
-})().catch((e) => console.error(e));
 
+await browser.url('https://duckduckgo.com');
+const inputElem = await browser.$('#search_form_input_homepage');
+await inputElem.setValue('WebdriverIO');
+const submitBtn = await browser.$('#search_button_homepage');
+await submitBtn.click();
+// the browser object is required in standalone mode
+percySnapshot(browser, 'WebdriverIO at DuckDuckGo');
+await browser.deleteSession();
 ```
 The snapshot method arguments are:
 
