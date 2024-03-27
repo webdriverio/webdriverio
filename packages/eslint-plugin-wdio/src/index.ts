@@ -10,20 +10,32 @@ const rules = {
 
 const configs = {
     recommended: {
-        globals: {
-            $: false,
-            $$: false,
-            browser: false,
-            driver: false,
-            expect: false,
-            multiremotebrowser: false,
+        languageOptions: {
+            globals: {
+                $: false,
+                $$: false,
+                browser: false,
+                driver: false,
+                expect: false,
+                multiremotebrowser: false,
+            },
+        },
+        plugins: {
+            wdio: {
+                rules,
+            }
         },
         rules: {
             'wdio/await-expect': 'error',
             'wdio/no-debug': 'error',
             'wdio/no-pause': 'error',
-        }
+        } as const
     }
+}
+
+export default {
+    rules,
+    configs,
 }
 
 export {
