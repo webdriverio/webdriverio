@@ -27,7 +27,7 @@ export default function getHTMLShadow (
         styles = Array.from((element as ShadowRoot).adoptedStyleSheets)
             .map(({ cssRules }) => Array.from(cssRules))
             .flat()
-            .map(({ cssText }) => cssText);
+            .map(({ cssText }) => cssText)
     }
 
     for (const elem of elemsWithShadowRoot) {

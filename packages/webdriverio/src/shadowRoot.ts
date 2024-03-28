@@ -95,7 +95,7 @@ export class ShadowRootManager {
          * create set for shadow roots if not existing
          */
         if (!this.#shadowRoots.has(log.source.context)) {
-            this.#shadowRoots.set(log.source.context, new Set());
+            this.#shadowRoots.set(log.source.context, new Set())
         }
 
         const shadowRootForContext = this.#shadowRoots.get(log.source.context)!

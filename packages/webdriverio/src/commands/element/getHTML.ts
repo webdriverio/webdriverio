@@ -184,13 +184,14 @@ async function pierceIntoShadowDOM (
             continue
         }
         const { html, styles } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
-        se.append(`<template shadowroot="open" shadowrootmode="open" id="${s}">
-            ${styles.length > 0
-                ? `<style>${styles.join('\n')}</style>`
-                : ''
-            }
-            ${html}
-        </template>`)
+        se.append([
+            `<template shadowroot="open" shadowrootmode="open" id="${s}">`,
+            styles.length > 0
+                ? `\t<style>${styles.join('\n')}</style>`
+                : '',
+            `\t${html}`,
+            '</template>',
+        ].join('\n'))
     }
 
     const elementsToLookup = shadowRootContent.map(({ shadowElementIdsFound }) => shadowElementIdsFound).flat()
