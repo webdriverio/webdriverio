@@ -227,11 +227,7 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
     if (options.removeCommentNodes) {
         returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
     }
-    return options.prettify && returnHTML.includes('<')
-        // we have to verify if HTML string starts with `<` and ends with `>` to avoid
-        // https://github.com/j4w8n/htmlfy/issues/3
-        ? prettifyFn(
-            `${returnHTML.startsWith('<') ? '' : ' '}${returnHTML}${returnHTML.endsWith('>') ? '' : ' '}`
-        )
+    return options.prettify
+        ? prettifyFn(returnHTML)
         : returnHTML
 }
