@@ -7,10 +7,11 @@
  * @return {Object}                        html source and list of shadow root ids found
  */
 export default function getHTMLShadow (
-    element: HTMLElement,
+    element: HTMLElement | ShadowRoot,
     includeSelectorTag: boolean,
     shadowElementIds: [string, HTMLElement][] = []
 ) {
+    let styles: string[] = []
     const shadowElementIdsFound: string[] = []
     const elemsWithShadowRoot = Array.from(element.querySelectorAll('*'))
         .filter((el) => el.shadowRoot)
@@ -18,8 +19,15 @@ export default function getHTMLShadow (
     /**
      * make sure to include the root itself
      */
-    if (element.shadowRoot) {
-        elemsWithShadowRoot.unshift(element)
+    if ((element as HTMLElement).shadowRoot) {
+        elemsWithShadowRoot.unshift(element as HTMLElement)
+    }
+
+    if (element.nodeType === 11) {
+        styles = Array.from((element as ShadowRoot).adoptedStyleSheets)
+            .map(({ cssRules }) => Array.from(cssRules))
+            .flat()
+            .map(({ cssText }) => cssText);
     }
 
     for (const elem of elemsWithShadowRoot) {
@@ -35,7 +43,12 @@ export default function getHTMLShadow (
     }
 
     return {
-        html: element[includeSelectorTag ? 'outerHTML' : 'innerHTML'],
-        shadowElementIdsFound
+        /**
+         * `getHTMLShadow` requires `includeSelectorTag` to be set to `false` if the element
+         * is a shadow root itself
+         */
+        html: (element as HTMLElement)[includeSelectorTag ? 'outerHTML' : 'innerHTML'],
+        shadowElementIdsFound,
+        styles
     }
 }

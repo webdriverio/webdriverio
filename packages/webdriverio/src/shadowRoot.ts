@@ -63,7 +63,6 @@ export class ShadowRootManager {
      */
     handleBrowsingContextLoad(response: local.BrowsingContextNavigationInfo) {
         this.#currentContext = response.context
-        this.#shadowRoots.set(response.context, new Set())
     }
 
     /**
@@ -83,7 +82,6 @@ export class ShadowRootManager {
             args[1].type !== 'string' // command name, "newShadowRoot" or "removeShadowRoot"
         ) {
             return
-
         }
 
         /**
@@ -93,11 +91,14 @@ export class ShadowRootManager {
             return
         }
 
-        const shadowRootForContext = this.#shadowRoots.get(log.source.context)
-        if (!shadowRootForContext) {
-            return
+        /**
+         * create set for shadow roots if not existing
+         */
+        if (!this.#shadowRoots.has(log.source.context)) {
+            this.#shadowRoots.set(log.source.context, new Set());
         }
 
+        const shadowRootForContext = this.#shadowRoots.get(log.source.context)!
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
             shadowRootForContext.add(args[2].sharedId as string)

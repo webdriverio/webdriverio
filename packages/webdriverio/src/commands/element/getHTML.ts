@@ -170,8 +170,8 @@ async function pierceIntoShadowDOM (
             { [ELEMENT_KEY]: sel } as any as HTMLElement,
             false,
             elemsWithShadowRootAndId
-        ).then(({ html, shadowElementIdsFound }) => (
-            { html, shadowElementIdsFound, shadowRootId: sel }
+        ).then(({ html, shadowElementIdsFound, styles }) => (
+            { html, styles, shadowElementIdsFound, shadowRootId: sel }
         ))
     )))
 
@@ -183,8 +183,14 @@ async function pierceIntoShadowDOM (
         if (!se) {
             continue
         }
-        const { html } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
-        se.append(`<shadow-root id="${s}">${html}</shadow-root>`)
+        const { html, styles } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
+        se.append(`<template shadowroot="open" shadowrootmode="open" id="${s}">
+            ${styles.length > 0
+                ? `<style>${styles.join('\n')}</style>`
+                : ''
+            }
+            ${html}
+        </template>`)
     }
 
     const elementsToLookup = shadowRootContent.map(({ shadowElementIdsFound }) => shadowElementIdsFound).flat()
@@ -212,7 +218,7 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
      */
     const isCheerioObject = $ && typeof $ !== 'string'
     if (isCheerioObject) {
-        $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
+        $('template[id]').each((_, el) => { delete el.attribs.id })
         $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
     }
 
