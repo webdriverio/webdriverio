@@ -689,6 +689,35 @@ describe('ConfigParser', () => {
 
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
         })
+
+        it('should allow to specifying services', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({
+                services: [
+                    ['MyService', { timestamp: 1709633731716 }]
+                ]
+            })
+
+            const services = (await configParser.getConfig())['services']
+            expect(services).toHaveLength(1)
+            expect(services[0][1].timestamp).toBe(1709633731716)
+            expect(services[0][0]).toBe('MyService')
+        })
+
+        it('should allow to specifying reporters', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({
+                reporters: [
+                    ['dot', 'spec']
+                ]
+            })
+
+            const reporters = (await configParser.getConfig())['reporters']
+            expect(reporters).toHaveLength(1)
+            expect(reporters[0]).toHaveLength(2)
+            expect(reporters[0][0]).toBe('dot')
+            expect(reporters[0][1]).toBe('spec')
+        })
     })
 
     describe('addService', () => {
