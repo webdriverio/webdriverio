@@ -40,7 +40,7 @@ capabilities: [{<%
     } else if (answers.purpose === 'electron') { %>
         browserName: 'electron',
         // Electron service options
-        // see https://webdriver.io/docs/wdio-electron-service/#configuration
+        // see https://webdriver.io/docs/desktop-testing/electron/configuration/#service-options
         'wdio:electronServiceOptions': {<%
             if (answers.electronAppBinaryPath) { %>
             // custom path to app binary

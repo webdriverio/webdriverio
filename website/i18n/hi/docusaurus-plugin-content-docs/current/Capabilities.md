@@ -184,7 +184,7 @@ See all Safaridriver options in the official [driver package](https://github.com
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',    // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
@@ -238,7 +238,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',// or 'chromium'
     browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
 }
 ```
