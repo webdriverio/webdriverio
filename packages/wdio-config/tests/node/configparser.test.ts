@@ -13,6 +13,7 @@ import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
 import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
 import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
+import TestCustomService from '../__fixtures__/test-custom-service.js'
 
 const log = logger('')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -694,14 +695,14 @@ describe('ConfigParser', () => {
             const configParser = await ConfigParserForTest(FIXTURES_CONF)
             await configParser.initialize({
                 services: [
-                    ['MyService', { timestamp: 1709633731716 }]
+                    [TestCustomService, { timestamp: 1709633731716 }]
                 ]
             })
 
             const services = (await configParser.getConfig())['services']
             expect(services).toHaveLength(1)
             expect(services[0][1].timestamp).toBe(1709633731716)
-            expect(services[0][0]).toBe('MyService')
+            expect(typeof services[0][0]).toBe(typeof TestCustomService)
         })
 
         it('should allow to specifying reporters', async () => {
