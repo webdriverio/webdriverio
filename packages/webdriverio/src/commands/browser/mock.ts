@@ -2,8 +2,8 @@ import type { CDPSession } from 'puppeteer-core'
 
 import { getBrowserObject } from '@wdio/utils'
 
-import type { Mock } from '../../types.js'
-import type { MockFilterOptions } from '../../utils/interception/types.js'
+import type { DevtoolsInterception } from '../../utils/interception/index.js'
+import type { MockOptions, MockFilterOptions } from '../../utils/interception/types.js'
 import type Interception from '../../utils/interception/index.js'
 
 export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
@@ -115,7 +115,33 @@ export const CDP_SESSIONS: Record<string, CDPSession> = {}
  * @type utility
  *
  */
-export async function mock (
+export async function mock(
+    this: WebdriverIO.Browser,
+    url: string | RegExp,
+    filterOptions?: MockOptions
+) {
+    const browser = getBrowserObject(this)
+    const handle = await browser.getWindowHandle()
+    if (!SESSION_MOCKS[handle]) {
+        SESSION_MOCKS[handle] = new Set()
+    }
+
+    if (!this.isBidi) {
+        throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
+    }
+
+    const { default: WebDriverInterception } = await import('../../utils/interception/webdriver.js')
+    const networkInterception = new WebDriverInterception(url, filterOptions, this)
+    SESSION_MOCKS[handle].add(networkInterception as Interception)
+    await networkInterception.init()
+    return networkInterception
+}
+
+/**
+ * Legacy mock command based on Chrome Devtools Protocol
+ * @deprecated
+ */
+export async function mockLegacy (
     this: WebdriverIO.Browser,
     url: string | RegExp,
     filterOptions?: MockFilterOptions
@@ -127,37 +153,14 @@ export async function mock (
     }
 
     if (this.isSauce) {
-        console.log('---->', 'sauceMock');
-
         return sauceMock.call(this, handle, url, filterOptions)
     }
 
-    if (this.isBidi) {
-        console.log('---->', 'bidiMock');
-
-        return bidiMock.call(this, handle, url, filterOptions)
-    }
-
     if (this.isChromium) {
-        console.log('---->', 'puppeteerMock');
-
         return puppeteerMock.call(this, handle, url, filterOptions)
     }
 
-    throw new Error('Mocks are only supported when running tests on WebDriver Bidi, locally on Chrome or remotely on Sauce Labs')
-}
-
-async function bidiMock (
-    this: WebdriverIO.Browser,
-    handle: string,
-    url: string | RegExp,
-    filterOptions?: MockFilterOptions
-) {
-    const { default: WebDriverInterception } = await import('../../utils/interception/webdriver.js')
-    const networkInterception = new WebDriverInterception(url, filterOptions, this)
-    SESSION_MOCKS[handle].add(networkInterception as Interception)
-    await networkInterception.init()
-    return networkInterception as Mock
+    throw new Error('Legacy mocks are only supported when running tests locally on Chrome or remotely on Sauce Labs')
 }
 
 async function sauceMock (
@@ -170,7 +173,7 @@ async function sauceMock (
     const networkInterception = new SauceNetworkInterception(url, filterOptions, this)
     SESSION_MOCKS[handle].add(networkInterception as Interception)
     await networkInterception.init()
-    return networkInterception as Mock
+    return networkInterception
 }
 
 async function puppeteerMock (
@@ -178,7 +181,7 @@ async function puppeteerMock (
     handle: string,
     url: string | RegExp,
     filterOptions?: MockFilterOptions
-) {
+): Promise<DevtoolsInterception> {
     const { default: PuppeteerNetworkInterception } = await import('../../utils/interception/devtools.js')
 
     /**
@@ -227,5 +230,5 @@ async function puppeteerMock (
 
     const networkInterception = new PuppeteerNetworkInterception(url, filterOptions, browser)
     SESSION_MOCKS[handle].add(networkInterception as Interception)
-    return networkInterception as Mock
+    return networkInterception
 }

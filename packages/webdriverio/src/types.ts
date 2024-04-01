@@ -1,13 +1,11 @@
 import type { EventEmitter } from 'node:events'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
-import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
+import type { Options, Capabilities, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
-import type DevtoolsInterception from './utils/interception/devtools.js'
-import type { Matches, ErrorReason } from './utils/interception/types.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 
 export * from './utils/interception/types.js'
@@ -461,44 +459,6 @@ export type DragAndDropCoordinate = {
     x: number,
     y: number
 }
-
-/**
- * WebdriverIO Mock definition
- */
-
-interface RequestEvent {
-    requestId: number
-    request: Matches
-    responseStatusCode: number
-    responseHeaders: Record<string, string>
-}
-
-interface MatchEvent extends Matches {
-    mockedResponse?: string | Buffer
-}
-
-interface OverwriteEvent {
-    requestId: number
-    responseCode: number
-    responseHeaders: Record<string, string>
-    body?: string | Record<string, any>
-}
-
-interface FailEvent {
-    requestId: number
-    errorReason: ErrorReason
-}
-
-interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on' | 'once' | 'addListener' | 'removeListener' | 'off' | 'removeAllListeners' | 'setMaxListeners' | 'prependListener' | 'prependOnceListener'> {
-    on(event: 'request', callback: (request: RequestEvent) => void): Mock
-    on(event: 'match', callback: (match: MatchEvent) => void): Mock
-    on(event: 'continue', callback: (requestId: number) => void): Mock
-    on(event: 'overwrite', callback: (response: OverwriteEvent) => void): Mock
-    on(event: 'fail', callback: (error: FailEvent) => void): Mock
-}
-
-type MockProperties = Pick<DevtoolsInterception, 'calls'>
-export interface Mock extends MockFunctions, MockProperties {}
 
 export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
     options: Options.WebdriverIO

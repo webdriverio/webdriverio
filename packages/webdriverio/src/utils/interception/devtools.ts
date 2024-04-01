@@ -1,14 +1,17 @@
+/* eslint-disable dot-notation */
+/* eslint-disable no-dupe-class-members */
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import logger from '@wdio/logger'
+import type { FunctionProperties } from '@wdio/types'
 import type { CDPSession } from 'puppeteer-core'
 
-import Interception from './index.js'
+import { DevtoolsInterception as Interception } from './index.js'
 import type { Matches, MockOverwrite, MockResponseParams, ErrorReason } from './types.js'
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
 import { CDP_SESSIONS, SESSION_MOCKS } from '../../commands/browser/mock.js'
-import { logFetchError } from './utils.js'
+import { logFetchError, isMatchingRequest } from './utils.js'
 
 const log = logger('webdriverio')
 
@@ -34,6 +37,16 @@ type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
     #restored = false
+
+    on (event: 'request', callback: (request: RequestEvent) => void): DevtoolsMock
+    on (event: 'match', callback: (match: MatchEvent) => void): DevtoolsMock
+    on (event: 'continue', callback: (requestId: number) => void): DevtoolsMock
+    on (event: 'overwrite', callback: (response: OverwriteEvent) => void): DevtoolsMock
+    on (event: 'fail', callback: (error: FailEvent) => void): DevtoolsMock
+    on (event: string, callback: (...args: any[]) => void): DevtoolsMock {
+        this.emitter.on(event, callback)
+        return this
+    }
 
     static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
@@ -68,7 +81,7 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * match mock url
                  */
-                if (!Interception.isMatchingRequest(mock.url, event.request.url)) {
+                if (!isMatchingRequest(mock.url, event.request.url)) {
                     continue
                 }
 
@@ -91,7 +104,7 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                mock.emit('request', event)
+                mock['emitter'].emit('request', event)
 
                 const { requestId, request, responseStatusCode } = event
                 const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
@@ -112,9 +125,8 @@ export default class DevtoolsInterception extends Interception {
                  * no stubbing if no overwrites were defined
                  */
                 if (mockResponded || mock.respondOverwrites.length === 0) {
-                    mock.emit('match', request)
-                    mock.emit('continue', requestId)
-
+                    mock['emitter'].emit('match', request)
+                    mock['emitter'].emit('continue', requestId)
                     continue
                 }
 
@@ -164,11 +176,11 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     request.mockedResponse = newBody as string | Buffer
-                    mock.emit('match', request)
+                    mock['emitter'].emit('match', request)
 
                     const overwriteData = { requestId, responseCode, responseHeaders, body: isBodyUndefined ? undefined : newBody }
 
-                    mock.emit('overwrite', overwriteData)
+                    mock['emitter'].emit('overwrite', overwriteData)
                     mockResponded = true
 
                     const body = typeof overwriteData.body === 'undefined'
@@ -192,7 +204,7 @@ export default class DevtoolsInterception extends Interception {
                 if (errorReason) {
                     const failData = { requestId, errorReason }
 
-                    mock.emit('fail', failData)
+                    mock['emitter'].emit('fail', failData)
                     mockResponded = true
 
                     await client.send('Fetch.failRequest', failData).catch(/* istanbul ignore next */logFetchError)
@@ -341,3 +353,40 @@ const tryParseJson = (body: string) => {
         return body
     }
 }
+
+/**
+ * Devtools Mock Types
+ */
+interface RequestEvent {
+    requestId: number
+    request: Matches
+    responseStatusCode: number
+    responseHeaders: Record<string, string>
+}
+
+interface MatchEvent extends Matches {
+    mockedResponse?: string | Buffer
+}
+
+interface OverwriteEvent {
+    requestId: number
+    responseCode: number
+    responseHeaders: Record<string, string>
+    body?: string | Record<string, any>
+}
+
+interface FailEvent {
+    requestId: number
+    errorReason: ErrorReason
+}
+
+interface DevtoolsMockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on' | 'once' | 'addListener' | 'removeListener' | 'off' | 'removeAllListeners' | 'setMaxListeners' | 'prependListener' | 'prependOnceListener'> {
+    on(event: 'request', callback: (request: RequestEvent) => void): DevtoolsMock
+    on(event: 'match', callback: (match: MatchEvent) => void): DevtoolsMock
+    on(event: 'continue', callback: (requestId: number) => void): DevtoolsMock
+    on(event: 'overwrite', callback: (response: OverwriteEvent) => void): DevtoolsMock
+    on(event: 'fail', callback: (error: FailEvent) => void): DevtoolsMock
+}
+
+type DevtoolsMockProperties = Pick<DevtoolsInterception, 'calls'>
+export interface DevtoolsMock extends DevtoolsMockFunctions, DevtoolsMockProperties {}

@@ -1,3 +1,5 @@
+import type { local } from 'webdriver'
+import type { Cookie } from '@wdio/protocols'
 import type { CDPSession } from 'puppeteer-core'
 import type { JsonCompatible } from '@wdio/types'
 
@@ -71,8 +73,9 @@ export type MockOverwriteFunction = (request: Matches, client: CDPSession) => Pr
 export type MockOverwrite = string | Record<string, any> | MockOverwriteFunction
 
 export type MockResponseParams = {
-    statusCode?: number | ((request: Matches) => number)
-    headers?: Record<string, string> | ((request: Matches) => Record<string, string>)
+    statusCode?: number | ((request: any) => number)
+    headers?: Record<string, string> | ((request: any) => Record<string, string>)
+    cookies?: Cookie[]
     /**
      * fetch real response before responding with mocked data. Default: true
      */
@@ -87,6 +90,27 @@ export type MockFilterOptions = {
     statusCode?: number | ((statusCode: number) => boolean)
     postData?: string | ((payload: string | undefined) => boolean)
 }
+
+type Overwrite <T, Request> = T | ((request: Request) => T)
+type Methods = 'POST' | 'GET' | 'DELETE' | 'PUT' | 'PATCH' | 'OPTIONS' | 'HEAD'
+
+export interface RequestWithOptions {
+    body?: Overwrite<any, local.NetworkBeforeRequestSentParameters>
+    cookies?: Overwrite<Cookie[], local.NetworkBeforeRequestSentParameters>
+    headers?: Overwrite<Record<string, string>, local.NetworkBeforeRequestSentParameters>
+    method?: Overwrite<Methods, local.NetworkBeforeRequestSentParameters>
+    url?: Overwrite<string, local.NetworkBeforeRequestSentParameters>
+}
+
+export interface RespondWithOptions extends Omit<RequestWithOptions, 'url' | 'method'> {
+    statusCode?: Overwrite<number, local.NetworkResponseCompletedParameters>
+}
+
+export interface MockRequestOptions {
+    requestWith?: RequestWithOptions
+}
+
+export type MockOptions = MockFilterOptions & MockRequestOptions
 
 export type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
 
