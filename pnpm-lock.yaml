@@ -1335,8 +1335,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.4
       htmlfy:
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.2.1
+        version: 0.2.1
       import-meta-resolve:
         specifier: ^4.0.0
         version: 4.0.0
@@ -13734,8 +13734,8 @@ packages:
       tapable: 2.2.1
       webpack: 5.90.3
 
-  /htmlfy@0.1.0:
-    resolution: {integrity: sha512-lACWDZJ+RAT+7ieWd3/6O2KScZkMRAkwW83EmkCn/kpudHZ+w01Q6eE9sYgjUorMqi5BdvP24X/2bmp1Aw3JNQ==}
+  /htmlfy@0.2.1:
+    resolution: {integrity: sha512-HoomFHQ3av1uhq+7FxJTq4Ns0clAD+tGbQNrSd0WFY3UAjjUk6G3LaWEqdgmIXYkY4pexZiyZ3ykZJhQlM0J5A==}
     dev: false
 
   /htmlparser2@6.1.0:
