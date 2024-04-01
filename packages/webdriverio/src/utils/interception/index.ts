@@ -65,6 +65,8 @@ export default abstract class Interception extends EventEmitter {
 
     static isMatchingRequest (expectedUrl: string | RegExp, actualUrl: string) {
         if (typeof expectedUrl === 'string') {
+            console.log(`minimatch(${actualUrl}, ${expectedUrl})`, minimatch(actualUrl, expectedUrl));
+
             return minimatch(actualUrl, expectedUrl)
         }
         if (expectedUrl instanceof RegExp) {

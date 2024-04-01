@@ -90,6 +90,7 @@
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.1",
+    "urlpattern-polyfill": "^10.0.0",
     "webdriver": "9.0.0-alpha.0"
   },
   "peerDependencies": {

@@ -489,7 +489,7 @@ interface FailEvent {
     errorReason: ErrorReason
 }
 
-interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on'> {
+interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on' | 'once' | 'addListener' | 'removeListener' | 'off' | 'removeAllListeners' | 'setMaxListeners' | 'prependListener' | 'prependOnceListener'> {
     on(event: 'request', callback: (request: RequestEvent) => void): Mock
     on(event: 'match', callback: (match: MatchEvent) => void): Mock
     on(event: 'continue', callback: (requestId: number) => void): Mock

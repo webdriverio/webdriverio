@@ -8,6 +8,7 @@ import type { Matches, MockOverwrite, MockResponseParams, ErrorReason } from './
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
 import { CDP_SESSIONS, SESSION_MOCKS } from '../../commands/browser/mock.js'
+import { logFetchError } from './utils.js'
 
 const log = logger('webdriverio')
 
@@ -32,7 +33,7 @@ type Event = {
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
-    private restored = false
+    #restored = false
 
     static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
@@ -228,7 +229,7 @@ export default class DevtoolsInterception extends Interception {
     async restore (sessionMocks = SESSION_MOCKS, cdpSessions = CDP_SESSIONS) {
         this.clear()
         this.respondOverwrites = []
-        this.restored = true
+        this.#restored = true
         const handle = await this.browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
@@ -252,7 +253,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
-        this.ensureNotRestored()
+        this.#ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -262,7 +263,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      */
     respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
-        this.ensureNotRestored()
+        this.#ensureNotRestored()
         this.respondOverwrites.push({ overwrite, params })
     }
 
@@ -271,7 +272,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {string} errorCode  error code of the response
      */
     abort (errorReason: ErrorReason, sticky: boolean = true) {
-        this.ensureNotRestored()
+        this.#ensureNotRestored()
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -286,8 +287,8 @@ export default class DevtoolsInterception extends Interception {
         this.abort(errorReason, false)
     }
 
-    private ensureNotRestored() {
-        if (this.restored) {
+    #ensureNotRestored() {
+        if (this.#restored) {
             throw new Error('This can\'t be done on restored mock')
         }
     }
@@ -339,9 +340,4 @@ const tryParseJson = (body: string) => {
     } catch {
         return body
     }
-}
-
-const logFetchError = (err?: Error) => {
-    /* istanbul ignore next */
-    log.debug(err?.message)
 }

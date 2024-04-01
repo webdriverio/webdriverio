@@ -1,8 +1,5 @@
 import type { CDPSession } from 'puppeteer-core'
 
-import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
-
 import { getBrowserObject } from '@wdio/utils'
 
 import type { Mock } from '../../types.js'
@@ -123,26 +120,79 @@ export async function mock (
     url: string | RegExp,
     filterOptions?: MockFilterOptions
 ) {
-    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
-
-    if (!this.isSauce) {
-        await this.getPuppeteer()
-    }
-
-    if (!this.puppeteer) {
-        throw new Error('No Puppeteer connection could be established which is required to use this command')
-    }
-
     const browser = getBrowserObject(this)
     const handle = await browser.getWindowHandle()
     if (!SESSION_MOCKS[handle]) {
         SESSION_MOCKS[handle] = new Set()
     }
 
+    if (this.isSauce) {
+        console.log('---->', 'sauceMock');
+
+        return sauceMock.call(this, handle, url, filterOptions)
+    }
+
+    if (this.isBidi) {
+        console.log('---->', 'bidiMock');
+
+        return bidiMock.call(this, handle, url, filterOptions)
+    }
+
+    if (this.isChromium) {
+        console.log('---->', 'puppeteerMock');
+
+        return puppeteerMock.call(this, handle, url, filterOptions)
+    }
+
+    throw new Error('Mocks are only supported when running tests on WebDriver Bidi, locally on Chrome or remotely on Sauce Labs')
+}
+
+async function bidiMock (
+    this: WebdriverIO.Browser,
+    handle: string,
+    url: string | RegExp,
+    filterOptions?: MockFilterOptions
+) {
+    const { default: WebDriverInterception } = await import('../../utils/interception/webdriver.js')
+    const networkInterception = new WebDriverInterception(url, filterOptions, this)
+    SESSION_MOCKS[handle].add(networkInterception as Interception)
+    await networkInterception.init()
+    return networkInterception as Mock
+}
+
+async function sauceMock (
+    this: WebdriverIO.Browser,
+    handle: string,
+    url: string | RegExp,
+    filterOptions?: MockFilterOptions
+) {
+    const { default: SauceNetworkInterception } = await import('../../utils/interception/sauce.js')
+    const networkInterception = new SauceNetworkInterception(url, filterOptions, this)
+    SESSION_MOCKS[handle].add(networkInterception as Interception)
+    await networkInterception.init()
+    return networkInterception as Mock
+}
+
+async function puppeteerMock (
+    this: WebdriverIO.Browser,
+    handle: string,
+    url: string | RegExp,
+    filterOptions?: MockFilterOptions
+) {
+    const { default: PuppeteerNetworkInterception } = await import('../../utils/interception/devtools.js')
+
+    /**
+     * make sure Puppeteer is connected
+     */
+    await this.getPuppeteer()
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
+    }
+
     /**
      * enable network Mocking if not already
      */
-    if (SESSION_MOCKS[handle].size === 0 && !this.isSauce) {
+    if (SESSION_MOCKS[handle].size === 0) {
         const pages = await this.puppeteer.pages()
 
         /**
@@ -175,12 +225,7 @@ export async function mock (
         )
     }
 
-    const networkInterception = new NetworkInterception(url, filterOptions, browser)
+    const networkInterception = new PuppeteerNetworkInterception(url, filterOptions, browser)
     SESSION_MOCKS[handle].add(networkInterception as Interception)
-
-    if (this.isSauce) {
-        await (networkInterception as WebDriverNetworkInterception).init()
-    }
-
     return networkInterception as Mock
 }
