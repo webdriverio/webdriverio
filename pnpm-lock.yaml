@@ -145,7 +145,7 @@ importers:
         version: 9.0.11
       inquirer:
         specifier: ^9.2.16
-        version: 9.2.16
+        version: 9.2.17
       jsdom:
         specifier: ^24.0.0
         version: 24.0.0
@@ -594,8 +594,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       inquirer:
-        specifier: 9.2.15
-        version: 9.2.15
+        specifier: 9.2.17
+        version: 9.2.17
       lodash.flattendeep:
         specifier: ^4.4.0
         version: 4.4.0
@@ -14273,8 +14273,8 @@ packages:
       wrap-ansi: 6.2.0
     dev: false
 
-  /inquirer@9.2.15:
-    resolution: {integrity: sha512-vI2w4zl/mDluHt9YEQ/543VTCwPKWiHzKtm9dM2V0NdFcqEexDAjUHzO1oA60HRNaVifGXXM1tRRNluLVHa0Kg==}
+  /inquirer@9.2.17:
+    resolution: {integrity: sha512-Vr3Ia2ud5sGnioURkE69endl4SkeJcMzTF6SosKcX5GALJfId7C+JvO5ZZb6y1LOXnEofCPbwzoQ1q0e8Gaduw==}
     engines: {node: '>=18'}
     dependencies:
       '@ljharb/through': 2.3.13
@@ -14292,28 +14292,6 @@ packages:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wrap-ansi: 6.2.0
-    dev: false
-
-  /inquirer@9.2.16:
-    resolution: {integrity: sha512-qzgbB+yNjgSzk2omeqMDtO9IgJet/UL67luT1MaaggRpGK73DBQct5Q4pipwFQcIKK1GbMODYd4UfsRCkSP1DA==}
-    engines: {node: '>=18'}
-    dependencies:
-      '@ljharb/through': 2.3.13
-      ansi-escapes: 4.3.2
-      chalk: 5.3.0
-      cli-cursor: 3.1.0
-      cli-width: 4.1.0
-      external-editor: 3.1.0
-      figures: 3.2.0
-      lodash: 4.17.21
-      mute-stream: 1.0.0
-      ora: 5.4.1
-      run-async: 3.0.0
-      rxjs: 7.8.1
-      string-width: 4.2.3
-      strip-ansi: 6.0.1
-      wrap-ansi: 6.2.0
-    dev: true
 
   /internal-slot@1.0.7:
     resolution: {integrity: sha512-NGnrKwXzSms2qUUih/ILZ5JBqNTSa1+ZmP6flaIp6KmSElgE9qdndzS3cqjrDovwFdmwsGsLdeFgB6suw+1e9g==}
@@ -17380,7 +17358,7 @@ packages:
       bl: 4.1.0
       chalk: 4.1.2
       cli-cursor: 3.1.0
-      cli-spinners: 2.6.1
+      cli-spinners: 2.9.2
       is-interactive: 1.0.0
       log-symbols: 4.1.0
       strip-ansi: 6.0.1
