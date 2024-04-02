@@ -22,7 +22,7 @@ export const config = {
     // =====
     services: [
         [
-            'image-comparison',
+            'visual',
             {
                 enableLayoutTesting: true
             }
