@@ -240,6 +240,20 @@ npm install @wdio/cucumber-framework --save-dev
 
 निम्नलिखित विकल्पों को आपके `wdio.conf.js` में `cucumberOpts` गुण का उपयोग करके अपने खीरा वातावरण को कॉन्फ़िगर करने के लिए लागू किया जा सकता है:
 
+:::tip Adjusting options through the command line
+The `cucumberOpts`, such as custom `tags` for filtering tests, can be specified through the command line. This is accomplished by using the `cucumberOpts.{optionName}="value"` format.
+
+For example, if you want to run only the tests that are tagged with `@smoke`, you can use the following command:
+
+```sh
+# When you only want to run tests that hold the tag "@smoke"
+npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+```
+
+This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
+
+:::
+
 #### backtrace
 त्रुटियों के लिए पूर्ण बैकट्रैक दिखाएं।
 
