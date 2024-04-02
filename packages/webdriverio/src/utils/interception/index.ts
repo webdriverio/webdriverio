@@ -19,6 +19,8 @@ export default abstract class Interception {
     ) {}
 
     abstract calls: Array<unknown> | Promise<Array<unknown>>
+    abstract clear (): void
+    abstract restore (): void
 
     waitForResponse ({
         timeout = this.browser.options.waitforTimeout,
@@ -75,6 +77,7 @@ export abstract class DevtoolsInterception extends Interception {
 export abstract class WebDriverInterception extends Interception {
     abstract calls: local.NetworkResponseCompletedParameters[]
     abstract clear (): void
+    abstract restore (): void
     abstract respond (body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'>): void
     abstract respondOnce (body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'>): void
     abstract abort (): void

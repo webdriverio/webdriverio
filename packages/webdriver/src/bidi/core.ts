@@ -1,9 +1,9 @@
-import WebSocket from 'ws'
 import logger from '@wdio/logger'
+import type { ClientOptions, RawData, WebSocket } from 'ws'
 
+import Socket from './socket.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
-import type { ClientRequestArgs } from 'node:http'
 
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
@@ -13,9 +13,9 @@ export class BidiCore {
     #ws: WebSocket
     #isConnected = false
 
-    constructor (private _webSocketUrl: string, opts?: WebSocket.ClientOptions | ClientRequestArgs) {
+    constructor (private _webSocketUrl: string, opts?: ClientOptions) {
         log.info(`Connect to webSocketUrl ${this._webSocketUrl}`)
-        this.#ws = new WebSocket(this._webSocketUrl, opts)
+        this.#ws = new Socket(this._webSocketUrl, opts) as WebSocket
     }
 
     public connect () {
@@ -43,7 +43,7 @@ export class BidiCore {
                 h.off('message', listener)
             }, RESPONSE_TIMEOUT)
 
-            const listener = (data: WebSocket.RawData) => {
+            const listener = (data: RawData) => {
                 try {
                     const payload = JSON.parse(data.toString()) as CommandResponse
                     if (payload.id === id) {

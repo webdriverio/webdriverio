@@ -1,5 +1,6 @@
 /* eslint-disable no-dupe-class-members */
 import logger from '@wdio/logger'
+import { type JsonCompatible } from '@wdio/types'
 import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
@@ -11,8 +12,13 @@ const log = logger('WebDriverInterception')
 
 let hasSubscribedToEvents = false
 
+type RespondBody = string | JsonCompatible | Buffer
+
 /**
  * Network interception class based on a WebDriver Bidi implementation.
+ *
+ * Note: this code is executed in Node.js and in the browser, so make sure
+ *       you use primitives that work in both environments.
  */
 export default class WebDriverInterception extends Interception {
     #mockId?: string
@@ -35,7 +41,7 @@ export default class WebDriverInterception extends Interception {
             await this.browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
-                    'network.responseCompleted'
+                    'network.responseStarted'
                 ]
             })
             log.info('subscribed to network events')
@@ -50,11 +56,11 @@ export default class WebDriverInterception extends Interception {
             phases: ['beforeRequestSent', 'responseStarted'],
             urlPatterns: [{
                 type: 'pattern',
-                protocol: this.#pattern.protocol,
-                hostname: this.#pattern.hostname,
-                pathname: this.#pattern.pathname,
-                port: this.#pattern.port,
-                search: this.#pattern.search,
+                protocol: getPatternParam(this.#pattern, 'protocol'),
+                hostname: getPatternParam(this.#pattern, 'hostname'),
+                pathname: getPatternParam(this.#pattern, 'pathname'),
+                port: getPatternParam(this.#pattern, 'port'),
+                search: getPatternParam(this.#pattern, 'search')
             }]
         })
         this.#mockId = interception.intercept
@@ -63,7 +69,7 @@ export default class WebDriverInterception extends Interception {
          * attach network listener to this mock
          */
         this.browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
-        this.browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
+        this.browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
@@ -75,10 +81,32 @@ export default class WebDriverInterception extends Interception {
         }
 
         /**
+         * continue the request without modifications, if:
+         */
+        const continueRequest = (
+            /**
+             * - no pattern is set
+             * - pattern does not match
+             * - no request modifications are set
+             *   - no errorReason is set
+             *   - no requestWith is set
+             */
+            !this.#pattern || !this.#pattern.test(request.request.url) ||
+            this.#respondOverwrites.length === 0 ||
+            (
+                !this.#respondOverwrites[0].errorReason &&
+                !this.#respondOverwrites[0].requestWith
+            )
+        )
+
+        /**
          * check if request matches the mock url
          */
-        if (!this.#pattern || !this.#pattern.test(request.request.url)) {
-            return
+        if (continueRequest) {
+            this.emitter.emit('continue', request.request.request)
+            return this.browser.networkContinueRequest({
+                request: request.request.request
+            })
         }
 
         this.emitter.emit('request', request)
@@ -105,16 +133,10 @@ export default class WebDriverInterception extends Interception {
             })
         }
 
-        /**
-         * continue request as is
-         */
-        this.emitter.emit('continue', request.request.request)
-        return this.browser.networkContinueRequest({
-            request: request.request.request,
-        })
+        throw new Error('This should never happen')
     }
 
-    #handleResponseCompleted(request: local.NetworkResponseCompletedParameters) {
+    #handleResponseStarted(request: local.NetworkResponseCompletedParameters) {
         /**
          * check if request matches the mock url
          */
@@ -126,11 +148,12 @@ export default class WebDriverInterception extends Interception {
          * check if request matches the mock url
          */
         if (!this.#pattern || !this.#pattern.test(request.request.url)) {
-            return
+            return this.browser.networkContinueRequest({
+                request: request.request.request
+            })
         }
 
         this.#calls.push(request)
-
         const { overwrite } = this.#respondOverwrites[0].once
             ? this.#respondOverwrites.shift() || {}
             : this.#respondOverwrites[0]
@@ -140,7 +163,7 @@ export default class WebDriverInterception extends Interception {
          */
         if (overwrite) {
             this.emitter.emit('overwrite', request)
-            return this.browser.networkContinueRequest({
+            return this.browser.networkProvideResponse({
                 request: request.request.request,
                 ...parseOverwrite(overwrite, request)
             })
@@ -203,8 +226,13 @@ export default class WebDriverInterception extends Interception {
      * @param {*} params      additional respond parameters to overwrite
      * @param {boolean} once  apply overwrite only once for the next request
      */
-    respond(body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
+    respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
+        const body = typeof payload === 'string'
+            ? payload
+            : globalThis.Buffer && globalThis.Buffer.isBuffer(payload)
+                ? payload.toString('base64')
+                : JSON.stringify(payload)
         const overwrite: RespondWithOptions = { body, ...params }
         this.#respondOverwrites.push({ overwrite, once })
         return this
@@ -213,8 +241,8 @@ export default class WebDriverInterception extends Interception {
     /**
      * alias for `mock.respond(…, true)`
      */
-    respondOnce(body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'> = {}) {
-        return this.respond(body, params, false)
+    respondOnce(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}) {
+        return this.respond(payload, params, true)
     }
 
     /**
@@ -232,7 +260,7 @@ export default class WebDriverInterception extends Interception {
      * alias for `mock.abort(true)`
      */
     abortOnce() {
-        return this.abort(false)
+        return this.abort(true)
     }
 
     /**
@@ -251,7 +279,7 @@ export default class WebDriverInterception extends Interception {
      * alias for `mock.redirect(…, true)`
      */
     redirectOnce(redirectUrl: string) {
-        return this.redirect(redirectUrl, false)
+        return this.redirect(redirectUrl, true)
     }
 
     on(event: 'request', callback: (request: local.NetworkBeforeRequestSentParameters) => void): WebDriverInterception
@@ -319,7 +347,9 @@ export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOption
              */
             {
                 type: 'base64',
-                value: Buffer.from(JSON.stringify(bodyOverwrite)).toString('base64')
+                value: globalThis.Buffer
+                    ? globalThis.Buffer.from(JSON.stringify(bodyOverwrite)).toString('base64')
+                    : btoa(JSON.stringify(bodyOverwrite))
             }
     }
 
@@ -365,4 +395,12 @@ export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOption
             : overwrite.method
         : undefined
     return { body, headers, cookies, method, statusCode }
+}
+
+function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
+    if (key !== 'pathname' && pattern[key] === '*') {
+        return
+    }
+
+    return pattern[key].replaceAll('*', '\\*')
 }

@@ -33,7 +33,9 @@ export const config = {
     capabilities: [
         isMac
             ? { browserName: 'safari' }
-            : { browserName: 'chrome', browserVersion: '122.0.6261.39', webSocketUrl: true }
+            : !process.env.WDIO_PRESET
+                ? { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
+                : { browserName: 'chrome', browserVersion: 'stable', webSocketUrl: true }
     ],
 
     /**
@@ -41,7 +43,7 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET),
+    outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET || 'misc'),
     reporters: ['spec', 'dot', 'junit'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
