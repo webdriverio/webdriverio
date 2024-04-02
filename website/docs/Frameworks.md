@@ -279,7 +279,7 @@ For example, if you want to run only the tests that are tagged with `@smoke`, yo
 
 ```sh
 # When you only want to run tests that hold the tag "@smoke"
-npm run wdio -- --cucumberOpts.tags="@smoke"
+npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
 ```
 
 This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
