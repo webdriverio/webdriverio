@@ -240,6 +240,20 @@ Um Cucumber schnell zum Laufen zu bringen, werfen Sie einen Blick auf unser [`Cu
 
 Die folgenden Optionen können in Ihrer `wdio.conf.js` angewendet werden, um Ihre Cucumber-Umgebung mit der Eigenschaft `cucumberOpts` zu konfigurieren:
 
+:::tip Adjusting options through the command line
+The `cucumberOpts`, such as custom `tags` for filtering tests, can be specified through the command line. This is accomplished by using the `cucumberOpts.{optionName}="value"` format.
+
+For example, if you want to run only the tests that are tagged with `@smoke`, you can use the following command:
+
+```sh
+# When you only want to run tests that hold the tag "@smoke"
+npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+```
+
+This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
+
+:::
+
 #### backtrace
 Vollständige Rückverfolgung für Fehler anzeigen.
 
