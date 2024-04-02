@@ -823,12 +823,12 @@ export interface SauceLabsCapabilities {
      */
 
     /**
-     * Allows you to specify the ChromeDriver version you want to use for your tests. 
-     * The default version of ChromeDriver when no value is specified depends on the version of Chrome used. 
+     * Allows you to specify the ChromeDriver version you want to use for your tests.
+     * The default version of ChromeDriver when no value is specified depends on the version of Chrome used.
      * As of Chrome 73, the major version of the driver and the browser must match.
-     * 
+     *
      * Desktop Virtual Devices only.
-     * 
+     *
      * For a list of ChromeDriver versions, see chromedriver versions list.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#chromedriverversion
      * @see https://chromedriver.storage.googleapis.com/index.html
@@ -837,9 +837,9 @@ export interface SauceLabsCapabilities {
 
     /**
      * Specifies the Microsoft Edge driver version you want to use for your tests.
-     * 
+     *
      * Desktop Virtual Devices only.
-     *  
+     *
      * For a list of edgedriver versions, see the Microsoft Edge Driver website.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#edgedriverversion
      * @see https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
@@ -847,11 +847,11 @@ export interface SauceLabsCapabilities {
     edgedriverVersion?: string
 
     /**
-     * Specifies the Firefox GeckoDriver version. 
-     * The default geckodriver version varies based on the version of Firefox specified. 
-     * 
+     * Specifies the Firefox GeckoDriver version.
+     * The default geckodriver version varies based on the version of Firefox specified.
+     *
      * Desktop Virtual Devices only.
-     * 
+     *
      * For a list of geckodriver versions and the Firefox versions they support, see geckodriver Supported Platforms.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#geckodriverversion
      * @see https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html
@@ -859,10 +859,10 @@ export interface SauceLabsCapabilities {
     geckodriverVersion?: string
 
     /**
-     * Specifies the Internet Explorer Driver version. If no version is specified, it defaults to 2.53.1. 
-     * 
+     * Specifies the Internet Explorer Driver version. If no version is specified, it defaults to 2.53.1.
+     *
      * Desktop Virtual Devices only.
-     * 
+     *
      * For a list of IE Driver versions, see Internet Explorer Driver Server CHANGELOG.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#iedriverversion
      * @see https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/cpp/iedriverserver/CHANGELOG
@@ -870,35 +870,35 @@ export interface SauceLabsCapabilities {
     iedriverVersion?: string
 
     /**
-     * Specifies the Selenium version you want to use for your test. 
-     * Sauce Labs will default to different versions, depending on the age of the browser and platform, 
+     * Specifies the Selenium version you want to use for your test.
+     * Sauce Labs will default to different versions, depending on the age of the browser and platform,
      * and whether or not you're initializing a session with valid W3C syntax.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#seleniumversion
      */
     seleniumVersion?: string
 
     /**
-     * Allows the browser to communicate directly with servers without going through a proxy. 
+     * Allows the browser to communicate directly with servers without going through a proxy.
      * By default, Sauce routes traffic from Internet Explorer and Safari through an HTTP proxy server
-     * so that HTTPS connections with self-signed certificates will work. 
-     * 
+     * so that HTTPS connections with self-signed certificates will work.
+     *
      * The proxy server can cause problems for some users, and this setting allows you to avoid it.
-     * 
+     *
      * Any test run with a Sauce Connect tunnel has to use the proxy and this flag will be ignored.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#avoidproxy
      */
     avoidProxy?: boolean
 
     /**
-     * Enables Extended Debugging features. This applies to Firefox and Chrome only. 
-     * It records HAR files and console logs for both of these browsers. 
-     * In Chrome, it also enables network interception, network and cpu throttling as well as access to network logs 
+     * Enables Extended Debugging features. This applies to Firefox and Chrome only.
+     * It records HAR files and console logs for both of these browsers.
+     * In Chrome, it also enables network interception, network and cpu throttling as well as access to network logs
      * during the session. It is required to be true for capturePerformance. The default value is false.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#extendeddebugging
      * @see https://docs.saucelabs.com/insights/debug/
@@ -906,10 +906,10 @@ export interface SauceLabsCapabilities {
     extendedDebugging?: boolean
 
     /**
-     * Enables Performance Capture feature. 
-     * Sauce Performance Testing can be enabled by setting both extendedDebugging and capturePerformance to true. 
+     * Enables Performance Capture feature.
+     * Sauce Performance Testing can be enabled by setting both extendedDebugging and capturePerformance to true.
      * Default value is false.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#captureperformance
      * @see https://docs.saucelabs.com/performance/
@@ -917,9 +917,9 @@ export interface SauceLabsCapabilities {
     capturePerformance?: boolean
 
     /**
-     * Specifies the screen resolution to be used during your test session. 
+     * Specifies the screen resolution to be used during your test session.
      * Default screen resolution for Sauce tests is 1024x768.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#screenresolution
      */
@@ -930,18 +930,18 @@ export interface SauceLabsCapabilities {
      * As a safety measure to prevent Selenium crashes from making your tests run indefinitely,
      * we limit how long Selenium can take to run a command in our browsers.
      * This is set to 300 seconds by default. The maximum command timeout value allowed is 600 seconds.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#commandtimeout
      */
     commandTimeout?: number
 
     /**
-     * Sets idle test timeout in seconds. 
+     * Sets idle test timeout in seconds.
      * As a safety measure to prevent tests from running too long after something has gone wrong,
      * we limit how long a browser can wait for a test to send a new command.
      * This is set to 90 seconds by default and limited to a maximum value of 1000 seconds.
-     * 
+     *
      * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout
      */
@@ -956,7 +956,7 @@ export interface SauceLabsCapabilities {
      * Specifies the Appium driver version you want to use.
      * For most use cases, setting the appiumVersion is unnecessary because Sauce Labs defaults to the version that supports the broadest number of device combinations.
      * Sauce Labs advises against setting this property unless you need to test a particular Appium feature or patch.
-     * 
+     *
      * Virtual and Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#appiumversion
      */
@@ -964,17 +964,17 @@ export interface SauceLabsCapabilities {
 
     /**
      * Specifies the orientation of the virtual skin and screen during the test.
-     * 
+     *
      * Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#deviceorientation
      */
-    deviceOrientation?: "PORTRAIT" | "LANDSCAPE"
+    deviceOrientation?: 'portrait' | 'landscape'
 
     /**
      * If your app creates an extra log then you can use the customLogFiles to store those additional logs in the "Logs" tab of the executed automated session.
      * It is created in the form of a list of search filters that enumerate after an app test to locate text files to upload as logs.
      * Files are uploaded with the .log extension appended. The search paths are rooted at the application under test.
-     * 
+     *
      * Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#customlogfiles
      */
@@ -985,27 +985,27 @@ export interface SauceLabsCapabilities {
      * This involves the CPU calculating how everything looks on your app's screen.
      * However, this could lead to an emulator crash when testing apps with intricate or heavy graphical elements.
      * To mitigate this, use the hardware rendering option by specifying "android.gpu.mode"="hardware" in your test capabilities.
-     * 
+     *
      * Android Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#androidgpumode
      */
-    "android.gpu.mode"?: "software" | "hardware"
+    'android.gpu.mode'?: 'software' | 'hardware'
 
     /**
      * Android allows apps to use the full screen, hiding the status bar and navigation bar.
      * This is called "immersive mode". When you run an Android test, the device will show a popup asking if you want to allow the app to use immersive mode.
      * This popup can interfere with your test, and by default we disable it.
      * If you want to enable it, set disableImmersiveModePopUp to false.
-     * 
+     *
      * Android Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#disableimmersivemodepopup
      */
     disableImmersiveModePopUp?: boolean
 
     /**
-     * Sets up the device pin code for the automated test session. 
+     * Sets up the device pin code for the automated test session.
      * This capability sets your device in the state required for your application to launch successfully.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#disableimmersivemodepopup
      */
@@ -1013,7 +1013,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to select only tablet devices for testing.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#tabletonly
      */
@@ -1021,7 +1021,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to select only phone devices for testing.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#phoneonly
      */
@@ -1029,7 +1029,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to select only private devices for testing.
-     * 
+     *
      * Private Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#privatedevicesonly
      */
@@ -1037,7 +1037,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to select only public devices for testing.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#publicdevicesonly
      */
@@ -1045,18 +1045,18 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to allocate only devices connected to a carrier network.
-     * 
+     *
      * Private Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#carrierconnectivityonly
      */
     carrierConnectivityOnly?: boolean
 
     /**
-     * Keeps the device allocated to you between test sessions and bypasses the device cleaning process and session exit that occurs by default after each test completes. 
-     * Normally, you'd need to start over and reopen another device. 
+     * Keeps the device allocated to you between test sessions and bypasses the device cleaning process and session exit that occurs by default after each test completes.
+     * Normally, you'd need to start over and reopen another device.
      * You'll need to launch your next test within 10 seconds of your previous test ending
      * to ensure that the same device will be allocated for the test (not cleaned or reset).
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#cacheid
      */
@@ -1064,7 +1064,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Controls Sauce Labs default resigning (iOS) or instrumentation (Android) of mobile apps installed on our devices.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#resigningenabled
      */
@@ -1072,7 +1072,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Enables the camera image injection feature. resigningEnabled needs to be enabled if this is set to true.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/mobile-apps/features/camera-image-injection/
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#saucelabsimageinjectionenabled
@@ -1081,45 +1081,45 @@ export interface SauceLabsCapabilities {
 
     /**
      * Bypasses the restriction on taking screenshots for secure screens (i.e., secure text entry). resigningEnabled needs to be enabled if this is set to true.
-     * 
+     *
      * Android Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#saucelabsbypassscreenshotrestriction
      */
     sauceLabsBypassScreenshotRestriction?: boolean
 
     /**
-     * Enables the interception of biometric input, allowing the test to simulate Touch ID interactions (not a Sauce Labs-specific capability). 
+     * Enables the interception of biometric input, allowing the test to simulate Touch ID interactions (not a Sauce Labs-specific capability).
      * resigningEnabled needs to be enabled if this is set to true.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#allowtouchidenroll
      */
     allowTouchIdEnroll?: boolean
 
     /**
-     * Enables audio recording in your iOS and Android native mobile app tests. 
+     * Enables audio recording in your iOS and Android native mobile app tests.
      * The audio will be part of the Test Results page video file, which you can play back and download in our built-in media player.
      * The default value is false.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#audiocapture
      */
     audioCapture?: boolean
 
     /**
-     * Enables mobile app instrumentation (Android or iOS) and recording of HTTP/HTTPS network traffic for debugging purposes. 
+     * Enables mobile app instrumentation (Android or iOS) and recording of HTTP/HTTPS network traffic for debugging purposes.
      * API calls are collected into a HAR file, which you can view and download from your Test Results > Network tab console.
      * The default value is false.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#networkcapture
      */
     networkCapture?: boolean
 
     /**
-     * Enables the use of the app's private app container directory instead of the shared app group container directory. 
+     * Enables the use of the app's private app container directory instead of the shared app group container directory.
      * For testing on the Real Device Cloud, the app gets resigned, which is why the shared directory is not accessible.
-     * 
+     *
      * iOS Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#groupfolderredirectenabled
      */
@@ -1127,34 +1127,34 @@ export interface SauceLabsCapabilities {
 
     /**
      * Use this capability to enable animations for Android real devices by setting it to true. By default, animations are disabled.
-     * 
+     *
      * Android Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#enableanimations
      */
     enableAnimations?: boolean
 
     /**
-     * Delays system alerts, such as alerts asking for permission to access the camera, to prevent app crashes at startup. 
+     * Delays system alerts, such as alerts asking for permission to access the camera, to prevent app crashes at startup.
      * resigningEnabled needs to be enabled if this is set to true.
-     * 
+     *
      * iOS Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#systemalertsdelayenabled
      */
     systemAlertsDelayEnabled?: boolean
 
     /**
-     * Specify the amount of time (in milliseconds) that the test should be allowed to find and assign an available device before the test will fail. 
+     * Specify the amount of time (in milliseconds) that the test should be allowed to find and assign an available device before the test will fail.
      * The default value is 900000 milliseconds (15 minutes) and the max is 1800000 milliseconds (30 minutes).
-     * 
+     *
      * Real Devices only.
-     * @see https://docs.saucelabs.com/dev/test-configuration-options/#sessioncreationtimeout 
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#sessioncreationtimeout
      */
     sessionCreationTimeout?: boolean
 
     /**
      * Specify the amount of automatic retries that Sauce Labs will execute to find and assign an available device before the test will fail.
      * The default value is 1 and the max is 3.
-     * 
+     *
      * Real Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#sessioncreationretry
      */
@@ -1178,7 +1178,7 @@ export interface SauceLabsCapabilities {
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#build
      * @example `build-1234`
      */
-    build?: string
+    build?: string | number
 
     /**
      * User-defined tags for grouping and filtering jobs in the Dashboard and Archives view.
@@ -1192,7 +1192,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Sets your Sauce Labs username for a test.
-     * 
+     *
      * You can either set "username" in capabilities or specify it in the Sauce URL as Basic Authentication. For Visual Tests), this must be set in capabilities.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#username
      */
@@ -1200,7 +1200,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Sets your Sauce Labs access key for the test.
-     * 
+     *
      * You can either set "accessKey" in capabilities or specify it in the Sauce URL as Basic Authentication. For Visual Tests, this must be set in capabilities.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#accesskey
      */
@@ -1223,18 +1223,18 @@ export interface SauceLabsCapabilities {
     'custom-data'?: any
 
     /**
-     * We support several test/job result visibility levels, which control who can view the test details. 
-     * The visibility level for a test can be set manually from the test results page, but also programmatically when starting a test or with our REST API. 
+     * We support several test/job result visibility levels, which control who can view the test details.
+     * The visibility level for a test can be set manually from the test results page, but also programmatically when starting a test or with our REST API.
      * For more information about sharing test results, see the topics under Sharing the Results of Sauce Labs Tests.
-     * 
+     *
      * Desktop and Virtual Devices only.
-     * 
+     *
      * @see https://docs.saucelabs.com/test-results/sharing-test-results/
      */
-    "public"?: "public" | "public restricted" | "share" | "team" | "private"
+    public?: 'public' | 'public restricted' | 'share' | 'team' | 'private'
 
     /**
-     * Specify a Sauce Connect tunnel to establish connectivity with Sauce Labs for your test. 
+     * Specify a Sauce Connect tunnel to establish connectivity with Sauce Labs for your test.
      * Tunnels allow you to test an app that is behind a firewall or on your local machine by providing a secure connection to the Sauce Labs platform.
      * @see https://docs.saucelabs.com/secure-connections/sauce-connect/setup-configuration/basic-setup/
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelname
@@ -1249,7 +1249,7 @@ export interface SauceLabsCapabilities {
     tunnelIdentifier?: string
 
     /**
-     * If the tunnelName you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel, 
+     * If the tunnelName you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
      * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
      * @see https://docs.saucelabs.com/secure-connections/sauce-connect/setup-configuration/basic-setup/#using-tunnel-names
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelowner
@@ -1257,8 +1257,8 @@ export interface SauceLabsCapabilities {
     tunnelOwner?: string
 
     /**
-     * If the tunnelName (or tunnelIdentifier) you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel, 
-     * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test. 
+     * If the tunnelName (or tunnelIdentifier) you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
+     * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
      * This is an alias for tunnelOwner.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#parenttunnel
      * @deprecated
@@ -1282,7 +1282,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Disables step-by-step screenshots. In addition to capturing video, Sauce Labs captures step-by-step screenshots of every test you run.
-     * Most users find it very useful to get a quick overview of what happened without having to watch the complete video. 
+     * Most users find it very useful to get a quick overview of what happened without having to watch the complete video.
      * However, this feature may add some extra time to your tests.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#recordscreenshots
      */
@@ -1297,7 +1297,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Disables log recording. By default, Sauce creates a log of all the actions that you execute to create a report for the test run
-     * that lets you troubleshoot test failures more easily. 
+     * that lets you troubleshoot test failures more easily.
      * This option disables only the recording of the log.json file; the selenium-server.log will still be recorded.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#recordlogs
      */
@@ -1311,7 +1311,7 @@ export interface SauceLabsCapabilities {
     /**
      * Sets maximum test duration in seconds. As a safety measure to prevent tests from running indefinitely,
      * the default is 1,800 seconds (30 minutes) and the maximum is 10,800 seconds (three hours).
-     * 
+     *
      * Desktop and Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#maxduration
      */
@@ -1320,13 +1320,13 @@ export interface SauceLabsCapabilities {
     /**
      * Setting to prioritize jobs. If you have multiple new jobs waiting to start (i.e., across a collection of sub-accounts),
      * jobs with a lower priority number take precedence over jobs with a higher number.
-     * 
+     *
      * So, for example, if you have multiple jobs simultaneously waiting to start,
      *  we'll first attempt to find resources to start all the jobs with priority 0,then all the jobs with priority 1, etc.
-     * 
+     *
      * When we run out of available virtual machines, or when you hit your concurrency limit, any jobs not yet started will wait.
      * Within each priority level, jobs that have been waiting the longest take precedence.
-     * 
+     *
      * Desktop and Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#priority
      */
@@ -1334,7 +1334,7 @@ export interface SauceLabsCapabilities {
 
     /**
      * Allows you to set a custom time zone for your test based on a city name. Most major cities are supported.
-     * 
+     *
      * Desktop and Virtual Devices only.
      * @example Los_Angeles
      * @example Honolulu
@@ -1749,7 +1749,7 @@ export interface SauceLabsVisualCapabilities {
 export interface TestingbotCapabilities {
     name?: string
     tags?: string[]
-    build?: string | number | number
+    build?: string | number
     public?: boolean
     'tunnel-identifier'?: string
     realDevice?: boolean
