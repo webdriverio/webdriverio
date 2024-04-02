@@ -240,6 +240,20 @@ npm install @wdio/cucumber-framework --save-dev
 
 Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Cucumber за допомогою властивості `cucumberOpts`:
 
+:::tip Adjusting options through the command line
+The `cucumberOpts`, such as custom `tags` for filtering tests, can be specified through the command line. This is accomplished by using the `cucumberOpts.{optionName}="value"` format.
+
+For example, if you want to run only the tests that are tagged with `@smoke`, you can use the following command:
+
+```sh
+# When you only want to run tests that hold the tag "@smoke"
+npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+```
+
+This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
+
+:::
+
 #### backtrace
 Показати повний стек викликів для помилок.
 
