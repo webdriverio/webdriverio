@@ -827,7 +827,7 @@ export interface SauceLabsCapabilities {
      * The default version of ChromeDriver when no value is specified depends on the version of Chrome used. 
      * As of Chrome 73, the major version of the driver and the browser must match.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * 
      * For a list of ChromeDriver versions, see chromedriver versions list.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#chromedriverversion
@@ -838,7 +838,7 @@ export interface SauceLabsCapabilities {
     /**
      * Specifies the Microsoft Edge driver version you want to use for your tests.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      *  
      * For a list of edgedriver versions, see the Microsoft Edge Driver website.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#edgedriverversion
@@ -850,7 +850,7 @@ export interface SauceLabsCapabilities {
      * Specifies the Firefox GeckoDriver version. 
      * The default geckodriver version varies based on the version of Firefox specified. 
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * 
      * For a list of geckodriver versions and the Firefox versions they support, see geckodriver Supported Platforms.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#geckodriverversion
@@ -861,7 +861,7 @@ export interface SauceLabsCapabilities {
     /**
      * Specifies the Internet Explorer Driver version. If no version is specified, it defaults to 2.53.1. 
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * 
      * For a list of IE Driver versions, see Internet Explorer Driver Server CHANGELOG.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#iedriverversion
@@ -874,7 +874,7 @@ export interface SauceLabsCapabilities {
      * Sauce Labs will default to different versions, depending on the age of the browser and platform, 
      * and whether or not you're initializing a session with valid W3C syntax.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#seleniumversion
      */
     seleniumVersion?: string
@@ -888,7 +888,7 @@ export interface SauceLabsCapabilities {
      * 
      * Any test run with a Sauce Connect tunnel has to use the proxy and this flag will be ignored.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#avoidproxy
      */
     avoidProxy?: boolean
@@ -899,7 +899,7 @@ export interface SauceLabsCapabilities {
      * In Chrome, it also enables network interception, network and cpu throttling as well as access to network logs 
      * during the session. It is required to be true for capturePerformance. The default value is false.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#extendeddebugging
      * @see https://docs.saucelabs.com/insights/debug/
      */
@@ -910,7 +910,7 @@ export interface SauceLabsCapabilities {
      * Sauce Performance Testing can be enabled by setting both extendedDebugging and capturePerformance to true. 
      * Default value is false.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#captureperformance
      * @see https://docs.saucelabs.com/performance/
      */
@@ -920,7 +920,7 @@ export interface SauceLabsCapabilities {
      * Specifies the screen resolution to be used during your test session. 
      * Default screen resolution for Sauce tests is 1024x768.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#screenresolution
      */
     screenResolution?: string
@@ -931,7 +931,7 @@ export interface SauceLabsCapabilities {
      * we limit how long Selenium can take to run a command in our browsers.
      * This is set to 300 seconds by default. The maximum command timeout value allowed is 600 seconds.
      * 
-     * VDC only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#commandtimeout
      */
     commandTimeout?: number
@@ -942,7 +942,7 @@ export interface SauceLabsCapabilities {
      * we limit how long a browser can wait for a test to send a new command.
      * This is set to 90 seconds by default and limited to a maximum value of 1000 seconds.
      * 
-     * Desktop only.
+     * Desktop Virtual Devices only.
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout
      */
     idleTimeout?: number
