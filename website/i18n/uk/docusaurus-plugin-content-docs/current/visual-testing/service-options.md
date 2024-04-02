@@ -14,7 +14,7 @@ export const config = {
     // =====
     services: [
         [
-            'image-comparison',
+            'visual',
             {
                 // The options
             }
