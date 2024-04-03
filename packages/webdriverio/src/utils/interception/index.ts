@@ -1,12 +1,11 @@
 import EventEmitter from 'node:events'
-import type { local } from 'webdriver'
 
 import Timer from '../Timer.js'
 
 import type { WaitForOptions } from '../../types.js'
 import type {
     MockOptions, MockOverwrite, MockResponseParams, Matches,
-    ErrorReason, RequestWithOptions, RespondWithOptions
+    ErrorReason, RequestWithOptions
 } from './types.js'
 
 export default abstract class Interception {
@@ -72,20 +71,4 @@ export abstract class DevtoolsInterception extends Interception {
         errorReason?: ErrorReason
     }[] = []
     matches: Matches[] = []
-}
-
-export abstract class WebDriverInterception extends Interception {
-    abstract calls: local.NetworkResponseCompletedParameters[]
-    abstract clear (): void
-    abstract restore (): void
-    abstract respond (body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'>): void
-    abstract respondOnce (body: RespondWithOptions['body'], params: Omit<RespondWithOptions, 'body'>): void
-    abstract abort (): void
-    abstract abortOnce (): void
-
-    abstract on(event: 'request', callback: (request: local.NetworkBeforeRequestSentParameters) => void): any
-    abstract on(event: 'match', callback: (match: local.NetworkBeforeRequestSentParameters) => void): any
-    abstract on(event: 'fail', callback: (requestId: string) => void): any
-    abstract on(event: 'continue', callback: (requestId: string) => void): any
-    abstract on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): any
 }

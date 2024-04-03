@@ -117,9 +117,9 @@ export const CDP_SESSIONS: Record<string, CDPSession> = {}
  */
 export async function mock(
     this: WebdriverIO.Browser,
-    url: string | RegExp,
+    url: string,
     filterOptions?: MockOptions
-) {
+): Promise<WebdriverIO.Mock> {
     const browser = getBrowserObject(this)
     const handle = await browser.getWindowHandle()
     if (!SESSION_MOCKS[handle]) {
@@ -130,10 +130,9 @@ export async function mock(
         throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
     }
 
-    const { default: WebDriverInterception } = await import('../../utils/interception/webdriver.js')
-    const networkInterception = new WebDriverInterception(url, filterOptions, this)
-    SESSION_MOCKS[handle].add(networkInterception as Interception)
-    await networkInterception.init()
+    const WebDriverInterception = (await import('../../utils/interception/webdriver.js')).default
+    const networkInterception = WebDriverInterception.initiate(url, filterOptions || {}, this)
+    SESSION_MOCKS[handle].add(networkInterception as any as Interception)
     return networkInterception
 }
 

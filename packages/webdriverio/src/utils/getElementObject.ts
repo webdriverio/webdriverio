@@ -85,7 +85,6 @@ export const getElement = function findElement(
 
         client.selector = selector || ''
         client.parent = this
-        client.emit = this.emit.bind(this)
         client.isReactElement = props.isReactElement
         client.isShadowElement = props.isShadowElement
 

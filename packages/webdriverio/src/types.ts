@@ -7,6 +7,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
+import type WebDriverInterception from './utils/interception/webdriver.js'
 
 export * from './utils/interception/types.js'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -504,5 +505,13 @@ declare global {
          * @see https://webdriver.io/docs/multiremote/
          */
         interface MultiRemoteElement extends MultiRemoteElementType {}
+        /**
+         * WebdriverIO Mock object
+         * The mock object is an object that represents a network mock and contains information about
+         * requests that were matching given url and filterOptions. It can be received using the mock command.
+         *
+         * @see https://webdriver.io/docs/api/mock
+         */
+        interface Mock extends WebDriverInterception {}
     }
 }

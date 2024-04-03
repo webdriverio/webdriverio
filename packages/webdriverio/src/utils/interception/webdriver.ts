@@ -1,12 +1,15 @@
 /* eslint-disable no-dupe-class-members */
+import EventEmitter from 'node:events'
+
 import logger from '@wdio/logger'
 import { type JsonCompatible } from '@wdio/types'
 import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
-import { WebDriverInterception as Interception } from './index.js'
+import Timer from '../Timer.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
-import type { ErrorReason, RequestWithOptions, RespondWithOptions } from './types.js'
+import type { MockOptions, ErrorReason, RequestWithOptions, RespondWithOptions } from './types.js'
+import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
 
@@ -20,10 +23,13 @@ type RespondBody = string | JsonCompatible | Buffer
  * Note: this code is executed in Node.js and in the browser, so make sure
  *       you use primitives that work in both environments.
  */
-export default class WebDriverInterception extends Interception {
-    #mockId?: string
+export default class WebDriverInterception {
+    #pattern: URLPattern
+    #mockId: string
+    #browser: WebdriverIO.Browser
+
+    #emitter = new EventEmitter()
     #restored = false
-    #pattern?: URLPattern
     #respondOverwrites: {
         overwrite?: RequestWithOptions | RespondWithOptions
         requestWith?: RequestWithOptions
@@ -32,13 +38,33 @@ export default class WebDriverInterception extends Interception {
     }[] = []
     #calls: local.NetworkResponseCompletedParameters[] = []
 
-    async init() {
-        if (this.url instanceof RegExp) {
-            throw new Error('Regular Expressions as mock url are not supported')
-        }
+    private constructor (
+        pattern: URLPattern,
+        mockId: string,
+        browser: WebdriverIO.Browser
+    ) {
+        this.#pattern = pattern
+        this.#mockId = mockId
+        this.#browser = browser
 
+        /**
+         * attach network listener to this mock
+         */
+        browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
+        browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
+    }
+
+    static async initiate(
+        url: string,
+        /**
+         * ToDo(Christian): incorporate filterOptions
+         */
+        filterOptions: MockOptions,
+        browser: WebdriverIO.Browser
+    ) {
+        const pattern = parseUrlPattern(url)
         if (!hasSubscribedToEvents) {
-            await this.browser.sessionSubscribe({
+            await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
                     'network.responseStarted'
@@ -51,32 +77,28 @@ export default class WebDriverInterception extends Interception {
         /**
          * register network intercept
          */
-        this.#pattern = parseUrlPattern(this.url)
-        const interception = await this.browser.networkAddIntercept({
+        const interception = await browser.networkAddIntercept({
             phases: ['beforeRequestSent', 'responseStarted'],
             urlPatterns: [{
                 type: 'pattern',
-                protocol: getPatternParam(this.#pattern, 'protocol'),
-                hostname: getPatternParam(this.#pattern, 'hostname'),
-                pathname: getPatternParam(this.#pattern, 'pathname'),
-                port: getPatternParam(this.#pattern, 'port'),
-                search: getPatternParam(this.#pattern, 'search')
+                protocol: getPatternParam(pattern, 'protocol'),
+                hostname: getPatternParam(pattern, 'hostname'),
+                pathname: getPatternParam(pattern, 'pathname'),
+                port: getPatternParam(pattern, 'port'),
+                search: getPatternParam(pattern, 'search')
             }]
         })
-        this.#mockId = interception.intercept
 
-        /**
-         * attach network listener to this mock
-         */
-        this.browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
-        this.browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
+        return new WebDriverInterception(pattern, interception.intercept, browser)
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         /**
-         * check if request matches the mock url
+         * don't do anything if:
+         * - request is not blocked
+         * - request is not matching the pattern, e.g. a different mock is responsible for this request
          */
-        if (!request.isBlocked) {
+        if (!this.#isRequestMatching(request)) {
             return
         }
 
@@ -85,13 +107,11 @@ export default class WebDriverInterception extends Interception {
          */
         const continueRequest = (
             /**
-             * - no pattern is set
-             * - pattern does not match
+             * - mock has no request/respond overwrites
              * - no request modifications are set
              *   - no errorReason is set
              *   - no requestWith is set
              */
-            !this.#pattern || !this.#pattern.test(request.request.url) ||
             this.#respondOverwrites.length === 0 ||
             (
                 !this.#respondOverwrites[0].errorReason &&
@@ -103,13 +123,13 @@ export default class WebDriverInterception extends Interception {
          * check if request matches the mock url
          */
         if (continueRequest) {
-            this.emitter.emit('continue', request.request.request)
-            return this.browser.networkContinueRequest({
+            this.#emitter.emit('continue', request.request.request)
+            return this.#browser.networkContinueRequest({
                 request: request.request.request
             })
         }
 
-        this.emitter.emit('request', request)
+        this.#emitter.emit('request', request)
         const { requestWith, errorReason } = this.#respondOverwrites[0].once
             ? this.#respondOverwrites.shift() || {}
             : this.#respondOverwrites[0]
@@ -118,16 +138,16 @@ export default class WebDriverInterception extends Interception {
          * check if should abort the request
          */
         if (errorReason) {
-            this.emitter.emit('fail', request.request.request)
-            return this.browser.networkFailRequest({ request: request.request.request })
+            this.#emitter.emit('fail', request.request.request)
+            return this.#browser.networkFailRequest({ request: request.request.request })
         }
 
         /**
          * continue request (possibly with overwrites)
          */
         if (requestWith) {
-            this.emitter.emit('overwrite', request)
-            return this.browser.networkContinueRequest({
+            this.#emitter.emit('overwrite', request)
+            return this.#browser.networkContinueRequest({
                 request: request.request.request,
                 ...parseOverwrite(requestWith, request)
             })
@@ -138,17 +158,32 @@ export default class WebDriverInterception extends Interception {
 
     #handleResponseStarted(request: local.NetworkResponseCompletedParameters) {
         /**
-         * check if request matches the mock url
+         * don't do anything if:
+         * - request is not blocked
+         * - request is not matching the pattern, e.g. a different mock is responsible for this request
          */
-        if (!request.isBlocked) {
+        if (!this.#isRequestMatching(request)) {
             return
         }
 
         /**
+         * continue the request without modifications, if:
+         */
+        const continueRequest = (
+            /**
+             * - mock has no request/respond overwrites
+             * - no request modifications are set, e.g. no overwrite is set
+             */
+            this.#respondOverwrites.length === 0 ||
+            !this.#respondOverwrites[0].overwrite
+        )
+
+        /**
          * check if request matches the mock url
          */
-        if (!this.#pattern || !this.#pattern.test(request.request.url)) {
-            return this.browser.networkContinueRequest({
+        if (continueRequest) {
+            this.#emitter.emit('continue', request.request.request)
+            return this.#browser.networkProvideResponse({
                 request: request.request.request
             })
         }
@@ -162,8 +197,8 @@ export default class WebDriverInterception extends Interception {
          * continue request (possibly with overwrites)
          */
         if (overwrite) {
-            this.emitter.emit('overwrite', request)
-            return this.browser.networkProvideResponse({
+            this.#emitter.emit('overwrite', request)
+            return this.#browser.networkProvideResponse({
                 request: request.request.request,
                 ...parseOverwrite(overwrite, request)
             })
@@ -172,10 +207,14 @@ export default class WebDriverInterception extends Interception {
         /**
          * continue request as is
          */
-        this.emitter.emit('continue', request.request.request)
-        return this.browser.networkContinueRequest({
+        this.#emitter.emit('continue', request.request.request)
+        return this.#browser.networkProvideResponse({
             request: request.request.request
         })
+    }
+
+    #isRequestMatching (request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters) {
+        return request.isBlocked && this.#pattern && this.#pattern.test(request.request.url)
     }
 
     /**
@@ -190,6 +229,7 @@ export default class WebDriverInterception extends Interception {
      */
     clear() {
         this.#calls = []
+        return this
     }
 
     /**
@@ -199,6 +239,7 @@ export default class WebDriverInterception extends Interception {
     reset() {
         this.clear()
         this.#respondOverwrites = []
+        return this
     }
 
     /**
@@ -210,14 +251,16 @@ export default class WebDriverInterception extends Interception {
         this.reset()
         this.#respondOverwrites = []
         this.#restored = true
-        const handle = await this.browser.getWindowHandle()
+        const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this)
+        SESSION_MOCKS[handle].delete(this as any)
 
         if (this.#mockId) {
-            await this.browser.networkRemoveIntercept({ intercept: this.#mockId })
+            await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
         }
+
+        return this
     }
 
     /**
@@ -288,7 +331,7 @@ export default class WebDriverInterception extends Interception {
     on(event: 'fail', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
-        this.emitter.on(event, callback)
+        this.#emitter.on(event, callback)
         return this
     }
 
@@ -296,6 +339,38 @@ export default class WebDriverInterception extends Interception {
         if (this.#restored) {
             throw new Error('This can\'t be done on restored mock')
         }
+    }
+
+    waitForResponse ({
+        timeout = this.#browser.options.waitforTimeout,
+        interval = this.#browser.options.waitforInterval,
+        timeoutMsg,
+    }: WaitForOptions = {}) {
+        /*!
+         * ensure that timeout and interval are set properly
+         */
+        if (typeof timeout !== 'number') {
+            timeout = this.#browser.options.waitforTimeout as number
+        }
+
+        if (typeof interval !== 'number') {
+            interval = this.#browser.options.waitforInterval as number
+        }
+
+        /* istanbul ignore next */
+        const fn = async () => this.calls && (await this.calls).length > 0
+        const timer = new Timer(interval, timeout, fn, true) as any as Promise<boolean>
+
+        return this.#browser.call(() => timer.catch((e) => {
+            if (e.message === 'timeout') {
+                if (typeof timeoutMsg === 'string') {
+                    throw new Error(timeoutMsg)
+                }
+                throw new Error(`waitForResponse timed out after ${timeout}ms`)
+            }
+
+            throw new Error(`waitForResponse failed with the following reason: ${(e && e.message) || e}`)
+        }))
     }
 }
 
@@ -394,12 +469,22 @@ export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOption
             ? overwrite.method(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.method
         : undefined
-    return { body, headers, cookies, method, statusCode }
+
+    const url = 'url' in overwrite
+        ? typeof overwrite.url === 'function'
+            ? overwrite.url(request as local.NetworkBeforeRequestSentParameters)
+            : overwrite.url
+        : undefined
+    return { body, headers, cookies, method, statusCode, url }
 }
 
 function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
     if (key !== 'pathname' && pattern[key] === '*') {
         return
+    }
+
+    if (key === 'port' && pattern.port === '') {
+        return pattern.protocol === 'https' ? '443' : '80'
     }
 
     return pattern[key].replaceAll('*', '\\*')

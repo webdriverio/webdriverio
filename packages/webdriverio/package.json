@@ -68,12 +68,12 @@
   },
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/config": "9.0.0-alpha.0",
-    "@wdio/logger": "9.0.0-alpha.0",
-    "@wdio/protocols": "9.0.0-alpha.0",
-    "@wdio/repl": "9.0.0-alpha.0",
-    "@wdio/types": "9.0.0-alpha.0",
-    "@wdio/utils": "9.0.0-alpha.0",
+    "@wdio/config": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/protocols": "workspace:*",
+    "@wdio/repl": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "archiver": "^7.0.0",
     "aria-query": "^5.0.0",
     "cheerio": "^1.0.0-rc.12",
@@ -91,7 +91,7 @@
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.1",
     "urlpattern-polyfill": "^10.0.0",
-    "webdriver": "9.0.0-alpha.0"
+    "webdriver": "workspace:*"
   },
   "peerDependencies": {
     "puppeteer-core": "^22.3.0"
