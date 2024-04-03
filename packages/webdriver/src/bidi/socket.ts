@@ -49,4 +49,4 @@ class BrowserSocket {
  */
 export default globalThis.WebSocket
     ? BrowserSocket
-    : (await import('ws')).WebSocket
+    : (await import('ws')).default

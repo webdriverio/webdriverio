@@ -7,7 +7,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
-import type WebDriverInterception from './utils/interception/webdriver.js'
+import type WebDriverInterception from './utils/interception/index.js'
 
 export * from './utils/interception/types.js'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -466,6 +466,15 @@ export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilitie
     capabilities: WebDriverAttachOptions['capabilities'],
     requestedCapabilities?: WebDriverAttachOptions['capabilities'],
 }
+
+export type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+export interface CustomThrottle {
+    offline: boolean
+    downloadThroughput: number
+    uploadThroughput: number
+    latency: number
+}
+export type ThrottleOptions = ThrottlePreset | CustomThrottle
 
 declare global {
     namespace WebdriverIO {
