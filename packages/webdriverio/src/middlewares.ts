@@ -51,7 +51,6 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 throw err
             }
         }).apply(this)
-
     }
 }
 
