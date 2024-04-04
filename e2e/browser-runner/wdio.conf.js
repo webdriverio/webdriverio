@@ -8,12 +8,22 @@ const isMac = os.platform() === 'darwin' && process.env.CI
 const isWindows = os.platform() === 'win32'
 
 /**
- * WebdriverIO is using this example to test its component testing features
- * and we have experienced issues with Vue when running in Windows,
- * see https://github.com/testing-library/vue-testing-library/issues/292
- * Please ignore and remove this in your project!
+ * skip tests if:
  */
-if (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) {
+if (
+    /**
+     * WebdriverIO is using this example to test its component testing features
+     * and we have experienced issues with Vue when running in Windows,
+     * see https://github.com/testing-library/vue-testing-library/issues/292
+     * Please ignore and remove this in your project!
+     */
+    (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) ||
+    /**
+     * We are running network mocking tests on Safari in CI where Safari has no support for
+     * Bidi just yet.
+     */
+    (process.env.CI && isMac && process.argv.includes('mock.test.ts'))
+) {
     process.exit(0)
 }
 
