@@ -163,7 +163,6 @@ describe('reloadSession test', () => {
         })
         // @ts-expect-error
         browser.puppeteer = puppeteerMock
-        await browser.mock('/foobar')
         await browser.reloadSession()
         expect(puppeteerMock.disconnect).toBeCalled()
     })

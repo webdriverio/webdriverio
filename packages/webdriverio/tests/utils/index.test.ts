@@ -146,6 +146,8 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
     const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
+    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
+    expect(isStaleElementError(staleElementJSError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
 })

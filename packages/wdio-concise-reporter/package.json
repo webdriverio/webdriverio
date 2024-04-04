@@ -29,8 +29,8 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "9.0.0-alpha.0",
-    "@wdio/types": "9.0.0-alpha.0",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "chalk": "^5.0.1",
     "pretty-ms": "^9.0.0"
   },
