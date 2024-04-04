@@ -1,5 +1,7 @@
-// import type NodeWebSocket from 'ws'
-
+/**
+ * A WebSocket implementation that wraps the browser native WebSocket
+ * interface and exposes a similar interface to the Node.js WebSocket
+ */
 class BrowserSocket {
     #callbacks = new Set<any>()
     #ws: WebSocket

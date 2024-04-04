@@ -45,10 +45,12 @@ export default class ProxyDriver {
         /**
          * listen on socket events from testrunner
          */
-        import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleServerMessage.bind(this))
-        import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.initiateBrowserStateRequest,
-            value: { cid }
+        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: Workers.SocketMessage) => {
+            try {
+                this.#handleServerMessage(payload)
+            } catch (err) {
+                console.error(`Error in handling message: ${(err as Error).stack}`)
+            }
         })
 
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
@@ -139,6 +141,18 @@ export default class ProxyDriver {
             await client._bidiHandler.connect()
             client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
         }
+
+        /**
+         * initiate browser state, e.g. register custom commands that were initiated
+         * in Node.js land to the browser instance in the browser
+         * Note: we only can do this after we have connected to above Bidi connection
+         * otherwise the browser instance will not be registered in `@wdio/globals` at
+         * the time we get a response for this message.
+         */
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateRequest,
+            value: { cid }
+        })
 
         return client
     }
