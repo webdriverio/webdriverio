@@ -40,8 +40,8 @@
   },
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/reporter": "9.0.0-alpha.0",
-    "@wdio/types": "9.0.0-alpha.0",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "allure-js-commons": "^2.5.0",
     "csv-stringify": "^6.0.4",
     "strip-ansi": "^7.1.0"

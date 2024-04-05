@@ -26,6 +26,7 @@
     "test:browser:stencil": "run-s test:browser:stencil:*",
     "test:browser:stencil:wdio": "cross-env WDIO_PRESET=stencil node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec stencil.test.tsx",
     "test:browser:stencil:verifyCoverage": "run-s verifyCoverage",
+    "test:browser:misc": "node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec mock.test.ts",
     "test:mocha": "node ../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
     "test:jasmine": "node ../packages/wdio-cli/bin/wdio.js ./jasmine/wdio.conf.js",
     "test:cucumber": "node ../packages/wdio-cli/bin/wdio.js ./cucumber/wdio.conf.js",
