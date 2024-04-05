@@ -375,13 +375,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
+        await sendFinish(this.browserStackConfig)
         try {
             await this._uploadServiceLogs()
         } catch (error) {
             BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
         }
 
-        await sendFinish(this.browserStackConfig)
         BStackLogger.clearLogger()
 
         if (this._options.percy) {
