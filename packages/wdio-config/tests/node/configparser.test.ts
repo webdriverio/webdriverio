@@ -702,6 +702,11 @@ describe('ConfigParser', () => {
                     'sauce',
                     [CustomServiceOrReporter, { foo: 'bar' }]
                 ],
+                reporters: [
+                    'dot',
+                    'spec',
+                    [CustomServiceOrReporter, { foo: 'bar' }] as any
+                ]
             })
             const { services, reporters } = configParser.getConfig()
             expect(services).toHaveLength(3)
