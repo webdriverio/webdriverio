@@ -13,7 +13,6 @@ import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
 import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
 import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
-import TestCustomService from '../__fixtures__/test-custom-service.js'
 
 const log = logger('')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -40,6 +39,8 @@ vi.mock('ts-node', () => ({
 vi.mock('@babel/register', () => ({
     default: vi.fn()
 }))
+
+class CustomServiceOrReporter {}
 
 /**
  * Entirely in memory config structure to avoid reading the file system at all
@@ -70,7 +71,9 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
                 path.join(root, '/tests/validateConfig.test.ts'),
                 path.join(root, '/tests/..', 'src/index.ts')
             ]
-        }
+        },
+        services: ['appium', [CustomServiceOrReporter, { foo: 'bar' }]],
+        reporters: ['spec', [CustomServiceOrReporter, { foo: 'bar' }]],
     }
 })
 
@@ -691,33 +694,43 @@ describe('ConfigParser', () => {
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
         })
 
-        it('should allow to specifying services', async () => {
+        it('should ensure there we do not duplicate class entries', async () => {
             const configParser = await ConfigParserForTest(FIXTURES_CONF)
             await configParser.initialize({
                 services: [
-                    [TestCustomService, { timestamp: 1709633731716 }]
-                ]
+                    'appium',
+                    'sauce',
+                    [CustomServiceOrReporter, { foo: 'bar' }]
+                ],
             })
+            const { services, reporters } = configParser.getConfig()
+            expect(services).toHaveLength(3)
+            expect(services).toMatchInlineSnapshot(`
+              Set {
+                "appium",
+                "sauce",
+                [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              }
+            `)
+            expect(reporters).toHaveLength(3)
+            expect(reporters).toMatchInlineSnapshot(`
+              Set {
+                "dot",
+                "spec",
+               [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              }
+            `)
 
-            const services = (await configParser.getConfig())['services']
-            expect(services).toHaveLength(1)
-            expect(services[0][1].timestamp).toBe(1709633731716)
-            expect(typeof services[0][0]).toBe(typeof TestCustomService)
-        })
-
-        it('should allow to specifying reporters', async () => {
-            const configParser = await ConfigParserForTest(FIXTURES_CONF)
-            await configParser.initialize({
-                reporters: [
-                    ['dot', 'spec']
-                ]
-            })
-
-            const reporters = (await configParser.getConfig())['reporters']
-            expect(reporters).toHaveLength(1)
-            expect(reporters[0]).toHaveLength(2)
-            expect(reporters[0][0]).toBe('dot')
-            expect(reporters[0][1]).toBe('spec')
         })
     })
 

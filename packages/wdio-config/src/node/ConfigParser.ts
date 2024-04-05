@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
@@ -13,7 +13,9 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService, ModuleImportService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
+const MERGE_DUPLICATION = ['services', 'reporters'] as const
 
+type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
 type ESMImport = { config?: TestrunnerOptionsWithParameters }
 type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
@@ -182,12 +184,11 @@ export default class ConfigParser {
          * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
          */
         const customDeepMerge = deepmergeCustom({
-            mergeArrays: (values, utils, meta) => {
-                if (meta && ['services', 'reporters', 'capabilities'].includes(meta.key as string)) {
-                    const mergedArr = deepmerge(this._config[meta.key as keyof WebdriverIO.Config], object[meta.key as keyof WebdriverIO.Config]) as []
-                    return mergedArr.filter((item, index, merged) => {
-                        return merged.indexOf(item) === index
-                    })
+            mergeArrays: ([oldValue, newValue], utils, meta) => {
+                const key = meta?.key as KeyWithMergeDuplication
+                if (meta && MERGE_DUPLICATION.includes(key)) {
+                    const origWithoutObjectEntries = oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value[0] === 'object')
+                    return new Set(deepmerge(newValue, origWithoutObjectEntries))
                 }
                 return utils.actions.defaultMerge
             }
