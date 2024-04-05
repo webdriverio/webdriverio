@@ -1,4 +1,4 @@
-import { expect, $ } from '@wdio/globals'
+import { browser, expect, $ } from '@wdio/globals'
 import { spyOn, mock, fn, unmock } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 import isUrl from 'is-url'

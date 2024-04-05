@@ -48,7 +48,7 @@ export const getElement = function findElement(
 ): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject = {
+    const propertiesObject: PropertyDescriptorMap = {
         /**
          * filter out browser commands from object
          */
@@ -62,6 +62,7 @@ export const getElement = function findElement(
         scope: { value: 'element' }
     }
 
+    propertiesObject.emit = { value: this.emit.bind(this) }
     const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
@@ -85,7 +86,6 @@ export const getElement = function findElement(
 
         client.selector = selector || ''
         client.parent = this
-        client.emit = this.emit.bind(this)
         client.isReactElement = props.isReactElement
         client.isShadowElement = props.isShadowElement
 
@@ -117,7 +117,7 @@ export const getElements = function getElements(
 ): WebdriverIO.Element[] {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject = {
+    const propertiesObject: PropertyDescriptorMap = {
         /**
          * filter out browser commands from object
          */
@@ -143,6 +143,7 @@ export const getElements = function getElements(
         }
 
         propertiesObject.scope = { value: 'element' }
+        propertiesObject.emit = { value: this.emit.bind(this) }
         const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
@@ -167,7 +168,6 @@ export const getElements = function getElements(
                 : selector
             client.parent = this
             client.index = i
-            client.emit = this.emit.bind(this)
             client.isReactElement = props.isReactElement
             client.isShadowElement = props.isShadowElement
 

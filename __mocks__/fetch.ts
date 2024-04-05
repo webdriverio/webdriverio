@@ -104,6 +104,10 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         sessionResponse.capabilities['sauce:options'] = body.desiredCapabilities['sauce:options']
     }
 
+    if (body?.capabilities?.alwaysMatch?.browserName === 'bidi') {
+        sessionResponse.capabilities.webSocketUrl = 'ws://webdriver.io'
+    }
+
     switch (uri.pathname) {
     case path:
         value = sessionResponse

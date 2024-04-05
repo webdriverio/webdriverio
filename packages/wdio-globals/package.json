@@ -43,6 +43,6 @@
   },
   "optionalDependencies": {
     "expect-webdriverio": "^4.11.2",
-    "webdriverio": "9.0.0-alpha.0"
+    "webdriverio": "workspace:*"
   }
 }

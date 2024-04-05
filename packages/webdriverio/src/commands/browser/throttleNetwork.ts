@@ -43,7 +43,7 @@
  *
  */
 import { getBrowserObject } from '@wdio/utils'
-import type { ThrottleOptions } from '../../utils/interception/types.js'
+import type { ThrottleOptions } from '../../types.js'
 
 const NETWORK_PRESETS = {
     'offline': {
