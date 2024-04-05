@@ -727,7 +727,7 @@ describe('ConfigParser', () => {
               Set {
                 "dot",
                 "spec",
-               [
+                [
                   [Function],
                   {
                     "foo": "bar",
