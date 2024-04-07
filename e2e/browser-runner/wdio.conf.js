@@ -19,6 +19,12 @@ if (
      */
     (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) ||
     /**
+     * Todo(Christian): enable test again once this issue is fixed:
+     * Error:  Test failed due to following error(s):
+     *   - stencil.test.tsx: Failed to fetch dynamically imported module: http://localhost:61519/browser-runner/components/StencilComponent.tsx: TypeError: Failed to fetch dynamically imported module: http://localhost:61519/browser-runner/components/StencilComponent.tsx
+     */
+    (process.env.CI && process.env.WDIO_PRESET === 'lit' && (isWindows)) ||
+    /**
      * We are running network mocking tests on Safari in CI where Safari has no support for
      * Bidi just yet.
      */
