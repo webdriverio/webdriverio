@@ -103,22 +103,24 @@ describe('Lit Component testing', () => {
             await expect(elem).toMatchSnapshot()
             await expect(elem).toMatchInlineSnapshot(`
               "<simple-greeting name="WebdriverIO">
-                <shadow-root>
+                <template shadowroot="open" shadowrootmode="open">
+                  <style>:host { color: blue; }</style>
                   <div>
                     <p>Hello Sir, WebdriverIO! Does this work?</p>
                     <button>Good</button>
                     <hr />
                     <em></em>
                     <sub-elem>
-                      <shadow-root>
+                      <template shadowroot="open" shadowrootmode="open">
+                        <style>.selectMeToo { color: blue; }</style>
                         <div>
                           <p class="selectMe">I am within another shadow root element</p>
                           <p class="selectMeToo">I am within another shadow root element as well</p>
                         </div>
-                      </shadow-root>
+                      </template>
                     </sub-elem>
                   </div>
-                </shadow-root>
+                </template>
               </simple-greeting>"
             `)
         })
@@ -149,13 +151,13 @@ describe('Lit Component testing', () => {
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
         render(
-            html`<input style="display: none;"></input>`,
+            html`<input style="display: none;" />`,
             document.body
         )
 
         const err = await $('input').click().catch((err) => err)
         expect(err.name).toBe('element not interactable')
-        expect(err.message).toBe('Element <input style="display: none;" /> not interactable')
+        expect(err.message).toBe('Element <input style="display: none;"> not interactable')
         expect(err.stack).toContain('at getErrorFromResponseBody')
     })
 

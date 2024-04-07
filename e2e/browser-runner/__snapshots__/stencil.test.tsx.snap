@@ -2,20 +2,20 @@
 
 exports[`Stencil Component Testing > can auto peirce shadow dom 1`] = `
 "<nested-component>
-  <shadow-root>
+  <template shadowroot="open" shadowrootmode="open">
     <i>I am a first transparent component!</i>
     <a href="#">I am a link</a>
-  </shadow-root>
+  </template>
 </nested-component>"
 `;
 
 exports[`Stencil Component Testing > can auto peirce shadow dom 2`] = `
 "<div class="nested">
   <nested-component>
-    <shadow-root>
+    <template shadowroot="open" shadowrootmode="open">
       <i>I am a transparent component in a nested context!</i>
       <a href="#">I am a link</a>
-    </shadow-root>
+    </template>
   </nested-component>
 </div>"
 `;
@@ -23,23 +23,24 @@ exports[`Stencil Component Testing > can auto peirce shadow dom 2`] = `
 exports[`Stencil Component Testing > can auto peirce shadow dom 3`] = `
 "<div class="nested second">
   <nested-component>
-    <shadow-root>
+    <template shadowroot="open" shadowrootmode="open">
       <i>I am a transparent component in a second nested context!</i>
       <a href="#">I am a link</a>
-    </shadow-root>
+    </template>
   </nested-component>
   <app-profile>
-    <shadow-root>
+    <template shadowroot="open" shadowrootmode="open">
+      <style>.app-profile { font-weight: bold; }</style>
       <div class="app-profile">
         <p>Hello! My name is Stencil.</p>
         <nested-component>
-          <shadow-root>
+          <template shadowroot="open" shadowrootmode="open">
             <i>I am a nested component!</i>
             <a href="#">I am a link</a>
-          </shadow-root>
+          </template>
         </nested-component>
       </div>
-    </shadow-root>
+    </template>
   </app-profile>
 </div>"
 `;
