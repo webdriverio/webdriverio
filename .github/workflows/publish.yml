@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'cb/use-dsd-when-parsing-shadow-content'
+          ref: 'main'
           fetch-depth: 0
       - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
