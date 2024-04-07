@@ -121,13 +121,27 @@ export async function getHTML(
         ]) as unknown as [string, HTMLElement][]
 
         /**
+         * verify that shadow elements captured by the shadow root manager is still attached to the DOM
+         */
+        const elemsWithShadowRootAndIdVerified = (
+            await Promise.all(
+                elemsWithShadowRootAndId.map(([elemId, elem]) => (
+                    browser.execute((elem) => elem.tagName, elem).then(
+                        () => [elemId, elem] as [string, HTMLElement],
+                        () => undefined
+                    )
+                ))
+            )
+        ).filter(Boolean) as [string, HTMLElement][]
+
+        /**
          * then get the HTML of the element and its shadow roots
          */
         const { html, shadowElementIdsFound } = await browser.execute(
             getHTMLShadowScript,
             { [ELEMENT_KEY]: this.elementId } as any as HTMLElement,
             includeSelectorTag,
-            elemsWithShadowRootAndId
+            elemsWithShadowRootAndIdVerified
         )
 
         const $ = load(html)
