@@ -760,8 +760,8 @@ importers:
         specifier: 8.6.0
         version: 8.6.0
       puppeteer-core:
-        specifier: 22.5.0
-        version: 22.5.0
+        specifier: 22.6.3
+        version: 22.6.3
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -6206,6 +6206,23 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /@puppeteer/browsers@2.2.1:
+    resolution: {integrity: sha512-QSXujx4d4ogDamQA8ckkkRieFzDgZEuZuGiey9G7CuDcbnX4iINKWxTPC5Br2AEzY9ICAvcndqgAUFMMKnS/Tw==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      debug: 4.3.4(supports-color@8.1.1)
+      extract-zip: 2.0.1
+      progress: 2.0.3
+      proxy-agent: 6.4.0
+      semver: 7.6.0
+      tar-fs: 3.0.5
+      unbzip2-stream: 1.4.3
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
   /@rollup/plugin-babel@5.3.1(@babel/core@7.24.4)(rollup@2.79.1):
     resolution: {integrity: sha512-WFfdLWU/xVWKeRQnKmIAQULUI7Il0gZnBIH/ZFO069wYIfPu+8zrfp/KMW0atmELoRDq8FbiP3VCss9MhCut7Q==}
     engines: {node: '>= 10.0.0'}
@@ -9847,17 +9864,6 @@ packages:
       mitt: 3.0.0
     dev: false
 
-  /chromium-bidi@0.5.13(devtools-protocol@0.0.1249869):
-    resolution: {integrity: sha512-OHbYCetDxdW/xmlrafgOiLsIrw4Sp1BEeolbZ1UGJO5v/nekQOJBj/Kzyw6sqKcAVabUTo0GS3cTYgr6zIf00g==}
-    peerDependencies:
-      devtools-protocol: '*'
-    dependencies:
-      devtools-protocol: 0.0.1249869
-      mitt: 3.0.1
-      urlpattern-polyfill: 10.0.0
-      zod: 3.22.4
-    dev: false
-
   /chromium-bidi@0.5.16(devtools-protocol@0.0.1262051):
     resolution: {integrity: sha512-IT5lnR44h/qZQ4GaCHvBxYIl4cQL2i9UvFyYeRyVdcpY04hx5H720HQfe/7Oz7ndxaYVLQFGpCO71J4X2Ye/Gw==}
     peerDependencies:
@@ -9867,7 +9873,6 @@ packages:
       mitt: 3.0.1
       urlpattern-polyfill: 10.0.0
       zod: 3.22.4
-    dev: true
 
   /ci-info@2.0.0:
     resolution: {integrity: sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ==}
@@ -11107,13 +11112,8 @@ packages:
     resolution: {integrity: sha512-hyWmRrexdhbZ1tcJUGpO95ivbRhWXz++F4Ko+n21AY5PNln2ovoJw+8ZMNDTtip+CNFQfrtLVh/w4009dXO/eQ==}
     dev: false
 
-  /devtools-protocol@0.0.1249869:
-    resolution: {integrity: sha512-Ctp4hInA0BEavlUoRy9mhGq0i+JSo/AwVyX2EFgZmV1kYB+Zq+EMBAn52QWu6FbRr10hRb6pBl420upbp4++vg==}
-    dev: false
-
   /devtools-protocol@0.0.1262051:
     resolution: {integrity: sha512-YJe4CT5SA8on3Spa+UDtNhEqtuV6Epwz3OZ4HQVLhlRccpZ9/PAYk0/cy/oKxFKRrZPBUPyxympQci4yWNWZ9g==}
-    dev: true
 
   /devtools-protocol@0.0.1273771:
     resolution: {integrity: sha512-QDbb27xcTVReQQW/GHJsdQqGKwYBE7re7gxehj467kKP2DKuYBUj6i2k5LRiAC66J1yZG/9gsxooz/s9pcm0Og==}
@@ -12202,7 +12202,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       cross-spawn: 7.0.3
-      get-stream: 6.0.0
+      get-stream: 6.0.1
       human-signals: 2.1.0
       is-stream: 2.0.0
       merge-stream: 2.0.0
@@ -18332,21 +18332,6 @@ packages:
       - utf-8-validate
     dev: false
 
-  /puppeteer-core@22.5.0:
-    resolution: {integrity: sha512-bcfmM1nNSysjnES/ZZ1KdwFAFFGL3N76qRpisBb4WL7f4UAD4vPDxlhKZ1HJCDgMSWeYmeder4kftyp6lKqMYg==}
-    engines: {node: '>=18'}
-    dependencies:
-      '@puppeteer/browsers': 2.2.0
-      chromium-bidi: 0.5.13(devtools-protocol@0.0.1249869)
-      debug: 4.3.4(supports-color@8.1.1)
-      devtools-protocol: 0.0.1249869
-      ws: 8.16.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
-
   /puppeteer-core@22.6.2:
     resolution: {integrity: sha512-Sws/9V2/7nFrn3MSsRPHn1pXJMIFn6FWHhoMFMUBXQwVvcBstRIa9yW8sFfxePzb56W1xNfSYzPRnyAd0+qRVQ==}
     engines: {node: '>=18'}
@@ -18361,6 +18346,21 @@ packages:
       - supports-color
       - utf-8-validate
     dev: true
+
+  /puppeteer-core@22.6.3:
+    resolution: {integrity: sha512-YrTAak5zCTWVTnVaCK1b7FD1qFCCT9bSvQhLzamnIsJ57/tfuXiT8ZvPJR2SBfahyFTYFCcaZAd/Npow3lmDGA==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@puppeteer/browsers': 2.2.1
+      chromium-bidi: 0.5.16(devtools-protocol@0.0.1262051)
+      debug: 4.3.4(supports-color@8.1.1)
+      devtools-protocol: 0.0.1262051
+      ws: 8.16.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
 
   /qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
@@ -18391,6 +18391,7 @@ packages:
 
   /queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
+    requiresBuild: true
 
   /queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
