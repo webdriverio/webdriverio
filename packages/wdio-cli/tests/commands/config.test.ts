@@ -38,7 +38,8 @@ const isUsingWindows = os.platform() === 'win32'
 
 process.cwd = () => '/foo/bar'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (origMod) => ({
+    ...(await origMod<typeof fs>()),
     default: {
         access: vi.fn().mockRejectedValue('Yay')
     }

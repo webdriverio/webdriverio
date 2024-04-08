@@ -11,7 +11,8 @@ import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
-vi.mock('fs/promises', () => ({
+vi.mock('fs/promises', async (origMod) => ({
+    ...(await origMod<typeof fs>()),
     default: { writeFile: vi.fn() }
 }))
 vi.mock('util')

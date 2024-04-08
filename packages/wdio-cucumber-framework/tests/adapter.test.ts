@@ -1,6 +1,7 @@
 import path from 'node:path'
+import type fs from 'node:fs/promises'
 import got from 'got'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
@@ -46,6 +47,12 @@ vi.mock('@cucumber/messages', async () => {
         }
     }
 })
+vi.mock('fs/promises', async (origMod) => ({
+    ...(await origMod<typeof fs>()),
+    readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
+    readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
+}))
+vi.mock('got')
 
 vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
@@ -661,14 +668,6 @@ describe('CucumberAdapter', () => {
 })
 
 describe('publishCucumberReport', () => {
-    beforeAll(() => {
-        vi.mock('fs/promises', () => ({
-            readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
-            readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
-        }))
-        vi.mock('got')
-    })
-
     it('should not publish report if CUCUMBER_PUBLISH_REPORT_TOKEN is not set', async () => {
         await publishCucumberReport('/some/directory')
         expect(got).not.toHaveBeenCalled()

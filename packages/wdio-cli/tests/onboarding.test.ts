@@ -5,7 +5,8 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import { generateBrowserRunnerTestFiles } from '../src/utils.js'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (origMod) => ({
+    ...(await origMod<typeof fs>()),
     default: {
         writeFile: vi.fn().mockReturnValue(Promise.resolve()),
         mkdir: vi.fn().mockReturnValue(Promise.resolve('/foo/bar')),

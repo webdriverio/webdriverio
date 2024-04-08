@@ -1,7 +1,9 @@
+import type fs from 'node:fs/promises'
 import { test, vi, expect } from 'vitest'
 import { getAnswers } from '../src/utils.js'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (origMod) => ({
+    ...(await origMod<typeof fs>()),
     default: {
         access: vi.fn().mockRejectedValue(new Error('ENOENT'))
     }
