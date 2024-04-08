@@ -39,7 +39,7 @@ jobs:
   authorize:
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2.2.0
+      - uses: octokit/request-action@v2.3.0
         with:
           route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
           team: technical-steering-committee
