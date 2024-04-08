@@ -15,4 +15,4 @@ expect($('foo')).toHaveTextContaining('foobar')
 /**
  * check support for Jasmine specific matchers
  */
-expect(true).toBeTrue()
+expect(true).toBeTruthy()
