@@ -188,7 +188,7 @@ export default class ConfigParser {
                 const key = meta?.key as KeyWithMergeDuplication
                 if (meta && MERGE_DUPLICATION.includes(key)) {
                     const origWithoutObjectEntries = oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value[0] === 'object')
-                    return new Set(deepmerge(newValue, origWithoutObjectEntries))
+                    return Array.from(new Set(deepmerge(newValue, origWithoutObjectEntries)))
                 }
                 return utils.actions.defaultMerge
             }

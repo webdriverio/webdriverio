@@ -711,7 +711,7 @@ describe('ConfigParser', () => {
             const { services, reporters } = configParser.getConfig()
             expect(services).toHaveLength(3)
             expect(services).toMatchInlineSnapshot(`
-              Set {
+              [
                 "appium",
                 "sauce",
                 [
@@ -720,11 +720,11 @@ describe('ConfigParser', () => {
                     "foo": "bar",
                   },
                 ],
-              }
+              ]
             `)
             expect(reporters).toHaveLength(3)
             expect(reporters).toMatchInlineSnapshot(`
-              Set {
+              [
                 "dot",
                 "spec",
                 [
@@ -733,7 +733,7 @@ describe('ConfigParser', () => {
                     "foo": "bar",
                   },
                 ],
-              }
+              ]
             `)
 
         })
