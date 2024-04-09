@@ -1150,7 +1150,7 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
     return false
 }
 
-export function patchConsoleLogs() {
+export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
@@ -1167,7 +1167,7 @@ export function patchConsoleLogs() {
             }
         }
     })
-}
+})
 
 export function getFailureObject(error: string|Error) {
     const stack = (error as Error).stack
