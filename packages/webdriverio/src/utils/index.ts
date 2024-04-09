@@ -222,7 +222,9 @@ export function isStaleElementError (err: Error) {
         // Firefox
         err.message.includes('is no longer attached to the DOM') ||
         // Safari
-        err.message.includes('Stale element found')
+        err.message.toLowerCase().includes('stale element found') ||
+        // Chrome through JS execution
+        err.message.includes('stale element not found in the current frame')
     )
 }
 
