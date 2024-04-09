@@ -10,7 +10,8 @@ import * as utils from '../../src/utils.js'
 import { installPackages } from '../../src/install.js'
 
 vi.mock('yargs')
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: {
         access: vi.fn().mockResolvedValue({}),
         readFile: vi.fn().mockResolvedValue('export const config = {}'),

@@ -16,7 +16,8 @@ vi.mock('node:child_process', () => ({
     },
     exec: vi.fn()
 }))
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: {
         access: vi.fn().mockResolvedValue(true),
         readFile: vi.fn()

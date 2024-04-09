@@ -121,13 +121,27 @@ export async function getHTML(
         ]) as unknown as [string, HTMLElement][]
 
         /**
+         * verify that shadow elements captured by the shadow root manager is still attached to the DOM
+         */
+        const elemsWithShadowRootAndIdVerified = (
+            await Promise.all(
+                elemsWithShadowRootAndId.map(([elemId, elem]) => (
+                    browser.execute((elem) => elem.tagName, elem).then(
+                        () => [elemId, elem] as [string, HTMLElement],
+                        () => undefined
+                    )
+                ))
+            )
+        ).filter(Boolean) as [string, HTMLElement][]
+
+        /**
          * then get the HTML of the element and its shadow roots
          */
         const { html, shadowElementIdsFound } = await browser.execute(
             getHTMLShadowScript,
             { [ELEMENT_KEY]: this.elementId } as any as HTMLElement,
             includeSelectorTag,
-            elemsWithShadowRootAndId
+            elemsWithShadowRootAndIdVerified
         )
 
         const $ = load(html)
@@ -170,8 +184,8 @@ async function pierceIntoShadowDOM (
             { [ELEMENT_KEY]: sel } as any as HTMLElement,
             false,
             elemsWithShadowRootAndId
-        ).then(({ html, shadowElementIdsFound }) => (
-            { html, shadowElementIdsFound, shadowRootId: sel }
+        ).then(({ html, shadowElementIdsFound, styles }) => (
+            { html, styles, shadowElementIdsFound, shadowRootId: sel }
         ))
     )))
 
@@ -183,8 +197,15 @@ async function pierceIntoShadowDOM (
         if (!se) {
             continue
         }
-        const { html } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
-        se.append(`<shadow-root id="${s}">${html}</shadow-root>`)
+        const { html, styles } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
+        se.append([
+            `<template shadowroot="open" shadowrootmode="open" id="${s}">`,
+            styles.length > 0
+                ? `\t<style>${styles.join('\n')}</style>`
+                : '',
+            `\t${html}`,
+            '</template>',
+        ].join('\n'))
     }
 
     const elementsToLookup = shadowRootContent.map(({ shadowElementIdsFound }) => shadowElementIdsFound).flat()
@@ -212,7 +233,7 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
      */
     const isCheerioObject = $ && typeof $ !== 'string'
     if (isCheerioObject) {
-        $('shadow-root[id]').each((_, el) => { delete el.attribs.id })
+        $('template[id]').each((_, el) => { delete el.attribs.id })
         $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
     }
 
@@ -220,11 +241,7 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
     if (options.removeCommentNodes) {
         returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
     }
-    return options.prettify && returnHTML.includes('<')
-        // we have to verify if HTML string starts with `<` and ends with `>` to avoid
-        // https://github.com/j4w8n/htmlfy/issues/3
-        ? prettifyFn(
-            `${returnHTML.startsWith('<') ? '' : ' '}${returnHTML}${returnHTML.endsWith('>') ? '' : ' '}`
-        )
+    return options.prettify
+        ? prettifyFn(returnHTML)
         : returnHTML
 }

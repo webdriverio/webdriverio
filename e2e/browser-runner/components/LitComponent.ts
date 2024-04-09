@@ -11,6 +11,11 @@ const graphQLClient = new GraphQLClient(endpoint, {
 
 @customElement('sub-elem')
 export class SubElem extends LitElement {
+    static styles = css`
+    .selectMeToo {
+        color: blue;
+    }`
+
     render() {
         return html`<div>
             <p class="selectMe">I am within another shadow root element</p>

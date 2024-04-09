@@ -10,6 +10,11 @@ import { setUserHookNames } from '../src/utils.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 import { DEFAULT_TIMEOUT } from '../src/constants.js'
 
+vi.mock('fs/promises', async (orig) => ({
+    ...(await orig()) as any,
+    readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
+    readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
+}))
 vi.mock('@wdio/utils')
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
@@ -661,10 +666,6 @@ describe('CucumberAdapter', () => {
 
 describe('publishCucumberReport', () => {
     beforeAll(() => {
-        vi.mock('fs/promises', () => ({
-            readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
-            readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
-        }))
         vi.spyOn(global, 'fetch').mockImplementation((url: string | URL | globalThis.Request) => {
             if (/\/api\/reports/.test(url as string)) {
                 return Promise.resolve(Response.json({}, {
