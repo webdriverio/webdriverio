@@ -2,7 +2,7 @@ import UsageStats from './usageStats.js'
 import type FeatureStats from './featureStats.js'
 import RequestQueueHandler from '../request-handler.js'
 import type { CBTData, LogData, ScreenshotLog, TestData, UploadType } from '../types.js'
-import { batchAndPostEvents, sleep } from '../util.js'
+import { batchAndPostEvents, isTrue, sleep } from '../util.js'
 import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
@@ -164,7 +164,7 @@ class Listener {
     }
 
     private shouldSendEvents() {
-        return !!process.env[TESTOPS_BUILD_COMPLETED_ENV]
+        return isTrue(process.env[TESTOPS_BUILD_COMPLETED_ENV])
     }
 
     private sendBatchEvents(jsonObject: UploadType): void {
