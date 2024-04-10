@@ -7,7 +7,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     specs: [],
     suites: {},
     exclude: [],
-    outputDir: undefined,
+    outputDir: './.wdio-artifacts/logs',
     logLevel: 'info' as const,
     logLevels: {},
     groupLogsByTestSpec: false,
