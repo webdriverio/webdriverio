@@ -224,7 +224,7 @@ class _TestReporter extends WDIOReporter {
         const scope = testStats.type === 'test' ? (testStats as TestStats).fullTitle : `${this._suites[0].title} - ${testStats.title}`
 
         // If no describe block present, onSuiteStart doesn't get called. Use specs list for filename
-        const suiteFileName = this._suiteName || (this.specs.length > 0 ? this.specs[this.specs.length - 1]?.replace('file:', '') : undefined)
+        const suiteFileName = this._suiteName || (this.specs?.length > 0 ? this.specs[this.specs.length - 1]?.replace('file:', '') : undefined)
 
         await this.configureGit()
         const testData: TestData = {
