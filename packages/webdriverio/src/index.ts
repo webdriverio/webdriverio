@@ -1,10 +1,8 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { wrapCommand } from '@wdio/utils'
+import { enableFileLogging, wrapCommand } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
@@ -42,11 +40,7 @@ export const remote = async function(
     const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof RemoteOptions)[]
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, keysToKeep)
 
-    if (config.outputDir) {
-        await fs.mkdir(path.join(config.outputDir), { recursive: true })
-        process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
-    }
-
+    await enableFileLogging(config.outputDir)
     logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
     const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
