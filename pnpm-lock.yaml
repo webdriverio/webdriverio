@@ -760,8 +760,8 @@ importers:
         specifier: 8.6.0
         version: 8.6.0
       puppeteer-core:
-        specifier: 22.6.3
-        version: 22.6.3
+        specifier: 22.6.5
+        version: 22.6.5
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -6449,8 +6449,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@puppeteer/browsers@2.2.1:
-    resolution: {integrity: sha512-QSXujx4d4ogDamQA8ckkkRieFzDgZEuZuGiey9G7CuDcbnX4iINKWxTPC5Br2AEzY9ICAvcndqgAUFMMKnS/Tw==}
+  /@puppeteer/browsers@2.2.2:
+    resolution: {integrity: sha512-hZ/JhxPIceWaGSEzUZp83/8M49CoxlkuThfTR7t4AoCu5+ZvJ3vktLm60Otww2TXeROB5igiZ8D9oPQh6ckBVg==}
     engines: {node: '>=18'}
     hasBin: true
     dependencies:
@@ -10122,6 +10122,18 @@ packages:
       mitt: 3.0.1
       urlpattern-polyfill: 10.0.0
       zod: 3.22.4
+    dev: true
+
+  /chromium-bidi@0.5.17(devtools-protocol@0.0.1262051):
+    resolution: {integrity: sha512-BqOuIWUgTPj8ayuBFJUYCCuwIcwjBsb3/614P7tt1bEPJ4i1M0kCdIl0Wi9xhtswBXnfO2bTpTMkHD71H8rJMg==}
+    peerDependencies:
+      devtools-protocol: '*'
+    dependencies:
+      devtools-protocol: 0.0.1262051
+      mitt: 3.0.1
+      urlpattern-polyfill: 10.0.0
+      zod: 3.22.4
+    dev: false
 
   /ci-info@2.0.0:
     resolution: {integrity: sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ==}
@@ -18600,12 +18612,12 @@ packages:
       - utf-8-validate
     dev: true
 
-  /puppeteer-core@22.6.3:
-    resolution: {integrity: sha512-YrTAak5zCTWVTnVaCK1b7FD1qFCCT9bSvQhLzamnIsJ57/tfuXiT8ZvPJR2SBfahyFTYFCcaZAd/Npow3lmDGA==}
+  /puppeteer-core@22.6.5:
+    resolution: {integrity: sha512-s0/5XkAWe0/dWISiljdrybjwDCHhgN31Nu/wznOZPKeikgcJtZtbvPKBz0t802XWqfSQnQDt3L6xiAE5JLlfuw==}
     engines: {node: '>=18'}
     dependencies:
-      '@puppeteer/browsers': 2.2.1
-      chromium-bidi: 0.5.16(devtools-protocol@0.0.1262051)
+      '@puppeteer/browsers': 2.2.2
+      chromium-bidi: 0.5.17(devtools-protocol@0.0.1262051)
       debug: 4.3.4(supports-color@8.1.1)
       devtools-protocol: 0.0.1262051
       ws: 8.16.0
