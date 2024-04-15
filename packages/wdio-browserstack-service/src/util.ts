@@ -628,7 +628,11 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${jwtToken}`
             },
-            json: data
+            json: data,
+            retry: {
+                limit: 3,
+                methods: ['GET', 'POST']
+            }
         }).json()
         BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
         stopBuildUsage.success()
@@ -964,6 +968,9 @@ export function getScenarioExamples(world: ITestCaseHookParameter) {
 }
 
 export function removeAnsiColors(message: string): string {
+    if (!message) {
+        return ''
+    }
     // https://stackoverflow.com/a/29497680
     // eslint-disable-next-line no-control-regex
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
@@ -1039,7 +1046,11 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
                 ...DEFAULT_REQUEST_CONFIG.headers,
                 'Authorization': `Bearer ${jwtToken}`
             },
-            json: data
+            json: data,
+            retry: {
+                limit: 3,
+                methods: ['GET', 'POST']
+            }
         }).json()
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
@@ -1139,7 +1150,7 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
     return false
 }
 
-export function patchConsoleLogs() {
+export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
@@ -1156,7 +1167,7 @@ export function patchConsoleLogs() {
             }
         }
     })
-}
+})
 
 export function getFailureObject(error: string|Error) {
     const stack = (error as Error).stack
@@ -1174,6 +1185,7 @@ export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, 
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
     if (!user || !key) {
+        BStackLogger.debug('Uploading logs failed due to no credentials')
         return
     }
     const fileStream = fs.createReadStream(BStackLogger.logFilePath)

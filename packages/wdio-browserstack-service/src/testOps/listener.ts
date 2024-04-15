@@ -2,12 +2,12 @@ import UsageStats from './usageStats.js'
 import type FeatureStats from './featureStats.js'
 import RequestQueueHandler from '../request-handler.js'
 import type { CBTData, LogData, ScreenshotLog, TestData, UploadType } from '../types.js'
-import { batchAndPostEvents, sleep } from '../util.js'
+import { batchAndPostEvents, isTrue, sleep } from '../util.js'
 import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
     DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
-    LOG_KIND_USAGE_MAP
+    LOG_KIND_USAGE_MAP, TESTOPS_BUILD_COMPLETED_ENV
 } from '../constants.js'
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
@@ -113,6 +113,9 @@ class Listener {
     }
 
     public async onScreenshot(jsonArray: ScreenshotLog[]) {
+        if (!this.shouldSendEvents()) {
+            return
+        }
         try {
             this.markLogs('triggered', jsonArray)
             this.pendingUploads += 1
@@ -160,7 +163,15 @@ class Listener {
         return (runData as TestData)?.result
     }
 
+    private shouldSendEvents() {
+        return isTrue(process.env[TESTOPS_BUILD_COMPLETED_ENV])
+    }
+
     private sendBatchEvents(jsonObject: UploadType): void {
+        if (!this.shouldSendEvents()) {
+            return
+        }
+
         if (!this.requestBatcher) {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
                 BStackLogger.debug('callback: called with events ' + data.length)
