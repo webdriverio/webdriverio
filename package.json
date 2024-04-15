@@ -123,7 +123,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.7.1",
     "typescript": "^5.4.2",
-    "unzipper": "^0.10.14",
+    "unzipper": "^0.11.2",
     "vitest": "^1.4.0"
   },
   "engines": {
