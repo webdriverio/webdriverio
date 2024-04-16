@@ -223,6 +223,9 @@ class _TestReporter extends WDIOReporter {
         const testMetaData: TestMeta = _TestReporter._tests[identifier]
         const scope = testStats.type === 'test' ? (testStats as TestStats).fullTitle : `${this._suites[0].title} - ${testStats.title}`
 
+        // If no describe block present, onSuiteStart doesn't get called. Use specs list for filename
+        const suiteFileName = this._suiteName || (this.specs?.length > 0 ? this.specs[this.specs.length - 1]?.replace('file:', '') : undefined)
+
         await this.configureGit()
         const testData: TestData = {
             uuid: testMetaData ? testMetaData.uuid : uuidv4(),
@@ -235,9 +238,9 @@ class _TestReporter extends WDIOReporter {
             scope: scope,
             scopes: scopes,
             identifier: identifier,
-            file_name: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
-            location: this._suiteName ? path.relative(process.cwd(), this._suiteName) : undefined,
-            vc_filepath: (this._gitConfigPath && this._suiteName) ? path.relative(this._gitConfigPath, this._suiteName) : undefined,
+            file_name: suiteFileName ? path.relative(process.cwd(), suiteFileName) : undefined,
+            location: suiteFileName ? path.relative(process.cwd(), suiteFileName) : undefined,
+            vc_filepath: (this._gitConfigPath && suiteFileName) ? path.relative(this._gitConfigPath, suiteFileName) : undefined,
             started_at: testStats.start && testStats.start.toISOString(),
             finished_at: testStats.end && testStats.end.toISOString(),
             framework: framework,
