@@ -1,11 +1,9 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
-import { initializePlugin, initializeLauncherService, sleep } from '@wdio/utils'
+import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
@@ -82,11 +80,7 @@ class Launcher {
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
-        if (config.outputDir) {
-            await fs.mkdir(path.join(config.outputDir), { recursive: true })
-            process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
-        }
-
+        await enableFileLogging(config.outputDir)
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
         /**
