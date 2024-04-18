@@ -126,11 +126,11 @@ class JunitReporter extends WDIOReporter {
                             }
                         } else {
                             // default
-                            testCase.error(step.error.message)
+                            testCase.failure(step.error.message)
                         }
                         testCase.standardError(`\n${step.error.stack}\n`)
                     } else {
-                        testCase.error()
+                        testCase.failure()
                     }
                     testCase.failure()
                     isFailing = true
@@ -204,11 +204,11 @@ class JunitReporter extends WDIOReporter {
                         }
                     } else {
                         // default
-                        testCase.error(test.error.message)
+                        testCase.failure(test.error.message)
                     }
                     testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
                 } else {
-                    testCase.error()
+                    testCase.failure()
                 }
                 testCase.failure()
             }
