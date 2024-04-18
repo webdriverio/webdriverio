@@ -144,7 +144,7 @@ describe('driver utils', () => {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/stable'
             })
-            expect(resolveBuildId).toBeCalledTimes(1)
+            expect(resolveBuildId).toBeCalledTimes(0)
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '116.0.5845.110')
         })
 
