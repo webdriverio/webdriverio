@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { wrapCommand } from '@wdio/utils'
+import { enableFileLogging, wrapCommand } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
@@ -36,9 +36,12 @@ export const remote = async function(
     params: RemoteOptions,
     remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
-    logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
     const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof RemoteOptions)[]
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, keysToKeep)
+
+    await enableFileLogging(config.outputDir)
+    logger.setLogLevelsConfig(config.logLevels, config.logLevel)
+
     const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
         /**
          * overwrite instance options with default values of the protocol

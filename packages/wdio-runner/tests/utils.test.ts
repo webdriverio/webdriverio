@@ -12,6 +12,7 @@ import {
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
+vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 
 process.send = vi.fn()
 
@@ -21,13 +22,13 @@ describe('utils', () => {
     })
 
     describe('initializeInstance', () => {
-        it('should attach to an existing session if sessionId is within config', () => {
+        it('should attach to an existing session if sessionId is within config', async () => {
             const config: ConfigWithSessionId = {
                 sessionId: '123',
                 // @ts-ignore test invalid params
                 foo: 'bar'
             }
-            initializeInstance(config, {
+            await initializeInstance(config, {
                 browserName: 'chrome',
                 maxInstances: 2,
                 hostname: 'foobar'
@@ -42,15 +43,16 @@ describe('utils', () => {
                     browserName: 'chrome'
                 }
             }
+
             expect(attach).toBeCalledWith({ ...attachParams, options: attachParams })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
-        it('should run multiremote tests if flag is given', () => {
+        it('should run multiremote tests if flag is given', async () => {
             const capabilities = { someBrowser: { browserName: 'chrome' } }
-            initializeInstance(
+            await initializeInstance(
                 // @ts-ignore test invalid params
                 { foo: 'bar' },
                 capabilities,
@@ -66,8 +68,8 @@ describe('utils', () => {
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
-        it('should create normal remote session', () => {
-            initializeInstance({
+        it('should create normal remote session', async () => {
+            await initializeInstance({
                 // @ts-ignore test invalid params
                 foo: 'bar'
             },
@@ -84,14 +86,14 @@ describe('utils', () => {
             })
         })
 
-        it('should overwrite connection properties if set in capabilities', () => {
+        it('should overwrite connection properties if set in capabilities', async () => {
             const caps = {
                 browserName: 'chrome',
                 hostname: 'barfoo',
                 port: 4321,
                 path: '/'
             }
-            initializeInstance({
+            await initializeInstance({
                 hostname: 'foobar',
                 port: 1234,
                 path: '/some/path'
