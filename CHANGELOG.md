@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.37.1 (2024-04-20)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12596](https://github.com/webdriverio/webdriverio/pull/12596) [v7][browserstack-service] fix cucumber test duration ([@samarsault](https://github.com/samarsault))
+
+#### Committers: 1
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+
+
 ## v7.37.0 (2024-03-22)
 
 #### :nail_care: Polish
