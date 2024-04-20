@@ -1,9 +1,8 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElement, findDeepElement } from '../../utils/index.js'
+import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -69,8 +68,6 @@ export async function $ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ): Promise<WebdriverIO.Element> {
-
-
     /**
      * run this in Node.js land if we are using browser runner because we collect
      * more browser information there that allows better lookups

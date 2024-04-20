@@ -215,7 +215,7 @@ describe.only('ShadowRootTree', () => {
 
     it('can delete children and sub trees', () => {
         const child = root.find('6')
-        expect(child.remove('8')).toBe(false)
+        expect(child?.remove('8')).toBe(false)
         expect(root.remove('8')).toBe(true)
         expect(root.getAllLookupScopes()).toMatchInlineSnapshot(`
           [

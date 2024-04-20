@@ -1,5 +1,4 @@
-import { ELEMENT_KEY, type local } from 'webdriver'
-import type { ElementReference } from '@wdio/protocols'
+import { type local } from 'webdriver'
 
 import customElementWrapper from './scripts/customElement.js'
 
@@ -25,6 +24,7 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #browsingContexts = new Set<local.BrowsingContextInfo>()
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -41,25 +41,43 @@ export class ShadowRootManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.load']
+            events: ['log.entryAdded', 'browsingContext.contextCreated', 'browsingContext.contextDestroyed']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
-        this.#browser.on('browsingContext.load', this.handleBrowsingContextLoad.bind(this))
+        this.#browser.on('browsingContext.contextCreated', this.handleBrowsingContextCreated.bind(this))
+        this.#browser.on('browsingContext.contextDestroyed', this.handleBrowsingContextDestroyed.bind(this))
 
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
     }
 
-    initialize () {
+    get browsingContexts () {
+        return Array.from(this.#browsingContexts).map((ctx) => ctx.context)
+    }
+
+    async initialize () {
+        const tree = await this.#browser.browsingContextGetTree({})
+        const activeContext = tree.contexts.shift()
+        if (activeContext) {
+            this.#browsingContexts.add(activeContext)
+        }
+
         return this.#initialize
     }
 
     /**
      * reset list of shadow roots for a specific browsing context
      */
-    handleBrowsingContextLoad(browsingContext: local.BrowsingContextNavigationInfo) {
-        console.log(browsingContext);
+    handleBrowsingContextCreated(browsingContext: local.BrowsingContextInfo) {
+        this.#browsingContexts.add(browsingContext)
+    }
+
+    handleBrowsingContextDestroyed(browsingContext: local.BrowsingContextInfo) {
+        const context = Array.from(this.#browsingContexts).find((ctx) => ctx.context === browsingContext.context)
+        if (context) {
+            this.#browsingContexts.delete(context)
+        }
     }
 
     /**
@@ -90,7 +108,7 @@ export class ShadowRootManager {
 
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
-            const [,, shadowElem, rootElem] = args
+            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem] = args
             if (!this.#shadowRoots.has(log.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -134,7 +152,7 @@ export class ShadowRootManager {
     getShadowElementsByContextId (contextId: string, scope?: string): string[] {
         let tree = this.#shadowRoots.get(contextId)
         if (!tree) {
-            throw new Error(`Couldn't find shadow tree for context with id ${contextId}`)
+            return []
         }
 
         if (scope) {
@@ -151,7 +169,7 @@ export class ShadowRootManager {
     deleteShadowRoot (element: string, contextId: string) {
         const tree = this.#shadowRoots.get(contextId)
         if (!tree) {
-            throw new Error(`Couldn't find shadow tree for context with id ${contextId}`)
+            return
         }
         return tree.remove(element)
     }
@@ -172,7 +190,7 @@ export class ShadowRootTree {
     addShadowElement (...args: (string | undefined)[]) {
         const [scope, element, shadowRoot] = args
         if (!scope || !element) {
-            throw new Error(`Method "addShadowElement" expects at least 2 arguments`)
+            throw new Error('Method "addShadowElement" expects at least 2 arguments')
         }
 
         if (!shadowRoot) {
