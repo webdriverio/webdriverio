@@ -109,6 +109,51 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "browser.createUserContext" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext
+     * @param params `remote.EmptyParams` {@link https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext | command parameter}
+     * @returns `Promise<local.BrowserCreateUserContextResult>`
+     **/
+    async browserCreateUserContext(params: remote.EmptyParams): Promise<local.BrowserCreateUserContextResult> {
+        const result = await this.send({
+            method: 'browser.createUserContext',
+            params
+        })
+
+        return result.result as local.BrowserCreateUserContextResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browser.getUserContexts" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts
+     * @param params `remote.EmptyParams` {@link https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts | command parameter}
+     * @returns `Promise<local.BrowserGetUserContextsResult>`
+     **/
+    async browserGetUserContexts(params: remote.EmptyParams): Promise<local.BrowserGetUserContextsResult> {
+        const result = await this.send({
+            method: 'browser.getUserContexts',
+            params
+        })
+
+        return result.result as local.BrowserGetUserContextsResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browser.removeUserContext" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext
+     * @param params `remote.BrowserRemoveUserContextParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async browserRemoveUserContext(params: remote.BrowserRemoveUserContextParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'browser.removeUserContext',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "browsingContext.activate" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate
      * @param params `remote.BrowsingContextActivateParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate | command parameter}
@@ -484,6 +529,51 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "storage.getCookies" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-storage-getCookies
+     * @param params `remote.StorageGetCookiesParameters` {@link https://w3c.github.io/webdriver-bidi/#command-storage-getCookies | command parameter}
+     * @returns `Promise<local.StorageGetCookiesResult>`
+     **/
+    async storageGetCookies(params: remote.StorageGetCookiesParameters): Promise<local.StorageGetCookiesResult> {
+        const result = await this.send({
+            method: 'storage.getCookies',
+            params
+        })
+
+        return result.result as local.StorageGetCookiesResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "storage.setCookie" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-storage-setCookie
+     * @param params `remote.StorageSetCookieParameters` {@link https://w3c.github.io/webdriver-bidi/#command-storage-setCookie | command parameter}
+     * @returns `Promise<local.StorageSetCookieResult>`
+     **/
+    async storageSetCookie(params: remote.StorageSetCookieParameters): Promise<local.StorageSetCookieResult> {
+        const result = await this.send({
+            method: 'storage.setCookie',
+            params
+        })
+
+        return result.result as local.StorageSetCookieResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "storage.deleteCookies" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies
+     * @param params `remote.StorageDeleteCookiesParameters` {@link https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies | command parameter}
+     * @returns `Promise<local.StorageDeleteCookiesResult>`
+     **/
+    async storageDeleteCookies(params: remote.StorageDeleteCookiesParameters): Promise<local.StorageDeleteCookiesResult> {
+        const result = await this.send({
+            method: 'storage.deleteCookies',
+            params
+        })
+
+        return result.result as local.StorageDeleteCookiesResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "input.performActions" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-input-performActions
      * @param params `remote.InputPerformActionsParameters` {@link https://w3c.github.io/webdriver-bidi/#command-input-performActions | command parameter}
@@ -507,6 +597,21 @@ export class BidiHandler extends BidiCore {
     async inputReleaseActions(params: remote.InputReleaseActionsParameters): Promise<local.EmptyResult> {
         const result = await this.send({
             method: 'input.releaseActions',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "input.setFiles" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-input-setFiles
+     * @param params `remote.InputSetFilesParameters` {@link https://w3c.github.io/webdriver-bidi/#command-input-setFiles | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async inputSetFiles(params: remote.InputSetFilesParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'input.setFiles',
             params
         })
 
