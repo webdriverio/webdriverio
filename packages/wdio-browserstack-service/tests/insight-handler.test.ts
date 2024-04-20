@@ -196,7 +196,7 @@ describe('getTestRunDataForCucumber', () => {
                     tags: []
                 },
                 result: {
-                    duration: { nanos: 10 },
+                    duration: { seconds: 0, nanos: 10 },
                     retries: { limit: 0, attempts: 0 },
                     status: 'passed'
                 }
