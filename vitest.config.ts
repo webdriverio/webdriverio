@@ -16,7 +16,7 @@ export default defineConfig({
             WDIO_SKIP_DRIVER_SETUP: '1'
         },
         coverage: {
-            enabled: true,
+            enabled: false,
             provider: 'v8',
             exclude: [
                 '**/__mocks__/**',

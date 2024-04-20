@@ -111,7 +111,6 @@ export function _setGlobal (key: SupportedGlobals, value: any, setGlobal = true)
     globals.set(key, value)
 
     if (setGlobal) {
-        // @ts-expect-error
         globalThis[key] = value
     }
 }
