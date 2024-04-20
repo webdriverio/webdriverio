@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 
-import { getShadowRootManager } from '../src/shadowRoot.js'
+import { getShadowRootManager, ShadowRootTree } from '../src/shadowRoot.js'
 
 const defaultBrowser = {
     sessionSubscribe: vi.fn().mockResolvedValue({}),
@@ -170,5 +170,60 @@ describe('ShadowRootManager', () => {
             source: { context: 'barfoo' }
         } as any)
         expect(manager.getShadowRootsForContext('foobar')).toEqual([])
+    })
+})
+
+describe.only('ShadowRootTree', () => {
+    const root = new ShadowRootTree('1')
+    root.addShadowElement('2', '3')
+    root.addShadowElement('4', '5')
+    root.addShadowElement('6', '7')
+    root.addShadowElement('4', '8', '9')
+    root.addShadowElement('8', '10', '11')
+    root.addShadowElement('8', '12', '13')
+    root.addShadowElement('12', '14', '15')
+
+    it('can find the root of a tree', () => {
+        const tree = root.find('8')
+        expect(tree?.shadowRoot).toBe('9')
+        expect(tree?.children.size).toBe(2)
+        expect(root.find('1234')).toBe(undefined)
+    })
+
+    it('can get all trees', () => {
+        expect(root.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "1",
+            "3",
+            "5",
+            "9",
+            "11",
+            "13",
+            "15",
+            "7",
+          ]
+        `)
+        expect(root.find('8')?.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "9",
+            "11",
+            "13",
+            "15",
+          ]
+        `)
+    })
+
+    it('can delete children and sub trees', () => {
+        const child = root.find('6')
+        expect(child.remove('8')).toBe(false)
+        expect(root.remove('8')).toBe(true)
+        expect(root.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "1",
+            "3",
+            "5",
+            "7",
+          ]
+        `)
     })
 })

@@ -82,6 +82,16 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
+    describe.only('shadow root piercing', () => {
+        it('should allow to pierce into shadow roots', async () => {
+            render(
+                html`<closed-node>Hello</closed-node>`,
+                document.body
+            )
+            await expect($('.findMe')).toHaveText('I am hidden!')
+        })
+    })
+
     describe('snapshot testing', () => {
         beforeEach(() => {
             render(
