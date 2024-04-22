@@ -30,7 +30,7 @@ npm update @wdio/browserstack-service
 
 2. Update `wdio.conf.js` config file.
 
-```bash
+```javascript
 exports.config = {
     //...
     user: ‘<browserstack_username>’ || process.env.BROWSERSTACK_USERNAME,
