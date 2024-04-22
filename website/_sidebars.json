@@ -146,7 +146,7 @@
       "label": "Accessibility Testing",
       "items": [
         "accessibility-testing/axe-core",
-        "accessibility-testing/browserstack_accessibilit_testing"
+        "accessibility-testing/browserstack_accessibility_testing"
       ]
     },
     {
