@@ -120,7 +120,7 @@ All test case failures are mapped as JUnit test case errors. A failed test case 
 
 ```xml
 <testcase classname="chrome.a_test_case" name="a_test_suite_a_test_case" time="0.372">
-  <error message="Error: some error"/>
+  <failure message="Error: some error"/>
     <system-err>
         <![CDATA[
 Error: some assertion failure
