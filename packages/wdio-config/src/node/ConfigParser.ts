@@ -1,8 +1,8 @@
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import { deepmerge } from 'deepmerge-ts'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
+import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
@@ -13,7 +13,9 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService, ModuleImportService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
+const MERGE_DUPLICATION = ['services', 'reporters'] as const
 
+type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
 type ESMImport = { config?: TestrunnerOptionsWithParameters }
 type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
@@ -177,8 +179,21 @@ export default class ConfigParser {
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
-        this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
 
+        /**
+         * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
+         */
+        const customDeepMerge = deepmergeCustom({
+            mergeArrays: ([oldValue, newValue], utils, meta) => {
+                const key = meta?.key as KeyWithMergeDuplication
+                if (meta && MERGE_DUPLICATION.includes(key)) {
+                    const origWithoutObjectEntries = oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value !== 'object')
+                    return Array.from(new Set(deepmerge(newValue, origWithoutObjectEntries)))
+                }
+                return utils.actions.defaultMerge
+            }
+        })
+        this._config = customDeepMerge(this._config, object) as TestrunnerOptionsWithParameters
         /**
          * overwrite config specs that got piped into the wdio command,
          * also adhering to the wdio-prefixes from a capability
