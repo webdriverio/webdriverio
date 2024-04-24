@@ -82,13 +82,50 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    describe.only('shadow root piercing', () => {
-        it('should allow to pierce into shadow roots', async () => {
+    describe('shadow root piercing', () => {
+        it('should allow to pierce into closed shadow roots', async () => {
             render(
-                html`<closed-node>Hello</closed-node>`,
+                html`<closed-node>Hello, </closed-node>`,
                 document.body
             )
             await expect($('.findMe')).toHaveText('I am hidden!')
+            /**
+             * Note: the `getText` command doesn't expose text from closed shadow roots
+             */
+            const closedNode = $('closed-node')
+            await expect(closedNode).toHaveText('Hello,')
+            await expect(closedNode).toMatchInlineSnapshot(`
+              "<closed-node>Hello,
+                <template shadowrootmode="closed">
+                  <style>section { color: blue; }</style>
+                  <h2>Closed Node</h2>
+                  <section>
+                    <slot></slot>
+                    <closed-node-nested>hidden
+                      <template shadowrootmode="closed">
+                        <style>.findMe { color: green; }</style>
+                        <h2>Deep Closed Node</h2>
+                        <div class="findMe">I am
+                          <slot></slot>!</div>
+                      </template>
+                    </closed-node-nested>
+                  </section>
+                </template>
+              </closed-node>"
+            `)
+        })
+
+        it('can fetch multiple elements within various closed shadow roots', async () => {
+            render(
+                html`<closed-node>Hello, </closed-node>`,
+                document.body
+            )
+            const root = $('closed-node')
+            await expect(root.$('h2')).toHaveText('Closed Node')
+            expect(await root.$$('h2').map((h2) => h2.getText())).toEqual([
+                'Closed Node',
+                'Deep Closed Node'
+            ])
         })
     })
 
@@ -113,7 +150,7 @@ describe('Lit Component testing', () => {
             await expect(elem).toMatchSnapshot()
             await expect(elem).toMatchInlineSnapshot(`
               "<simple-greeting name="WebdriverIO">
-                <template shadowroot="open" shadowrootmode="open">
+                <template shadowrootmode="open">
                   <style>:host { color: blue; }</style>
                   <div>
                     <p>Hello Sir, WebdriverIO! Does this work?</p>
@@ -121,7 +158,7 @@ describe('Lit Component testing', () => {
                     <hr />
                     <em></em>
                     <sub-elem>
-                      <template shadowroot="open" shadowrootmode="open">
+                      <template shadowrootmode="open">
                         <style>.selectMeToo { color: blue; }</style>
                         <div>
                           <p class="selectMe">I am within another shadow root element</p>

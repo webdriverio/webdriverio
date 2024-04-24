@@ -287,11 +287,6 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     error?: Error
     /**
-     * context in which this element was found
-     * @requires WebDriver Bidi
-     */
-    context?: string
-    /**
      * locator of the element
      * @requires WebDriver Bidi
      */
@@ -488,7 +483,6 @@ export type ThrottleOptions = ThrottlePreset | CustomThrottle
 
 export interface ExtendedElementReference {
     'element-6066-11e4-a52e-4f735466cecf': string
-    context: string
     locator: remote.BrowsingContextLocator
 }
 

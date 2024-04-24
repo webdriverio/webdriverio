@@ -45,7 +45,7 @@ export const config = {
             ? { browserName: 'safari' }
             : !process.env.WDIO_PRESET
                 ? { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
-                : { browserName: 'chrome', webSocketUrl: true }
+                : { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
     ],
 
     /**

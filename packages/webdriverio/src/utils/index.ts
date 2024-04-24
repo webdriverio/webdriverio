@@ -281,21 +281,12 @@ export async function findDeepElement(
     const shadowRootManager = getShadowRootManager(browser)
     const handle = await browser.getWindowHandle()
 
-    const shadowRoots = shadowRootManager.browsingContexts.map((ctx) => (
-        shadowRootManager.getShadowElementsByContextId(ctx, (this as WebdriverIO.Element).elementId)
-    )).flat()
+    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+        handle,
+        (this as WebdriverIO.Element).elementId
+    )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
     const locator = transformClassicToBidiSelector(using, value)
-
-    const params: remote.BrowsingContextLocateNodesParameters[] = shadowRootManager.browsingContexts.map((context) => ({
-        locator,
-        context,
-        maxNodeCount: 1,
-        ...((this as WebdriverIO.Element).elementId
-            ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
-            : {}
-        )
-    }))
 
     /**
      * look up selector within document and all shadow roots
@@ -304,18 +295,25 @@ export async function findDeepElement(
         /**
          * fetch through all browsing contexts
          */
-        ...params.map((param) => browser.browsingContextLocateNodes(param).then((result) => {
+        browser.browsingContextLocateNodes({
+            locator,
+            context: handle,
+            maxNodeCount: 1,
+            ...((this as WebdriverIO.Element).elementId
+                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
+                : {}
+            )
+        }).then((result) => {
             const elementId = result.nodes[0]?.sharedId
             if (!elementId) {
                 return undefined
             }
             const elem: ExtendedElementReference = {
                 [ELEMENT_KEY]: elementId,
-                context: param.context,
-                locator: param.locator
+                locator
             }
             return elem
-        })),
+        }),
         /**
          * fetch through all shadow roots
          */
@@ -349,20 +347,12 @@ export async function findDeepElements(
     const shadowRootManager = getShadowRootManager(browser)
     const handle = await browser.getWindowHandle()
 
-    const shadowRoots = shadowRootManager.browsingContexts.map((ctx) => (
-        shadowRootManager.getShadowElementsByContextId(ctx, (this as WebdriverIO.Element).elementId)
-    )).flat()
+    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+        handle,
+        (this as WebdriverIO.Element).elementId
+    )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
     const locator = transformClassicToBidiSelector(using, value)
-
-    const params: remote.BrowsingContextLocateNodesParameters[] = shadowRootManager.browsingContexts.map((context) => ({
-        locator,
-        context,
-        ...((this as WebdriverIO.Element).elementId
-            ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
-            : {}
-        )
-    }))
 
     /**
      * look up selector within document and all shadow roots
@@ -371,18 +361,17 @@ export async function findDeepElements(
         /**
          * fetch through all browsing contexts
          */
-        ...params.map((param) => browser.browsingContextLocateNodes(param).then((result) => {
-            const elementId = result.nodes[0]?.sharedId
-            if (!elementId) {
-                return undefined
-            }
-            const elem: ExtendedElementReference = {
-                [ELEMENT_KEY]: elementId,
-                context: param.context,
-                locator: param.locator
-            }
-            return elem
-        })),
+        browser.browsingContextLocateNodes({
+            locator,
+            context: handle,
+            ...((this as WebdriverIO.Element).elementId
+                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
+                : {}
+            )
+        }).then((result) => result.nodes.map((node) => ({
+            [ELEMENT_KEY]: node.sharedId,
+            locator
+        }))),
         /**
          * fetch through all shadow roots
          */
@@ -393,7 +382,6 @@ export async function findDeepElements(
             )
         )
     ])).filter(Boolean)
-
     return deepElementResult.flat()
 }
 

@@ -78,11 +78,10 @@ export const getElement = function findElement(
             client[ELEMENT_KEY] = elementId
 
             /**
-             * Attach context and locator if element was fetched with WebDriver Bidi.
+             * Attach locator if element was fetched with WebDriver Bidi.
              * This allows to later re-fetch the element within the same conditions.
              */
-            if (res && this.isBidi && 'context' in res) {
-                client.context = res.context
+            if (res && this.isBidi && 'locator' in res) {
                 client.locator = res.locator
             }
         } else {
@@ -166,11 +165,10 @@ export const getElements = function getElements(
                 client[ELEMENT_KEY] = elementId
 
                 /**
-                 * Attach context and locator if element was fetched with WebDriver Bidi.
+                 * Attach locator if element was fetched with WebDriver Bidi.
                  * This allows to later re-fetch the element within the same conditions.
                  */
-                if (res && this.isBidi && 'context' in res) {
-                    client.context = res.context
+                if (res && this.isBidi && 'locator' in res) {
                     client.locator = res.locator
                 }
             } else {

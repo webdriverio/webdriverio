@@ -56,7 +56,6 @@ describe('ShadowRootManager', () => {
     it('should reset shadow roots on context load', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         expect(manager.getShadowRootsForContext('foobar')).toEqual([])
         const manager2 = getShadowRootManager({ ...defaultBrowser } as any)
         expect(manager2.getShadowRootsForContext()).toEqual([])
@@ -66,7 +65,6 @@ describe('ShadowRootManager', () => {
     it('should capture shadow root elements', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -84,7 +82,6 @@ describe('ShadowRootManager', () => {
     it('should delete shadow root elements', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -111,7 +108,6 @@ describe('ShadowRootManager', () => {
     it('should ignore log entries that are not of interest', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -128,7 +124,6 @@ describe('ShadowRootManager', () => {
     it('should throw if log entry is invalid', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         expect(() => manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -144,7 +139,6 @@ describe('ShadowRootManager', () => {
     it('should handle log entries without args or context or with a different context', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             source: { context: 'foobar' }

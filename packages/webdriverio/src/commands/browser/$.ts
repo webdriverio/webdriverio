@@ -1,6 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
+import { DEEP_SELECTOR } from '../../constants.js'
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
@@ -72,7 +73,7 @@ export async function $ (
      * run this in Node.js land if we are using browser runner because we collect
      * more browser information there that allows better lookups
      */
-    if (globalThis.wdio) {
+    if (globalThis.wdio && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
         /**
          * `res` is an element reference as we strip down the element
          * result to its element id

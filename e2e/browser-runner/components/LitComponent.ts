@@ -73,9 +73,14 @@ export class SimpleGreeting extends LitElement {
 @customElement('closed-node')
 export class ClosedNode extends LitElement {
     static shadowRootOptions: ShadowRootInit = { mode: 'closed' }
+    static styles = css`
+    section {
+        color: blue;
+    }`
 
     render () {
         return html`
+            <h2>Closed Node</h2>
             <section>
                 <slot></slot>
                 <closed-node-nested>hidden</closed-node-nested>
@@ -87,9 +92,14 @@ export class ClosedNode extends LitElement {
 @customElement('closed-node-nested')
 export class ClosedNodeNested extends LitElement {
     static shadowRootOptions: ShadowRootInit = { mode: 'closed' }
+    static styles = css`
+    .findMe {
+        color: green;
+    }`
 
     render () {
         return html`
+            <h2>Deep Closed Node</h2>
             <div class="findMe">
                 I am <slot></slot>!
             </div>

@@ -24,7 +24,6 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
-    #browsingContexts = new Set<local.BrowsingContextInfo>()
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -44,40 +43,13 @@ export class ShadowRootManager {
             events: ['log.entryAdded', 'browsingContext.contextCreated', 'browsingContext.contextDestroyed']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
-        this.#browser.on('browsingContext.contextCreated', this.handleBrowsingContextCreated.bind(this))
-        this.#browser.on('browsingContext.contextDestroyed', this.handleBrowsingContextDestroyed.bind(this))
-
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
     }
 
-    get browsingContexts () {
-        return Array.from(this.#browsingContexts).map((ctx) => ctx.context)
-    }
-
     async initialize () {
-        const tree = await this.#browser.browsingContextGetTree({})
-        const activeContext = tree.contexts.shift()
-        if (activeContext) {
-            this.#browsingContexts.add(activeContext)
-        }
-
         return this.#initialize
-    }
-
-    /**
-     * reset list of shadow roots for a specific browsing context
-     */
-    handleBrowsingContextCreated(browsingContext: local.BrowsingContextInfo) {
-        this.#browsingContexts.add(browsingContext)
-    }
-
-    handleBrowsingContextDestroyed(browsingContext: local.BrowsingContextInfo) {
-        const context = Array.from(this.#browsingContexts).find((ctx) => ctx.context === browsingContext.context)
-        if (context) {
-            this.#browsingContexts.delete(context)
-        }
     }
 
     /**
@@ -134,7 +106,14 @@ export class ShadowRootManager {
                 throw new Error(`Expected element with shadow root but found ${JSON.stringify(shadowElem, null, 4)}`)
             }
 
-            tree.addShadowElement(shadowElem.sharedId, shadowElem.value.shadowRoot.sharedId)
+            const newTree = new ShadowRootTree(
+                shadowElem.sharedId,
+                shadowElem.value.shadowRoot.sharedId,
+                shadowElem.value.shadowRoot.value.mode
+            )
+            rootElem.sharedId
+                ? tree.addShadowElement(rootElem.sharedId, newTree)
+                : tree.addShadowElement(newTree)
             return
         }
 
@@ -158,12 +137,43 @@ export class ShadowRootManager {
         if (scope) {
             const subTree = tree.find(scope)
             if (!subTree) {
-                throw new Error(`Couldn't find shadow element with id ${scope}`)
+                return []
             }
             tree = subTree
         }
 
         return tree.getAllLookupScopes()
+    }
+
+    getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {
+        let tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return []
+        }
+
+        if (scope) {
+            const subTree = tree.find(scope)
+            if (!subTree) {
+                return []
+            }
+            tree = subTree
+        }
+
+        return tree.flat().map((tree) => [tree.element, tree.shadowRoot])
+    }
+
+    getShadowRootModeById (contextId: string, element: string): ShadowRootMode | undefined {
+        const tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return
+        }
+
+        const shadowTree = tree.find(element)
+        if (!shadowTree) {
+            return
+        }
+
+        return shadowTree.mode
     }
 
     deleteShadowRoot (element: string, contextId: string) {
@@ -178,32 +188,52 @@ export class ShadowRootManager {
 export class ShadowRootTree {
     element: string
     shadowRoot?: string
+    mode?: ShadowRootMode
     children = new Set<ShadowRootTree>()
 
-    constructor (element: string, shadowRoot?: string) {
+    constructor (element: string, shadowRoot?: string, mode?: ShadowRootMode) {
         this.element = element
         this.shadowRoot = shadowRoot
+        this.mode = mode
     }
 
-    addShadowElement (element: string, shadowRoot: string): void
-    addShadowElement (scope: string, element: string, shadowRoot: string): void
-    addShadowElement (...args: (string | undefined)[]) {
-        const [scope, element, shadowRoot] = args
-        if (!scope || !element) {
+    /**
+     * Attach new shadow element to tree
+     */
+    addShadowElement (tree: ShadowRootTree): void
+    /**
+     * Attach new shadow element to tree of sub tree
+     * @param scope {string} shadow element id of tree to attach new element to
+     * @param element {string} element id
+     * @param shadowRoot {string} shadow root id
+     */
+    addShadowElement (scope: string, tree: ShadowRootTree): void
+    addShadowElement (...args: (ShadowRootTree | string | undefined)[]) {
+        const [scope, treeArg] = args
+        if (!scope && !treeArg) {
             throw new Error('Method "addShadowElement" expects at least 2 arguments')
         }
 
-        if (!shadowRoot) {
-            this.children.add(new ShadowRootTree(scope, element))
+        if (scope instanceof ShadowRootTree) {
+            this.children.add(scope)
             return
         }
-        const tree = this.find(scope)
-        if (!tree) {
-            throw new Error(`Couldn't find element with id ${scope}`)
+
+        /**
+         * if we have a scope, check if it matches any ShadowRootTree based
+         * by element or shadow root id
+         */
+        if (typeof scope === 'string' && treeArg instanceof ShadowRootTree) {
+            const tree = this.find(scope) || this.findByShadowId(scope)
+            if (!tree) {
+                throw new Error(`Couldn't find element with id ${scope}`)
+            }
+
+            tree.addShadowElement(treeArg)
+            return
         }
 
-        tree.addShadowElement(element, shadowRoot)
-        return
+        throw new Error('Invalid arguments for "addShadowElement" method')
     }
 
     find (element: string): ShadowRootTree | undefined {
@@ -221,11 +251,30 @@ export class ShadowRootTree {
         return undefined
     }
 
+    findByShadowId (shadowRoot: string): ShadowRootTree | undefined {
+        if (this.shadowRoot === shadowRoot) {
+            return this
+        }
+
+        for (const child of this.children) {
+            const elem = child.findByShadowId(shadowRoot)
+            if (elem) {
+                return elem
+            }
+        }
+
+        return undefined
+    }
+
     getAllLookupScopes (): string[] {
         return [
             this.shadowRoot ?? this.element,
             ...Array.from(this.children).map((tree) => tree.getAllLookupScopes())
         ].flat()
+    }
+
+    flat (): ShadowRootTree[] {
+        return [this, ...Array.from(this.children).map((tree) => tree.flat())].flat()
     }
 
     remove (element: string): boolean {
