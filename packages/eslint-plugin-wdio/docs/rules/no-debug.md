@@ -1,6 +1,6 @@
 # Disallow browser.debug() in tests (wdio/no-debug)
 
-`browser.debug()` statements are only useful for debuggging tests and should not be committed into the codebase.
+`browser.debug()` statements are only useful for debugging tests and should not be committed into the codebase.
 
 ## Rule Details
 

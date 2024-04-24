@@ -2,31 +2,52 @@ import awaitExpect from './rules/await-expect.js'
 import noDebug from './rules/no-debug.js'
 import noPause from './rules/no-pause.js'
 
-const rules = {
-    'await-expect': awaitExpect,
-    'no-debug': noDebug,
-    'no-pause': noPause
+const sharedGlobals = {
+    $: false,
+    $$: false,
+    browser: false,
+    driver: false,
+    expect: false,
+    multiremotebrowser: false,
+} as const
+
+const sharedConfig = {
+    rules: {
+        'wdio/await-expect': 'error',
+        'wdio/no-debug': 'error',
+        'wdio/no-pause': 'error',
+    },
+} as const
+
+const index = {
+    configs: {},
+    rules: {
+        'await-expect': awaitExpect,
+        'no-debug': noDebug,
+        'no-pause': noPause,
+    },
 }
 
-const configs = {
-    recommended: {
-        globals: {
-            $: false,
-            $$: false,
-            browser: false,
-            driver: false,
-            expect: false,
-            multiremotebrowser: false,
-        },
-        rules: {
-            'wdio/await-expect': 'error',
-            'wdio/no-debug': 'error',
-            'wdio/no-pause': 'error',
-        }
-    }
+const legacyConfig = {
+    ...sharedConfig,
+    globals: sharedGlobals,
+    plugins: ['wdio'],
 }
 
-export {
-    rules,
-    configs,
+const flatConfig = {
+    ...sharedConfig,
+    languageOptions: {
+        globals: sharedGlobals,
+    },
+    plugins: {
+        wdio: index,
+    },
+}
+
+export = {
+    ...index,
+    configs: {
+        'flat/recommended': flatConfig,
+        recommended: legacyConfig,
+    },
 }
