@@ -27,6 +27,8 @@ const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+class CustomServiceOrReporter {}
+
 /**
  * Entirely in memory config structure to avoid reading the file system at all
  *
@@ -56,7 +58,9 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
                 path.join(root, '/tests/validateConfig.test.ts'),
                 path.join(root, '/tests/..', 'src/index.ts')
             ]
-        }
+        },
+        services: ['appium', [CustomServiceOrReporter, { foo: 'bar' }]],
+        reporters: ['spec', [CustomServiceOrReporter, { foo: 'bar' }]],
     }
 })
 
@@ -529,6 +533,50 @@ describe('ConfigParser', () => {
             })
 
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
+        })
+
+        it('should ensure there we do not duplicate class entries', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({
+                services: [
+                    'appium',
+                    'sauce',
+                    [CustomServiceOrReporter, { foo: 'bar' }]
+                ],
+                reporters: [
+                    'dot',
+                    'spec',
+                    [CustomServiceOrReporter, { foo: 'bar' }] as any
+                ]
+            })
+            const { services, reporters } = configParser.getConfig()
+            expect(services).toHaveLength(3)
+            expect(services).toMatchInlineSnapshot(`
+              [
+                "appium",
+                "sauce",
+                [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              ]
+            `)
+            expect(reporters).toHaveLength(3)
+            expect(reporters).toMatchInlineSnapshot(`
+              [
+                "dot",
+                "spec",
+                [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              ]
+            `)
+
         })
     })
 

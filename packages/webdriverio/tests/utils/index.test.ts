@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler, isWithinElementScope } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -106,39 +106,6 @@ describe('elementPromiseHandler', () => {
     })
 })
 
-describe('isWithinElementScope', () => {
-    const browser: any = {
-        execute: vi.fn().mockResolvedValue(true),
-        sessionSubscribe: vi.fn().mockResolvedValue(true),
-        scriptAddPreloadScript: vi.fn(),
-        on: vi.fn(),
-    }
-
-    it('should check if element is within scope', async () => {
-        const elem: any = { [ELEMENT_KEY]: 'element-0' }
-        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
-        expect(await isWithinElementScope(elem, host)).toBe(true)
-        expect(browser.execute).toBeCalledWith(
-            expect.any(Function),
-            host,
-            elem
-        )
-    })
-
-    it('should check if element is within shadow dom scope', async () => {
-        const elem: any = { [ELEMENT_KEY]: 'element-0' }
-        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
-        const handle = 'foobar'
-        expect(await isWithinElementScope(elem, host, handle)).toBe(true)
-        expect(browser.execute).toBeCalledWith(
-            expect.any(Function),
-            host,
-            elem
-        )
-    })
-
-})
-
 it('isStaleElementError', () => {
     const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
     expect(isStaleElementError(staleElementChromeError)).toBe(true)
@@ -146,6 +113,8 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
     const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
+    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
+    expect(isStaleElementError(staleElementJSError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
 })

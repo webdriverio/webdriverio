@@ -1,11 +1,7 @@
-import fs from 'node:fs/promises'
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import { sleep } from '@wdio/utils'
-
-vi.mocked(fs.access).mockResolvedValue()
-
+import { sleep, enableFileLogging } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
 // @ts-expect-error
 import { Launcher as cjsLauncher, run as cjsRun } from '../src/cjs/index.js'
@@ -729,8 +725,7 @@ describe('launcher', () => {
             expect(await launcher.run()).toEqual(0)
             expect(launcher['configParser'].initialize).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
-            expect(vi.mocked(fs.mkdir)).toHaveBeenCalled()
-            expect(vi.mocked(fs.mkdir)).toHaveBeenCalledWith('tempDir', { recursive: true })
+            expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -772,7 +767,6 @@ describe('launcher', () => {
 
         afterEach(() => {
             vi.mocked(global.console.error).mockRestore()
-            vi.mocked(fs.mkdir).mockClear()
         })
     })
 

@@ -5,12 +5,13 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import { generateBrowserRunnerTestFiles } from '../src/utils.js'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: {
         writeFile: vi.fn().mockReturnValue(Promise.resolve()),
         mkdir: vi.fn().mockReturnValue(Promise.resolve('/foo/bar')),
-        access: vi.fn().mockRejectedValue(new Error('dont exist'))
-    }
+        access: vi.fn().mockRejectedValue(new Error('dont exist')),
+    },
 }))
 
 const destSpecRootPath = path.resolve(path.sep, 'foo', 'bar')

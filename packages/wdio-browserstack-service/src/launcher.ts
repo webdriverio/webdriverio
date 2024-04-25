@@ -371,6 +371,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
+        await sendFinish(this.browserStackConfig)
         try {
             await this._uploadServiceLogs()
         } catch (error) {
@@ -384,7 +385,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         PercyLogger.clearLogger()
-        await sendFinish(this.browserStackConfig)
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return

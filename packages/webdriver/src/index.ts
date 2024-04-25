@@ -139,7 +139,7 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (webSocketUrl) {
-            client._bidiSocket?.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
         }
         return client
     }
@@ -187,7 +187,7 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS, command, getEnvironmentVars }
+export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage }
 export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'

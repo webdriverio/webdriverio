@@ -1,6 +1,6 @@
-import type { ThrottleOptions } from '../../utils/interception/types.js'
+import type { ThrottleOptions } from '../../types.js'
 import logger from '@wdio/logger'
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 const log = logger('webdriverio:throttle')
 

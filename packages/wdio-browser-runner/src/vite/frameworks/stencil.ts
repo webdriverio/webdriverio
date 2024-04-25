@@ -117,6 +117,19 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
              */
             transformedCode = injectStencilImports(transformedCode, stencilImports)
 
+            /**
+             * Ensure that CSS imports by Stencil have an `&inline` query parameter
+             */
+            findStaticImports(transformedCode)
+                .filter((imp) => imp.specifier.includes('&encapsulation=shadow'))
+                .forEach((imp) => {
+                    const cssPath = path.resolve(path.dirname(id), imp.specifier)
+                    transformedCode = transformedCode.replace(
+                        imp.code,
+                        `import ${imp.imports.trim()} from '/@fs/${cssPath}&inline';\n`
+                    )
+                })
+
             return {
                 ...transpiledCode,
                 code: transformedCode,

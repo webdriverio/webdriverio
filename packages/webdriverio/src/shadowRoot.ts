@@ -1,4 +1,5 @@
-import type { local } from 'webdriver'
+import { type local } from 'webdriver'
+
 import customElementWrapper from './scripts/customElement.js'
 
 const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
@@ -22,12 +23,7 @@ export function getShadowRootManager(browser: WebdriverIO.Browser) {
 export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
-    #shadowRoots = new Map<string, Set<string>>()
-    #currentContext?: string
-    /**
-     * a map of Shadow DOM ids and their corresponding elements
-     */
-    #shadowRootElements = new Map<string, string>()
+    #shadowRoots = new Map<string, ShadowRootTree>()
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -44,26 +40,16 @@ export class ShadowRootManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.load']
+            events: ['log.entryAdded', 'browsingContext.contextCreated', 'browsingContext.contextDestroyed']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
-        this.#browser.on('browsingContext.load', this.handleBrowsingContextLoad.bind(this))
-
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
     }
 
-    initialize () {
+    async initialize () {
         return this.#initialize
-    }
-
-    /**
-     * reset list of shadow roots for a specific browsing context
-     */
-    handleBrowsingContextLoad(response: local.BrowsingContextNavigationInfo) {
-        this.#currentContext = response.context
-        this.#shadowRoots.set(response.context, new Set())
     }
 
     /**
@@ -83,7 +69,6 @@ export class ShadowRootManager {
             args[1].type !== 'string' // command name, "newShadowRoot" or "removeShadowRoot"
         ) {
             return
-
         }
 
         /**
@@ -93,55 +78,218 @@ export class ShadowRootManager {
             return
         }
 
-        const shadowRootForContext = this.#shadowRoots.get(log.source.context)
-        if (!shadowRootForContext) {
-            return
-        }
-
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
-            shadowRootForContext.add(args[2].sharedId as string)
-            this.#shadowRootElements.set(args[2].sharedId as string, args[3].sharedId as string)
+            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem] = args
+            if (!this.#shadowRoots.has(log.source.context)) {
+                /**
+                 * initiate shadow tree for context
+                 */
+                if (!rootElem.sharedId) {
+                    throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
+                }
+                this.#shadowRoots.set(log.source.context, new ShadowRootTree(rootElem.sharedId))
+            }
+
+            const tree = this.#shadowRoots.get(log.source.context)
+            if (!tree) {
+                throw new Error(`Couldn't find tree for context id ${log.source.context}`)
+            }
+            if (
+                // we expect an element id
+                !shadowElem.sharedId ||
+                // we expect the element to have a shadow root
+                !shadowElem.value?.shadowRoot?.sharedId ||
+                // we expect the shadow root to have a proper type
+                shadowElem.value.shadowRoot.value?.nodeType !== 11
+            ) {
+                throw new Error(`Expected element with shadow root but found ${JSON.stringify(shadowElem, null, 4)}`)
+            }
+
+            const newTree = new ShadowRootTree(
+                shadowElem.sharedId,
+                shadowElem.value.shadowRoot.sharedId,
+                shadowElem.value.shadowRoot.value.mode
+            )
+            rootElem.sharedId
+                ? tree.addShadowElement(rootElem.sharedId, newTree)
+                : tree.addShadowElement(newTree)
             return
         }
 
-        if (eventType === 'removeShadowRoot' && args[2].type === 'node') {
-            return args[2].sharedId && this.deleteShadowRoot(args[2].sharedId, log.source.context)
+        if (eventType === 'removeShadowRoot' && args[2].type === 'node' && args[2].sharedId) {
+            const tree = this.#shadowRoots.get(log.source.context)
+            if (!tree) {
+                return
+            }
+            return tree.remove(args[2].sharedId)
         }
 
         throw new Error(`Invalid parameters for "${eventType}" event: ${args.join(', ')}`)
     }
 
-    /**
-     * get shadow roots for a specific context
-     * @param context context to get shadow roots for (default: current browsing context)
-     * @returns list of shadow root ids for given context
-     */
-    getShadowRootsForContext(context?: string) {
-        const c = context || this.#currentContext
-        if (!c) {
+    getShadowElementsByContextId (contextId: string, scope?: string): string[] {
+        let tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
             return []
         }
-        const shadowRoots = this.#shadowRoots.get(c)
-        return shadowRoots ? [...shadowRoots] : []
+
+        /**
+         * if we have a scope, try to find sub tree, otherwise use root tree
+         */
+        if (scope) {
+            const subTree = tree.find(scope)
+            if (subTree) {
+                tree = subTree
+            }
+        }
+
+        return tree.getAllLookupScopes()
     }
 
-    deleteShadowRoot (id: string, context?: string) {
-        const c = context || this.#currentContext
-        if (!c) {
+    getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {
+        let tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return []
+        }
+
+        if (scope) {
+            const subTree = tree.find(scope)
+            if (subTree) {
+                tree = subTree
+            }
+        }
+
+        return tree.flat().map((tree) => [tree.element, tree.shadowRoot])
+    }
+
+    getShadowRootModeById (contextId: string, element: string): ShadowRootMode | undefined {
+        const tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
             return
         }
-        const shadowRoots = this.#shadowRoots.get(c)
-        shadowRoots?.delete(id)
-        this.#shadowRootElements.delete(id)
+
+        const shadowTree = tree.find(element)
+        if (!shadowTree) {
+            return
+        }
+
+        return shadowTree.mode
+    }
+
+    deleteShadowRoot (element: string, contextId: string) {
+        const tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return
+        }
+        return tree.remove(element)
+    }
+}
+
+export class ShadowRootTree {
+    element: string
+    shadowRoot?: string
+    mode?: ShadowRootMode
+    children = new Set<ShadowRootTree>()
+
+    constructor (element: string, shadowRoot?: string, mode?: ShadowRootMode) {
+        this.element = element
+        this.shadowRoot = shadowRoot
+        this.mode = mode
     }
 
     /**
-     * Get the custom element based on the shadow root id
-     * @param id element reference of a Shadow DOM element
-     * @returns the element that caries the Shadow DOM
+     * Attach new shadow element to tree
      */
-    getElementWithShadowDOM (id: string) {
-        return this.#shadowRootElements.get(id)
+    addShadowElement (tree: ShadowRootTree): void
+    /**
+     * Attach new shadow element to tree of sub tree
+     * @param scope {string} shadow element id of tree to attach new element to
+     * @param element {string} element id
+     * @param shadowRoot {string} shadow root id
+     */
+    addShadowElement (scope: string, tree: ShadowRootTree): void
+    addShadowElement (...args: (ShadowRootTree | string | undefined)[]) {
+        const [scope, treeArg] = args
+        if (!scope && !treeArg) {
+            throw new Error('Method "addShadowElement" expects at least 2 arguments')
+        }
+
+        if (scope instanceof ShadowRootTree) {
+            this.children.add(scope)
+            return
+        }
+
+        /**
+         * if we have a scope, check if it matches any ShadowRootTree based
+         * by element or shadow root id
+         */
+        if (typeof scope === 'string' && treeArg instanceof ShadowRootTree) {
+            const tree = this.find(scope) || this.findByShadowId(scope)
+            if (!tree) {
+                throw new Error(`Couldn't find element with id ${scope}`)
+            }
+
+            tree.addShadowElement(treeArg)
+            return
+        }
+
+        throw new Error('Invalid arguments for "addShadowElement" method')
+    }
+
+    find (element: string): ShadowRootTree | undefined {
+        if (this.element === element) {
+            return this
+        }
+
+        for (const child of this.children) {
+            const elem = child.find(element)
+            if (elem) {
+                return elem
+            }
+        }
+
+        return undefined
+    }
+
+    findByShadowId (shadowRoot: string): ShadowRootTree | undefined {
+        if (this.shadowRoot === shadowRoot) {
+            return this
+        }
+
+        for (const child of this.children) {
+            const elem = child.findByShadowId(shadowRoot)
+            if (elem) {
+                return elem
+            }
+        }
+
+        return undefined
+    }
+
+    getAllLookupScopes (): string[] {
+        return [
+            this.shadowRoot ?? this.element,
+            ...Array.from(this.children).map((tree) => tree.getAllLookupScopes())
+        ].flat()
+    }
+
+    flat (): ShadowRootTree[] {
+        return [this, ...Array.from(this.children).map((tree) => tree.flat())].flat()
+    }
+
+    remove (element: string): boolean {
+        for (const child of this.children) {
+            if (child.element === element) {
+                return this.children.delete(child)
+            }
+
+            const wasFound = child.remove(element)
+            if (wasFound) {
+                return true
+            }
+        }
+
+        return false
     }
 }

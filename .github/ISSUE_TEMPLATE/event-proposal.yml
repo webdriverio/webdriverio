@@ -1,0 +1,74 @@
+name: 📅 Event Suggestion
+description: Are you interested hosting a WebdriverIO meetup or workshop? Let's get in touch!
+title: "[📅 Event Suggestion]: <title>"
+labels: [Event 📅, Needs Triaging ⏳]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in hosting a WebdriverIO event. This project lives from its
+        community and we support events that help to grow the project's community at large.
+        We are happy to provide you funds for food and drinks __after__ we have approved your proposal.
+
+  - type: input
+    id: title
+    attributes:
+      label: Title
+      description: What's the name of the event?
+      placeholder: WebdriverIO Meetup, WebdriverIO Workshop, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      description: When would you like to host the event?
+      placeholder: |
+        YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Where would you like to host the event?
+      placeholder: venue description, city, country
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Event Description
+      description: |
+        Describe the event you like to host. Do you have speaker and presentations for it?
+        Do you need help find a venue or speakers? Let us know!
+      placeholder: |
+        I would love to host an event about ...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: funding
+    attributes:
+      label: Do you need financial support?
+      description: Please check this box if you like to request funding for the event.
+      options:
+        - label: I need funding for food & drinks
+          required: false
+        - label: I need funding for renting a venue
+          required: false
+        - label: I need funding in general (please specify in the description field above)
+          required: false
+
+  - type: checkboxes
+    id: code-of-conduct
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

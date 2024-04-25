@@ -37,6 +37,12 @@ const error = {
     actual: 'bar'
 }
 
+const nonAssertionError = {
+    message: 'TypeError: Cannot read properties of undefined (reading "foo")',
+    stack: 'TypeError: Cannot read properties of undefined (reading "foo")',
+    name: 'Error'
+}
+
 export function featureStart(featureLabel?: string) {
     const feature = Object.assign(suite('feature'))
     if (featureLabel) {
@@ -52,6 +58,15 @@ export function featureEnd(results = { tests: [], hooks: [] }) {
     return Object.assign(suite('feature'), {
         _duration: 1516,
         suites: [scenarioEnd(results)],
+        end: '2019-07-22T12:21:37.696Z'
+    })
+}
+
+export function featureEndWithRetries(results = [{ tests: [], hooks: [] }]) {
+    const suites = scenarioWithRetries(results)
+    return Object.assign(suite('feature'), {
+        _duration: 1516,
+        suites: suites,
         end: '2019-07-22T12:21:37.696Z'
     })
 }
@@ -74,6 +89,20 @@ export function scenarioEnd({ tests = [], hooks = [] }): SuiteStats {
         tests,
         hooks
     })
+}
+
+function scenarioWithRetries(results = [{ tests: [], hooks: [] }]): Array<SuiteStats>{
+    const allScenarios: SuiteStats[] = []
+    let scenario: SuiteStats = scenarioEnd(results[0])
+    allScenarios.push(scenario)
+
+    for (let i = 1; i < results.length; i++){
+        const nextScenario: SuiteStats = scenarioEnd(results[i])
+        scenario.suites.push(nextScenario)
+        scenario = nextScenario
+    }
+
+    return Object.assign(allScenarios, {})
 }
 
 const hook = () => ({
@@ -165,6 +194,16 @@ export function testFail(): TestStats {
         _duration: 10,
         errors: [error],
         error: error,
+        state: 'failed',
+        end: '2019-07-22T12:21:37.684Z'
+    })
+}
+
+export function testFail2(){
+    return Object.assign(test(), {
+        _duration: 10,
+        errors: [nonAssertionError],
+        error: nonAssertionError,
         state: 'failed',
         end: '2019-07-22T12:21:37.684Z'
     })

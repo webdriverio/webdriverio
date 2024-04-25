@@ -40,11 +40,11 @@
   "dependencies": {
     "@cucumber/cucumber": "^10.3.1",
     "@cucumber/gherkin": "28.0.0",
-    "@cucumber/messages": "24.0.1",
+    "@cucumber/messages": "24.1.0",
     "@types/node": "^20.1.0",
-    "@wdio/logger": "9.0.0-alpha.0",
-    "@wdio/types": "9.0.0-alpha.0",
-    "@wdio/utils": "9.0.0-alpha.0",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "glob": "^10.2.2",
     "is-glob": "^4.0.0"
   },

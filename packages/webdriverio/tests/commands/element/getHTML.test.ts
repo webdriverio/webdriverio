@@ -27,7 +27,7 @@ describe('getHTML test', () => {
             .toBe('/session/foobar-123/execute/sync')
         expect(result).toBe('<some>outer html</some>')
 
-        result = await elem.getHTML(false)
+        result = await elem.getHTML({ includeSelectorTag: false })
         expect(result).toBe('some inner html')
     })
 

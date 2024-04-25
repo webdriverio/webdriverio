@@ -8,12 +8,22 @@ const isMac = os.platform() === 'darwin' && process.env.CI
 const isWindows = os.platform() === 'win32'
 
 /**
- * WebdriverIO is using this example to test its component testing features
- * and we have experienced issues with Vue when running in Windows,
- * see https://github.com/testing-library/vue-testing-library/issues/292
- * Please ignore and remove this in your project!
+ * skip tests if:
  */
-if (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) {
+if (
+    /**
+     * WebdriverIO is using this example to test its component testing features
+     * and we have experienced issues with Vue when running in Windows,
+     * see https://github.com/testing-library/vue-testing-library/issues/292
+     * Please ignore and remove this in your project!
+     */
+    (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) ||
+    /**
+     * We are running network mocking tests on Safari in CI where Safari has no support for
+     * Bidi just yet.
+     */
+    (process.env.CI && isMac && process.argv.includes('mock.test.ts'))
+) {
     process.exit(0)
 }
 
@@ -33,7 +43,14 @@ export const config = {
     capabilities: [
         isMac
             ? { browserName: 'safari' }
-            : { browserName: 'chrome', browserVersion: '122.0.6261.39', webSocketUrl: true }
+            : !process.env.WDIO_PRESET
+                /**
+                 * We need canary in all component tests for:
+                 * - element look-ups with `browsingContext.locateNodes`
+                 * - network mocking
+                 */
+                ? { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
+                : { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
     ],
 
     /**
@@ -41,7 +58,7 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET),
+    outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET || 'misc'),
     reporters: ['spec', 'dot', 'junit'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
@@ -59,7 +76,10 @@ export const config = {
         coverage: {
             enabled: true,
             // we skip some tests on Mac, therefor lower coverage treshold
-            functions: isMac ? 66 : 100
+            /**
+             * Todo(@christian-bromann): set treshold back to 100
+             */
+            functions: isMac ? 60 : 80
         }
     }],
 

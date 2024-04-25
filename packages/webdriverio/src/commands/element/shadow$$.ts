@@ -1,9 +1,10 @@
 import logger from '@wdio/logger'
+import { getBrowserObject } from '@wdio/utils'
 import { SHADOW_ELEMENT_KEY } from 'webdriver'
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElements } from '../../utils/getElementObject.js'
-import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
+import { enhanceElementsArray } from '../../utils/index.js'
 import { findStrategy } from '../../utils/findStrategy.js'
 import type { Selector } from '../../types.js'
 

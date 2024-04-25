@@ -8,19 +8,18 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
-import { ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, asyncIterators } from '@wdio/utils'
+import { type remote, ELEMENT_KEY } from 'webdriver'
+import { UNICODE_CHARACTERS, asyncIterators, getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
-import isDescendent from '../scripts/isDescendant.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../shadowRoot.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
-import type { CustomStrategyReference } from '../types.js'
+import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -93,14 +92,6 @@ export const getElementFromResponse = (res?: ElementReference) => {
     }
 
     return null
-}
-
-/**
- * traverse up the scope chain until browser element was reached
- */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
-    const elemObject = elem as WebdriverIO.Element
-    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
 function sanitizeCSS (value?: string) {
@@ -229,7 +220,9 @@ export function isStaleElementError (err: Error) {
         // Firefox
         err.message.includes('is no longer attached to the DOM') ||
         // Safari
-        err.message.includes('Stale element found')
+        err.message.toLowerCase().includes('stale element found') ||
+        // Chrome through JS execution
+        err.message.includes('stale element not found in the current frame')
     )
 }
 
@@ -261,67 +254,16 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-/**
- * determine if element is within the scope of another element
- * @param node an element somewhere located within the shadow DOM tree
- * @param host the host element (can be a shadow root or the document)
- * @param handle the browsing context
- * @returns true if the node is within the scope of the host
- */
-export async function isWithinElementScope (
-    node: ElementReference,
-    host: WebdriverIO.Element,
-    handle?: string
-): Promise<boolean> {
-    const browser = getBrowserObject(host)
-    const shadowRootManager = getShadowRootManager(browser)
-    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
-
-    const [documentFound, ...shadowFinds] = await Promise.all([
-        browser.execute(
-            isDescendent,
-            host as any as HTMLElement,
-            node as any as HTMLElement
-        ).then((wasFound) => wasFound ? host : undefined),
-        ...shadowRoots.map((shadowRootId) => (
-            browser.execute(
-                isDescendent,
-                { [ELEMENT_KEY]: shadowRootId } as any as HTMLElement,
-                node as any as HTMLElement
-            ).then((wasFound) => wasFound ? shadowRootId : undefined)
-        ))
-    ])
-
-    if (documentFound) {
-        return true
+export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator {
+    if (using === 'css selector') {
+        return { type: 'css', value: value }
     }
 
-    const allShadowFinds = shadowFinds.filter(Boolean) as string[]
-    if (allShadowFinds.length > 1) {
-        throw new Error('isWithinElementScope: too many results')
+    if (using === 'xpath') {
+        return { type: 'xpath', value: value }
     }
 
-    const shadowRootId = allShadowFinds[0]
-    if (!shadowRootId) {
-        return false
-    }
-
-    const newNode = shadowRootManager.getElementWithShadowDOM(shadowRootId)
-    if (!newNode) {
-        return false
-    }
-
-    /**
-     * recursively run the same function again, this time, instead of looking for the
-     * node, we look for the found custom component outside the shadow root.
-     */
-    return isWithinElementScope(
-        {
-            [ELEMENT_KEY]: newNode
-        },
-        host,
-        handle,
-    )
+    throw new Error(`Can't transform classic selector ${using} to Bidi selector`)
 }
 
 /**
@@ -339,54 +281,60 @@ export async function findDeepElement(
     const shadowRootManager = getShadowRootManager(browser)
     const handle = await browser.getWindowHandle()
 
-    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
+    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+        handle,
+        (this as WebdriverIO.Element).elementId
+    )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const locator = transformClassicToBidiSelector(using, value)
+
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementResult = await Promise.all([
+    const deepElementResult = (await Promise.all([
         /**
-         * standard lookup in document
+         * fetch through all browsing contexts
          */
-        browser.findElement(using, value).then(elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined), elementPromiseHandler<ElementReference>(handle, shadowRootManager, undefined)),
+        browser.browsingContextLocateNodes({
+            locator,
+            context: handle,
+            maxNodeCount: 1,
+            ...((this as WebdriverIO.Element).elementId
+                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
+                : {}
+            )
+        }).then((result) => {
+            const elementId = result.nodes[0]?.sharedId
+            if (!elementId) {
+                return undefined
+            }
+            const elem: ExtendedElementReference = {
+                [ELEMENT_KEY]: elementId,
+                locator
+            }
+            return elem
+        }, (err) => {
+            log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+            return browser.findElement(using, value).catch((err) => {
+                log.warn(`Failed to execute browser.findElement({ ... }) due to ${err}`)
+            })
+        }),
         /**
-         * lookup in shadow roots
+         * fetch through all shadow roots
          */
-        ...shadowRoots.map(
-            (shadowRootNodeId) => browser.findElementFromShadowRoot(shadowRootNodeId, using, value)
-                .then(
-                    elementPromiseHandler<ElementReference>(handle, shadowRootManager, shadowRootNodeId),
-                    elementPromiseHandler<ElementReference>(handle, shadowRootManager, shadowRootNodeId)
-                )
-                .then(async (res) => {
-                    if (!res) {
-                        return
-                    }
-
-                    /**
-                     * if an element was found with given selector within a shadow root
-                     * and
-                     * if we are calling the command from an element scope
-                     * then
-                     * we need to check if the found element is nested within the scope
-                     */
-                    if ('elementId' in this) {
-                        return (await isWithinElementScope(res, this as WebdriverIO.Element, handle))
-                            ? res
-                            : undefined
-                    }
-
-                    return res
-                })
+        ...shadowRoots.map((shadowRootNodeId) =>
+            browser.findElementFromShadowRoot(shadowRootNodeId, using, value).then(
+                elementPromiseHandler(handle, shadowRootManager),
+                elementPromiseHandler(handle, shadowRootManager)
+            )
         )
-    ])
+    ])).filter(Boolean)
 
-    const allElementsFiltered = deepElementResult.flat().filter(Boolean) as ElementReference[]
-    if (allElementsFiltered.length === 0) {
+    if (deepElementResult.length === 0) {
         return new Error(`Couldn't find element with selector "${selector}"`)
     }
 
-    return allElementsFiltered[0] as ElementReference
+    return deepElementResult[0] as ElementReference
 }
 
 /**
@@ -404,48 +352,48 @@ export async function findDeepElements(
     const shadowRootManager = getShadowRootManager(browser)
     const handle = await browser.getWindowHandle()
 
-    const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
+    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+        handle,
+        (this as WebdriverIO.Element).elementId
+    )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const locator = transformClassicToBidiSelector(using, value)
+
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementsResult = await Promise.all([
+    const deepElementResult = (await Promise.all([
         /**
-         * standard lookup in document
+         * fetch through all browsing contexts
          */
-        browser.findElements(using, value),
+        browser.browsingContextLocateNodes({
+            locator,
+            context: handle,
+            ...((this as WebdriverIO.Element).elementId
+                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
+                : {}
+            )
+        }).then(
+            (result) => result.nodes.map((node) => ({
+                [ELEMENT_KEY]: node.sharedId,
+                locator
+            })),
+            (err) => {
+                log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+                return browser.findElements(using, value)
+            }
+        ),
         /**
-         * lookup in shadow roots
+         * fetch through all shadow roots
          */
-        ...shadowRoots.map(
-            (shadowRootNodeId) => browser.findElementsFromShadowRoot(shadowRootNodeId, using, value)
-                .then(
-                    elementPromiseHandler<ElementReference[]>(handle, shadowRootManager, shadowRootNodeId),
-                    elementPromiseHandler<ElementReference[]>(handle, shadowRootManager, shadowRootNodeId)
-                ).then(async (res) => {
-                    if (!res) {
-                        return
-                    }
-
-                    if ('elementId' in this) {
-                        const allElementsWithinScope = await Promise.all(res.map(
-                            (el) => isWithinElementScope(el, this as WebdriverIO.Element, handle)
-                                .then((isWithinScope) => isWithinScope ? el : undefined)
-                        ))
-
-                        return allElementsWithinScope.filter(Boolean) as ElementReference[]
-                    }
-
-                    return res
-                })
+        ...shadowRoots.map((shadowRootNodeId) =>
+            browser.findElementsFromShadowRoot(shadowRootNodeId, using, value).then(
+                elementPromiseHandler(handle, shadowRootManager),
+                elementPromiseHandler(handle, shadowRootManager)
+            )
         )
-    ])
-
-    /**
-     * lastly, we filter all elements that are not defined, e.g. not found
-     * or not within the scope of the host element
-     */
-    return deepElementsResult.flat().filter(Boolean) as ElementReference[]
+    ])).filter(Boolean)
+    return deepElementResult.flat()
 }
 
 /**
@@ -457,6 +405,16 @@ export async function findElement(
     selector: Selector
 ) {
     const browserObject = getBrowserObject(this)
+
+    /**
+     * do a deep lookup if
+     * - we are using Bidi
+     * - have a string selector
+     * - that is not a deep selector
+     */
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+        return findDeepElement.call(this, selector)
+    }
 
     /**
      * check if shadow DOM integration is used
@@ -767,7 +725,7 @@ export const enhanceElementsArray = (
      * if all elements have the same selector we actually can assign a selector
      */
     const elems = selector as WebdriverIO.Element[]
-    if (Array.isArray(selector) && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
+    if (Array.isArray(selector) && elems.length && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
         elementArray.selector = elems[0].selector
     }
 

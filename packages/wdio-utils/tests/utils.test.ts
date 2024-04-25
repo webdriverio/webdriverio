@@ -1,11 +1,12 @@
 import path from 'node:path'
+import fs from 'node:fs/promises'
 import type { MockedFunction } from 'vitest'
-import { vi, describe, it, expect } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
-    userImport
+    userImport, getBrowserObject, enableFileLogging,
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -251,5 +252,52 @@ describe('utils:userImport', () => {
         await expect(userImport('foobar'))
             .rejects
             .toThrow('Couldn\'t import "foobar"! Do you have it installed? If not run "npm install foobar"!')
+    })
+})
+
+describe('getBrowserObject', () => {
+    it('should traverse up', () => {
+        expect(getBrowserObject({
+            parent: {
+                parent: {
+                    parent: {
+                        foo: 'bar'
+                    }
+                }
+            }
+        } as any)).toEqual({ foo: 'bar' })
+    })
+})
+
+describe('enableFileLogging', () => {
+    beforeEach(() => {
+        vi.mock('node:fs/promises', () => ({
+            default: {
+                mkdir: vi.fn(),
+            }
+        }))
+
+        delete process.env.WDIO_LOG_PATH
+    })
+
+    afterEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it ('should do nothing if outputDir is not provided', async () => {
+        await enableFileLogging()
+
+        expect(fs.mkdir).not.toHaveBeenCalled()
+        expect(process.env.WDIO_LOG_PATH).toBeUndefined()
+    })
+
+    it('should create a directory and set WDIO_LOG_PATH to the directory path if outputDir is provided', async () => {
+        const outputDir = '/path/to/log/directory'
+        const expectedLogPath = path.join(outputDir, 'wdio.log')
+
+        await enableFileLogging(outputDir)
+
+        expect(fs.mkdir).toHaveBeenCalledWith(path.join(outputDir), { recursive: true })
+        expect(process.env.WDIO_LOG_PATH).toBe(expectedLogPath)
     })
 })

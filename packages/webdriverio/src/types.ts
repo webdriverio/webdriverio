@@ -1,14 +1,13 @@
 import type { EventEmitter } from 'node:events'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
-import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
+import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
+import type { Options, Capabilities, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
-import type DevtoolsInterception from './utils/interception/devtools.js'
-import type { Matches, ErrorReason } from './utils/interception/types.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
+import type WebDriverInterception from './utils/interception/index.js'
 
 export * from './utils/interception/types.js'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -136,6 +135,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     props: any[]
     length: number
 }
+export type ElementArray = ElementArrayExport
 
 type AddCommandFnScoped<
     InstanceType = Browser,
@@ -244,7 +244,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browse
 /**
  * @deprecated use `WebdriverIO.Browser` instead
  */
-export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiEventHandler, BrowserCommandsType, ProtocolCommands {}
+export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
 
 /**
  * export a browser interface that can be used for typing plugins
@@ -286,6 +286,11 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      * error response if element was not found
      */
     error?: Error
+    /**
+     * locator of the element
+     * @requires WebDriver Bidi
+     */
+    locator?: remote.BrowsingContextLocator
 }
 /**
  * @deprecated use `WebdriverIO.Element` instead
@@ -461,48 +466,24 @@ export type DragAndDropCoordinate = {
     y: number
 }
 
-/**
- * WebdriverIO Mock definition
- */
-
-interface RequestEvent {
-    requestId: number
-    request: Matches
-    responseStatusCode: number
-    responseHeaders: Record<string, string>
-}
-
-interface MatchEvent extends Matches {
-    mockedResponse?: string | Buffer
-}
-
-interface OverwriteEvent {
-    requestId: number
-    responseCode: number
-    responseHeaders: Record<string, string>
-    body?: string | Record<string, any>
-}
-
-interface FailEvent {
-    requestId: number
-    errorReason: ErrorReason
-}
-
-interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on'> {
-    on(event: 'request', callback: (request: RequestEvent) => void): Mock
-    on(event: 'match', callback: (match: MatchEvent) => void): Mock
-    on(event: 'continue', callback: (requestId: number) => void): Mock
-    on(event: 'overwrite', callback: (response: OverwriteEvent) => void): Mock
-    on(event: 'fail', callback: (error: FailEvent) => void): Mock
-}
-
-type MockProperties = Pick<DevtoolsInterception, 'calls'>
-export interface Mock extends MockFunctions, MockProperties {}
-
 export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
-    options: Options.WebdriverIO
-    capabilities: WebDriverAttachOptions['capabilities'],
-    requestedCapabilities?: WebDriverAttachOptions['capabilities'],
+    options: Omit<Options.WebdriverIO, 'capabilities'>
+    capabilities: WebDriverAttachOptions['capabilities']
+    requestedCapabilities?: WebDriverAttachOptions['capabilities']
+}
+
+export type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+export interface CustomThrottle {
+    offline: boolean
+    downloadThroughput: number
+    uploadThroughput: number
+    latency: number
+}
+export type ThrottleOptions = ThrottlePreset | CustomThrottle
+
+export interface ExtendedElementReference {
+    'element-6066-11e4-a52e-4f735466cecf': string
+    locator: remote.BrowsingContextLocator
 }
 
 declare global {
@@ -543,5 +524,13 @@ declare global {
          * @see https://webdriver.io/docs/multiremote/
          */
         interface MultiRemoteElement extends MultiRemoteElementType {}
+        /**
+         * WebdriverIO Mock object
+         * The mock object is an object that represents a network mock and contains information about
+         * requests that were matching given url and filterOptions. It can be received using the mock command.
+         *
+         * @see https://webdriver.io/docs/api/mock
+         */
+        interface Mock extends WebDriverInterception {}
     }
 }

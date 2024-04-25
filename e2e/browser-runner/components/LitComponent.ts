@@ -11,6 +11,11 @@ const graphQLClient = new GraphQLClient(endpoint, {
 
 @customElement('sub-elem')
 export class SubElem extends LitElement {
+    static styles = css`
+    .selectMeToo {
+        color: blue;
+    }`
+
     render() {
         return html`<div>
             <p class="selectMe">I am within another shadow root element</p>
@@ -62,5 +67,42 @@ export class SimpleGreeting extends LitElement {
             .catch(/* istanbul ignore next */ () => ({ result: 'Error: failed to make request' }))
         this.#serverResponse = data.result
         this.requestUpdate()
+    }
+}
+
+@customElement('closed-node')
+export class ClosedNode extends LitElement {
+    static shadowRootOptions: ShadowRootInit = { mode: 'closed' }
+    static styles = css`
+    section {
+        color: blue;
+    }`
+
+    render () {
+        return html`
+            <h2>Closed Node</h2>
+            <section>
+                <slot></slot>
+                <closed-node-nested>hidden</closed-node-nested>
+            </section>
+        `
+    }
+}
+
+@customElement('closed-node-nested')
+export class ClosedNodeNested extends LitElement {
+    static shadowRootOptions: ShadowRootInit = { mode: 'closed' }
+    static styles = css`
+    .findMe {
+        color: green;
+    }`
+
+    render () {
+        return html`
+            <h2>Deep Closed Node</h2>
+            <div class="findMe">
+                I am <slot></slot>!
+            </div>
+        `
     }
 }

@@ -1,12 +1,13 @@
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
+import { getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
 import { elementErrorHandler } from '../middlewares.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, AddCommandFn } from '../types.js'
+import type { Selector, AddCommandFn, ExtendedElementReference } from '../types.js'
 
 interface GetElementProps {
     isReactElement?: boolean
@@ -42,12 +43,12 @@ class WebDriverError extends Error {
 export const getElement = function findElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector?: Selector,
-    res?: ElementReference | Error,
+    res?: ElementReference | ExtendedElementReference | Error,
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject = {
+    const propertiesObject: PropertyDescriptorMap = {
         /**
          * filter out browser commands from object
          */
@@ -61,6 +62,7 @@ export const getElement = function findElement(
         scope: { value: 'element' }
     }
 
+    propertiesObject.emit = { value: this.emit.bind(this) }
     const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
@@ -73,18 +75,23 @@ export const getElement = function findElement(
             /**
              * set element id with proper key so element can be passed into execute commands
              */
-            if (this.isW3C) {
-                (client as any)[ELEMENT_KEY] = elementId
-            } else {
-                client.ELEMENT = elementId
+            client[ELEMENT_KEY] = elementId
+
+            /**
+             * Attach locator if element was fetched with WebDriver Bidi.
+             * This allows to later re-fetch the element within the same conditions.
+             */
+            if (res && this.isBidi && 'locator' in res) {
+                client.locator = res.locator
             }
         } else {
             client.error = res as Error
         }
 
-        client.selector = selector || ''
+        if (selector) {
+            client.selector = selector
+        }
         client.parent = this
-        client.emit = this.emit.bind(this)
         client.isReactElement = props.isReactElement
         client.isShadowElement = props.isShadowElement
 
@@ -111,12 +118,12 @@ export const getElement = function findElement(
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    elemResponse: (ElementReference | Error | WebDriverError)[],
+    elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element[] {
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject = {
+    const propertiesObject: PropertyDescriptorMap = {
         /**
          * filter out browser commands from object
          */
@@ -133,15 +140,16 @@ export const getElements = function getElements(
         return []
     }
 
-    const elements = [elemResponse].flat(1).map((res: ElementReference | Element | Error | WebDriverError, i) => {
+    const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
          */
-        if ((res as WebdriverIO.Element).selector) {
+        if ((res as WebdriverIO.Element).selector && '$$' in res) {
             return res as WebdriverIO.Element
         }
 
         propertiesObject.scope = { value: 'element' }
+        propertiesObject.emit = { value: this.emit.bind(this) }
         const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
@@ -154,8 +162,15 @@ export const getElements = function getElements(
                 /**
                  * set element id with proper key so element can be passed into execute commands
                  */
-                const elementKey = this.isW3C ? ELEMENT_KEY : 'ELEMENT'
-                client[elementKey] = elementId
+                client[ELEMENT_KEY] = elementId
+
+                /**
+                 * Attach locator if element was fetched with WebDriver Bidi.
+                 * This allows to later re-fetch the element within the same conditions.
+                 */
+                if (res && this.isBidi && 'locator' in res) {
+                    client.locator = res.locator
+                }
             } else {
                 res = res as WebDriverError | Error
                 client.error = res instanceof Error ? res : new WebDriverError(res)
@@ -166,7 +181,6 @@ export const getElements = function getElements(
                 : selector
             client.parent = this
             client.index = i
-            client.emit = this.emit.bind(this)
             client.isReactElement = props.isReactElement
             client.isShadowElement = props.isShadowElement
 

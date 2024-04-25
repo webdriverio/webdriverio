@@ -253,6 +253,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
     /**
      * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
      * This timeout only affects commands starting with `waitFor*` and their default wait time.
+     * @default 5000
      */
     waitforTimeout?: number
     /**

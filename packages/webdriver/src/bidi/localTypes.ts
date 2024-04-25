@@ -29,18 +29,18 @@ export interface ErrorResponse extends Extensible {
   stacktrace?: string;
 }
 
-export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult;
+export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult;
 export interface EmptyResult extends Extensible {}
 
-export type Event = {
+export interface Event extends Extensible {
   type: 'event';
-} & EventData & Extensible
+}
 
 export type EventData = BrowsingContextEvent | LogEvent | NetworkEvent | ScriptEvent;
 export type Extensible = Record<string, any>;
 export type JsInt = number;
 export type JsUint = number;
-export type ErrorCode = 'invalid argument' | 'invalid session id' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unknown command' | 'unknown error' | 'unsupported operation';
+export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation';
 export type SessionResult = SessionNewResult | SessionStatusResult;
 
 export interface SessionCapabilitiesRequest {
@@ -53,16 +53,40 @@ export interface SessionCapabilityRequest extends Extensible {
   browserName?: string;
   browserVersion?: string;
   platformName?: string;
-  proxy?: {
-    proxyType?: 'pac' | 'direct' | 'autodetect' | 'system' | 'manual';
-    proxyAutoconfigUrl?: string;
-    ftpProxy?: string;
-    httpProxy?: string;
-    noProxy?: string[];
-    sslProxy?: string;
-    socksProxy?: string;
-    socksVersion?: number;
-  };
+  proxy?: SessionProxyConfiguration;
+  webSocketUrl?: boolean;
+}
+
+export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration;
+
+export interface SessionAutodetectProxyConfiguration extends Extensible {
+  proxyType: 'autodetect';
+}
+
+export interface SessionDirectProxyConfiguration extends Extensible {
+  proxyType: 'direct';
+}
+
+export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
+  proxyType: 'manual';
+  ftpProxy?: string;
+  httpProxy?: string;
+  sslProxy?: string;
+  noProxy?: string[];
+}
+
+export interface SessionSocksProxyConfiguration {
+  socksProxy: string;
+  socksVersion: number;
+}
+
+export interface SessionPacProxyConfiguration extends Extensible {
+  proxyType: 'pac';
+  proxyAutoconfigUrl: string;
+}
+
+export interface SessionSystemProxyConfiguration extends Extensible {
+  proxyType: 'system';
 }
 
 export interface SessionStatusResult {
@@ -77,18 +101,24 @@ export interface SessionNewResult {
     browserName: string;
     browserVersion: string;
     platformName: string;
-    proxy: {
-      proxyType?: 'pac' | 'direct' | 'autodetect' | 'system' | 'manual';
-      proxyAutoconfigUrl?: string;
-      ftpProxy?: string;
-      httpProxy?: string;
-      noProxy?: string[];
-      sslProxy?: string;
-      socksProxy?: string;
-      socksVersion?: number;
-    };
     setWindowRect: boolean;
+    userAgent: string;
+    proxy?: SessionProxyConfiguration;
+    webSocketUrl?: string;
   };
+}
+
+export type BrowserResult = BrowserCreateUserContextResult | BrowserGetUserContextsResult;
+export type BrowserUserContext = string;
+
+export interface BrowserUserContextInfo {
+  userContext: BrowserUserContext;
+}
+
+export type BrowserCreateUserContextResult = BrowserUserContextInfo;
+
+export interface BrowserGetUserContextsResult {
+  userContexts: BrowserUserContextInfo[];
 }
 
 export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextTraverseHistoryResult;
@@ -97,13 +127,22 @@ export type BrowsingContextBrowsingContext = string;
 export type BrowsingContextInfoList = (BrowsingContextInfo)[];
 
 export interface BrowsingContextInfo {
+  children: BrowsingContextInfoList | null;
   context: BrowsingContextBrowsingContext;
   url: string;
-  children: BrowsingContextInfoList | null;
+  userContext: BrowserUserContext;
   parent?: BrowsingContextBrowsingContext | null;
 }
 
-export type BrowsingContextLocator = BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+
+export interface BrowsingContextAccessibilityLocator {
+  type: 'accessibility';
+  value: {
+    name?: string;
+    role?: string;
+  };
+}
 
 export interface BrowsingContextCssLocator {
   type: 'css';
@@ -257,7 +296,9 @@ export interface NetworkBase64Value {
   value: string;
 }
 
-export interface NetworkCookie {
+export type NetworkSameSite = 'strict' | 'lax' | 'none';
+
+export interface NetworkCookie extends Extensible {
   name: string;
   value: NetworkBytesValue;
   domain: string;
@@ -265,7 +306,7 @@ export interface NetworkCookie {
   size: JsUint;
   httpOnly: boolean;
   secure: boolean;
-  sameSite: 'strict' | 'lax' | 'none';
+  sameSite: NetworkSameSite;
   expiry?: JsUint;
 }
 
@@ -328,7 +369,7 @@ export interface NetworkResponseData {
   headersSize: JsUint | null;
   bodySize: JsUint | null;
   content: NetworkResponseContent;
-  authChallenge?: NetworkAuthChallenge;
+  authChallenges?: NetworkAuthChallenge[];
 }
 
 export interface NetworkAddInterceptResult {
@@ -383,6 +424,18 @@ export interface NetworkResponseStartedParameters extends NetworkBaseParameters 
 export type ScriptResult = ScriptAddPreloadScriptResult | ScriptEvaluateResult | ScriptGetRealmsResult;
 export type ScriptEvent = ScriptMessage | ScriptRealmCreated | ScriptRealmDestroyed;
 export type ScriptChannel = string;
+
+export interface ScriptChannelValue {
+  type: 'channel';
+  value: ScriptChannelProperties;
+}
+
+export interface ScriptChannelProperties {
+  channel: ScriptChannel;
+  serializationOptions?: ScriptSerializationOptions;
+  ownership?: ScriptResultOwnership;
+}
+
 export type ScriptEvaluateResult = ScriptEvaluateResultSuccess | ScriptEvaluateResultException;
 
 export interface ScriptEvaluateResultSuccess {
@@ -407,6 +460,46 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string;
 export type ScriptInternalId = string;
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue;
+export type ScriptListLocalValue = (ScriptLocalValue)[];
+
+export interface ScriptArrayLocalValue {
+  type: 'array';
+  value: ScriptListLocalValue;
+}
+
+export interface ScriptDateLocalValue {
+  type: 'date';
+  value: string;
+}
+
+export type ScriptMappingLocalValue = (ScriptLocalValue | ScriptLocalValue)[];
+
+export interface ScriptMapLocalValue {
+  type: 'map';
+  value: ScriptMappingLocalValue;
+}
+
+export interface ScriptObjectLocalValue {
+  type: 'object';
+  value: ScriptMappingLocalValue;
+}
+
+export interface ScriptRegExpValue {
+  pattern: string;
+  flags?: string;
+}
+
+export interface ScriptRegExpLocalValue {
+  type: 'regexp';
+  value: ScriptRegExpValue;
+}
+
+export interface ScriptSetLocalValue {
+  type: 'set';
+  value: ScriptListLocalValue;
+}
+
 export type ScriptPreloadScript = string;
 export type ScriptRealm = string;
 export type ScriptPrimitiveProtocolValue = ScriptUndefinedValue | ScriptNullValue | ScriptStringValue | ScriptNumberValue | ScriptBooleanValue | ScriptBigIntValue;
@@ -456,6 +549,7 @@ export interface ScriptWindowRealmInfo extends ScriptBaseRealmInfo {
 
 export interface ScriptDedicatedWorkerRealmInfo extends ScriptBaseRealmInfo {
   type: 'dedicated-worker';
+  owners: ScriptRealm[];
 }
 
 export interface ScriptSharedWorkerRealmInfo extends ScriptBaseRealmInfo {
@@ -483,7 +577,19 @@ export interface ScriptWorkletRealmInfo extends ScriptBaseRealmInfo {
 }
 
 export type ScriptRealmType = 'window' | 'dedicated-worker' | 'shared-worker' | 'service-worker' | 'worker' | 'paint-worklet' | 'audio-worklet' | 'worklet';
-export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptIteratorRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
+export type ScriptRemoteReference = ScriptSharedReference | ScriptRemoteObjectReference;
+
+export interface ScriptSharedReference extends Extensible {
+  sharedId: ScriptSharedId;
+  handle?: ScriptHandle;
+}
+
+export interface ScriptRemoteObjectReference extends Extensible {
+  handle: ScriptHandle;
+  sharedId?: ScriptSharedId;
+}
+
+export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
 export type ScriptListRemoteValue = (ScriptRemoteValue)[];
 export type ScriptMappingRemoteValue = (ScriptRemoteValue | ScriptRemoteValue)[];
 
@@ -513,22 +619,9 @@ export interface ScriptFunctionRemoteValue {
   internalId?: ScriptInternalId;
 }
 
-export interface ScriptRegExpValue {
-  pattern: string;
-  flags?: string;
-}
-export interface ScriptRegExpLocalValue {
-  type: 'regexp';
-  value: ScriptRegExpValue;
-}
 export interface ScriptRegExpRemoteValue extends ScriptRegExpLocalValue {
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
-}
-
-export interface ScriptDateLocalValue {
-  type: 'date';
-  value: string;
 }
 
 export interface ScriptDateRemoteValue extends ScriptDateLocalValue {
@@ -558,12 +651,6 @@ export interface ScriptWeakMapRemoteValue {
 
 export interface ScriptWeakSetRemoteValue {
   type: 'weakset';
-  handle?: ScriptHandle;
-  internalId?: ScriptInternalId;
-}
-
-export interface ScriptIteratorRemoteValue {
-  type: 'iterator';
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
 }
@@ -650,6 +737,19 @@ export interface ScriptWindowProxyProperties {
 }
 
 export type ScriptResultOwnership = 'root' | 'none';
+
+export interface ScriptSerializationOptions {
+  maxDomDepth?: JsUint | null;
+  /**
+   * @default null
+   */
+  maxObjectDepth?: JsUint | null;
+  /**
+   * @default 'none'
+   */
+  includeShadowTree?: 'none' | 'open' | 'all';
+}
+
 export type ScriptSharedId = string;
 
 export interface ScriptStackFrame {
@@ -699,6 +799,26 @@ export interface ScriptRealmDestroyed {
 
 export interface ScriptRealmDestroyedParameters {
   realm: ScriptRealm;
+}
+
+export type StorageResult = StorageDeleteCookiesResult | StorageGetCookiesResult | StorageSetCookieResult;
+
+export interface StoragePartitionKey extends Extensible {
+  userContext?: string;
+  sourceOrigin?: string;
+}
+
+export interface StorageGetCookiesResult {
+  cookies: NetworkCookie[];
+  partitionKey: StoragePartitionKey;
+}
+
+export interface StorageSetCookieResult {
+  partitionKey: StoragePartitionKey;
+}
+
+export interface StorageDeleteCookiesResult {
+  partitionKey: StoragePartitionKey;
 }
 
 export interface LogEvent extends LogEntryAdded {}

@@ -140,12 +140,11 @@ describe('driver utils', () => {
         it('should install chrome stable if browser is not found', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             vi.mocked(locateChrome).mockResolvedValue('/path/to/stable')
-            await expect(setupPuppeteerBrowser('/foo/bar', {})).resolves.toEqual( {
+            await expect(setupPuppeteerBrowser('/foo/bar', {})).resolves.toEqual({
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/stable'
             })
-            expect(resolveBuildId).toBeCalledTimes(1)
-            expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '116.0.5845.110')
+            expect(resolveBuildId).toBeCalledTimes(0)
         })
 
         it('should look for Chromium browser if defined as browser name', async () => {

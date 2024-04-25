@@ -7,7 +7,7 @@ vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
-    it('should allow to check if an element is enabled', async () => {
+    it('should execute the script', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {

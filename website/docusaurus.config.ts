@@ -168,8 +168,8 @@ const config: Config = {
                     label: 'Sponsor',
                     to: 'docs/sponsor',
                 }, {
-                    label: 'Team',
-                    href: 'https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md',
+                    label: 'Swag Store',
+                    href: 'https://shop.webdriver.io',
                 }, {
                     label: 'YouTube',
                     href: youtubeUrl,

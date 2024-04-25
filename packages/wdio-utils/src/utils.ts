@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import type { Options, Services, Clients } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
@@ -346,4 +348,25 @@ export function isFirefox (browserName?: string) {
 }
 export function isEdge (browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
+}
+
+/**
+ * traverse up the scope chain until browser element was reached
+ */
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.ElementArray): WebdriverIO.Browser {
+    const elemObject = elem as WebdriverIO.Element
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
+}
+
+/**
+ * Enables logging to a file in a specified directory.
+ * @param  {string} outputDir  Directory containing the log file
+ */
+export async function enableFileLogging (outputDir?: string): Promise<void> {
+    if (!outputDir) {
+        return
+    }
+
+    await fs.mkdir(path.join(outputDir), { recursive: true })
+    process.env.WDIO_LOG_PATH = path.join(outputDir, 'wdio.log')
 }

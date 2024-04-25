@@ -1,12 +1,12 @@
 import url from 'node:url'
 
-import junit from 'junit-report-builder'
-import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
+import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
+import junit from 'junit-report-builder'
 
-import { limit } from './utils.js'
 import type { JUnitReporterOptions } from './types.js'
+import { limit } from './utils.js'
 
 const ansiRegex = new RegExp([
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
@@ -126,13 +126,12 @@ class JunitReporter extends WDIOReporter {
                             }
                         } else {
                             // default
-                            testCase.error(step.error.message)
+                            testCase.failure(step.error.message)
                         }
                         testCase.standardError(`\n${step.error.stack}\n`)
                     } else {
-                        testCase.error()
+                        testCase.failure()
                     }
-                    testCase.failure()
                     isFailing = true
                     stepEmoji = '❗'
                 }
@@ -204,13 +203,12 @@ class JunitReporter extends WDIOReporter {
                         }
                     } else {
                         // default
-                        testCase.error(test.error.message)
+                        testCase.failure(test.error.message)
                     }
                     testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
                 } else {
-                    testCase.error()
+                    testCase.failure()
                 }
-                testCase.failure()
             }
 
             const output = this._getStandardOutput(test)

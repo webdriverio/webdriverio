@@ -56,6 +56,7 @@ export default async function downloadSpec (page = 1) {
         return downloadSpec(page + 1)
     }
 
+    console.log(`Downloading CDDL artifact from ${cddlBuilds[0].created_at}`)
     const { data } = await api.rest.actions.downloadArtifact({
         owner,
         repo,
@@ -84,6 +85,7 @@ export default async function downloadSpec (page = 1) {
         }
 
         const execStream = entry.pipe(fs.createWriteStream(unzippedFilePath))
+        console.log(`Downloading CDDL artifact to ${unzippedFilePath}`)
         promiseChain.push(new Promise((resolve, reject) => {
             execStream.on('close', () => resolve(unzippedFilePath))
             execStream.on('error', reject)

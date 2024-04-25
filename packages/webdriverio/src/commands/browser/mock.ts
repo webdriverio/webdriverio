@@ -1,16 +1,9 @@
-import type { CDPSession } from 'puppeteer-core'
+import { getBrowserObject } from '@wdio/utils'
 
-import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
+import type { MockOptions } from '../../utils/interception/types.js'
+import WebDriverInterception from '../../utils/interception/index.js'
 
-import { getBrowserObject } from '../../utils/index.js'
-
-import type { Mock } from '../../types.js'
-import type { MockFilterOptions } from '../../utils/interception/types.js'
-import type Interception from '../../utils/interception/index.js'
-
-export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
-export const CDP_SESSIONS: Record<string, CDPSession> = {}
+export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
@@ -118,19 +111,13 @@ export const CDP_SESSIONS: Record<string, CDPSession> = {}
  * @type utility
  *
  */
-export async function mock (
+export async function mock(
     this: WebdriverIO.Browser,
-    url: string | RegExp,
-    filterOptions?: MockFilterOptions
-) {
-    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
-
-    if (!this.isSauce) {
-        await this.getPuppeteer()
-    }
-
-    if (!this.puppeteer) {
-        throw new Error('No Puppeteer connection could be established which is required to use this command')
+    url: string,
+    filterOptions?: MockOptions
+): Promise<WebdriverIO.Mock> {
+    if (!this.isBidi) {
+        throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
     }
 
     const browser = getBrowserObject(this)
@@ -138,49 +125,7 @@ export async function mock (
     if (!SESSION_MOCKS[handle]) {
         SESSION_MOCKS[handle] = new Set()
     }
-
-    /**
-     * enable network Mocking if not already
-     */
-    if (SESSION_MOCKS[handle].size === 0 && !this.isSauce) {
-        const pages = await this.puppeteer.pages()
-
-        /**
-         * get active page
-         */
-        let page
-        for (let i = 0; i < pages.length && !page; i++) {
-            const isHidden = await pages[i].evaluate(() => document.hidden)
-            if (!isHidden) {
-                page = pages[i]
-            }
-        }
-
-        /**
-         * fallback to the first page
-         */
-        if (!page) {
-            page = pages[0]
-        }
-
-        const client = CDP_SESSIONS[handle] = await page.target().createCDPSession()
-        await client.send('Fetch.enable', {
-            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
-        })
-        client.on(
-            'Fetch.requestPaused',
-            // @ts-expect-error fix me
-            (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
-                .handleRequestInterception(client, SESSION_MOCKS[handle])
-        )
-    }
-
-    const networkInterception = new NetworkInterception(url, filterOptions, browser)
-    SESSION_MOCKS[handle].add(networkInterception as Interception)
-
-    if (this.isSauce) {
-        await (networkInterception as WebDriverNetworkInterception).init()
-    }
-
-    return networkInterception as Mock
+    const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this)
+    SESSION_MOCKS[handle].add(networkInterception)
+    return networkInterception
 }
