@@ -665,13 +665,6 @@ export const QUESTIONNAIRE = [{
 }]
 
 const SUPPORTED_SNAPSHOTSTATE_OPTIONS = ['all', 'new', 'none'] as const
-export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
-    'wdio-electron-service',
-    'wdio-vscode-service',
-    'wdio-nuxt-service',
-    'wdio-vite-service',
-    'wdio-gmail-service'
-]
 
 export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
     /**
