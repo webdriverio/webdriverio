@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler, isWithinElementScope } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -104,39 +104,6 @@ describe('elementPromiseHandler', () => {
         expect(handler(error)).toBe(undefined)
         expect(shadowRootManager.deleteShadowRoot).toBeCalledWith('shadow-root-id', 'foobar')
     })
-})
-
-describe('isWithinElementScope', () => {
-    const browser: any = {
-        execute: vi.fn().mockResolvedValue(true),
-        sessionSubscribe: vi.fn().mockResolvedValue(true),
-        scriptAddPreloadScript: vi.fn(),
-        on: vi.fn(),
-    }
-
-    it('should check if element is within scope', async () => {
-        const elem: any = { [ELEMENT_KEY]: 'element-0' }
-        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
-        expect(await isWithinElementScope(elem, host)).toBe(true)
-        expect(browser.execute).toBeCalledWith(
-            expect.any(Function),
-            host,
-            elem
-        )
-    })
-
-    it('should check if element is within shadow dom scope', async () => {
-        const elem: any = { [ELEMENT_KEY]: 'element-0' }
-        const host: any = { [ELEMENT_KEY]: 'host-0', ...browser }
-        const handle = 'foobar'
-        expect(await isWithinElementScope(elem, host, handle)).toBe(true)
-        expect(browser.execute).toBeCalledWith(
-            expect.any(Function),
-            host,
-            elem
-        )
-    })
-
 })
 
 it('isStaleElementError', () => {
