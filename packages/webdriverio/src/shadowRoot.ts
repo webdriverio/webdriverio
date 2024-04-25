@@ -155,10 +155,9 @@ export class ShadowRootManager {
 
         if (scope) {
             const subTree = tree.find(scope)
-            if (!subTree) {
-                return []
+            if (subTree) {
+                tree = subTree
             }
-            tree = subTree
         }
 
         return tree.flat().map((tree) => [tree.element, tree.shadowRoot])
