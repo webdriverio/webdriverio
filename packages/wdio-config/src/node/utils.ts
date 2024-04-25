@@ -10,7 +10,7 @@ import { objectToEnv } from '../utils.js'
 
 const log = logger('@wdio/config:utils')
 
-export async function loadTypeScriptCompiler (tsxTsconfigPath?: string) {
+export async function loadTypeScriptCompiler (tsConfigPath?: string) {
     /**
      * don't auto compile within worker as it already was spawn with a loader
      */
@@ -29,7 +29,7 @@ export async function loadTypeScriptCompiler (tsxTsconfigPath?: string) {
         const loaderPath = await resolve('tsx/esm', import.meta.url)
         await access(new URL(loaderPath))
         process.env.WDIO_LOAD_TSX = '1'
-        objectToEnv({ tsxTsconfigPath })
+        objectToEnv({ tsConfigPath })
         return true
     } catch (err: any) {
         log.debug(`Failed loading TS Node: ${err.message}`)

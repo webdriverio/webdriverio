@@ -142,7 +142,7 @@ export const builder = (yargs: Argv) => {
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --shard 1/4', 'Run only the first shard of 4 shards')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
-        .example('$0 run wdio.conf.js --tsxTsconfigPath=./configs/bdd-tsconfig.json', 'Run suite with tsx using custom tsconfig.json')
+        .example('$0 run wdio.conf.js --tsConfigPath=./configs/bdd-tsconfig.json', 'Run suite with tsx using custom tsconfig.json')
         .epilogue(CLI_EPILOGUE)
         .help()
 }
@@ -220,18 +220,18 @@ export async function handler(argv: RunCommandArguments) {
     )
     if (isTSFile && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --import tsx/esm'
-        const tsxTsconfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
+        const tsConfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
             path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
-        const tsxTsconfigPathFromParams = params.tsxTsconfigPath &&
-            path.resolve(process.cwd(), params.tsxTsconfigPath)
-        const tsxTsconfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        if (tsxTsconfigPathFromParams) {
+        const tsConfigPathFromParams = params.tsConfigPath &&
+            path.resolve(process.cwd(), params.tsConfigPath)
+        const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+        if (tsConfigPathFromParams) {
             console.log('Deprecated: use the TSX_TSCONFIG_PATH environment variable instead')
         }
         const localTSConfigPath = (
-            tsxTsconfigPathFromEnvVar ||
-            tsxTsconfigPathFromParams ||
-            tsxTsconfigPathRelativeToWdioConfig)
+            tsConfigPathFromEnvVar ||
+            tsConfigPathFromParams ||
+            tsConfigPathRelativeToWdioConfig)
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
             reject: false,

@@ -98,7 +98,7 @@ export interface RunCommandArguments {
     cucumberOpts?: WebdriverIO.CucumberOpts
     configPath: string
     updateSnapshots?: Options.Testrunner['updateSnapshots']
-    tsxTsconfigPath?: string
+    tsConfigPath?: string
 
     /**
      * @internal

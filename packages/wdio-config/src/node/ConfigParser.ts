@@ -28,7 +28,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     repeat?: number
     capabilities?: Capabilities.RemoteCapabilities
     rootDir: string
-    tsxTsconfigPath?: string
+    tsConfigPath?: string
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
@@ -79,7 +79,7 @@ export default class ConfigParser {
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
          */
         if (!this.#isInitialised) {
-            await loadTypeScriptCompiler(this._config.tsxTsconfigPath)
+            await loadTypeScriptCompiler(this._config.tsConfigPath)
             await this.addConfigFile(this.#configFilePath)
         }
 

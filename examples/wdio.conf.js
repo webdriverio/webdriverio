@@ -197,7 +197,7 @@ exports.config = {
     },
     //
     // Configure tsx project path when present
-    tsxTsconfigPath: './path/to/tsconfig.json',
+    tsConfigPath: './path/to/tsconfig.json',
     //
     // =====
     // Hooks

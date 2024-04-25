@@ -456,7 +456,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     /**
      * TSX custom TSConfig path
      */
-    tsxTsconfigPath?: string
+    tsConfigPath?: string
 }
 
 export interface TSConfigPathsOptions {
