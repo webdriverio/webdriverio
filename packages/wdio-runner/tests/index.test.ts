@@ -259,7 +259,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            await runner.run({ configFile: '/foo/bar', args: { autoCompileOpts: { autoCompile: true } } } as any)
+            await runner.run({ configFile: '/foo/bar', args: { } } as any)
 
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
         })

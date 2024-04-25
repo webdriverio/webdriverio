@@ -45,8 +45,8 @@ export default class ConfigParserBuilder {
         return this
     }
 
-    withTsNodeModule(registerMock = vi.fn()) {
-        this.#m.withTsNodeModule(registerMock)
+    withTsxModule(registerMock = vi.fn()) {
+        this.#m.withTsxModule(registerMock)
         return this
     }
 

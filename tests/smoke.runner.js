@@ -104,7 +104,6 @@ const mochaAsyncTestrunner = async () => {
  */
 const cjsTestrunner = async () => {
     const { skippedSpecs } = await launch('cjsTestrunner', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js')]
     })
     assert.strictEqual(skippedSpecs, 0)
@@ -117,7 +116,6 @@ const jasmineTestrunner = async () => {
     const logFile = path.resolve(__dirname, 'helpers', 'expectationResults.log')
     await fs.rm(logFile, { force: true })
     const { skippedSpecs } = await launch('jasmineTestrunner', jasmineConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'jasmine', 'test.js'),
             path.resolve(__dirname, 'jasmine', 'test-skipped.js')
@@ -163,7 +161,6 @@ const jasmineTestrunner = async () => {
  */
 const jasmineReporter = async () => {
     await launch('jasmineReporter', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'jasmine', 'reporter.js')],
         reporters: [['smoke-test', { foo: 'bar' }]],
         framework: 'jasmine',
@@ -182,7 +179,6 @@ const jasmineReporter = async () => {
 const jasmineTimeout = async () => {
     const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
     await launch('jasmineTimeout', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
         reporters: [
             ['spec', {
@@ -221,7 +217,6 @@ const jasmineTimeout = async () => {
 const jasmineAfterAll = async () => {
     const logFile = path.join(__dirname, 'jasmineAfterAll.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'jasmine', 'afterAll-report.js')],
         reporters: [
             ['spec', {
@@ -260,7 +255,6 @@ const jasmineAfterAll = async () => {
 const jasmineFailSpecWithNoExpectations = async () => {
     const logFile = path.join(__dirname, 'jasmineWithNoExpectations.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'jasmine', 'jasmineWithNoExpectations.js')],
         reporters: [
             ['spec', {
@@ -291,7 +285,6 @@ const cucumberTestrunner = async () => {
         'cucumberTestrunner',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'cucumber', 'test.feature'),
                 path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
@@ -318,7 +311,6 @@ const cucumberTestrunnerByLineNumber = async () => {
         'cucumberTestrunnerByLineNumber',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             spec: [path.resolve(__dirname, 'cucumber', 'test.feature:10')],
             cucumberOpts: {
                 tags: '(not @SKIPPED_TAG)',
@@ -352,7 +344,6 @@ const cucumberFailAmbiguousDefinitions = async () => {
         'cucumberFailAmbiguousDefinitions',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
@@ -376,7 +367,6 @@ const cucumberReporter = async () => {
         'cucumberReporter',
         path.resolve(basePath, 'reporter.config.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(basePath, 'reporter.feature')],
             outputDir: basePath,
         }
@@ -393,7 +383,6 @@ const cucumberReporter = async () => {
  */
 const customService = async () => {
     await launch('customService', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'service.js')],
         services: [['smoke-test', { foo: 'bar' }]]
     })
@@ -409,7 +398,6 @@ const customService = async () => {
  */
 const customCJSService = async () => {
     await launch('customCJSService', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'service.js')],
         services: [['smoke-test-cjs', { foo: 'bar' }]]
     })
@@ -425,7 +413,6 @@ const customCJSService = async () => {
  */
 const customReporterString = async () => {
     await launch('customReporterString', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
         reporters: [['smoke-test', { foo: 'bar' }]]
     })
@@ -443,7 +430,6 @@ const customReporterObject = async () => {
     await launch(
         'customReporterObject',
         path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
-        { autoCompileOpts: { autoCompile: false } }
     )
     await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
@@ -460,7 +446,6 @@ const wdioHooks = async () => {
         'wdioHooks',
         path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
         }
     )
@@ -471,7 +456,6 @@ const wdioHooks = async () => {
  */
 const multiremote = async () => {
     await launch('multiremote', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
         capabilities: {
             browserA: {
@@ -490,7 +474,6 @@ const multiremote = async () => {
 const parallelMultiremote = async () => {
     console.log(parallelMultiRemoteBaseConfig)
     await launch('parallelMultiremote', parallelMultiRemoteBaseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
     })
 }
@@ -500,7 +483,6 @@ const parallelMultiremote = async () => {
  */
 const retryFail = async () => {
     const retryFailed = await launch('retryFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
         specFileRetries: 1
     }).then(
@@ -527,7 +509,6 @@ const retryPass = async () => {
         }
     }
     await launch('retryPass', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
         outputDir: path.dirname(logfiles[0]),
         specFileRetries: 1,
@@ -558,7 +539,6 @@ const sharedStoreServiceTest = async () => {
         'sharedStoreServiceTest',
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
         }
     )
@@ -569,7 +549,6 @@ const sharedStoreServiceTest = async () => {
  */
 const mochaSpecFiltering = async () => {
     const { skippedSpecs } = await launch('mochaSpecFiltering', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'mocha', 'test-empty.js'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
@@ -584,7 +563,6 @@ const mochaSpecFiltering = async () => {
  */
 const jasmineSpecFiltering = async () => {
     const { skippedSpecs } = await launch('jasmineSpecFiltering', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'jasmine', 'test-empty.js'),
             path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
@@ -600,7 +578,6 @@ const jasmineSpecFiltering = async () => {
  */
 const mochaSpecGrouping = async () => {
     const { skippedSpecs } = await launch('mochaSpecGrouping', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [
             [
                 path.resolve(__dirname, 'mocha', 'test-empty.js'),
@@ -623,7 +600,6 @@ const standaloneTest = async () => {
         'standaloneTest',
         path.resolve(__dirname, 'helpers', 'async.config.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'standalone.js')]
         }
     )
@@ -632,7 +608,6 @@ const standaloneTest = async () => {
 
 const severeErrorTest = async () => {
     const onPrepareFailed = await launch('severeErrorTest - onPrepareFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
         onPrepare: () => { throw new SevereServiceError('ups') }
     }).then(() => false, () => true)
@@ -645,14 +620,12 @@ const severeErrorTest = async () => {
     assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
 
     const onWorkerEndFailed = await launch('severeErrorTest - onWorkerEndFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
         onWorkerEnd: () => { throw new SevereServiceError('ups') }
     }).then(() => false, () => true)
     assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
 
     const onCompleteFailed = await launch('severeErrorTest - onCompleteFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
         onComplete: () => { throw new SevereServiceError('ups') }
     }).then(() => false, () => true)
@@ -694,7 +667,6 @@ const runSpecsWithFlagAllPassed = async () => {
         'runSpecsWithFlagAllPassed',
         path.resolve(allPassedConfig),
         {
-            autoCompileOpts: { autoCompile: false },
             spec: ['test']
         }
     )
@@ -707,7 +679,6 @@ const runSpecsWithFlagSeveralPassed = async () => {
         'runSpecsWithFlagSeveralPassed',
         path.resolve(severalPassedConfig),
         {
-            autoCompileOpts: { autoCompile: false },
             spec: ['mocha']
         }
     )
@@ -720,7 +691,6 @@ const runSpecsWithFlagDirectPath = async () => {
         'runSpecsWithFlagDirectPath',
         path.resolve(severalPassedConfig),
         {
-            autoCompileOpts: { autoCompile: false },
             spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
         }
     )
@@ -733,7 +703,6 @@ const runSpecsWithFlagNoArg = async () => {
         'runSpecsWithFlagNoArg',
         path.resolve(noArgConfig),
         {
-            autoCompileOpts: { autoCompile: false },
             spec: []
         }
     )
@@ -834,7 +803,6 @@ const jasmineHooksTestrunner = async () => {
     await launch('jasmineHooksTestrunner',
         path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'jasmine', 'test-skipped-hooks.ts')],
             reporters: [
                 ['spec', {
@@ -864,7 +832,6 @@ const jasmineAfterHookArgsValidation = async () => {
     await launch('jasmineAfterHookArgsValidation',
         path.resolve(__dirname, 'helpers', 'jasmine.after-hook-validation.conf.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'jasmine', 'test.after-hook-validation.ts')
             ]

@@ -20,11 +20,9 @@ import {
     getAnswers,
     npmInstall,
     runAppiumInstaller,
-    setupBabel,
-    setupTypeScript,
 } from '../../src/utils.js'
-import { BackendChoice, CompilerOptions } from '../../src/constants.js'
-import type { Questionnair } from '../../build/types'
+import { BackendChoice } from '../../src/constants.js'
+import type { Questionnair } from '../../build/types.js'
 
 const consoleLog = console.log.bind(console)
 beforeEach(() => {
@@ -59,8 +57,6 @@ vi.mock('../../src/utils.js', async () => {
         }),
         getProjectRoot: vi.fn().mockReturnValue('/foo/bar'),
         createPackageJSON: vi.fn(),
-        setupTypeScript: vi.fn(),
-        setupBabel: vi.fn(),
         npmInstall: vi.fn(),
         createWDIOConfig: vi.fn(),
         createWDIOScript: vi.fn(),
@@ -87,11 +83,11 @@ test.skipIf(isUsingWindows)('parseAnswers', async () => {
         pages: '/tmp/foobar/pageobjects',
         generateTestFiles: true,
         usePageObjects: true,
-        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        isUsingTypeScript: false,
         reporters: [
             '@wdio/spec-reporter$--$spec'
         ],
@@ -110,8 +106,6 @@ test.skipIf(isUsingWindows)('parseAnswers', async () => {
 test('runConfigCommand', async () => {
     await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')
     expect(createPackageJSON).toBeCalledTimes(1)
-    expect(setupTypeScript).toBeCalledTimes(1)
-    expect(setupBabel).toBeCalledTimes(1)
     expect(npmInstall).toBeCalledTimes(1)
     expect(createWDIOConfig).toBeCalledTimes(1)
     expect(createWDIOScript).toBeCalledTimes(1)
@@ -123,11 +117,11 @@ test.skipIf(isUsingWindows)('handler', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
         backend: BackendChoice.Local,
         generateTestFiles: false,
-        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        isUsingTypeScript: true,
         reporters: [],
         plugins: [],
         services: [],
@@ -142,7 +136,6 @@ test('missingConfigurationPrompt does not init wizard if user does not want to',
     vi.mocked(getAnswers).mockResolvedValue({
         backend: BackendChoice.Local,
         generateTestFiles: false,
-        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -162,7 +155,6 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
     vi.mocked(getAnswers).mockResolvedValue({
         backend: BackendChoice.Local,
         generateTestFiles: false,
-        isUsingCompiler: CompilerOptions.TS,
         baseUrl: 'http://localhost',
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -196,7 +188,6 @@ describe('Serenity/JS project generation', () => {
 
     const defaultAnswers: Questionnair = {
         runner: '@wdio/local-runner$--$local$--$e2e',
-        // @ts-expect-error
         framework: undefined,   // overridden in the tests
         backend: BackendChoice.Local,
         e2eEnvironment: 'web',
@@ -210,7 +201,7 @@ describe('Serenity/JS project generation', () => {
         plugins: [],
         services: [],
         npmInstall: true,
-        isUsingCompiler: CompilerOptions.Nil,
+        isUsingTypeScript: false,
     }
 
     it('marks serenityAdapter as false and destSerenityLibRootPath as blank if not using Serenity/JS', async () => {
@@ -299,7 +290,7 @@ describe('Serenity/JS project generation', () => {
                 framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber',
                 specs: 'features/**/*.feature',
                 stepDefinitions: 'features/step-definitions/steps',
-                isUsingCompiler: CompilerOptions.TS,
+                isUsingTypeScript: true,
             })
             const parsedAnswers = await parseAnswers(true)
 
@@ -327,7 +318,7 @@ describe('Serenity/JS project generation', () => {
         it('adds necessary packages', async () => {
             vi.mocked(getAnswers).mockResolvedValue({
                 ...defaultAnswers,
-                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine',
+                framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine'
             })
             const parsedAnswers = await parseAnswers(true)
 
@@ -353,7 +344,7 @@ describe('Serenity/JS project generation', () => {
             vi.mocked(getAnswers).mockResolvedValue({
                 ...defaultAnswers,
                 framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$jasmine',
-                isUsingCompiler: CompilerOptions.TS,
+                isUsingTypeScript: true,
             })
             const parsedAnswers = await parseAnswers(true)
 
@@ -411,7 +402,7 @@ describe('Serenity/JS project generation', () => {
                 ...defaultAnswers,
                 framework: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$mocha',
                 serenityLibPath: './serenity',
-                isUsingCompiler: CompilerOptions.TS,
+                isUsingTypeScript: true,
             })
             const parsedAnswers = await parseAnswers(true)
 

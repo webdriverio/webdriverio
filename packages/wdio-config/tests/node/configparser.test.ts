@@ -1,11 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import type { MockedFunction } from 'vitest'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-// @ts-expect-error
-import babelRegister from '@babel/register'
-import logger from '@wdio/logger'
+import { vi, describe, it, expect,  } from 'vitest'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
@@ -14,7 +10,6 @@ import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } f
 import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
 
-const log = logger('')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const root = path.resolve(__dirname, '..', '..')
 
@@ -31,14 +26,6 @@ const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.f
 const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-
-vi.mock('ts-node', () => ({
-    default: { register: vi.fn() }
-}))
-
-vi.mock('@babel/register', () => ({
-    default: vi.fn()
-}))
 
 /**
  * Entirely in memory config structure to avoid reading the file system at all
@@ -161,7 +148,7 @@ describe('ConfigParser', () => {
         const c1 = new ConfigParser('/wdio.conf.js', { coverage: true })
         c1['addConfigFile'] = vi.fn()
         c1['merge'] = vi.fn()
-        c1['_config'] = { runner: 'browser', autoCompileOpts: { autoCompile: false } } as any
+        c1['_config'] = { runner: 'browser' } as any
         await c1.initialize({})
         expect(c1['_config']).toMatchSnapshot()
 
@@ -171,8 +158,7 @@ describe('ConfigParser', () => {
         c2['_config'] = {
             runner: ['browser', {
                 coverage: { enabled: false, statements: 100 }
-            }],
-            autoCompileOpts: { autoCompile: false }
+            }]
         } as any
         await c2.initialize({})
         expect(c2['_config']).toMatchSnapshot()
@@ -182,7 +168,7 @@ describe('ConfigParser', () => {
         const c1 = new ConfigParser('/wdio.conf.js', { coverage: false })
         c1['addConfigFile'] = vi.fn()
         c1['merge'] = vi.fn()
-        c1['_config'] = { runner: 'browser', autoCompileOpts: { autoCompile: false } } as any
+        c1['_config'] = { runner: 'browser' } as any
         await c1.initialize({})
         expect(c1['_config']).toMatchSnapshot()
 
@@ -192,8 +178,7 @@ describe('ConfigParser', () => {
         c2['_config'] = {
             runner: ['browser', {
                 coverage: { enabled: true, statements: 100 }
-            }],
-            autoCompileOpts: { autoCompile: false }
+            }]
         } as any
         await c2.initialize({})
         expect(c2['_config']).toMatchSnapshot()
@@ -223,150 +208,6 @@ describe('ConfigParser', () => {
         it('should throw if config file is not a config file (relative path)', async () => {
             const configParser = await ConfigParserForTest()
             expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
-        })
-
-        describe('Babel integration', () => {
-            beforeEach(() => {
-                (log.debug as MockedFunction<any>).mockClear()
-                delete process.env.THROW_BABEL_REGISTER
-                delete process.env.THROW_TSNODE_RESOLVE
-                delete process.env.WDIO_WORKER_ID
-            })
-
-            it('when @babel/register package exists should initiate with @babel/register compiler', async () => {
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const babelRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles([
-                        FileNamed(FIXTURES_CONF_RDC).withContents(configContents)
-                    ]
-                    )
-                    .withBabelModule(babelRegister)
-                    .build()
-                await configParser.initialize()
-
-                expect(babelRegister).toHaveBeenCalledWith({})
-                expect(log.debug).toBeCalledTimes(2)
-                expect((log.debug as MockedFunction<any>).mock.calls[1][0])
-                    .toContain('auto-compiling files with Babel')
-            })
-
-            it('should not transpile via ts-node if we are within the worker', async function () {
-                process.env.WDIO_WORKER_ID = '0-0'
-                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
-                    .withTsNodeModule(tsNodeRegister)
-                    .withFiles([
-                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
-                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
-                    ])
-                    .build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(0)
-            })
-
-            it('when @babel/register package exists should merge config, preferring config, if present', async function () {
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const babelRegister = vi.fn()
-                const configParser = ConfigParserBuilder.withBaseDir(
-                    path.join(__dirname, '/tests/'),
-                    path.join(__dirname, '/tests/cool.conf'),
-                    {
-                        autoCompileOpts: {
-                            babelOpts: {
-                                'babel': 'do this',
-                                'and': 'that'
-                            }
-                        }
-                    }
-                ).withFiles([
-                    FileNamed(path.join(__dirname, '/tests/cool.conf')).withContents(JSON.stringify(configFileContents)),
-                    FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/node/configparser.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/node/FileSystemPathService.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.es6')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.java')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.mjs')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test-a.feature')).withContents('feature file contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test-b.feature')).withContents('feature file contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/typescript.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.rdc.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.local.conf.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/app/src/index.ts')).withContents('source contents')
-                ]).withBabelModule(babelRegister).build()
-                await configParser.initialize()
-                expect(babelRegister).toBeCalledTimes(1)
-                expect(babelRegister).toHaveBeenCalledWith({
-                    'babel': 'do this',
-                    'and': 'that'
-                })
-            })
-
-            it('should just continue without initiation when autoCompile:false', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                const babelRegister = vi.fn()
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
-                        autoCompileOpts: {
-                            autoCompile: false
-                        }
-                    })
-                    .withBabelModule(babelRegister)
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
-                    ])
-                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(requireMock).not.toHaveBeenCalled()
-                expect(babelRegister).not.toHaveBeenCalled()
-            })
-
-            it('should just continue without initiation with --autoCompileOpts.autoCompile=false', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                const babelRegister = vi.fn()
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
-                        autoCompileOpts: {
-                            autoCompile: 'false'
-                        }
-                    })
-                    .withBabelModule(babelRegister)
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
-                    ])
-                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(requireMock).not.toHaveBeenCalled()
-                expect(babelRegister).not.toHaveBeenCalled()
-            })
-
-            it('should just continue without initiation if @babel/register does not exist', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    ])
-                    .withNoModules()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(babelRegister).not.toHaveBeenCalled()
-                expect(log.debug).toBeCalledTimes(1)
-                expect((log.debug as MockedFunction<any>).mock.calls[0][0])
-                    .toContain('Failed loading TS Node')
-            })
         })
     })
 

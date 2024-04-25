@@ -22,15 +22,15 @@ const stdErrStream = new RunnerStream()
 stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
 
-enum NodeVersion {
-    'major' = 0,
-    'minor' = 1,
-    'patch' = 2
-}
+// enum NodeVersion {
+//     'major' = 0,
+//     'minor' = 1,
+//     'patch' = 2
+// }
 
-function nodeVersion(type: keyof typeof NodeVersion): number {
-    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-}
+// function nodeVersion(type: keyof typeof NodeVersion): number {
+//     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+// }
 
 /**
  * WorkerInstance
@@ -120,19 +120,13 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             /**
              * autoCompile feature is enabled
              */
-            process.env.WDIO_LOAD_TS_NODE === '1' &&
+            process.env.WDIO_LOAD_TSX === '1' &&
             /**
              * the `@wdio/cli` didn't already attached the loader to the environment
              */
-            !(process.env.NODE_OPTIONS || '').includes('--loader ts-node/esm')
+            !(process.env.NODE_OPTIONS || '').includes('--import tsx/esm')
         ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only --no-warnings'
-            if (nodeVersion('major') >= 20 || (nodeVersion('major') === 18 && nodeVersion('minor') >= 19)) {
-                // Changes in Node 18.19 (and up) and Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
-                // - https://github.com/webdriverio/webdriverio/issues/10901
-                // - https://github.com/TypeStrong/ts-node/issues/2053
-                runnerEnv.NODE_OPTIONS += ' -r ts-node/register'
-            }
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx/esm'
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)

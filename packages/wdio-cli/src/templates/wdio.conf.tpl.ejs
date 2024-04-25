@@ -39,13 +39,7 @@ if (answers.isUsingTypeScript) {
     }
     %>,<%
     if (answers.isUsingTypeScript) { %>
-    autoCompileOpts: {
-        autoCompile: true,
-        tsNodeOpts: {
-            project: '<%- answers.tsProject %>',
-            transpileOnly: true
-        }
-    },
+    tsxTsconfigPath: '<%- answers.tsProject %>',
     <% }
     if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',

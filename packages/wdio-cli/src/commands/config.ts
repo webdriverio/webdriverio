@@ -5,12 +5,12 @@ import inquirer from 'inquirer'
 import type { Argv } from 'yargs'
 
 import {
-    CONFIG_HELPER_INTRO, CLI_EPILOGUE, CompilerOptions, SUPPORTED_PACKAGES,
+    CONFIG_HELPER_INTRO, CLI_EPILOGUE, SUPPORTED_PACKAGES,
     configHelperSuccessMessage, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_SERENITY_BANNER,
 } from '../constants.js'
 import {
     convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
-    getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
+    getProjectRoot, createPackageJSON, npmInstall,
     createWDIOConfig, createWDIOScript, runAppiumInstaller, getSerenityPackages
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
@@ -95,7 +95,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
              */
             : path.resolve(projectRootDir, `tsconfig.${runnerPackage.short === 'local' ? 'e2e' : 'wdio'}.json`)
     const parsedPaths = getPathForFileGeneration(answers, projectRootDir)
-    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
+    const isUsingTypeScript = answers.isUsingTypeScript
     const wdioConfigFilename = `wdio.conf.${isUsingTypeScript ? 'ts' : 'js'}`
     const wdioConfigPath = path.resolve(projectRootDir, wdioConfigFilename)
 
@@ -121,7 +121,6 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
-        isUsingBabel: answers.isUsingCompiler === CompilerOptions.Babel,
         esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',
@@ -143,8 +142,6 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
-    await setupTypeScript(parsedAnswers)
-    await setupBabel(parsedAnswers)
     await npmInstall(parsedAnswers, npmTag)
     await createWDIOConfig(parsedAnswers)
     await createWDIOScript(parsedAnswers)

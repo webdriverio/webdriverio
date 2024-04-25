@@ -70,12 +70,6 @@ class Launcher {
         await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
-        /**
-         * assign parsed autocompile options into args so it can be used within the worker
-         * without having to read the config again
-         */
-        this._args.autoCompileOpts = config.autoCompileOpts
-
         const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
         this.isParallelMultiremote = Array.isArray(capabilities) &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
@@ -461,10 +455,6 @@ class Launcher {
             configFile: this._configFilePath,
             args: {
                 ...this._args,
-                ...(config?.autoCompileOpts
-                    ? { autoCompileOpts: config.autoCompileOpts }
-                    : {}
-                ),
                 /**
                  * Pass on user and key values to ensure they are available in the worker process when using
                  * environment variables that were locally exported but not part of the environment.

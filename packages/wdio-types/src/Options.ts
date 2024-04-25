@@ -453,9 +453,9 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
-     * autocompile options
+     * TSX custom TSConfig path
      */
-    autoCompileOpts?: AutoCompileConfig
+    tsxTsconfigPath?: string
 }
 
 export interface TSConfigPathsOptions {
@@ -463,92 +463,6 @@ export interface TSConfigPathsOptions {
     paths: Record<string, string[]>
     mainFields?: string[]
     addMatchAll?: boolean
-}
-
-export interface AutoCompileConfig {
-    autoCompile?: boolean
-    babelOpts?: Record<string, any>
-    tsNodeOpts?: TSNodeOptions
-}
-
-export interface TSNodeOptions {
-    /**
-     * Path to tsconfig file.
-     */
-    project?: string
-    /**
-     * Skip project config resolution and loading
-     */
-    skipProject?: boolean
-    /**
-     * JSON object to merge with compiler options
-     */
-    compilerOptions?: Record<string, any>
-    /**
-     * Use TypeScript's faster transpileModule
-     */
-    transpileOnly?: boolean
-    /**
-     * Opposite of --transpileOnly
-     */
-    typeCheck?: boolean
-    /**
-     * Use TypeScript's compiler host API
-     */
-    compilerHost?: boolean
-    /**
-     * Load files, include and exclude from tsconfig.json on startup.
-     * This may avoid certain typechecking failures. See Missing types for details.
-     */
-    files?: boolean
-    /**
-     * Ignore TypeScript warnings by diagnostic code
-     */
-    ignoreDiagnostics?: string[]
-    /**
-     * Override the path patterns to skip compilation
-     */
-    ignore?: RegExp
-    /**
-     * Skip ignore checks
-     */
-    skipIgnore?: boolean
-    /**
-     * Specify a custom TypeScript compiler
-     */
-    compiler?: string
-    /**
-     * Re-order file extensions so that TypeScript imports are preferred
-     */
-    preferTsExts?: boolean
-    /**
-     * Logs TypeScript errors to stderr instead of throwing exceptions
-     */
-    logError?: boolean
-    /**
-     * Use pretty diagnostic formatter
-     */
-    pretty?: boolean
-    /**
-     * Behave as if invoked in this working directory
-     */
-    cwd?: string
-    /**
-     * Emit output files into `.ts-node` directory. Requires `--compilerHost`
-     */
-    emit?: boolean
-    /**
-     * Scope compiler to files within `scopeDir`. Anything outside this directory is ignored.
-     */
-    scope?: boolean
-    /**
-     * Directory within which compiler is limited when `scope` is enabled.
-     */
-    scopeDir?: string
-    /**
-     * Disable top-level await in REPL. Equivalent to node's `--no-experimental-repl-await`
-     */
-    noExperimentalReplAwait?: boolean
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

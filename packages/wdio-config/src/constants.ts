@@ -37,13 +37,6 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     reporterSyncInterval: 100,
     reporterSyncTimeout: 5000,
     cucumberFeaturesWithLineNumbers: [],
-    autoCompileOpts: {
-        autoCompile: true,
-        tsNodeOpts: {
-            transpileOnly: true
-        },
-        babelOpts: {}
-    },
 
     /**
      * framework defaults

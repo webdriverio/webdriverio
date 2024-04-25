@@ -120,9 +120,6 @@ export const cmdArgs = {
         desc: 'Cucumber options',
         coerce: coerceOpts
     },
-    autoCompileOpts: {
-        desc: 'Auto compilation options'
-    },
     coverage: {
         desc: 'Enable coverage for browser runner'
     },
@@ -145,8 +142,7 @@ export const builder = (yargs: Argv) => {
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --shard 1/4', 'Run only the first shard of 4 shards')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
-        .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
-        .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=./configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')
+        .example('$0 run wdio.conf.js --tsxTsconfigPath=./configs/bdd-tsconfig.json', 'Run suite with tsx using custom tsconfig.json')
         .epilogue(CLI_EPILOGUE)
         .help()
 }
@@ -185,15 +181,15 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
         })
 }
 
-enum NodeVersion {
-    'major' = 0,
-    'minor' = 1,
-    'patch' = 2
-}
+// enum NodeVersion {
+//     'major' = 0,
+//     'minor' = 1,
+//     'patch' = 2
+// }
 
-function nodeVersion(type: keyof typeof NodeVersion): number {
-    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-}
+// function nodeVersion(type: keyof typeof NodeVersion): number {
+//     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+// }
 
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
@@ -209,7 +205,7 @@ export async function handler(argv: RunCommandArguments) {
     }
 
     /**
-     * In order to load TypeScript files in ESM we need to apply the ts-node loader.
+     * In order to load TypeScript files in ESM we need to apply the tsx loader.
      * Let's have WebdriverIO set it automatically if the user doesn't.
      */
     const nodePath = process.argv[0]
@@ -217,31 +213,25 @@ export async function handler(argv: RunCommandArguments) {
     const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts')
     const runsWithLoader = (
         Boolean(
-            process.argv.find((arg) => arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('ts-node/esm'))
+            process.argv.find((arg) => arg.startsWith('--import')) &&
+            process.argv.find((arg) => arg.endsWith('tsx/esm'))
         ) ||
-        NODE_OPTIONS?.includes('ts-node/esm')
+        NODE_OPTIONS?.includes('tsx/esm')
     )
     if (isTSFile && !runsWithLoader && nodePath) {
-        NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
-        if (nodeVersion('major') >= 20 || (nodeVersion('major') === 18 && nodeVersion('minor') >= 19)) {
-            // Changes in Node 18.19 (and up) and Node 20 affect how TS Node works with source maps, hence the need for this workaround. See:
-            // - https://github.com/webdriverio/webdriverio/issues/10901
-            // - https://github.com/TypeStrong/ts-node/issues/2053
-            NODE_OPTIONS += ' -r ts-node/register'
-        }
-        const tsNodeProjectFromEnvVar = process.env.TS_NODE_PROJECT &&
-            path.resolve(process.cwd(), process.env.TS_NODE_PROJECT)
-        const tsNodeProjectFromParams = params.autoCompileOpts?.tsNodeOpts?.project &&
-            path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
-        const tsNodeProjectRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        if (tsNodeProjectFromParams) {
-            console.log('Deprecated: use the TS_NODE_PROJECT environment variable instead')
+        NODE_OPTIONS += ' --import tsx/esm'
+        const tsxTsconfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
+            path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
+        const tsxTsconfigPathFromParams = params.tsxTsconfigPath &&
+            path.resolve(process.cwd(), params.tsxTsconfigPath)
+        const tsxTsconfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+        if (tsxTsconfigPathFromParams) {
+            console.log('Deprecated: use the TSX_TSCONFIG_PATH environment variable instead')
         }
         const localTSConfigPath = (
-            tsNodeProjectFromEnvVar ||
-            tsNodeProjectFromParams ||
-            tsNodeProjectRelativeToWdioConfig)
+            tsxTsconfigPathFromEnvVar ||
+            tsxTsconfigPathFromParams ||
+            tsxTsconfigPathRelativeToWdioConfig)
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
             reject: false,
@@ -249,7 +239,7 @@ export async function handler(argv: RunCommandArguments) {
             stdio: 'inherit',
             env: {
                 ...process.env,
-                ...(hasLocalTSConfig ? { TS_NODE_PROJECT: localTSConfigPath } : {}),
+                ...(hasLocalTSConfig ? { TSX_TSCONFIG_PATH: localTSConfigPath } : {}),
                 NODE_OPTIONS
             }
         })

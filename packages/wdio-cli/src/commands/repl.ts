@@ -9,7 +9,7 @@ import type { ReplCommandArguments } from '../types.js'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
-    'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts'
+    'mochaOpts', 'jasmineOpts', 'cucumberOpts'
 ]
 
 export const command = 'repl <option> [capabilities]'
