@@ -313,6 +313,11 @@ export async function findDeepElement(
                 locator
             }
             return elem
+        }, (err) => {
+            log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+            return browser.findElement(using, value).catch((err) => {
+                log.warn(`Failed to execute browser.findElement({ ... }) due to ${err}`)
+            })
         }),
         /**
          * fetch through all shadow roots
@@ -368,10 +373,16 @@ export async function findDeepElements(
                 ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
                 : {}
             )
-        }).then((result) => result.nodes.map((node) => ({
-            [ELEMENT_KEY]: node.sharedId,
-            locator
-        }))),
+        }).then(
+            (result) => result.nodes.map((node) => ({
+                [ELEMENT_KEY]: node.sharedId,
+                locator
+            })),
+            (err) => {
+                log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+                return browser.findElements(using, value)
+            }
+        ),
         /**
          * fetch through all shadow roots
          */
