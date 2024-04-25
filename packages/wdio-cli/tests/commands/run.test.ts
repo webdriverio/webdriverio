@@ -125,7 +125,7 @@ describe('Command: run', () => {
             vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
             expect(execa).toBeCalledTimes(0)
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            process.env.TSX_PROJECT = './config/tsconfig.e2e.json'
+            process.env.TSX_PROJECT = `${path.sep}config${path.sep}tsconfig.e2e.json`
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             expect(vi.mocked(execa).mock.calls[0][2]!.env.TSX_PROJECT)
