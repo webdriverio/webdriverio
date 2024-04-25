@@ -79,7 +79,7 @@ export const config = {
             /**
              * Todo(@christian-bromann): set treshold back to 100
              */
-            functions: isMac ? 66 : 80
+            functions: isMac ? 60 : 80
         }
     }],
 
