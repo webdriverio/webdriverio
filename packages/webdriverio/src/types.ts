@@ -1,5 +1,5 @@
 import type { EventEmitter } from 'node:events'
-import type { SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
+import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
 import type { Options, Capabilities, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
@@ -286,6 +286,11 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      * error response if element was not found
      */
     error?: Error
+    /**
+     * locator of the element
+     * @requires WebDriver Bidi
+     */
+    locator?: remote.BrowsingContextLocator
 }
 /**
  * @deprecated use `WebdriverIO.Element` instead
@@ -475,6 +480,11 @@ export interface CustomThrottle {
     latency: number
 }
 export type ThrottleOptions = ThrottlePreset | CustomThrottle
+
+export interface ExtendedElementReference {
+    'element-6066-11e4-a52e-4f735466cecf': string
+    locator: remote.BrowsingContextLocator
+}
 
 declare global {
     namespace WebdriverIO {

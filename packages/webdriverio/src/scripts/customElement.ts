@@ -13,11 +13,15 @@ export default function customElementWrapper () {
         class WdioWrapperElement extends Constructor implements HTMLElement {
             connectedCallback() {
                 super.connectedCallback && super.connectedCallback()
-                console.debug('[WDIO]', 'newShadowRoot', this.shadowRoot, this)
+                let parentNode: ParentNode | null = this
+                while (parentNode.parentNode) {
+                    parentNode = parentNode.parentNode
+                }
+                console.debug('[WDIO]', 'newShadowRoot', this, parentNode)
             }
             disconnectedCallback() {
                 super.disconnectedCallback && super.disconnectedCallback()
-                console.debug('[WDIO]', 'removeShadowRoot', this.shadowRoot)
+                console.debug('[WDIO]', 'removeShadowRoot', this)
             }
         }
         return origFn(name, WdioWrapperElement, options)

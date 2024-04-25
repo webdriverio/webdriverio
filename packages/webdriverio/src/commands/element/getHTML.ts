@@ -7,6 +7,9 @@ import { getShadowRootManager } from '../../shadowRoot.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 
+const SHADOW_ID_ATTR_NAME = 'data-wdio-shadow-id'
+const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
+
 export interface GetHTMLOptions {
     /**
      * if true, it includes the selector element tag (default: true)
@@ -110,51 +113,43 @@ export async function getHTML(
         const { load } = await import('cheerio')
         const shadowRootManager = getShadowRootManager(browser)
         const handle = await browser.getWindowHandle()
-        const shadowRoots = shadowRootManager.getShadowRootsForContext(handle)
-
-        /**
-         * first get all shadow roots and their elements as ElementReference
-         */
-        const elemsWithShadowRootAndId = shadowRoots.map((shadowRootId) => [
-            shadowRootId,
-            { [ELEMENT_KEY]: shadowRootManager.getElementWithShadowDOM(shadowRootId) }
-        ]) as unknown as [string, HTMLElement][]
+        const shadowRootElementPairs = shadowRootManager.getShadowElementPairsByContextId(handle, (this as WebdriverIO.Element).elementId)
 
         /**
          * verify that shadow elements captured by the shadow root manager is still attached to the DOM
          */
-        const elemsWithShadowRootAndIdVerified = (
+        const elementsWithShadowRootAndIdVerified = ((
             await Promise.all(
-                elemsWithShadowRootAndId.map(([elemId, elem]) => (
-                    browser.execute((elem) => elem.tagName, elem).then(
-                        () => [elemId, elem] as [string, HTMLElement],
+                shadowRootElementPairs.map(([elemId, elem]) => (
+                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as any as HTMLElement).then(
+                        () => [elemId, elem],
                         () => undefined
                     )
                 ))
             )
-        ).filter(Boolean) as [string, HTMLElement][]
+        ).filter(Boolean) as [string, string | undefined][]).map(([elemId, shadowId]) => [
+            elemId,
+            { [ELEMENT_KEY]: elemId } as any as HTMLElement,
+            shadowId ? { [ELEMENT_KEY]: shadowId } : undefined
+        ]) as [string, HTMLElement, HTMLElement | undefined][]
 
         /**
          * then get the HTML of the element and its shadow roots
          */
-        const { html, shadowElementIdsFound } = await browser.execute(
+        const { html, shadowElementHTML } = await browser.execute(
             getHTMLShadowScript,
             { [ELEMENT_KEY]: this.elementId } as any as HTMLElement,
             includeSelectorTag,
-            elemsWithShadowRootAndIdVerified
+            elementsWithShadowRootAndIdVerified
         )
 
         const $ = load(html)
+        populateHTML($, shadowElementHTML.map(({ id, ...props }) => ({
+            ...props,
+            id,
+            mode: shadowRootManager.getShadowRootModeById(handle, id) || 'open'
+        })))
 
-        /**
-         * in case the given element has no elements containing a shadow root
-         * we can return the HTML right away
-         */
-        if (shadowElementIdsFound.length === 0) {
-            return sanitizeHTML($, { removeCommentNodes, prettify })
-        }
-
-        await pierceIntoShadowDOM.call(browser, $, elemsWithShadowRootAndId, shadowElementIdsFound)
         return sanitizeHTML($, { removeCommentNodes, prettify })
     }
 
@@ -162,62 +157,38 @@ export async function getHTML(
     return sanitizeHTML(returnHTML, { removeCommentNodes, prettify })
 }
 
-/**
- * Recursively pierce into shadow DOMs
- * @param browser WebdriverIO browser object
- * @param $ Cheerio object with our virtual DOM we are trying to build up with shadow DOM content
- * @param elemsWithShadowRootAndId list of all shadow root ids and their elements as ElementReference
- * @param shadowElementIdsFound list of shadow root ids we want to look up in the next iteration
- */
-async function pierceIntoShadowDOM (
-    this: WebdriverIO.Browser,
+function populateHTML (
     $: CheerioAPI,
-    elemsWithShadowRootAndId: [string, HTMLElement][],
-    shadowElementIdsFound: string[]
-): Promise<void> {
-    /**
-     * fetch html of shadow roots
-     */
-    const shadowRootContent = await Promise.all(shadowElementIdsFound.map((sel) => (
-        this.execute(
-            getHTMLShadowScript,
-            { [ELEMENT_KEY]: sel } as any as HTMLElement,
-            false,
-            elemsWithShadowRootAndId
-        ).then(({ html, shadowElementIdsFound, styles }) => (
-            { html, styles, shadowElementIdsFound, shadowRootId: sel }
-        ))
-    )))
-
-    /**
-     * update virtual DOM and inject shadow root content
-     */
-    for (const s of shadowElementIdsFound) {
-        const se = $(`[data-wdio-shadow-id="${s}"]`)
-        if (!se) {
-            continue
-        }
-        const { html, styles } = shadowRootContent.find(({ shadowRootId }) => s === shadowRootId)!
-        se.append([
-            `<template shadowroot="open" shadowrootmode="open" id="${s}">`,
-            styles.length > 0
-                ? `\t<style>${styles.join('\n')}</style>`
-                : '',
-            `\t${html}`,
-            '</template>',
-        ].join('\n'))
-    }
-
-    const elementsToLookup = shadowRootContent.map(({ shadowElementIdsFound }) => shadowElementIdsFound).flat()
-
-    /**
-     * stop recursion if no more shadow roots to look up
-     */
-    if (elementsToLookup.length === 0) {
+    shadowElementHTML: ({
+        html: string
+        id: string
+        mode: ShadowRootMode
+        styles?: string[];
+    })[]
+) {
+    const shadowElements = $(SHADOW_ID_ATTR)
+    if (shadowElements.length === 0) {
         return
     }
+    for (const elem of shadowElements) {
+        const id = elem.attribs[SHADOW_ID_ATTR_NAME]
+        const shadowReference = shadowElementHTML.find(({ id: shadowRootId }) => id === shadowRootId)
+        if (!shadowReference) {
+            continue
+        }
 
-    return pierceIntoShadowDOM.call(this, $, elemsWithShadowRootAndId, elementsToLookup)
+        $(`[${SHADOW_ID_ATTR_NAME}="${id}"]`).append([
+            `<template shadowrootmode="${shadowReference.mode}">`,
+            shadowReference.styles && shadowReference.styles.length > 0
+                ? `\t<style>${shadowReference.styles.join('\n')}</style>`
+                : '',
+            `\t${shadowReference.html}`,
+            '</template>',
+        ].join('\n'))
+        delete elem.attribs[SHADOW_ID_ATTR_NAME]
+    }
+
+    populateHTML($, shadowElementHTML)
 }
 
 /**
@@ -232,11 +203,6 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
      * can cause failures when taking a snapshot of a Shadow DOM element
      */
     const isCheerioObject = $ && typeof $ !== 'string'
-    if (isCheerioObject) {
-        $('template[id]').each((_, el) => { delete el.attribs.id })
-        $('[data-wdio-shadow-id]').each((_, el) => { delete el.attribs['data-wdio-shadow-id'] })
-    }
-
     let returnHTML = isCheerioObject ? $('body').html() as string : $
     if (options.removeCommentNodes) {
         returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
