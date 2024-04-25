@@ -134,12 +134,14 @@ export class ShadowRootManager {
             return []
         }
 
+        /**
+         * if we have a scope, try to find sub tree, otherwise use root tree
+         */
         if (scope) {
             const subTree = tree.find(scope)
-            if (!subTree) {
-                return []
+            if (subTree) {
+                tree = subTree
             }
-            tree = subTree
         }
 
         return tree.getAllLookupScopes()

@@ -12,6 +12,13 @@ export default function getHTMLShadow (
     shadowElementIds: [string, HTMLElement, HTMLElement | undefined][] = []
 ) {
     shadowElementIds.map(([id, elem]) => {
+        /**
+         * if we don't have a shadow root (e.g. most likely to be the root document node)
+         */
+        if (typeof elem.setAttribute !== 'function') {
+            return
+        }
+
         elem.setAttribute('data-wdio-shadow-id', id)
     })
 
