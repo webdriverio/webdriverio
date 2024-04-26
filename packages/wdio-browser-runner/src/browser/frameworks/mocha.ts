@@ -214,6 +214,9 @@ export class MochaFramework extends HTMLElement {
                 if (typeof arg === 'object' && 'error' in arg) {
                     if (arg.error instanceof Error) {
                         const errorObject = {
+                            // Pull all enumerable properties, supporting properties on custom Errors
+                            ...arg.error,
+                            // Explicitly pull Error's non-enumerable properties
                             message: arg.error.message,
                             name: arg.error.name,
                             stack: arg.error.stack,
