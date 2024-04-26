@@ -206,8 +206,8 @@ export class MochaFramework extends HTMLElement {
             args = args.map((arg) => {
                 // Check for test argument and file to that argument.
                 if (typeof arg === 'object' && 'type' in arg && 'title' in arg) {
-                    const { type, title, body, async, sync, timedOut, pending, parent } = arg;
-                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec };
+                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
+                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
                 }
 
                 // Check for error and convert error class to serializable Object.
@@ -218,6 +218,9 @@ export class MochaFramework extends HTMLElement {
                             name: arg.error.name,
                             stack: arg.error.stack,
                             type: arg.error.type || arg.error.name,
+                            matcherResult: arg.error.matcherResult,
+                            expected: arg.error.expected,
+                            actual: arg.error.actual
                         }
                         return {
                             ...arg,
