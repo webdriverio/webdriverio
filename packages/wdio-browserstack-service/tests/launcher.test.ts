@@ -69,7 +69,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
+        expect(log.debug).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
@@ -80,7 +80,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -95,7 +95,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
