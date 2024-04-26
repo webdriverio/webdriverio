@@ -181,15 +181,15 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
         })
 }
 
-// enum NodeVersion {
-//     'major' = 0,
-//     'minor' = 1,
-//     'patch' = 2
-// }
+enum NodeVersion {
+    'major' = 0,
+    'minor' = 1,
+    'patch' = 2
+}
 
-// function nodeVersion(type: keyof typeof NodeVersion): number {
-//     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-// }
+function nodeVersion(type: keyof typeof NodeVersion): number {
+    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+}
 
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
@@ -213,13 +213,19 @@ export async function handler(argv: RunCommandArguments) {
     const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts')
     const runsWithLoader = (
         Boolean(
-            process.argv.find((arg) => arg.startsWith('--import')) &&
+            process.argv.find((arg) => arg.startsWith('--import') || arg.startsWith('--loader')) &&
             process.argv.find((arg) => arg.endsWith('tsx/esm'))
         ) ||
         NODE_OPTIONS?.includes('tsx/esm')
     )
     if (isTSFile && !runsWithLoader && nodePath) {
-        NODE_OPTIONS += ' --import tsx/esm'
+        // The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
+        // This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
+        // see https://nodejs.org/api/module.html#customization-hooks
+        // and https://tsx.is/node#es-modules-only
+        const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
+          (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+        NODE_OPTIONS += ` ${moduleLoaderFlag} tsx/esm`
         const tsConfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
             path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
         const tsConfigPathFromParams = params.tsConfigPath &&
