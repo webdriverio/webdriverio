@@ -27,6 +27,7 @@ import {
     pkg,
     QUESTIONNAIRE,
     TESTING_LIBRARY_PACKAGES,
+    COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
     usesSerenity,
     PMs,
 } from './constants.js'
@@ -833,6 +834,123 @@ export function detectPackageManager(argv = process.argv) {
         argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
         argv[1].includes(`${path.sep}.${pm}${path.sep}`)
     )) || 'npm'
+}
+
+/**
+ * set up TypeScript if it is desired but not installed
+ */
+export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
+    /**
+     * don't create a `tsconfig.json` if user doesn't want to use TypeScript
+     */
+    if (!parsedAnswers.isUsingTypeScript) {
+        return
+    }
+
+    /**
+     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `tsx`
+     * as it is a requirement for running tests with TypeScript
+     */
+    if (parsedAnswers.hasRootTSConfig) {
+        parsedAnswers.packagesToInstall.push('tsx')
+        return
+    }
+
+    console.log('Setting up TypeScript...')
+    const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
+    const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
+    parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
+
+    const types = [
+        'node',
+        '@wdio/globals/types',
+        'expect-webdriverio',
+        ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
+        ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
+        ...servicePackages
+            .map(service => service.package)
+            .filter(service => (
+                /**
+                 * given that we know that all "official" services have
+                 * typescript support we only include them
+                 */
+                service.startsWith('@wdio') ||
+                /**
+                 * also include community maintained packages with known
+                 * support for TypeScript
+                 */
+                COMMUNITY_PACKAGES_WITH_TS_SUPPORT.includes(service)
+            ))
+    ]
+
+    const preset = getPreset(parsedAnswers)
+    const config = {
+        compilerOptions: {
+            // compiler
+            moduleResolution: 'node',
+            module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+            target: 'es2022',
+            lib: ['es2022', 'dom'],
+            types,
+            skipLibCheck: true,
+            // bundler
+            noEmit: true,
+            allowImportingTsExtensions: true,
+            resolveJsonModule: true,
+            isolatedModules: true,
+            // linting
+            strict: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            noFallthroughCasesInSwitch: true,
+            ...Object.assign(
+                preset === 'lit'
+                    ? {
+                        experimentalDecorators: true,
+                        useDefineForClassFields: false
+                    }
+                    : {},
+                preset === 'react'
+                    ? {
+                        jsx: 'react-jsx'
+                    }
+                    : {},
+                preset === 'preact'
+                    ? {
+                        jsx: 'react-jsx',
+                        jsxImportSource: 'preact'
+                    }
+                    : {},
+                preset === 'solid'
+                    ? {
+                        jsx: 'preserve',
+                        jsxImportSource: 'solid-js'
+                    }
+                    : {},
+                preset === 'stencil'
+                    ? {
+                        experimentalDecorators: true,
+                        jsx: 'react',
+                        jsxFactory: 'h',
+                        jsxFragmentFactory: 'Fragment'
+                    }
+                    : {}
+            )
+        },
+        include: preset === 'svelte'
+            ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+            : preset === 'vue'
+                ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+                : ['test', 'wdio.conf.ts']
+    }
+    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+    await fs.writeFile(
+        parsedAnswers.tsConfigFilePath,
+        JSON.stringify(config, null, 4)
+    )
+
+    console.log(chalk.green(chalk.bold('✔ Success!\n')))
 }
 
 function getPreset (parsedAnswers: ParsedAnswers) {
