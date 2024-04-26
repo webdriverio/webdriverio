@@ -16,7 +16,7 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
-    isScreenshotCommand,
+    isScreenshotCommand, isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
 } from './util.js'
@@ -641,7 +641,7 @@ class _InsightsHandler {
                 if (error && testData.result !== 'skipped') {
                     testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
-                    testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                    testData.failure_type = isUndefined(error.message) ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
                 testData.result = 'passed'
