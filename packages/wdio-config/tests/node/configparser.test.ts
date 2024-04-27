@@ -390,7 +390,6 @@ describe('ConfigParser', () => {
             ]).build()
             await configParser.initialize()
             const config = configParser.getConfig()
-            // @ts-expect-error
             expect(config['foo']).toBe('bar')
         })
 
