@@ -87,6 +87,8 @@ Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
 
+You can provide this path via `CHROMEDRIVER_PATH`, `GECKODRIVER_PATH` or `EDGEDRIVER_PATH` environment variables.
+
 Type: `string`
 
 :::caution
