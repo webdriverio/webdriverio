@@ -889,7 +889,7 @@ test('setupTypeScript', async () => {
     } as any
     await setupTypeScript(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
-    expect(parsedAnswers.packagesToInstall).toEqual(['ts-node', 'typescript'])
+    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {

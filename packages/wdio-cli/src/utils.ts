@@ -859,7 +859,7 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     console.log('Setting up TypeScript...')
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
-    parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    parsedAnswers.packagesToInstall.push('tsx')
     const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
 
     const types = [
