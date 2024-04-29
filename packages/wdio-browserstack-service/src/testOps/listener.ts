@@ -69,6 +69,9 @@ class Listener {
 
     public hookStarted(hookData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('HookRunStarted')) {
+                return
+            }
             this.hookStartedStats.triggered()
             this.sendBatchEvents(this.getEventForHook('HookRunStarted', hookData))
         } catch (e) {
@@ -79,6 +82,9 @@ class Listener {
 
     public hookFinished(hookData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('HookRunFinished')) {
+                return
+            }
             this.hookFinishedStats.triggered(hookData.result)
             this.sendBatchEvents(this.getEventForHook('HookRunFinished', hookData))
         } catch (e) {
@@ -89,7 +95,7 @@ class Listener {
 
     public testStarted(testData: TestData): void {
         try {
-            if (!shouldProcessEventForTesthub()) {
+            if (!shouldProcessEventForTesthub('TestRunStarted')) {
                 return
             }
             process.env[TEST_ANALYTICS_ID] = testData.uuid
@@ -103,6 +109,9 @@ class Listener {
 
     public testFinished(testData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('TestRunFinished')) {
+                return
+            }
             const shouldScanTest = shouldScanTestForAccessibility('', testData.name!, Listener._accessibilityOptions)
             testData.product_map = {
                 accessibility: shouldScanTest
@@ -117,6 +126,9 @@ class Listener {
 
     public logCreated(logs: LogData[]): void {
         try {
+            if (!shouldProcessEventForTesthub('LogCreated')) {
+                return
+            }
             this.markLogs('triggered', logs)
             this.sendBatchEvents({
                 event_type: 'LogCreated', logs: logs
@@ -148,6 +160,9 @@ class Listener {
 
     public cbtSessionCreated(data: CBTData): void {
         try {
+            if (!shouldProcessEventForTesthub('CBTSessionCreated')) {
+                return
+            }
             this.cbtSessionStats.triggered()
             this.sendBatchEvents({ event_type: 'CBTSessionCreated', test_run: data })
         } catch (e) {
@@ -183,8 +198,6 @@ class Listener {
     }
 
     private sendBatchEvents(jsonObject: UploadType): void {
-        BStackLogger.debug('callback: sendBatchEvents with events ')
-
         if (!this.shouldSendEvents()) {
             return
         }
@@ -192,8 +205,6 @@ class Listener {
         if (!this.requestBatcher) {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
                 BStackLogger.debug('callback: called with events ' + data.length)
-                BStackLogger.debug('callback: sendBatchEvents data ' + JSON.stringify(data))
-
                 try {
                     this.pendingUploads += 1
                     await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'BATCH_DATA', data)
