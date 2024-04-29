@@ -95,3 +95,6 @@ export const RERUN_ENV = 'BROWSERSTACK_RERUN'
 
 // To store whether the build launch has completed or not
 export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
+
+// Whether percy has started successfully or not
+export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'

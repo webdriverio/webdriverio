@@ -21,7 +21,8 @@ import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
     BROWSERSTACK_TESTHUB_UUID,
-    VALID_APP_EXTENSION
+    VALID_APP_EXTENSION,
+    BROWSERSTACK_PERCY
 } from './constants.js'
 import {
     launchTestSession,
@@ -272,6 +273,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
+                process.env[BROWSERSTACK_PERCY] = 'false'
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
@@ -398,8 +400,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-
         if (this._percy?.isRunning()) {
+            process.env[BROWSERSTACK_PERCY] = 'true'
             return
         }
         try {
@@ -408,6 +410,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 throw new Error('Could not start percy, check percy logs for info.')
             }
             PercyLogger.info('Percy started successfully')
+            process.env[BROWSERSTACK_PERCY] = 'true'
             let signal = 0
             const handler = async () => {
                 signal++
@@ -418,6 +421,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.on('SIGTERM', handler)
         } catch (err: unknown) {
             PercyLogger.debug(`Error in percy setup ${err}`)
+            process.env[BROWSERSTACK_PERCY] = 'false'
         }
     }
 
