@@ -73,7 +73,7 @@ export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/e
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch
-export const TESTOPS_JWT_ENV = 'BS_TESTOPS_JWT'
+export const BROWSERSTACK_TESTHUB_JWT = 'BROWSERSTACK_TESTHUB_JWT'
 
 // To store the setting of whether to send screenshots or not
 export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'

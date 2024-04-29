@@ -2,7 +2,7 @@ import { getErrorString, stopBuildUpstream } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
 import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
-import { TESTOPS_BUILD_ID_ENV, TESTOPS_JWT_ENV } from './constants.js'
+import { TESTOPS_BUILD_ID_ENV, BROWSERSTACK_TESTHUB_JWT } from './constants.js'
 
 export default class BStackCleanup {
     static async startCleanup() {
@@ -29,7 +29,7 @@ export default class BStackCleanup {
         }
     }
     static async executeObservabilityCleanup(funnelData: any) {
-        if (!process.env[TESTOPS_JWT_ENV]) {
+        if (!process.env[BROWSERSTACK_TESTHUB_JWT]) {
             return
         }
         BStackLogger.debug('Executing observability cleanup')
