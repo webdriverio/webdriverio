@@ -98,3 +98,9 @@ export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
 
 // Whether percy has started successfully or not
 export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'
+
+// Whether session is a accessibility session
+export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
+
+// Whether session is a observability session
+export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
