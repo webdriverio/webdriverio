@@ -32,7 +32,7 @@ export async function loadTypeScriptCompiler (tsConfigPath?: string) {
         objectToEnv({ tsConfigPath })
         return true
     } catch (err: any) {
-        log.debug(`Failed loading TS Node: ${err.message}`)
+        log.debug(`Failed loading TSX: ${err.message}`)
         return false
     }
 }
