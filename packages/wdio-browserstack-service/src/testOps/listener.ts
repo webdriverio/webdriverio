@@ -101,7 +101,7 @@ class Listener {
 
     public testFinished(testData: TestData): void {
         try {
-            const shouldScanTest = shouldScanTestForAccessibility('', testData.name, Listener._accessibilityOptions)
+            const shouldScanTest = shouldScanTestForAccessibility('', testData.name!, Listener._accessibilityOptions)
             testData.product_map = {
                 accessibility: shouldScanTest
             }

@@ -367,17 +367,6 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         }).json()
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        if (response.jwt) {
-            launchBuildUsage.success()
-            process.env[TESTOPS_JWT_ENV] = response.jwt
-        }
-        if (response.build_hashed_id) {
-            process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
-            TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
-        }
-        if (response.allow_screenshots) {
-            process.env[TESTOPS_SCREENSHOT_ENV] = response.allow_screenshots.toString()
-        }
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()
     } catch (error) {
