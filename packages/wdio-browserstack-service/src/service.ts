@@ -427,7 +427,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
-        BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        BStackLogger.debug(`Updating Browserstack at ${sessionUrl} with request body: `, requestBody)
         if (this._turboScale) {
             return got.patch(sessionUrl, {
                 json: requestBody,
