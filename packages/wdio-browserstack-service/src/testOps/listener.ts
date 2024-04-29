@@ -23,6 +23,7 @@ class Listener {
     private readonly logEvents: FeatureStats = this.usageStats.logStats
     private requestBatcher?: RequestQueueHandler
     private pendingUploads = 0
+    private static _accessibilityOptions?: { [key: string]: any; }
 
     // Making the constructor private to use singleton pattern
     private constructor() {
@@ -33,6 +34,10 @@ class Listener {
             Listener.instance = new Listener()
         }
         return Listener.instance
+    }
+
+    public static setAccessibilityOptions(options:  { [key: string]: any; } | undefined) {
+        Listener._accessibilityOptions = options
     }
 
     public async onWorkerEnd() {
