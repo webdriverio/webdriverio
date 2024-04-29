@@ -323,6 +323,7 @@ function processLaunchBuildResponse(response: LaunchResponse, options: Browserst
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
+
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -345,6 +346,16 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             settings: options.accessibilityOptions
         },
         browserstackAutomation: true,
+        framework_details: {
+            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkVersion: bsConfig.bstackServiceVersion,
+            sdkVersion: bsConfig.bstackServiceVersion,
+            language: 'ECMAScript',
+            testFramework: {
+                name: 'webdriverIO',
+                version: bsConfig.bstackServiceVersion
+            }
+        },
         config: {}
     }
 
@@ -619,53 +630,6 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
         return {}
     }
 }
-
-export const stopAccessibilityTestRun = errorHandler(async function stopAccessibilityTestRun() {
-    const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
-    if (!hasA11yJwtToken) {
-        return {
-            status: 'error',
-            message: 'Build creation had failed.'
-        }
-    }
-
-    const data = {
-        'endTime': (new Date()).toISOString(),
-    }
-
-    const requestOptions = { ...{
-        json: data,
-        headers: {
-            'Authorization': `Bearer ${process.env.BSTACK_A11Y_JWT}`,
-        }
-    } }
-
-    try {
-        const response: any = await nodeRequest(
-            'PUT', 'test_runs/stop', requestOptions, ACCESSIBILITY_API_URL
-        )
-
-        if (response.data && response.data.error) {
-            throw new Error('Invalid request: ' + response.data.error)
-        } else if (response.error) {
-            throw new Error('Invalid request: ' + response.error)
-        } else {
-            BStackLogger.info(`BrowserStack Accessibility Automation Test Run marked as completed at ${new Date().toISOString()}`)
-            return { status: 'success', message: '' }
-        }
-    } catch (error : any) {
-        if (error.response && error.response.status && error.response.statusText && error.response.data) {
-            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-        } else {
-            BStackLogger.error(`Exception while marking completion of BrowserStack Accessibility Automation Test Run: ${error.message || util.format(error)}`)
-        }
-        return {
-            status: 'error',
-            message: error.message ||
-                (error.response ? `${error.response.status}:${error.response.statusText}` : error)
-        }
-    }
-})
 
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
