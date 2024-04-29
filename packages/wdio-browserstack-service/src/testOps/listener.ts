@@ -11,7 +11,8 @@ import {
 } from '../constants.js'
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
-
+import { shouldProcessEventForTesthub } from '../testHub/utils.js'
+import { shouldScanTestForAccessibility } from '../util.js'
 class Listener {
     private static instance: Listener
     private readonly usageStats: UsageStats = UsageStats.getInstance()
@@ -87,6 +88,9 @@ class Listener {
 
     public testStarted(testData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub()) {
+                return
+            }
             this.testStartedStats.triggered()
             this.sendBatchEvents(this.getEventForHook('TestRunStarted', testData))
         } catch (e) {
