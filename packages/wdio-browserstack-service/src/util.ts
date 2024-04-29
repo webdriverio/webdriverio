@@ -34,7 +34,9 @@ import {
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
     TESTOPS_BUILD_COMPLETED_ENV,
-    BROWSERSTACK_TESTHUB_JWT
+    BROWSERSTACK_TESTHUB_JWT,
+    BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_ACCESSIBILITY
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -249,11 +251,14 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 
 function processTestObservabilityResponse(response: LaunchResponse) {
     if (!response.observability) {
+        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
         return
     }
     if (!response.observability.success) {
+        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
         return
     }
+    process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
     if (response.observability.options.allow_screenshots) {
         process.env[TESTOPS_SCREENSHOT_ENV] = response.observability.options.allow_screenshots.toString()
     }
@@ -277,9 +282,11 @@ const jsonifyAccessibilityArray = (
 
 function processAccessibilityResponse(response: LaunchResponse) {
     if (!response.accessibility) {
+        process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
         return
     }
     if (!response.accessibility.success) {
+        process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
         return
     }
 
@@ -295,6 +302,7 @@ function processAccessibilityResponse(response: LaunchResponse) {
         BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         if (accessibilityToken) {
             process.env.BSTACK_A11Y_JWT = accessibilityToken
+            process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
         }
         if (scriptsJson) {
             AccessibilityScripts.update(scriptsJson)
