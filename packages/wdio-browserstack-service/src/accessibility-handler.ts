@@ -179,7 +179,7 @@ class _AccessibilityHandler {
             }
 
             const dataForExtension = {
-                'thTestRunUuid': '',
+                'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
                 'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
                 'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
             }

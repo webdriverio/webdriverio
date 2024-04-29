@@ -7,7 +7,8 @@ import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
     DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
-    LOG_KIND_USAGE_MAP, TESTOPS_BUILD_COMPLETED_ENV
+    LOG_KIND_USAGE_MAP, TESTOPS_BUILD_COMPLETED_ENV,
+    TEST_ANALYTICS_ID
 } from '../constants.js'
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
@@ -91,6 +92,7 @@ class Listener {
             if (!shouldProcessEventForTesthub()) {
                 return
             }
+            process.env[TEST_ANALYTICS_ID] = testData.uuid
             this.testStartedStats.triggered()
             this.sendBatchEvents(this.getEventForHook('TestRunStarted', testData))
         } catch (e) {
@@ -181,6 +183,8 @@ class Listener {
     }
 
     private sendBatchEvents(jsonObject: UploadType): void {
+        BStackLogger.debug('callback: sendBatchEvents with events ')
+
         if (!this.shouldSendEvents()) {
             return
         }
@@ -188,6 +192,8 @@ class Listener {
         if (!this.requestBatcher) {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
                 BStackLogger.debug('callback: called with events ' + data.length)
+                BStackLogger.debug('callback: sendBatchEvents data ' + JSON.stringify(data))
+
                 try {
                     this.pendingUploads += 1
                     await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'BATCH_DATA', data)
