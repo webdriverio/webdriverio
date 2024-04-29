@@ -25,14 +25,12 @@ import {
 } from './constants.js'
 import {
     launchTestSession,
-    createAccessibilityTestRun,
     shouldAddServiceVersion,
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
     isUndefined,
     isAccessibilityAutomationSession,
-    stopAccessibilityTestRun,
     isTrue,
     getBrowserStackUser,
     getBrowserStackKey,

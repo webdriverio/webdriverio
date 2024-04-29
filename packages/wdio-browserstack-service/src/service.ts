@@ -122,7 +122,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
-        if (this._browser) {      
+        if (this._browser) {
             try {
                 const sessionId = this._browser.sessionId
                 if (isBrowserstackSession(this._browser)) {
