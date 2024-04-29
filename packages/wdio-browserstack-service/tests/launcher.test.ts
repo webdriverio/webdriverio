@@ -13,7 +13,7 @@ import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { RERUN_ENV, RERUN_TESTS_ENV, TESTOPS_BUILD_ID_ENV } from '../src/constants.js'
+import { RERUN_ENV, RERUN_TESTS_ENV, BROWSERSTACK_TESTHUB_UUID } from '../src/constants.js'
 import * as FunnelInstrumentation from '../src/instrumentation/funnelInstrumentation.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -1282,9 +1282,9 @@ describe('_uploadServiceLogs', () => {
     }]
 
     it('get observability build id', async() => {
-        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
+        process.env[BROWSERSTACK_TESTHUB_UUID] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env[TESTOPS_BUILD_ID_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_UUID]
     })
 
     const service = new BrowserstackLauncher(options as any, caps, config)
@@ -1307,9 +1307,9 @@ describe('_getClientBuildUuid', () => {
     const service = new BrowserstackLauncher(options as any, caps, config)
 
     it('get observability build id', async() => {
-        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
+        process.env[BROWSERSTACK_TESTHUB_UUID] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env[TESTOPS_BUILD_ID_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_UUID]
     })
 
     it('get randomly generated id if both the conditions fail', async() => {

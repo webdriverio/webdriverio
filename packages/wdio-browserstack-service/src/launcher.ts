@@ -20,7 +20,7 @@ import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig 
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
-    TESTOPS_BUILD_ID_ENV,
+    BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION
 } from './constants.js'
 import {
@@ -332,8 +332,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-        if (process.env[TESTOPS_BUILD_ID_ENV]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
+        if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
@@ -748,8 +748,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _getClientBuildUuid() {
-        if (process.env[TESTOPS_BUILD_ID_ENV]) {
-            return process.env[TESTOPS_BUILD_ID_ENV]
+        if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            return process.env[BROWSERSTACK_TESTHUB_UUID]
         }
         const uuid = uuidv4()
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')
