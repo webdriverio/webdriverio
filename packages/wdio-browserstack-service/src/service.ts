@@ -261,9 +261,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
+        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
         await this._insightsHandler?.afterTest(test, results)
         await this._percyHandler?.afterTest()
-        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
     async after (result: number) {

@@ -245,22 +245,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // remove accessibilityOptions from the capabilities if present
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
-        if (this._accessibilityAutomation) {
-            const scannerVersion = await createAccessibilityTestRun(this._options, this._config, {
-                projectName: this._projectName,
-                buildName: this._buildName,
-                buildTag: this._buildTag,
-                bstackServiceVersion: BSTACK_SERVICE_VERSION,
-                buildIdentifier: this._buildIdentifier,
-                accessibilityOptions: this._options.accessibilityOptions
-            })
-
-            if (scannerVersion) {
-                process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
-            }
-            BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
-        }
-
         if (this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)
                 .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
