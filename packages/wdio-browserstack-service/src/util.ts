@@ -30,7 +30,7 @@ import {
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
     TESTOPS_SCREENSHOT_ENV,
-    TESTOPS_BUILD_ID_ENV,
+    BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
     TESTOPS_BUILD_COMPLETED_ENV,
@@ -363,7 +363,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             process.env[BROWSERSTACK_TESTHUB_JWT] = response.jwt
         }
         if (response.build_hashed_id) {
-            process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
+            process.env[BROWSERSTACK_TESTHUB_UUID] = response.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
         }
         processLaunchBuildResponse(response, options)
@@ -684,7 +684,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[TESTOPS_BUILD_ID_ENV]}/stop`
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
         const response = await got.put(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
