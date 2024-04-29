@@ -247,6 +247,79 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     return errorClass
 }
 
+function processTestObservabilityResponse(response: LaunchResponse) {
+    if (!response.observability) {
+        return
+    }
+    if (!response.observability.success) {
+        return
+    }
+    process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+    if (response.jwt) {
+        process.env[TESTOPS_JWT_ENV] = response.jwt
+    }
+    if (response.build_hashed_id) {
+        process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
+        TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
+    }
+    if (response.observability.options.allow_screenshots) {
+        process.env[TESTOPS_SCREENSHOT_ENV] = response.observability.options.allow_screenshots.toString()
+    }
+}
+
+interface DataElement {
+    [key: string]: any
+}
+
+const jsonifyAccessibilityArray = (
+    dataArray: DataElement[],
+    keyName: keyof DataElement,
+    valueName: keyof DataElement
+): Record<string, any> => {
+    const result: Record<string, any> = {}
+    dataArray.forEach((element: DataElement) => {
+        result[element[keyName]] = element[valueName]
+    })
+    return result
+}
+
+function processAccessibilityResponse(response: LaunchResponse) {
+    if (!response.accessibility) {
+        return
+    }
+    if (!response.accessibility.success) {
+        return
+    }
+
+    if (response.accessibility.options) {
+        const { accessibilityToken, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const scriptsJson = {
+            'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
+            'commands': response.accessibility.options.commandsToWrap.commands
+        }
+        if (scannerVersion) {
+            process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
+        }
+        BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
+        if (accessibilityToken) {
+            process.env.BSTACK_A11Y_JWT = accessibilityToken
+        }
+        if (scriptsJson) {
+            AccessibilityScripts.update(scriptsJson)
+            AccessibilityScripts.store()
+        }
+    }
+}
+
+function processLaunchBuildResponse(response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) {
+    if (options.testObservability) {
+        processTestObservabilityResponse(response)
+    }
+    if (options.accessibility) {
+        processAccessibilityResponse(response)
+    }
+}
+
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
@@ -255,7 +328,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         project_name: getObservabilityProject(options, bsConfig.projectName),
         name: getObservabilityBuild(options, bsConfig.buildName),
         build_identifier: bsConfig.buildIdentifier,
-        start_time: (new Date()).toISOString(),
+        started_at: (new Date()).toISOString(),
         tags: getObservabilityBuildTags(options, bsConfig.buildTag),
         host_info: {
             hostname: hostname(),
@@ -268,10 +341,10 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
         failed_tests_rerun: process.env[RERUN_ENV] || false,
         version_control: await getGitMetaData(),
-        observability_version: {
-            frameworkName: 'WebdriverIO-' + config.framework,
-            sdkVersion: bsConfig.bstackServiceVersion
+        accessibility: {
+            settings: options.accessibilityOptions
         },
+        browserstackAutomation: true,
         config: {}
     }
 
@@ -285,7 +358,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
     data.config = CrashReporter.userConfigForReporting
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds`
+        const url = `${DATA_ENDPOINT}/api/v2/builds`
         const response: LaunchResponse = await got.post(url, {
             ...DEFAULT_REQUEST_CONFIG,
             username: getObservabilityUser(options, config),
@@ -305,6 +378,8 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         if (response.allow_screenshots) {
             process.env[TESTOPS_SCREENSHOT_ENV] = response.allow_screenshots.toString()
         }
+        processLaunchBuildResponse(response, options)
+        launchBuildUsage.success()
     } catch (error) {
         launchBuildUsage.failed(error)
         if (error instanceof HTTPError && error.response) {
