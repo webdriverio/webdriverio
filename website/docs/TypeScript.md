@@ -5,24 +5,15 @@ title: TypeScript Setup
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
+You will need [`tsx`](https://github.com/privatenumber/tsx) installed in `devDependencies`, via:
 
 ```bash npm2yarn
-$ npm install typescript ts-node --save-dev
+$ npm install tsx --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](/docs/configurationfile).
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as your WDIO config. If you need to set a different path for `tsconfig.json` please use the environment variables for [tsx](https://tsx.is/usage#custom-tsconfig-json-path) or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-## Configuration
-
-You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
-
-```sh
-# run wdio testrunner with custom options
-TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
-```
-
-The minimum TypeScript version is `v4.0.5`.
+Note that `tsx` does not support type-checking - if you wish to check your types then you will need to do this in a separate step with `tsc`.
 
 ## Framework Setup
 
@@ -122,27 +113,6 @@ const config: Options.WebdriverIO = {
     }
 }
 ```
-
-## Missing Types
-
-When using Node 20 or above, wdio runs ts-node with different settings as this is required in order to keep things running.
-These settings can cause your custom types not to be loaded, if this happens there are a few ways you can fix this, of which the easiest I will show below.
-
-Using ts-node's environment variables
-```
-TS_NODE_FILES=true wdio run ./wdio.conf.ts
-```
-
-Using tsconfig
-```
-{
-  "ts-node": {
-    "files": true
-  },
-}
-```
-
-For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
 
 ## Tips and Hints
 
