@@ -122,31 +122,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
-        if (this._browser) {
-            if (this._percy) {
-                this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework
-                )
-                this._percyHandler.before()
-            }
+        if (this._browser) {      
             try {
                 const sessionId = this._browser.sessionId
-                if (this._observability) {
-                    patchConsoleLogs()
-
-                    this._insightsHandler = new InsightsHandler(
-                        this._browser,
-                        this._isAppAutomate(),
-                        this._config.framework,
-                        this._caps
-                    )
-                    await this._insightsHandler.before()
-                }
-
                 if (isBrowserstackSession(this._browser)) {
                     try {
                         this._accessibilityHandler = new AccessibilityHandler(
@@ -158,9 +136,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             this._options.accessibilityOptions
                         )
                         await this._accessibilityHandler.before(sessionId)
+                        Listener.setAccessibilityOptions(this._options.accessibilityOptions)
                     } catch (err) {
                         BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
                     }
+                }
+
+                if (this._observability) {
+                    patchConsoleLogs()
+
+                    this._insightsHandler = new InsightsHandler(
+                        this._browser,
+                        this._isAppAutomate(),
+                        this._config.framework,
+                        this._caps
+                    )
+                    await this._insightsHandler.before()
                 }
 
                 /**
@@ -199,6 +190,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 if (this._observability) {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
                 }
+            }
+            if (this._percy) {
+                this._percyHandler = new PercyHandler(
+                    this._options.percyCaptureMode,
+                    this._browser,
+                    this._caps,
+                    this._isAppAutomate(),
+                    this._config.framework
+                )
+                this._percyHandler.before()
             }
         }
 
