@@ -221,7 +221,8 @@ export interface TestData {
     hooks?: string[],
     meta?: TestMeta,
     tags?: string[],
-    test_run_id?: string
+    test_run_id?: string,
+    product_map?: {}
 }
 
 export interface UserConfig {
