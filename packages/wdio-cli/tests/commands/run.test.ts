@@ -120,7 +120,7 @@ describe('Command: run', () => {
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx/esm')
+                .toContain('--import tsx')
         })
 
         it('should use the import flag for tsx for Node >= 20.6.0', async () => {
@@ -129,7 +129,7 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx/esm')
+                .toContain('--import tsx')
         })
 
         it('should use the import flag for tsx for Node >= 18.19.0', async () => {
@@ -138,7 +138,7 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx/esm')
+                .toContain('--import tsx')
         })
 
         it('should use the loader flag for tsx for Node < 20.6.0', async () => {
@@ -147,7 +147,7 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--loader tsx/esm')
+                .toContain('--loader tsx')
         })
 
         it('should use the loader flag for tsx for Node < 18.19.0', async () => {
@@ -156,7 +156,7 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--loader tsx/esm')
+                .toContain('--loader tsx')
         })
 
         it('should load custom tsconfig', async () => {
@@ -172,14 +172,14 @@ describe('Command: run', () => {
 
         it('should not restart if loader is already provided via --loader', async () => {
             expect(execa).toBeCalledTimes(0)
-            process.env.NODE_OPTIONS = '--loader tsx/esm'
+            process.env.NODE_OPTIONS = '--loader tsx'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(0)
         })
 
         it('should not restart if loader is already provided via --import', async () => {
             expect(execa).toBeCalledTimes(0)
-            process.env.NODE_OPTIONS = '--import tsx/esm'
+            process.env.NODE_OPTIONS = '--import tsx'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(0)
         })

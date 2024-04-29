@@ -214,9 +214,9 @@ export async function handler(argv: RunCommandArguments) {
     const runsWithLoader = (
         Boolean(
             process.argv.find((arg) => arg.startsWith('--import') || arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('tsx/esm'))
+            process.argv.find((arg) => arg.endsWith('tsx'))
         ) ||
-        NODE_OPTIONS?.includes('tsx/esm')
+        NODE_OPTIONS?.includes('tsx')
     )
     if (isTSFile && !runsWithLoader && nodePath) {
         // The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
@@ -225,7 +225,7 @@ export async function handler(argv: RunCommandArguments) {
         // and https://tsx.is/node#es-modules-only
         const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
           (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-        NODE_OPTIONS += ` ${moduleLoaderFlag} tsx/esm`
+        NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
         const tsConfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
             path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
         const tsConfigPathFromParams = params.tsConfigPath &&

@@ -25,8 +25,7 @@ export async function loadTypeScriptCompiler (tsConfigPath?: string) {
         if (process.env.VITEST_WORKER_ID && process.env.THROW_TSX_RESOLVE) {
             throw new Error('test fail')
         }
-        await resolve('tsx', import.meta.url)
-        const loaderPath = await resolve('tsx/esm', import.meta.url)
+        const loaderPath = await resolve('tsx', import.meta.url)
         await access(new URL(loaderPath))
         process.env.WDIO_LOAD_TSX = '1'
         objectToEnv({ tsConfigPath })

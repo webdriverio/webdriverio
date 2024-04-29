@@ -35,7 +35,7 @@ describe('loadTypeScriptCompiler', () => {
 
     it('should return true if tsconfig exists', async () => {
         expect(await loadTypeScriptCompiler()).toBe(true)
-        expect(resolve).toBeCalledTimes(2)
+        expect(resolve).toBeCalledTimes(1)
     })
 
     it('should return false if tsconfig exists', async () => {
@@ -51,16 +51,13 @@ describe('loadTypeScriptCompiler', () => {
         expect(resolve).toBeCalledTimes(0)
     })
 
-    it('should return false if if tsx/esm does not exist', async () => {
+    it('should return false if tsx does not exist', async () => {
         const mock = vi.mocked(resolve)
-        // resolve the first resolve call to an existing path and the second resolve call to a missing path
-        mock.mockResolvedValue('file:///some/missing/path').mockResolvedValueOnce('file:///some/path')
+        mock.mockResolvedValue('file:///some/missing/path')
         expect(await loadTypeScriptCompiler()).toBe(false)
-        expect(resolve).toBeCalledTimes(2)
-        expect(mock).toBeCalledTimes(2)
+        expect(resolve).toBeCalledTimes(1)
+        expect(mock).toBeCalledTimes(1)
         expect(mock.mock.calls[0][0]).toBe('tsx')
-        expect(mock.mock.results[0]).toStrictEqual({ type: 'return', value: 'file:///some/path' })
-        expect(mock.mock.calls[1][0]).toBe('tsx/esm')
-        expect(mock.mock.results[1]).toStrictEqual({ type: 'return', value: 'file:///some/missing/path' })
+        expect(mock.mock.results[0]).toStrictEqual({ type: 'return', value: 'file:///some/missing/path' })
     })
 })

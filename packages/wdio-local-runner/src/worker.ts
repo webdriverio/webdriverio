@@ -124,9 +124,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             /**
              * the `@wdio/cli` didn't already attached the loader to the environment
              */
-            !(process.env.NODE_OPTIONS || '').includes('--import tsx/esm')
+            !(process.env.NODE_OPTIONS || '').includes('--import tsx')
         ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx/esm'
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)
