@@ -179,14 +179,9 @@ class _AccessibilityHandler {
             }
 
             const dataForExtension = {
-                saveResults: shouldScanTestForAccessibility,
-                testDetails: {
-                    'name': test.title,
-                    'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
-                    'filePath': this._suiteFile,
-                    'scopeList': [suiteTitle, test.title]
-                },
-                platform: this._platformA11yMeta
+                'thTestRunUuid': '',
+                'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
+                'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
             }
 
             await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)

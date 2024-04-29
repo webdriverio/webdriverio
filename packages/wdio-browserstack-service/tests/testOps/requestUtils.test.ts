@@ -1,14 +1,14 @@
 import { uploadEventData } from '../../src/testOps/requestUtils.js'
 import { describe, expect, it, vi } from 'vitest'
 import got from 'got'
-import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../../src/constants.js'
+import { TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT } from '../../src/constants.js'
 
 describe('uploadEventData', () => {
     const mockedGot = vi.mocked(got)
 
     it('got.post called', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
         mockedGot.post = vi.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
@@ -19,7 +19,7 @@ describe('uploadEventData', () => {
 
     it('got.post failed', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
         mockedGot.post = vi.fn().mockReturnValue({
             json: () => Promise.reject({ }),
         } as any)
@@ -30,7 +30,7 @@ describe('uploadEventData', () => {
 
     it('got.post not called', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        delete process.env[TESTOPS_JWT_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_JWT]
         mockedGot.post = vi.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)

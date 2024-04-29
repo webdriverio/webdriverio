@@ -3,7 +3,7 @@ import {
     DATA_ENDPOINT,
     DATA_EVENT_ENDPOINT,
     DATA_SCREENSHOT_ENDPOINT,
-    TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV
+    TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT
 } from '../constants.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { DEFAULT_REQUEST_CONFIG, getLogTag } from '../util.js'
@@ -23,7 +23,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
         throw new Error('Build start not completed yet')
     }
 
-    if (!process.env[TESTOPS_JWT_ENV]) {
+    if (!process.env[BROWSERSTACK_TESTHUB_JWT]) {
         BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
         throw new Error('Token/buildID is undefined, build creation might have failed')
     }
@@ -34,7 +34,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env[TESTOPS_JWT_ENV]}`
+                'Authorization': `Bearer ${process.env[BROWSERSTACK_TESTHUB_JWT]}`
             },
             json: eventData
         }).json()

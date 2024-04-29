@@ -40,7 +40,7 @@ import {
     uploadLogs
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../src/constants.js'
+import { TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT } from '../src/constants.js'
 
 const log = logger('test')
 
@@ -651,7 +651,7 @@ describe('stopBuildUpstream', () => {
 
     it('return error if completed but jwt token not present', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        delete process.env[TESTOPS_JWT_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_JWT]
 
         const result: any = await stopBuildUpstream()
 
@@ -662,7 +662,7 @@ describe('stopBuildUpstream', () => {
 
     it('return success if completed', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
         mockedGot.put = vi.fn().mockReturnValue({
             json: () => Promise.resolve({}),
@@ -675,7 +675,7 @@ describe('stopBuildUpstream', () => {
 
     it('return error if failed', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
         mockedGot.put = vi.fn().mockReturnValue({
             json: () => Promise.reject({}),

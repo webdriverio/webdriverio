@@ -34,7 +34,7 @@ import {
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
     TESTOPS_BUILD_COMPLETED_ENV,
-    TESTOPS_JWT_ENV
+    BROWSERSTACK_TESTHUB_JWT
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -254,14 +254,6 @@ function processTestObservabilityResponse(response: LaunchResponse) {
     if (!response.observability.success) {
         return
     }
-    process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-    if (response.jwt) {
-        process.env[TESTOPS_JWT_ENV] = response.jwt
-    }
-    if (response.build_hashed_id) {
-        process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
-        TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
-    }
     if (response.observability.options.allow_screenshots) {
         process.env[TESTOPS_SCREENSHOT_ENV] = response.observability.options.allow_screenshots.toString()
     }
@@ -367,6 +359,13 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         }).json()
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        if (response.jwt) {
+            process.env[BROWSERSTACK_TESTHUB_JWT] = response.jwt
+        }
+        if (response.build_hashed_id) {
+            process.env[TESTOPS_BUILD_ID_ENV] = response.build_hashed_id
+            TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
+        }
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()
     } catch (error) {
@@ -671,7 +670,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         }
     }
 
-    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    const jwtToken = process.env[BROWSERSTACK_TESTHUB_JWT]
     if (!jwtToken) {
         stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
@@ -1097,7 +1096,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         throw new Error('Build not completed yet')
     }
 
-    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    const jwtToken = process.env[BROWSERSTACK_TESTHUB_JWT]
     if (!jwtToken) {
         throw new Error('Missing authentication Token')
     }
