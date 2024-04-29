@@ -692,7 +692,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
         }
     }
     const data = {
-        'stop_time': (new Date()).toISOString()
+        'finished_at': (new Date()).toISOString()
     }
 
     try {

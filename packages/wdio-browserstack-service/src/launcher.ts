@@ -333,30 +333,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async onComplete () {
         BStackLogger.debug('Inside OnComplete hook..')
-        if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            await stopAccessibilityTestRun().catch((error: any) => {
-                BStackLogger.error(`Exception in stop accessibility test run: ${error}`)
-            })
+
+        BStackLogger.debug('Sending stop launch event')
+        await stopBuildUpstream()
+        if (process.env[TESTOPS_BUILD_ID_ENV]) {
+            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
+        this.browserStackConfig.testObservability.buildStopped = true
 
-        if (this._options.testObservability) {
-            BStackLogger.debug('Sending stop launch event')
-            await stopBuildUpstream()
-            if (process.env[TESTOPS_BUILD_ID_ENV]) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
+        if (process.env[PERF_MEASUREMENT_ENV]) {
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+            if (!process.env.START_TIME) {
+                return
             }
-            this.browserStackConfig.testObservability.buildStopped = true
-
-            if (process.env[PERF_MEASUREMENT_ENV]) {
-                await PerformanceTester.stopAndGenerate('performance-launcher.html')
-                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
-
-                if (!process.env.START_TIME) {
-                    return
-                }
-                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-                BStackLogger.info(`Total duration is ${duration / 1000 } s`)
-            }
+            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+            BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
         await sendFinish(this.browserStackConfig)
