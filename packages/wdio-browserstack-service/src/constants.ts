@@ -81,6 +81,9 @@ export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'
 // To store build hashed id
 export const BROWSERSTACK_TESTHUB_UUID = 'BROWSERSTACK_TESTHUB_UUID'
 
+// To store test run uuid
+export const TEST_ANALYTICS_ID = 'TEST_ANALYTICS_ID'
+
 // Whether to collect performance instrumentation or not
 export const PERF_MEASUREMENT_ENV = 'BROWSERSTACK_O11Y_PERF_MEASUREMENT'
 
