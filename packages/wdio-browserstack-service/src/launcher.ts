@@ -260,17 +260,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
         }
 
-        if (this._options.testObservability) {
-            BStackLogger.debug('Sending launch start event')
+        BStackLogger.debug('Sending launch start event')
 
-            await launchTestSession(this._options, this._config, {
-                projectName: this._projectName,
-                buildName: this._buildName,
-                buildTag: this._buildTag,
-                bstackServiceVersion: BSTACK_SERVICE_VERSION,
-                buildIdentifier: this._buildIdentifier
-            })
-        }
+        await launchTestSession(this._options, this._config, {
+            projectName: this._projectName,
+            buildName: this._buildName,
+            buildTag: this._buildTag,
+            bstackServiceVersion: BSTACK_SERVICE_VERSION,
+            buildIdentifier: this._buildIdentifier
+        })
 
         if (this._options.percy) {
             try {
