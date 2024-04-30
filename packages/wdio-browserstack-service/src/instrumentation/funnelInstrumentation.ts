@@ -8,6 +8,7 @@ import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
+import { getProductMap } from '../testHub/utils.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -78,16 +79,6 @@ function getProductList(config: BrowserStackConfig) {
         products.push('app-automate')
     }
     return products
-}
-
-function getProductMap(config: BrowserStackConfig): any {
-    return {
-        'observability': config.testObservability.enabled,
-        'accessibility': config.accessibility,
-        'percy': config.percy,
-        'automate': config.automate,
-        'app_automate': config.appAutomate
-    }
 }
 
 function buildEventData(eventType: string, config: BrowserStackConfig): any {
