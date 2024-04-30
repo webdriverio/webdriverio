@@ -19,6 +19,8 @@ import type { ColorName } from 'chalk'
 import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
+import { getProductMap, logBuildError } from './testHub/utils.js'
+import type BrowserStackConfig from './config.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
@@ -252,9 +254,11 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 function processTestObservabilityResponse(response: LaunchResponse) {
     if (!response.observability) {
         process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
+        logBuildError(null, 'observability')
         return
     }
     if (!response.observability.success) {
+        logBuildError(response.observability, 'observability')
         process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
         return
     }
@@ -282,10 +286,12 @@ const jsonifyAccessibilityArray = (
 
 function processAccessibilityResponse(response: LaunchResponse) {
     if (!response.accessibility) {
+        logBuildError(null, 'accessibility')
         process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
         return
     }
     if (!response.accessibility.success) {
+        logBuildError(response.accessibility, 'accessibility')
         process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
         return
     }
@@ -320,7 +326,7 @@ function processLaunchBuildResponse(response: LaunchResponse, options: Browserst
     }
 }
 
-export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -356,6 +362,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
                 version: bsConfig.bstackServiceVersion
             }
         },
+        product_map: getProductMap(bStackConfig),
         config: {}
     }
 
@@ -387,26 +394,11 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         }
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()
-    } catch (error) {
-        launchBuildUsage.failed(error)
-        if (error instanceof HTTPError && error.response) {
-            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
-            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
-            switch (errorType) {
-            case 'ERROR_INVALID_CREDENTIALS':
-                BStackLogger.error(errorMessage)
-                break
-            case 'ERROR_ACCESS_DENIED':
-                BStackLogger.info(errorMessage)
-                break
-            case 'ERROR_SDK_DEPRECATED':
-                BStackLogger.error(errorMessage)
-                break
-            default:
-                BStackLogger.error(errorMessage)
-            }
-        } else {
-            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+    } catch (error: any) {
+        if (error.success === false) {
+            launchBuildUsage.failed(error)
+            logBuildError(error)
+            return
         }
     }
 })
@@ -1073,8 +1065,10 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         throw new Error('Missing authentication Token')
     }
 
+    const ENDPOINT = 'https://collector-observability.browserstack.com'
+
     try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const url = `${ENDPOINT}/${eventUrl}`
         const response = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {

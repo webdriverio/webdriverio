@@ -267,7 +267,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             buildTag: this._buildTag,
             bstackServiceVersion: BSTACK_SERVICE_VERSION,
             buildIdentifier: this._buildIdentifier
-        })
+        }, this.browserStackConfig)
 
         if (this._options.percy) {
             try {
