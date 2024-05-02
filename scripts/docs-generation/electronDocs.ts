@@ -60,6 +60,10 @@ export async function generateElectronDocs () {
                      * transform image paths
                      */
                     .replace('../../.github', `https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/.github`)
+                    /**
+                     * transform relative links
+                     */
+                    .replace('./configuration/service-configuration.md', '/electron/configuration#service-options')
             )
         ))).join('\n\n')
         await fs.writeFile(newDocsPath, `---
