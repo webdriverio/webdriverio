@@ -226,13 +226,14 @@ export async function handler(argv: RunCommandArguments) {
         const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
           (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
         NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
-        const tsConfigPathFromEnvVar = process.env.TSX_TSCONFIG_PATH &&
-            path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
+        const tsConfigPathFromEnvVar = (process.env.TSCONFIG_PATH &&
+            path.resolve(process.cwd(), process.env.TSCONFIG_PATH)) || (process.env.TSX_TSCONFIG_PATH &&
+            path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH))
         const tsConfigPathFromParams = params.tsConfigPath &&
             path.resolve(process.cwd(), params.tsConfigPath)
         const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
         if (tsConfigPathFromParams) {
-            console.log('Deprecated: use the TSX_TSCONFIG_PATH environment variable instead')
+            console.log('Deprecated: use the TSCONFIG_PATH environment variable instead')
         }
         const localTSConfigPath = (
             tsConfigPathFromEnvVar ||
