@@ -28,9 +28,9 @@ const allDocs: Record<string, PageProps> = {
         pages: 'docs/electron-apis/mocking-apis.md',
         id: 'mocking'
     },
-    'Standalone': {
+    'Standalone Mode': {
         pages: 'docs/standalone-mode.md',
-        id: 'standalone Mode'
+        id: 'standalone'
     }
 }
 
