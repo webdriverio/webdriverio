@@ -27,12 +27,16 @@ const allDocs: Record<string, PageProps> = {
     'Mocking': {
         pages: 'docs/electron-apis/mocking-apis.md',
         id: 'mocking'
+    },
+    'Standalone': {
+        pages: 'docs/standalone-mode.md',
+        id: 'standalone Mode'
     }
 }
 
 const GITHUB_REPO = 'webdriverio-community/wdio-electron-service'
 const GITHUB_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}`
-const DOCS_SHA = 'd58515341428b024edbbf6fb4ed2a3563166bb61'
+const DOCS_SHA = 'a2cb203f2d0c501736bdd03ac29d528c0a70fca4'
 
 export async function generateElectronDocs () {
     const basePath = path.join(__dirname, '..', '..')
