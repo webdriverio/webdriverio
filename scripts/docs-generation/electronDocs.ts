@@ -63,7 +63,7 @@ export async function generateElectronDocs () {
                     /**
                      * transform relative links
                      */
-                    .replace('./configuration/service-configuration.md', '/electron/configuration')
+                    .replace('./configuration/service-configuration.md', '/docs/desktop-testing/electron/configuration')
             )
         ))).join('\n\n')
         await fs.writeFile(newDocsPath, `---
