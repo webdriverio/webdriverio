@@ -11,13 +11,22 @@ You will need [`tsx`](https://github.com/privatenumber/tsx) installed in `devDep
 $ npm install tsx --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as your WDIO config. If you need to set a different path for `tsconfig.json` please use the environment variables for [tsx](https://tsx.is/usage#custom-tsconfig-json-path) or use wdio config's [tsConfigPath setting](/docs/configurationfile).
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as your WDIO config.
+
+#### Custom TSConfig
+
+If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
+
+Alternatively, you can use the [environment variable](https://tsx.is/usage#custom-tsconfig-json-path) for `tsx`.
+
+
+#### Type Checking
 
 Note that `tsx` does not support type-checking - if you wish to check your types then you will need to do this in a separate step with `tsc`.
 
 ## Framework Setup
 
-And your `tsconfig.json` needs the following:
+Your `tsconfig.json` needs the following:
 
 ```json title="tsconfig.json"
 {
