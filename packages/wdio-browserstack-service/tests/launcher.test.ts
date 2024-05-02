@@ -565,18 +565,27 @@ describe('onPrepare', () => {
         vi.clearAllMocks()
     })
 
-    it('should create accessibility test run if accessibility flag is true', async () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
-        const serviceOptions = { accessibility: true }
+    it('should launch testhub build when accessibility is true', async () => {
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
+        const serviceOptions = { accessibility: true, testObservability: false }
         const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
         vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
         await service.onPrepare(config, caps)
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
-        vi.clearAllMocks()
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should launch testhub build when observability is true', async () => {
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
+        const serviceOptions = { accessibility: false, testObservability: true }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
+        await service.onPrepare(config, caps)
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
+
     })
 
     it('should add accessibility options after filtering not allowed caps', async () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
         const caps: any = [{ 'bstack:options': {
             buildName: 'browserstack wdio build'
         } },
@@ -587,7 +596,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
         const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build' } }, { 'bstack:options': { buildName: 'browserstack wdio build' } }]
         await service.onPrepare(config, capabilities)
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
         expect(capabilities[0]['bstack:options']).toEqual({ buildName: 'browserstack wdio build', accessibilityOptions: { wcagVersion: 'wcag2aa' } })
         vi.clearAllMocks()
     })
@@ -631,12 +640,12 @@ describe('onComplete', () => {
     })
 
     it('should stop accessibility test run on complete', () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'stopAccessibilityTestRun')
+        const stopBuildUpstreamSpy = vi.spyOn(utils, 'stopBuildUpstream')
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
 
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
         service.onComplete()
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(stopBuildUpstreamSpy).toHaveBeenCalledTimes(1)
     })
 })
 
