@@ -103,7 +103,8 @@
           "items": [
             "desktop-testing/electron/configuration",
             "desktop-testing/electron/api",
-            "desktop-testing/electron/mocking"
+            "desktop-testing/electron/mocking",
+            "desktop-testing/electron/standalone"
           ]
         }
       ]
