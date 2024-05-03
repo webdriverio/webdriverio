@@ -5,7 +5,11 @@ tasks:
   - name: Unit Test Coverage
     init: gp sync-await installation
     command: |
-      pnpm run test:unit
+      npm run test:unit
+      cd coverage/lcov-report/
+      http-server -p 8000 &
+      cd ../../
+      npx vitest
   - name: Run Documentation Page
     init: |
       cd /workspace/webdriverio/website
