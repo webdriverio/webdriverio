@@ -145,7 +145,10 @@
     {
       "type": "category",
       "label": "Accessibility Testing",
-      "items": ["accessibility-testing/axe-core"]
+      "items": [
+        "accessibility-testing/axe-core",
+        "accessibility-testing/browserstack_accessibility_testing"
+      ]
     },
     {
       "type": "category",
