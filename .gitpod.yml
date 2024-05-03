@@ -5,24 +5,20 @@ tasks:
   - name: Unit Test Coverage
     init: gp sync-await installation
     command: |
-      npm run test:unit
-      cd coverage/lcov-report/
-      http-server -p 8000 &
-      cd ../../
-      npx vitest
+      pnpm run test:unit
   - name: Run Documentation Page
     init: |
       cd /workspace/webdriverio/website
-      npm install
+      pnpm install
     command: |
       cd /workspace/webdriverio/website
-      npm start
+      pnpm start
   - name: Setup WebdriverIO Development Environment
     init: |
-      npm install
-      npm run setup
+      pnpm install
+      pnpm run setup
       gp sync-done installation
-    command: npm run watch
+    command: pnpm run watch
   - name: Welcome Bash
     init: gp sync-await installation
     command: node .gitpod/welcome.mjs
