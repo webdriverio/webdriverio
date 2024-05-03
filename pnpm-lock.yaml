@@ -308,8 +308,6 @@ importers:
 
   e2e/interop: {}
 
-  packages/devtools/build/cjs: {}
-
   packages/eslint-plugin-wdio:
     devDependencies:
       '@types/estree':
