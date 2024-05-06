@@ -579,8 +579,8 @@ importers:
         specifier: ^3.5.3
         version: 3.6.0
       cli-spinners:
-        specifier: ^2.9.0
-        version: 2.9.2
+        specifier: ^3.0.0
+        version: 3.0.0
       dotenv:
         specifier: ^16.3.1
         version: 16.4.5
@@ -5550,6 +5550,10 @@ packages:
   cli-spinners@2.9.2:
     resolution: {integrity: sha512-ywqV+5MmyL4E7ybXgKys4DugZbX0FC6LnwrhjuykIjnK9k8OQacQ7axGKnjDXWNhns0xot3bZI5h55H8yo9cJg==}
     engines: {node: '>=6'}
+
+  cli-spinners@3.0.0:
+    resolution: {integrity: sha512-5p/5f8xOjTiyEpdc5KNulSLl5dOOgPQa/m4Rj6fF5UZubWIAvpVIJlnROBbJw+PZHKHlRlYv3KSfGYlecD7qrQ==}
+    engines: {node: '>=18.20'}
 
   cli-table3@0.6.3:
     resolution: {integrity: sha512-w5Jac5SykAeZJKntOxJCrm63Eg5/4dhMWIcuTbo9rpE+brgaSZo0RuNJZeOyMgsUdhDeojvgyQLmjI+K50ZGyg==}
@@ -18087,6 +18091,8 @@ snapshots:
   cli-spinners@2.6.1: {}
 
   cli-spinners@2.9.2: {}
+
+  cli-spinners@3.0.0: {}
 
   cli-table3@0.6.3:
     dependencies:
