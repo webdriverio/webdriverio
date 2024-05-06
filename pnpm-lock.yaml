@@ -416,7 +416,7 @@ importers:
         version: 29.7.0
       expect-webdriverio:
         specifier: ^4.12.2
-        version: 4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+        version: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       get-port:
         specifier: ^7.1.0
         version: 7.1.0
@@ -492,7 +492,7 @@ importers:
         version: 2.0.3
       '@wdio/cli':
         specifier: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-        version: 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+        version: 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -643,8 +643,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -723,8 +721,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -818,7 +814,7 @@ importers:
     optionalDependencies:
       expect-webdriverio:
         specifier: ^4.11.2
-        version: 4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+        version: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -844,7 +840,7 @@ importers:
         version: link:../wdio-utils
       expect-webdriverio:
         specifier: ^4.11.2
-        version: 4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+        version: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       jasmine:
         specifier: ^5.0.0
         version: 5.1.0
@@ -861,8 +857,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1024,7 +1018,7 @@ importers:
         version: 5.1.0
       expect-webdriverio:
         specifier: ^4.12.0
-        version: 4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+        version: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       gaze:
         specifier: ^1.1.3
         version: 1.1.3
@@ -1084,8 +1078,6 @@ importers:
       '@wdio/globals':
         specifier: workspace:*
         version: link:../wdio-globals
-
-  packages/wdio-shared-store-service/build/cjs: {}
 
   packages/wdio-shared-store-service/src/cjs: {}
 
@@ -1233,7 +1225,7 @@ importers:
         version: 4.0.0
       locate-app:
         specifier: ^2.2.24
-        version: 2.4.8(@promptbook/core@0.44.0-1)
+        version: 2.4.8(@promptbook/core@0.48.0)
       safaridriver:
         specifier: ^0.1.2
         version: 0.1.2
@@ -1298,8 +1290,6 @@ importers:
       ws:
         specifier: ^8.8.0
         version: 8.16.0
-
-  packages/webdriver/build/cjs: {}
 
   packages/webdriver/src/cjs: {}
 
@@ -1396,8 +1386,6 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -3541,8 +3529,8 @@ packages:
       preact: ^10.4.0
       vite: '>=2.0.0'
 
-  '@promptbook/core@0.44.0-1':
-    resolution: {integrity: sha512-+HS9RPOYj7v+SYxzUeJGfgffh1Kp2YsLlGy4CkWlxtk2NAcSz8IokhlJbed7WyMH0I+EvoKnD3DAU6ZadNjIvA==}
+  '@promptbook/core@0.48.0':
+    resolution: {integrity: sha512-BuzgyvnyM3QSWUybuFFuXDW0trRMG0CKJPEeSyN8fDAS2T/rchtjZALf4wTtXSLkXzCn3z1oGDw6nKInwXgoCA==}
 
   '@promptbook/utils@0.44.0-1':
     resolution: {integrity: sha512-6twWfKlM0wOqPTzyKKCn2OcXVxloveTfK/x2sFDIqOiyMYehrHVksrETEqr0QnZ4uY/yLMs6jIx5DdDlJrUJQw==}
@@ -10996,6 +10984,9 @@ packages:
   spacetrim@0.11.2:
     resolution: {integrity: sha512-/rdSi1YqdWpJ2fm2tan8O9ntmAFm04K+aSBgntGJib8nw1aPYZNxGGoPq0c1bC36CbVwLzaiPOLIITQXLBM5Pw==}
 
+  spacetrim@0.11.24:
+    resolution: {integrity: sha512-MMIiFeSNm8B4NyyeAq2GYzfVJ+l48EddNAW9EMrozV1i3P5jVltgvJ97vf2K6xIQ+3ZdimAzEIZal9a+JtZeyg==}
+
   spdx-correct@3.2.0:
     resolution: {integrity: sha512-kN9dJbvnySHULIluDHy32WHRUu3Og7B9sbY7tsFLctQkIqnMh3hErYgdMjTYuqmcXX+lK5T1lnUt3G7zNswmZA==}
 
@@ -15584,13 +15575,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@promptbook/core@0.44.0-1':
+  '@promptbook/core@0.48.0':
     dependencies:
-      spacetrim: 0.11.2
+      spacetrim: 0.11.24
 
-  '@promptbook/utils@0.44.0-1(@promptbook/core@0.44.0-1)':
+  '@promptbook/utils@0.44.0-1(@promptbook/core@0.48.0)':
     dependencies:
-      '@promptbook/core': 0.44.0-1
+      '@promptbook/core': 0.48.0
       moment: 2.30.1
       prettier: 2.8.1
       spacetrim: 0.11.2
@@ -17010,16 +17001,16 @@ snapshots:
       js-beautify: 1.15.1
       vue-component-type-helpers: 2.0.13
 
-  '@wdio/cli@8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)':
+  '@wdio/cli@8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)':
     dependencies:
       '@types/node': 20.12.7
       '@vitest/snapshot': 1.5.0
-      '@wdio/config': 8.36.1(@promptbook/core@0.44.0-1)
-      '@wdio/globals': 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/config': 8.36.1(@promptbook/core@0.48.0)
+      '@wdio/globals': 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       '@wdio/logger': 8.28.0
       '@wdio/protocols': 8.32.0
       '@wdio/types': 8.36.1
-      '@wdio/utils': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/utils': 8.36.1(@promptbook/core@0.48.0)
       async-exit-hook: 2.0.1
       chalk: 5.3.0
       chokidar: 3.6.0
@@ -17034,7 +17025,7 @@ snapshots:
       lodash.union: 4.6.0
       read-pkg-up: 10.0.0
       recursive-readdir: 2.2.3
-      webdriverio: 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+      webdriverio: 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       yargs: 17.7.2
     transitivePeerDependencies:
       - '@promptbook/core'
@@ -17045,11 +17036,11 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@wdio/config@8.36.1(@promptbook/core@0.44.0-1)':
+  '@wdio/config@8.36.1(@promptbook/core@0.48.0)':
     dependencies:
       '@wdio/logger': 8.28.0
       '@wdio/types': 8.36.1
-      '@wdio/utils': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/utils': 8.36.1(@promptbook/core@0.48.0)
       decamelize: 6.0.0
       deepmerge-ts: 5.1.0
       glob: 10.3.12
@@ -17058,10 +17049,10 @@ snapshots:
       - '@promptbook/core'
       - supports-color
 
-  '@wdio/globals@8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)':
+  '@wdio/globals@8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)':
     optionalDependencies:
-      expect-webdriverio: 4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
-      webdriverio: 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+      expect-webdriverio: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
+      webdriverio: 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
     transitivePeerDependencies:
       - '@promptbook/core'
       - bufferutil
@@ -17088,7 +17079,7 @@ snapshots:
     dependencies:
       '@types/node': 20.12.7
 
-  '@wdio/utils@8.36.1(@promptbook/core@0.44.0-1)':
+  '@wdio/utils@8.36.1(@promptbook/core@0.48.0)':
     dependencies:
       '@puppeteer/browsers': 1.9.1
       '@wdio/logger': 8.28.0
@@ -17099,7 +17090,7 @@ snapshots:
       geckodriver: 4.3.3
       get-port: 7.1.0
       import-meta-resolve: 4.0.0
-      locate-app: 2.4.8(@promptbook/core@0.44.0-1)
+      locate-app: 2.4.8(@promptbook/core@0.48.0)
       safaridriver: 0.1.2
       split2: 4.2.0
       wait-port: 1.1.0
@@ -19620,16 +19611,16 @@ snapshots:
     dependencies:
       homedir-polyfill: 1.0.3
 
-  expect-webdriverio@4.13.0(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5):
+  expect-webdriverio@4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
       '@vitest/snapshot': 1.5.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
     optionalDependencies:
-      '@wdio/globals': 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/globals': 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       '@wdio/logger': 8.28.0
-      webdriverio: 8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5)
+      webdriverio: 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
     transitivePeerDependencies:
       - '@promptbook/core'
       - bufferutil
@@ -21621,9 +21612,9 @@ snapshots:
       mlly: 1.6.1
       pkg-types: 1.1.0
 
-  locate-app@2.4.8(@promptbook/core@0.44.0-1):
+  locate-app@2.4.8(@promptbook/core@0.48.0):
     dependencies:
-      '@promptbook/utils': 0.44.0-1(@promptbook/core@0.44.0-1)
+      '@promptbook/utils': 0.44.0-1(@promptbook/core@0.48.0)
       type-fest: 2.13.0
       userhome: 1.0.0
     transitivePeerDependencies:
@@ -24800,6 +24791,8 @@ snapshots:
 
   spacetrim@0.11.2: {}
 
+  spacetrim@0.11.24: {}
+
   spdx-correct@3.2.0:
     dependencies:
       spdx-expression-parse: 3.0.1
@@ -25913,15 +25906,15 @@ snapshots:
 
   web-streams-polyfill@4.0.0-beta.3: {}
 
-  webdriver@8.36.1(@promptbook/core@0.44.0-1):
+  webdriver@8.36.1(@promptbook/core@0.48.0):
     dependencies:
       '@types/node': 20.12.7
       '@types/ws': 8.5.10
-      '@wdio/config': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/config': 8.36.1(@promptbook/core@0.48.0)
       '@wdio/logger': 8.28.0
       '@wdio/protocols': 8.32.0
       '@wdio/types': 8.36.1
-      '@wdio/utils': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/utils': 8.36.1(@promptbook/core@0.48.0)
       deepmerge-ts: 5.1.0
       got: 12.6.1
       ky: 0.33.3
@@ -25932,15 +25925,15 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriverio@8.36.1(@promptbook/core@0.44.0-1)(encoding@0.1.13)(typescript@5.4.5):
+  webdriverio@8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
       '@types/node': 20.12.7
-      '@wdio/config': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/config': 8.36.1(@promptbook/core@0.48.0)
       '@wdio/logger': 8.28.0
       '@wdio/protocols': 8.32.0
       '@wdio/repl': 8.24.12
       '@wdio/types': 8.36.1
-      '@wdio/utils': 8.36.1(@promptbook/core@0.44.0-1)
+      '@wdio/utils': 8.36.1(@promptbook/core@0.48.0)
       archiver: 7.0.1
       aria-query: 5.3.0
       css-shorthand-properties: 1.1.1
@@ -25957,7 +25950,7 @@ snapshots:
       resq: 1.11.0
       rgb2hex: 0.2.5
       serialize-error: 11.0.3
-      webdriver: 8.36.1(@promptbook/core@0.44.0-1)
+      webdriver: 8.36.1(@promptbook/core@0.48.0)
     transitivePeerDependencies:
       - '@promptbook/core'
       - bufferutil
