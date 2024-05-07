@@ -73,8 +73,6 @@
     "@aws-sdk/lib-storage": "^3.513.0",
     "@octokit/rest": "^19.0.13",
     "@preact/preset-vite": "^2.8.1",
-    "@react-email/components": "^0.0.15",
-    "@react-email/tailwind": "^0.0.14",
     "@serenity-js/core": "^3.17.0",
     "@stencil/core": "^4.12.2",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
@@ -128,7 +126,7 @@
     "tempy": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "unzipper": "^0.10.14",
+    "unzipper": "^0.11.4",
     "vitest": "^1.2.2"
   }
 }

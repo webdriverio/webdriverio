@@ -28,44 +28,14 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
   * [#12703](https://github.com/webdriverio/webdriverio/pull/12703) [webdriverio-v8] Fix issue wdio log is missing in standalone mode ([@nguyencuongabcxyz](https://github.com/nguyencuongabcxyz))
 * `wdio-browserstack-service`
   * [#12665](https://github.com/webdriverio/webdriverio/pull/12665) Fix error messages ([@07souravkunda](https://github.com/07souravkunda))
-  * [#12583](https://github.com/webdriverio/webdriverio/pull/12583) [v8][browserstack-service] fix cucumber test duration ([@samarsault](https://github.com/samarsault))
-* `webdriver`
-  * [#12578](https://github.com/webdriverio/webdriverio/pull/12578) add request.performance type to WebdriverClassicEvents ([@sushantsoni5392](https://github.com/sushantsoni5392))
-* `wdio-globals`
-  * [#12502](https://github.com/webdriverio/webdriverio/pull/12502) [backport] @wdio/globals: Declare "expect" global type explicitly ([@naruaway](https://github.com/naruaway))
-* `wdio-browser-runner`, `webdriverio`
-  * [#12540](https://github.com/webdriverio/webdriverio/pull/12540) (wdio-browser-runner): fix error response for the wdio-browser-runner ([@erwinheitzman](https://github.com/erwinheitzman))
 
 #### :nail_care: Polish
 * `wdio-browserstack-service`
   * [#12675](https://github.com/webdriverio/webdriverio/pull/12675) Fix skip test filename ([@07souravkunda](https://github.com/07souravkunda))
-* `webdriverio`
-  * [#12534](https://github.com/webdriverio/webdriverio/pull/12534) (webdriverio): polish intercepted errors ([@erwinheitzman](https://github.com/erwinheitzman))
 
-#### :memo: Documentation
-* `wdio-types`
-  * [#12620](https://github.com/webdriverio/webdriverio/pull/12620) Updating Sauce Labs specific capability type definitions - Backport v8 ([@steilerDev](https://github.com/steilerDev))
-* `wdio-browserstack-service`
-  * [#12538](https://github.com/webdriverio/webdriverio/pull/12538) Added Integration pages for Percy and App Percy for WDIO ([@KhushbuRander](https://github.com/KhushbuRander))
-* `wdio-cli`
-  * [#12582](https://github.com/webdriverio/webdriverio/pull/12582) Fix the link for electron service options documentation ([@gavvvr](https://github.com/gavvvr))
-* Other
-  * [#12546](https://github.com/webdriverio/webdriverio/pull/12546) [📖 Docs]: How to configure tests using Chromium (NOT Chrome) browser ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
-  * [#12550](https://github.com/webdriverio/webdriverio/pull/12550) Fix link in babel docs (v8) ([@albertyw](https://github.com/albertyw))
-
-#### Committers: 13
-- Albert Wang ([@albertyw](https://github.com/albertyw))
-- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
-- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
-- Frank Steiler ([@steilerDev](https://github.com/steilerDev))
-- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
-- Muhammad Hammad Faisal ([@M-Hammad-Faisal](https://github.com/M-Hammad-Faisal))
-- Naru ([@naruaway](https://github.com/naruaway))
-- Samarjeet ([@samarsault](https://github.com/samarsault))
+#### Committers: 3
 - Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
-- Sushant Soni ([@sushantsoni5392](https://github.com/sushantsoni5392))
-- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
-- [@KhushbuRander](https://github.com/KhushbuRander)
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
 - [@nguyencuongabcxyz](https://github.com/nguyencuongabcxyz)
 
 

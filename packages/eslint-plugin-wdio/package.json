@@ -5,19 +5,18 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
-  "type": "module",
   "main": "./cjs/index.js",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ]
+    "import": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "require": {
+      "types": "./build/index.d.ts",
+      "default": "./cjs/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
@@ -40,6 +39,6 @@
   },
   "devDependencies": {
     "@types/estree": "^1.0.1",
-    "eslint": "^8.10.0"
+    "eslint": "^9.0.0"
   }
 }

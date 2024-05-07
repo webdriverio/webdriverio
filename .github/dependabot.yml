@@ -21,6 +21,7 @@ updates:
     - dependency-name: "pretty-ms"
     - dependency-name: "@puppeteer/browsers"
     - dependency-name: "inquirer"
+    - dependency-name: "cli-spinners"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
