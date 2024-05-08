@@ -35,7 +35,7 @@
     "test:depcheck": "tsx ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
-    "test:typings": "run-p test:typings:*",
+    "test:typings": "pnpm install && run-p test:typings:*",
     "test:typings:webdriver": "cd tests/typings/webdriver && npx tsc --skipLibCheck",
     "test:typings:webdriverio": "cd tests/typings/webdriverio && npx tsc --skipLibCheck",
     "test:typings:mocha": "cd tests/typings/mocha && npx tsc --skipLibCheck",
