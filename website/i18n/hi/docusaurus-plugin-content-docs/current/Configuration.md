@@ -408,27 +408,13 @@ export const config: WebdriverIO.Config = {
 
 Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-### autoCompileOpts
+### tsConfigPath
 
-टाइपस्क्रिप्ट या बेबेल के साथ WebdriverIO का उपयोग करते समय संकलक विकल्प।
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-#### autoCompileOpts.autoCompile
+See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
 
-यदि `true` पर सेट किया जाता है तो WDIO टेस्टरनर स्वचालित रूप से कल्पना फ़ाइलों को ट्रांसपाइल करने का प्रयास करेगा।
-
-Type: `Boolean` Default: `true`
-
-#### autoCompileOpts.tsNodeOpts
-
-कॉन्फ़िगर करें कि कैसे [`ts-node`](https://www.npmjs.com/package/ts-node) फ़ाइलों को ट्रांसपाइल करने के लिए माना जाता है।
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.babelOpts
-
-कॉन्फ़िगर करें कि कैसे [](https://www.npmjs.com/package/@babel/register)ts-node फ़ाइलों को ट्रांसपाइल करने के लिए माना जाता है।
-
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
@@ -494,7 +480,7 @@ WDIO टेस्टरनर आपको परीक्षण जीवनच
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-पैरामीटर:
+Parameters:
 
 - `suite` (`object`): सुइट विवरण
 
@@ -521,9 +507,9 @@ Parameters:
 
 परीक्षण से पहले क्रियान्वित किया जाने वाला कार्य (केवल मोचा/जेसमीन में)।
 
-पैरामीटर:
+Parameters:
 
-- `suite` (`object`): सुइट विवरण
+- `test` (`object`): test details
 - `context` (`object`): स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
 
 ### beforeCommand
@@ -573,7 +559,7 @@ Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 सभी परीक्षण किए जाने के बाद निष्पादित हो जाता है। आपके पास अभी भी परीक्षण से सभी वैश्विक वेरिएबल तक पहुंच है।
 
-पैरामीटर:
+Parameters:
 
 - `exitCode` (`number`): 0 - टेस्ट सफलता, 1 - टेस्ट असफल
 - `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
@@ -586,8 +572,8 @@ Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 Parameters:
 
 - `config` (`object`): WebdriverIO कॉन्फ़िगरेशन ऑब्जेक्ट
-- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
-- `specs` (`string[]`): वर्कर प्रक्रिया में चलने के लिए स्पेक्स
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 
 ### onComplete
 
@@ -647,17 +633,17 @@ Parameters:
 - `result.passed` (`बूलियन`): यदि परिदृश्य पास हो गया है तो सच है
 - `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि ढेर
 - `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
-- `context` (`object`): Cucumber World object
+- `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
 
 ### beforeStep
 
 कुकुम्बर परिदृश्य से पहले चलता है।
 
-पैरामीटर:
+Parameters:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): कुकुम्बर स्टेप ऑब्जेक्ट
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): कुकुम्बर परिदृश्य वस्तु
-- `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
+- `context` (`object`): Cucumber World object
 
 ### afterStep
 
@@ -665,8 +651,8 @@ Parameters:
 
 Parameters:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): कुकुम्बर स्टेप ऑब्जेक्ट
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): कुकुम्बर परिदृश्य वस्तु
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
 - `result` (`object`): परिणाम वस्तु जिसमें स्टेप परिणाम होते हैं
 - `result.passed` (`boolean`): यदि परिदृश्य पास हो गया है तो सच है
 - `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि स्टेक
