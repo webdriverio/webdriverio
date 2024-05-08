@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       nock:
-        specifier: 14.0.0-beta.5
-        version: 14.0.0-beta.5
+        specifier: 14.0.0-beta.6
+        version: 14.0.0-beta.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.1
@@ -9129,8 +9129,8 @@ packages:
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
-  nock@14.0.0-beta.5:
-    resolution: {integrity: sha512-u255tf4DYvyErTlPZA9uTfXghiZZy+NflUOFONPVKZ5tP0yaHwKig28zyFOLhu8y5YcCRC+V5vDk4HHileh2iw==}
+  nock@14.0.0-beta.6:
+    resolution: {integrity: sha512-b7lc7qvj1dQzxtbU7TqyTMnKbNKwGQd585xsRtcCZOv3I/yOK9Vwv4nOgnLFxFtX9m1yjhQDRbgqFCqNh9HuEw==}
     engines: {node: '>= 18'}
 
   node-abi@3.60.0:
@@ -22921,7 +22921,7 @@ snapshots:
       lower-case: 2.0.2
       tslib: 2.6.2
 
-  nock@14.0.0-beta.5:
+  nock@14.0.0-beta.6:
     dependencies:
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
