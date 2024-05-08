@@ -125,7 +125,7 @@ wdio run ./wdio.conf.js --watch
 --cucumberOpts        Cucumber options
 ```
 
-> नोट: स्वत: संकलन को उचित पुस्तकालय के ईएनवी वर्र्स के साथ आसानी से नियंत्रित किया जा सकता है। See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typeScript) and [Babel (@babel/register)](babel) pages.
+> नोट: स्वत: संकलन को उचित पुस्तकालय के ईएनवी वर्र्स के साथ आसानी से नियंत्रित किया जा सकता है। See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typescript) and [Babel (@babel/register)](babel) pages.
 
 ### `wdio install`
 `install` कमांड आपको सीएलआई के माध्यम से अपने वेबड्राइवरआईओ प्रोजेक्ट में पत्रकारों और सेवाओं को जोड़ने की अनुमति देता है।
