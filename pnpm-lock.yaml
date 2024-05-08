@@ -187,7 +187,7 @@ importers:
         version: 5.4.5
       unzipper:
         specifier: ^0.11.3
-        version: 0.11.3
+        version: 0.11.5
       vitest:
         specifier: ^1.5.0
         version: 1.5.0(@types/node@20.12.9)(jsdom@24.0.0)(terser@5.30.3)
@@ -11753,8 +11753,8 @@ packages:
   unzipper@0.10.14:
     resolution: {integrity: sha512-ti4wZj+0bQTiX2KmKWuwj7lhV+2n//uXEotUmGuQqrbVZSEGFMbI68+c6JCQ8aAmUWYvtHEz2A8K6wXvueR/6g==}
 
-  unzipper@0.11.3:
-    resolution: {integrity: sha512-Xs72T2f5DkRU1ULU/5kywmMXHI3ZJIL6a1Eb/7eTwmqbOS35ed10PYGDeKMXOuJ5zZrp/HYNeRj80HZsBtOyrA==}
+  unzipper@0.11.5:
+    resolution: {integrity: sha512-lpWMMTvoTTETidcvqsHL/OSdX8fy4/nAe1vOa/WESbscApEamd1gvzn2XteNYvAnTGous8BlCkWxxyv3moxfCA==}
 
   upath@1.2.0:
     resolution: {integrity: sha512-aZwGpamFO61g3OlfT7OQCHqhGnW43ieH9WZeP7QxN/G/jS4jfqUkZxoryvJgVPEcrl5NL/ggHsSmLMHuH64Lhg==}
@@ -25938,7 +25938,7 @@ snapshots:
       readable-stream: 2.3.8
       setimmediate: 1.0.5
 
-  unzipper@0.11.3:
+  unzipper@0.11.5:
     dependencies:
       big-integer: 1.6.52
       bluebird: 3.4.7
