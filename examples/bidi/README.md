@@ -2,7 +2,7 @@
 
 ## Logging
 
-The following examples shows how to capture logs from the browser in real time:
+The following examples show how to capture logs from the browser in real-time:
 
 ```javascript { interpreter=node mimeType=application/json terminalRows=1 }
 import { remote } from 'webdriverio'

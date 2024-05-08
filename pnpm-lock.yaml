@@ -305,6 +305,39 @@ importers:
 
   e2e/interop: {}
 
+  examples/bidi:
+    dependencies:
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
+
+  examples/cloudservices:
+    dependencies:
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
+
+  examples/pageobject:
+    dependencies:
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cli
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../../packages/wdio-local-runner
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-mocha-framework
+      '@wdio/spec-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-spec-reporter
+
+  examples/standalone:
+    dependencies:
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
+
   examples/wdio:
     dependencies:
       '@wdio/cli':

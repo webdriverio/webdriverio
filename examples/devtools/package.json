@@ -2,6 +2,6 @@
   "type": "module",
   "scripts": {
     "test:intercept": "node ./intercept.js",
-    "test:service": "../../packages/wdio-cli/bin/wdio.js ./service/wdio.conf.js"
+    "test:service": "wdio run ./service/wdio.conf.js"
   }
 }

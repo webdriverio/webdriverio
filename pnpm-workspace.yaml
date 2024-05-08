@@ -4,3 +4,8 @@ packages:
   - 'e2e/**'
   - 'tests/**'
   - 'examples/wdio/**'
+  - 'examples/standalone/**'
+  - 'examples/pageobject/**'
+  - 'examples/cloudservices/**'
+  - 'examples/bidi/**'
+  - 'examples/appium/**'

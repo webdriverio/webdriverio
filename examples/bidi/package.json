@@ -1,3 +1,10 @@
 {
-    "type": "module"
+  "name": "example-bidi",
+  "version": "1.0.0",
+  "description": "Example scripts how to use WebdriverIO with Bidi",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "webdriverio": "workspace:*"
+  }
 }
