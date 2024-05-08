@@ -392,27 +392,13 @@ export const config: WebdriverIO.Config = {
 
 Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-### autoCompileOpts
+### tsConfigPath
 
-Compiler options when using WebdriverIO with TypeScript or Babel.
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-#### autoCompileOpts.autoCompile
+See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
 
-If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
-
-Type: `Boolean` Default: `true`
-
-#### autoCompileOpts.tsNodeOpts
-
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.babelOpts
-
-Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
-
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
