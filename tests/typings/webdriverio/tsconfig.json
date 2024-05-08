@@ -20,7 +20,8 @@
       "@wdio/static-server-service",
       "@wdio/testingbot-service",
       "@wdio/sauce-service",
-      "@wdio/sumologic-reporter"
+      "@wdio/sumologic-reporter",
+      "@wdio/shared-store-service"
     ]
   },
   "include": ["./*.ts"]

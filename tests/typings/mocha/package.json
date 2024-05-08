@@ -1,5 +1,5 @@
 {
-  "name": "jasmine-type-tests",
+  "name": "mocha-type-tests",
   "version": "0.0.1",
   "description": "TypeScript tests for Mocha types",
   "private": true,

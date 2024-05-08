@@ -1,5 +1,5 @@
 {
-  "name": "jasmine-type-tests",
+  "name": "webdriver-type-tests",
   "version": "0.0.1",
   "description": "TypeScript tests for WebDriver types",
   "private": true,
