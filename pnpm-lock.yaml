@@ -16,7 +16,7 @@ importers:
         version: 3.556.0
       '@aws-sdk/lib-storage':
         specifier: ^3.556.0
-        version: 3.556.0(@aws-sdk/client-s3@3.556.0)
+        version: 3.564.0(@aws-sdk/client-s3@3.556.0)
       '@octokit/rest':
         specifier: ^20.1.0
         version: 20.1.0
@@ -1786,8 +1786,8 @@ packages:
     peerDependencies:
       '@aws-sdk/client-sts': ^3.568.0
 
-  '@aws-sdk/lib-storage@3.556.0':
-    resolution: {integrity: sha512-55J1gQhl7Ovr39X1+K7EvS5230QA/JEFGOdK/BpMH54gXwnxwsgphngCMbpCz5fLQX0+u5QgJnC6GEHgFNKSAQ==}
+  '@aws-sdk/lib-storage@3.564.0':
+    resolution: {integrity: sha512-pn3WuzusrfXZw7i6U8y3Cr2TMPcL2C8GDF/VM8EwgXIWJr+jdLD2WNwEcOoMXndbEd9M9hMhEW5GKXucOTiPpw==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.0.0
@@ -8538,11 +8538,6 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  lorem-ipsum@2.0.8:
-    resolution: {integrity: sha512-5RIwHuCb979RASgCJH0VKERn9cQo/+NcAi2BMe9ddj+gp7hujl6BI+qdOG4nVsLDpwWEJwTVYXNKP6BGgbcoGA==}
-    engines: {node: '>= 8.x', npm: '>= 5.x'}
-    hasBin: true
-
   loupe@2.3.7:
     resolution: {integrity: sha512-zSMINGVYkdpYSOBmLi0D1Uo7JU9nVdQKrHxC8eYlV+9YKK9WePqAlL7lSlorG/U2Fw1w0hTBmaa/jrQ3UbPHtA==}
 
@@ -13148,7 +13143,7 @@ snapshots:
       '@smithy/types': 2.12.0
       tslib: 2.6.2
 
-  '@aws-sdk/lib-storage@3.556.0(@aws-sdk/client-s3@3.556.0)':
+  '@aws-sdk/lib-storage@3.564.0(@aws-sdk/client-s3@3.556.0)':
     dependencies:
       '@aws-sdk/client-s3': 3.556.0
       '@smithy/abort-controller': 2.2.0
@@ -21991,10 +21986,6 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
-
-  lorem-ipsum@2.0.8:
-    dependencies:
-      commander: 9.5.0
 
   loupe@2.3.7:
     dependencies:
