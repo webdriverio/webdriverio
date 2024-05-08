@@ -25,7 +25,7 @@ importers:
         version: 2.8.2(@babel/core@7.24.4)(preact@10.20.2)(vite@5.2.10(@types/node@20.12.9)(terser@5.30.3))
       '@serenity-js/core':
         specifier: ^3.22.1
-        version: 3.22.2
+        version: 3.22.4
       '@stencil/core':
         specifier: ^4.16.0
         version: 4.17.2
@@ -643,8 +643,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -723,8 +721,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -861,8 +857,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1085,8 +1079,6 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1299,8 +1291,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1396,8 +1386,6 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -3567,8 +3555,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@serenity-js/core@3.22.2':
-    resolution: {integrity: sha512-Z/IBXRdOnGVZqpigh/wJHqjmA7aJatlX/I13C8Ahq7oRZVKiCeh2T4GXT3LjLN/lYzb1fLiRnZrxju117V6oRQ==}
+  '@serenity-js/core@3.22.4':
+    resolution: {integrity: sha512-oxBoDxepdpzONgPUc3bcsufMsPOgqd2t3tIT6GLe3iyntQseRrPOVl1bQ2RxZ2W7jSSIeBnT7NLdP/ms37qofQ==}
     engines: {node: ^16.13 || ^18.12 || ^20}
 
   '@sideway/address@4.1.5':
@@ -11769,6 +11757,10 @@ packages:
     resolution: {integrity: sha512-YuKoXDAhBYxY7SfOKxHBDoSyENFeW5VvIIQp2TGQuit8gpK6MnWaQelBKxso72DoxTZfZdcP3W90LqpSkgPzLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  validate-npm-package-name@5.0.1:
+    resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
+    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
   value-equal@1.0.1:
     resolution: {integrity: sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==}
 
@@ -15599,7 +15591,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.15.0':
     optional: true
 
-  '@serenity-js/core@3.22.2':
+  '@serenity-js/core@3.22.4':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
@@ -15611,7 +15603,7 @@ snapshots:
       semver: 7.6.0
       tiny-types: 1.22.0
       upath: 2.0.1
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   '@sideway/address@4.1.5':
     dependencies:
@@ -20676,7 +20668,7 @@ snapshots:
       read-package-json: 6.0.4
       semver: 7.6.0
       validate-npm-package-license: 3.0.4
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   inline-style-parser@0.1.1: {}
 
@@ -22657,14 +22649,14 @@ snapshots:
       hosted-git-info: 6.1.1
       proc-log: 3.0.0
       semver: 7.6.0
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   npm-package-arg@11.0.2:
     dependencies:
       hosted-git-info: 7.0.1
       proc-log: 4.2.0
       semver: 7.6.0
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   npm-package-arg@8.1.1:
     dependencies:
@@ -25647,6 +25639,8 @@ snapshots:
   validate-npm-package-name@5.0.0:
     dependencies:
       builtins: 5.1.0
+
+  validate-npm-package-name@5.0.1: {}
 
   value-equal@1.0.1: {}
 
