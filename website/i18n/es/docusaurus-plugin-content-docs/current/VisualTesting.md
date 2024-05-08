@@ -234,7 +234,7 @@ values={[
 If you have Xcode 10.0 or higher installed, to build from source you need NPM 6.4.1 or higher.
 ````
 
-
+</TabItem>
 <TabItem value="ubuntu">
 
 ````
@@ -243,7 +243,7 @@ sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev l
 ```
 ````
 
-
+</TabItem>
 <TabItem value="fedora">
 
 ````
@@ -252,7 +252,7 @@ sudo yum install gcc-c++ cairo-devel pango-devel libjpeg-turbo-devel giflib-deve
 ```
 ````
 
-
+</TabItem>
 <TabItem value="solaris">
 
 ````
@@ -261,7 +261,7 @@ pkgin install cairo pango pkg-config xproto renderproto kbproto xextproto
 ```
 ````
 
-
+</TabItem>
 <TabItem value="openbsd">
 
 ````
@@ -270,18 +270,19 @@ doas pkg_add cairo pango png jpeg giflib
 ```
 ````
 
-
+</TabItem>
 <TabItem value="windows">
 
 ```
 See the [wiki](https://github.com/Automattic/node-canvas/wiki/Installation:-Windows)
 ```
 
-
+</TabItem>
 <TabItem value="others">
 
 ```
 See the [wiki](https://github.com/Automattic/node-canvas/wiki)
 ```
 
-
+</TabItem>
+</Tabs>
