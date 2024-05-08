@@ -91,8 +91,8 @@ await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true}
 
 ![saveFullPageScreens Desktop](/img/visual/layout-tabbable-chrome-latest-1366x768.png)
 
-
-
+</TabItem>
+</Tabs>
 
 ## save(Screen/Element/FullPageScreen)
 
@@ -152,10 +152,8 @@ values={[
 <TabItem value="ios">
 ![saveElement Mobile iOS](/img/visual/wdioLogo-Iphone12Portrait16-390x844.png)
 </TabItem>
-
-
-
-
+</Tabs>
+</TabItem>
 
 <TabItem value="savescreen">
 
@@ -216,11 +214,9 @@ values={[
 <TabItem value="ios">
 ![saveFullPageScreens Mobile iOS](/img/visual/fullPage-Iphone12Portrait16-390x844.png)
 </TabItem>
-
-
-
-
-
+</Tabs>
+</TabItem>
+</Tabs>
 
 ## check(Screen/Element/FullPageScreen)
 
