@@ -16,7 +16,7 @@ importers:
         version: 3.569.0
       '@aws-sdk/lib-storage':
         specifier: ^3.556.0
-        version: 3.556.0(@aws-sdk/client-s3@3.569.0)
+        version: 3.569.0(@aws-sdk/client-s3@3.569.0)
       '@octokit/rest':
         specifier: ^20.1.0
         version: 20.1.1
@@ -1738,11 +1738,11 @@ packages:
     peerDependencies:
       '@aws-sdk/client-sts': ^3.568.0
 
-  '@aws-sdk/lib-storage@3.556.0':
-    resolution: {integrity: sha512-55J1gQhl7Ovr39X1+K7EvS5230QA/JEFGOdK/BpMH54gXwnxwsgphngCMbpCz5fLQX0+u5QgJnC6GEHgFNKSAQ==}
-    engines: {node: '>=14.0.0'}
+  '@aws-sdk/lib-storage@3.569.0':
+    resolution: {integrity: sha512-ipYMo1DQVSxfgWP3nRnk/bR+zAq3alt0+0fAMepdLUD3/HwnI6ztFRpI9FnZ4U3ZpBl9MvbBzRgsg+oecTNXeQ==}
+    engines: {node: '>=16.0.0'}
     peerDependencies:
-      '@aws-sdk/client-s3': ^3.0.0
+      '@aws-sdk/client-s3': ^3.569.0
 
   '@aws-sdk/middleware-bucket-endpoint@3.568.0':
     resolution: {integrity: sha512-uc/nbSpXv64ct/wV3Ksz0/bXAsEtXuoZu5J9FTcFnM7c2MSofa0YQrtrJ8cG65uGbdeiFoJwPA048BTG/ilhCA==}
@@ -12818,7 +12818,7 @@ snapshots:
       '@smithy/types': 2.12.0
       tslib: 2.6.2
 
-  '@aws-sdk/lib-storage@3.556.0(@aws-sdk/client-s3@3.569.0)':
+  '@aws-sdk/lib-storage@3.569.0(@aws-sdk/client-s3@3.569.0)':
     dependencies:
       '@aws-sdk/client-s3': 3.569.0
       '@smithy/abort-controller': 2.2.0
