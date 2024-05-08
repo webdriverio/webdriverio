@@ -179,6 +179,9 @@ importers:
       tempy:
         specifier: ^3.1.0
         version: 3.1.0
+      tsd:
+        specifier: ^0.31.0
+        version: 0.31.0
       tsx:
         specifier: ^4.7.2
         version: 4.9.3
@@ -304,6 +307,12 @@ importers:
   e2e/browser-runner: {}
 
   e2e/interop: {}
+
+  examples/appium:
+    dependencies:
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
 
   examples/bidi:
     dependencies:
@@ -736,6 +745,8 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
+  packages/wdio-cli/build/cjs: {}
+
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -814,6 +825,8 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
+
+  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -950,6 +963,8 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
+
+  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1172,6 +1187,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
+  packages/wdio-shared-store-service/build/cjs: {}
+
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1384,6 +1401,8 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
+  packages/webdriver/build/cjs: {}
+
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1479,6 +1498,8 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
+
+  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -1583,11 +1604,341 @@ importers:
 
   tests/mocha/cjs: {}
 
-  tests/typings/@typescript/ts3.8:
-    devDependencies:
-      typescript:
-        specifier: ^5.4.2
-        version: 5.4.5
+  tests/typings/cucumber:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/devtools-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-devtools-service
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/jasmine:
+    dependencies:
+      '@types/jasmine':
+        specifier: ^5.1.4
+        version: 5.1.4
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/devtools-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-devtools-service
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      expect-webdriverio:
+        specifier: ^4.13.0
+        version: 4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/mocha:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/devtools-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-devtools-service
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/webdriver:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/devtools-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-devtools-service
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/webdriverio:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/devtools-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-devtools-service
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
 
   website:
     dependencies:
@@ -4396,6 +4747,10 @@ packages:
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
+  '@tsd/typescript@5.4.5':
+    resolution: {integrity: sha512-saiCxzHRhUrRxQV2JhH580aQUZiKQUXI38FcAcikcfOomAil4G4lxT0RfrrKywoAYP/rqAdYXYmNRLppcd+hQQ==}
+    engines: {node: '>=14.17'}
+
   '@tufjs/canonical-json@1.0.0':
     resolution: {integrity: sha512-QTnf++uxunWvG2z3UFNzAoQPHxnSXOwtaI3iJ+AohhV+5vONuArPjJE7aPXPVXfXJsqrVbZBu9b81AJoSd09IQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -4468,6 +4823,9 @@ packages:
 
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
+
+  '@types/eslint@7.29.0':
+    resolution: {integrity: sha512-VNcvioYDH8/FxaeTKkM4/TiTwt6pBV9E3OfGmvaw8tPl0rrHCJ4Ll15HRT+pMiFAf/MLQvAzC+6RzUMEL9Ceng==}
 
   '@types/eslint@8.56.10':
     resolution: {integrity: sha512-Shavhk87gCtY2fhXDctcfS3e6FdxWkCx1iUZ9eEUbh7rTqlZT0/IzOkCOVt0fCjcFuZ9FPYfuezTBImfHCDBGQ==}
@@ -6857,6 +7215,10 @@ packages:
     engines: {node: '>=6.0'}
     hasBin: true
 
+  eslint-formatter-pretty@4.1.0:
+    resolution: {integrity: sha512-IsUTtGxF1hrH6lMWiSl1WbGaiP01eT6kzywdY1U+zLc0MP+nwEnUiS9UI8IaOTUhTeQJLlCEWIbXINBH4YJbBQ==}
+    engines: {node: '>=10'}
+
   eslint-import-resolver-node@0.3.9:
     resolution: {integrity: sha512-WFj2isz22JahUv+B788TlO3N6zL3nNJGU8CcZbPZvVEkBPaJdCV4vy5wyghty5ROFbCRnm132v8BScu5/1BQ8g==}
 
@@ -6896,6 +7258,9 @@ packages:
     engines: {node: '>=16'}
     peerDependencies:
       eslint: '>=8.56.0'
+
+  eslint-rule-docs@1.1.235:
+    resolution: {integrity: sha512-+TQ+x4JdTnDoFEXXb3fDvfGOwnyNV7duH8fXWTPD1ieaBmB8omj7Gw/pMBBu4uI2uJCCU8APDaQJzWuXnTsH4A==}
 
   eslint-scope@5.1.1:
     resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
@@ -8007,6 +8372,10 @@ packages:
     resolution: {integrity: sha512-Ag3wB2o37wslZS19hZqorUnrnzSkpOVy+IiiDEiTqNubEYpYuHWIf6K4psgN2ZWKExS4xhVCrRVfb/wfW8fWJA==}
     engines: {node: '>= 10'}
 
+  irregular-plurals@3.5.0:
+    resolution: {integrity: sha512-1ANGLZ+Nkv1ptFb2pa8oG8Lem4krflKuX/gINiHJHjJUKaJHk/SXk5x6K3J+39/p0h1RQ2saROclJJ+QLvETCQ==}
+    engines: {node: '>=8'}
+
   is-alphabetical@2.0.1:
     resolution: {integrity: sha512-FWyyY60MeTNyeSRpkM2Iry0G9hpr7/9kD40mD/cGQEuilcZYS4okz8SN2Q6rLCJ8gbCt6fN+rC+6tMGS99LaxQ==}
 
@@ -8926,6 +9295,10 @@ packages:
 
   meow@8.1.2:
     resolution: {integrity: sha512-r85E3NdZ+mpYk1C6RjPFEMSE+s1iZMuHtsHAqY0DT3jZczl0diWUZ8g6oU7h0M9cD2EL+PzaYghhCLzR0ZNn5Q==}
+    engines: {node: '>=10'}
+
+  meow@9.0.0:
+    resolution: {integrity: sha512-+obSblOQmRhcyBt62furQqRAQpNyWXo8BuQ5bN7dG8wmwQ+vwHKp/rCFD4CrTP8CsDQD1sjoZ94K417XEUk8IQ==}
     engines: {node: '>=10'}
 
   merge-descriptors@1.0.1:
@@ -9928,6 +10301,10 @@ packages:
 
   please-upgrade-node@3.2.0:
     resolution: {integrity: sha512-gQR3WpIgNIKwBMVLkpMUeR3e1/E1y42bqDQZfql+kDeXd8COYfM8PQA4X6y7a8u9Ua9FHmsrrmirW2vHs45hWg==}
+
+  plur@4.0.0:
+    resolution: {integrity: sha512-4UGewrYgqDFw9vV6zNV+ADmPAUAfJPKtGvb/VdpQAx25X5f3xXdGdyOEVFwkl8Hl/tl7+xbeHqSEM+D5/TirUg==}
+    engines: {node: '>=10'}
 
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
@@ -11454,6 +11831,10 @@ packages:
     resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
     engines: {node: '>=10'}
 
+  supports-hyperlinks@2.3.0:
+    resolution: {integrity: sha512-RpsAZlpWcDwOPQA22aCH4J0t7L8JmAvsCxfOSEwm7cQs3LshN36QaTkwd70DnBOXDWGssw2eUoc8CaRWT0XunA==}
+    engines: {node: '>=8'}
+
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
@@ -11736,6 +12117,11 @@ packages:
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
     engines: {node: '>=6'}
+
+  tsd@0.31.0:
+    resolution: {integrity: sha512-yjBiQ5n8OMv/IZOuhDjBy0ZLCoJ7rky/RxRh5W4sJ0oNNCU/kf6s3puPAkGNi59PptDdkcpUm+RsKSdjR2YbNg==}
+    engines: {node: '>=14.16'}
+    hasBin: true
 
   tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
@@ -16805,6 +17191,8 @@ snapshots:
   '@tsconfig/node16@1.0.4':
     optional: true
 
+  '@tsd/typescript@5.4.5': {}
+
   '@tufjs/canonical-json@1.0.0': {}
 
   '@tufjs/canonical-json@2.0.0': {}
@@ -16895,6 +17283,11 @@ snapshots:
     dependencies:
       '@types/eslint': 8.56.10
       '@types/estree': 1.0.5
+
+  '@types/eslint@7.29.0':
+    dependencies:
+      '@types/estree': 1.0.5
+      '@types/json-schema': 7.0.15
 
   '@types/eslint@8.56.10':
     dependencies:
@@ -19768,6 +20161,17 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
+  eslint-formatter-pretty@4.1.0:
+    dependencies:
+      '@types/eslint': 7.29.0
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      eslint-rule-docs: 1.1.235
+      log-symbols: 4.1.0
+      plur: 4.0.0
+      string-width: 4.2.3
+      supports-hyperlinks: 2.3.0
+
   eslint-import-resolver-node@0.3.9:
     dependencies:
       debug: 3.2.7
@@ -19834,6 +20238,8 @@ snapshots:
       strip-indent: 3.0.0
     transitivePeerDependencies:
       - supports-color
+
+  eslint-rule-docs@1.1.235: {}
 
   eslint-scope@5.1.1:
     dependencies:
@@ -20072,7 +20478,7 @@ snapshots:
 
   expect-webdriverio@4.13.0(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
-      '@vitest/snapshot': 1.5.0
+      '@vitest/snapshot': 1.6.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
@@ -21324,6 +21730,8 @@ snapshots:
 
   ipaddr.js@2.2.0: {}
 
+  irregular-plurals@3.5.0: {}
+
   is-alphabetical@2.0.1: {}
 
   is-alphanumerical@2.0.1:
@@ -22501,6 +22909,21 @@ snapshots:
     dependencies:
       '@types/minimist': 1.2.5
       camelcase-keys: 6.2.2
+      decamelize-keys: 1.1.1
+      hard-rejection: 2.1.0
+      minimist-options: 4.1.0
+      normalize-package-data: 3.0.3
+      read-pkg-up: 7.0.1
+      redent: 3.0.0
+      trim-newlines: 3.0.1
+      type-fest: 0.18.1
+      yargs-parser: 20.2.9
+
+  meow@9.0.0:
+    dependencies:
+      '@types/minimist': 1.2.5
+      camelcase-keys: 6.2.2
+      decamelize: 1.2.0
       decamelize-keys: 1.1.1
       hard-rejection: 2.1.0
       minimist-options: 4.1.0
@@ -23796,6 +24219,10 @@ snapshots:
   please-upgrade-node@3.2.0:
     dependencies:
       semver-compare: 1.0.0
+
+  plur@4.0.0:
+    dependencies:
+      irregular-plurals: 3.5.0
 
   pluralize@8.0.0: {}
 
@@ -25556,6 +25983,11 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
+  supports-hyperlinks@2.3.0:
+    dependencies:
+      has-flag: 4.0.0
+      supports-color: 7.2.0
+
   supports-preserve-symlinks-flag@1.0.0: {}
 
   svelte-hmr@0.16.0(svelte@4.2.15):
@@ -25880,6 +26312,16 @@ snapshots:
       json5: 2.2.3
       minimist: 1.2.8
       strip-bom: 3.0.0
+
+  tsd@0.31.0:
+    dependencies:
+      '@tsd/typescript': 5.4.5
+      eslint-formatter-pretty: 4.1.0
+      globby: 11.1.0
+      jest-diff: 29.7.0
+      meow: 9.0.0
+      path-exists: 4.0.0
+      read-pkg-up: 7.0.1
 
   tslib@1.14.1: {}
 

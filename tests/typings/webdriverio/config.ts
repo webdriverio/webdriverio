@@ -159,10 +159,6 @@ const config: WebdriverIO.Config = {
             }
         }
     }, {
-        'wdio:devtoolsOptions': {
-            ignoreDefaultArgs: false
-        }
-    }, {
         'wdio:customCaps': {
             foo: 'bar',
             bar: 123
