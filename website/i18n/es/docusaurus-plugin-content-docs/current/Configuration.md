@@ -457,27 +457,13 @@ export const config: WebdriverIO.Config = {
 
 Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-### autoCompileOpts
+### tsConfigPath
 
-Opciones de compilador al usar WebdriverIO con TypeScript o Babel.
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-#### autoCompileOpts.autoCompile
+See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
 
-Si se establece en `true` el testrunner WDIO intentará transpirar automáticamente los archivos de especificación.
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.tsNodeOpts
-
-Configura cómo [`ts-node`](https://www.npmjs.com/package/ts-node) se supone que transpile los archivos.
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.babelOpts
-
-Configura cómo [](https://www.npmjs.com/package/@babel/register)ts-node se supone que transpile los archivos.
-
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
@@ -543,7 +529,7 @@ Parámetros:
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parámetros:
+Parameters:
 
 - `suite` (`objeto`): detalles de suite
 
@@ -570,9 +556,9 @@ Parámetros:
 
 Función que se ejecuta antes de una prueba (en Mocha/Jasmine solamente).
 
-Parámetros:
+Parameters:
 
-- `test` (`object`): detalles de prueba
+- `test` (`object`): test details
 - `contexto` (`objeto`): objeto de ámbito con el que se ejecutó la prueba
 
 ### beforeCommand
@@ -622,7 +608,7 @@ Parámetros:
 
 Se ejecuta después de que todas las pruebas hayan terminado. Todavía tiene acceso a todas las variables globales de la prueba.
 
-Parámetros:
+Parameters:
 
 - `exitCode` (`número`): 0 - éxito, 1 - error
 - `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
@@ -635,8 +621,8 @@ Se ejecuta justo después de terminar la sesión del controlador web.
 Parameters:
 
 - `config` (`objeto`): objeto de configuración WebdriverIO
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 
 ### onComplete
 
@@ -696,19 +682,9 @@ Parámetros:
 - `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
 - `result.error` (`string`): pila de errores si el escenario falló
 - `result.duration` (`number`): duración del escenario en milisegundos
-- `context` (`object`): Cucumber World object
-
-### beforeStep
-
-Se ejecuta antes de una Característica de Cucumber
-
-Parámetros:
-
-- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
-- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
 - `contexto` (`objeto`): objeto Cucumber World
 
-### afterStep
+### beforeStep
 
 Se ejecuta antes de una Característica de Cucumber
 
@@ -716,6 +692,16 @@ Parameters:
 
 - `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
 - `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
+- `context` (`object`): Cucumber World object
+
+### afterStep
+
+Se ejecuta antes de una Característica de Cucumber
+
+Parameters:
+
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
 - `resultado` (`objeto`): objeto de resultados que contiene resultados de prueba
 - `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
 - `result.error` (`string`): pila de errores si el escenario falló
