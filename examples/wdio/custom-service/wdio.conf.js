@@ -1,7 +1,10 @@
-const path = require('node:path')
-const CustomService = require('./my.custom.service.js')
+import url from 'node:url'
+import path from 'node:path'
+import CustomService from './my.custom.service.js'
 
-exports.config = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     /**
      * specify test files
      */

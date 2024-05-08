@@ -9,9 +9,8 @@
  * $ cucumber.js
  */
 
-const { Given, When, Then } = require('@cucumber/cucumber')
-// eslint-disable-next-line import/extensions
-const { Key } = require('../../../packages/webdriverio')
+import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Key } from 'webdriverio'
 
 Given(/^I go on the website "([^"]*)"$/, async (url) => {
     await browser.url(url)

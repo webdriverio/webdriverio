@@ -1,9 +1,14 @@
-exports.config = {
+import url from 'node:url'
+import path from 'node:path'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config: WebdriverIO.Config = {
     /**
      * specify test files
      */
     specs: [
-        ['./features/my-feature.feature']
+        [path.resolve(__dirname, 'features', 'my-feature.feature')]
     ],
 
     /**
@@ -22,6 +27,6 @@ exports.config = {
     reporters: ['spec'],
 
     cucumberOpts: {
-        require: [__dirname + '/step-definitions.js']
+        require: [path.resolve(__dirname, 'step-definitions.ts')]
     }
 }

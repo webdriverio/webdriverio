@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
+import WDIOReporter from '@wdio/reporter'
 
-const WDIOReporter = require('../../../../packages/wdio-reporter/build.js').default
-
-module.exports = class CustomReporter extends WDIOReporter {
+export default class CustomReporter extends WDIOReporter {
     constructor(options) {
         super(options)
         console.log('initialized custom reporter with the following reporter options:', options)

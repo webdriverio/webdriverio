@@ -1,9 +1,4 @@
-/**
- * you can also use
- * `export default class CustomService`
- * here
- */
-module.exports = class CustomService {
+export default class CustomService {
     constructor (config) {
         console.log('custom service options:', config.someOption)
     }

@@ -3,3 +3,4 @@ packages:
   - 'website/**'
   - 'e2e/**'
   - 'tests/**'
+  - 'examples/wdio/**'
