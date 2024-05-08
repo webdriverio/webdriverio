@@ -125,7 +125,7 @@ wdio run ./wdio.conf.js --watch
 --cucumberOpts        Cucumber options
 ```
 
-> توجه: کامپایل خودکار را می توان به راحتی با کتابخانه مناسب ENV Vars کنترل کرد. همچنین به عملکرد کامپایل خودکار Test Runner مستند شده در صفحات [TypeScript (ts-node)](typescript) و Babel (@babel/register) مراجعه کنید.
+> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](typeScript).
 
 ### `wdio install`
 دستور `install` به شما این امکان را می دهد که گزارشگران و خدمات را از طریق CLI به پروژه های WebdriverIO خود اضافه کنید.
