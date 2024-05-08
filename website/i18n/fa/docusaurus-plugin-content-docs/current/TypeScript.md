@@ -5,28 +5,28 @@ title: راه اندازی TypeScript
 
 می‌توانید با استفاده از [TypeScript](http://www.typescriptlang.org) تست‌ها را برای تکمیل خودکار و امنیت نوع بنویسید.
 
-شما به [`typescript`](https://github.com/microsoft/TypeScript) و [`ts-node`](https://github.com/TypeStrong/ts-node) به عنوان `devDependencies` نیاز دارید، از طریق:
+You will need [`tsx`](https://github.com/privatenumber/tsx) installed in `devDependencies`, via:
 
 ```bash npm2yarn
-$ npm install typescript ts-node --save-dev
+$ npm install tsx --save-dev
 ```
 
-WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. مطمئن شوید که فایل `tsconfig.json` در همان دایرکتوری با پیکربندی WDIO وجود دارد. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](/docs/configurationfile).
+WebdriverIO به طور خودکار تشخیص می دهد که آیا این وابستگی ها نصب شده اند و پیکربندی و تست های شما را برای شما کامپایل می کند. Ensure to have a `tsconfig.json` in the same directory as your WDIO config.
 
-## پیکربندی
+#### Custom TSConfig
 
-You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
+If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-```sh
-# run wdio testrunner with custom options
-TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
-```
+Alternatively, you can use the [environment variable](https://tsx.is/usage#custom-tsconfig-json-path) for `tsx`.
 
-حداقل نسخه TypeScript نسخه `4.0.5` است.
 
-## راه اندازی فریمورک
+#### Type Checking
 
-و `tsconfig.json` شما به موارد زیر نیاز دارد:
+Note that `tsx` does not support type-checking - if you wish to check your types then you will need to do this in a separate step with `tsc`.
+
+## Framework Setup
+
+Your `tsconfig.json` needs the following:
 
 ```json title="tsconfig.json"
 {
@@ -36,13 +36,13 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 }
 ```
 
-از وارد کردن `webdriverio` یا `@wdio/sync` خودداری کنید. `نوع WebdriverIO` و `WebDriver` بعد از اضافه شدن به `انواع` در `tsconfig.json` در همه جا قابل دسترسی خواهد بود. اگر از سرویس های اضافی WebdriverIO، افزونه ها یا بسته اتوماسیون `devtools` استفاده می کنید، آنها را به لیست `انواع` نیز اضافه کنید زیرا بسیاری از آنها نوع های اضافه تری را ارائه می دهند.
+Please avoid importing `webdriverio` or `@wdio/sync` explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
 
-## نوع ها در فریمورک
+## Framework Types
 
-بسته به فریمورکی که استفاده می کنید، باید انواع آن فریمورک را به ویژگی انواع در `tsconfig.json` خود اضافه کنید و همچنین تعاریف نوع آن را نصب کنید. به خصوص اگر می‌خواهید برای کتابخانه ادعای داخلی [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio) پشتیبانی از نوع را داشته باشید، این امر بسیار مهم است.
+Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
-به عنوان مثال، اگر تصمیم دارید از فریمورک Mocha استفاده کنید، باید `@types/mocha` را نصب کنید و آن را به این صورت اضافه کنید تا همه انواع در سطح جهانی در دسترس باشند:
+For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
 <Tabs
   defaultValue="mocha"
@@ -87,7 +87,7 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 </TabItem>
 </Tabs>
 
-## سرویس‌ها
+## Services
 
 اگر از سرویس‌هایی استفاده می‌کنید که دستوراتی را به محدوده browser اضافه می‌کنند، باید آنها را نیز در `tsconfig.json` خود قرار دهید. به عنوان مثال، اگر از `@wdio/lighthouse-service` استفاده می کنید، مطمئن شوید که آن را به `انواع` نیز اضافه می کنید، به عنوان مثال:
 
@@ -104,11 +104,11 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 }
 ```
 
-افزودن سرویس ها و گزارشگران به پیکربندی TypeScript شما همچنین امنیت نوع فایل پیکربندی WebdriverIO شما را تقویت می کند.
+Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
 
-## تعریف انواع
+## Type Definitions
 
-هنگام اجرای دستورات WebdriverIO معمولاً همه ویژگی ها نوع مشخصی دارند، بنابراین نیازی به درگیری برای اضافه کردن انواع اضافی را ندارید. با این حال ممکن است مواردی باشد که می خواهید متغیرها را از قبل تعریف کنید. برای اطمینان از ایمن بودن نوع این موارد می توانید از همه انواع تعریف شده در بسته [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) استفاده کنید. به عنوان مثال اگر دوست دارید گزینه remote را برای `webdriverio` تعریف کنید، می توانید این کار را اینطور انجام دهید:
+When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
 
 ```ts
 import type { Options } from '@wdio/types'
@@ -121,26 +121,6 @@ const config: Options.WebdriverIO = {
     }
 }
 ```
-
-## Missing Types
-
-When using Node 20 or above, wdio runs ts-node with different settings as this is required in order to keep things running. These settings can cause your custom types not to be loaded, if this happens there are a few ways you can fix this, of which the easiest I will show below.
-
-Using ts-node's environment variables
-```
-TS_NODE_FILES=true wdio run ./wdio.conf.ts
-```
-
-Using tsconfig
-```
-{
-  "ts-node": {
-    "files": true
-  },
-}
-```
-
-For more information checkout the (ts-node documentation)[https://typestrong.org/ts-node/docs/troubleshooting#missing-types].
 
 ## نکات و ترفندها
 
