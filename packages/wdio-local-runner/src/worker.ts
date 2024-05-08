@@ -22,11 +22,6 @@ const stdErrStream = new RunnerStream()
 stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
 
-// enum NodeVersion {
-//     'major' = 0,
-//     'minor' = 1,
-//     'patch' = 2
-// }
 
 // function nodeVersion(type: keyof typeof NodeVersion): number {
 //     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
