@@ -22,8 +22,6 @@ const stdErrStream = new RunnerStream()
 stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
 
-
-
 /**
  * WorkerInstance
  * responsible for spawning a sub process to run the framework in and handle its
