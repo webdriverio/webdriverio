@@ -134,7 +134,7 @@ describe('Mocha Example', () => {
 })
 ```
 
-
+</TabItem>
 <TabItem value="jasmine">
 
 ```ts
@@ -243,7 +243,7 @@ describe('Jasmine Example', () => {
 })
 ```
 
-
+</TabItem>
 <TabItem value="cucumberjs">
 
 ```ts
@@ -344,8 +344,8 @@ Then('I should be able to compare some screenshots with a baseline', async funct
 })
 ```
 
-
-
+</TabItem>
+</Tabs>
 
 :::note IMPORTANT
 
