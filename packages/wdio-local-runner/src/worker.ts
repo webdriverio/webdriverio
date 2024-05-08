@@ -23,9 +23,6 @@ stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
 
 
-// function nodeVersion(type: keyof typeof NodeVersion): number {
-//     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-// }
 
 /**
  * WorkerInstance
