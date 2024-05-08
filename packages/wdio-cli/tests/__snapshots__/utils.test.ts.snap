@@ -6,7 +6,7 @@ exports[`getAnswers 1`] = `
   "framework": "@wdio/mocha-framework$--$mocha",
   "generateTestFiles": true,
   "includeVisualTesting": false,
-  "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
+  "isUsingTypeScript": false,
   "npmInstall": true,
   "plugins": [],
   "reporters": [
@@ -114,21 +114,6 @@ exports[`npmInstall 1`] = `
     true,
   ],
 ]
-`;
-
-exports[`setup Babel 1`] = `
-"module.exports = {
-    "presets": [
-        [
-            "@babel/preset-env",
-            {
-                "targets": {
-                    "node": 18
-                }
-            }
-        ]
-    ]
-}"
 `;
 
 exports[`setupTypeScript 1`] = `

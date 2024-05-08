@@ -1,6 +1,6 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BackendChoice, RegionOptions, CompilerOptions, ElectronBuildToolChoice, PMs } from './constants.js'
+import type { BackendChoice, RegionOptions, ElectronBuildToolChoice, PMs } from './constants.js'
 
 export type PM = typeof PMs[number]
 
@@ -31,7 +31,7 @@ export interface Questionnair {
     generateTestFiles: boolean
     usePageObjects?: boolean
     pages?: string
-    isUsingCompiler: CompilerOptions
+    isUsingTypeScript: boolean
     reporters: string[]
     services: string[]
     serenityLibPath?: string
@@ -58,7 +58,6 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     services: string[]
     packagesToInstall: string[]
     isUsingTypeScript: boolean
-    isUsingBabel: boolean
     serenityAdapter: string | false
     esmSupport: boolean
     isSync: boolean
@@ -97,9 +96,9 @@ export interface RunCommandArguments {
     mochaOpts?: WebdriverIO.MochaOpts
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
-    autoCompileOpts?: Options.AutoCompileConfig
     configPath: string
     updateSnapshots?: Options.Testrunner['updateSnapshots']
+    tsConfigPath?: string
 
     /**
      * @internal
