@@ -742,8 +742,8 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       devtools-protocol:
-        specifier: ^0.0.1286932
-        version: 0.0.1286932
+        specifier: ^0.0.1297280
+        version: 0.0.1297280
       istanbul-lib-coverage:
         specifier: ^3.2.0
         version: 3.2.2
@@ -6137,8 +6137,8 @@ packages:
   devtools-protocol@0.0.1282316:
     resolution: {integrity: sha512-i7eIqWdVxeXBY/M+v83yRkOV1sTHnr3XYiC0YNBivLIE6hBfE2H0c2o8VC5ynT44yjy+Ei0kLrBQFK/RUKaAHQ==}
 
-  devtools-protocol@0.0.1286932:
-    resolution: {integrity: sha512-wu58HMQll9voDjR4NlPyoDEw1syfzaBNHymMMZ/QOXiHRNluOnDgu9hp1yHOKYoMlxCh4lSSiugLITe6Fvu1eA==}
+  devtools-protocol@0.0.1297280:
+    resolution: {integrity: sha512-AHOopnHxyQV+Tw2vrvvkhVOl/KP55GDC7WJPIRC5+gNSmv+oOdhYkifVd9MY2kJ9/Dg8r7Ji5PQO1vnqtW2Jvw==}
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
@@ -18754,7 +18754,7 @@ snapshots:
 
   devtools-protocol@0.0.1282316: {}
 
-  devtools-protocol@0.0.1286932: {}
+  devtools-protocol@0.0.1297280: {}
 
   didyoumean@1.2.2: {}
 
