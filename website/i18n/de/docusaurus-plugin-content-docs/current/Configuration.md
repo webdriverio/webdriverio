@@ -408,27 +408,13 @@ export const config: WebdriverIO.Config = {
 
 Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-### autoCompileOpts
+### tsConfigPath
 
-Compileroptionen bei Verwendung von WebdriverIO mit TypeScript oder Babel.
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-#### autoCompileOpts.autoCompile
+See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
 
-Wenn auf `true` gesetzt, versucht der WDIO-Testrunner automatisch, die Testdateien zu transpilieren.
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.tsNodeOpts
-
-Konfigurieren Sie, wie [`ts-node`](https://www.npmjs.com/package/ts-node) die Dateien transpilieren soll.
-
-Type: `Object` Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.babelOpts
-
-Konfigurieren Sie, wie [@babel/register](https://www.npmjs.com/package/@babel/register) die Dateien transpilieren soll.
-
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
@@ -494,7 +480,7 @@ Parameter:
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Parameter:
+Parameters:
 
 - `suite` (`Objekt`): Suite-Details
 
@@ -521,9 +507,9 @@ Parameter:
 
 Funktion, die vor einem Test ausgeführt werden soll (nur in Mocha/Jasmine).
 
-Parameter:
+Parameters:
 
-- `test` (`Objekt`): Testdetails
+- `test` (`object`): test details
 - `context` (`Objekt`): Scope-Objekt, mit dem der Test ausgeführt wurde
 
 ### beforeCommand
@@ -573,7 +559,7 @@ Parameter:
 
 Wird ausgeführt, nachdem alle Tests abgeschlossen sind. Sie haben weiterhin Zugriff auf alle globalen Variablen aus dem Test.
 
-Parameter:
+Parameters:
 
 - `exitCode` (`Zahl`): 0 – Erfolg, 1 – Fehler
 - `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wurde
@@ -586,8 +572,8 @@ Wird direkt nach dem Beenden der Webdriver-Sitzung ausgeführt.
 Parameters:
 
 - `config` (`object`): WebdriverIO-Konfigurationsobjekt
-- `caps` (`Objekt`): Enthält die Capability, die für die Sitzung benutzt wurde
-- `specs` (`string[]`): Tests, die im Workerprozess ausgeführt wurden
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 
 ### onComplete
 
@@ -647,17 +633,17 @@ Parameter:
 - `result.passed` (`boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
 - `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
 - `result.duration` (`ziffer`): Testdauer
-- `context` (`object`): Cucumber World object
+- `context` (`Objekt`): Cucumber World-Objekt
 
 ### beforeStep
 
 Läuft vor einem Cucumber-Schritt.
 
-Parameter:
+Parameters:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber Objekt
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber-Szenario Objekt
-- `context` (`Objekt`): Cucumber World-Objekt
+- `context` (`object`): Cucumber World object
 
 ### afterStep
 
@@ -665,8 +651,8 @@ Läuft nach einem Cucumber Schritt.
 
 Parameters:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber Objekt
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber-Szenario Objekt
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
 - `result` (`Objekt`): Ergebnisobjekt, das das Szenarioergebnisse enthält
 - `result.passed` (`boolean`): wahr, wenn der Test bestanden wurde, andernfalls falsch
 - `result.error` (`string`): Fehler, wenn Szenario fehlgeschlagen ist
