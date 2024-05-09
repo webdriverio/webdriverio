@@ -201,7 +201,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
         if (!this._options.app) {
-            BStackLogger.info('app is not defined in browserstack-service config, skipping ...')
+            BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
         } else {
             let app: App = {}
             const appConfig: AppConfig | string = this._options.app
