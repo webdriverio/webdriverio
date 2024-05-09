@@ -72,7 +72,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
