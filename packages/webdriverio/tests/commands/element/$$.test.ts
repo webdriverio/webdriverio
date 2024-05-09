@@ -50,25 +50,6 @@ describe('element', () => {
         expect(elems[2].index).toBe(2)
     })
 
-    it('should fetch an element (no w3c)', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        const elem = await browser.$('#foo')
-        const elems = await elem.$$('#subfoo')
-        expect(elems).toHaveLength(3)
-        expect(elems[0][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[0].ELEMENT).toBe('some-sub-elem-321')
-        expect(elems[1][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[1].ELEMENT).toBe('some-elem-456')
-        expect(elems[2][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[2].ELEMENT).toBe('some-elem-789')
-    })
-
     it('keeps prototype from browser object', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

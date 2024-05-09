@@ -64,12 +64,6 @@ export const IOS_CONFIG = {
     deviceName: 'iPhone Simulator'
 }
 
-export enum CompilerOptions {
-    Babel = 'Babel (https://babeljs.io/)',
-    TS = 'TypeScript (https://www.typescriptlang.org/)',
-    Nil = 'No!'
-}
-
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
@@ -478,19 +472,19 @@ export const QUESTIONNAIRE = [{
         return SUPPORTED_PACKAGES.framework
     }
 }, {
-    type: 'list',
-    name: 'isUsingCompiler',
-    message: 'Do you want to use a compiler?',
-    choices: (answers: Questionnair) => {
+    type: 'confirm',
+    name: 'isUsingTypeScript',
+    message: 'Do you want to use Typescript to write tests?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
         /**
-         * StencilJS only supports TypeScript
+         * StencilJS only supports TypeScript - use the default
          */
-        if (answers.preset && answers.preset.includes('stencil')) {
-            return [CompilerOptions.TS]
+        if (answers.preset?.includes('stencil')) {
+            return false
         }
-        return Object.values(CompilerOptions)
+        return true
     },
-    default: /* istanbul ignore next */ (answers: Questionnair) => detectCompiler(answers)
+    default: /* istanbul ignore next */ (answers: Questionnair) => answers.preset?.includes('stencil') || detectCompiler(answers)
 }, {
     type: 'confirm',
     name: 'generateTestFiles',

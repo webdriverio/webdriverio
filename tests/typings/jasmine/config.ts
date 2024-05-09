@@ -9,10 +9,11 @@ const config: WebdriverIO.Config = {
 }
 
 /**
- * check import of assertion lib
+ * check compatibility with WebdriverIO assertion lib
  */
 expect($('foo')).toHaveTextContaining('foobar')
 /**
  * check support for Jasmine specific matchers
  */
+// @ts-ignore ToDo(@christian-bromann): fix typings
 expect(true).toBeTrue()

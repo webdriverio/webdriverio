@@ -139,7 +139,7 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (webSocketUrl) {
-            client._bidiSocket?.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
         }
         return client
     }

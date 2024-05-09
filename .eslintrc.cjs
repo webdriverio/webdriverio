@@ -49,6 +49,7 @@ const config = {
             'IfStatement > ExpressionStatement > AssignmentExpression',
         ],
         'unicorn/prefer-ternary': 'error',
+        'no-dupe-class-members': 'off'
     },
     overrides: [
         {

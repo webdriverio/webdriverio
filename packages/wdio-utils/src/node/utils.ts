@@ -190,16 +190,16 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
                     linuxWhich: 'chromium-browser'
                 }).catch(() => undefined)
                 : await locateFirefox().catch(() => undefined)
-        const tag = isChromeOrChromium
+        const browserVersion = isChromeOrChromium
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
         /**
          * verify that we have a valid Chrome/Firefox browser installed
          */
-        if (tag) {
+        if (browserVersion) {
             return {
                 executablePath,
-                browserVersion: await resolveBuildId(browserName, platform, tag)
+                browserVersion
             }
         }
     }

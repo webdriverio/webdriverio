@@ -1,9 +1,9 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElement, findDeepElement } from '../../utils/index.js'
-import { getElement } from '../../utils/getElementObject.js'
 import { DEEP_SELECTOR } from '../../constants.js'
+import { findElement } from '../../utils/index.js'
+import { getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -70,27 +70,17 @@ export async function $ (
     selector: Selector
 ): Promise<WebdriverIO.Element> {
     /**
-     * do a deep lookup if
-     * - we are using Bidi
-     * - have a string selector
-     * - that is not a deep selector
+     * run this in Node.js land if we are using browser runner because we collect
+     * more browser information there that allows better lookups
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+    if (globalThis.wdio && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
         /**
-         * run this in Node.js land if we are using browser runner
+         * `res` is an element reference as we strip down the element
+         * result to its element id
          */
-        if (globalThis.wdio) {
-            /**
-             * `res` is an element reference as we strip down the element
-             * result to its element id
-             */
-            const res: ElementReference = 'elementId' in this
-                ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
-                : await globalThis.wdio.execute('$' as const, selector)
-            return getElement.call(this, selector as string, res)
-        }
-
-        const res = await findDeepElement.call(this, selector)
+        const res: ElementReference = 'elementId' in this
+            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
+            : await globalThis.wdio.execute('$' as const, selector)
         return getElement.call(this, selector as string, res)
     }
 

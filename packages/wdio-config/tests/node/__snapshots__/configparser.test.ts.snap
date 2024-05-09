@@ -2,9 +2,6 @@
 
 exports[`ConfigParser > disables coverage 1`] = `
 {
-  "autoCompileOpts": {
-    "autoCompile": false,
-  },
   "runner": [
     "browser",
     {
@@ -18,9 +15,6 @@ exports[`ConfigParser > disables coverage 1`] = `
 
 exports[`ConfigParser > disables coverage 2`] = `
 {
-  "autoCompileOpts": {
-    "autoCompile": false,
-  },
   "runner": [
     "browser",
     {
@@ -35,9 +29,6 @@ exports[`ConfigParser > disables coverage 2`] = `
 
 exports[`ConfigParser > enables coverage 1`] = `
 {
-  "autoCompileOpts": {
-    "autoCompile": false,
-  },
   "runner": [
     "browser",
     {
@@ -51,9 +42,6 @@ exports[`ConfigParser > enables coverage 1`] = `
 
 exports[`ConfigParser > enables coverage 2`] = `
 {
-  "autoCompileOpts": {
-    "autoCompile": false,
-  },
   "runner": [
     "browser",
     {

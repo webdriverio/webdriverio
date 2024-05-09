@@ -103,7 +103,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     ) as WebdriverIO.Browser
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
-    await getShadowRootManager(driver).initialize()
+    // @ts-expect-error `bidiHandler` is a private property
+    await driver._bidiHandler?.connect().then(
+        () => getShadowRootManager(driver).initialize())
     return driver
 }
 

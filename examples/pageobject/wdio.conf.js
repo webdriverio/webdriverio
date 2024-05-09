@@ -1,4 +1,9 @@
-exports.config = {
+import path from 'node:path'
+import url from 'node:url'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     //
     // ==================
     // Specify Test Files
@@ -14,7 +19,7 @@ exports.config = {
     // The path of the spec files will be resolved relative from the directory of
     // of the config file unless it's absolute.
     //
-    specs: [__dirname + '/specs/*.spec.js'],
+    specs: [path.resolve(__dirname, 'specs', '*.spec.js')],
     //
     // ============
     // Capabilities

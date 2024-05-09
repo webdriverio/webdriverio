@@ -1,0 +1,30 @@
+{
+  "name": "mocha-type-tests",
+  "version": "0.0.1",
+  "description": "TypeScript tests for Mocha types",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "webdriver": "workspace:*",
+    "webdriverio": "workspace:*",
+    "@wdio/globals": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "@wdio/browser-runner": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/allure-reporter": "workspace:*",
+    "@wdio/appium-service": "workspace:*",
+    "@wdio/browserstack-service": "workspace:*",
+    "@wdio/cucumber-framework": "workspace:*",
+    "@wdio/devtools-service": "workspace:*",
+    "@wdio/firefox-profile-service": "workspace:*",
+    "@wdio/jasmine-framework": "workspace:*",
+    "@wdio/mocha-framework": "workspace:*",
+    "@wdio/protocols": "workspace:*",
+    "@wdio/sauce-service": "workspace:*",
+    "@wdio/shared-store-service": "workspace:*",
+    "@wdio/static-server-service": "workspace:*",
+    "@wdio/sumologic-reporter": "workspace:*",
+    "@wdio/testingbot-service": "workspace:*"
+  }
+}

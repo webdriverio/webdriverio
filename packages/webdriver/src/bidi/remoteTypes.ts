@@ -17,7 +17,7 @@ export interface Command {
   id: JsUint;
 }
 
-export type CommandData = BrowserCommand | BrowsingContextCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand;
+export type CommandData = BrowserCommand | BrowsingContextCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand | StorageCommand;
 export interface EmptyParams extends Extensible {}
 export type Extensible = Record<string, any>;
 export type JsInt = number;
@@ -34,16 +34,40 @@ export interface SessionCapabilityRequest extends Extensible {
   browserName?: string;
   browserVersion?: string;
   platformName?: string;
-  proxy?: {
-    proxyType?: 'pac' | 'direct' | 'autodetect' | 'system' | 'manual';
-    proxyAutoconfigUrl?: string;
-    ftpProxy?: string;
-    httpProxy?: string;
-    noProxy?: string[];
-    sslProxy?: string;
-    socksProxy?: string;
-    socksVersion?: number;
-  };
+  proxy?: SessionProxyConfiguration;
+  webSocketUrl?: boolean;
+}
+
+export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration;
+
+export interface SessionAutodetectProxyConfiguration extends Extensible {
+  proxyType: 'autodetect';
+}
+
+export interface SessionDirectProxyConfiguration extends Extensible {
+  proxyType: 'direct';
+}
+
+export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
+  proxyType: 'manual';
+  ftpProxy?: string;
+  httpProxy?: string;
+  sslProxy?: string;
+  noProxy?: string[];
+}
+
+export interface SessionSocksProxyConfiguration {
+  socksProxy: string;
+  socksVersion: number;
+}
+
+export interface SessionPacProxyConfiguration extends Extensible {
+  proxyType: 'pac';
+  proxyAutoconfigUrl: string;
+}
+
+export interface SessionSystemProxyConfiguration extends Extensible {
+  proxyType: 'system';
 }
 
 export interface SessionSubscriptionRequest {
@@ -80,16 +104,48 @@ export interface SessionUnsubscribe extends Command {
   params: SessionSubscriptionRequest;
 }
 
-export interface BrowserCommand extends BrowserClose {}
+export type BrowserCommand = BrowserClose | BrowserCreateUserContext | BrowserGetUserContexts | BrowserRemoveUserContext;
+export type BrowserUserContext = string;
+
+export interface BrowserUserContextInfo {
+  userContext: BrowserUserContext;
+}
 
 export interface BrowserClose extends Command {
   method: 'browser.close';
   params: EmptyParams;
 }
 
+export interface BrowserCreateUserContext extends Command {
+  method: 'browser.createUserContext';
+  params: EmptyParams;
+}
+
+export interface BrowserGetUserContexts extends Command {
+  method: 'browser.getUserContexts';
+  params: EmptyParams;
+}
+
+export interface BrowserRemoveUserContext extends Command {
+  method: 'browser.removeUserContext';
+  params: BrowserRemoveUserContextParameters;
+}
+
+export interface BrowserRemoveUserContextParameters {
+  userContext: BrowserUserContext;
+}
+
 export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetViewport | BrowsingContextTraverseHistory;
 export type BrowsingContextBrowsingContext = string;
-export type BrowsingContextLocator = BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator;
+
+export interface BrowsingContextAccessibilityLocator {
+  type: 'accessibility';
+  value: {
+    name?: string;
+    role?: string;
+  };
+}
 
 export interface BrowsingContextCssLocator {
   type: 'css';
@@ -177,6 +233,7 @@ export interface BrowsingContextCreateParameters {
   type: BrowsingContextCreateType;
   referenceContext?: BrowsingContextBrowsingContext;
   background?: boolean;
+  userContext?: BrowserUserContext;
 }
 
 export interface BrowsingContextGetTree extends Command {
@@ -209,8 +266,6 @@ export interface BrowsingContextLocateNodesParameters {
   context: BrowsingContextBrowsingContext;
   locator: BrowsingContextLocator;
   maxNodeCount?: JsUint;
-  ownership?: ScriptResultOwnership;
-  sandbox?: string;
   serializationOptions?: ScriptSerializationOptions;
   startNodes?: ScriptSharedReference[];
 }
@@ -340,7 +395,9 @@ export interface NetworkBase64Value {
   value: string;
 }
 
-export interface NetworkCookie {
+export type NetworkSameSite = 'strict' | 'lax' | 'none';
+
+export interface NetworkCookie extends Extensible {
   name: string;
   value: NetworkBytesValue;
   domain: string;
@@ -348,7 +405,7 @@ export interface NetworkCookie {
   size: JsUint;
   httpOnly: boolean;
   secure: boolean;
-  sameSite: 'strict' | 'lax' | 'none';
+  sameSite: NetworkSameSite;
   expiry?: JsUint;
 }
 
@@ -373,7 +430,7 @@ export interface NetworkSetCookieHeader {
   expiry?: string;
   maxAge?: JsInt;
   path?: string;
-  sameSite?: 'strict' | 'lax' | 'none';
+  sameSite?: NetworkSameSite;
   secure?: boolean;
 }
 
@@ -400,6 +457,7 @@ export interface NetworkAddIntercept extends Command {
 
 export interface NetworkAddInterceptParameters {
   phases: NetworkInterceptPhase[];
+  contexts?: BrowsingContextBrowsingContext[];
   urlPatterns?: NetworkUrlPattern[];
 }
 
@@ -608,7 +666,7 @@ export interface ScriptRemoteObjectReference extends Extensible {
   sharedId?: ScriptSharedId;
 }
 
-export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptIteratorRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
+export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue;
 export type ScriptListRemoteValue = (ScriptRemoteValue)[];
 export type ScriptMappingRemoteValue = (ScriptRemoteValue | ScriptRemoteValue)[];
 
@@ -670,12 +728,6 @@ export interface ScriptWeakMapRemoteValue {
 
 export interface ScriptWeakSetRemoteValue {
   type: 'weakset';
-  handle?: ScriptHandle;
-  internalId?: ScriptInternalId;
-}
-
-export interface ScriptIteratorRemoteValue {
-  type: 'iterator';
   handle?: ScriptHandle;
   internalId?: ScriptInternalId;
 }
@@ -797,7 +849,7 @@ export interface ScriptContextTarget {
   sandbox?: string;
 }
 
-export type ScriptTarget = ScriptRealmTarget | ScriptContextTarget;
+export type ScriptTarget = ScriptContextTarget | ScriptRealmTarget;
 
 export interface ScriptAddPreloadScript extends Command {
   method: 'script.addPreloadScript';
@@ -870,7 +922,80 @@ export interface ScriptRemovePreloadScriptParameters {
   script: ScriptPreloadScript;
 }
 
-export type InputCommand = InputPerformActions | InputReleaseActions;
+export type StorageCommand = StorageDeleteCookies | StorageGetCookies | StorageSetCookie;
+
+export interface StoragePartitionKey extends Extensible {
+  userContext?: string;
+  sourceOrigin?: string;
+}
+
+export interface StorageGetCookies extends Command {
+  method: 'storage.getCookies';
+  params: StorageGetCookiesParameters;
+}
+
+export interface StorageCookieFilter extends Extensible {
+  name?: string;
+  value?: NetworkBytesValue;
+  domain?: string;
+  path?: string;
+  size?: JsUint;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: NetworkSameSite;
+  expiry?: JsUint;
+}
+
+export interface StorageBrowsingContextPartitionDescriptor {
+  type: 'context';
+  context: BrowsingContextBrowsingContext;
+}
+
+export interface StorageStorageKeyPartitionDescriptor extends Extensible {
+  type: 'storageKey';
+  userContext?: string;
+  sourceOrigin?: string;
+}
+
+export type StoragePartitionDescriptor = StorageBrowsingContextPartitionDescriptor | StorageStorageKeyPartitionDescriptor;
+
+export interface StorageGetCookiesParameters {
+  filter?: StorageCookieFilter;
+  partition?: StoragePartitionDescriptor;
+}
+
+export interface StorageSetCookie extends Command {
+  method: 'storage.setCookie';
+  params: StorageSetCookieParameters;
+}
+
+export interface StoragePartialCookie extends Extensible {
+  name: string;
+  value: NetworkBytesValue;
+  domain: string;
+  path?: string;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: NetworkSameSite;
+  expiry?: JsUint;
+}
+
+export interface StorageSetCookieParameters {
+  cookie: StoragePartialCookie;
+  partition?: StoragePartitionDescriptor;
+}
+
+export interface StorageDeleteCookies extends Command {
+  method: 'storage.deleteCookies';
+  params: StorageDeleteCookiesParameters;
+}
+
+export interface StorageDeleteCookiesParameters {
+  filter?: StorageCookieFilter;
+  partition?: StoragePartitionDescriptor;
+}
+
+export type InputCommand = InputPerformActions | InputReleaseActions | InputSetFiles;
 
 export interface InputElementOrigin {
   type: 'element';
@@ -946,7 +1071,7 @@ export interface InputKeyUpAction {
   value: string;
 }
 
-export interface InputPointerUpAction extends InputPointerCommonProperties {
+export interface InputPointerUpAction {
   type: 'pointerUp';
   button: JsUint;
 }
@@ -1008,4 +1133,15 @@ export interface InputReleaseActions extends Command {
 
 export interface InputReleaseActionsParameters {
   context: BrowsingContextBrowsingContext;
+}
+
+export interface InputSetFiles extends Command {
+  method: 'input.setFiles';
+  params: InputSetFilesParameters;
+}
+
+export interface InputSetFilesParameters {
+  context: BrowsingContextBrowsingContext;
+  element: ScriptSharedReference;
+  files: string[];
 }

@@ -1,5 +1,5 @@
 /**
- * get HTML of selector element and peirce through all Shadow DOM documents
+ * get HTML of all shadow roots
  *
  * @param  {string}  element               element to get HTML from
  * @param  {Boolean} includeSelectorTag    if true, selector tag gets included (uses outerHTML)
@@ -9,46 +9,43 @@
 export default function getHTMLShadow (
     element: HTMLElement | ShadowRoot,
     includeSelectorTag: boolean,
-    shadowElementIds: [string, HTMLElement][] = []
+    shadowElementIds: [string, HTMLElement, HTMLElement | undefined][] = []
 ) {
-    let styles: string[] = []
-    const shadowElementIdsFound: string[] = []
-    const elemsWithShadowRoot = Array.from(element.querySelectorAll('*'))
-        .filter((el) => el.shadowRoot)
+    shadowElementIds.map(([id, elem]) => {
+        /**
+         * if we don't have a shadow root (e.g. most likely to be the root document node)
+         */
+        if (typeof elem.setAttribute !== 'function') {
+            return
+        }
 
-    /**
-     * make sure to include the root itself
-     */
-    if ((element as HTMLElement).shadowRoot) {
-        elemsWithShadowRoot.unshift(element as HTMLElement)
-    }
+        elem.setAttribute('data-wdio-shadow-id', id)
+    })
 
-    if (element.nodeType === 11) {
-        styles = Array.from((element as ShadowRoot).adoptedStyleSheets)
+    const shadowElementHTML = shadowElementIds.map(([id, elem, shadow]) => {
+        /**
+         * if we don't have a shadow root (e.g. most likely to be the root document node)
+         * we just get the html of the element
+         */
+        if (!shadow) {
+            const html = elem[includeSelectorTag ? 'outerHTML' : 'innerHTML']
+            return { id, html }
+        }
+
+        /**
+         * otherwise, we look up the registered shadow styles and html
+         */
+        const styles = Array.from((shadow as any as ShadowRoot).adoptedStyleSheets || [])
             .map(({ cssRules }) => Array.from(cssRules))
             .flat()
             .map(({ cssText }) => cssText)
-    }
 
-    for (const elem of elemsWithShadowRoot) {
-        /**
-         * attach `data-wdio-shadow-id` attribute to the element so we can later
-         * identify it and pierce into its shadow root
-         */
-        const shadowElement = shadowElementIds.find(([, sel]) => elem === sel)
-        if (shadowElement) {
-            shadowElementIdsFound.push(shadowElement[0])
-            elem.setAttribute('data-wdio-shadow-id', shadowElement[0])
-        }
-    }
+        const html = shadow.innerHTML
+        return { id, html, styles }
+    })
 
     return {
-        /**
-         * `getHTMLShadow` requires `includeSelectorTag` to be set to `false` if the element
-         * is a shadow root itself
-         */
         html: (element as HTMLElement)[includeSelectorTag ? 'outerHTML' : 'innerHTML'],
-        shadowElementIdsFound,
-        styles
+        shadowElementHTML
     }
 }

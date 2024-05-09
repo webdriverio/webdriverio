@@ -19,6 +19,8 @@ updates:
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
+    # requires manual upgrade and potential a lot of rewrites
+    - dependency-name: "@vitest/coverage-v8"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # doesn't support glob anymore in v4 (Windows)
@@ -34,6 +36,7 @@ updates:
     - dependency-name: "inquirer"
     - dependency-name: "read-pkg-up"
     - dependency-name: "formdata-node"
+    - dependency-name: "cli-spinners"
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"

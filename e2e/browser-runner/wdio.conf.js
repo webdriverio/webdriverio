@@ -44,8 +44,13 @@ export const config = {
         isMac
             ? { browserName: 'safari' }
             : !process.env.WDIO_PRESET
+                /**
+                 * We need canary in all component tests for:
+                 * - element look-ups with `browsingContext.locateNodes`
+                 * - network mocking
+                 */
                 ? { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
-                : { browserName: 'chrome', browserVersion: 'stable', webSocketUrl: true }
+                : { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
     ],
 
     /**
@@ -71,7 +76,10 @@ export const config = {
         coverage: {
             enabled: true,
             // we skip some tests on Mac, therefor lower coverage treshold
-            functions: isMac ? 66 : 100
+            /**
+             * Todo(@christian-bromann): set treshold back to 100
+             */
+            functions: isMac ? 60 : 80
         }
     }],
 

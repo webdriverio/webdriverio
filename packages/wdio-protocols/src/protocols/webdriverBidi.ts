@@ -90,7 +90,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.SessionNewResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       proxy: {\n         proxyType?: \"pac\" | \"direct\" | \"autodetect\" | \"system\" | \"manual\";\n         proxyAutoconfigUrl?: string;\n         ftpProxy?: string;\n         httpProxy?: string;\n         noProxy?: string[];\n         sslProxy?: string;\n         socksProxy?: string;\n         socksVersion?: number;\n       };\n       setWindowRect: boolean;\n     };\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
             }
         }
     },
@@ -149,6 +149,61 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.EmptyParams`",
                     "description": "<pre>\\{\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "browser.createUserContext": {
+        "socket": {
+            "command": "browserCreateUserContext",
+            "description": "WebDriver Bidi command to send command method \"browser.createUserContext\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmptyParams`",
+                    "description": "<pre>\\{\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserCreateUserContextResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "browser.getUserContexts": {
+        "socket": {
+            "command": "browserGetUserContexts",
+            "description": "WebDriver Bidi command to send command method \"browser.getUserContexts\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmptyParams`",
+                    "description": "<pre>\\{\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserGetUserContextsResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     userContexts: BrowserUserContextInfo[];\n   }\n   ```"
+            }
+        }
+    },
+    "browser.removeUserContext": {
+        "socket": {
+            "command": "browserRemoveUserContext",
+            "description": "WebDriver Bidi command to send command method \"browser.removeUserContext\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowserRemoveUserContextParameters`",
+                    "description": "<pre>\\{<br />  userContext: BrowserUserContext;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -213,7 +268,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCreateParameters`",
-                    "description": "<pre>\\{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  userContext?: BrowserUserContext;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -268,7 +323,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextLocateNodesParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  locator: BrowsingContextLocator;<br />  maxNodeCount?: JsUint;<br />  ownership?: ScriptResultOwnership;<br />  sandbox?: string;<br />  serializationOptions?: ScriptSerializationOptions;<br />  startNodes?: ScriptSharedReference[];<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  locator: BrowsingContextLocator;<br />  maxNodeCount?: JsUint;<br />  serializationOptions?: ScriptSerializationOptions;<br />  startNodes?: ScriptSharedReference[];<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -373,7 +428,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkAddInterceptParameters`",
-                    "description": "<pre>\\{<br />  phases: NetworkInterceptPhase[];<br />  urlPatterns?: NetworkUrlPattern[];<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  phases: NetworkInterceptPhase[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  urlPatterns?: NetworkUrlPattern[];<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -579,6 +634,66 @@ const protocol = {
             ]
         }
     },
+    "storage.getCookies": {
+        "socket": {
+            "command": "storageGetCookies",
+            "description": "WebDriver Bidi command to send command method \"storage.getCookies\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-getCookies",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.StorageGetCookiesParameters`",
+                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.StorageGetCookiesResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     cookies: NetworkCookie[];\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            }
+        }
+    },
+    "storage.setCookie": {
+        "socket": {
+            "command": "storageSetCookie",
+            "description": "WebDriver Bidi command to send command method \"storage.setCookie\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-setCookie",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.StorageSetCookieParameters`",
+                    "description": "<pre>\\{<br />  cookie: StoragePartialCookie;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.StorageSetCookieResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            }
+        }
+    },
+    "storage.deleteCookies": {
+        "socket": {
+            "command": "storageDeleteCookies",
+            "description": "WebDriver Bidi command to send command method \"storage.deleteCookies\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.StorageDeleteCookiesParameters`",
+                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.StorageDeleteCookiesResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            }
+        }
+    },
     "input.performActions": {
         "socket": {
             "command": "inputPerformActions",
@@ -604,6 +719,21 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.InputReleaseActionsParameters`",
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "input.setFiles": {
+        "socket": {
+            "command": "inputSetFiles",
+            "description": "WebDriver Bidi command to send command method \"input.setFiles\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-setFiles",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.InputSetFilesParameters`",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element: ScriptSharedReference;<br />  files: string[];<br />\\}</pre>",
                     "required": true
                 }
             ]

@@ -1,20 +1,20 @@
-const path = require('node:path')
+import path from 'node:path'
+import url from 'node:url'
 
-exports.config = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config: WebdriverIO.Config = {
 
     /**
      * specify test files
      */
-    specs: [[path.resolve(__dirname, '*.spec.js')]],
+    specs: [[path.resolve(__dirname, '*.spec.ts')]],
 
     /**
      * capabilities
      */
     capabilities: [{
-        browserName: 'chrome',
-        'wdio:devtoolsOptions': {
-            headless: true
-        }
+        browserName: 'chrome'
     }],
 
     /**

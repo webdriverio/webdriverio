@@ -1,6 +1,9 @@
-const path = require('node:path')
+import path from 'node:path'
+import url from 'node:url'
 
-exports.config = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     specs: [path.join(__dirname, '*.test.js')],
     suites: {
         pageWeight: ['./pageWeight.e2e.js'],

@@ -8,7 +8,7 @@ export async function generateEventDocs () {
     await fs.mkdir(eventsDir, { recursive: true })
 
     const res = await fetch('https://events.webdriver.io/api/events')
-    const events = (await res.json()).filter((event: any) => new Date(event.time) > new Date())
+    const events = await res.json()
 
     const sidebarPath = path.join(__dirname, '..', '..', 'website', 'events.json')
     const sidebarContent = events

@@ -1,4 +1,4 @@
-import Page from './page/index.js'
+import Page from './page.js'
 
 class FormPage extends Page {
     /**

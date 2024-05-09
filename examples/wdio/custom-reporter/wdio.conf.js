@@ -1,7 +1,10 @@
-const path = require('node:path')
-const CustomReporter = require('./reporter/my.custom.reporter.js')
+import path from 'node:path'
+import url from 'node:url'
+import CustomReporter from './my.custom.reporter.js'
 
-exports.config = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     /**
      * specify test files
      */

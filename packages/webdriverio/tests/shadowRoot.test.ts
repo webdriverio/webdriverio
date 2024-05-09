@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 
-import { getShadowRootManager } from '../src/shadowRoot.js'
+import { getShadowRootManager, ShadowRootTree } from '../src/shadowRoot.js'
 
 const defaultBrowser = {
     sessionSubscribe: vi.fn().mockResolvedValue({}),
@@ -31,7 +31,7 @@ describe('ShadowRootManager', () => {
         process.env.VITEST_WORKER_ID = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(2)
+        expect(browser.on).toBeCalledTimes(1)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
     })
 
@@ -53,65 +53,38 @@ describe('ShadowRootManager', () => {
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
-    it('should reset shadow roots on context load', () => {
-        const browser = { ...defaultBrowser } as any
-        const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
-        expect(manager.getShadowRootsForContext('foobar')).toEqual([])
-        const manager2 = getShadowRootManager({ ...defaultBrowser } as any)
-        expect(manager2.getShadowRootsForContext()).toEqual([])
-        manager2.deleteShadowRoot('foobar')
-    })
-
     it('should capture shadow root elements', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             args: [
                 { type: 'string', value: '[WDIO]' },
                 { type: 'string', value: 'newShadowRoot' },
-                { type: 'node', sharedId: 'foobar' },
+                { type: 'node', sharedId: 'foobar', value: {
+                    shadowRoot: {
+                        sharedId: 'shadowFoobar',
+                        value: {
+                            nodeType: 11,
+                            mode: 'closed'
+                        }
+                    }
+                } },
                 { type: 'node', sharedId: 'barfoo' }
             ],
-            source: { context: 'foobar' }
+            source: { context: 'foobarContext' }
         } as any)
-        expect(manager.getShadowRootsForContext('foobar')).toEqual(['foobar'])
-        expect(manager.getElementWithShadowDOM('foobar')).toBe('barfoo')
-    })
-
-    it('should delete shadow root elements', () => {
-        const browser = { ...defaultBrowser } as any
-        const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
-        manager.handleLogEntry({
-            level: 'debug',
-            args: [
-                { type: 'string', value: '[WDIO]' },
-                { type: 'string', value: 'newShadowRoot' },
-                { type: 'node', sharedId: 'foobar' },
-                { type: 'node', sharedId: 'barfoo' }
-            ],
-            source: { context: 'foobar' }
-        } as any)
-        manager.handleLogEntry({
-            level: 'debug',
-            args: [
-                { type: 'string', value: '[WDIO]' },
-                { type: 'string', value: 'removeShadowRoot' },
-                { type: 'node', sharedId: 'foobar' }
-            ],
-            source: { context: 'foobar' }
-        } as any)
-        expect(manager.getShadowRootsForContext('foobar')).toEqual([])
-        expect(manager.getElementWithShadowDOM('foobar')).toBe(undefined)
+        expect(manager.getShadowElementsByContextId('foobarContext')).toEqual(['barfoo', 'shadowFoobar'])
+        expect(manager.getShadowRootModeById('foobarContext', 'foobar')).toBe('closed')
+        expect(manager.getShadowElementPairsByContextId('foobarContext')).toEqual([
+            ['barfoo', undefined],
+            ['foobar', 'shadowFoobar']
+        ])
     })
 
     it('should ignore log entries that are not of interest', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -120,15 +93,14 @@ describe('ShadowRootManager', () => {
                 { type: 'node', sharedId: 'foobar' },
                 { type: 'node', sharedId: 'barfoo' }
             ],
-            source: { context: 'foobar' }
+            source: { context: 'foobarContext' }
         } as any)
-        expect(manager.getShadowRootsForContext('foobar')).toEqual([])
+        expect(manager.getShadowElementsByContextId('foobarContext')).toEqual([])
     })
 
     it('should throw if log entry is invalid', () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
         expect(() => manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -140,35 +112,65 @@ describe('ShadowRootManager', () => {
             source: { context: 'foobar' }
         } as any)).toThrow()
     })
+})
 
-    it('should handle log entries without args or context or with a different context', () => {
-        const browser = { ...defaultBrowser } as any
-        const manager = getShadowRootManager(browser)
-        manager.handleBrowsingContextLoad({ context: 'foobar' } as any)
-        manager.handleLogEntry({
-            level: 'debug',
-            source: { context: 'foobar' }
-        } as any)
-        manager.handleLogEntry({
-            level: 'debug',
-            args: [
-                { type: 'string', value: '[WDIO]' },
-                { type: 'string', value: 'foobar' },
-                { type: 'node', sharedId: 'foobar' },
-                { type: 'node', sharedId: 'barfoo' }
-            ],
-            source: {}
-        } as any)
-        manager.handleLogEntry({
-            level: 'debug',
-            args: [
-                { type: 'string', value: '[WDIO]' },
-                { type: 'string', value: 'newShadowRoot' },
-                { type: 'node', sharedId: 'foobar' },
-                { type: 'node', sharedId: 'barfoo' }
-            ],
-            source: { context: 'barfoo' }
-        } as any)
-        expect(manager.getShadowRootsForContext('foobar')).toEqual([])
+describe('ShadowRootTree', () => {
+    const root = new ShadowRootTree('1')
+    root.addShadowElement(new ShadowRootTree('2', '3'))
+    root.addShadowElement(new ShadowRootTree('4', '5'))
+    root.addShadowElement(new ShadowRootTree('6', '7'))
+    root.addShadowElement('4', new ShadowRootTree('8', '9'))
+    root.addShadowElement('8', new ShadowRootTree('10', '11'))
+    root.addShadowElement('8', new ShadowRootTree('12', '13'))
+    root.addShadowElement('12', new ShadowRootTree('14', '15'))
+
+    it('can find the root of a tree', () => {
+        const tree = root.find('8')
+        expect(tree?.shadowRoot).toBe('9')
+        expect(tree?.children.size).toBe(2)
+        expect(root.find('1234')).toBe(undefined)
+    })
+
+    it('can findByShadowId', () => {
+        expect(root.findByShadowId('9')?.element).toBe('8')
+        expect(root.findByShadowId('15')?.element).toBe('14')
+        expect(root.findByShadowId('1234')).toBe(undefined)
+    })
+
+    it('can get all trees', () => {
+        expect(root.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "1",
+            "3",
+            "5",
+            "9",
+            "11",
+            "13",
+            "15",
+            "7",
+          ]
+        `)
+        expect(root.find('8')?.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "9",
+            "11",
+            "13",
+            "15",
+          ]
+        `)
+    })
+
+    it('can delete children and sub trees', () => {
+        const child = root.find('6')
+        expect(child?.remove('8')).toBe(false)
+        expect(root.remove('8')).toBe(true)
+        expect(root.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "1",
+            "3",
+            "5",
+            "7",
+          ]
+        `)
     })
 })

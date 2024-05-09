@@ -34,7 +34,7 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     try {
         ast = parseCDDL(path.join(__dirname, 'cddl', `${type}.cddl`))
     } catch (err: unknown) {
-        console.log(util.format(CDDL_PARSE_ERROR_MESSAGE, (err as Error).stack))
+        console.log(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
         process.exit(0)
     }
 

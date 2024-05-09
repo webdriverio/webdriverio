@@ -1,6 +1,6 @@
-# Cloudservices
+# Cloud Services
 
-Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
+Shows you how to use WebdriverIO using Sauce Labs, BrowserStack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change the directory to the example folder:
 
 ```sh
 cd ./examples/cloudservices

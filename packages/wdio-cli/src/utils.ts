@@ -22,7 +22,6 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 import { installPackages, getInstallCommand } from './install.js'
 import {
     ANDROID_CONFIG,
-    CompilerOptions,
     DEPENDENCIES_INSTALLATION_MESSAGE,
     IOS_CONFIG,
     pkg,
@@ -252,8 +251,6 @@ export function getSerenityPackages(answers: Questionnair): string[] {
         return []
     }
 
-    const isUsingTypeScript = answers.isUsingCompiler === CompilerOptions.TS
-
     const packages: Record<string, Array<string | false>> = {
         cucumber: [
             '@cucumber/cucumber',
@@ -262,12 +259,10 @@ export function getSerenityPackages(answers: Questionnair): string[] {
         mocha: [
             '@serenity-js/mocha',
             'mocha',
-            isUsingTypeScript && '@types/mocha',
         ],
         jasmine: [
             '@serenity-js/jasmine',
             'jasmine',
-            isUsingTypeScript && '@types/jasmine',
         ],
         common: [
             '@serenity-js/assertions',
@@ -276,10 +271,15 @@ export function getSerenityPackages(answers: Questionnair): string[] {
             '@serenity-js/rest',
             '@serenity-js/serenity-bdd',
             '@serenity-js/web',
-            isUsingTypeScript && '@types/node',
             'npm-failsafe',
             'rimraf',
         ]
+    }
+
+    if (answers.isUsingTypeScript) {
+        packages.mocha.push('@types/mocha')
+        packages.jasmine.push('@types/jasmine')
+        packages.common.push('@types/node')
     }
 
     return [
@@ -360,11 +360,7 @@ export function hasBabelConfig(rootDir: string) {
 export async function detectCompiler(answers: Questionnair) {
     const root = await getProjectRoot(answers)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
-    return (await hasBabelConfig(root))
-        ? CompilerOptions.Babel // default to Babel
-        : rootTSConfigExist
-            ? CompilerOptions.TS // default to TypeScript
-            : CompilerOptions.Nil // default to no compiler
+    return (await hasBabelConfig(root) || rootTSConfigExist) ? true : false
 }
 
 /**
@@ -527,7 +523,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
         /**
          * some questions have async defaults
          */
-        answers.isUsingCompiler = await answers.isUsingCompiler
+        answers.isUsingTypeScript = await answers.isUsingTypeScript
         answers.specs = await answers.specs
         answers.pages = await answers.pages
         return answers
@@ -617,7 +613,7 @@ export async function getDefaultFiles(answers: Questionnair, pattern: string) {
     const isJSX = TSX_BASED_FRAMEWORKS.includes(presetPackage.short || '')
     const val = pattern.endsWith('.feature')
         ? path.join(rootdir, pattern)
-        : answers?.isUsingCompiler?.toString().includes('TypeScript')
+        : answers?.isUsingTypeScript
             ? `${path.join(rootdir, pattern)}.ts${isJSX ? 'x' : ''}`
             : `${path.join(rootdir, pattern)}.js${isJSX ? 'x' : ''}`
     return val
@@ -841,7 +837,7 @@ export function detectPackageManager(argv = process.argv) {
 }
 
 /**
- * add ts-node if TypeScript is desired but not installed
+ * set up TypeScript if it is desired but not installed
  */
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     /**
@@ -852,18 +848,18 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     /**
-     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `ts-node`
-     * as it is a requirement for running TypeScript tests
+     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `tsx`
+     * as it is a requirement for running tests with TypeScript
      */
     if (parsedAnswers.hasRootTSConfig) {
-        parsedAnswers.packagesToInstall.push('ts-node')
+        parsedAnswers.packagesToInstall.push('tsx')
         return
     }
 
     console.log('Setting up TypeScript...')
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
-    parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    parsedAnswers.packagesToInstall.push('tsx')
     const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
 
     const types = [
@@ -960,55 +956,6 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
 function getPreset (parsedAnswers: ParsedAnswers) {
     const isUsingFramework = typeof parsedAnswers.preset === 'string'
     return isUsingFramework ? (parsedAnswers.preset || 'lit') : ''
-}
-
-/**
- * add @babel/register package if not installed
- */
-export async function setupBabel(parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.isUsingBabel) {
-        return
-    }
-
-    if (!await hasPackage('@babel/register')) {
-        parsedAnswers.packagesToInstall.push('@babel/register')
-    }
-
-    /**
-     * setup Babel if no config file exists
-     */
-    const hasBabelConfig = await Promise.all([
-        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.js')),
-        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.cjs')),
-        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.mjs')),
-        fs.access(path.join(parsedAnswers.projectRootDir, '.babelrc'))
-    ]).then(
-        (results) => results.filter(Boolean).length > 1,
-        () => false
-    )
-
-    if (!hasBabelConfig) {
-        console.log('Setting up Babel project...')
-        if (!await hasPackage('@babel/core')) {
-            parsedAnswers.packagesToInstall.push('@babel/core')
-        }
-        if (!await hasPackage('@babel/preset-env')) {
-            parsedAnswers.packagesToInstall.push('@babel/preset-env')
-        }
-        await fs.writeFile(
-            path.join(process.cwd(), 'babel.config.js'),
-            `module.exports = ${JSON.stringify({
-                presets: [
-                    ['@babel/preset-env', {
-                        targets: {
-                            node: 18
-                        }
-                    }]
-                ]
-            }, null, 4)}`
-        )
-        console.log(chalk.green(chalk.bold('✔ Success!\n')))
-    }
 }
 
 export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {

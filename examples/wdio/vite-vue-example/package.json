@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
-    "wdio": "../../../packages/wdio-cli/bin/wdio.js run ./wdio.conf.ts"
+    "wdio": "wdio run ./wdio.conf.ts"
   },
   "dependencies": {
     "vue": "^3.4.15"
