@@ -125,7 +125,7 @@ Optionen:
 --cucumberOpts        Cucumber options
 ```
 
-> Hinweis: Die Autokompilierung kann einfach mit den ENV-Variablen der entsprechenden Bibliothek gesteuert werden. Schauen Sie sich dazu die Dokumentation über die automatische Kompilierung von Tests, die auf den Seiten [TypeScript (ts-node)](typeScript) und [Babel (@babel/register)](babel) beschrieben ist.
+> Hinweis: Die Autokompilierung kann einfach mit den ENV-Variablen der entsprechenden Bibliothek gesteuert werden. Schauen Sie sich dazu die Dokumentation über die automatische Kompilierung von Tests, die auf den Seiten [TypeScript (ts-node)](typescript) und [Babel (@babel/register)](babel) beschrieben ist.
 
 ### `wdio install`
 Mit dem Befehl `install` können Sie Reporter und Dienste über die CLI zu Ihren WebdriverIO-Projekten hinzufügen.
