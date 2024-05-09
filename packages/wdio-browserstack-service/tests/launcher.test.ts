@@ -38,6 +38,7 @@ describe('onPrepare', () => {
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+    const logDebugSpy = jest.spyOn(log, 'debug').mockImplementation((string) => string)
     jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     jest.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
@@ -45,7 +46,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher({}, caps, config)
         await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
+        expect(logDebugSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
@@ -56,7 +57,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -71,7 +72,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
