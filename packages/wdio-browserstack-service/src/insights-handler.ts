@@ -16,7 +16,8 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
-    isScreenshotCommand, isUndefined,
+    isScreenshotCommand,
+    isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
 } from './util.js'

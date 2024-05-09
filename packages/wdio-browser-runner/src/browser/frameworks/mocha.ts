@@ -211,24 +211,22 @@ export class MochaFramework extends HTMLElement {
                 }
 
                 // Check for error and convert error class to serializable Object.
-                if (typeof arg === 'object' && 'error' in arg) {
-                    if (arg.error instanceof Error) {
-                        const errorObject = {
-                            // Pull all enumerable properties, supporting properties on custom Errors
-                            ...arg.error,
-                            // Explicitly pull Error's non-enumerable properties
-                            message: arg.error.message,
-                            name: arg.error.name,
-                            stack: arg.error.stack,
-                            type: arg.error.type || arg.error.name,
-                            matcherResult: arg.error.matcherResult,
-                            expected: arg.error.expected,
-                            actual: arg.error.actual
-                        }
-                        return {
-                            ...arg,
-                            error: errorObject
-                        }
+                if (typeof arg === 'object' && 'error' in arg && arg.error instanceof Error) {
+                    const errorObject = {
+                        // Pull all enumerable properties, supporting properties on custom Errors
+                        ...arg.error,
+                        // Explicitly pull Error's non-enumerable properties
+                        message: arg.error.message,
+                        name: arg.error.name,
+                        stack: arg.error.stack,
+                        type: arg.error.type || arg.error.name,
+                        matcherResult: arg.error.matcherResult,
+                        expected: arg.error.expected,
+                        actual: arg.error.actual
+                    }
+                    return {
+                        ...arg,
+                        error: errorObject
                     }
                 }
                 return arg
