@@ -696,7 +696,7 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
     })
 
-    it('should add test on custom hook', () => {
+    it('should not add test on custom hook', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onHookStart({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
@@ -706,9 +706,7 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
         const { results } = getResults(outputDir)
 
-        expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('foo')
-        expect(results[0].steps).toHaveLength(0)
+        expect(results).toHaveLength(0)
     })
 
     it('should not add test if no suite', () => {
@@ -733,7 +731,7 @@ describe('hooks handling disabled Mocha Hooks', () => {
         expect(results).toHaveLength(0)
     })
 
-    it('should capture mocha each hooks', () => {
+    it('should not capture mocha/jasmine each hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
@@ -743,18 +741,15 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].status).toEqual(Status.PASSED)
         expect(results[0].stage).toEqual(Stage.FINISHED)
-        expect(results[0].steps).toHaveLength(1)
-        expect(results[0].steps[0].name).toEqual('"before each" hook')
-        expect(results[0].steps[0].status).toEqual(Status.PASSED)
-        expect(results[0].steps[0].stage).toEqual(Stage.FINISHED)
+        expect(containers[0].befores).toHaveLength(0)
     })
 
-    it('should ignore mocha each hooks if no test', () => {
+    it('should ignore passed mocha/jasmine each hooks if no test', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onHookStart({ cid: '0-0', title: '"after each" hook', parent: 'foo' } as HookStats)
@@ -762,8 +757,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
+        expect(containers[0].afters).toHaveLength(0)
+        expect(containers[0].children).toHaveLength(0)
+        expect(containers[0].befores).toHaveLength(0)
         expect(results).toHaveLength(0)
     })
 
@@ -775,35 +773,38 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onTestPass()
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(results[0].steps).toHaveLength(0)
+        expect(containers).toHaveLength(0)
     })
 
-    it('should ignore mocha hook end if no test', () => {
+    it('should ignore custom onHookEnd if no test', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'foo' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(0)
+        expect(containers[0].befores).toHaveLength(0)
+        expect(containers[0].afters).toHaveLength(0)
     })
 
-    it('should ignore global mocha end hooks', () => {
+    it('should ignore global mocha/jasmine end hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onHookEnd({ cid: '0-0', title: 'foo' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(0)
+        expect(containers[0].befores).toHaveLength(0)
     })
 
     it('should not pop test case if no steps and before hook', () => {
@@ -831,14 +832,17 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
+        expect(containers[0].children).toHaveLength(1)
+        expect(containers[0].befores).toHaveLength(0)
+        expect(containers[0].afters).toHaveLength(0)
         expect(results[0].steps).toHaveLength(0)
     })
 
-    it('should keep passed hooks if there are some steps', () => {
+    it('should keep passed custom hooks if there are some steps', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
@@ -851,14 +855,18 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
-        const testResult = results.find((result) => result.name === 'should can do something')
-        const hookResult = results.find((result) => result.name === 'foo')
+        const testResult = results.find(
+            (result) => result.name === 'should can do something',
+        )
+        const hookResult = results.find((result) =>
+            result.name.endsWith('foo'),
+        )
 
-        expect(results).toHaveLength(2)
+        expect(results).toHaveLength(1)
         expect(testResult).not.toBeUndefined()
         expect(testResult.steps).toHaveLength(1)
         expect(testResult.steps[0].name).toEqual('SomeCommandStep')
-        expect(hookResult).not.toBeUndefined()
+        expect(hookResult).toBeUndefined()
     })
 
     it('should keep failed hooks if there no some steps', () => {
@@ -871,14 +879,16 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
-        const testResult = results.find((result) => result.name === 'should can do something')
-        const hookResult = results.find((result) => result.name === '"after all" hook')
+        const { results, containers } = getResults(outputDir)
+        const testResult = results.find(
+            (result) => result.name === 'should can do something',
+        )
 
-        expect(results).toHaveLength(2)
+        expect(results).toHaveLength(1)
         expect(testResult).not.toBeUndefined()
-        expect(hookResult).not.toBeUndefined()
-        expect(hookResult.status).toEqual(Status.BROKEN)
+        expect(containers).toHaveLength(1)
+        expect(containers[0].afters).toHaveLength(1)
+        expect(containers[0].afters[0].status).toEqual(Status.BROKEN)
     })
 
     it('should keep failed hooks if there are some steps', () => {
@@ -893,19 +903,20 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
-        const testResult = results.find((result) => result.name === 'should can do something')
-        const hookResult = results.find((result) => result.name === '"after all" hook')
+        const { results, containers } = getResults(outputDir)
+        const testResult = results.find(
+            (result) => result.name === 'should can do something',
+        )
 
-        expect(results).toHaveLength(2)
+        expect(results).toHaveLength(1)
         expect(testResult).not.toBeUndefined()
         expect(testResult.steps).toHaveLength(1)
         expect(testResult.steps[0].name).toEqual('SomeCommandStep')
-        expect(hookResult).not.toBeUndefined()
-        expect(hookResult.status).toEqual(Status.BROKEN)
+        expect(containers[0].afters).toHaveLength(1)
+        expect(containers[0].afters[0].status).toEqual(Status.BROKEN)
     })
 
-    it('should capture mocha each hooks end - passed', () => {
+    it('should not capture mocha/jasmine each hooks end - passed', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
@@ -915,47 +926,13 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
+        expect(containers[0].afters).toHaveLength(0)
     })
 
-    it('should capture mocha each hooks end - failed', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
-        reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"before each" hook', parent: 'foo', error: { message: '', stack: '' } })
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-        expect(results[0].steps[0].status).toEqual(Status.FAILED)
-        expect(results[0].steps[0].stage).toEqual(Stage.FINISHED)
-    })
-
-    it('should ignore mocha all hooks if hook passes', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
-        reporter.onHookStart({ title: '"after all" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"after all" hook', parent: 'foo' })
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should treat mocha all hooks as tests if hook throws', () => {
+    it('should create a test and add mocha all hooks as fixtures if hook throws', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })
@@ -963,11 +940,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].status).toEqual(Status.BROKEN)
-        expect(results[0].stage).toEqual(Stage.FINISHED)
+        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].stage).toEqual(Stage.FINISHED)
     })
 })
 
@@ -980,28 +957,37 @@ describe('hooks handling default', () => {
         reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
     })
 
-    it('should capture mocha each hooks ', () => {
+    it('should capture mocha/jasmine each hooks ', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
         reporter.onHookEnd({ title: '"before each" hook', parent: 'foo' })
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('"before each" hook')
+        expect(containers[0].befores).toHaveLength(1)
+        expect(containers[0].befores[0].steps[0].name).toEqual(
+            '"before each" hook',
+        )
     })
 
-    it('should not ignore mocha each hooks if no test', () => {
+    it('should not ignore mocha/jasmine each hooks if no test', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
         reporter.onHookEnd({ title: '"after each" hook', parent: 'foo' })
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('"after each" hook')
+        expect(containers[0].afters[0].steps[0].name).toEqual(
+            '"after each" hook',
+        )
     })
 
     it('should keep passed hooks if there are no steps (before/after)', () => {
@@ -1009,11 +995,15 @@ describe('hooks handling default', () => {
         reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('"before all" hook')
+        expect(containers[0].befores[0].steps[0].name).toEqual(
+            '"before all" hook',
+        )
     })
 
     it('should keep passed hooks if there are some steps', () => {
@@ -1023,11 +1013,17 @@ describe('hooks handling default', () => {
         reporter.onBeforeCommand({ command: 'SomeCommandStep' })
         reporter.onHookStart({ title: 'foo', parent: 'bar' })
         reporter.onHookEnd({ title: 'foo', parent: 'bar' })
+        reporter.onAfterCommand({ command: 'SomeCommandStep' })
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
-        expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('foo')
+        expect(results).toHaveLength(2)
+        expect(
+            results.find((result) => result.name === 'hook:foo'),
+        ).not.toBeUndefined()
     })
 })
 
@@ -1050,7 +1046,9 @@ describe('nested suite naming', () => {
 
         const { containers } = getResults(outputDir)
         const parentSuite = containers.find((suite) => suite.name === 'foo')
-        const childSuite = containers.find((suite) => suite.name === 'foo: bar')
+        const childSuite = containers.find(
+            (suite) => suite.name === 'foo: bar',
+        )
 
         expect(parentSuite).not.toBeUndefined()
         expect(childSuite).not.toBeUndefined()

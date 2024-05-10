@@ -1,3 +1,4 @@
+import type { AllureStep, AllureTest, ExecutableItemWrapper } from 'allure-js-commons'
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
  */
@@ -142,6 +143,8 @@ export interface Attachment {
     end(status: Status, error: Error, timestamp?: number): void;
     toXML(): string;
 }
+
+export type AllureStepableUnit = AllureTest | AllureStep | ExecutableItemWrapper
 
 declare global {
     namespace WebdriverIO {

@@ -10,7 +10,7 @@ import { temporaryDirectory } from 'tempy'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults, mapBy } from './helpers/wdio-allure-helper'
+import { clean, getResults, mapBy } from './helpers/wdio-allure-helper.js'
 
 import AllureReporter from '../src/reporter.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -70,10 +70,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
                 reporter.onRunnerEnd(runnerEnd())
 
-                const { results, attachments, containers } = getResults(outputDir)
+                const { results, containers } = getResults(outputDir)
 
                 expect(results).toHaveLength(1)
-                expect(attachments).toHaveLength(1)
+                expect(
+                    results[0].steps.find(
+                        (step: StepResult) => step.attachments.length,
+                    ).attachments,
+                ).toHaveLength(1)
                 expect(containers).toHaveLength(1)
 
                 allureResult = results[0]
