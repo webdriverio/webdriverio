@@ -1653,7 +1653,8 @@ export interface BrowserStackCapabilities {
     midSessionInstallApps?: Array<string>
     uploadMedia?: Array<string>
     enablePasscode?: boolean
-    deviceLogs?: boolean
+    deviceLogs?: boolean,
+    resignApp?: boolean
 }
 
 export interface SauceLabsVisualCapabilities {
