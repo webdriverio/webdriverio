@@ -5,6 +5,9 @@
   "private": true,
   "scripts": {
     "test:browser": "run-s test:browser:*",
+    "test:browser:isDisplayed": "run-s test:browser:isDisplayed:*",
+    "test:browser:isDisplayed:wdio": "cross-env WDIO_PRESET=isDisplayed node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec isDisplayed.test.ts",
+    "test:browser:isDisplayed:verifyCoverage": "run-s verifyCoverage",
     "test:browser:react": "run-s test:browser:react:*",
     "test:browser:react:wdio": "cross-env WDIO_PRESET=react node ../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec react.test.tsx",
     "test:browser:react:verifyCoverage": "run-s verifyCoverage",
@@ -54,6 +57,7 @@
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
+    "@wdio/static-server-service": "workspace:*",
     "babel-plugin-transform-hook-names": "^1.0.2",
     "cross-env": "^7.0.3",
     "expect": "^29.7.0",

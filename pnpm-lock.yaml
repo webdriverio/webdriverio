@@ -270,6 +270,9 @@ importers:
       '@wdio/spec-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-spec-reporter
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-static-server-service
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.24.5)

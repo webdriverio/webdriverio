@@ -114,25 +114,38 @@ export default function isElementDisplayed (element: Element): boolean {
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
-    function elementHasBoundingBox(element: Element): boolean {
+    function elementSubtreeHasNonZeroDimension({
+        element,
+        dimension,
+    }: {
+        element: Element;
+        dimension: 'x' | 'y';
+    }): boolean {
         const boundingBox = element.getBoundingClientRect()
-        return boundingBox.width > 0 && boundingBox.height > 0
-    }
-
-    function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
-        if (elementHasBoundingBox(element)) {
+        if (boundingBox.width > 0 && boundingBox.height > 0) {
             return true
         }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
-        const boundingBox = element.getBoundingClientRect()
-        if (element.tagName.toUpperCase() === 'PATH' && boundingBox.width + boundingBox.height > 0) {
-            const strokeWidth = cascadedStylePropertyForElement(element, 'stroke-width')
-            return !!strokeWidth && (parseInt(strokeWidth, 10) > 0)
+        if (
+            element.tagName.toUpperCase() === 'PATH' &&
+            (boundingBox.width > 0 || boundingBox.height > 0)
+        ) {
+            const strokeWidth = cascadedStylePropertyForElement(
+                element,
+                'stroke-width'
+            )
+            return !!strokeWidth && Number(strokeWidth) > 0
         }
 
-        const cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
-        if (cascadedOverflow === 'hidden') {
+        const cascadedOverflow = cascadedStylePropertyForElement(
+            element,
+            `overflow-${dimension}`
+        )
+        if (
+            cascadedOverflow === 'hidden' &&
+            (dimension === 'x' ? boundingBox.width : boundingBox.height) === 0
+        ) {
             return false
         }
 
@@ -144,58 +157,16 @@ export default function isElementDisplayed (element: Element): boolean {
             }
 
             if (nodeIsElement(childNode)) {
-                return elementSubtreeHasNonZeroDimensions(childNode)
+                return elementSubtreeHasNonZeroDimension({
+                    element: childNode,
+                    dimension,
+                })
             }
 
             return false
         })
     }
 
-    function elementOverflowsContainer(element: Element) {
-        const cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
-        if (cascadedOverflow !== 'hidden') {
-            return false
-        }
-
-        // FIXME: this needs to take into account the scroll position of the element,
-        // the display modes of it and its ancestors, and the container it overflows.
-        // See Selenium's bot.dom.getOverflowState atom for an exhaustive list of edge cases.
-        return true
-    }
-
-    function isElementSubtreeHiddenByOverflow (element: Element): boolean {
-        if (!element) {
-            return false
-        }
-
-        if (!elementOverflowsContainer(element)) {
-            return false
-        }
-
-        if (!element.childNodes.length) {
-            return false
-        }
-
-        // This element's subtree is hidden by overflow if all child subtrees are as well.
-        return [].every.call(element.childNodes, function (childNode: Element) {
-            // Returns true if the child node is overflowed or otherwise hidden.
-            // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
-            // Visibility of text nodes is controlled by parent
-            if (childNode.nodeType === Node.TEXT_NODE) {
-                return false
-            }
-            if (!nodeIsElement(childNode)) {
-                return true
-            }
-
-            if (!elementSubtreeHasNonZeroDimensions(childNode)) {
-                return true
-            }
-
-            // Recurse.
-            return isElementSubtreeHiddenByOverflow(childNode)
-        })
-    }
     // walk up the tree testing for a shadow root
     function isElementInsideShadowRoot (element: Element): boolean {
         if (!element) {
@@ -256,6 +227,7 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
+    // TODO: return false early if this test fails
     const hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, function (e: Element) {
         return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
     })
@@ -266,11 +238,11 @@ export default function isElementDisplayed (element: Element): boolean {
         return false
     }
 
-    if (!elementSubtreeHasNonZeroDimensions(element)) {
+    if (!elementSubtreeHasNonZeroDimension({ element, dimension: 'x' })) {
         return false
     }
 
-    if (isElementSubtreeHiddenByOverflow(element) && !elementHasBoundingBox(element)) {
+    if (!elementSubtreeHasNonZeroDimension({ element, dimension: 'y' })) {
         return false
     }
 
