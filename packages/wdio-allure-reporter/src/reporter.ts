@@ -393,13 +393,6 @@ export default class AllureReporter extends WDIOReporter {
             const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isPassed || isPartiallySkipped) {
-                const currentTest = this._state.pop() as AllureTest
-                const currentTest = this._state.currentTest as AllureTest
-                
-                currentTest.status = AllureStatus.PASSED
-                currentTest.stage = Stage.FINISHED
-                setHistoryId(currentTest, this._state.currentSuite)
-                setAllureIds(currentTest, this._state.currentSuite)
                 this._endTest(AllureStatus.PASSED)
                 return
             }
