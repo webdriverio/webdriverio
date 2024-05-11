@@ -207,6 +207,10 @@ export default class AllureReporter extends WDIOReporter {
         if (error) {
             currentSpec.detailsMessage = error.message
             currentSpec.detailsTrace = error.stack
+            // if some step or sub step fails the current test will fails.
+            if (this._state.currentTest) {
+                this._state.currentTest.statusDetails = { message: error.message, trace: error.stack }
+            }
         }
 
         if (currentSpec instanceof AllureTest) {
@@ -454,7 +458,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!this._state.currentAllureStepableEntity) {
             this.onTestStart(test)
-        } else {
+        } else  if (this._state.currentAllureStepableEntity instanceof AllureTest){
             this._state.currentAllureStepableEntity.name = test.title
         }
 
@@ -582,6 +586,12 @@ export default class AllureReporter extends WDIOReporter {
                 ) {
                     getHookStatus(hook, currentHookRoot, currentHookRootStep)
                     currentHookRootStep.endStep()
+
+                    if (isBeforeTypeHook(hook.title) && (hook.error || hook.errors?.length)) {
+                        this._startTest(hook.currentTest || hook.title, hook.cid)
+                        this._endTest(AllureStatus.BROKEN, getErrorFromFailedTest(hook))
+                    }
+
                     return
                 }
                 // put them back to the list

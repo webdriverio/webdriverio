@@ -545,10 +545,10 @@ describe('Hook reporting', () => {
         reporter.onRunnerEnd(runnerEnd())
 
         const { results, containers } = getResults(outputDir)
-        expect(results).toHaveLength(1)
+        expect(results).toHaveLength(2)
         expect(containers[0].befores[0].steps).toHaveLength(1)
 
-        expect(results[0].name).toEqual('should can do something')
+        expect(['should can do something', 'My Login application'].includes(results[0].name)).toBeTruthy()
         expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
 
         const hookCase = containers[0].befores[0].steps.find(((tc: any) => tc.name === '"before each" hook'))
