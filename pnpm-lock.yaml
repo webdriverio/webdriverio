@@ -18198,7 +18198,7 @@ snapshots:
   '@wdio/cli@8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)':
     dependencies:
       '@types/node': 20.12.9
-      '@vitest/snapshot': 1.5.0
+      '@vitest/snapshot': 1.6.0
       '@wdio/config': 8.36.1(@promptbook/core@0.48.0)
       '@wdio/globals': 8.36.1(@promptbook/core@0.48.0)(encoding@0.1.13)(typescript@5.4.5)
       '@wdio/logger': 8.28.0
