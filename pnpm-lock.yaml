@@ -745,8 +745,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -826,8 +824,6 @@ importers:
         specifier: ^4.0.1
         version: 4.0.4
 
-  packages/wdio-cucumber-framework/build/cjs: {}
-
   packages/wdio-cucumber-framework/src/cjs: {}
 
   packages/wdio-devtools-service:
@@ -851,8 +847,8 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       devtools-protocol:
-        specifier: ^0.0.1297280
-        version: 0.0.1297280
+        specifier: ^0.0.1299070
+        version: 0.0.1299070
       istanbul-lib-coverage:
         specifier: ^3.2.0
         version: 3.2.2
@@ -963,8 +959,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1187,8 +1181,6 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1401,8 +1393,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1498,8 +1488,6 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -6787,8 +6775,8 @@ packages:
   devtools-protocol@0.0.1282316:
     resolution: {integrity: sha512-i7eIqWdVxeXBY/M+v83yRkOV1sTHnr3XYiC0YNBivLIE6hBfE2H0c2o8VC5ynT44yjy+Ei0kLrBQFK/RUKaAHQ==}
 
-  devtools-protocol@0.0.1297280:
-    resolution: {integrity: sha512-AHOopnHxyQV+Tw2vrvvkhVOl/KP55GDC7WJPIRC5+gNSmv+oOdhYkifVd9MY2kJ9/Dg8r7Ji5PQO1vnqtW2Jvw==}
+  devtools-protocol@0.0.1299070:
+    resolution: {integrity: sha512-+qtL3eX50qsJ7c+qVyagqi7AWMoQCBGNfoyJZMwm/NSXVqLYbuitrWEEIzxfUmTNy7//Xe8yhMmQ+elj3uAqSg==}
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
@@ -19684,7 +19672,7 @@ snapshots:
 
   devtools-protocol@0.0.1282316: {}
 
-  devtools-protocol@0.0.1297280: {}
+  devtools-protocol@0.0.1299070: {}
 
   didyoumean@1.2.2: {}
 
