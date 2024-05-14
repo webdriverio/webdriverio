@@ -27,8 +27,8 @@ export default async function initializePlugin (name: string, type?: string): Pr
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    console.log(123)
     const scopedPlugin = await safeImport(`@wdio/${name.toLowerCase()}-${type}`)
+    console.log(123, scopedPlugin)
     if (scopedPlugin) {
         return scopedPlugin
     }
@@ -37,7 +37,7 @@ export default async function initializePlugin (name: string, type?: string): Pr
      * check for old type of
      */
     const plugin = await safeImport(`wdio-${name.toLowerCase()}-${type}`)
-    console.log(456)
+    console.log(456, plugin)
     if (plugin) {
         return plugin
     }
