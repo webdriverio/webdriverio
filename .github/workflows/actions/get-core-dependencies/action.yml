@@ -20,3 +20,7 @@ runs:
     - name: 🏗️ Install Dependencies
       run: pnpm install
       shell: bash
+
+    - name: 🔧 Git Config
+      run: git config --global core.autocrlf false
+      shell: bash

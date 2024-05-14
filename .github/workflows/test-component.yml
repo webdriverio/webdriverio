@@ -7,7 +7,7 @@ on:
 
 jobs:
   unit_test:
-    name: ${{ matrix.os }}.${{ matrix.node }}
+    name: Component Test (${{ matrix.os }}.${{ matrix.node }})
     strategy:
       fail-fast: false
       matrix:
