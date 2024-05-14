@@ -6,6 +6,7 @@
     "@wdio/cli": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",
+    "@wdio/local-runner": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "webdriver": "workspace:*",
