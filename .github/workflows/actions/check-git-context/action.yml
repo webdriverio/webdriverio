@@ -3,9 +3,6 @@ description: 'checks for a dirty git context, failing if the context is dirty'
 runs:
   using: composite
   steps:
-    - name: Foobar
-      run: git diff
-      shell: bash
     - name: Git status check
       # here we check that there are no changed / new files.
       # we use `git status`, grep out the build zip used throughout CI,
