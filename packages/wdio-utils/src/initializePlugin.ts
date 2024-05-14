@@ -28,7 +28,6 @@ export default async function initializePlugin (name: string, type?: string): Pr
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
     const scopedPlugin = await safeImport(`@wdio/${name.toLowerCase()}-${type}`)
-    console.log(123, scopedPlugin)
     if (scopedPlugin) {
         return scopedPlugin
     }
@@ -37,12 +36,10 @@ export default async function initializePlugin (name: string, type?: string): Pr
      * check for old type of
      */
     const plugin = await safeImport(`wdio-${name.toLowerCase()}-${type}`)
-    console.log(456, plugin)
     if (plugin) {
         return plugin
     }
 
-    console.log(789)
     throw new Error(
         `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package `+
         `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +

@@ -219,22 +219,17 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             try {
                 importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
-                console.log('EHH HIER', err)
-
                 const { join } = await import('node:path')
                 const { pathToFileURL } = await import('node:url')
                 const localNodeModules = join(process.cwd(), 'node_modules')
                 try {
                     importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
                 } catch (err: any) {
-                    console.log('maybe here', err)
-
                     return null
                 }
             }
         }
     } catch (err: any) {
-        console.log('UPS', err)
         return null
     }
 
@@ -257,10 +252,8 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * a nested default is given and return that.
          */
         if (pkg.default && pkg.default.default) {
-            console.log('return default')
             return pkg.default
         }
-        console.log('return pkg')
         return pkg
     } catch (e: any) {
         throw new Error(`Couldn't initialize "${name}".\n${e.stack}`)

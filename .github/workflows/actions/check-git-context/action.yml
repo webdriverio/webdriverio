@@ -7,5 +7,7 @@ runs:
       # here we check that there are no changed / new files.
       # we use `git status`, grep out the build zip used throughout CI,
       # and check if there are more than 0 lines in the output.
-      run: if [[ $(git status --short | grep -c -v webdriverio-build.zip) -ne 0 ]]; then STATUS=$(git status --verbose); printf "%s" "$STATUS"; git diff | cat; exit 1; fi
+      run: |
+        git diff
+        if [[ $(git status --short | grep -c -v webdriverio-build.zip) -ne 0 ]]; then STATUS=$(git status --verbose); printf "%s" "$STATUS"; git diff | cat; exit 1; fi
       shell: bash
