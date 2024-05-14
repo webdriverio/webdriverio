@@ -1,5 +1,5 @@
 const assert = require('node:assert')
-const { remote } = require('../../packages/webdriverio')
+const { remote } = require('webdriverio')
 
 ;(async () => {
     const client = await remote({

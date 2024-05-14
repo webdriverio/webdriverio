@@ -306,8 +306,6 @@ importers:
 
   e2e/browser-runner: {}
 
-  e2e/interop: {}
-
   examples/appium:
     dependencies:
       webdriverio:
@@ -1601,6 +1599,30 @@ importers:
       webdriverio:
         specifier: workspace:*
         version: link:../packages/webdriverio
+
+  tests/interop:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-allure-reporter
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cli
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cucumber-framework
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-reporter
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../packages/wdio-shared-store-service
+      webdriver:
+        specifier: workspace:*
+        version: link:../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
 
   tests/mocha/cjs: {}
 

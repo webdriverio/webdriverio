@@ -1,6 +1,6 @@
 const assert = require('node:assert')
-const AllureReporter = require('../../packages/wdio-allure-reporter')
-const { addFeature } = require('../../packages/wdio-allure-reporter')
+const AllureReporter = require('@wdio/allure-reporter')
+const { addFeature } = require('@wdio/allure-reporter')
 
 console.log('Test Allure Reporter Exports')
 assert.equal(typeof addFeature, 'function')

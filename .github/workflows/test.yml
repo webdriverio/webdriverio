@@ -31,6 +31,11 @@ jobs:
     needs: [build_core]
     uses: ./.github/workflows/test-typings.yml
 
+  interop_tests:
+    name: Typing Tests
+    needs: [build_core]
+    uses: ./.github/workflows/test-interop.yml
+
   unit_tests:
     name: Unit Tests
     needs: [build_core]
@@ -45,6 +50,7 @@ jobs:
     name: Component Tests
     needs: [unit_tests]
     uses: ./.github/workflows/test-component.yml
+
 # permissions:
 #   contents: read # to fetch code (actions/checkout)
 

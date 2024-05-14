@@ -1,6 +1,6 @@
 const assert = require('node:assert')
-const WebDriver = require('../../packages/webdriver')
-const command = require('../../packages/webdriver').command
+const WebDriver = require('webdriver')
+const command = require('webdriver').command
 
 assert.equal(typeof WebDriver.command, 'function')
 assert.equal(typeof command, 'function')

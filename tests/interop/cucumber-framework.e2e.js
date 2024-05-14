@@ -1,6 +1,6 @@
 const assert = require('node:assert')
-const FrameworkAdapter = require('../../packages/wdio-cucumber-framework')
-const { Given, When, Then } = require('../../packages/wdio-cucumber-framework')
+const FrameworkAdapter = require('@wdio/cucumber-framework')
+const { Given, When, Then } = require('@wdio/cucumber-framework')
 
 console.log('Test FrameworkAdapter.init')
 assert.equal(typeof FrameworkAdapter.init, 'function')
