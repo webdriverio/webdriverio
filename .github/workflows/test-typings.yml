@@ -7,7 +7,6 @@ on:
 
 jobs:
   check:
-    name: Static Code Analysis
     runs-on: 'ubuntu-latest'
     steps:
       - name: Checkout Code

@@ -49,6 +49,6 @@ class BrowserSocket {
 /**
  * make sure to use the correct WebSocket implementation based on the environment
  */
-export default globalThis.WebSocket
+export default globalThis.window
     ? BrowserSocket
     : (await import('ws')).default

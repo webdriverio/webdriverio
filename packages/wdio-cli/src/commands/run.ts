@@ -187,7 +187,7 @@ enum NodeVersion {
     'patch' = 2
 }
 
-function nodeVersion(type: keyof typeof NodeVersion): number {
+export function nodeVersion(type: keyof typeof NodeVersion): number {
     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
 }
 

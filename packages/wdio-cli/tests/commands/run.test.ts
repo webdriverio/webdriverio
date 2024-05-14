@@ -119,8 +119,14 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
+            const moduleLoaderFlag = (
+                (runCmd.nodeVersion('major') >= 20 && runCmd.nodeVersion('minor') >= 6) ||
+                (runCmd.nodeVersion('major') === 18 && runCmd.nodeVersion('minor') >= 19)
+            )
+                ? '--import'
+                : '--loader'
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx')
+                .toContain(moduleLoaderFlag)
         })
 
         it('should use the import flag for tsx for Node >= 20.6.0', async () => {
