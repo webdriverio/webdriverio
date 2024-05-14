@@ -219,12 +219,16 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             try {
                 importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
+                console.log('EHH HIER', err)
+
                 const { join } = await import('node:path')
                 const { pathToFileURL } = await import('node:url')
                 const localNodeModules = join(process.cwd(), 'node_modules')
                 try {
                     importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
                 } catch (err: any) {
+                    console.log('maybe here', err)
+
                     return null
                 }
             }

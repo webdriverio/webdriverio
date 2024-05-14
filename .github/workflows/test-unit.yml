@@ -6,7 +6,7 @@ on:
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows
 
 jobs:
-  unit_test:
+  check:
     name: Unit Test (${{ matrix.os }}.${{ matrix.node }})
     strategy:
       fail-fast: false
