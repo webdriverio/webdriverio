@@ -253,8 +253,10 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * a nested default is given and return that.
          */
         if (pkg.default && pkg.default.default) {
+            console.log('return default')
             return pkg.default
         }
+        console.log('return pkg')
         return pkg
     } catch (e: any) {
         throw new Error(`Couldn't initialize "${name}".\n${e.stack}`)
