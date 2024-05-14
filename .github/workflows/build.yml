@@ -26,4 +26,4 @@ jobs:
         with:
           name: webdriverio
           output: webdriverio-build.zip
-          paths: packages/*/build
+          paths: packages/*/build packages/*/cjs
