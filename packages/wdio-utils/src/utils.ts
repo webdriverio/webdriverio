@@ -230,6 +230,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             }
         }
     } catch (err: any) {
+        console.log('UPS', err)
         return null
     }
 
