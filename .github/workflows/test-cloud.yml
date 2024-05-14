@@ -1,4 +1,4 @@
-name: CJS Interoperability Tests
+name: Cloud Connection Tests
 
 on:
   workflow_call:
@@ -7,8 +7,9 @@ on:
 
 jobs:
   check:
-    name: CJS Interoperability Tests
+    name: Cloud Connection Tests
     runs-on: 'ubuntu-latest'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout Code
         uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
@@ -23,15 +24,16 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      - name: Typing Tests
-        run: |
-          pnpm install
-          ls -la ./packages/wdio-local-runner
-          ls -la ./tests/interop/node_modules
-          ls -la ./tests/interop/node_modules/@wdio
-          ls -la ./tests/interop/node_modules/@wdio/local-runner
-          pnpm run test:interop
-        shell: bash
+      - name: E2E Connection Test
+        run: pnpm run test:e2e:cloud
+        env:
+          SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
+          SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
+      - name: E2E Connection Test w/ Params
+        run: pnpm run test:e2e:cloud --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        env:
+          SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
+          SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
 
       - name: Check Git Context
         uses: ./.github/workflows/actions/check-git-context

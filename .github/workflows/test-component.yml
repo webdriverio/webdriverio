@@ -40,3 +40,9 @@ jobs:
 
       - name: Check Git Context
         uses: ./.github/workflows/actions/check-git-context
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: component-tests-${{ matrix.os }}-logs
+          path: e2e/browser-runner/logs

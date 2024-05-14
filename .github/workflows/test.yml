@@ -51,6 +51,15 @@ jobs:
     needs: [typing_tests, interop_tests, unit_tests]
     uses: ./.github/workflows/test-component.yml
 
+  launch_tests:
+    name: Launch Tests
+    needs: [smoke_tests, component_tests]
+    uses: ./.github/workflows/test-launch.yml
+
+  cloud_tests:
+    name: Cloud Tests
+    needs: [smoke_tests, component_tests]
+    uses: ./.github/workflows/test-cloud.yml
 # permissions:
 #   contents: read # to fetch code (actions/checkout)
 
