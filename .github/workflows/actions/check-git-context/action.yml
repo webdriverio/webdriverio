@@ -9,5 +9,6 @@ runs:
       # and check if there are more than 0 lines in the output.
       run: |
         git diff
+        echo "Checking for dirty git context..."
         if [[ $(git status --short | grep -c -v webdriverio-build.zip) -ne 0 ]]; then STATUS=$(git status --verbose); printf "%s" "$STATUS"; git diff | cat; exit 1; fi
       shell: bash

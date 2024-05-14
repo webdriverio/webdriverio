@@ -48,5 +48,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: component-tests-${{ matrix.os }}-logs
+          name: component-tests-${{ matrix.os }}-${{ matrix.node }}-logs
           path: e2e/browser-runner/logs
