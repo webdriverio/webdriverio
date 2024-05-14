@@ -23,13 +23,8 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      - name: Typing Tests
+      - name: CJS Interoperability Tests
         run: |
-          pnpm install
-          ls -la ./packages/wdio-local-runner
-          ls -la ./tests/interop/node_modules
-          ls -la ./tests/interop/node_modules/@wdio
-          ls -la ./tests/interop/node_modules/@wdio/local-runner
           pnpm run link
           pnpm run test:interop
         shell: bash

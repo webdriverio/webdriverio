@@ -34,7 +34,11 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      - name: Smoke Tests
+      - name: Link Packages
+        run: pnpm run link
+        shell: bash
+
+      - name: Component Tests
         run: pnpm run test:component
         shell: bash
 
