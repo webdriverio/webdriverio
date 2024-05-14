@@ -7,11 +7,10 @@ on:
 
 jobs:
   check:
-    name: E2E Launch Test (${{ matrix.os }}.${{ matrix.node }})
+    name: E2E Launch Test (${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        node: ['18', '20', '22']
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
     runs-on: ${{ matrix.os }}
     steps:
@@ -21,10 +20,10 @@ jobs:
       - name: Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
 
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: ${{ matrix.node }}
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Download Build Archive
