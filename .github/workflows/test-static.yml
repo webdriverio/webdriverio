@@ -19,10 +19,13 @@ jobs:
 
       - name: Dependency Check
         run: pnpm run test:depcheck
+        shell: bash
 
       - name: Eslint
         run: pnpm run test:eslint
+        shell: bash
 
       - name: EJS Lint
         run: pnpm run test:ejslint
+        shell: bash
 

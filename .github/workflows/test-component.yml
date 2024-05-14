@@ -36,6 +36,7 @@ jobs:
 
       - name: Smoke Tests
         run: pnpm run test:component
+        shell: bash
 
       - name: Check Git Context
         uses: ./.github/workflows/actions/check-git-context

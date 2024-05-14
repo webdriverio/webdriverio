@@ -36,6 +36,7 @@ jobs:
 
       - name: Unit Tests
         run: pnpm run test:unit:run
+        shell: bash
 
       - name: Check Git Context
         uses: ./.github/workflows/actions/check-git-context

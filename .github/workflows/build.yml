@@ -17,6 +17,7 @@ jobs:
 
       - name: 👷 Bootstrap Packages
         run: pnpm run setup
+        shell: bash
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
