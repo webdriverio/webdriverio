@@ -7,7 +7,7 @@ exports[`getTemplate > renders template correctly 1`] = `
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            
+
             <script type="module">
                 const alias = {}
                 window.__wdioMockCache__ = new Map()
@@ -139,7 +139,7 @@ exports[`getTemplate > renders template correctly 1`] = `
                     margin: 0;
                 }
             </style>
-            
+
             <script type="module">
                 some code
                 window.Vue = Vue

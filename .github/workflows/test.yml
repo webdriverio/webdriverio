@@ -23,16 +23,16 @@ jobs:
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
-    name: Static Code Analysis
+    name: Build
     uses: ./.github/workflows/test-static.yml
 
   typing_tests:
-    name: Typing Tests
+    name: Unit Tests
     needs: [build_core]
     uses: ./.github/workflows/test-typings.yml
 
   interop_tests:
-    name: Typing Tests
+    name: Unit Tests
     needs: [build_core]
     uses: ./.github/workflows/test-interop.yml
 
@@ -42,12 +42,12 @@ jobs:
     uses: ./.github/workflows/test-unit.yml
 
   smoke_tests:
-    name: Smoke Tests
+    name: Integration Tests
     needs: [unit_tests]
     uses: ./.github/workflows/test-smoke.yml
 
   component_tests:
-    name: Component Tests
+    name: Integration Tests
     needs: [unit_tests]
     uses: ./.github/workflows/test-component.yml
 
