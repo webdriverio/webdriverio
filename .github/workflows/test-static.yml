@@ -26,5 +26,3 @@ jobs:
       - name: EJS Lint
         run: pnpm run test:ejslint
 
-      - name: Typing Checks
-        run: pnpm run test:typings

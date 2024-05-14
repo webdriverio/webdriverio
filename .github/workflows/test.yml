@@ -26,9 +26,14 @@ jobs:
     name: Static Code Analysis
     uses: ./.github/workflows/test-static.yml
 
+  typing_tests:
+    name: Typing Tests
+    needs: [build_core]
+    uses: ./.github/workflows/test-typings.yml
+
   unit_tests:
     name: Unit Tests
-    needs: [static_code_analysis]
+    needs: [build_core]
     uses: ./.github/workflows/test-unit.yml
 
   smoke_tests:
