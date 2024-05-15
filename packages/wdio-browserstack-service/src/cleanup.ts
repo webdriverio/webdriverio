@@ -34,7 +34,8 @@ export default class BStackCleanup {
         }
         BStackLogger.debug('Executing observability cleanup')
         try {
-            const result = await stopBuildUpstream()
+            const killSignal = funnelData.event_properties.finishedMetadata ? funnelData.event_properties.finishedMetadata.signal : null
+            const result = await stopBuildUpstream(killSignal)
             if (process.env[TESTOPS_BUILD_ID_ENV]) {
                 BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
