@@ -52,27 +52,27 @@ jobs:
     uses: ./.github/workflows/test-component.yml
 
   launch_tests:
-    name: Launch Tests
+    name: E2E Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-launch.yml
 
   cloud_tests:
-    name: Cloud Tests
+    name: E2E Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
   testrunner_tests:
-    name: Launch Tests
+    name: E2E Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-testrunner.yml
 
   multiremote_tests:
-    name: Launch Tests
+    name: E2E Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-multiremote.yml
 
   standalone_tests:
-    name: Launch Tests
+    name: E2E Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-standalone.yml

@@ -6,7 +6,7 @@ on:
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows
 
 jobs:
-  check:
+  multiremote_check:
     name: Testrunner Multiremote Tests (${{ matrix.os }})
     strategy:
       fail-fast: false

@@ -6,7 +6,7 @@ on:
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows
 
 jobs:
-  check:
+  launch_check:
     name: E2E Launch Test (${{ matrix.os }}
     strategy:
       fail-fast: false
