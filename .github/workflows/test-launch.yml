@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-13']
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -36,9 +36,6 @@ jobs:
       - name: Link Packages
         run: pnpm run link
         shell: bash
-
-      - name: Install Edge
-        uses: browser-actions/setup-edge@v1
 
       - name: E2E Launch Tests
         run: pnpm run test:e2e:webdriver

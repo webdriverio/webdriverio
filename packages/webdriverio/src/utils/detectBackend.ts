@@ -121,8 +121,6 @@ export default function detectBackend(options: BackendConfigurations = {}) {
          */
         !hostname
     ) {
-        console.log('Hello', user)
-
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
             'known cloud service (Sauce Labs, Browerstack, Testingbot or Lambdatest). ' +
