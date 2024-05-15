@@ -1,8 +1,9 @@
+import path from 'node:path'
 import assert from 'node:assert'
 import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
-    const testJs = 'tests/mocha/test.ts'
+    const testJs = path.join('tests', 'mocha', 'test.ts')
 
     it('has globals set up', async () => {
         expect(1).toBe(1) // has non wdio matcher support

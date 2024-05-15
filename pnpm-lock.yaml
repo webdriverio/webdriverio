@@ -306,8 +306,6 @@ importers:
 
   e2e/browser-runner: {}
 
-  e2e/interop: {}
-
   examples/appium:
     dependencies:
       webdriverio:
@@ -745,6 +743,8 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
+  packages/wdio-cli/build/cjs: {}
+
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -823,6 +823,8 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
+
+  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -959,6 +961,8 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
+
+  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1181,6 +1185,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
+  packages/wdio-shared-store-service/build/cjs: {}
+
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1314,8 +1320,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
       edgedriver:
-        specifier: ^5.3.10
-        version: 5.3.10
+        specifier: ^5.5.0
+        version: 5.5.0
       geckodriver:
         specifier: ^4.3.3
         version: 4.3.3
@@ -1392,6 +1398,8 @@ importers:
       ws:
         specifier: ^8.8.0
         version: 8.16.0
+
+  packages/webdriver/build/cjs: {}
 
   packages/webdriver/src/cjs: {}
 
@@ -1488,6 +1496,8 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
+
+  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -1589,6 +1599,33 @@ importers:
       webdriverio:
         specifier: workspace:*
         version: link:../packages/webdriverio
+
+  tests/interop:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-allure-reporter
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cli
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cucumber-framework
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../../packages/wdio-local-runner
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-reporter
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../packages/wdio-shared-store-service
+      webdriver:
+        specifier: workspace:*
+        version: link:../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
 
   tests/mocha/cjs: {}
 
@@ -6949,8 +6986,8 @@ packages:
     resolution: {integrity: sha512-sB7vSrDnFa4ezWQk9nZ/n0FdpdUuC6R1EOrlU3DL+bovcNFK28rqu2emmAUjujYEJTWIgQGqgVVWUZXMnc8iWg==}
     engines: {node: '>=14.0.0'}
 
-  edgedriver@5.3.10:
-    resolution: {integrity: sha512-RFSHYMNtcF1PjaGZCA2rdQQ8hSTLPZgcYgeY1V6dC+tR4NhZXwFAku+8hCbRYh7ZlwKKrTbVu9FwknjFddIuuw==}
+  edgedriver@5.5.0:
+    resolution: {integrity: sha512-qQIjDQ62cbDcoZ8AcN6PxQekOwGDZcTkdZj5qr6Ew1i4mMi3R0d1Y6DKlyUnkBs5GXUYua5wKB0XHMLj6FAChQ==}
     hasBin: true
 
   editorconfig@1.0.4:
@@ -12386,6 +12423,9 @@ packages:
 
   unzipper@0.11.5:
     resolution: {integrity: sha512-lpWMMTvoTTETidcvqsHL/OSdX8fy4/nAe1vOa/WESbscApEamd1gvzn2XteNYvAnTGous8BlCkWxxyv3moxfCA==}
+
+  unzipper@0.11.6:
+    resolution: {integrity: sha512-anERl79akvqLbAxfjIFe4hK0wsi0fH4uGLwNEl4QEnG+KKs3QQeApYgOS/f6vH2EdACUlZg35psmd/3xL2duFQ==}
 
   upath@1.2.0:
     resolution: {integrity: sha512-aZwGpamFO61g3OlfT7OQCHqhGnW43ieH9WZeP7QxN/G/jS4jfqUkZxoryvJgVPEcrl5NL/ggHsSmLMHuH64Lhg==}
@@ -18280,7 +18320,7 @@ snapshots:
       '@wdio/types': 8.36.1
       decamelize: 6.0.0
       deepmerge-ts: 5.1.0
-      edgedriver: 5.3.10
+      edgedriver: 5.5.0
       geckodriver: 4.3.3
       get-port: 7.1.0
       import-meta-resolve: 4.0.0
@@ -20174,13 +20214,13 @@ snapshots:
       '@types/which': 2.0.2
       which: 2.0.2
 
-  edgedriver@5.3.10:
+  edgedriver@5.5.0:
     dependencies:
       '@wdio/logger': 8.28.0
       decamelize: 6.0.0
       edge-paths: 3.0.5
       node-fetch: 3.3.2
-      unzipper: 0.10.14
+      unzipper: 0.11.6
       which: 4.0.0
 
   editorconfig@1.0.4:
@@ -26908,6 +26948,14 @@ snapshots:
       setimmediate: 1.0.5
 
   unzipper@0.11.5:
+    dependencies:
+      big-integer: 1.6.52
+      bluebird: 3.4.7
+      duplexer2: 0.1.4
+      fstream: 1.0.12
+      graceful-fs: 4.2.11
+
+  unzipper@0.11.6:
     dependencies:
       big-integer: 1.6.52
       bluebird: 3.4.7

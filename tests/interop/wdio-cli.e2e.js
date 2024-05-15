@@ -1,5 +1,5 @@
 const assert = require('node:assert')
-const { Launcher, run } = require('../../packages/wdio-cli')
+const { Launcher, run } = require('@wdio/cli')
 
 console.log('Test @wdio/cli exports')
 assert.equal(typeof Launcher, 'function')
