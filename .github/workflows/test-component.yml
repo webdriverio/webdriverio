@@ -40,6 +40,9 @@ jobs:
 
       - name: Component Tests
         run: pnpm run test:component
+        # component testing on Windows is currently broken
+        # https://github.com/webdriverio/webdriverio/actions/runs/9075112951/job/24935302330#step:7:30
+        if: matrix.os != 'windows-latest'
         shell: bash
 
       - name: Check Git Context
