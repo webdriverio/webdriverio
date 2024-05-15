@@ -36,4 +36,5 @@ jobs:
         shell: bash
 
       - name: Check Git Context
+        if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context

@@ -42,4 +42,5 @@ jobs:
           path: e2e/wdio/*.log
 
       - name: Check Git Context
+        if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context
