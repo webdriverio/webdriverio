@@ -60,6 +60,8 @@ jobs:
     name: Cloud Tests
     needs: [smoke_tests, component_tests]
     uses: ./.github/workflows/test-cloud.yml
+    secrets: inherit
+
 # permissions:
 #   contents: read # to fetch code (actions/checkout)
 
