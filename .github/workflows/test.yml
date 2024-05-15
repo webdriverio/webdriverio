@@ -43,12 +43,12 @@ jobs:
 
   smoke_tests:
     name: Smoke Tests
-    needs: [typing_tests, interop_tests, unit_tests]
+    needs: [build_core, static_code_analysis]
     uses: ./.github/workflows/test-smoke.yml
 
   component_tests:
     name: Component Tests
-    needs: [typing_tests, interop_tests, unit_tests]
+    needs: [build_core, static_code_analysis]
     uses: ./.github/workflows/test-component.yml
 
   launch_tests:
